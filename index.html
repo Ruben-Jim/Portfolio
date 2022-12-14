@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset = charset="iso-8859-1">
+    <meta name="description" content="This Ruben's professional portfolio">
+    <title>Ruben's Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" media="screen and (max-width:800px)" href="tablet.css">
+    <link rel="stylesheet" media="screen and (max-width:530px)" href="phone.css">
+
+  </head>
+  <body>
+    <nav class="navbar">
+        <ul>
+          <li><a href="#home">Home</a><li>
+          <li><a href="#about">About Me</a><li>
+          <li><a href="#portfolio">Portfolio</a><li>
+          <li><a href="#services">Services</a><li>
+          <li><a href="#contact">Contact Me</a><li>
+        </ul>
+      </nav>
+
+      <section id="home">
+        <div class="main">
+          <h1 class="headings">I AM <br> RUBEN JIMENEZ</h1>
+          <form action="https://www.linkedin.com/in/rubenjimenezavila/">
+            <button class="home-btn" url="www.linkedin.com">
+              Hire me
+            </button>
+          </form>
+        </div>
+      </section>
+
+    <section id="about">
+      
+      <div id="pic">
+        <img src="Images/Profile.JPG" alt="">
+        <div id="intro">
+          <h2>RUBEN JIMENEZ</h2>
+          <P>Hello, I am currently an undergraduate student at Clovis Community College working
+            towards an Associates degree in Engineering Computer Software. Outside of school I
+            like to develop technical skills in fullstack development and cross platform
+            applications. On my free time I like to workout, play sports mainly futbol, and play
+            oculus. 
+          </P>
+          <a href="Resume.html">
+            <button class="resume-btn">Resume</button>
+          </a>
+        </div>
+      </div>
+
+    </section>
+
+    <section id="portfolio">
+      <h1 class="headings">PORTFOLIO</h1>
+    <div class="gallery">
+      <img src="Images/Jur.png">
+      <img src="Images/Animation.png" alt="">    
+
+
+      </div>
+    </section>
+
+    <section id="services">
+      <h1 class="headings">SERVICES</h1>
+      <div class="row">
+          <div class="box">
+              <img src="Images/desktop-computer.png" alt="";>
+              <a href="websiteDesign.html">
+                <button class="service-btn">Website Design</button>
+              </a>
+          </div>
+          <div class="box">
+            <img src="Images/working.png" alt="";>
+            <a href="websiteDesign.html">
+            <button class="service-btn">IOS Developer</button>
+            </a>
+          </div>
+          <div class="box">
+            <img src="Images/setting.png" alt="";>
+            <a href="websiteDesign.html">
+            <button class="service-btn">Unity Developer</button>
+            </a>
+          </div>
+          <div class="box">
+            <img src="Images/online.png" alt="";>
+            <a href="websiteDesign.html">
+            <button class="service-btn">OBS Streamer</button>
+            </a>
+          </div>
+      </div>
+  </section>
+  <section id="contact">
+    <h1 class="headings">CONTACT</h1>
+    <form action="https://api.web3forms.com/submit" method="POST" class="form">
+        <input type="hidden" name="access_key" value="5121fe2c-cccf-42e7-802b-d3b7e7be5f45">
+        <input type="text" name="name" class="input" placeholder="Enter Your Name" required>
+        <input type="email" name="email" class="input" placeholder="Enter Your Email" required>
+        <textarea name="msg" id="msg" cols="30" rows="10" placeholder="Enter Your Message" required></textarea>
+        <input type="hidden" name="redirect" value="https://web3forms.com/success">
+        <input type="submit" value="SEND" id="send">
+    </form>
+</section>
+
+
+
+
+  </body>
+</html>
