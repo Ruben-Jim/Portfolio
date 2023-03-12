@@ -193,9 +193,10 @@ html{
   overflow: hidden;
   box-shadow: 5px 10px 20px rgba(150, 150, 150, 0.3);
   transition: all 0.3s ease-out;
+  
 }
 
-.icon:hover {
+.icon:hover  {
   width: 400px;
   cursor: pointer;
   display: flex;
@@ -205,12 +206,13 @@ html{
 
 }
 
-.icon:hover i{
+.icon:hover  i{
   color: #fff;
 }
 
 .icon .fa-facebook-f {
   color: #1A6ED8;
+  
 }
 
 .fb:hover {
