@@ -156,17 +156,12 @@ html{
   font-weight: bold;
 }
 
-/* Portfolio Section */
+/* Socials Section */
 
-#social {
-  float: left;
-  margin-top: 10px;
-}
 
-#portfolio{
-  float: right;
+#socials {
   width: 100%;
-  height: 100vh;
+  height: 45vh;
   flex-direction: column;
   background-color: rgb(92, 92, 92);
   color: white;
@@ -175,9 +170,16 @@ html{
   justify-content: center;
 }
 
-#portfolio h1 {
-  float: center;
+#social-icon {
+  display: flex;
+  justify-content: center;
+  
 }
+
+#social-icon a {
+  text-decoration: none;
+}
+
 
 .icon {
   width: 100px;
@@ -260,25 +262,25 @@ html{
   padding: 20px;
 }
 .row{
- display: flex;
- justify-content: space-around;
- flex-wrap: wrap;
- box-sizing: border-box;
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  box-sizing: border-box;
 }
 .box{
- display: flex;
- flex-direction: column;
- width: 350px;
+  display: flex;
+  flex-direction: column;
+  width: 350px;
   height: 450px;
   border: 1px currentColor black;
- margin: 10px;
+  margin: 10px;
   align-items: center;
- text-align: justify;
+  text-align: justify;
   padding: 10px;
   border-radius: 15px;
- background: linear-gradient(to top, rgb(92, 92, 92) 50%, white 50%);
- background-size: 100% 200%;
- transition: all .8s;
+  background: linear-gradient(to top, rgb(92, 92, 92) 50%, white 50%);
+  background-size: 100% 200%;
+  transition: all .8s;
 }
 .box:hover{
   background-position: left bottom;
