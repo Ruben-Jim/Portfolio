@@ -7,6 +7,10 @@
     box-sizing: border-box;
 }
 
+a {
+    color: inherit;
+}
+
 .cards-wrapper{
     display: grid;
     justify-content: center;
@@ -53,3 +57,7 @@
     line-height: 1.5em;
     transition: all, var(--transition-time);
   }
+
+
+
+
