@@ -104,7 +104,7 @@ a {
   }
   
   .card:before {
-    background: #ddd;
+    background: black;
     width: 250%;
     height: 250%;
   }
