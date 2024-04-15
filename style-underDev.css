@@ -77,7 +77,7 @@ a {
 
 .card:hover .tags .tags {
     background: var(--color);
-    color: white;
+    color: black;
 }
 
 .card .date {
