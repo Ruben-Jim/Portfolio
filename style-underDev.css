@@ -44,6 +44,23 @@ a {
     text-decoration: none;
 }
 
+.card:hover {
+    transform: rotate(0);
+}
+
+.card h1 {
+    margin: 0;
+    font-size: 1.5em;
+    line-height: 1.2em;
+}
+
+.card p {
+    font-size: 0.75.em;
+    font-family: 'Open Sans';
+    margin-top: 0.5em;
+    line-height: 2em;
+}
+
 .card .tags {
     display: flex;
 }
@@ -56,7 +73,23 @@ a {
     margin-right: 0.5em;
     line-height: 1.5em;
     transition: all, var(--transition-time);
-  }
+}
+
+.card:hover .tags .tags {
+    background: var(--color);
+    color: white;
+}
+
+.card .date {
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 0.75em;
+    padding: 1em;
+    line-height: 1em;
+    opacity: .8;
+}
+
 
 
 
