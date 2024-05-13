@@ -363,7 +363,7 @@ html{
 
 .color-container {
   border-color: rgb(163, 163, 163);
-  background: background: rgb(92, 92, 92);
+  background: rgb(92, 92, 92);
 }
 
 .project-img {
@@ -387,10 +387,10 @@ html{
 #contact{
   display: flex;
   flex-direction: column;
-   box-sizing: border-box;
-   background-color: rgba(0, 0, 0, 0.9);
-   color: white;
-   padding: 20px;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 20px;
 }
 .form{
   display: flex;
