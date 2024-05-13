@@ -92,15 +92,15 @@ html{
 .btn{
   padding: 10px 35px;
   background-color: transparent;
-  border: 1px solid white;
-  color: white;
+  border: 1px solid black;
+  color: black;
   outline: none;
   transition: .6s ease;
 }
 .btn:hover{
   cursor: pointer;
-  background-color: white;
-  color: black;
+  background-color: black;
+  color: white;
   box-shadow: black;
   font-weight: bold;
 }
@@ -302,6 +302,85 @@ html{
   margin: 40px 0px;
   border: none;
   background: transparent;
+}
+
+/* Project Section*/
+#projects {
+  padding-top: 2rem;
+  display: relative;  
+  background-color: white;
+
+}
+
+.section_text_p1 {
+  text-align: center;
+}
+
+.title {
+  font-size: 3rem;
+  text-align: center;
+}
+
+.experience-details-container {
+  display: flex;
+  justify-content: center;  
+  flex-direction: column;
+  padding: 1.5rem;
+  
+  
+  
+}
+
+.about-containers {
+  gap: 3rem;
+  margin-bottom: 2rem;
+  margin-top: 2rem;
+}
+
+.details-container {
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+
+  border-radius: 2rem;
+  border: rgb(53, 53, 53) 0.1rem solid;
+  border-color: rgb(163, 163, 163);
+  text-align: center;
+  
+  
+  
+}
+
+.article-container {
+  display: flex;
+  text-align: initial;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 5rem;
+  justify-content: space-around;
+}
+
+
+
+.color-container {
+  border-color: rgb(163, 163, 163);
+  background: background: rgb(92, 92, 92);
+}
+
+.project-img {
+  border-radius: 2rem;
+  width: 45%;
+  height: 45%;
+}
+
+.project-title {
+  
+  margin: 1rem;
+  color: black;
+}
+
+.project-btn {
+  color: black;
+  border-color: black;
 }
 
 /* Contact Section */
