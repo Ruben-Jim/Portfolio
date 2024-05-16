@@ -309,7 +309,6 @@ html{
   padding-top: 2rem;
   display: relative;  
   background-color: white;
-
 }
 
 .section_text_p1 {
@@ -326,9 +325,6 @@ html{
   justify-content: center;  
   flex-direction: column;
   padding: 1.5rem;
-  
-  
-  
 }
 
 .about-containers {
@@ -344,10 +340,7 @@ html{
   border-radius: 2rem;
   border: rgb(53, 53, 53) 0.1rem solid;
   border-color: rgb(163, 163, 163);
-  text-align: center;
-  
-  
-  
+  text-align: center;  
 }
 
 .article-container {
@@ -373,9 +366,14 @@ html{
 }
 
 .project-title {
-  
-  margin: 1rem;
+  background-color: lightgray;
+  margin: auto;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
   color: black;
+  border-radius: 2rem;
+  width: 35%;
+  
 }
 
 .project-btn {
