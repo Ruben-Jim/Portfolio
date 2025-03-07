@@ -40,4 +40,4 @@ jobs:
       - name: github-pages
         #id: deployment
         uses: actions/deploy-pages@v4
-        path: ./C:\Users\ruben\Portfolio\index.html
+        path: ../index.html
