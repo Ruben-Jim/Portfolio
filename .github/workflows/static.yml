@@ -25,7 +25,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.https://ruben-jim.github.io/Portfolio/ }}
+      url: ${{ steps.deployment.outputs.'https://ruben-jim.github.io/Portfolio/' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -38,6 +38,6 @@ jobs:
         with:
           # Upload entire repository
           path: '.'
-      - name: github-pages
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
