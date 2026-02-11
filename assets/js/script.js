@@ -13,7 +13,20 @@ const sidebarBtn = document.querySelector("[data-sidebar-btn]");
 // sidebar toggle functionality for mobile
 sidebarBtn.addEventListener("click", function () { elementToggleFunc(sidebar); });
 
-
+// navbar (hamburger) – one per article; each toggle opens its own menu
+document.querySelectorAll("[data-navbar-btn]").forEach(function (btn) {
+  var nav = btn.closest("[data-navbar]");
+  if (nav) {
+    btn.addEventListener("click", function () { nav.classList.toggle("open"); });
+  }
+});
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    document.querySelectorAll("[data-navbar]").forEach(function (nav) {
+      nav.classList.remove("open");
+    });
+  }
+});
 
 // testimonials variables
 const testimonialsItem = document.querySelectorAll("[data-testimonials-item]");
@@ -2305,33 +2318,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // page navigation variables
 const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
-const navbar = document.querySelector(".navbar");
-const navToggle = document.querySelector("[data-nav-toggle]");
-const navOverlay = document.querySelector("[data-nav-overlay]");
-
-function closeNavbar() {
-  if (navbar) navbar.classList.remove("open");
-}
-
-function openNavbar() {
-  if (navbar) navbar.classList.add("open");
-}
-
-function toggleNavbar() {
-  if (navbar) navbar.classList.toggle("open");
-}
-
-if (navToggle) {
-  navToggle.addEventListener("click", toggleNavbar);
-}
-if (navOverlay) {
-  navOverlay.addEventListener("click", closeNavbar);
-}
-window.addEventListener("keydown", function (e) {
-  if (e.key === "Escape" && navbar && navbar.classList.contains("open")) {
-    closeNavbar();
-  }
-});
 
 // Function to switch to a specific page
 function switchToPage(pageName, skipSave = false) {
@@ -2362,7 +2348,6 @@ function switchToPage(pageName, skipSave = false) {
         }
         if (navPageName === pageName) {
           navigationLinks[j].classList.add("active");
-          break;
         }
       }
       
@@ -2371,11 +2356,6 @@ function switchToPage(pageName, skipSave = false) {
         localStorage.setItem('activePage', pageName);
       }
 
-      // Update URL hash for deep linking support
-      if (!skipSave) {
-        window.location.hash = pageName;
-      }
-      
       // Re-initialize accordions if resume page is shown
       if (pages[i].dataset.page === "resume") {
         accordionInitialized = false; // Reset flag to allow re-initialization
@@ -2413,29 +2393,22 @@ for (let i = 0; i < navigationLinks.length; i++) {
       pageName = "hire-me";
     }
     switchToPage(pageName);
-    closeNavbar();
+    // close all hamburger menus after navigation
+    document.querySelectorAll("[data-navbar]").forEach(function (nav) {
+      nav.classList.remove("open");
+    });
   });
 }
 
-// Handle URL hash changes for deep linking support
-window.addEventListener("hashchange", function() {
-  const hash = window.location.hash.substring(1); // Remove the '#'
-  if (hash && hash !== '') {
-    switchToPage(hash, true); // Skip saving to avoid infinite loop
-  }
-});
-
-// Restore active page from URL hash or localStorage on page load with loading animation
+// Restore active page from localStorage on page load with loading animation
 function restoreActivePage() {
   const loadingScreen = document.getElementById('loading-screen');
-  const hashPage = window.location.hash.substring(1); // Remove the '#'
   const savedPage = localStorage.getItem('activePage');
   
   // Always show About page first (don't save to localStorage during initial load)
   switchToPage('about', true);
   
-  // Prioritize URL hash over localStorage
-  const targetPage = (hashPage && hashPage !== '') ? hashPage : savedPage;
+  const targetPage = savedPage;
 
   if (targetPage && targetPage !== 'about') {
     // Wait 700ms (less than a second) then switch to target page and hide loading
