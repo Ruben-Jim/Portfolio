@@ -2319,6 +2319,29 @@ document.addEventListener('DOMContentLoaded', function() {
 const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
+// Valid path segments for rubenjimenez.dev/(tab)
+var VALID_PAGES = ['about', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'admin'];
+
+function getPageFromPath() {
+  var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
+  if (path === '') return null;
+  if (VALID_PAGES.indexOf(path) !== -1) return path;
+  return null;
+}
+
+function updateUrlForPage(pageName, replace) {
+  // Only update URL on http(s); file:// would produce invalid URLs like file:///.../index.html/portfolio
+  if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
+    return;
+  }
+  var url = '/' + pageName;
+  if (replace) {
+    window.history.replaceState({ page: pageName }, '', url);
+  } else {
+    window.history.pushState({ page: pageName }, '', url);
+  }
+}
+
 // Function to switch to a specific page
 function switchToPage(pageName, skipSave = false) {
   // First, remove active class from all pages and navigation links
@@ -2351,9 +2374,10 @@ function switchToPage(pageName, skipSave = false) {
         }
       }
       
-      // Save to localStorage (unless skipSave is true)
+      // Save to localStorage and update URL path (unless skipSave is true)
       if (!skipSave) {
         localStorage.setItem('activePage', pageName);
+        updateUrlForPage(pageName, false);
       }
 
       // Re-initialize accordions if resume page is shown
@@ -2400,41 +2424,46 @@ for (let i = 0; i < navigationLinks.length; i++) {
   });
 }
 
-// Restore active page from localStorage on page load with loading animation
+// Restore active page from URL path or localStorage on page load with loading animation
 function restoreActivePage() {
-  const loadingScreen = document.getElementById('loading-screen');
-  const savedPage = localStorage.getItem('activePage');
-  
-  // Always show About page first (don't save to localStorage during initial load)
+  var loadingScreen = document.getElementById('loading-screen');
+  var pageFromPath = getPageFromPath();
+  var savedPage = localStorage.getItem('activePage');
+  // URL path wins (e.g. rubenjimenez.dev/portfolio), then localStorage, then about
+  var targetPage = pageFromPath || savedPage || 'about';
+
+  // Always show About first (don't save to localStorage during initial load)
   switchToPage('about', true);
-  
-  const targetPage = savedPage;
 
   if (targetPage && targetPage !== 'about') {
-    // Wait 700ms (less than a second) then switch to target page and hide loading
     setTimeout(function() {
-      switchToPage(targetPage);
-      // Hide loading screen with fade out
+      switchToPage(targetPage, true);
+      updateUrlForPage(targetPage, true);
       if (loadingScreen) {
         loadingScreen.classList.add('hidden');
-        // Remove from DOM after animation completes
-        setTimeout(function() {
-          loadingScreen.style.display = 'none';
-        }, 500);
+        setTimeout(function() { loadingScreen.style.display = 'none'; }, 500);
       }
     }, 700);
   } else {
-    // If no target page or target page is "about", just hide loading after delay
+    if (targetPage === 'about') {
+      updateUrlForPage('about', true);
+    }
     setTimeout(function() {
       if (loadingScreen) {
         loadingScreen.classList.add('hidden');
-        setTimeout(function() {
-          loadingScreen.style.display = 'none';
-        }, 500);
+        setTimeout(function() { loadingScreen.style.display = 'none'; }, 500);
       }
     }, 700);
   }
 }
+
+// Back/forward: sync tab to URL path
+window.addEventListener('popstate', function(e) {
+  var page = (e.state && e.state.page) ? e.state.page : getPageFromPath();
+  if (page) {
+    switchToPage(page, true);
+  }
+});
 
 // Restore page on load
 document.addEventListener('DOMContentLoaded', function() {
