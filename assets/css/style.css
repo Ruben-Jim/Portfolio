@@ -1862,7 +1862,7 @@ article {
 
 @media (min-width: 1400px) {
   .project-list {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3fr, 1fr);
     gap: 40px;
   }
   
@@ -2906,9 +2906,15 @@ textarea.form-input::-webkit-resizer { display: none; }
     gap: 25px;
   }
 
+  /* Sidebar fixed width so content can take remaining space */
+  .sidebar {
+    flex: 0 0 300px;
+    min-width: 300px;
+  }
+
   .main-content {
-    min-width: 75%;
-    width: 75%;
+    flex: 1 1 0%;
+    min-width: 0;
     margin: 0;
     position: relative;
     padding-top: 0;
@@ -2994,7 +3000,34 @@ textarea.form-input::-webkit-resizer { display: none; }
 
 }
 
+/**
+ * Resolutions > 1250px: let article/main content use more horizontal space
+ */
+@media (min-width: 1400px) {
+  main {
+    max-width: 1400px;
+  }
+}
 
+@media (min-width: 1600px) {
+  main {
+    max-width: 1600px;
+  }
+  /* Cap clients section so logos don't scale up and cause vertical scrollbar */
+  .clients-list {
+    max-width: 1200px;
+  }
+}
+
+@media (min-width: 1800px) {
+  main {
+    max-width: 1800px;
+  }
+  /* Cap clients section so logos don't scale up and cause vertical scrollbar */
+  .clients-list {
+    max-width: 1200px;
+  }
+}
 
 /*-----------------------------------*\
   #BLOG MODAL
