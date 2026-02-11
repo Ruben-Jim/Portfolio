@@ -2305,6 +2305,33 @@ document.addEventListener('DOMContentLoaded', function() {
 // page navigation variables
 const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
+const navbar = document.querySelector(".navbar");
+const navToggle = document.querySelector("[data-nav-toggle]");
+const navOverlay = document.querySelector("[data-nav-overlay]");
+
+function closeNavbar() {
+  if (navbar) navbar.classList.remove("open");
+}
+
+function openNavbar() {
+  if (navbar) navbar.classList.add("open");
+}
+
+function toggleNavbar() {
+  if (navbar) navbar.classList.toggle("open");
+}
+
+if (navToggle) {
+  navToggle.addEventListener("click", toggleNavbar);
+}
+if (navOverlay) {
+  navOverlay.addEventListener("click", closeNavbar);
+}
+window.addEventListener("keydown", function (e) {
+  if (e.key === "Escape" && navbar && navbar.classList.contains("open")) {
+    closeNavbar();
+  }
+});
 
 // Function to switch to a specific page
 function switchToPage(pageName, skipSave = false) {
@@ -2386,6 +2413,7 @@ for (let i = 0; i < navigationLinks.length; i++) {
       pageName = "hire-me";
     }
     switchToPage(pageName);
+    closeNavbar();
   });
 }
 
