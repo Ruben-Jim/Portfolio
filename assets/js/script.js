@@ -2320,11 +2320,12 @@ const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
 // Valid path segments for rubenjimenez.dev/(tab)
-var VALID_PAGES = ['about', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'admin'];
+var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'admin'];
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
   if (path === '') return null;
+  if (path === 'home') return 'about';
   if (VALID_PAGES.indexOf(path) !== -1) return path;
   return null;
 }
@@ -2368,6 +2369,9 @@ function switchToPage(pageName, skipSave = false) {
         }
         if (navPageName === "hire me") {
           navPageName = "hire-me";
+        }
+        if (navPageName === "home") {
+          navPageName = "about";
         }
         if (navPageName === pageName) {
           navigationLinks[j].classList.add("active");
@@ -2415,6 +2419,8 @@ for (let i = 0; i < navigationLinks.length; i++) {
       pageName = "services-pricing";
     } else if (pageName === "hire me") {
       pageName = "hire-me";
+    } else if (pageName === "home") {
+      pageName = "about";
     }
     switchToPage(pageName);
     // close all hamburger menus after navigation
@@ -3558,3 +3564,297 @@ function attachSubModalListeners() {
 
   console.log("Sub-modal listeners attached successfully");
 }
+
+// ─────────────────────────────────────────────
+// Dark/Light mode toggle
+// ─────────────────────────────────────────────
+function toggleTheme() {
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme') || 'dark';
+  var next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('portfolio-theme', next);
+}
+
+// ─────────────────────────────────────────────
+// Command Palette (Cmd+K / Ctrl+K)
+// ─────────────────────────────────────────────
+(function initCommandPalette() {
+  const overlay = document.getElementById('command-palette-overlay');
+  const input = document.getElementById('command-palette-input');
+  const listEl = document.getElementById('command-palette-list');
+
+  if (!overlay || !input || !listEl) return;
+
+  const COMMANDS = [
+    { id: 'nav-home', label: 'Go to Home', icon: 'home-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('about'); } },
+    { id: 'nav-resume', label: 'Go to Resume', icon: 'document-text-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('resume'); } },
+    { id: 'nav-portfolio', label: 'Go to Portfolio', icon: 'grid-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('portfolio'); } },
+    { id: 'nav-blog', label: 'Go to Blog', icon: 'newspaper-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('blog'); } },
+    { id: 'nav-services', label: 'Go to Services & Pricing', icon: 'pricetag-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('services-pricing'); } },
+    { id: 'nav-contact', label: 'Go to Contact', icon: 'mail-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('contact'); } },
+    { id: 'copy-email', label: 'Copy email', icon: 'copy-outline', action: copyEmail },
+    { id: 'toggle-theme', label: 'Toggle dark mode', icon: 'moon-outline', action: () => { if (typeof toggleTheme === 'function') toggleTheme(); } }
+  ];
+
+  const PROJECTS = [
+    { title: 'Pro Cleaning', url: 'https://roof-cleaning-template.expo.app' },
+    { title: 'Rizo Pizzeria', url: 'https://rizo-pizza--by3ty9xb6t.expo.app' },
+    { title: 'Shelton Springs HOA', url: 'https://hoa-demo--l91yvra8kn.expo.app' },
+    { title: 'Gadget Garage', url: 'https://gadgetgarage.app' },
+    { title: 'Rosa\'s Beauty Salon', url: 'https://rosasalon.expo.app' },
+    { title: 'Zoom Realty', url: 'https://ruben-jim.github.io/ZoomRealty2025-main/' },
+    { title: 'Estate', url: 'https://ruben-jim.github.io/Real-Estate/' },
+    { title: 'Homeverse', url: 'https://ruben-jim.github.io/DEMO/' }
+  ];
+
+  function copyEmail() {
+    const email = 'Ruben.Jim.co@gmail.com';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(email).then(() => showCmdFeedback('Copied!')).catch(() => fallbackCopy(email));
+    } else {
+      fallbackCopy(email);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showCmdFeedback('Copied!');
+    } catch (e) { showCmdFeedback('Failed to copy'); }
+    document.body.removeChild(ta);
+  }
+
+  function showCmdFeedback(msg) {
+    const prev = document.querySelector('.command-palette-feedback');
+    if (prev) prev.remove();
+    const el = document.createElement('div');
+    el.className = 'command-palette-feedback';
+    el.textContent = msg;
+    el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--orange-yellow-crayola);color:var(--smoky-black);padding:8px 16px;border-radius:8px;font-size:14px;z-index:10001;animation:fade 0.3s ease;';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }
+
+  function buildFullList() {
+    const nav = COMMANDS.map(c => ({ ...c, type: 'command', search: c.label.toLowerCase() }));
+    const projects = PROJECTS.map(p => ({
+      id: 'proj-' + p.title.toLowerCase().replace(/\s+/g, '-'),
+      label: 'Open ' + p.title,
+      icon: 'open-outline',
+      url: p.url,
+      type: 'project',
+      search: p.title.toLowerCase()
+    }));
+    return nav.concat(projects);
+  }
+
+  const fullList = buildFullList();
+  let filtered = [];
+  let selectedIndex = 0;
+
+  function open() {
+    overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden', 'false');
+    input.value = '';
+    input.focus();
+    filter('');
+    var h = document.getElementById('command-palette-hint');
+    if (h) h.style.visibility = 'hidden';
+  }
+
+  function close() {
+    overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden', 'true');
+    selectedIndex = 0;
+    var h = document.getElementById('command-palette-hint');
+    if (h) h.style.visibility = '';
+  }
+
+  function filter(q) {
+    const ql = q.trim().toLowerCase();
+    if (!ql) {
+      filtered = fullList;
+    } else {
+      filtered = fullList.filter(item => item.search.includes(ql));
+    }
+    selectedIndex = 0;
+    render();
+  }
+
+  function render() {
+    listEl.innerHTML = '';
+    filtered.forEach((item, i) => {
+      const div = document.createElement('div');
+      div.className = 'command-palette-item' + (i === selectedIndex ? ' selected' : '');
+      div.setAttribute('role', 'option');
+      div.setAttribute('aria-selected', i === selectedIndex);
+      div.innerHTML = '<ion-icon name="' + item.icon + '"></ion-icon><span>' + item.label + '</span>';
+      div.addEventListener('click', () => execute(item));
+      listEl.appendChild(div);
+    });
+  }
+
+  function execute(item) {
+    close();
+    if (item.type === 'project' && item.url) {
+      window.open(item.url, '_blank');
+    } else if (item.action) {
+      item.action();
+    }
+  }
+
+  function moveSelection(delta) {
+    if (filtered.length === 0) return;
+    selectedIndex = (selectedIndex + delta + filtered.length) % filtered.length;
+    render();
+    const items = listEl.querySelectorAll('.command-palette-item');
+    if (items[selectedIndex]) items[selectedIndex].scrollIntoView({ block: 'nearest' });
+  }
+
+  input.addEventListener('input', () => filter(input.value));
+
+  function handlePaletteKeydown(e) {
+    if (!overlay.classList.contains('active')) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveSelection(1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveSelection(-1);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (filtered[selectedIndex]) execute(filtered[selectedIndex]);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      close();
+    }
+  }
+
+  document.addEventListener('keydown', handlePaletteKeydown);
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      if (overlay.classList.contains('active')) close();
+      else open();
+    }
+  });
+
+  overlay.querySelector('[data-cmd-close]').addEventListener('click', close);
+
+  var hintBtn = document.getElementById('command-palette-hint');
+  if (hintBtn) {
+    hintBtn.addEventListener('click', open);
+    var kbd = hintBtn.querySelector('.command-palette-hint-kbd');
+    if (kbd && !/Mac|iPhone|iPad/i.test(navigator.platform)) {
+      kbd.textContent = 'Ctrl+K';
+    }
+  }
+})();
+
+// ─────────────────────────────────────────────
+// Copy Snippets
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-snippet-copy]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var card = this.closest('.snippet-card');
+      var code = card ? card.querySelector('[data-snippet]') : null;
+      if (!code) return;
+      var text = code.textContent || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function() {
+          showSnippetFeedback(btn, true);
+        }).catch(function() {
+          fallbackCopySnippet(text, btn);
+        });
+      } else {
+        fallbackCopySnippet(text, btn);
+      }
+    });
+  });
+
+  function fallbackCopySnippet(text, btn) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      showSnippetFeedback(btn, true);
+    } catch (e) {
+      showSnippetFeedback(btn, false);
+    }
+    document.body.removeChild(ta);
+  }
+
+  function showSnippetFeedback(btn, success) {
+    var span = btn.querySelector('.snippet-copy-text');
+    var orig = span ? span.textContent : 'Copy';
+    if (span) span.textContent = success ? 'Copied!' : 'Failed';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.classList.remove('copied');
+      if (span) span.textContent = orig;
+    }, 2000);
+  }
+});
+
+// ─────────────────────────────────────────────
+// GSAP Micro-interactions
+// ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof gsap === 'undefined') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Staggered Bento reveal on load
+  var bentoCells = document.querySelectorAll('[data-bento-cell]');
+  if (bentoCells.length) {
+    gsap.from(bentoCells, {
+      opacity: 0,
+      y: 24,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power2.out'
+    });
+  }
+
+  // Magnetic effect on primary buttons
+  var magneticTargets = document.querySelectorAll('.btn-hire-me, .btn-bento-cta, .bento-hire-btn');
+  magneticTargets.forEach(function(btn) {
+    btn.addEventListener('mouseenter', function() {
+      gsap.to(btn, { scale: 1.02, duration: 0.2, ease: 'power2.out' });
+    });
+    btn.addEventListener('mouseleave', function() {
+      gsap.to(btn, { scale: 1, x: 0, y: 0, duration: 0.3, ease: 'power2.out' });
+    });
+    btn.addEventListener('mousemove', function(e) {
+      var rect = btn.getBoundingClientRect();
+      var x = (e.clientX - rect.left - rect.width / 2) * 0.15;
+      var y = (e.clientY - rect.top - rect.height / 2) * 0.15;
+      gsap.to(btn, { x: x, y: y, duration: 0.3, ease: 'power2.out' });
+    });
+  });
+
+  // Subtle hover scale on Bento cards
+  var bentoCards = document.querySelectorAll('.bento-card');
+  bentoCards.forEach(function(card) {
+    card.addEventListener('mouseenter', function() {
+      gsap.to(card, { scale: 1.02, duration: 0.25, ease: 'power2.out' });
+    });
+    card.addEventListener('mouseleave', function() {
+      gsap.to(card, { scale: 1, duration: 0.3, ease: 'power2.out' });
+    });
+  });
+});

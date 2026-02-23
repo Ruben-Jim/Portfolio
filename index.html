@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 
 <head>
   <meta charset="UTF-8">
@@ -61,9 +61,38 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      var saved = localStorage.getItem('portfolio-theme');
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', saved);
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
 </head>
 
 <body>
+
+  <!-- Command palette hint (visible on all pages) -->
+  <button type="button" class="command-palette-hint" id="command-palette-hint" aria-label="Open command palette (⌘K or Ctrl+K)">
+    <ion-icon name="search-outline"></ion-icon>
+    <span class="command-palette-hint-text">Search</span>
+    <kbd class="command-palette-hint-kbd">⌘K</kbd>
+  </button>
+
+  <!-- Command Palette (Cmd+K / Ctrl+K) -->
+  <div class="command-palette-overlay" id="command-palette-overlay" role="dialog" aria-label="Command palette" aria-modal="true" aria-hidden="true">
+    <div class="command-palette-backdrop" data-cmd-close></div>
+    <div class="command-palette-modal">
+      <div class="command-palette-input-wrap">
+        <ion-icon name="search-outline" class="command-palette-search-icon"></ion-icon>
+        <input type="text" class="command-palette-input" id="command-palette-input" placeholder="Search or run a command…" autocomplete="off" aria-label="Search commands">
+      </div>
+      <div class="command-palette-list has-scrollbar" id="command-palette-list" role="listbox"></div>
+    </div>
+  </div>
 
   <!--
     - #MAIN
@@ -208,7 +237,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item">
-                <button class="navbar-link active" data-nav-link>About</button>
+                <button class="navbar-link active" data-nav-link>Home</button>
               </li>
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link>Resume</button>
@@ -234,142 +263,96 @@
             </ul>
           </div>
         </nav>
-        <header>
-          <h2 class="h2 article-title">About me</h2>
+        <header class="landing-header">
+          <h2 class="h2 article-title">Home</h2>
+          <p class="landing-tagline">Fullstack Developer · Web & Mobile Apps</p>
         </header>
 
-        <section class="about-text">
-          <p>
-            I'm a <span class="highlight-primary">Fullstack developer</span> from <span class="highlight-secondary">Fresno, California</span>, specializing in creating modern <span class="highlight-accent">web applications</span> and <span class="highlight-accent">mobile apps</span>. I enjoy turning complex problems into simple, beautiful and intuitive designs.
-          </p>
-
-          <p>
-            Hello, I am currently an undergraduate student at <span class="highlight-secondary">Clovis Community College</span> working towards an <span class="highlight-primary">Associates degree</span> in Engineering Computer Software. Outside of school I like to develop technical skills in <span class="highlight-accent">full stack development</span> and <span class="highlight-accent">cross platform applications</span> using technologies like React Native, JavaScript, Firebase, and Node.js.
-          </p>
-        </section>
-
-        <!-- Tech Stack Section -->
-        <section class="tech-stack">
-          <h3 class="h3 tech-stack-title">Technologies I Use</h3>
-          
-          
-          <div class="tech-grid">
-            
-            <div class="tech-category">
-              <h4 class="tech-category-title">Frontend</h4>
-              <div class="tech-items">
-                <span class="tech-item">TypeScript</span>
-                <span class="tech-item">JavaScript</span>
-                <span class="tech-item">Uniwind</span>
-                
-              </div>
-            </div>
-            
-            <div class="tech-category">
-              <h4 class="tech-category-title">Framework</h4>
-              <div class="tech-items">
-                <span class="tech-item">React Native</span>
-                <span class="tech-item">Expo</span>
-              </div>
-            </div>
-            
-            <div class="tech-category">
-              <h4 class="tech-category-title">Backend</h4>
-              <div class="tech-items">
-                <span class="tech-item">Node.js</span>
-                <span class="tech-item">Convex</span>
-                <span class="tech-item">Firebase</span>
-              </div>
-            </div>
-
-            <div class="tech-category">
-              <h4 class="tech-category-title">Tools & Others</h4>
-              <div class="tech-items">
-                <span class="tech-item">EAS</span>
-                <span class="tech-item">Figma</span>
-
-              </div>
+        <!-- Bento Grid -->
+        <section class="bento-grid" aria-label="Portfolio highlights">
+          <div class="bento-card bento-intro" data-bento-cell>
+            <h3 class="h3 bento-card-title">Who I Am</h3>
+            <p class="bento-intro-text">I'm a <span class="highlight-primary">fullstack developer</span> from <span class="highlight-secondary">Fresno, California</span>, building <span class="highlight-accent">web and mobile apps</span>. I focus on clear, modern interfaces and reliable backends—<span class="highlight-accent">React Native, Node, Firebase</span>, and more.</p>
+            <div class="bento-intro-links">
+              <a href="#portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Portfolio</a>
+              <a href="#resume" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('resume'); } return false;">Resume</a>
+              <a href="#contact" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Contact</a>
+              <a href="#blog" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('blog'); } return false;">Blog</a>
             </div>
           </div>
-        </section>
 
+          <div class="bento-card bento-latest-project" data-bento-cell>
+            <h3 class="h3 bento-card-title">Latest Project</h3>
+            <a href="https://roof-cleaning-template.expo.app" class="bento-project-link" target="_blank" rel="noopener noreferrer">
+              <figure class="bento-project-img">
+                <img src="./assets/images/project-procleaning.png" alt="Pro Cleaning App" loading="lazy">
+                <div class="bento-project-overlay">
+                  <ion-icon name="eye-outline"></ion-icon>
+                </div>
+              </figure>
+            </a>
+            <h4 class="h4 bento-project-title">Pro Cleaning</h4>
+            <div class="bento-project-tech">
+              <span class="tech-tag">React Native</span>
+              <span class="tech-tag">Expo</span>
+              <span class="tech-tag">Firebase</span>
+            </div>
+            <a href="#contact" class="btn-bento-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get a Quote</a>
+          </div>
 
-        <!--
-          - service
-        -->
-
-        <section class="service">
-
-          <h3 class="h3 service-title">What i'm doing</h3>
-
-          <ul class="service-list">
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <img src="./assets/images/icon-design.svg
-                " alt="design icon" width="40">
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web design</h4>
-
-                <p class="service-item-text">
-                  The most modern and high-quality design made at a professional level.
-                </p>
-              </div>
-
-            </li>
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <img src="./assets/images/icon-dev.svg" alt="Web development icon" width="40">
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web development</h4>
-
-                <p class="service-item-text">
-                  High-quality development of sites at the professional level.
-                </p>
-              </div>
-
-            </li>
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <img src="./assets/images/icon-app.svg" alt="mobile app icon" width="40">
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Mobile apps</h4>
-
-                <p class="service-item-text">
-                  Professional development of applications for iOS and Android.
-                </p>
-              </div>
-
-            </li>
-
-
-          </ul>
-
-        </section>
-
-        <!--
-          - Hire Me Button
-        -->
-        <section class="hire-me-cta">
-          <div class="hire-me-buttons">
-            <a href="#hire-me" class="btn-hire-me" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Hire Me'); if(btn) btn.click(); } return false;">
+          <div class="bento-card bento-available" data-bento-cell>
+            <div class="bento-status-badge">Available for Work</div>
+            <p class="bento-status-text">Open to freelance and full-time opportunities.</p>
+            <a href="#contact" class="btn-hire-me bento-hire-btn" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
               <ion-icon name="briefcase-outline"></ion-icon>
               Hire Me
             </a>
           </div>
+
+          <div class="bento-card bento-services" data-bento-cell>
+            <h3 class="h3 bento-card-title">What I Do</h3>
+            <ul class="bento-services-list">
+              <li class="bento-service-item">
+                <img src="./assets/images/icon-design.svg" alt="" width="32">
+                <span>Web design</span>
+              </li>
+              <li class="bento-service-item">
+                <img src="./assets/images/icon-dev.svg" alt="" width="32">
+                <span>Web development</span>
+              </li>
+              <li class="bento-service-item">
+                <img src="./assets/images/icon-app.svg" alt="" width="32">
+                <span>Mobile apps</span>
+              </li>
+            </ul>
+          </div>
         </section>
 
+        <!-- Work Marquee -->
+        <section class="work-marquee" aria-label="Technologies and clients">
+          <h3 class="h3 work-marquee-title">Technologies & Clients</h3>
+          <div class="marquee-track">
+            <div class="marquee-content">
+              <span class="marquee-item"><ion-icon name="logo-react"></ion-icon> React</span>
+              <span class="marquee-item"><ion-icon name="logo-firebase"></ion-icon> Firebase</span>
+              <span class="marquee-item"><ion-icon name="logo-nodejs"></ion-icon> Node</span>
+              <span class="marquee-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
+              <span class="marquee-item"><ion-icon name="code-slash-outline"></ion-icon> TypeScript</span>
+              <img src="./assets/images/logo-1-color.png" alt="" class="marquee-logo">
+              <img src="./assets/images/logo-2-color.png" alt="" class="marquee-logo">
+              <img src="./assets/images/logo-3-color.png" alt="" class="marquee-logo">
+              <span class="marquee-item"><ion-icon name="logo-react"></ion-icon> React Native</span>
+              <span class="marquee-item"><ion-icon name="phone-portrait-outline"></ion-icon> Expo</span>
+              <span class="marquee-item"><ion-icon name="logo-firebase"></ion-icon> Firebase</span>
+              <span class="marquee-item"><ion-icon name="logo-nodejs"></ion-icon> Node</span>
+              <span class="marquee-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
+              <span class="marquee-item"><ion-icon name="code-slash-outline"></ion-icon> TypeScript</span>
+              <img src="./assets/images/logo-1-color.png" alt="" class="marquee-logo">
+              <img src="./assets/images/logo-2-color.png" alt="" class="marquee-logo">
+              <img src="./assets/images/logo-3-color.png" alt="" class="marquee-logo">
+            </div>
+          </div>
+        </section>
         
         <!--
           - testimonials
@@ -377,7 +360,7 @@
         
         <section class="testimonials">
 
-          <h3 class="h3 testimonials-title">Testimonials</h3>
+          <h3 class="h3 testimonials-title">What Clients Say</h3>
 
           <ul class="testimonials-list has-scrollbar">
 
@@ -521,7 +504,7 @@
        
         <section class="clients">
 
-          <h3 class="h3 clients-title">Clients</h3>
+          <h3 class="h3 clients-title">Trusted By</h3>
 
           <ul class="clients-list has-scrollbar">
 
@@ -577,7 +560,7 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
@@ -1031,7 +1014,7 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
@@ -1571,7 +1554,7 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
@@ -1586,6 +1569,58 @@
           <h2 class="h2 article-title">Blog</h2>
           
         </header>
+
+                <!-- Copy-Paste Snippets -->
+                <section class="snippets-section">
+                  <h3 class="h3 snippets-title">Copy-Paste Snippets</h3>
+                  <p class="snippets-subtitle">Handy code snippets you can copy</p>
+                  <div class="snippets-grid">
+                    <div class="snippet-card">
+                      <div class="snippet-header">
+                        <span class="snippet-label">React Native Expo Start</span>
+                        <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
+                          <ion-icon name="copy-outline"></ion-icon>
+                          <span class="snippet-copy-text">Copy</span>
+                        </button>
+                      </div>
+                      <pre class="snippet-code"><code data-snippet>npx create-expo-app my-app
+        cd my-app
+        npx expo start</code></pre>
+                    </div>
+                    <!-- <div class="snippet-card">
+                      <div class="snippet-header">
+                        <span class="snippet-label">Firebase Init</span>
+                        <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
+                          <ion-icon name="copy-outline"></ion-icon>
+                          <span class="snippet-copy-text">Copy</span>
+                        </button>
+                      </div>
+                      <pre class="snippet-code has-scrollbar"><code data-snippet>import { initializeApp } from 'firebase/app';
+        import { getFirestore } from 'firebase/firestore';
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);</code></pre>
+                    </div> -->
+                    <!-- <div class="snippet-card">
+                      <div class="snippet-header">
+                        <span class="snippet-label">Async Fetch with Error Handling</span>
+                        <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
+                          <ion-icon name="copy-outline"></ion-icon>
+                          <span class="snippet-copy-text">Copy</span>
+                        </button>
+                      </div>
+                      <pre class="snippet-code has-scrollbar"><code data-snippet>async function fetchData(url) {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(res.status);
+            return await res.json();
+          } catch (e) {
+            console.error('Fetch failed:', e);
+          }
+        }</code></pre>
+                    </div> -->
+                  </div>
+                </section>
 
         <!-- Blog posts -->
         <section class="blog-posts">
@@ -1823,7 +1858,7 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
@@ -2010,7 +2045,7 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
@@ -2242,7 +2277,7 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
@@ -2317,7 +2352,7 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
@@ -3620,6 +3655,12 @@
     window.doc = doc;
     window.onSnapshot = onSnapshot;
   </script>
+
+  <!--
+    - GSAP
+  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
   <!--
     - custom js link
