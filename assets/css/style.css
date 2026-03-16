@@ -5691,6 +5691,194 @@ textarea.form-input::-webkit-resizer { display: none; }
   text-align: center;
 }
 
+/* Admin dashboard header layout */
+.admin-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.admin-dashboard-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 599px) {
+  .admin-dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-dashboard-actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+/* Business Documents layout inside admin dashboard */
+.business-docs-section {
+  margin-top: 40px;
+}
+
+.business-docs-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.business-docs-form-card,
+.business-docs-list-card {
+  background: var(--eerie-black-2);
+  border-radius: 16px;
+  border: 1px solid var(--jet);
+  padding: 18px 18px 20px;
+}
+
+.business-docs-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.business-docs-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.business-docs-filters select {
+  background: var(--eerie-black-1);
+  border-radius: 10px;
+  border: 1px solid var(--jet);
+  padding: 6px 10px;
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+}
+
+.business-docs-table-wrapper {
+  max-height: 340px;
+  overflow: auto;
+  margin-top: 4px;
+}
+
+.business-docs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-7);
+}
+
+.business-docs-table th,
+.business-docs-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.business-docs-table th {
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  font-size: var(--fs-8);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.business-docs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.business-docs-table .empty-row td {
+  text-align: center;
+  padding: 18px 10px;
+}
+
+.business-docs-table .empty-text {
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+}
+
+.business-doc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.business-doc-type-proposal {
+  background: hsla(220, 100%, 65%, 0.12);
+  color: hsl(220, 100%, 80%);
+}
+
+.business-doc-type-estimate {
+  background: hsla(45, 100%, 71%, 0.12);
+  color: var(--orange-yellow-crayola);
+}
+
+.business-doc-type-invoice {
+  background: hsla(350, 100%, 70%, 0.12);
+  color: hsl(350, 100%, 80%);
+}
+
+.business-doc-status-draft {
+  background: hsla(215, 15%, 25%, 0.5);
+  color: var(--light-gray);
+}
+
+.business-doc-status-sent {
+  background: hsla(204, 100%, 60%, 0.12);
+  color: hsl(204, 100%, 75%);
+}
+
+.business-doc-status-accepted {
+  background: hsla(145, 63%, 42%, 0.15);
+  color: #51cf66;
+}
+
+.business-doc-status-paid {
+  background: hsla(145, 73%, 36%, 0.2);
+  color: #37b24d;
+}
+
+.business-doc-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.business-doc-actions .btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .business-docs-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .business-docs-table-wrapper {
+    max-height: 260px;
+  }
+
+  .business-docs-filters {
+    flex-wrap: wrap;
+  }
+}
+
 /* Messages Section */
 .messages-list {
   margin-top: 20px;

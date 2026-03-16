@@ -2707,8 +2707,18 @@
 
         <!-- Dashboard Content (hidden until authenticated) -->
         <div id="admin-dashboard-content" style="display: none;">
-          <header>
+          <header class="admin-dashboard-header">
             <h2 class="h2 article-title">Admin<br> Dashboard</h2>
+            <div class="admin-dashboard-actions">
+              <button class="btn btn-secondary" id="admin-logout-btn" style="display: none;">
+                <ion-icon name="log-out-outline"></ion-icon>
+                Logout
+              </button>
+              <button class="btn btn-primary admin-ops-btn" id="show-ops-manual">
+                <ion-icon name="document-text-outline"></ion-icon>
+                <span>Business Ops Manual</span>
+              </button>
+            </div>
           </header>
 
         <section class="about-text">
@@ -2716,20 +2726,6 @@
             Welcome to the admin dashboard. Here you can view and manage contact form submissions,
             reply to inquiries, and track message statistics.
           </p>
-        </section>
-
-        <!-- Logout Section -->
-        <section class="logout-section">
-          <div class="logout-actions">
-            <button class="btn btn-secondary" id="admin-logout-btn" style="display: none;">
-              <ion-icon name="log-out-outline"></ion-icon>
-              Logout
-            </button>
-            <button class="btn btn-primary admin-ops-btn" id="show-ops-manual">
-              <ion-icon name="document-text-outline"></ion-icon>
-              <span>Business Ops Manual</span>
-            </button>
-          </div>
         </section>
 
         <section class="admin-stats-section service">
@@ -2812,6 +2808,122 @@
             </div>
           </div>
 
+        </section>
+
+        <!-- Business Documents Section -->
+        <section class="service business-docs-section">
+          <h3 class="h3 service-title">Business Documents</h3>
+
+          <div class="business-docs-layout">
+            <div class="business-docs-form-card">
+              <h4 class="h4 service-item-title">Create / Edit Document</h4>
+              <form id="business-doc-form">
+                <input type="hidden" id="business-doc-id">
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-type">Type</label>
+                    <select id="business-doc-type" required>
+                      <option value="proposal">Proposal</option>
+                      <option value="estimate">Estimate</option>
+                      <option value="invoice">Invoice</option>
+                    </select>
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-status">Status</label>
+                    <select id="business-doc-status" required>
+                      <option value="draft">Draft</option>
+                      <option value="sent">Sent</option>
+                      <option value="accepted">Accepted</option>
+                      <option value="paid">Paid</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-client-name">Client Name</label>
+                    <input type="text" id="business-doc-client-name" required placeholder="Client or Business">
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-client-email">Client Email (optional)</label>
+                    <input type="email" id="business-doc-client-email" placeholder="name@example.com">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-total">Total Amount</label>
+                    <input type="number" id="business-doc-total" min="0" step="0.01" required placeholder="1500.00">
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-due-date">Due Date (optional)</label>
+                    <input type="date" id="business-doc-due-date">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="business-doc-notes">Project Scope / Notes</label>
+                  <textarea id="business-doc-notes" rows="3" placeholder="Scope, services, and key terms..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" id="business-doc-reset-btn">
+                    <ion-icon name="refresh-outline"></ion-icon>
+                    Reset
+                  </button>
+                  <div style="display: flex; gap: 12px; margin-left: auto;">
+                    <button type="submit" class="btn btn-primary" id="business-doc-save-btn">
+                      <ion-icon name="save-outline"></ion-icon>
+                      Save Document
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <div class="business-docs-list-card">
+              <div class="business-docs-list-header">
+                <h4 class="h4 service-item-title">Documents</h4>
+                <div class="business-docs-filters">
+                  <select id="business-doc-filter-type">
+                    <option value="all">All Types</option>
+                    <option value="proposal">Proposals</option>
+                    <option value="estimate">Estimates</option>
+                    <option value="invoice">Invoices</option>
+                  </select>
+                  <select id="business-doc-filter-status">
+                    <option value="all">All Statuses</option>
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="paid">Paid</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="business-docs-table-wrapper has-scrollbar">
+                <table class="business-docs-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Client</th>
+                      <th>Total</th>
+                      <th>Status</th>
+                      <th>Created</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="business-docs-tbody">
+                    <tr class="empty-row">
+                      <td colspan="6">
+                        <p class="empty-text">No documents yet. Create your first proposal, estimate, or invoice on the left.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- Blog Management Section -->
@@ -3993,6 +4105,11 @@
   -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+  <!--
+    - html2pdf.js for Business Docs PDFs
+  -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <!--
     - custom js link

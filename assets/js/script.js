@@ -3160,6 +3160,594 @@ window.addEventListener('load', function() {
     });
   }
 
+  // ----------------------------
+  // Business Documents (Proposals / Estimates / Invoices)
+  // ----------------------------
+
+  const BUSINESS_DOCS_STORAGE_KEY = 'businessDocs.v1';
+
+  /**
+   * @typedef {Object} BusinessDocument
+   * @property {string} id
+   * @property {'proposal'|'estimate'|'invoice'} type
+   * @property {string} clientName
+   * @property {string=} clientEmail
+   * @property {number} total
+   * @property {'draft'|'sent'|'accepted'|'paid'} status
+   * @property {string=} dueDate
+   * @property {string=} notes
+   * @property {string} createdAt
+   * @property {string} updatedAt
+   */
+
+  /** @returns {BusinessDocument[]} */
+  function loadBusinessDocs() {
+    try {
+      const raw = localStorage.getItem(BUSINESS_DOCS_STORAGE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed;
+    } catch (e) {
+      console.warn('Failed to load business docs from localStorage', e);
+      return [];
+    }
+  }
+
+  /** @param {BusinessDocument[]} docs */
+  function saveBusinessDocs(docs) {
+    try {
+      localStorage.setItem(BUSINESS_DOCS_STORAGE_KEY, JSON.stringify(docs));
+    } catch (e) {
+      console.warn('Failed to save business docs to localStorage', e);
+    }
+  }
+
+  function generateBusinessDocId() {
+    return 'doc_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  }
+
+  function formatCurrency(amount) {
+    if (isNaN(amount)) return '$0.00';
+    return '$' + amount.toFixed(2);
+  }
+
+  function formatDateDisplay(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  // DOM references for Business Docs
+  const businessDocForm = document.getElementById('business-doc-form');
+  const businessDocIdInput = document.getElementById('business-doc-id');
+  const businessDocTypeInput = document.getElementById('business-doc-type');
+  const businessDocStatusInput = document.getElementById('business-doc-status');
+  const businessDocClientNameInput = document.getElementById('business-doc-client-name');
+  const businessDocClientEmailInput = document.getElementById('business-doc-client-email');
+  const businessDocTotalInput = document.getElementById('business-doc-total');
+  const businessDocDueDateInput = document.getElementById('business-doc-due-date');
+  const businessDocNotesInput = document.getElementById('business-doc-notes');
+  const businessDocResetBtn = document.getElementById('business-doc-reset-btn');
+  const businessDocsTbody = document.getElementById('business-docs-tbody');
+  const businessDocFilterType = document.getElementById('business-doc-filter-type');
+  const businessDocFilterStatus = document.getElementById('business-doc-filter-status');
+
+  let businessDocs = loadBusinessDocs();
+
+  function resetBusinessDocForm() {
+    if (!businessDocForm) return;
+    businessDocForm.reset();
+    if (businessDocIdInput) businessDocIdInput.value = '';
+    if (businessDocTypeInput) businessDocTypeInput.value = 'proposal';
+    if (businessDocStatusInput) businessDocStatusInput.value = 'draft';
+  }
+
+  /**
+   * @param {BusinessDocument} doc
+   */
+  function fillBusinessDocForm(doc) {
+    if (!doc) return;
+    if (businessDocIdInput) businessDocIdInput.value = doc.id;
+    if (businessDocTypeInput) businessDocTypeInput.value = doc.type;
+    if (businessDocStatusInput) businessDocStatusInput.value = doc.status;
+    if (businessDocClientNameInput) businessDocClientNameInput.value = doc.clientName || '';
+    if (businessDocClientEmailInput) businessDocClientEmailInput.value = doc.clientEmail || '';
+    if (businessDocTotalInput) businessDocTotalInput.value = String(doc.total || '');
+    if (businessDocDueDateInput) businessDocDueDateInput.value = doc.dueDate || '';
+    if (businessDocNotesInput) businessDocNotesInput.value = doc.notes || '';
+  }
+
+  function getBusinessDocsFilters() {
+    return {
+      type: businessDocFilterType ? businessDocFilterType.value : 'all',
+      status: businessDocFilterStatus ? businessDocFilterStatus.value : 'all'
+    };
+  }
+
+  function applyBusinessDocsFilters(list) {
+    const filters = getBusinessDocsFilters();
+    return list.filter(function(doc) {
+      if (filters.type !== 'all' && doc.type !== filters.type) return false;
+      if (filters.status !== 'all' && doc.status !== filters.status) return false;
+      return true;
+    });
+  }
+
+  function renderBusinessDocs() {
+    if (!businessDocsTbody) return;
+
+    const filtered = applyBusinessDocsFilters(businessDocs.slice().sort(function(a, b) {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }));
+
+    if (filtered.length === 0) {
+      businessDocsTbody.innerHTML = '<tr class="empty-row"><td colspan="6"><p class="empty-text">No documents yet. Create your first proposal, estimate, or invoice on the left.</p></td></tr>';
+      return;
+    }
+
+    businessDocsTbody.innerHTML = '';
+
+    filtered.forEach(function(doc) {
+      var tr = document.createElement('tr');
+
+      var typeTd = document.createElement('td');
+      typeTd.innerHTML = '<span class="business-doc-badge business-doc-type-' + doc.type + '">' + doc.type.charAt(0).toUpperCase() + doc.type.slice(1) + '</span>';
+      tr.appendChild(typeTd);
+
+      var clientTd = document.createElement('td');
+      clientTd.textContent = doc.clientName || '—';
+      tr.appendChild(clientTd);
+
+      var totalTd = document.createElement('td');
+      totalTd.textContent = formatCurrency(doc.total || 0);
+      tr.appendChild(totalTd);
+
+      var statusTd = document.createElement('td');
+      statusTd.innerHTML = '<span class="business-doc-badge business-doc-status-' + doc.status + '">' + doc.status.toUpperCase() + '</span>';
+      tr.appendChild(statusTd);
+
+      var createdTd = document.createElement('td');
+      createdTd.textContent = formatDateDisplay(doc.createdAt);
+      tr.appendChild(createdTd);
+
+      var actionsTd = document.createElement('td');
+      actionsTd.className = 'business-doc-actions';
+
+      var editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn-icon';
+      editBtn.title = 'Edit';
+      editBtn.innerHTML = '<ion-icon name="create-outline"></ion-icon>';
+      editBtn.addEventListener('click', function() {
+        fillBusinessDocForm(doc);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+
+      var pdfBtn = document.createElement('button');
+      pdfBtn.type = 'button';
+      pdfBtn.className = 'btn-icon';
+      pdfBtn.title = 'Generate PDF';
+      pdfBtn.innerHTML = '<ion-icon name="document-text-outline"></ion-icon>';
+      pdfBtn.addEventListener('click', function() {
+        generateBusinessDocPdf(doc);
+      });
+
+      var deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'btn-icon';
+      deleteBtn.title = 'Delete';
+      deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
+      deleteBtn.addEventListener('click', function() {
+        if (!confirm('Delete this document?')) return;
+        businessDocs = businessDocs.filter(function(d) { return d.id !== doc.id; });
+        saveBusinessDocs(businessDocs);
+        renderBusinessDocs();
+      });
+
+      actionsTd.appendChild(editBtn);
+      actionsTd.appendChild(pdfBtn);
+      actionsTd.appendChild(deleteBtn);
+
+      tr.appendChild(actionsTd);
+
+      businessDocsTbody.appendChild(tr);
+    });
+  }
+
+  if (businessDocForm) {
+    businessDocForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var id = businessDocIdInput && businessDocIdInput.value ? businessDocIdInput.value : generateBusinessDocId();
+      var nowIso = new Date().toISOString();
+
+      var doc = /** @type {BusinessDocument} */ ({
+        id: id,
+        type: businessDocTypeInput ? businessDocTypeInput.value : 'proposal',
+        clientName: businessDocClientNameInput ? businessDocClientNameInput.value.trim() : '',
+        clientEmail: businessDocClientEmailInput ? businessDocClientEmailInput.value.trim() : '',
+        total: businessDocTotalInput ? parseFloat(businessDocTotalInput.value || '0') : 0,
+        status: businessDocStatusInput ? businessDocStatusInput.value : 'draft',
+        dueDate: businessDocDueDateInput ? businessDocDueDateInput.value : '',
+        notes: businessDocNotesInput ? businessDocNotesInput.value.trim() : '',
+        createdAt: nowIso,
+        updatedAt: nowIso
+      });
+
+      if (!doc.clientName || isNaN(doc.total)) {
+        alert('Client name and total amount are required.');
+        return;
+      }
+
+      var existingIndex = businessDocs.findIndex(function(d) { return d.id === doc.id; });
+      if (existingIndex >= 0) {
+        doc.createdAt = businessDocs[existingIndex].createdAt;
+        businessDocs[existingIndex] = doc;
+      } else {
+        businessDocs.push(doc);
+      }
+
+      saveBusinessDocs(businessDocs);
+      resetBusinessDocForm();
+      renderBusinessDocs();
+    });
+  }
+
+  if (businessDocResetBtn) {
+    businessDocResetBtn.addEventListener('click', function() {
+      resetBusinessDocForm();
+    });
+  }
+
+  if (businessDocFilterType) {
+    businessDocFilterType.addEventListener('change', renderBusinessDocs);
+  }
+
+  if (businessDocFilterStatus) {
+    businessDocFilterStatus.addEventListener('change', renderBusinessDocs);
+  }
+
+  // Initial render on load
+  renderBusinessDocs();
+
+  // ----------------------------
+  // Business Docs PDF generation + sharing
+  // ----------------------------
+
+  function buildBusinessDocHtml(doc) {
+    const created = formatDateDisplay(doc.createdAt);
+    const due = doc.dueDate ? formatDateDisplay(doc.dueDate) : '—';
+    const title =
+      (doc.type === 'proposal' ? 'Proposal' :
+      doc.type === 'estimate' ? 'Estimate' :
+      doc.type === 'invoice' ? 'Invoice' : 'Document') + ' — ' + (doc.clientName || '');
+
+    const scope = (doc.notes || '').replace(/\n/g, '<br>');
+
+    return `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 32px 28px;
+      background: #f8fafc;
+      color: #0f172a;
+      font-size: 14px;
+    }
+    .doc-root {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 28px 28px 32px;
+    }
+    .doc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      gap: 16px;
+    }
+    .doc-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .doc-badge {
+      display: inline-flex;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    .doc-meta {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+    .doc-brand {
+      text-align: right;
+      font-size: 12px;
+      color: #4b5563;
+      line-height: 1.5;
+    }
+    .doc-brand-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+    .doc-section {
+      margin-bottom: 22px;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+    .two-col {
+      display: flex;
+      justify-content: space-between;
+      gap: 32px;
+    }
+    .two-col > div {
+      flex: 1;
+    }
+    .label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-bottom: 3px;
+    }
+    .value {
+      font-size: 13px;
+      color: #111827;
+      font-weight: 500;
+    }
+    .doc-notes {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.6;
+      border-radius: 10px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      padding: 14px 14px 16px;
+    }
+    .total-box {
+      margin-top: 6px;
+      padding: 10px 12px;
+      background: #0f172a;
+      border-radius: 10px;
+      color: #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .total-label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      opacity: 0.7;
+    }
+    .total-value {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .footer {
+      margin-top: 28px;
+      padding-top: 10px;
+      border-top: 1px dashed #d1d5db;
+      font-size: 11px;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="doc-root">
+    <header class="doc-header">
+      <div>
+        <div class="doc-title">${title}</div>
+        <div class="doc-meta">
+          <div>Created: ${created}</div>
+          <div>Due: ${due}</div>
+        </div>
+      </div>
+      <div class="doc-brand">
+        <div class="doc-brand-name">Ruben Jimenez</div>
+        <div>Web & Mobile Engineering</div>
+        <div>rubenjimenez.dev</div>
+        <div>Ruben.Jim.co@gmail.com</div>
+      </div>
+    </header>
+
+    <section class="doc-section">
+      <div class="section-title">Summary</div>
+      <div class="two-col">
+        <div>
+          <div class="label">Client</div>
+          <div class="value">${doc.clientName || '—'}</div>
+          ${doc.clientEmail ? `<div class="label" style="margin-top:6px;">Email</div><div class="value">${doc.clientEmail}</div>` : ''}
+        </div>
+        <div>
+          <div class="label">Document Type</div>
+          <div class="value">${doc.type}</div>
+          <div class="label" style="margin-top:6px;">Status</div>
+          <div class="value">${doc.status}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="doc-section">
+      <div class="section-title">Scope & Notes</div>
+      <div class="doc-notes">${scope || 'Outline the project scope, deliverables, and key terms here.'}</div>
+    </section>
+
+    <section class="doc-section">
+      <div class="section-title">Total</div>
+      <div class="total-box">
+        <div class="total-label">Total ${doc.type === 'invoice' ? 'Due' : doc.type === 'estimate' ? 'Estimate' : 'Value'}</div>
+        <div class="total-value">${formatCurrency(doc.total || 0)}</div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>Generated from admin at rubenjimenez.dev</div>
+      <div>${doc.id}</div>
+    </footer>
+  </div>
+</body>
+</html>
+    `;
+  }
+
+  /**
+   * Hook for native wrappers: override to integrate with iOS/Android share sheets.
+   * Signature: (blob, filename, doc) => Promise<void> | void
+   */
+  if (typeof window.onPortfolioDocShare !== 'function') {
+    window.onPortfolioDocShare = null;
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  }
+
+  async function shareOrDownloadPdf(blob, filename, doc) {
+    // Native wrapper hook wins
+    if (typeof window.onPortfolioDocShare === 'function') {
+      try {
+        await window.onPortfolioDocShare(blob, filename, doc);
+        return;
+      } catch (e) {
+        console.warn('onPortfolioDocShare hook failed, falling back to web share / download', e);
+      }
+    }
+
+    const nav = typeof navigator !== 'undefined' ? navigator : null;
+    const canWebShareFile =
+      nav &&
+      typeof nav.share === 'function' &&
+      typeof nav.canShare === 'function' &&
+      typeof window.File === 'function';
+
+    if (canWebShareFile) {
+      try {
+        const file = new File([blob], filename, { type: 'application/pdf' });
+        if (nav.canShare({ files: [file] })) {
+          const isIOS = /iPhone|iPad|iPod/.test(nav.userAgent || '');
+          await nav.share(
+            isIOS
+              ? { files: [file] }
+              : { files: [file], title: filename, text: 'Generated from rubenjimenez.dev' }
+          );
+          return;
+        }
+      } catch (err) {
+        console.warn('Web Share API failed, falling back to download', err);
+      }
+    }
+
+    // Fallback: download + allow manual print
+    downloadBlob(blob, filename);
+  }
+
+  async function generateBusinessDocPdf(doc) {
+    try {
+      if (!doc) return;
+
+      const html = buildBusinessDocHtml(doc);
+      const filenameSafeClient = (doc.clientName || 'client')
+        .toString()
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\-]/gi, '');
+      const filename =
+        (doc.type === 'proposal' ? 'proposal' :
+        doc.type === 'estimate' ? 'estimate' :
+        doc.type === 'invoice' ? 'invoice' : 'document') +
+        '-' +
+        filenameSafeClient +
+        '.pdf';
+
+      // html2pdf.js from CDN
+      const html2pdf = window.html2pdf || window.html2pdfjs || null;
+      if (!html2pdf) {
+        // Fallback: open in new window for printing
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.open();
+          win.document.write(html);
+          win.document.close();
+          win.focus();
+        } else {
+          alert('Unable to open document window. Please allow popups.');
+        }
+        return;
+      }
+
+      // Create an offscreen container
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.width = '800px';
+      container.innerHTML = html;
+      document.body.appendChild(container);
+
+      const opt = {
+        margin: 10,
+        filename: filename,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      let blob;
+      try {
+        blob = await html2pdf().set(opt).from(container).outputPdf('blob');
+      } finally {
+        document.body.removeChild(container);
+      }
+
+      if (!blob) {
+        alert('Failed to generate PDF.');
+        return;
+      }
+
+      await shareOrDownloadPdf(blob, filename, doc);
+    } catch (err) {
+      console.error('generateBusinessDocPdf error:', err);
+      alert('There was a problem generating the PDF. Please try again.');
+    }
+  }
+
   // Fetch messages from Firestore
   function fetchMessages() {
     console.log('fetchMessages called, db available:', !!window.db);
