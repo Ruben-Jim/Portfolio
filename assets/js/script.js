@@ -2330,6 +2330,21 @@ function getPageFromPath() {
   return null;
 }
 
+function getPageFromRedirectParam() {
+  try {
+    if (!window.location || !window.location.search) return null;
+    var params = new URLSearchParams(window.location.search);
+    var redirect = params.get('redirect') || params.get('p') || params.get('path') || null;
+    if (!redirect) return null;
+    var normalized = redirect.toString().replace(/^https?:\/\/[^/]+/i, '').replace(/^\/+|\/+$/g, '');
+    if (normalized === 'home') return 'about';
+    if (VALID_PAGES.indexOf(normalized) !== -1) return normalized;
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
 function updateUrlForPage(pageName, replace) {
   // Only update URL on http(s); file:// would produce invalid URLs like file:///.../index.html/portfolio
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
@@ -2433,10 +2448,12 @@ for (let i = 0; i < navigationLinks.length; i++) {
 // Restore active page from URL path or localStorage on page load with loading animation
 function restoreActivePage() {
   var loadingScreen = document.getElementById('loading-screen');
+  var redirectPage = getPageFromRedirectParam();
   var pageFromPath = getPageFromPath();
   var savedPage = localStorage.getItem('activePage');
   // URL path wins (e.g. rubenjimenez.dev/portfolio), then localStorage, then about
-  var targetPage = pageFromPath || savedPage || 'about';
+  // Redirect param wins (from 404 fallback), then URL path, then localStorage, then about
+  var targetPage = redirectPage || pageFromPath || savedPage || 'about';
 
   // Always show About first (don't save to localStorage during initial load)
   switchToPage('about', true);

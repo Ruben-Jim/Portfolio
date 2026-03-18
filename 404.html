@@ -45,6 +45,21 @@
   <meta name="geo.position" content="36.7378;-119.7871">
   <meta name="ICBM" content="36.7378, -119.7871">
 
+  <script>
+    (function () {
+      try {
+        var path = (window.location && window.location.pathname) ? window.location.pathname : '';
+        var clean = path.replace(/^\/+|\/+$/g, '');
+        if (!clean) return;
+        var valid = ['about', 'home', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'admin'];
+        if (valid.indexOf(clean) === -1) return;
+        // Host can't rewrite /admin -> /index.html, so redirect to root and let script.js restore the page.
+        var dest = '/?redirect=' + encodeURIComponent('/' + clean);
+        window.location.replace(dest);
+      } catch (e) {}
+    })();
+  </script>
+
   <!--
     - favicon
   -->
