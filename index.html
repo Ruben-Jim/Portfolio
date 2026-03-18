@@ -2721,97 +2721,16 @@
             </div>
           </header>
 
-        <section class="about-text">
+        <section class="about-text admin-intro">
           <p>
-            Welcome to the admin dashboard. Here you can view and manage contact form submissions,
-            reply to inquiries, and track message statistics.
+            Create proposals, estimates, and invoices; generate PDFs; and manage contact messages.
           </p>
         </section>
 
-        <section class="admin-stats-section service">
-
-          <h3 class="h3 service-title">Message Statistics</h3>
-
-          <ul class="service-list">
-            <li class="service-item">
-              <div class="service-icon-box">
-                <ion-icon name="mail-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Total Messages</h4>
-                <p class="service-item-text">
-                  All contact form submissions received.
-                </p>
-                <div class="stat-number-display" id="total-messages">0</div>
-              </div>
-            </li>
-
-            <li class="service-item">
-              <div class="service-icon-box">
-                <ion-icon name="mail-unread-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">New Messages</h4>
-                <p class="service-item-text">
-                  Unread contact form submissions.
-                </p>
-                <div class="stat-number-display" id="new-messages">0</div>
-              </div>
-            </li>
-
-            <li class="service-item">
-              <div class="service-icon-box">
-                <ion-icon name="checkmark-done-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Replied</h4>
-                <p class="service-item-text">
-                  Messages that have been replied to.
-                </p>
-                <div class="stat-number-display" id="replied-messages">0</div>
-              </div>
-            </li>
-          </ul>
-
-        </section>
-
-
-        <section class="service">
-
-          <h3 class="h3 service-title">Contact Messages</h3>
-
-          <div class="messages-controls">
-            <div class="messages-filter">
-              <button class="filter-btn active" data-filter="all">All</button>
-              <button class="filter-btn" data-filter="new">New</button>
-              <button class="filter-btn" data-filter="replied">Replied</button>
-            </div>
-
-            <div class="messages-actions">
-              <button class="btn-icon" id="refresh-messages" title="Refresh messages">
-                <ion-icon name="refresh-outline"></ion-icon>
-              </button>
-              <button class="btn-icon" id="test-firestore" title="Test Firestore connection">
-                <ion-icon name="cloud-outline"></ion-icon>
-              </button>
-            </div>
-          </div>
-
-          <div class="messages-list has-scrollbar" id="messages-list">
-            <!-- Messages will be populated here -->
-            <div class="no-messages">
-              <ion-icon name="mail-outline"></ion-icon>
-              <p>No messages yet</p>
-            </div>
-          </div>
-
-        </section>
-
-        <!-- Business Documents Section -->
-        <section class="service business-docs-section business-docs-open" id="business-docs-section">
+        <!-- Admin main content grid: Documents + Messages side-by-side on desktop -->
+        <div class="admin-main-grid">
+          <!-- Business Documents Section (primary workflow) -->
+          <section class="service business-docs-section business-docs-open admin-grid-item" id="business-docs-section">
           <button type="button" class="business-docs-section-header" id="business-docs-toggle" aria-expanded="true" aria-controls="business-docs-content">
             <span class="business-docs-header-inner">
               <ion-icon name="document-text-outline" class="business-docs-header-icon" aria-hidden="true"></ion-icon>
@@ -2827,7 +2746,7 @@
           <div class="business-docs-layout">
             <div class="business-docs-form-card">
               <h4 class="h4 service-item-title">Create / Edit Document</h4>
-              <p class="business-docs-form-hint">Add a new proposal, estimate, or invoice and generate a PDF.</p>
+              <p class="business-docs-form-hint">Create a document, save it, then click the PDF icon to open and use <strong>Print → Save as PDF</strong>.</p>
               <form id="business-doc-form">
                 <input type="hidden" id="business-doc-id">
                 <div class="form-row">
@@ -2927,7 +2846,7 @@
                   <tbody id="business-docs-tbody">
                     <tr class="empty-row">
                       <td colspan="6">
-                        <p class="empty-text">No documents yet. Create your first proposal, estimate, or invoice on the left.</p>
+                        <p class="empty-text">No documents yet. Create your first proposal, estimate, or invoice in the form above.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -2937,6 +2856,51 @@
           </div>
           </div>
         </section>
+
+          <!-- Contact Messages Section -->
+          <section class="service admin-grid-item admin-messages-section">
+            <h3 class="h3 service-title">Contact Messages</h3>
+
+            <div class="admin-stats-row">
+              <div class="admin-stat-mini">
+                <span class="admin-stat-label">Total</span>
+                <span class="admin-stat-value" id="total-messages">0</span>
+              </div>
+              <div class="admin-stat-mini">
+                <span class="admin-stat-label">New</span>
+                <span class="admin-stat-value" id="new-messages">0</span>
+              </div>
+              <div class="admin-stat-mini">
+                <span class="admin-stat-label">Replied</span>
+                <span class="admin-stat-value" id="replied-messages">0</span>
+              </div>
+            </div>
+
+            <div class="messages-controls">
+              <div class="messages-filter">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="new">New</button>
+                <button class="filter-btn" data-filter="replied">Replied</button>
+              </div>
+
+              <div class="messages-actions">
+                <button class="btn-icon" id="refresh-messages" title="Refresh messages">
+                  <ion-icon name="refresh-outline"></ion-icon>
+                </button>
+                <button class="btn-icon" id="test-firestore" title="Test Firestore connection">
+                  <ion-icon name="cloud-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+
+            <div class="messages-list has-scrollbar" id="messages-list">
+              <div class="no-messages">
+                <ion-icon name="mail-outline"></ion-icon>
+                <p>No messages yet</p>
+              </div>
+            </div>
+          </section>
+        </div><!-- /admin-main-grid -->
 
         <!-- Blog Management Section -->
         <section class="service">

@@ -3324,28 +3324,35 @@ window.addEventListener('load', function() {
 
     filtered.forEach(function(doc) {
       var tr = document.createElement('tr');
+      tr.className = 'business-doc-row';
 
       var typeTd = document.createElement('td');
+      typeTd.setAttribute('data-label', 'Type');
       typeTd.innerHTML = '<span class="business-doc-badge business-doc-type-' + doc.type + '">' + doc.type.charAt(0).toUpperCase() + doc.type.slice(1) + '</span>';
       tr.appendChild(typeTd);
 
       var clientTd = document.createElement('td');
+      clientTd.setAttribute('data-label', 'Client');
       clientTd.textContent = doc.clientName || '—';
       tr.appendChild(clientTd);
 
       var totalTd = document.createElement('td');
+      totalTd.setAttribute('data-label', 'Total');
       totalTd.textContent = formatCurrency(doc.total || 0);
       tr.appendChild(totalTd);
 
       var statusTd = document.createElement('td');
+      statusTd.setAttribute('data-label', 'Status');
       statusTd.innerHTML = '<span class="business-doc-badge business-doc-status-' + doc.status + '">' + doc.status.toUpperCase() + '</span>';
       tr.appendChild(statusTd);
 
       var createdTd = document.createElement('td');
+      createdTd.setAttribute('data-label', 'Created');
       createdTd.textContent = formatDateDisplay(doc.createdAt);
       tr.appendChild(createdTd);
 
       var actionsTd = document.createElement('td');
+      actionsTd.setAttribute('data-label', '');
       actionsTd.className = 'business-doc-actions';
 
       var editBtn = document.createElement('button');
@@ -3477,313 +3484,74 @@ window.addEventListener('load', function() {
   // Business Docs PDF generation + sharing
   // ----------------------------
 
+  function escapeHtml(str) {
+    if (str == null || str === '') return '';
+    var s = String(str);
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  /**
+   * HTML generator for business documents. Produces print-optimized HTML
+   * with @media print color preservation. Params: { customer, items, typeLabel, statusLabel, created, due, scope, id }
+   */
+  function getBusinessDocumentHtml(params) {
+    var customer = params.customer || {};
+    var items = params.items || [];
+    var C = {
+      primary: { 500: '#ceb15a' },
+      dark: { 50: '#f8fafc', 100: '#e8e6df', 200: '#c4c2bc', 700: '#334155', 900: '#0b0f14', 950: '#0f141a' }
+    };
+    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' +
+      escapeHtml((params.typeLabel || '') + ' — ' + (customer.name || '')) +
+      '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">\n  <style>\n    @media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }\n    * { box-sizing: border-box; }\n    body { margin: 0; padding: 24px; font-family: \'Inter\', sans-serif; background: ' + C.dark[900] + '; color: ' + C.dark[100] + '; font-size: 14px; }\n    .doc { max-width: 800px; margin: 0 auto; background: ' + C.dark[950] + '; padding: 28px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }\n    h1 { font-size: 22px; color: ' + C.primary[500] + '; margin: 0 0 8px 0; }\n    .sub { font-size: 12px; color: ' + C.dark[200] + '; margin-bottom: 20px; }\n    .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: rgba(206,177,90,0.2); color: ' + C.primary[500] + '; margin-right: 8px; }\n    hr { border: none; height: 1px; background: rgba(255,255,255,0.12); margin: 20px 0; }\n    .section { margin-bottom: 18px; }\n    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: ' + C.primary[500] + '; margin-bottom: 8px; }\n    .item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }\n    .item-desc { color: ' + C.dark[100] + '; }\n    .item-amt { font-weight: 700; color: ' + C.primary[500] + '; }\n    .price-box { background: ' + C.primary[500] + '; color: ' + C.dark[900] + '; padding: 16px 20px; border-radius: 10px; margin-top: 12px; }\n    .price-box .amt { font-size: 28px; font-weight: 700; }\n    .scope { font-size: 13px; line-height: 1.6; color: ' + C.dark[200] + '; white-space: pre-wrap; }\n    .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 11px; color: ' + C.dark[200] + '; }\n  </style>\n</head>\n<body>\n  <div class="doc">\n    <div class="badge">' +
+      escapeHtml(params.typeLabel || 'DOCUMENT') +
+      '</div>\n    <div class="badge">' +
+      escapeHtml(params.statusLabel || 'DRAFT') +
+      '</div>\n    <h1>' +
+      escapeHtml((customer.name || 'Client').toString().toUpperCase()) +
+      ' — ' +
+      escapeHtml(params.typeLabel || '') +
+      '</h1>\n    <div class="sub">Designed & Built by Ruben Jimenez | rubenjimenez.dev</div>\n    <div class="sub">Created: ' +
+      escapeHtml(params.created || '') +
+      ' | Due: ' +
+      escapeHtml(params.due || '—') +
+      '</div>\n    <hr>\n    <div class="section">\n      <div class="section-title">Scope</div>\n      <div class="scope">' +
+      (params.scope ? escapeHtml(params.scope).replace(/\n/g, '<br>') : 'Outline the project scope, deliverables, and key terms here.') +
+      '</div>\n    </div>\n    <hr>\n    <div class="section">\n      <div class="section-title">Items</div>\n      ' +
+      (items.length ? items.map(function(i) {
+        return '<div class="item"><span class="item-desc">' + escapeHtml(i.description || '') + '</span> <span class="item-amt">' + escapeHtml(typeof i.amount === 'number' ? '$' + i.amount.toFixed(2) : String(i.amount || '')) + '</span></div>';
+      }).join('') : '<div class="item"><span class="item-desc">Total</span> <span class="item-amt">$0.00</span></div>') +
+      '\n    </div>\n    <div class="price-box">\n      <div class="section-title" style="color:' + C.dark[900] + ';">Total</div>\n      <div class="amt">' +
+      escapeHtml(params.totalFormatted || '$0.00') +
+      '</div>\n    </div>\n    <div class="footer">Generated from rubenjimenez.dev | ' +
+      escapeHtml(params.id || '') +
+      '</div>\n  </div>\n</body>\n</html>';
+  }
+
   function buildBusinessDocHtml(doc) {
-    const created = formatDateDisplay(doc.createdAt);
-    const due = doc.dueDate ? formatDateDisplay(doc.dueDate) : '—';
-    const title =
-      (doc.type === 'proposal' ? 'Proposal' :
-      doc.type === 'estimate' ? 'Estimate' :
-      doc.type === 'invoice' ? 'Invoice' : 'Document') + ' — ' + (doc.clientName || '');
-
-    const scope = (doc.notes || '').replace(/\n/g, '<br>');
-
-    const typeLabel =
+    var created = formatDateDisplay(doc.createdAt);
+    var due = doc.dueDate ? formatDateDisplay(doc.dueDate) : '—';
+    var typeLabel =
       doc.type === 'proposal' ? 'PROPOSAL' :
       doc.type === 'estimate' ? 'ESTIMATE' :
       doc.type === 'invoice' ? 'INVOICE' : 'DOCUMENT';
-
-    const statusLabel = (doc.status || '').toString().toUpperCase();
-
-    return `
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>${title}</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 32px 28px 40px;
-      background: #0b0f14;
-      color: #e8e6df;
-      font-size: 14px;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-    .doc-root {
-      max-width: 800px;
-      margin: 0 auto;
-      background: linear-gradient(180deg, #0f141a, #0b0f14);
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 28px 28px 30px;
-      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
-    }
-    .doc-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 18px;
-      gap: 16px;
-    }
-    .kicker {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 10px;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(232,230,223,0.75);
-      margin-bottom: 10px;
-    }
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: #d6b25e;
-      opacity: 0.9;
-    }
-    .doc-title {
-      font-family: ui-serif, Georgia, "Times New Roman", serif;
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      text-transform: uppercase;
-      line-height: 1.15;
-      color: #d6b25e;
-    }
-    .doc-subtitle {
-      margin-top: 8px;
-      font-size: 12px;
-      line-height: 1.55;
-      color: rgba(232,230,223,0.75);
-      max-width: 420px;
-    }
-    .doc-badge {
-      display: inline-flex;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      background: rgba(214,178,94,0.14);
-      color: #d6b25e;
-      border: 1px solid rgba(214,178,94,0.22);
-    }
-    .doc-brand {
-      text-align: right;
-      font-size: 12px;
-      color: rgba(232,230,223,0.75);
-      line-height: 1.5;
-    }
-    .doc-brand-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: #e8e6df;
-    }
-    .divider {
-      height: 1px;
-      background: rgba(255,255,255,0.16);
-      margin: 18px 0;
-    }
-    .pill-row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-    .pill {
-      display: inline-flex;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.04);
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: rgba(232,230,223,0.8);
-    }
-    .pill.accent {
-      border-color: rgba(214,178,94,0.22);
-      background: rgba(214,178,94,0.12);
-      color: #d6b25e;
-    }
-    .nowrap { white-space: nowrap; }
-    .doc-section { margin-bottom: 22px; }
-    .section-title {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #d6b25e;
-      margin-bottom: 10px;
-    }
-    .two-col {
-      display: flex;
-      justify-content: space-between;
-      gap: 32px;
-    }
-    .two-col > div { flex: 1; }
-    .label {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(232,230,223,0.55);
-      margin-bottom: 3px;
-    }
-    .value {
-      font-size: 13px;
-      color: rgba(232,230,223,0.92);
-      font-weight: 500;
-    }
-    .doc-notes {
-      font-size: 13px;
-      color: rgba(232,230,223,0.86);
-      line-height: 1.6;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 14px 16px 16px;
-    }
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-top: 6px;
-    }
-    .price-card {
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
-      padding: 14px 16px;
-      min-height: 96px;
-    }
-    .price-card.primary {
-      background: rgba(214,178,94,0.16);
-      border-color: rgba(214,178,94,0.28);
-    }
-    .price-kicker {
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(232,230,223,0.7);
-      margin-bottom: 10px;
-    }
-    .price-value {
-      font-family: ui-serif, Georgia, "Times New Roman", serif;
-      font-size: 30px;
-      font-weight: 700;
-      line-height: 1;
-      color: #e8e6df;
-    }
-    .price-card.primary .price-value { color: #0b0f14; }
-    .price-meta {
-      margin-top: 10px;
-      font-size: 12px;
-      line-height: 1.45;
-      color: rgba(232,230,223,0.72);
-    }
-    .price-card.primary .price-meta { color: rgba(11,15,20,0.82); }
-    .muted { color: rgba(232,230,223,0.62); }
-    .footer {
-      margin-top: 22px;
-      padding-top: 14px;
-      border-top: 1px solid rgba(255,255,255,0.14);
-      font-size: 11px;
-      color: rgba(232,230,223,0.55);
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    a { color: #d6b25e; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <div class="doc-root">
-    <header class="doc-header">
-      <div>
-        <div class="kicker"><span class="dot"></span><span>Professional System</span><span class="doc-badge">${typeLabel}</span></div>
-        <div class="doc-title">${(doc.clientName || 'Client').toString().toUpperCase()}: ${typeLabel}</div>
-        <div class="doc-subtitle">
-          Fast, reliable, and easy to review in the field. This document summarizes scope, status, and pricing at a glance.
-        </div>
-        <div class="pill-row">
-          <span class="pill accent">${statusLabel || 'DRAFT'}</span>
-          <span class="pill">Created <span class="nowrap">${created}</span></span>
-          <span class="pill">Due <span class="nowrap">${due}</span></span>
-        </div>
-      </div>
-      <div class="doc-brand">
-        <div class="doc-brand-name">Ruben Jimenez</div>
-        <div class="muted">Web & Mobile Engineering</div>
-        <div><a href="https://rubenjimenez.dev">rubenjimenez.dev</a></div>
-        <div class="muted">Ruben.Jim.co@gmail.com</div>
-      </div>
-    </header>
-
-    <div class="divider"></div>
-
-    <section class="doc-section">
-      <div class="section-title">The Value Proposition</div>
-      <div class="doc-notes">
-        ${scope || 'Outline the project scope, deliverables, and key terms here.'}
-      </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <section class="doc-section">
-      <div class="section-title">Summary</div>
-      <div class="two-col">
-        <div>
-          <div class="label">Client</div>
-          <div class="value">${doc.clientName || '—'}</div>
-          ${doc.clientEmail ? `<div class="label" style="margin-top:6px;">Email</div><div class="value">${doc.clientEmail}</div>` : ''}
-        </div>
-        <div>
-          <div class="label">Document Type</div>
-          <div class="value">${typeLabel}</div>
-          <div class="label" style="margin-top:6px;">Status</div>
-          <div class="value">${statusLabel || '—'}</div>
-        </div>
-      </div>
-    </section>
-
-    <div class="divider"></div>
-
-    <section class="doc-section">
-      <div class="section-title">Turn‑Key Pricing</div>
-      <div class="pricing-grid">
-        <div class="price-card primary">
-          <div class="price-kicker">${typeLabel} ${doc.type === 'invoice' ? 'Total Due' : doc.type === 'estimate' ? 'Estimate' : 'Value'}</div>
-          <div class="price-value">${formatCurrency(doc.total || 0)}</div>
-          <div class="price-meta">
-            Includes scope outlined above. Final terms confirmed on acceptance.
-          </div>
-        </div>
-        <div class="price-card">
-          <div class="price-kicker">Details</div>
-          <div class="price-meta">
-            <div><span class="muted">Created:</span> ${created}</div>
-            <div><span class="muted">Due:</span> ${due}</div>
-            <div style="margin-top:10px;"><span class="muted">Reference:</span> ${doc.id}</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <footer class="footer">
-      <div>Generated from admin at rubenjimenez.dev</div>
-      <div>${doc.id}</div>
-    </footer>
-  </div>
-</body>
-</html>
-    `;
+    var items = [{ description: typeLabel + ' Total', amount: doc.total || 0 }];
+    return getBusinessDocumentHtml({
+      customer: { name: doc.clientName || '', email: doc.clientEmail || '' },
+      items: items,
+      typeLabel: typeLabel,
+      statusLabel: (doc.status || '').toString().toUpperCase(),
+      created: created,
+      due: due,
+      scope: doc.notes || '',
+      totalFormatted: formatCurrency(doc.total || 0),
+      id: doc.id || ''
+    });
   }
 
   /**
@@ -3848,89 +3616,25 @@ window.addEventListener('load', function() {
     try {
       if (!doc) return;
 
-      const html = buildBusinessDocHtml(doc);
-      const filenameSafeClient = (doc.clientName || 'client')
-        .toString()
-        .trim()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9\-]/gi, '');
-      const filename =
-        (doc.type === 'proposal' ? 'proposal' :
-        doc.type === 'estimate' ? 'estimate' :
-        doc.type === 'invoice' ? 'invoice' : 'document') +
-        '-' +
-        filenameSafeClient +
-        '.pdf';
+      var html = buildBusinessDocHtml(doc);
+      var win = window.open('', '_blank');
+      if (!win) {
+        alert('Unable to open document window. Please allow popups.');
+        return;
+      }
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+      win.focus();
 
-      // html2pdf.js from CDN
-      const html2pdf = window.html2pdf || window.html2pdfjs || null;
-      if (!html2pdf) {
-        // Fallback: open in new window for printing
-        const win = window.open('', '_blank');
-        if (win) {
-          win.document.open();
-          win.document.write(html);
-          win.document.close();
-          win.focus();
-        } else {
-          alert('Unable to open document window. Please allow popups.');
+      // Wait for fonts/content to load, then trigger print (Save as PDF)
+      setTimeout(function() {
+        try {
+          win.print();
+        } catch (e) {
+          console.warn('print failed', e);
         }
-        return;
-      }
-
-      // Create an offscreen container
-      const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '-9999px';
-      container.style.top = '0';
-      container.style.width = '800px';
-      container.innerHTML = html;
-      document.body.appendChild(container);
-
-      const opt = {
-        margin: 10,
-        filename: filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#0b0f14',
-          windowWidth: 800,
-          ignoreElements: function(el) {
-            try {
-              return el && el.tagName && el.tagName.toLowerCase() === 'ion-icon';
-            } catch (e) {
-              return false;
-            }
-          },
-          onclone: function(clonedDoc) {
-            try {
-              const icons = clonedDoc.querySelectorAll('ion-icon');
-              icons.forEach(function(icon) {
-                const span = clonedDoc.createElement('span');
-                span.setAttribute('aria-hidden', 'true');
-                span.textContent = '';
-                icon.replaceWith(span);
-              });
-            } catch (e) {}
-          }
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
-      };
-
-      let blob;
-      try {
-        blob = await html2pdf().set(opt).from(container).outputPdf('blob');
-      } finally {
-        document.body.removeChild(container);
-      }
-
-      if (!blob) {
-        alert('Failed to generate PDF.');
-        return;
-      }
-
-      await shareOrDownloadPdf(blob, filename, doc);
+      }, 800);
     } catch (err) {
       console.error('generateBusinessDocPdf error:', err);
       alert('There was a problem generating the PDF. Please try again.');
