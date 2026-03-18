@@ -2811,12 +2811,23 @@
         </section>
 
         <!-- Business Documents Section -->
-        <section class="service business-docs-section">
-          <h3 class="h3 service-title">Business Documents</h3>
+        <section class="service business-docs-section business-docs-open" id="business-docs-section">
+          <button type="button" class="business-docs-section-header" id="business-docs-toggle" aria-expanded="true" aria-controls="business-docs-content">
+            <span class="business-docs-header-inner">
+              <ion-icon name="document-text-outline" class="business-docs-header-icon" aria-hidden="true"></ion-icon>
+              <span class="business-docs-header-text">
+                <span class="business-docs-header-title">Business Documents</span>
+                <span class="business-docs-header-subtitle">Proposals, estimates, invoices</span>
+              </span>
+            </span>
+            <ion-icon name="chevron-down-outline" class="business-docs-chevron" aria-hidden="true"></ion-icon>
+          </button>
 
+          <div class="business-docs-content" id="business-docs-content">
           <div class="business-docs-layout">
             <div class="business-docs-form-card">
               <h4 class="h4 service-item-title">Create / Edit Document</h4>
+              <p class="business-docs-form-hint">Add a new proposal, estimate, or invoice and generate a PDF.</p>
               <form id="business-doc-form">
                 <input type="hidden" id="business-doc-id">
                 <div class="form-row">
@@ -2923,6 +2934,7 @@
                 </table>
               </div>
             </div>
+          </div>
           </div>
         </section>
 

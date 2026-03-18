@@ -3283,7 +3283,23 @@ window.addEventListener('load', function() {
     }));
 
     if (filtered.length === 0) {
-      businessDocsTbody.innerHTML = '<tr class="empty-row"><td colspan="6"><p class="empty-text">No documents yet. Create your first proposal, estimate, or invoice on the left.</p></td></tr>';
+      var scrollToForm = function() {
+        var formEl = document.getElementById('business-doc-form');
+        if (formEl) {
+          formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          var firstInput = formEl.querySelector('input, select, textarea');
+          if (firstInput && typeof firstInput.focus === 'function') firstInput.focus();
+        }
+      };
+      businessDocsTbody.innerHTML =
+        '<tr class="empty-row"><td colspan="6">' +
+        '<div class="business-docs-empty-state">' +
+        '<ion-icon name="document-outline" aria-hidden="true"></ion-icon>' +
+        '<p class="business-docs-empty-message">No proposals, estimates, or invoices yet.</p>' +
+        '<button type="button" class="btn btn-secondary" id="business-docs-empty-cta">Create one above</button>' +
+        '</div></td></tr>';
+      var cta = document.getElementById('business-docs-empty-cta');
+      if (cta) cta.addEventListener('click', scrollToForm);
       return;
     }
 
@@ -3411,6 +3427,35 @@ window.addEventListener('load', function() {
   // Initial render on load
   renderBusinessDocs();
 
+  // Business Documents section collapsible
+  var businessDocsSection = document.getElementById('business-docs-section');
+  var businessDocsToggle = document.getElementById('business-docs-toggle');
+  var businessDocsContent = document.getElementById('business-docs-content');
+  var BUSINESS_DOCS_OPEN_KEY = 'businessDocsSectionOpen';
+
+  function setBusinessDocsOpen(open) {
+    if (!businessDocsSection || !businessDocsToggle || !businessDocsContent) return;
+    try {
+      sessionStorage.setItem(BUSINESS_DOCS_OPEN_KEY, open ? '1' : '0');
+    } catch (e) {}
+    businessDocsSection.classList.toggle('business-docs-open', !!open);
+    businessDocsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  if (businessDocsToggle && businessDocsContent) {
+    var stored = null;
+    try {
+      stored = sessionStorage.getItem(BUSINESS_DOCS_OPEN_KEY);
+    } catch (e) {}
+    var initiallyOpen = stored !== '0';
+    setBusinessDocsOpen(initiallyOpen);
+
+    businessDocsToggle.addEventListener('click', function() {
+      var isOpen = businessDocsSection.classList.contains('business-docs-open');
+      setBusinessDocsOpen(!isOpen);
+    });
+  }
+
   // ----------------------------
   // Business Docs PDF generation + sharing
   // ----------------------------
@@ -3425,6 +3470,13 @@ window.addEventListener('load', function() {
 
     const scope = (doc.notes || '').replace(/\n/g, '<br>');
 
+    const typeLabel =
+      doc.type === 'proposal' ? 'PROPOSAL' :
+      doc.type === 'estimate' ? 'ESTIMATE' :
+      doc.type === 'invoice' ? 'INVOICE' : 'DOCUMENT';
+
+    const statusLabel = (doc.status || '').toString().toUpperCase();
+
     return `
 <!doctype html>
 <html>
@@ -3434,33 +3486,63 @@ window.addEventListener('load', function() {
   <style>
     * { box-sizing: border-box; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
-      padding: 32px 28px;
-      background: #f8fafc;
-      color: #0f172a;
+      padding: 32px 28px 40px;
+      background: #0b0f14;
+      color: #e8e6df;
       font-size: 14px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
     .doc-root {
       max-width: 800px;
       margin: 0 auto;
-      background: #ffffff;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      padding: 28px 28px 32px;
+      background: linear-gradient(180deg, #0f141a, #0b0f14);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 28px 28px 30px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
     }
     .doc-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
       gap: 16px;
     }
-    .doc-title {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.03em;
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
+      color: rgba(232,230,223,0.75);
+      margin-bottom: 10px;
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #d6b25e;
+      opacity: 0.9;
+    }
+    .doc-title {
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+      line-height: 1.15;
+      color: #d6b25e;
+    }
+    .doc-subtitle {
+      margin-top: 8px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: rgba(232,230,223,0.75);
+      max-width: 420px;
     }
     .doc-badge {
       display: inline-flex;
@@ -3470,115 +3552,172 @@ window.addEventListener('load', function() {
       font-weight: 600;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      background: #0f172a;
-      color: #e5e7eb;
-    }
-    .doc-meta {
-      font-size: 12px;
-      color: #6b7280;
-      line-height: 1.5;
-      margin-top: 6px;
+      background: rgba(214,178,94,0.14);
+      color: #d6b25e;
+      border: 1px solid rgba(214,178,94,0.22);
     }
     .doc-brand {
       text-align: right;
       font-size: 12px;
-      color: #4b5563;
+      color: rgba(232,230,223,0.75);
       line-height: 1.5;
     }
     .doc-brand-name {
       font-size: 14px;
       font-weight: 600;
-      color: #111827;
+      color: #e8e6df;
     }
-    .doc-section {
-      margin-bottom: 22px;
+    .divider {
+      height: 1px;
+      background: rgba(255,255,255,0.16);
+      margin: 18px 0;
     }
+    .pill-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .pill {
+      display: inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(232,230,223,0.8);
+    }
+    .pill.accent {
+      border-color: rgba(214,178,94,0.22);
+      background: rgba(214,178,94,0.12);
+      color: #d6b25e;
+    }
+    .nowrap { white-space: nowrap; }
+    .doc-section { margin-bottom: 22px; }
     .section-title {
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      color: #6b7280;
-      margin-bottom: 8px;
+      color: #d6b25e;
+      margin-bottom: 10px;
     }
     .two-col {
       display: flex;
       justify-content: space-between;
       gap: 32px;
     }
-    .two-col > div {
-      flex: 1;
-    }
+    .two-col > div { flex: 1; }
     .label {
       font-size: 11px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #9ca3af;
+      color: rgba(232,230,223,0.55);
       margin-bottom: 3px;
     }
     .value {
       font-size: 13px;
-      color: #111827;
+      color: rgba(232,230,223,0.92);
       font-weight: 500;
     }
     .doc-notes {
       font-size: 13px;
-      color: #374151;
+      color: rgba(232,230,223,0.86);
       line-height: 1.6;
-      border-radius: 10px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      padding: 14px 14px 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 14px 16px 16px;
     }
-    .total-box {
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
       margin-top: 6px;
-      padding: 10px 12px;
-      background: #0f172a;
-      border-radius: 10px;
-      color: #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
     }
-    .total-label {
+    .price-card {
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      padding: 14px 16px;
+      min-height: 96px;
+    }
+    .price-card.primary {
+      background: rgba(214,178,94,0.16);
+      border-color: rgba(214,178,94,0.28);
+    }
+    .price-kicker {
       font-size: 11px;
-      letter-spacing: 0.16em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      opacity: 0.7;
+      color: rgba(232,230,223,0.7);
+      margin-bottom: 10px;
     }
-    .total-value {
-      font-size: 18px;
+    .price-value {
+      font-family: ui-serif, Georgia, "Times New Roman", serif;
+      font-size: 30px;
       font-weight: 700;
+      line-height: 1;
+      color: #e8e6df;
     }
+    .price-card.primary .price-value { color: #0b0f14; }
+    .price-meta {
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(232,230,223,0.72);
+    }
+    .price-card.primary .price-meta { color: rgba(11,15,20,0.82); }
+    .muted { color: rgba(232,230,223,0.62); }
     .footer {
-      margin-top: 28px;
-      padding-top: 10px;
-      border-top: 1px dashed #d1d5db;
+      margin-top: 22px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.14);
       font-size: 11px;
-      color: #9ca3af;
+      color: rgba(232,230,223,0.55);
       display: flex;
       justify-content: space-between;
       gap: 12px;
     }
+    a { color: #d6b25e; text-decoration: none; }
   </style>
 </head>
 <body>
   <div class="doc-root">
     <header class="doc-header">
       <div>
-        <div class="doc-title">${title}</div>
-        <div class="doc-meta">
-          <div>Created: ${created}</div>
-          <div>Due: ${due}</div>
+        <div class="kicker"><span class="dot"></span><span>Professional System</span><span class="doc-badge">${typeLabel}</span></div>
+        <div class="doc-title">${(doc.clientName || 'Client').toString().toUpperCase()}: ${typeLabel}</div>
+        <div class="doc-subtitle">
+          Fast, reliable, and easy to review in the field. This document summarizes scope, status, and pricing at a glance.
+        </div>
+        <div class="pill-row">
+          <span class="pill accent">${statusLabel || 'DRAFT'}</span>
+          <span class="pill">Created <span class="nowrap">${created}</span></span>
+          <span class="pill">Due <span class="nowrap">${due}</span></span>
         </div>
       </div>
       <div class="doc-brand">
         <div class="doc-brand-name">Ruben Jimenez</div>
-        <div>Web & Mobile Engineering</div>
-        <div>rubenjimenez.dev</div>
-        <div>Ruben.Jim.co@gmail.com</div>
+        <div class="muted">Web & Mobile Engineering</div>
+        <div><a href="https://rubenjimenez.dev">rubenjimenez.dev</a></div>
+        <div class="muted">Ruben.Jim.co@gmail.com</div>
       </div>
     </header>
+
+    <div class="divider"></div>
+
+    <section class="doc-section">
+      <div class="section-title">The Value Proposition</div>
+      <div class="doc-notes">
+        ${scope || 'Outline the project scope, deliverables, and key terms here.'}
+      </div>
+    </section>
+
+    <div class="divider"></div>
 
     <section class="doc-section">
       <div class="section-title">Summary</div>
@@ -3590,23 +3729,33 @@ window.addEventListener('load', function() {
         </div>
         <div>
           <div class="label">Document Type</div>
-          <div class="value">${doc.type}</div>
+          <div class="value">${typeLabel}</div>
           <div class="label" style="margin-top:6px;">Status</div>
-          <div class="value">${doc.status}</div>
+          <div class="value">${statusLabel || '—'}</div>
         </div>
       </div>
     </section>
 
-    <section class="doc-section">
-      <div class="section-title">Scope & Notes</div>
-      <div class="doc-notes">${scope || 'Outline the project scope, deliverables, and key terms here.'}</div>
-    </section>
+    <div class="divider"></div>
 
     <section class="doc-section">
-      <div class="section-title">Total</div>
-      <div class="total-box">
-        <div class="total-label">Total ${doc.type === 'invoice' ? 'Due' : doc.type === 'estimate' ? 'Estimate' : 'Value'}</div>
-        <div class="total-value">${formatCurrency(doc.total || 0)}</div>
+      <div class="section-title">Turn‑Key Pricing</div>
+      <div class="pricing-grid">
+        <div class="price-card primary">
+          <div class="price-kicker">${typeLabel} ${doc.type === 'invoice' ? 'Total Due' : doc.type === 'estimate' ? 'Estimate' : 'Value'}</div>
+          <div class="price-value">${formatCurrency(doc.total || 0)}</div>
+          <div class="price-meta">
+            Includes scope outlined above. Final terms confirmed on acceptance.
+          </div>
+        </div>
+        <div class="price-card">
+          <div class="price-kicker">Details</div>
+          <div class="price-meta">
+            <div><span class="muted">Created:</span> ${created}</div>
+            <div><span class="muted">Due:</span> ${due}</div>
+            <div style="margin-top:10px;"><span class="muted">Reference:</span> ${doc.id}</div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -3725,8 +3874,31 @@ window.addEventListener('load', function() {
         margin: 10,
         filename: filename,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#0b0f14',
+          windowWidth: 800,
+          ignoreElements: function(el) {
+            try {
+              return el && el.tagName && el.tagName.toLowerCase() === 'ion-icon';
+            } catch (e) {
+              return false;
+            }
+          },
+          onclone: function(clonedDoc) {
+            try {
+              const icons = clonedDoc.querySelectorAll('ion-icon');
+              icons.forEach(function(icon) {
+                const span = clonedDoc.createElement('span');
+                span.setAttribute('aria-hidden', 'true');
+                span.textContent = '';
+                icon.replaceWith(span);
+              });
+            } catch (e) {}
+          }
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }
       };
 
       let blob;

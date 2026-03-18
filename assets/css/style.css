@@ -5725,6 +5725,97 @@ textarea.form-input::-webkit-resizer { display: none; }
   margin-top: 40px;
 }
 
+.business-docs-section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  margin: 0 0 16px 0;
+  background: var(--eerie-black-2);
+  border: 1px solid var(--jet);
+  border-radius: 18px;
+  color: var(--white-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.business-docs-section-header:hover {
+  background: var(--eerie-black-1);
+  border-color: rgba(255,255,255,0.08);
+}
+
+.business-docs-section-header:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.business-docs-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.business-docs-header-icon {
+  font-size: 28px;
+  color: var(--orange-yellow-crayola);
+  flex-shrink: 0;
+}
+
+.business-docs-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.business-docs-header-title {
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  line-height: 1.2;
+}
+
+.business-docs-header-subtitle {
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+  font-weight: var(--fw-400);
+}
+
+.business-docs-chevron {
+  font-size: 22px;
+  color: var(--light-gray);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.business-docs-section.business-docs-open .business-docs-chevron {
+  transform: rotate(0deg);
+}
+
+.business-docs-section:not(.business-docs-open) .business-docs-chevron {
+  transform: rotate(-90deg);
+}
+
+.business-docs-content {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.business-docs-section:not(.business-docs-open) .business-docs-content {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.business-docs-content > .business-docs-layout {
+  min-height: 0;
+  overflow: hidden;
+}
+
 .business-docs-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.4fr);
@@ -5735,9 +5826,40 @@ textarea.form-input::-webkit-resizer { display: none; }
 .business-docs-form-card,
 .business-docs-list-card {
   background: var(--eerie-black-2);
-  border-radius: 16px;
+  border-radius: 20px;
   border: 1px solid var(--jet);
-  padding: 18px 18px 20px;
+  padding: 20px 24px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.business-docs-form-card .h4.service-item-title {
+  margin-bottom: 4px;
+}
+
+.business-docs-form-hint {
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.business-docs-form-card .form-group input,
+.business-docs-form-card .form-group select,
+.business-docs-form-card .form-group textarea {
+  min-height: 40px;
+  border-radius: 10px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.business-docs-form-card .form-group input:focus,
+.business-docs-form-card .form-group select:focus,
+.business-docs-form-card .form-group textarea:focus {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
+}
+
+.business-docs-form-card .form-actions .btn-primary {
+  font-weight: var(--fw-600);
 }
 
 .business-docs-list-header {
@@ -5751,21 +5873,32 @@ textarea.form-input::-webkit-resizer { display: none; }
 .business-docs-filters {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .business-docs-filters select {
   background: var(--eerie-black-1);
   border-radius: 10px;
   border: 1px solid var(--jet);
-  padding: 6px 10px;
+  padding: 8px 12px;
+  min-height: 40px;
   color: var(--light-gray);
   font-size: var(--fs-7);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.business-docs-filters select:focus {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
+  outline: none;
 }
 
 .business-docs-table-wrapper {
   max-height: 340px;
   overflow: auto;
   margin-top: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
 .business-docs-table {
@@ -5776,9 +5909,14 @@ textarea.form-input::-webkit-resizer { display: none; }
 
 .business-docs-table th,
 .business-docs-table td {
-  padding: 8px 10px;
+  padding: 10px 12px;
   text-align: left;
   border-bottom: 1px solid rgba(255,255,255,0.03);
+  transition: background 0.2s ease;
+}
+
+.business-docs-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .business-docs-table th {
@@ -5787,6 +5925,8 @@ textarea.form-input::-webkit-resizer { display: none; }
   font-size: var(--fs-8);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .business-docs-table tbody tr:last-child td {
@@ -5795,7 +5935,37 @@ textarea.form-input::-webkit-resizer { display: none; }
 
 .business-docs-table .empty-row td {
   text-align: center;
-  padding: 18px 10px;
+  padding: 0;
+  vertical-align: middle;
+  border-bottom: none;
+}
+
+.business-docs-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.business-docs-empty-state ion-icon {
+  font-size: 48px;
+  color: var(--light-gray);
+  opacity: 0.6;
+  margin-bottom: 16px;
+}
+
+.business-docs-empty-state .business-docs-empty-message {
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+  margin-bottom: 16px;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.business-docs-empty-state .btn-secondary {
+  min-width: 140px;
 }
 
 .business-docs-table .empty-text {
@@ -5857,21 +6027,39 @@ textarea.form-input::-webkit-resizer { display: none; }
 }
 
 .business-doc-actions .btn-icon {
-  width: 32px;
-  height: 32px;
+  min-width: 38px;
+  min-height: 38px;
+  width: 38px;
+  height: 38px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.business-doc-actions .btn-icon:hover,
+.business-doc-actions .btn-icon:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 @media (max-width: 768px) {
+  .business-docs-section-header {
+    padding: 14px 16px;
+  }
+
+  .business-docs-header-icon {
+    font-size: 24px;
+  }
+
   .business-docs-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .business-docs-table-wrapper {
     max-height: 260px;
+    overflow-x: auto;
   }
 
   .business-docs-filters {
