@@ -3250,8 +3250,34 @@ window.addEventListener('load', function() {
   const businessDocsTbody = document.getElementById('business-docs-tbody');
   const businessDocFilterType = document.getElementById('business-doc-filter-type');
   const businessDocFilterStatus = document.getElementById('business-doc-filter-status');
+  const businessDocModal = document.getElementById('business-doc-modal');
+  const businessDocModalOverlay = document.getElementById('business-doc-modal-overlay');
+  const businessDocModalClose = document.getElementById('business-doc-modal-close');
+  const businessDocCreateBtn = document.getElementById('business-doc-create-btn');
 
   let businessDocs = loadBusinessDocs();
+
+  /**
+   * @param {BusinessDocument} [doc] - If provided, fill form for edit; otherwise reset for create.
+   */
+  function openBusinessDocModal(doc) {
+    if (doc) {
+      fillBusinessDocForm(doc);
+    } else {
+      resetBusinessDocForm();
+    }
+    if (businessDocModal) {
+      businessDocModal.style.display = 'flex';
+      businessDocModal.classList.add('active');
+    }
+  }
+
+  function closeBusinessDocModal() {
+    if (businessDocModal) {
+      businessDocModal.classList.remove('active');
+      businessDocModal.style.display = 'none';
+    }
+  }
 
   function resetBusinessDocForm() {
     if (!businessDocForm) return;
@@ -3300,23 +3326,15 @@ window.addEventListener('load', function() {
     }));
 
     if (filtered.length === 0) {
-      var scrollToForm = function() {
-        var formEl = document.getElementById('business-doc-form');
-        if (formEl) {
-          formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          var firstInput = formEl.querySelector('input, select, textarea');
-          if (firstInput && typeof firstInput.focus === 'function') firstInput.focus();
-        }
-      };
       businessDocsTbody.innerHTML =
         '<tr class="empty-row"><td colspan="6">' +
         '<div class="business-docs-empty-state">' +
         '<ion-icon name="document-outline" aria-hidden="true"></ion-icon>' +
         '<p class="business-docs-empty-message">No proposals, estimates, or invoices yet.</p>' +
-        '<button type="button" class="btn btn-secondary" id="business-docs-empty-cta">Create one above</button>' +
+        '<button type="button" class="btn btn-secondary" id="business-docs-empty-cta">Create Document</button>' +
         '</div></td></tr>';
       var cta = document.getElementById('business-docs-empty-cta');
-      if (cta) cta.addEventListener('click', scrollToForm);
+      if (cta) cta.addEventListener('click', function() { openBusinessDocModal(); });
       return;
     }
 
@@ -3361,8 +3379,7 @@ window.addEventListener('load', function() {
       editBtn.title = 'Edit';
       editBtn.innerHTML = '<ion-icon name="create-outline"></ion-icon>';
       editBtn.addEventListener('click', function() {
-        fillBusinessDocForm(doc);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        openBusinessDocModal(doc);
       });
 
       var pdfBtn = document.createElement('button');
@@ -3429,6 +3446,7 @@ window.addEventListener('load', function() {
       }
 
       saveBusinessDocs(businessDocs);
+      closeBusinessDocModal();
       resetBusinessDocForm();
       renderBusinessDocs();
     });
@@ -3447,6 +3465,24 @@ window.addEventListener('load', function() {
   if (businessDocFilterStatus) {
     businessDocFilterStatus.addEventListener('change', renderBusinessDocs);
   }
+
+  if (businessDocCreateBtn) {
+    businessDocCreateBtn.addEventListener('click', function() { openBusinessDocModal(); });
+  }
+
+  if (businessDocModalOverlay) {
+    businessDocModalOverlay.addEventListener('click', closeBusinessDocModal);
+  }
+
+  if (businessDocModalClose) {
+    businessDocModalClose.addEventListener('click', closeBusinessDocModal);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && businessDocModal && businessDocModal.classList.contains('active')) {
+      closeBusinessDocModal();
+    }
+  });
 
   // Initial render on load
   renderBusinessDocs();
@@ -3471,12 +3507,93 @@ window.addEventListener('load', function() {
     try {
       stored = sessionStorage.getItem(BUSINESS_DOCS_OPEN_KEY);
     } catch (e) {}
-    var initiallyOpen = stored !== '0';
+    var initiallyOpen = stored === '1';
     setBusinessDocsOpen(initiallyOpen);
 
     businessDocsToggle.addEventListener('click', function() {
       var isOpen = businessDocsSection.classList.contains('business-docs-open');
       setBusinessDocsOpen(!isOpen);
+    });
+  }
+
+  // Contact Messages collapsible
+  var messagesSection = document.getElementById('messages-section');
+  var messagesToggle = document.getElementById('messages-toggle');
+  var messagesContent = document.getElementById('messages-content');
+  var MESSAGES_OPEN_KEY = 'adminMessagesSectionOpen';
+
+  function setMessagesOpen(open) {
+    if (!messagesSection || !messagesToggle || !messagesContent) return;
+    try {
+      sessionStorage.setItem(MESSAGES_OPEN_KEY, open ? '1' : '0');
+    } catch (e) {}
+    messagesSection.classList.toggle('admin-collapsible-open', !!open);
+    messagesToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  if (messagesToggle && messagesContent) {
+    var messagesStored = null;
+    try {
+      messagesStored = sessionStorage.getItem(MESSAGES_OPEN_KEY);
+    } catch (e) {}
+    setMessagesOpen(messagesStored === '1');
+    messagesToggle.addEventListener('click', function() {
+      var isOpen = messagesSection.classList.contains('admin-collapsible-open');
+      setMessagesOpen(!isOpen);
+    });
+  }
+
+  // Blog Management collapsible
+  var blogSection = document.getElementById('blog-section');
+  var blogToggle = document.getElementById('blog-toggle');
+  var blogContent = document.getElementById('blog-content');
+  var BLOG_OPEN_KEY = 'adminBlogSectionOpen';
+
+  function setBlogOpen(open) {
+    if (!blogSection || !blogToggle || !blogContent) return;
+    try {
+      sessionStorage.setItem(BLOG_OPEN_KEY, open ? '1' : '0');
+    } catch (e) {}
+    blogSection.classList.toggle('admin-collapsible-open', !!open);
+    blogToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  if (blogToggle && blogContent) {
+    var blogStored = null;
+    try {
+      blogStored = sessionStorage.getItem(BLOG_OPEN_KEY);
+    } catch (e) {}
+    setBlogOpen(blogStored === '1');
+    blogToggle.addEventListener('click', function() {
+      var isOpen = blogSection.classList.contains('admin-collapsible-open');
+      setBlogOpen(!isOpen);
+    });
+  }
+
+  // Copy-Paste Snippets collapsible (blog tab)
+  var snippetsSection = document.getElementById('snippets-section');
+  var snippetsToggle = document.getElementById('snippets-toggle');
+  var snippetsContent = document.getElementById('snippets-content');
+  var SNIPPETS_OPEN_KEY = 'snippetsSectionOpen';
+
+  function setSnippetsOpen(open) {
+    if (!snippetsSection || !snippetsToggle || !snippetsContent) return;
+    try {
+      sessionStorage.setItem(SNIPPETS_OPEN_KEY, open ? '1' : '0');
+    } catch (e) {}
+    snippetsSection.classList.toggle('admin-collapsible-open', !!open);
+    snippetsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  if (snippetsToggle && snippetsContent) {
+    var snippetsStored = null;
+    try {
+      snippetsStored = sessionStorage.getItem(SNIPPETS_OPEN_KEY);
+    } catch (e) {}
+    setSnippetsOpen(snippetsStored === '1');
+    snippetsToggle.addEventListener('click', function() {
+      var isOpen = snippetsSection.classList.contains('admin-collapsible-open');
+      setSnippetsOpen(!isOpen);
     });
   }
 
@@ -3497,40 +3614,111 @@ window.addEventListener('load', function() {
 
   /**
    * HTML generator for business documents. Produces print-optimized HTML
-   * with @media print color preservation. Params: { customer, items, typeLabel, statusLabel, created, due, scope, id }
+   * matching Pro Cleaning proposal design. Params: { customer, items, typeLabel, statusLabel, created, due, scope, totalFormatted, id }
    */
   function getBusinessDocumentHtml(params) {
     var customer = params.customer || {};
-    var items = params.items || [];
     var C = {
-      primary: { 500: '#ceb15a' },
-      dark: { 50: '#f8fafc', 100: '#e8e6df', 200: '#c4c2bc', 700: '#334155', 900: '#0b0f14', 950: '#0f141a' }
+      primary: '#eab308',
+      dark: { bg: '#0f172a', card: '#0f141a', text: '#e8e6df', muted: '#94a3b8' }
     };
-    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' +
-      escapeHtml((params.typeLabel || '') + ' — ' + (customer.name || '')) +
-      '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">\n  <style>\n    @media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } }\n    * { box-sizing: border-box; }\n    body { margin: 0; padding: 24px; font-family: \'Inter\', sans-serif; background: ' + C.dark[900] + '; color: ' + C.dark[100] + '; font-size: 14px; }\n    .doc { max-width: 800px; margin: 0 auto; background: ' + C.dark[950] + '; padding: 28px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }\n    h1 { font-size: 22px; color: ' + C.primary[500] + '; margin: 0 0 8px 0; }\n    .sub { font-size: 12px; color: ' + C.dark[200] + '; margin-bottom: 20px; }\n    .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; background: rgba(206,177,90,0.2); color: ' + C.primary[500] + '; margin-right: 8px; }\n    hr { border: none; height: 1px; background: rgba(255,255,255,0.12); margin: 20px 0; }\n    .section { margin-bottom: 18px; }\n    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: ' + C.primary[500] + '; margin-bottom: 8px; }\n    .item { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }\n    .item-desc { color: ' + C.dark[100] + '; }\n    .item-amt { font-weight: 700; color: ' + C.primary[500] + '; }\n    .price-box { background: ' + C.primary[500] + '; color: ' + C.dark[900] + '; padding: 16px 20px; border-radius: 10px; margin-top: 12px; }\n    .price-box .amt { font-size: 28px; font-weight: 700; }\n    .scope { font-size: 13px; line-height: 1.6; color: ' + C.dark[200] + '; white-space: pre-wrap; }\n    .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.12); font-size: 11px; color: ' + C.dark[200] + '; }\n  </style>\n</head>\n<body>\n  <div class="doc">\n    <div class="badge">' +
-      escapeHtml(params.typeLabel || 'DOCUMENT') +
-      '</div>\n    <div class="badge">' +
-      escapeHtml(params.statusLabel || 'DRAFT') +
-      '</div>\n    <h1>' +
-      escapeHtml((customer.name || 'Client').toString().toUpperCase()) +
-      ' — ' +
-      escapeHtml(params.typeLabel || '') +
-      '</h1>\n    <div class="sub">Designed & Built by Ruben Jimenez | rubenjimenez.dev</div>\n    <div class="sub">Created: ' +
-      escapeHtml(params.created || '') +
-      ' | Due: ' +
-      escapeHtml(params.due || '—') +
-      '</div>\n    <hr>\n    <div class="section">\n      <div class="section-title">Scope</div>\n      <div class="scope">' +
-      (params.scope ? escapeHtml(params.scope).replace(/\n/g, '<br>') : 'Outline the project scope, deliverables, and key terms here.') +
-      '</div>\n    </div>\n    <hr>\n    <div class="section">\n      <div class="section-title">Items</div>\n      ' +
-      (items.length ? items.map(function(i) {
-        return '<div class="item"><span class="item-desc">' + escapeHtml(i.description || '') + '</span> <span class="item-amt">' + escapeHtml(typeof i.amount === 'number' ? '$' + i.amount.toFixed(2) : String(i.amount || '')) + '</span></div>';
-      }).join('') : '<div class="item"><span class="item-desc">Total</span> <span class="item-amt">$0.00</span></div>') +
-      '\n    </div>\n    <div class="price-box">\n      <div class="section-title" style="color:' + C.dark[900] + ';">Total</div>\n      <div class="amt">' +
-      escapeHtml(params.totalFormatted || '$0.00') +
-      '</div>\n    </div>\n    <div class="footer">Generated from rubenjimenez.dev | ' +
-      escapeHtml(params.id || '') +
-      '</div>\n  </div>\n</body>\n</html>';
+    var scopeHtml = params.scope ? escapeHtml(params.scope).replace(/\n/g, '<br>') : 'Outline the project scope, deliverables, and key terms here.';
+    var clientName = escapeHtml((customer.name || 'Client').toString().toUpperCase());
+    var typeLabel = escapeHtml(params.typeLabel || 'DOCUMENT');
+    var statusLabel = escapeHtml(params.statusLabel || 'DRAFT');
+    var created = escapeHtml(params.created || '');
+    var due = escapeHtml(params.due || '—');
+    var totalFormatted = escapeHtml(params.totalFormatted || '$0.00');
+    var id = escapeHtml(params.id || '');
+
+    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
+      '@page { size: A4; margin: 12mm; }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .scope-body { font-size: 12px; line-height: 1.45; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
+      '* { box-sizing: border-box; }\n' +
+      'body { margin: 0; padding: 40px 32px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
+      '.doc { max-width: 800px; margin: 0 auto; }\n' +
+      '.header-tag { display: inline-block; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; background: ' + C.primary + '; color: ' + C.dark.bg + '; margin-bottom: 12px; }\n' +
+      '.doc-title { font-family: \'Playfair Display\', serif; font-size: 24px; font-weight: 700; color: ' + C.primary + '; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.2; margin: 0 0 8px 0; }\n' +
+      '.doc-subtitle { font-size: 12px; color: ' + C.dark.muted + '; margin-bottom: 24px; }\n' +
+      '.doc-subtitle a { color: ' + C.primary + '; text-decoration: underline; }\n' +
+      '.divider { border: none; height: 1px; background: rgba(255,255,255,0.1); margin: 24px 0; }\n' +
+      '.section-title { font-family: \'Playfair Display\', serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: ' + C.primary + '; margin-bottom: 12px; }\n' +
+      '.scope-body { font-size: 14px; line-height: 1.6; color: ' + C.dark.text + '; }\n' +
+      '.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
+      '.feature-col { }\n' +
+      '.feature-title { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 6px; }\n' +
+      '.feature-desc { font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
+      '.pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
+      '.price-card { padding: 20px; border-radius: 12px; }\n' +
+      '.price-card-primary { background: ' + C.primary + '; color: ' + C.dark.bg + '; }\n' +
+      '.price-card-primary .price-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(15,23,42,0.8); margin-bottom: 8px; }\n' +
+      '.price-card-primary .price-amt { font-family: \'Playfair Display\', serif; font-size: 36px; font-weight: 700; line-height: 1; }\n' +
+      '.price-card-primary .price-meta { font-size: 12px; margin-top: 12px; line-height: 1.5; color: rgba(15,23,42,0.85); }\n' +
+      '.price-card-secondary { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }\n' +
+      '.price-card-secondary .price-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: ' + C.primary + '; margin-bottom: 8px; }\n' +
+      '.price-card-secondary .price-meta { font-size: 12px; color: ' + C.dark.muted + '; line-height: 1.6; }\n' +
+      '.why-list { margin: 12px 0 0 0; padding-left: 20px; font-size: 14px; line-height: 1.7; color: ' + C.dark.text + '; }\n' +
+      '.why-list li { margin-bottom: 8px; }\n' +
+      '.why-list li strong { color: ' + C.primary + '; }\n' +
+      '.next-steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
+      '.next-step { }\n' +
+      '.next-step-num { font-family: \'Playfair Display\', serif; font-size: 20px; font-weight: 700; color: ' + C.primary + '; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid ' + C.primary + '; }\n' +
+      '.next-step-title { font-size: 13px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 4px; }\n' +
+      '.next-step-link { font-size: 12px; color: ' + C.primary + '; text-decoration: underline; }\n' +
+      '.footer-buttons { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }\n' +
+      '.btn-primary { display: inline-block; padding: 12px 24px; background: ' + C.primary + '; color: ' + C.dark.bg + '; font-family: \'Inter\', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none; border-radius: 8px; border: none; }\n' +
+      '.btn-outline { display: inline-block; padding: 12px 24px; background: transparent; color: ' + C.primary + '; font-family: \'Inter\', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none; border-radius: 8px; border: 2px solid ' + C.primary + '; }\n' +
+      '.footer-meta { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: ' + C.dark.muted + '; }\n' +
+      'a { color: ' + C.primary + '; }\n' +
+      '</style>\n</head>\n<body>\n  <div class="doc">\n' +
+      '    <div class="header-tag">PROFESSIONAL SYSTEM</div>\n' +
+      '    <h1 class="doc-title">' + clientName + ': ' + typeLabel + '</h1>\n' +
+      '    <div class="doc-subtitle">Designed & Built by Ruben Jimenez | <a href="https://rubenjimenez.dev">rubenjimenez.dev</a></div>\n' +
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">The Value Proposition</div>\n' +
+      '    <div class="scope-body">' + scopeHtml + '</div>\n' +
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">Document Summary</div>\n' +
+      '    <div class="features-grid">\n' +
+      '      <div class="feature-col"><div class="feature-title">Client</div><div class="feature-desc">' + escapeHtml(customer.name || '—') + '</div></div>\n' +
+      '      <div class="feature-col"><div class="feature-title">Type</div><div class="feature-desc">' + typeLabel + '</div></div>\n' +
+      '      <div class="feature-col"><div class="feature-title">Status</div><div class="feature-desc">' + statusLabel + '</div></div>\n' +
+      '      <div class="feature-col"><div class="feature-title">Due Date</div><div class="feature-desc">' + due + '</div></div>\n' +
+      '    </div>\n' +
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">Turn-Key Pricing</div>\n' +
+      '    <div class="pricing-grid">\n' +
+      '      <div class="price-card price-card-primary">\n' +
+      '        <div class="price-label">' + typeLabel + ' Total</div>\n' +
+      '        <div class="price-amt">' + totalFormatted + '</div>\n' +
+      '        <div class="price-meta">Includes scope outlined above. Final terms confirmed on acceptance.</div>\n' +
+      '      </div>\n' +
+      '      <div class="price-card price-card-secondary">\n' +
+      '        <div class="price-label">Details</div>\n' +
+      '        <div class="price-meta">Created: ' + created + '<br>Due: ' + due + '</div>\n' +
+      '      </div>\n' +
+      '    </div>\n' +
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">Why This Document</div>\n' +
+      '    <ul class="why-list">\n' +
+      '      <li><strong>Scope:</strong> Deliverables and key terms clearly defined above.</li>\n' +
+      '      <li><strong>Pricing:</strong> Total and details at a glance.</li>\n' +
+      '      <li><strong>Ready:</strong> Professional format for review and acceptance.</li>\n' +
+      '    </ul>\n' +
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">The Next Steps</div>\n' +
+      '    <div class="next-steps-grid">\n' +
+      '      <div class="next-step"><div class="next-step-num">01</div><div class="next-step-title">Visit Portfolio</div><a href="https://rubenjimenez.dev" class="next-step-link">rubenjimenez.dev</a></div>\n' +
+      '      <div class="next-step"><div class="next-step-num">02</div><div class="next-step-title">Review and Confirm</div><span style="font-size:12px;color:' + C.dark.muted + ';">Review scope and terms</span></div>\n' +
+      '      <div class="next-step"><div class="next-step-num">03</div><div class="next-step-title">Contact Me</div><a href="mailto:Ruben.Jim.co@gmail.com" class="next-step-link">Ruben.Jim.co@gmail.com</a></div>\n' +
+      '    </div>\n' +
+      '    <hr class="divider">\n' +
+      '    <div class="footer-buttons">\n' +
+      '      <a href="https://rubenjimenez.dev" class="btn-primary">View Portfolio</a>\n' +
+      '      <a href="mailto:Ruben.Jim.co@gmail.com" class="btn-outline">Contact Me</a>\n' +
+      '    </div>\n' +
+      '    <div class="footer-meta">Generated from rubenjimenez.dev | ' + '</div>\n' +
+      '  </div>\n</body>\n</html>';
   }
 
   function buildBusinessDocHtml(doc) {

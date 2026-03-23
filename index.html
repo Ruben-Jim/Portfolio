@@ -575,6 +575,13 @@
           <h2 class="h2 article-title">Resume</h2>
         </header>
 
+        <div class="resume-view-btn-wrap">
+          <a href="./assets/resume.pdf" target="_blank" rel="noopener noreferrer" class="btn-view-resume" aria-label="View resume PDF">
+            <ion-icon name="document-outline"></ion-icon>
+            View Resume
+          </a>
+        </div>
+
         
         <section class="timeline">
 
@@ -1570,58 +1577,6 @@
           
         </header>
 
-                <!-- Copy-Paste Snippets -->
-                <section class="snippets-section">
-                  <h3 class="h3 snippets-title">Copy-Paste Snippets</h3>
-                  <p class="snippets-subtitle">Handy code snippets you can copy</p>
-                  <div class="snippets-grid">
-                    <div class="snippet-card">
-                      <div class="snippet-header">
-                        <span class="snippet-label">React Native Expo Start</span>
-                        <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
-                          <ion-icon name="copy-outline"></ion-icon>
-                          <span class="snippet-copy-text">Copy</span>
-                        </button>
-                      </div>
-                      <pre class="snippet-code"><code data-snippet>npx create-expo-app my-app
-        cd my-app
-        npx expo start</code></pre>
-                    </div>
-                    <!-- <div class="snippet-card">
-                      <div class="snippet-header">
-                        <span class="snippet-label">Firebase Init</span>
-                        <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
-                          <ion-icon name="copy-outline"></ion-icon>
-                          <span class="snippet-copy-text">Copy</span>
-                        </button>
-                      </div>
-                      <pre class="snippet-code has-scrollbar"><code data-snippet>import { initializeApp } from 'firebase/app';
-        import { getFirestore } from 'firebase/firestore';
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);</code></pre>
-                    </div> -->
-                    <!-- <div class="snippet-card">
-                      <div class="snippet-header">
-                        <span class="snippet-label">Async Fetch with Error Handling</span>
-                        <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
-                          <ion-icon name="copy-outline"></ion-icon>
-                          <span class="snippet-copy-text">Copy</span>
-                        </button>
-                      </div>
-                      <pre class="snippet-code has-scrollbar"><code data-snippet>async function fetchData(url) {
-          try {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(res.status);
-            return await res.json();
-          } catch (e) {
-            console.error('Fetch failed:', e);
-          }
-        }</code></pre>
-                    </div> -->
-                  </div>
-                </section>
-
         <!-- Blog posts -->
         <section class="blog-posts">
           <ul class="blog-posts-list" id="blog-posts-list">
@@ -1804,7 +1759,7 @@
 
           <section class="blog-modal">
 
-            <button class="modal-close-btn" data-blog-modal-close-btn>
+            <button class="blog-modal-close-btn" data-blog-modal-close-btn aria-label="Close blog post">
               <ion-icon name="close-outline"></ion-icon>
             </button>
 
@@ -1814,7 +1769,7 @@
               </figure>
             </div>
 
-            <div class="blog-modal-content">
+            <div class="blog-modal-content has-scrollbar">
 
               <div class="blog-modal-meta">
                 <p class="blog-modal-category" data-blog-modal-category>Design</p>
@@ -1843,6 +1798,71 @@
           </section>
 
         </div>
+
+        <!-- Copy-Paste Snippets -->
+        <section class="snippets-section admin-collapsible-section" id="snippets-section">
+          <button type="button" class="admin-collapsible-header snippets-collapsible-header" id="snippets-toggle" aria-expanded="false" aria-controls="snippets-content">
+            <span class="admin-collapsible-inner">
+              <ion-icon name="code-slash-outline" class="admin-collapsible-icon" aria-hidden="true"></ion-icon>
+              <span class="admin-collapsible-text">
+                <span class="admin-collapsible-title snippets-collapsible-title">Copy-Paste Snippets</span>
+                <span class="admin-collapsible-subtitle">Handy code snippets you can copy</span>
+              </span>
+            </span>
+            <ion-icon name="chevron-down-outline" class="admin-collapsible-chevron" aria-hidden="true"></ion-icon>
+          </button>
+
+          <div class="admin-collapsible-content" id="snippets-content">
+            <div class="admin-collapsible-inner-content">
+            <div class="snippets-grid">
+              <div class="snippet-card">
+                <div class="snippet-header">
+                  <span class="snippet-label">React Native Expo Start</span>
+                  <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
+                    <ion-icon name="copy-outline"></ion-icon>
+                    <span class="snippet-copy-text">Copy</span>
+                  </button>
+                </div>
+                <pre class="snippet-code"><code data-snippet>npx create-expo-app my-app
+cd my-app
+npx expo start</code></pre>
+              </div>
+              <!-- <div class="snippet-card">
+                <div class="snippet-header">
+                  <span class="snippet-label">Firebase Init</span>
+                  <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
+                    <ion-icon name="copy-outline"></ion-icon>
+                    <span class="snippet-copy-text">Copy</span>
+                  </button>
+                </div>
+                <pre class="snippet-code has-scrollbar"><code data-snippet>import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);</code></pre>
+              </div> -->
+              <!-- <div class="snippet-card">
+                <div class="snippet-header">
+                  <span class="snippet-label">Async Fetch with Error Handling</span>
+                  <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
+                    <ion-icon name="copy-outline"></ion-icon>
+                    <span class="snippet-copy-text">Copy</span>
+                  </button>
+                </div>
+                <pre class="snippet-code has-scrollbar"><code data-snippet>async function fetchData(url) {
+try {
+const res = await fetch(url);
+if (!res.ok) throw new Error(res.status);
+return await res.json();
+} catch (e) {
+console.error('Fetch failed:', e);
+}
+}</code></pre>
+              </div> -->
+            </div>
+            </div>
+          </div>
+        </section>
 
       </article>
 
@@ -2727,10 +2747,10 @@
           </p>
         </section>
 
-        <!-- Admin main content grid: Documents + Messages side-by-side on desktop -->
-        <div class="admin-main-grid">
+        <!-- Admin main content grid: Documents, Messages, Blog (3-col on wide screens) -->
+        <div class="admin-main-grid" id="admin-main-grid">
           <!-- Business Documents Section (primary workflow) -->
-          <section class="service business-docs-section business-docs-open admin-grid-item" id="business-docs-section">
+          <section class="service business-docs-section admin-grid-item" id="business-docs-section">
           <button type="button" class="business-docs-section-header" id="business-docs-toggle" aria-expanded="true" aria-controls="business-docs-content">
             <span class="business-docs-header-inner">
               <ion-icon name="document-text-outline" class="business-docs-header-icon" aria-hidden="true"></ion-icon>
@@ -2744,77 +2764,11 @@
 
           <div class="business-docs-content" id="business-docs-content">
           <div class="business-docs-layout">
-            <div class="business-docs-form-card">
-              <h4 class="h4 service-item-title">Create / Edit Document</h4>
-              <p class="business-docs-form-hint">Create a document, save it, then click the PDF icon to open and use <strong>Print → Save as PDF</strong>.</p>
-              <form id="business-doc-form">
-                <input type="hidden" id="business-doc-id">
-                <div class="form-row">
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-type">Type</label>
-                    <select id="business-doc-type" required>
-                      <option value="proposal">Proposal</option>
-                      <option value="estimate">Estimate</option>
-                      <option value="invoice">Invoice</option>
-                    </select>
-                  </div>
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-status">Status</label>
-                    <select id="business-doc-status" required>
-                      <option value="draft">Draft</option>
-                      <option value="sent">Sent</option>
-                      <option value="accepted">Accepted</option>
-                      <option value="paid">Paid</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-client-name">Client Name</label>
-                    <input type="text" id="business-doc-client-name" required placeholder="Client or Business">
-                  </div>
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-client-email">Client Email (optional)</label>
-                    <input type="email" id="business-doc-client-email" placeholder="name@example.com">
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-total">Total Amount</label>
-                    <input type="number" id="business-doc-total" min="0" step="0.01" required placeholder="1500.00">
-                  </div>
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-due-date">Due Date (optional)</label>
-                    <input type="date" id="business-doc-due-date">
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label for="business-doc-notes">Project Scope / Notes</label>
-                  <textarea id="business-doc-notes" rows="3" placeholder="Scope, services, and key terms..."></textarea>
-                </div>
-
-                <div class="form-actions">
-                  <button type="button" class="btn btn-secondary" id="business-doc-reset-btn">
-                    <ion-icon name="refresh-outline"></ion-icon>
-                    Reset
-                  </button>
-                  <div style="display: flex; gap: 12px; margin-left: auto;">
-                    <button type="submit" class="btn btn-primary" id="business-doc-save-btn">
-                      <ion-icon name="save-outline"></ion-icon>
-                      Save Document
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-
             <div class="business-docs-list-card">
               <div class="business-docs-list-header">
                 <h4 class="h4 service-item-title">Documents</h4>
-                <div class="business-docs-filters">
+                <div class="business-docs-header-actions">
+                  <div class="business-docs-filters">
                   <select id="business-doc-filter-type">
                     <option value="all">All Types</option>
                     <option value="proposal">Proposals</option>
@@ -2828,6 +2782,11 @@
                     <option value="accepted">Accepted</option>
                     <option value="paid">Paid</option>
                   </select>
+                  </div>
+                  <button type="button" class="btn btn-primary" id="business-doc-create-btn">
+                    <ion-icon name="add-outline"></ion-icon>
+                    Create Document
+                  </button>
                 </div>
               </div>
 
@@ -2858,9 +2817,20 @@
         </section>
 
           <!-- Contact Messages Section -->
-          <section class="service admin-grid-item admin-messages-section">
-            <h3 class="h3 service-title">Contact Messages</h3>
+          <section class="service admin-collapsible-section admin-grid-item admin-messages-section" id="messages-section">
+            <button type="button" class="admin-collapsible-header" id="messages-toggle" aria-expanded="false" aria-controls="messages-content">
+              <span class="admin-collapsible-inner">
+                <ion-icon name="mail-outline" class="admin-collapsible-icon" aria-hidden="true"></ion-icon>
+                <span class="admin-collapsible-text">
+                  <span class="admin-collapsible-title">Contact Messages</span>
+                  <span class="admin-collapsible-subtitle">View and manage inquiries</span>
+                </span>
+              </span>
+              <ion-icon name="chevron-down-outline" class="admin-collapsible-chevron" aria-hidden="true"></ion-icon>
+            </button>
 
+            <div class="admin-collapsible-content" id="messages-content">
+            <div class="admin-collapsible-inner-content">
             <div class="admin-stats-row">
               <div class="admin-stat-mini">
                 <span class="admin-stat-label">Total</span>
@@ -2899,29 +2869,43 @@
                 <p>No messages yet</p>
               </div>
             </div>
+            </div>
+            </div>
+          </section>
+
+          <!-- Blog Management Section -->
+          <section class="service admin-collapsible-section admin-grid-item" id="blog-section">
+            <button type="button" class="admin-collapsible-header" id="blog-toggle" aria-expanded="false" aria-controls="blog-content">
+              <span class="admin-collapsible-inner">
+                <ion-icon name="newspaper-outline" class="admin-collapsible-icon" aria-hidden="true"></ion-icon>
+                <span class="admin-collapsible-text">
+                  <span class="admin-collapsible-title">Blog Management</span>
+                  <span class="admin-collapsible-subtitle">Create and manage blog posts</span>
+                </span>
+              </span>
+              <ion-icon name="chevron-down-outline" class="admin-collapsible-chevron" aria-hidden="true"></ion-icon>
+            </button>
+
+            <div class="admin-collapsible-content" id="blog-content">
+              <div class="admin-collapsible-inner-content">
+                <div class="blog-posts-list has-scrollbar" id="admin-blog-posts-list">
+                  <!-- Blog posts will be populated here -->
+                  <div class="empty-item">
+                    <p>Loading blog posts...</p>
+                  </div>
+                </div>
+                <div class="blog-management-controls">
+                  <div class="blog-management-actions">
+                    <button class="btn btn-primary" id="admin-add-blog-btn">
+                      <ion-icon name="add-outline"></ion-icon>
+                      Add New Post
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </section>
         </div><!-- /admin-main-grid -->
-
-        <!-- Blog Management Section -->
-        <section class="service">
-          <h3 class="h3 service-title">Blog Management</h3>
-
-          <div class="blog-management-controls">
-            <div class="blog-management-actions">
-              <button class="btn btn-primary" id="admin-add-blog-btn">
-                <ion-icon name="add-outline"></ion-icon>
-                Add New Post
-              </button>
-            </div>
-          </div>
-
-          <div class="blog-posts-list" id="admin-blog-posts-list">
-            <!-- Blog posts will be populated here -->
-            <div class="empty-item">
-              <p>Loading blog posts...</p>
-            </div>
-          </div>
-        </section>
 
         </div> <!-- End admin-dashboard-content -->
 
@@ -2997,6 +2981,84 @@
               </form>
             </div>
           </section>
+        </div>
+
+        <!-- Create/Edit Document Modal -->
+        <div class="business-doc-modal" id="business-doc-modal" style="display: none;">
+          <div class="business-doc-modal-overlay" id="business-doc-modal-overlay"></div>
+          <div class="business-doc-modal-content">
+            <div class="business-doc-modal-header">
+              <h3 class="h3">Create / Edit Document</h3>
+              <button type="button" class="business-doc-modal-close" id="business-doc-modal-close" aria-label="Close">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="business-doc-modal-body has-scrollbar">
+              <p class="business-docs-form-hint">Create a document, save it, then click the PDF icon to open and use <strong>Print → Save as PDF</strong>.</p>
+              <form id="business-doc-form">
+                <input type="hidden" id="business-doc-id">
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-type">Type</label>
+                    <select id="business-doc-type" required>
+                      <option value="proposal">Proposal</option>
+                      <option value="estimate">Estimate</option>
+                      <option value="invoice">Invoice</option>
+                    </select>
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-status">Status</label>
+                    <select id="business-doc-status" required>
+                      <option value="draft">Draft</option>
+                      <option value="sent">Sent</option>
+                      <option value="accepted">Accepted</option>
+                      <option value="paid">Paid</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-client-name">Client Name</label>
+                    <input type="text" id="business-doc-client-name" required placeholder="Client or Business">
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-client-email">Client Email (optional)</label>
+                    <input type="email" id="business-doc-client-email" placeholder="name@example.com">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-total">Total Amount</label>
+                    <input type="number" id="business-doc-total" min="0" step="0.01" required placeholder="1500.00">
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="business-doc-due-date">Due Date (optional)</label>
+                    <input type="date" id="business-doc-due-date">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="business-doc-notes">Project Scope / Notes</label>
+                  <textarea class="has-scrollbar" id="business-doc-notes" rows="3" placeholder="Scope, services, and key terms..."></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" id="business-doc-reset-btn">
+                    <ion-icon name="refresh-outline"></ion-icon>
+                    Reset
+                  </button>
+                  <div style="display: flex; gap: 12px; margin-left: auto;">
+                    <button type="submit" class="btn btn-primary" id="business-doc-save-btn">
+                      <ion-icon name="save-outline"></ion-icon>
+                      Save Document
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
 
       </article>
