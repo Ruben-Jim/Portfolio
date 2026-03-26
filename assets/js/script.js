@@ -2652,6 +2652,7 @@ function initSubjectAccordion() {
 // Initialize subject accordion on page load
 document.addEventListener('DOMContentLoaded', function() {
   initSubjectAccordion();
+  initTimelineToggle();
 });
 
 // Also initialize if DOM is already loaded
@@ -2664,18 +2665,37 @@ if (document.readyState === 'loading') {
 // Re-initialize subject accordion when navigating to resume page (integrated with existing navigation)
 // This is handled in the switchToPage function below
 
+// Timeline item expand/collapse toggle
+function initTimelineToggle() {
+  const timelineItems = document.querySelectorAll('.timeline-item-collapsible');
+  timelineItems.forEach(function(item) {
+    const btn = item.querySelector('[data-timeline-toggle]');
+    if (!btn) return;
+    // Avoid double-binding
+    if (btn._tlBound) return;
+    btn._tlBound = true;
+    btn.addEventListener('click', function() {
+      const isOpen = item.classList.contains('tl-open');
+      item.classList.toggle('tl-open', !isOpen);
+      btn.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
+    });
+  });
+}
+
 // Initialize accordion on page load
 function initializeAccordionOnLoad() {
   // Wait a bit to ensure all DOM is ready, especially if page loads on Resume section
   setTimeout(function() {
     initClassAccordion();
     initSubjectAccordion();
+    initTimelineToggle();
     // Also check if resume page is active on load and initialize
     const resumePage = document.querySelector('[data-page="resume"]');
     if (resumePage && resumePage.classList.contains('active')) {
       setTimeout(function() {
         initClassAccordion();
         initSubjectAccordion();
+        initTimelineToggle();
       }, 100);
     }
   }, 200);
@@ -2695,6 +2715,7 @@ window.addEventListener('load', function() {
   setTimeout(function() {
     initClassAccordion();
     initSubjectAccordion();
+    initTimelineToggle();
   }, 100);
 });
 
