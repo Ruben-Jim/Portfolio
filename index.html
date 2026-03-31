@@ -3562,17 +3562,21 @@ const db = getFirestore(app);</code></pre>
     
     <div class="ops-content">
       <!-- Header -->
-      <div class="ops-header">
+      <div class="business-doc-modal-header">
         <div class="header-left">
           <ion-icon name="settings-outline" class="header-icon"></ion-icon>
           <h3 class="h3">Business Operations Manual</h3>
           <span class="editor-badge">INTERNAL PROTOCOL</span>
         </div>
-        <button class="ops-close-btn" id="ops-close-btn">
+        <button type="button" class="business-doc-modal-close" id="ops-close-btn" aria-label="Close">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
       
+
+
+
+
       <!-- Scrollable content area -->
       <div class="ops-body has-scrollbar" id="ops-body">
         <div class="ops-wrapper">
