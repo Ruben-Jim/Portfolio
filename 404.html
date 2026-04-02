@@ -3048,13 +3048,9 @@
       <!-- Scrollable content area -->
       <div class="ops-body has-scrollbar" id="ops-body">
         <div class="ops-wrapper">
-          <!-- Full content from Master-Protocol -->
-          <header class="mb-12">
-            <h1 class="text-4xl font-bold tracking-tight">Internal <span class="accent">Operations</span></h1>
-            <p class="text-zinc-500 font-medium">Ruben Jimenez Systems — Performance Engineering Protocol</p>
-            <br>
-          </header>
-
+          <nav class="ops-manual-protocols" aria-label="Protocol shortcuts">
+            <p class="ops-manual-section-label">Open a protocol</p>
+            <div class="ops-manual-protocols-grid">
           <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-sales-routine">
             <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
               <ion-icon name="alarm-outline" class="text-2xl"></ion-icon>
@@ -3066,34 +3062,16 @@
             </p>
           </div>
 
-          <!-- 2. Product Inventory -->
-          <section class="ops-card">
-            <h2>Product Inventory</h2>
-            <div class="phase-grid mt-6">
-              <div class="phase-box">
-                <span class="tag">Standard</span>
-                <h3 class="text-lg font-semibold mt-3 mb-2">Managed Turn-Key (SaaS)</h3>
-                <ol class="step-list text-sm">
-                  <li>Client rents performance + hosting.</li>
-                  <li>Ruben owns code/repo/infrastructure.</li>
-                  <li>Deliverable: Branded app in stores + admin access.</li>
-                  <li>Pricing: $1,500 setup + $49/mo maintenance.</li>
-                </ol>
-              </div>
-              <div class="phase-box">
-                <span class="tag">Enterprise</span>
-                <h3 class="text-lg font-semibold mt-3 mb-2">Asset Buyout (Transfer)</h3>
-                <ol class="step-list text-sm">
-                  <li>Client purchases full source code + IP.</li>
-                  <li>Client manages hosting (Convex/Firebase).</li>
-                  <li>Deliverable: GitHub repo transfer + documentation.</li>
-                  <li>Pricing: $5,000–$10,000+ one-time fee.</li>
-                </ol>
-              </div>
-            </div>
-          </section>
+          <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-template-scripts">
+            <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
+              <ion-icon name="chatbubbles-outline" class="text-2xl"></ion-icon>
+              Template Outreach Scripts
+            </h2>
+            <p class="text-zinc-400">
+              ProcCleaning (email), Field Trades (cold call + voicemail + text), HOA (email), generic follow-up — swap placeholders
+            </p>
+          </div>
 
-          <!-- Replace the full Turn-Key section with this card -->
           <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-turnkey">
             <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
               <ion-icon name="build-outline" class="text-2xl"></ion-icon>
@@ -3136,8 +3114,37 @@
               Reuse proven modules from private library – never rewrite
             </p>
           </div>
+            </div>
+          </nav>
 
-          <!-- Maintenance & Retainer -->
+          <div class="ops-manual-reference">
+            <p class="ops-manual-section-label">Products &amp; policies (in this modal)</p>
+          <section class="ops-card">
+            <h2>Product Inventory</h2>
+            <div class="phase-grid mt-6">
+              <div class="phase-box">
+                <span class="tag">Standard</span>
+                <h3 class="text-lg font-semibold mt-3 mb-2">Managed Turn-Key (SaaS)</h3>
+                <ol class="step-list text-sm">
+                  <li>Client rents performance + hosting.</li>
+                  <li>Ruben owns code/repo/infrastructure.</li>
+                  <li>Deliverable: Branded app in stores + admin access.</li>
+                  <li>Pricing: $1,500 setup + $49/mo maintenance.</li>
+                </ol>
+              </div>
+              <div class="phase-box">
+                <span class="tag">Enterprise</span>
+                <h3 class="text-lg font-semibold mt-3 mb-2">Asset Buyout (Transfer)</h3>
+                <ol class="step-list text-sm">
+                  <li>Client purchases full source code + IP.</li>
+                  <li>Client manages hosting (Convex/Firebase).</li>
+                  <li>Deliverable: GitHub repo transfer + documentation.</li>
+                  <li>Pricing: $5,000–$10,000+ one-time fee.</li>
+                </ol>
+              </div>
+            </div>
+          </section>
+
           <section class="ops-card">
             <h2>Maintenance & Retainer</h2>
             <div class="phase-grid">
@@ -3179,8 +3186,9 @@
               </div>
             </div>
           </section>
+          </div>
 
-          <footer class="mt-12 text-center">
+          <footer class="ops-manual-footer mt-12 text-center">
             <p class="text-[10px] text-zinc-600 uppercase tracking-[5px]">© 2026 Ruben Jimenez Systems</p>
           </footer>
         </div>
@@ -3305,7 +3313,7 @@
               <h3 class="text-lg mt-3 mb-2 accent">Execution (The Build)</h3>
               <ol class="step-list">
                 <li>Send onboarding form link (logo vector, hex colors, services list, pricing).</li>
-                <li>Clone private GitHub Roof-Cleaning-Template into new private repo.</li>
+                <li>Clone private GitHub Field-Trades-Template into new private repo.</li>
                 <li>Apply branding (logo, colors) + inject client backend credentials.</li>
                 <li>Customize logic (3–5 days max) based on paid scope.</li>
                 <li>Test offline/online sync, Reanimated UI, core features.</li>
@@ -3471,6 +3479,254 @@
               <p class="accent font-medium mb-2">Pricing Rule</p>
               <p class="text-xs">Base Turn-Key: $1,500<br>Each add-on module: $500</p>
             </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────────────────────────────────────
+     TEMPLATE OUTREACH SCRIPTS MODAL
+───────────────────────────────────────────── -->
+<div class="components-modal" id="template-scripts-modal">
+  <div class="components-overlay" id="template-scripts-overlay"></div>
+  <div class="components-content">
+    <div class="components-header">
+      <div class="header-left">
+        <ion-icon name="chatbubbles-outline" class="header-icon"></ion-icon>
+        <h3 class="h3">Template Outreach Scripts</h3>
+        <span class="editor-badge">COPY &amp; PERSONALIZE</span>
+      </div>
+      <button class="components-close-btn modal-close-btn" id="template-scripts-close-btn">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+    <div class="components-body has-scrollbar" id="template-scripts-body">
+      <div class="components-wrapper">
+        <section class="ops-card template-scripts-section">
+          <p class="template-scripts-intro">Replace bracketed placeholders. Field Trades is phone-first (voicemail + SMS); ProcCleaning and HOA are written. Match the demo link to the vertical. Only one top-level script is open at a time; inside each script, only one subsection is open at a time.</p>
+          <div class="template-script-accordion" id="template-script-accordion">
+            <details class="template-script-accordion-item">
+              <summary class="template-script-accordion-summary">
+                <span class="tag">ProcCleaning (reference demo)</span>
+                <span class="template-script-accordion-titles">
+                  <span class="template-script-accordion-title accent">Cold DM / email — cleaning vertical</span>
+                </span>
+                <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
+              </summary>
+              <div class="template-script-accordion-panel">
+                <div class="template-script-sub-accordion">
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Subject line</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — crews + spotty signal?</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Email body</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Hi [Name],
+
+Most cleaning ops I talk to in [City] juggle scheduling, job photos, and customer updates across texts and calls—and the app flakes when crews are actually on site.
+
+I white-label a mobile flow built for that (offline-friendly where it matters). Reference build (cleaning): https://procleaning.expo.app
+
+If it’s relevant for [Company], I’ll send a tight one-pager and block 15 minutes—fit call, not a pitch deck—to see if your workflow maps.
+
+— Ruben</pre>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </details>
+            <details class="template-script-accordion-item">
+              <summary class="template-script-accordion-summary">
+                <span class="tag">Field Trades Template</span>
+                <span class="template-script-accordion-titles">
+                  <span class="template-script-accordion-title accent">Cold call script (service businesses)</span>
+                </span>
+                <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
+              </summary>
+              <div class="template-script-accordion-panel">
+                <p class="text-xs opacity-80 mb-0">White-label base: clone <span class="accent">Field-Trades-Template</span> per client. Demo: <span class="accent">https://roof-cleaning-template.expo.app</span> until the Expo slug is renamed. Expand one section at a time below.</p>
+                <div class="template-script-sub-accordion">
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Mindset (before you dial)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">You’re selling speed and clarity: a branded booking + job flow—not a science project. They don’t need to care how it’s built.
+Win on the call: a 15-minute demo, or a one-pager + short Loom—not a closed deal.</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Opening (permission + relevance)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Hi, is this [Name]? [Your name] — I’m reaching out to a few [city] [roof / lawn / plumbing / HVAC] shops. We set up a ready-made customer booking flow—schedule, deposit, reminders—so small crews spend less time on phone tag.
+Have I caught you for 20 seconds, or is [later today / tomorrow morning] better?"</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Bad time vs. good time</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Bad time → book a specific callback. Good time → continue.</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Bridge (one breath)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">"Totally fine if it’s not a fit—I just want to see if how you take jobs today is anything like what we built for."</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">One-line value (pick by trade)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Roof / exterior: "Homeowners pick package, property size, and a time slot—you see everything in one queue instead of scattered DMs."
+Lawn: "Recurring routes and seasonal add-ons without re-explaining pricing in texts every week."
+Plumber / HVAC: "Emergency vs. standard intake, clearer dispatch, card on file so you’re not chasing checks after the job."</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Template positioning</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">"It’s not a ground-up custom build—it’s a template you brand, so you’re live in days, not months, without agency-style pricing."</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Qualification (2–3 questions)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">"Where do most new jobs come in today—phone, Google, text, or a form?"
+"When you’re on a job, what slips first—returning calls, quoting, or collecting deposits?"
+"If fewer no-shows and money up front moved the needle, would 15 minutes on a screen share be reasonable?"</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Transition to demo</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Rather than describe it—I’ll show you what the homeowner sees and what you see on your side: appointments, jobs, estimates or invoicing if you use them.
+Are you open [Option A: e.g. tomorrow 10] or [Option B: e.g. Thursday 2] for a quick share?"</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">If they hedge</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">"No worries—I can record a 3-minute walkthrough for [their trade] and drop you a link. Best email or cell?"</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Objections</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">They say                         You say
+"We’re too small."              "That’s the sweet spot—one crew still pays for missed calls and no-shows."
+"We have a website."            "Perfect—this sits under that: booking, payments, job flow. A lot of folks link out from the site or replace the contact form."
+"Sounds expensive."             "Fair—on the demo I’ll show exactly what’s included so you can compare to hiring it out or building it yourself."
+"I don’t have time."            "That’s why it’s 15 minutes—you’ll know fast if it’s wrong, and we stop."
+"Just send info."               "Will do—one page plus a short video. Best email? And mostly residential or commercial so I don’t waste your time?"</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Close</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Great—I’ll [send the calendar link / hold Thursday 2]. You’ll walk through customer booking into your dashboard end to end. If it’s not a match, no hard feelings.
+Thanks [Name]—talk [day/time]."</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Voicemail (~25 seconds)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">"Hi [Name], [Your name]. We help [trade] owners run bookings and deposits through a branded app—less phone tag, fewer no-shows. It’s a fast-launch template, not a custom dev project. I’ll text a one-liner and link from this number—thanks."</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Text (after no pickup)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">"[Name] — [Your name], booking flow for [trade] crews. Most of your jobs still phone/text? We bundle book + deposit + reminders in one place. 15-min demo if useful: [link or two time options]."</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Conversion habits</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">• Lead with trade + city in the first sentence.
+• Say "booking, deposits, reminders" before "app" or "template."
+• One clear ask: demo, video, or email—never all three at once.
+• After a demo: 3-bullet recap—what they saw, what pain it removes, "starts at" or range if you’re comfortable.</pre>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </details>
+            <details class="template-script-accordion-item">
+              <summary class="template-script-accordion-summary">
+                <span class="tag">HOA App Template</span>
+                <span class="template-script-accordion-titles">
+                  <span class="template-script-accordion-title accent">Board / manager outreach</span>
+                </span>
+                <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
+              </summary>
+              <div class="template-script-accordion-panel">
+                <div class="template-script-sub-accordion">
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Subject line</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Subject: Fewer email chains for [Association name]?</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Email body</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Hi [Name],
+
+Boards and managers usually want announcements, documents, and resident questions in one place—without another 40-reply thread.
+
+I deliver a branded HOA community app template: push notifications, shared docs, and resident messaging in a single app experience. Product walkthrough: https://hoa-community-app--a7f6nhxo8x.expo.app
+
+If [Association] is comparing options this season, I can send scope + pricing (base template vs. premium customizations) and do a short call on your timeline—no pressure.
+
+— Ruben</pre>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </details>
+            <details class="template-script-accordion-item">
+              <summary class="template-script-accordion-summary">
+                <span class="tag">Follow-up (any vertical)</span>
+                <span class="template-script-accordion-titles">
+                  <span class="template-script-accordion-title accent">Bump after no reply</span>
+                </span>
+                <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
+              </summary>
+              <div class="template-script-accordion-panel">
+                <div class="template-script-sub-accordion">
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Opening + context</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Hi [Name],
+
+Quick bump on the branded app we discussed for [Company].
+
+I can re-label the demo for [trade] in [City] before we meet so you’re not judging a generic example.</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Link + next step</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Same link: [paste demo URL]
+
+If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute look still makes sense, send two times that work.</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Sign-off</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">— Ruben</pre>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </details>
           </div>
         </section>
       </div>

@@ -7899,6 +7899,187 @@ body.modal-open {
   border-radius: 50% !important;
   font-size: 0.85rem !important;
 }
+
+/* ── Business Operations Manual: layout & hierarchy ── */
+#ops-modal .ops-wrapper {
+  max-width: 52rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: 0.5rem;
+}
+
+#ops-modal .ops-manual-section-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--vegas-gold);
+  opacity: 0.88;
+  margin: 0 0 0.85rem;
+}
+
+#ops-modal .ops-manual-protocols {
+  margin-bottom: 2rem;
+}
+
+#ops-modal .ops-manual-protocols-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  #ops-modal .ops-manual-protocols-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.125rem;
+  }
+}
+
+/* Shortcut tiles: open a sub-modal */
+#ops-modal .ops-card.cursor-pointer {
+  margin-bottom: 0 !important;
+  padding: 1.2rem 1.35rem 1.1rem !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--jet) !important;
+  border-left: 4px solid var(--vegas-gold) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 7.25rem;
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.22s ease, transform 0.2s ease;
+}
+
+#ops-modal .ops-card.cursor-pointer:hover {
+  border-left-color: var(--orange-yellow-crayola) !important;
+  box-shadow: 0 14px 42px hsla(0, 0%, 0%, 0.38) !important;
+  transform: translateY(-2px);
+}
+
+#ops-modal .ops-card.cursor-pointer h2 {
+  font-size: 1.0625rem !important;
+  line-height: 1.35 !important;
+  margin-bottom: 0.45rem !important;
+  padding-bottom: 0 !important;
+}
+
+#ops-modal .ops-card.cursor-pointer h2 ion-icon {
+  font-size: 1.65rem !important;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+#ops-modal .ops-card.cursor-pointer h2::after {
+  display: none !important;
+}
+
+#ops-modal .ops-card.cursor-pointer .text-zinc-400 {
+  font-size: 0.8125rem !important;
+  line-height: 1.55 !important;
+  color: hsl(0, 0%, 72%) !important;
+  flex: 1;
+}
+
+#ops-modal .ops-card.cursor-pointer::after {
+  content: "Open →";
+  align-self: flex-end;
+  margin-top: 0.65rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange-yellow-crayola);
+  opacity: 0.75;
+}
+
+#ops-modal .ops-manual-reference {
+  padding-top: 1.75rem;
+  border-top: 1px solid hsla(0, 0%, 22%, 0.85);
+  margin-top: 0.25rem;
+}
+
+#ops-modal .ops-manual-reference > .ops-card {
+  margin-bottom: 1.15rem !important;
+}
+
+#ops-modal .ops-manual-reference > .ops-card:last-of-type {
+  margin-bottom: 0 !important;
+}
+
+#ops-modal .ops-manual-reference .phase-box p.italic {
+  font-size: 0.75rem !important;
+  line-height: 1.45 !important;
+}
+
+#ops-modal .ops-manual-reference h4.text-xs {
+  font-size: 0.7rem !important;
+  margin-bottom: 0.35rem !important;
+}
+
+#ops-modal .ops-manual-reference ul.text-xs {
+  font-size: 0.8125rem !important;
+  line-height: 1.45 !important;
+}
+
+#ops-modal .ops-manual-footer {
+  padding-top: 0.5rem;
+}
+
+#ops-modal .ops-body.has-scrollbar {
+  scroll-behavior: smooth;
+}
+
+#ops-modal .ops-body.has-scrollbar::-webkit-scrollbar {
+  width: 9px;
+}
+
+#ops-modal .ops-body.has-scrollbar::-webkit-scrollbar-track {
+  background: var(--eerie-black-1);
+  border-radius: 4px;
+}
+
+#ops-modal .ops-body.has-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--jet);
+  border-radius: 4px;
+  border: 2px solid var(--eerie-black-1);
+}
+
+#ops-modal .ops-body.has-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--vegas-gold);
+}
+
+#ops-modal .business-doc-modal-header {
+  padding: 1.1rem 1.5rem;
+  background: linear-gradient(180deg, var(--eerie-black-1) 0%, hsl(240, 2%, 11%) 100%);
+  border-bottom: 1px solid var(--jet);
+}
+
+#ops-modal .business-doc-modal-header .header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+}
+
+#ops-modal .business-doc-modal-header .h3 {
+  font-size: 1.15rem;
+}
+
+#ops-modal .ops-header {
+  padding: 1.1rem 1.5rem;
+  background: linear-gradient(180deg, var(--eerie-black-1) 0%, hsl(240, 2%, 11%) 100%);
+}
+
+#ops-modal .ops-header .header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem 0.85rem;
+}
+
+#ops-modal .ops-header .h3 {
+  font-size: 1.15rem;
+}
+
 /* Close button – consistent with add-blog-close-btn, blog-modal-close-btn, etc. */
 .ops-close-btn {
   position: absolute;
@@ -8111,6 +8292,299 @@ body.modal-open {
   counter-increment: step !important;
 }
 
+.sales-wrapper pre.template-script-pre,
+.turnkey-wrapper pre.template-script-pre,
+.endtoend-wrapper pre.template-script-pre,
+.questions-wrapper pre.template-script-pre,
+.components-wrapper pre.template-script-pre {
+  white-space: pre-wrap !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.55 !important;
+  margin: 0.75rem 0 0 !important;
+  color: var(--light-gray) !important;
+}
+
+/* Template Outreach Scripts modal — modern layout (chevron locked right via grid) */
+#template-scripts-modal .components-content {
+  border: 1px solid hsla(45, 54%, 58%, 0.11);
+  box-shadow:
+    0 28px 96px hsla(0, 0%, 0%, 0.72),
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.045);
+}
+
+#template-scripts-modal .components-header {
+  background: linear-gradient(180deg, hsl(240, 5%, 12%) 0%, hsl(240, 4%, 9%) 100%);
+  border-bottom: 1px solid hsla(45, 54%, 58%, 0.12);
+}
+
+#template-scripts-modal .components-body {
+  background:
+    radial-gradient(ellipse 100% 70% at 50% -15%, hsla(45, 100%, 72%, 0.07), transparent 52%),
+    var(--bg-smoky-black);
+}
+
+#template-scripts-modal .template-scripts-section.ops-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+#template-scripts-modal .template-scripts-intro {
+  margin: 0 0 1.35rem;
+  padding: 1.05rem 1.3rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: hsl(0, 0%, 78%);
+  border-radius: 14px;
+  background: linear-gradient(145deg, hsla(240, 6%, 15%, 0.98) 0%, hsla(240, 5%, 10%, 0.75) 100%);
+  border: 1px solid hsla(45, 54%, 58%, 0.14);
+  box-shadow: 0 6px 28px hsla(0, 0%, 0%, 0.28);
+}
+
+#template-scripts-modal .template-script-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+#template-scripts-modal .template-script-accordion-item {
+  overflow: hidden;
+  border-radius: 14px !important;
+  border: 1px solid hsla(0, 0%, 100%, 0.07) !important;
+  background: linear-gradient(180deg, hsl(240, 5%, 13.5%) 0%, hsl(240, 4%, 10%) 100%) !important;
+  box-shadow:
+    0 10px 36px hsla(0, 0%, 0%, 0.38),
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.035) !important;
+  transition: border-color 0.22s ease, box-shadow 0.25s ease;
+}
+
+#template-scripts-modal .template-script-accordion-item:hover {
+  border-color: hsla(45, 54%, 58%, 0.22) !important;
+}
+
+#template-scripts-modal .template-script-accordion-item[open] {
+  border-color: hsla(45, 100%, 72%, 0.28) !important;
+  box-shadow:
+    0 14px 48px hsla(0, 0%, 0%, 0.48),
+    0 0 0 1px hsla(45, 100%, 72%, 0.07),
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.04) !important;
+}
+
+#template-scripts-modal .template-script-accordion-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 1rem;
+  row-gap: 0.45rem;
+  align-items: center;
+  padding: 1.15rem 1.3rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+#template-scripts-modal .template-script-accordion-summary::-webkit-details-marker {
+  display: none;
+}
+
+#template-scripts-modal .template-script-accordion-summary::marker {
+  content: none;
+}
+
+#template-scripts-modal .template-script-accordion-summary .tag {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  width: fit-content;
+  margin: 0 !important;
+  padding: 5px 11px !important;
+  font-size: 0.6rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  border-radius: 999px !important;
+  text-transform: uppercase !important;
+  color: var(--vegas-gold) !important;
+  background: hsla(45, 54%, 58%, 0.12) !important;
+  border: 1px solid hsla(45, 54%, 58%, 0.22) !important;
+}
+
+#template-scripts-modal .template-script-accordion-titles {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+#template-scripts-modal .template-script-accordion-title {
+  display: block;
+  margin: 0;
+  font-size: 1.0625rem !important;
+  font-weight: 600 !important;
+  line-height: 1.38 !important;
+  letter-spacing: -0.015em;
+  color: var(--white-2) !important;
+}
+
+#template-scripts-modal .template-script-accordion-title.accent {
+  color: var(--white-2) !important;
+}
+
+#template-scripts-modal .template-script-accordion-chevron {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  margin: 0;
+  border-radius: 10px;
+  color: var(--orange-yellow-crayola) !important;
+  background: hsla(45, 54%, 58%, 0.12);
+  border: 1px solid hsla(45, 54%, 58%, 0.18);
+  transition: transform 0.25s cubic-bezier(0.34, 1.2, 0.64, 1), background 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+#template-scripts-modal .template-script-accordion-chevron ion-icon {
+  font-size: 1.2rem;
+  color: inherit !important;
+}
+
+#template-scripts-modal .template-script-accordion-item[open] .template-script-accordion-chevron {
+  transform: rotate(180deg);
+  background: hsla(45, 100%, 72%, 0.14);
+  border-color: hsla(45, 100%, 72%, 0.28);
+  color: var(--vegas-gold) !important;
+}
+
+#template-scripts-modal .template-script-accordion-summary:hover .template-script-accordion-chevron {
+  background: hsla(45, 54%, 58%, 0.2);
+}
+
+#template-scripts-modal .template-script-accordion-panel {
+  padding: 0 1.3rem 1.35rem;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.06);
+  background: hsla(0, 0%, 0%, 0.2);
+}
+
+#template-scripts-modal .template-script-accordion-panel .text-xs {
+  padding-top: 1rem;
+  margin-bottom: 0;
+  line-height: 1.55;
+  color: hsl(0, 0%, 72%) !important;
+}
+
+#template-scripts-modal .template-script-accordion-panel .template-script-pre {
+  margin-top: 0.85rem !important;
+  padding: 1.05rem 1.15rem !important;
+  border-radius: 12px !important;
+  background: hsl(240, 5%, 7%) !important;
+  border: 1px solid hsla(0, 0%, 100%, 0.06) !important;
+  border-left: 3px solid var(--orange-yellow-crayola) !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.58 !important;
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.03);
+}
+
+#template-scripts-modal .template-script-accordion-summary:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Nested sections inside a template (Field Trades, etc.) — one open at a time via JS */
+#template-scripts-modal .template-script-sub-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+#template-scripts-modal .template-script-sub-item {
+  border-radius: 11px;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
+  background: hsla(240, 5%, 9%, 0.85);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#template-scripts-modal .template-script-sub-item:hover {
+  border-color: hsla(45, 54%, 58%, 0.15);
+}
+
+#template-scripts-modal .template-script-sub-item[open] {
+  border-color: hsla(45, 100%, 72%, 0.2);
+  box-shadow: 0 4px 20px hsla(0, 0%, 0%, 0.25);
+}
+
+#template-scripts-modal .template-script-sub-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.7rem 0.95rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: hsl(45, 54%, 68%);
+  letter-spacing: 0.01em;
+}
+
+#template-scripts-modal .template-script-sub-summary::-webkit-details-marker {
+  display: none;
+}
+
+#template-scripts-modal .template-script-sub-summary::marker {
+  content: none;
+}
+
+#template-scripts-modal .template-script-sub-summary::after {
+  content: "";
+  flex-shrink: 0;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-left: 0.25rem;
+  border-right: 2px solid hsla(45, 100%, 72%, 0.65);
+  border-bottom: 2px solid hsla(45, 100%, 72%, 0.65);
+  transform: rotate(45deg);
+  transition: transform 0.22s ease;
+}
+
+#template-scripts-modal .template-script-sub-item[open] > .template-script-sub-summary::after {
+  transform: rotate(225deg);
+  margin-top: 0.15rem;
+}
+
+#template-scripts-modal .template-script-sub-summary:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: -2px;
+}
+
+#template-scripts-modal .template-script-sub-body {
+  padding: 0 0.95rem 0.9rem;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.05);
+}
+
+#template-scripts-modal .template-script-pre--sub {
+  margin-top: 0.55rem !important;
+  margin-bottom: 0 !important;
+  padding: 0.8rem 0.95rem !important;
+  font-size: 0.78rem !important;
+  line-height: 1.55 !important;
+}
+
+#template-scripts-modal .template-script-accordion-panel > .text-xs.opacity-80 {
+  margin-bottom: 0.15rem;
+}
+
 .sales-wrapper ol.step-list li::before, .turnkey-wrapper ol.step-list li::before, .endtoend-wrapper ol.step-list li::before, .questions-wrapper ol.step-list li::before, .components-wrapper ol.step-list li::before {
   content: counter(step) !important;
   position: absolute !important;
@@ -8213,12 +8687,25 @@ body.modal-open {
   transform: scale(1.08);
 }
 
+#ops-modal .business-doc-modal-header .header-icon {
+  font-size: 2.25rem;
+  color: var(--orange-yellow-crayola) !important;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+#ops-modal.active .business-doc-modal-header .header-icon {
+  color: var(--vegas-gold) !important;
+  filter: drop-shadow(0 0 8px hsla(45, 100%, 72%, 0.5));
+  transform: scale(1.08);
+}
+
 /* Icons inside the clickable cards */
 #open-sales-routine ion-icon,
 #open-turnkey ion-icon,
 #open-endtoend ion-icon,
 #open-questions ion-icon,
-#open-components ion-icon {
+#open-components ion-icon,
+#open-template-scripts ion-icon {
   font-size: 2rem;                    /* matches your h2 text-2xl size */
   color: var(--orange-yellow-crayola) !important;
   transition: color 0.3s ease, transform 0.3s ease;
@@ -8279,36 +8766,4 @@ body.modal-open {
 .questions-header ion-icon,
 .components-header ion-icon {
   color: var(--orange-yellow-crayola) !important;
-}
-
-/* ─────────────────────────────────────────────
-   PREVENT "Internal Operations" HEADER FROM WRAPPING
-   Force single-line display even on smaller screens
-───────────────────────────────────────────── */
-
-/* Target the exact h1 in the ops modal header */
-#ops-modal header h1,
-.ops-wrapper header h1 {
-  white-space: nowrap !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 0.5rem !important;
-  flex-wrap: nowrap !important;
-  overflow: hidden !important;          /* prevents overflow issues */
-  text-overflow: ellipsis !important;   /* fallback: ellipsis if too long */
-}
-
-/* Make sure the accent span stays inline */
-#ops-modal header h1 .accent,
-.ops-wrapper header h1 .accent {
-  white-space: nowrap !important;
-  display: inline !important;
-}
-
-/* Optional: Slightly smaller font on very small screens so it fits better */
-@media (max-width: 480px) {
-  #ops-modal header h1,
-  .ops-wrapper header h1 {
-    font-size: 2.25rem !important;     /* was probably text-4xl = 2.5rem */
-  }
 }

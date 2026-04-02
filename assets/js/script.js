@@ -4211,7 +4211,8 @@ function attachSubModalListeners() {
     { trigger: 'open-turnkey',         modal: 'turnkey-modal',   close: 'turnkey-close-btn',   overlay: 'turnkey-overlay'   },
     { trigger: 'open-endtoend',        modal: 'endtoend-modal',  close: 'endtoend-close-btn',  overlay: 'endtoend-overlay'  },
     { trigger: 'open-questions',       modal: 'questions-modal', close: 'questions-close-btn', overlay: 'questions-overlay' },
-    { trigger: 'open-components',      modal: 'components-modal',close: 'components-close-btn',overlay: 'components-overlay'}
+    { trigger: 'open-components',      modal: 'components-modal',close: 'components-close-btn',overlay: 'components-overlay'},
+    { trigger: 'open-template-scripts', modal: 'template-scripts-modal', close: 'template-scripts-close-btn', overlay: 'template-scripts-overlay' }
   ];
 
   subModals.forEach(config => {
@@ -4246,7 +4247,7 @@ function attachSubModalListeners() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll(
-        '#sales-modal.active, #turnkey-modal.active, #endtoend-modal.active, #questions-modal.active, #components-modal.active'
+        '#sales-modal.active, #turnkey-modal.active, #endtoend-modal.active, #questions-modal.active, #components-modal.active, #template-scripts-modal.active'
       ).forEach(modal => modal.classList.remove('active'));
       document.body.classList.remove('modal-open');
     }
@@ -4254,6 +4255,33 @@ function attachSubModalListeners() {
 
   console.log("Sub-modal listeners attached successfully");
 }
+
+// Template Outreach Scripts modal: exclusive accordion (one open details at a time)
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('template-scripts-modal');
+  if (!modal) return;
+  const items = modal.querySelectorAll('details.template-script-accordion-item');
+  items.forEach((d) => {
+    d.addEventListener('toggle', () => {
+      if (!d.open) return;
+      items.forEach((other) => {
+        if (other !== d) other.open = false;
+      });
+    });
+  });
+
+  modal.querySelectorAll('.template-script-sub-accordion').forEach((container) => {
+    const subItems = container.querySelectorAll('details.template-script-sub-item');
+    subItems.forEach((d) => {
+      d.addEventListener('toggle', () => {
+        if (!d.open) return;
+        subItems.forEach((other) => {
+          if (other !== d) other.open = false;
+        });
+      });
+    });
+  });
+});
 
 // ─────────────────────────────────────────────
 // Dark/Light mode toggle
@@ -4288,7 +4316,7 @@ function toggleTheme() {
   ];
 
   const PROJECTS = [
-    { title: 'Pro Cleaning', url: 'https://roof-cleaning-template.expo.app' },
+    { title: 'Field Trades demo', url: 'https://roof-cleaning-template.expo.app' },
     { title: 'Rizo Pizzeria', url: 'https://rizo-pizza--by3ty9xb6t.expo.app' },
     { title: 'Shelton Springs HOA', url: 'https://hoa-demo--l91yvra8kn.expo.app' },
     { title: 'Gadget Garage', url: 'https://gadgetgarage.app' },
