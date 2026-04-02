@@ -8332,18 +8332,6 @@ body.modal-open {
   margin: 0 !important;
 }
 
-#template-scripts-modal .template-scripts-intro {
-  margin: 0 0 1.35rem;
-  padding: 1.05rem 1.3rem;
-  font-size: 0.875rem;
-  line-height: 1.65;
-  color: hsl(0, 0%, 78%);
-  border-radius: 14px;
-  background: linear-gradient(145deg, hsla(240, 6%, 15%, 0.98) 0%, hsla(240, 5%, 10%, 0.75) 100%);
-  border: 1px solid hsla(45, 54%, 58%, 0.14);
-  box-shadow: 0 6px 28px hsla(0, 0%, 0%, 0.28);
-}
-
 #template-scripts-modal .template-script-accordion {
   display: flex;
   flex-direction: column;
@@ -8579,10 +8567,6 @@ body.modal-open {
   padding: 0.8rem 0.95rem !important;
   font-size: 0.78rem !important;
   line-height: 1.55 !important;
-}
-
-#template-scripts-modal .template-script-accordion-panel > .text-xs.opacity-80 {
-  margin-bottom: 0.15rem;
 }
 
 .sales-wrapper ol.step-list li::before, .turnkey-wrapper ol.step-list li::before, .endtoend-wrapper ol.step-list li::before, .questions-wrapper ol.step-list li::before, .components-wrapper ol.step-list li::before {
