@@ -1121,6 +1121,7 @@
           <!--
             List of my Porfolio in order
             |_Pro Cleaning App
+            |_Grippy Socks
             |_Central Valley Dealer App
             |_Rizo Pizzeria
             |_SHELTON SPRINGS HOA APP
@@ -1161,6 +1162,37 @@
                   <div class="project-actions">
                     <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $2,000</a>
                     <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $2,250 - $2,750</a>
+                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          <!-- Grippy Socks App -->
+          <li class="project-item  active" data-filter-item data-category="applications">
+            <div class="project-card">
+              <a href="https://grippysocks.expo.app" class="project-link">
+                <figure class="project-img">
+                  <div class="project-item-icon-box">
+                    <ion-icon name="eye-outline"></ion-icon>
+                  </div>
+                  <img src="./assets/images/project-grippysocks.png" alt="Grippy Socks App" loading="lazy">
+                </figure>
+              </a>
+
+              <div class="project-content">
+                <h3 class="project-title">Grippy Socks</h3>
+                <p class="project-category">Application</p>
+                <div class="project-details-card">
+                  <p class="project-description">An Expo + Firebase e-commerce app for Grippy Socks with a soccer-themed storefront, single-page shop + cart flow, and admin order management at /admin. MVP checkout is Cash on Delivery, with Stripe card payments prepared for later activation.</p>
+                  <div class="project-tech">
+                    <span class="tech-tag">React Native</span>
+                    <span class="tech-tag">Expo</span>
+                    <span class="tech-tag">Mobile</span>
+                  </div>
+                  <p class="project-outcome"><strong>Outcome:</strong> Live production demo with real-time order handling (Realtime Database), Firestore product support, and a scalable checkout foundation ready for Stripe enablement.</p>
+                  <div class="project-actions">
                     <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
                   </div>
                 </div>
@@ -1936,18 +1968,22 @@ const db = getFirestore(app);</code></pre>
               </div>
 
               <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web & Mobile App Development</h4>
+                <h4 class="h4 service-item-title">Web & Mobile App Development + Code Licensing</h4>
 
                 <p class="service-item-text">
-                  Custom projects built to your specifications. Includes Firebase integration, responsive design, real-time notifications, and deployment setup.
+                  Custom web/mobile builds with reusable licensing options, including deployment setup and source code access.
                 </p>
 
                 <div class="service-pricing">
-                  <span class="price-amount">$1,000 - $5,000</span>
-                  <span class="price-type">Fixed Price</span>
+                  <span class="price-amount">Project Cost</span>
+                  <span class="price-type">Build + License Options</span>
                 </div>
 
-                <a href="#contact" class="btn-pricing" onclick="prefillContactForm('Web & Mobile App Development', 'Interested in custom web/mobile app development ($1,000-$5,000)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                <p class="service-note">12 months support included. After year 1:<br>
+                  Web only maintenance starts at $50/month &nbsp;·&nbsp; Web + Mobile (iOS &amp; Android) starts at $125/month
+                </p>
+
+                <a href="#contact" class="btn-pricing" onclick="prefillContactForm('Web & Mobile App Development + Code Licensing', 'Interested in web/mobile app development with code licensing options (project cost + 12 months support included)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                   Get a Quote
                 </a>
@@ -1958,28 +1994,42 @@ const db = getFirestore(app);</code></pre>
             <li class="service-item">
 
               <div class="service-icon-box">
-                <ion-icon name="key-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
+                <ion-icon name="repeat-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
               </div>
 
               <div class="service-content-box">
-                <h4 class="h4 service-item-title">Code Licensing</h4>
+                <h4 class="h4 service-item-title">Maintenance Plans (After Year 1)</h4>
 
                 <p class="service-item-text">
-                  Reusable app templates with full source code. Includes 12 months support, customization assistance, documentation, and commercial use license. Examples: Shelton Springs HOA App.
+                  Ongoing support for hosting, updates, monitoring, and minor fixes after your first year. New features and major scope changes are quoted separately.
                 </p>
 
-                <div class="service-pricing">
-                  <span class="price-amount">Project Cost</span>
-                  <span class="price-type">One-time License</span>
+                <div class="maintenance-plan-grid">
+                  <div class="maintenance-plan-card">
+                    <span class="maintenance-plan-label">Web Only</span>
+                    <span class="maintenance-plan-price">$50-$99/mo</span>
+                    <ul class="maintenance-plan-list">
+                      <li>Response: within 72 business hours</li>
+                    </ul>
+                  </div>
+
+                  <div class="maintenance-plan-card">
+                    <span class="maintenance-plan-label">Web + Mobile</span>
+                    <span class="maintenance-plan-price">$125-$249/mo</span>
+                    <ul class="maintenance-plan-list">
+                      <li>Response: within 24 business hours</li>
+                      <li>Web + iOS + Android support</li>
+                    </ul>
+                  </div>
                 </div>
 
-                <p class="service-note">12 months support included, then maintenance per year:<br>
-                  Web App — $100/yr &nbsp;·&nbsp; Mobile App (iOS or Android) — $150/yr &nbsp;·&nbsp; Mobile App (iOS &amp; Android) — $200/yr &nbsp;·&nbsp; Web &amp; Mobile — $250/yr
+                <p class="service-note">
+                  Update frequency: Web only = 1 maintenance window/month. Web + Mobile = 2 maintenance windows/month. Emergency incidents acknowledged in 4-12 hours during business hours.
                 </p>
 
-                <a href="#contact" class="btn-pricing" onclick="prefillContactForm('Code Licensing', 'Interested in code licensing (project cost + 12 months support included)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                <a href="#contact" class="btn-pricing" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance plans after year 1 (Web only $50-$99/mo or Web + Mobile $125-$249/mo)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Get a Quote
+                  Discuss Plan
                 </a>
               </div>
 
@@ -2010,34 +2060,6 @@ const db = getFirestore(app);</code></pre>
               </div>
 
             </li> -->
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <ion-icon name="hardware-chip-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">PC Services (Gadget Garage)</h4>
-
-                <p class="service-item-text">
-                  Hardware builds, repairs, and upgrades. Includes Gadget Garage app setup, system optimization, warranty tracking, and maintenance scheduling.
-                </p>
-
-                <div class="service-pricing">
-                  <span class="price-amount">$100 - $300</span>
-                  <span class="price-type">Per Service</span>
-                </div>
-
-                <!-- onclick="prefillContactForm('PC Services', 'Interested in PC services ($100-$300) with Gadget Garage app setup'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false; -->
-
-                <a href="https://gadgetgarage.app" class="btn-pricing">
-                  <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Get a Quote
-                </a>
-              </div>
-
-            </li>
 
             <!-- <li class="service-item service-item-featured">
 
@@ -3547,7 +3569,7 @@ const db = getFirestore(app);</code></pre>
               Cancel
             </button>
             <button type="submit" class="btn btn-primary">
-              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <ion-icon name="checkmark-cabout:blank#blockedircle-outline"></ion-icon>
               Update Post
             </button>
           </div>
