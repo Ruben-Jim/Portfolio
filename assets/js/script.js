@@ -2302,14 +2302,105 @@ function trackEvent(eventName, eventLabel, eventValue) {
   }
 }
 
-// Track project clicks
+// Track project clicks + modern project detail modal
 document.addEventListener('DOMContentLoaded', function() {
-  const projectLinks = document.querySelectorAll('.project-link');
-  projectLinks.forEach(link => {
-    link.addEventListener('click', function() {
-      const projectTitle = this.closest('.project-card')?.querySelector('.project-title')?.textContent || 'Unknown Project';
+  const projectLinks = document.querySelectorAll('.project-list .project-link');
+  const modal = document.getElementById('project-detail-modal');
+  const overlay = document.getElementById('project-detail-overlay');
+  const closeBtn = document.getElementById('project-detail-close');
+  const image = document.getElementById('project-detail-image');
+  const category = document.getElementById('project-detail-category');
+  const title = document.getElementById('project-detail-title');
+  const description = document.getElementById('project-detail-description');
+  const tech = document.getElementById('project-detail-tech');
+  const outcome = document.getElementById('project-detail-outcome');
+  const liveBtn = document.getElementById('project-detail-live');
+  const quoteBtn = document.getElementById('project-detail-quote');
+
+  function closeProjectModal() {
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('project-modal-open');
+  }
+
+  function openProjectModal() {
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('project-modal-open');
+  }
+
+  function fillProjectModal(card, link) {
+    const cardImage = card.querySelector('.project-img img');
+    const cardTitle = card.querySelector('.project-title');
+    const cardCategory = card.querySelector('.project-category');
+    const cardDescription = card.querySelector('.project-description');
+    const cardOutcome = card.querySelector('.project-outcome');
+    const cardTech = card.querySelectorAll('.tech-tag');
+    const liveUrl = (link.getAttribute('href') || '').trim();
+    const hasLiveUrl = liveUrl && liveUrl !== '#' && !liveUrl.startsWith('#');
+
+    if (cardImage && image) {
+      image.src = cardImage.getAttribute('src') || './assets/images/project-comingsoon.svg';
+      image.alt = cardImage.getAttribute('alt') || 'Project preview';
+    }
+    if (title) title.textContent = cardTitle ? cardTitle.textContent.trim() : 'Project';
+    if (category) category.textContent = cardCategory ? cardCategory.textContent.trim() : 'Application';
+    if (description) description.textContent = cardDescription ? cardDescription.textContent.trim() : '';
+    if (outcome) outcome.textContent = cardOutcome ? cardOutcome.textContent.trim() : '';
+
+    if (tech) {
+      tech.innerHTML = '';
+      cardTech.forEach((item) => {
+        const tag = document.createElement('span');
+        tag.className = 'tech-tag';
+        tag.textContent = item.textContent.trim();
+        tech.appendChild(tag);
+      });
+    }
+
+    if (liveBtn) {
+      if (hasLiveUrl) {
+        liveBtn.href = liveUrl;
+        liveBtn.style.display = 'inline-flex';
+      } else {
+        liveBtn.href = '#';
+        liveBtn.style.display = 'none';
+      }
+    }
+  }
+
+  projectLinks.forEach((link) => {
+    link.addEventListener('click', function(event) {
+      const projectCard = this.closest('.project-card');
+      const projectTitle = projectCard?.querySelector('.project-title')?.textContent || 'Unknown Project';
       trackEvent('project_click', projectTitle, 'Portfolio');
+
+      if (!modal || !projectCard) return;
+      event.preventDefault();
+      fillProjectModal(projectCard, this);
+      openProjectModal();
     });
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', closeProjectModal);
+  if (overlay) overlay.addEventListener('click', closeProjectModal);
+
+  if (quoteBtn) {
+    quoteBtn.addEventListener('click', function(event) {
+      event.preventDefault();
+      closeProjectModal();
+      if (typeof switchToPage === 'function') {
+        switchToPage('contact');
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && modal && modal.classList.contains('active')) {
+      closeProjectModal();
+    }
   });
 });
 

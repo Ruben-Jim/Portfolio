@@ -1123,6 +1123,7 @@
             List of my Porfolio in order
             |_Pro Cleaning App
             |_Grippy Socks
+            |_Barber Shop
             |_Central Valley Dealer App
             |_Rizo Pizzeria
             |_SHELTON SPRINGS HOA APP
@@ -1193,6 +1194,37 @@
                     <span class="tech-tag">Mobile</span>
                   </div>
                   <p class="project-outcome"><strong>Outcome:</strong> Live production demo with real-time order handling (Realtime Database), Firestore product support, and a scalable checkout foundation ready for Stripe enablement.</p>
+                  <div class="project-actions">
+                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          <!-- Barber Shop App -->
+          <li class="project-item  active" data-filter-item data-category="applications">
+            <div class="project-card">
+              <a href="#" class="project-link">
+                <figure class="project-img">
+                  <div class="project-item-icon-box">
+                    <ion-icon name="eye-outline"></ion-icon>
+                  </div>
+                  <img src="./assets/images/project-barbershop.png" alt="Barber Shop App" loading="lazy">
+                </figure>
+              </a>
+
+              <div class="project-content">
+                <h3 class="project-title">Barber Shop</h3>
+                <p class="project-category">Application</p>
+                <div class="project-details-card">
+                  <p class="project-description">A barber shop management app built with Expo Router, React Native, NativeWind, and Firebase Realtime Database. It supports both owner workflows (admin login, dashboard, appointments, services, customers, messages) and customer flows (booking and messaging).</p>
+                  <div class="project-tech">
+                    <span class="tech-tag">React Native</span>
+                    <span class="tech-tag">Expo Router</span>
+                    <span class="tech-tag">Firebase RTDB</span>
+                  </div>
+                  <p class="project-outcome"><strong>Outcome:</strong> Production-ready web/mobile foundation with real-time bookings/messages, secure admin credentials via bcrypt, and optional Stripe payment integration prepared for activation.</p>
                   <div class="project-actions">
                     <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
                   </div>
@@ -1606,6 +1638,44 @@
         </ul>
         </section>
       </article>
+
+      <!-- Portfolio Project Detail Modal -->
+      <div class="project-detail-modal" id="project-detail-modal" aria-hidden="true">
+        <div class="project-detail-overlay" id="project-detail-overlay"></div>
+        <section class="project-detail-content" role="dialog" aria-modal="true" aria-labelledby="project-detail-title">
+          <button class="project-detail-close" id="project-detail-close" aria-label="Close project details">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+
+          <figure class="project-detail-media">
+            <img src="./assets/images/project-comingsoon.svg" alt="Project preview" id="project-detail-image">
+          </figure>
+
+          <div class="project-detail-body has-scrollbar">
+            <div class="project-detail-meta">
+              <span class="project-detail-category" id="project-detail-category">Application</span>
+              <h3 class="h3 project-detail-title" id="project-detail-title">Project Title</h3>
+            </div>
+
+            <p class="project-detail-description" id="project-detail-description"></p>
+
+            <div class="project-detail-tech" id="project-detail-tech"></div>
+
+            <p class="project-detail-outcome" id="project-detail-outcome"></p>
+
+            <div class="project-detail-actions">
+              <a class="project-detail-btn project-detail-btn-primary" id="project-detail-live" href="#" target="_blank" rel="noopener noreferrer">
+                <ion-icon name="open-outline"></ion-icon>
+                Open Live Project
+              </a>
+              <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-quote" href="#contact">
+                <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+                Similar Project? Get a Quote
+              </a>
+            </div>
+          </div>
+        </section>
+      </div>
 
       <!--
         - #BLOG
