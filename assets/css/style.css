@@ -2858,6 +2858,40 @@ article {
   margin-top: 15px;
 }
 
+.project-fit-section {
+  margin: 14px 0 18px;
+}
+
+.project-fit-title {
+  margin: 0 0 8px;
+  font-size: var(--fs-7);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.project-fit-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-fit-list li {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid hsla(45, 100%, 72%, 0.24);
+  background: hsla(45, 100%, 72%, 0.1);
+  color: var(--orange-yellow-crayola);
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+}
+
 /* Button Styles */
 .btn-buy-now,
 .btn-buy-premium,
@@ -4258,6 +4292,91 @@ textarea.form-input::-webkit-resizer { display: none; }
   margin: 0 0 18px;
   color: var(--light-gray);
   line-height: 1.75;
+}
+
+.project-detail-section {
+  margin: 0 0 16px;
+}
+
+.project-detail-section-title {
+  margin: 0 0 10px;
+  font-size: var(--fs-6);
+  color: var(--white-2);
+}
+
+.project-detail-page-accordion {
+  display: grid;
+  gap: 10px;
+}
+
+.project-detail-page-item {
+  border: 1px solid hsla(45, 100%, 72%, 0.18);
+  border-radius: 12px;
+  background: hsla(240, 2%, 18%, 0.75);
+  overflow: hidden;
+}
+
+.project-detail-page-item summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 11px 14px;
+  color: var(--white-2);
+  font-size: var(--fs-6);
+  font-weight: var(--fw-500);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.project-detail-page-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.project-detail-page-item summary::after {
+  content: "+";
+  color: var(--orange-yellow-crayola);
+  font-size: 18px;
+  font-weight: var(--fw-600);
+  line-height: 1;
+}
+
+.project-detail-page-item[open] summary::after {
+  content: "-";
+}
+
+.project-detail-page-item[open] {
+  border-color: hsla(45, 100%, 72%, 0.32);
+}
+
+.project-detail-page-body {
+  padding: 0 14px 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.project-detail-page-row {
+  margin: 0;
+  color: var(--light-gray);
+  line-height: 1.7;
+}
+
+.project-detail-page-row strong {
+  color: var(--orange-yellow-crayola);
+  font-weight: var(--fw-600);
+}
+
+.project-detail-admin-section {
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  background: linear-gradient(145deg, hsla(45, 100%, 72%, 0.1), hsla(240, 2%, 18%, 0.9));
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.project-detail-admin-text {
+  margin: 0;
+  color: var(--light-gray);
+  line-height: 1.7;
 }
 
 .project-detail-tech {

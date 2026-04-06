@@ -2312,10 +2312,102 @@ document.addEventListener('DOMContentLoaded', function() {
   const category = document.getElementById('project-detail-category');
   const title = document.getElementById('project-detail-title');
   const description = document.getElementById('project-detail-description');
-  const tech = document.getElementById('project-detail-tech');
-  const outcome = document.getElementById('project-detail-outcome');
+  const admin = document.getElementById('project-detail-admin');
   const liveBtn = document.getElementById('project-detail-live');
   const quoteBtn = document.getElementById('project-detail-quote');
+
+  const PROJECT_DETAIL_CONTENT = {
+    'Grippy Socks': {
+      admin: 'The admin page is the operations center: review and prioritize new orders, update fulfillment status, and keep customer handoff clean without leaving the dashboard.',
+      bestFor: ['Retail brands', 'E-commerce startups', 'Athletic apparel stores', 'Merchandise businesses']
+    },
+    'Barber Shop': {
+      admin: 'The admin page is critical for daily operations: owners can control availability, confirm bookings, manage services, and respond to messages in one secure workflow.',
+      bestFor: ['Barbershops', 'Salons', 'Studios with appointments', 'Service businesses with recurring clients']
+    },
+    'Pro Cleaning': {
+      admin: 'The admin page keeps crews organized by centralizing job scheduling, assignment visibility, and status updates to reduce missed work and callbacks.',
+      bestFor: ['Cleaning companies', 'Landscaping crews', 'Roof cleaning teams', 'Home service contractors']
+    },
+    'Rizo Pizzeria': {
+      bestFor: ['Restaurants', 'Pizzerias', 'Takeout kitchens', 'Food delivery operators']
+    },
+    'Rosa\'s Beauty Salon': {
+      bestFor: ['Beauty salons', 'Spas', 'Nail studios', 'Appointment-based personal care businesses']
+    },
+    'Central Valley Dealer': {
+      bestFor: ['Car dealerships', 'Used auto lots', 'Vehicle brokers', 'Auto retail businesses']
+    },
+    'Shelton Springs Home Owners Association App': {
+      bestFor: ['HOAs', 'Property management firms', 'Residential communities', 'Condo associations']
+    },
+    'HOA App Template': {
+      bestFor: ['HOAs', 'Community managers', 'Property managers', 'Resident communication teams']
+    },
+    'Gadget Garage': {
+      bestFor: ['Repair shops', 'Device resellers', 'Managed IT teams', 'Tech inventory-heavy businesses']
+    }
+  };
+
+  function getDefaultBestFor(projectTitle, projectCategory) {
+    const titleText = (projectTitle || '').toLowerCase();
+    const categoryText = (projectCategory || '').toLowerCase();
+    const combined = `${titleText} ${categoryText}`;
+    if (combined.includes('real estate')) {
+      return ['Real estate agencies', 'Property teams', 'Independent agents'];
+    }
+    if (combined.includes('weather')) {
+      return ['Media projects', 'Travel-focused apps', 'Utility app audiences'];
+    }
+    if (combined.includes('blog')) {
+      return ['Developers', 'Content creators', 'Technical writing workflows'];
+    }
+    if (combined.includes('application') || combined.includes('app')) {
+      return ['Service businesses', 'Small-to-midsize businesses', 'Teams needing client-facing apps'];
+    }
+    return ['Small businesses', 'Growing businesses', 'Teams seeking digital operations workflows'];
+  }
+
+  function renderPortfolioBestForSections() {
+    const projectCards = document.querySelectorAll('.project-card');
+    projectCards.forEach((card) => {
+      const titleNode = card.querySelector('.project-title');
+      const categoryNode = card.querySelector('.project-category');
+      const detailsCard = card.querySelector('.project-details-card');
+      const existingSection = card.querySelector('.project-fit-section');
+      if (!titleNode || !detailsCard || existingSection) return;
+
+      const titleText = titleNode.textContent.trim();
+      const categoryText = categoryNode ? categoryNode.textContent.trim() : 'Project';
+      const preset = PROJECT_DETAIL_CONTENT[titleText];
+      const bestForItems = preset?.bestFor || getDefaultBestFor(titleText, categoryText);
+
+      const section = document.createElement('section');
+      section.className = 'project-fit-section';
+
+      const heading = document.createElement('h5');
+      heading.className = 'project-fit-title';
+      heading.textContent = 'Best For';
+
+      const list = document.createElement('ul');
+      list.className = 'project-fit-list';
+      bestForItems.forEach((businessType) => {
+        const item = document.createElement('li');
+        item.textContent = businessType;
+        list.appendChild(item);
+      });
+
+      section.appendChild(heading);
+      section.appendChild(list);
+
+      const actions = detailsCard.querySelector('.project-actions');
+      if (actions) {
+        detailsCard.insertBefore(section, actions);
+      } else {
+        detailsCard.appendChild(section);
+      }
+    });
+  }
 
   function closeProjectModal() {
     if (!modal) return;
@@ -2336,28 +2428,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const cardTitle = card.querySelector('.project-title');
     const cardCategory = card.querySelector('.project-category');
     const cardDescription = card.querySelector('.project-description');
-    const cardOutcome = card.querySelector('.project-outcome');
-    const cardTech = card.querySelectorAll('.tech-tag');
     const liveUrl = (link.getAttribute('href') || '').trim();
     const hasLiveUrl = liveUrl && liveUrl !== '#' && !liveUrl.startsWith('#');
+
+    const titleText = cardTitle ? cardTitle.textContent.trim() : 'Project';
+    const categoryText = cardCategory ? cardCategory.textContent.trim() : 'Project';
+    const descriptionText = cardDescription ? cardDescription.textContent.trim() : '';
+    const projectPreset = PROJECT_DETAIL_CONTENT[titleText];
 
     if (cardImage && image) {
       image.src = cardImage.getAttribute('src') || './assets/images/project-comingsoon.svg';
       image.alt = cardImage.getAttribute('alt') || 'Project preview';
     }
-    if (title) title.textContent = cardTitle ? cardTitle.textContent.trim() : 'Project';
-    if (category) category.textContent = cardCategory ? cardCategory.textContent.trim() : 'Application';
-    if (description) description.textContent = cardDescription ? cardDescription.textContent.trim() : '';
-    if (outcome) outcome.textContent = cardOutcome ? cardOutcome.textContent.trim() : '';
+    if (title) title.textContent = titleText;
+    if (category) category.textContent = categoryText;
+    if (description) description.textContent = descriptionText;
 
-    if (tech) {
-      tech.innerHTML = '';
-      cardTech.forEach((item) => {
-        const tag = document.createElement('span');
-        tag.className = 'tech-tag';
-        tag.textContent = item.textContent.trim();
-        tech.appendChild(tag);
-      });
+    if (admin) {
+      if (projectPreset?.admin) {
+        admin.textContent = projectPreset.admin;
+      } else {
+        admin.textContent = 'Admin page focus: central management panel for operations, user actions, and business updates.';
+      }
     }
 
     if (liveBtn) {
@@ -2383,6 +2475,8 @@ document.addEventListener('DOMContentLoaded', function() {
       openProjectModal();
     });
   });
+
+  renderPortfolioBestForSections();
 
   if (closeBtn) closeBtn.addEventListener('click', closeProjectModal);
   if (overlay) overlay.addEventListener('click', closeProjectModal);
