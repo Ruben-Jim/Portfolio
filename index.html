@@ -1719,51 +1719,8 @@
 
                   <div class="admin-collapsible-content" id="snippets-content">
                     <div class="admin-collapsible-inner-content">
-                    <div class="snippets-grid">
-                      <div class="snippet-card">
-                        <div class="snippet-header">
-                          <span class="snippet-label">React Native Expo Start</span>
-                          <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
-                            <ion-icon name="copy-outline"></ion-icon>
-                            <span class="snippet-copy-text">Copy</span>
-                          </button>
-                        </div>
-                        <pre class="snippet-code"><code data-snippet>npx create-expo-app my-app
-cd my-app
-npx expo start</code></pre>
-                      </div>
-                      <!-- <div class="snippet-card">
-                        <div class="snippet-header">
-                          <span class="snippet-label">Firebase Init</span>
-                          <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
-                            <ion-icon name="copy-outline"></ion-icon>
-                            <span class="snippet-copy-text">Copy</span>
-                          </button>
-                        </div>
-                        <pre class="snippet-code has-scrollbar"><code data-snippet>import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);</code></pre>
-                      </div> -->
-                      <!-- <div class="snippet-card">
-                        <div class="snippet-header">
-                          <span class="snippet-label">Async Fetch with Error Handling</span>
-                          <button type="button" class="snippet-copy-btn" data-snippet-copy aria-label="Copy snippet">
-                            <ion-icon name="copy-outline"></ion-icon>
-                            <span class="snippet-copy-text">Copy</span>
-                          </button>
-                        </div>
-                        <pre class="snippet-code has-scrollbar"><code data-snippet>async function fetchData(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(res.status);
-    return await res.json();
-  } catch (e) {
-    console.error('Fetch failed:', e);
-  }
-}</code></pre>
-                      </div> -->
+                    <div class="snippets-grid" id="snippets-grid" aria-live="polite">
+                      <!-- Populated by script from saved snippets (Admin → Blog Management) -->
                     </div>
                     </div>
                   </div>
@@ -3007,7 +2964,26 @@ const db = getFirestore(app);</code></pre>
 
             <div class="admin-collapsible-content" id="blog-content">
             <div class="admin-collapsible-inner-content">
-            <div class="blog-posts-list has-scrollbar" id="admin-blog-posts-list">
+            <details class="admin-snippets-details">
+              <summary class="admin-snippets-summary">
+                <ion-icon name="code-slash-outline" class="admin-snippets-summary-icon" aria-hidden="true"></ion-icon>
+                <span class="admin-snippets-summary-label">Copy-Paste Snippets</span>
+                <span class="admin-snippets-summary-hint">Blog tab</span>
+              </summary>
+              <div class="admin-snippets-block">
+                <div class="admin-snippets-list has-scrollbar" id="admin-snippets-list">
+                  <div class="empty-item"><p>Log in to manage snippets.</p></div>
+                </div>
+                <div class="blog-management-actions admin-snippets-actions">
+                  <button type="button" class="btn btn-primary btn-sm admin-add-snippet-btn-compact" id="admin-add-snippet-btn">
+                    <ion-icon name="add-outline"></ion-icon>
+                    Add
+                  </button>
+                </div>
+              </div>
+            </details>
+
+            <div class="blog-posts-list has-scrollbar admin-blog-posts-panel" id="admin-blog-posts-list">
               <!-- Blog posts will be populated here -->
               <div class="empty-item">
                 <p>Loading blog posts...</p>
@@ -3644,6 +3620,40 @@ const db = getFirestore(app);</code></pre>
               Update Post
             </button>
           </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add / Edit Copy-Paste Snippet Modal -->
+  <div class="add-blog-modal" id="snippet-edit-modal" aria-hidden="true">
+    <div class="add-blog-overlay" id="snippet-edit-overlay"></div>
+    <div class="add-blog-content">
+      <div class="add-blog-header">
+        <div class="header-left">
+          <ion-icon name="code-slash-outline" class="header-icon"></ion-icon>
+          <h3 class="h3" id="snippet-edit-modal-title">New Snippet</h3>
+        </div>
+        <button type="button" class="add-blog-close-btn" id="snippet-edit-close-btn" aria-label="Close">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <form class="add-blog-form" id="snippet-edit-form" onsubmit="event.preventDefault(); return false;">
+        <input type="hidden" id="snippet-edit-id" value="">
+        <div class="form-group">
+          <label for="snippet-edit-label">Label</label>
+          <input type="text" id="snippet-edit-label" name="label" placeholder="e.g. React Native Expo Start" required maxlength="120">
+        </div>
+        <div class="form-group">
+          <label for="snippet-edit-code">Code / text to copy</label>
+          <textarea id="snippet-edit-code" name="code" class="form-textarea snippet-edit-textarea" rows="14" placeholder="Commands or code visitors can copy..." required></textarea>
+        </div>
+        <div class="form-actions snippet-edit-form-actions">
+          <button type="button" class="btn btn-secondary" id="snippet-edit-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="snippet-edit-save-btn">
+            <ion-icon name="save-outline"></ion-icon>
+            Save Snippet
+          </button>
         </div>
       </form>
     </div>

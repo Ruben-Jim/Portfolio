@@ -432,6 +432,303 @@ function formatDate(dateString) {
   });
 }
 
+// ── Copy-paste snippets (Blog tab + Admin Blog Management) ──
+const SNIPPETS_STORAGE_KEY = 'portfolio_copy_paste_snippets_v1';
+
+function generateSnippetId() {
+  return 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+}
+
+function getDefaultSnippetsSeed() {
+  return [
+    {
+      id: 'seed-expo-start',
+      label: 'React Native Expo Start',
+      code: 'npx create-expo-app my-app\ncd my-app\nnpx expo start'
+    }
+  ];
+}
+
+function loadSnippetsArray() {
+  try {
+    const raw = localStorage.getItem(SNIPPETS_STORAGE_KEY);
+    if (raw !== null && raw !== '') {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.map((s) => ({
+          id: String(s.id || generateSnippetId()),
+          label: String(s.label || 'Snippet').slice(0, 200),
+          code: String(s.code ?? '')
+        }));
+      }
+    }
+    if (raw === null) {
+      const seed = getDefaultSnippetsSeed();
+      try {
+        localStorage.setItem(SNIPPETS_STORAGE_KEY, JSON.stringify(seed));
+      } catch (e2) {}
+      return seed.map((s) => ({ ...s }));
+    }
+  } catch (e) {
+    console.warn('Snippets: could not read storage', e);
+  }
+  return [];
+}
+
+function saveSnippetsArray(arr) {
+  try {
+    localStorage.setItem(SNIPPETS_STORAGE_KEY, JSON.stringify(arr));
+  } catch (e) {
+    console.error('Snippets: save failed', e);
+    if (typeof showErrorMessage === 'function') {
+      showErrorMessage('Could not save snippets (storage may be full or disabled).');
+    }
+  }
+  renderPublicSnippets();
+  renderAdminSnippets();
+}
+
+function renderPublicSnippets() {
+  const grid = document.getElementById('snippets-grid');
+  if (!grid) return;
+  const items = loadSnippetsArray();
+  grid.innerHTML = '';
+  if (items.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'snippets-empty-hint';
+    empty.textContent = 'No snippets yet. Add some in Admin → Blog Management.';
+    grid.appendChild(empty);
+    return;
+  }
+  items.forEach((sn) => {
+    const card = document.createElement('div');
+    card.className = 'snippet-card';
+    const header = document.createElement('div');
+    header.className = 'snippet-header';
+    const label = document.createElement('span');
+    label.className = 'snippet-label';
+    label.textContent = sn.label;
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'snippet-copy-btn';
+    copyBtn.setAttribute('data-snippet-copy', '');
+    copyBtn.setAttribute('aria-label', 'Copy snippet');
+    copyBtn.innerHTML = '<ion-icon name="copy-outline"></ion-icon><span class="snippet-copy-text">Copy</span>';
+    header.appendChild(label);
+    header.appendChild(copyBtn);
+    const pre = document.createElement('pre');
+    pre.className = 'snippet-code has-scrollbar';
+    const code = document.createElement('code');
+    code.setAttribute('data-snippet', '');
+    code.textContent = sn.code;
+    pre.appendChild(code);
+    card.appendChild(header);
+    card.appendChild(pre);
+    grid.appendChild(card);
+  });
+}
+
+function renderAdminSnippets() {
+  const list = document.getElementById('admin-snippets-list');
+  if (!list) return;
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  if (!isAdmin) {
+    list.innerHTML = '<div class="empty-item"><p>Log in to manage snippets.</p></div>';
+    return;
+  }
+  const items = loadSnippetsArray();
+  list.innerHTML = '';
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty-item"><p>No snippets yet. Click Add Snippet.</p></div>';
+    return;
+  }
+  items.forEach((sn) => {
+    const row = document.createElement('div');
+    row.className = 'admin-snippet-row';
+    const main = document.createElement('div');
+    main.className = 'admin-snippet-row-main';
+    const title = document.createElement('strong');
+    title.className = 'admin-snippet-row-title';
+    title.textContent = sn.label;
+    const preview = document.createElement('span');
+    preview.className = 'admin-snippet-row-preview';
+    const firstLine = (sn.code || '').split('\n')[0] || '(empty)';
+    preview.textContent = firstLine.length > 72 ? firstLine.slice(0, 72) + '…' : firstLine;
+    main.appendChild(title);
+    main.appendChild(preview);
+    const actions = document.createElement('div');
+    actions.className = 'admin-snippet-row-actions';
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'blog-action-btn edit-btn';
+    editBtn.setAttribute('data-edit-snippet', sn.id);
+    editBtn.title = 'Edit snippet';
+    editBtn.innerHTML = '<ion-icon name="create-outline"></ion-icon>';
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'blog-action-btn delete-btn';
+    delBtn.setAttribute('data-delete-snippet', sn.id);
+    delBtn.title = 'Delete snippet';
+    delBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    row.appendChild(main);
+    row.appendChild(actions);
+    list.appendChild(row);
+  });
+}
+
+function openSnippetEditModal(mode, snippetId) {
+  const modal = document.getElementById('snippet-edit-modal');
+  const titleEl = document.getElementById('snippet-edit-modal-title');
+  const idInput = document.getElementById('snippet-edit-id');
+  const labelInput = document.getElementById('snippet-edit-label');
+  const codeInput = document.getElementById('snippet-edit-code');
+  if (!modal || !titleEl || !idInput || !labelInput || !codeInput) return;
+  if (mode === 'edit' && snippetId) {
+    const items = loadSnippetsArray();
+    const sn = items.find((s) => s.id === snippetId);
+    if (!sn) return;
+    titleEl.textContent = 'Edit Snippet';
+    idInput.value = sn.id;
+    labelInput.value = sn.label;
+    codeInput.value = sn.code;
+  } else {
+    titleEl.textContent = 'New Snippet';
+    idInput.value = '';
+    labelInput.value = '';
+    codeInput.value = '';
+  }
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  labelInput.focus();
+}
+
+function closeSnippetEditModal() {
+  const modal = document.getElementById('snippet-edit-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function initSnippetManagementUI() {
+  renderPublicSnippets();
+  renderAdminSnippets();
+
+  const grid = document.getElementById('snippets-grid');
+  if (grid) {
+    grid.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-snippet-copy]');
+      if (!btn || !grid.contains(btn)) return;
+      const card = btn.closest('.snippet-card');
+      const codeEl = card ? card.querySelector('[data-snippet]') : null;
+      if (!codeEl) return;
+      const text = codeEl.textContent || '';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () {
+          const span = btn.querySelector('.snippet-copy-text');
+          const orig = span ? span.textContent : 'Copy';
+          if (span) span.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(function () {
+            btn.classList.remove('copied');
+            if (span) span.textContent = orig;
+          }, 2000);
+        }).catch(function () {
+          fallbackCopySnippetText(text, btn);
+        });
+      } else {
+        fallbackCopySnippetText(text, btn);
+      }
+    });
+  }
+
+  function fallbackCopySnippetText(text, btn) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand('copy');
+      const span = btn.querySelector('.snippet-copy-text');
+      if (span) span.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function () {
+        btn.classList.remove('copied');
+        if (span) span.textContent = 'Copy';
+      }, 2000);
+    } catch (err) {
+      const span = btn.querySelector('.snippet-copy-text');
+      if (span) span.textContent = 'Failed';
+    }
+    document.body.removeChild(ta);
+  }
+
+  const addBtn = document.getElementById('admin-add-snippet-btn');
+  if (addBtn) {
+    addBtn.addEventListener('click', function () {
+      if (!currentUser || currentUser.role !== 'admin') return;
+      openSnippetEditModal('add');
+    });
+  }
+
+  const list = document.getElementById('admin-snippets-list');
+  if (list) {
+    list.addEventListener('click', function (e) {
+      const editBtn = e.target.closest('[data-edit-snippet]');
+      const delBtn = e.target.closest('[data-delete-snippet]');
+      if (editBtn) {
+        const id = editBtn.getAttribute('data-edit-snippet');
+        openSnippetEditModal('edit', id);
+        return;
+      }
+      if (delBtn) {
+        const id = delBtn.getAttribute('data-delete-snippet');
+        if (!id || !confirm('Delete this snippet?')) return;
+        const next = loadSnippetsArray().filter((s) => s.id !== id);
+        saveSnippetsArray(next);
+      }
+    });
+  }
+
+  const form = document.getElementById('snippet-edit-form');
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const idVal = document.getElementById('snippet-edit-id').value.trim();
+      const label = document.getElementById('snippet-edit-label').value.trim();
+      const code = document.getElementById('snippet-edit-code').value;
+      if (!label) return;
+      let items = loadSnippetsArray();
+      if (idVal) {
+        items = items.map((s) => (s.id === idVal ? { ...s, label, code } : s));
+      } else {
+        items.push({ id: generateSnippetId(), label, code });
+      }
+      saveSnippetsArray(items);
+      closeSnippetEditModal();
+    });
+  }
+
+  const closeBtn = document.getElementById('snippet-edit-close-btn');
+  const cancelBtn = document.getElementById('snippet-edit-cancel-btn');
+  const overlay = document.getElementById('snippet-edit-overlay');
+  if (closeBtn) closeBtn.addEventListener('click', closeSnippetEditModal);
+  if (cancelBtn) cancelBtn.addEventListener('click', closeSnippetEditModal);
+  if (overlay) overlay.addEventListener('click', closeSnippetEditModal);
+}
+
+window.renderAdminSnippets = renderAdminSnippets;
+window.initSnippetManagementUI = initSnippetManagementUI;
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof initSnippetManagementUI === 'function') {
+    initSnippetManagementUI();
+  }
+});
+
 // Blog management functionality
 const addBlogBtn = document.getElementById('add-blog-btn');
 const addBlogModal = document.getElementById('add-blog-modal');
@@ -3021,6 +3318,7 @@ window.addEventListener('load', function() {
           showDashboard();
           if (typeof fetchMessages === 'function') fetchMessages();
           if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
+          if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
           updateAuthUI();
           return;
         }
@@ -3179,6 +3477,7 @@ window.addEventListener('load', function() {
       showDashboard();
       if (typeof fetchMessages === 'function') fetchMessages();
       if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
+      if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
       updateAuthUI();
     } else {
       // Invalid credentials
@@ -3336,6 +3635,7 @@ window.addEventListener('load', function() {
     // Update UI
     showLogin();
     updateAuthUI();
+    if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
     
     console.log('Admin logged out successfully');
   }
@@ -4661,56 +4961,6 @@ function toggleTheme() {
     }
   }
 })();
-
-// ─────────────────────────────────────────────
-// Copy Snippets
-// ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelectorAll('[data-snippet-copy]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var card = this.closest('.snippet-card');
-      var code = card ? card.querySelector('[data-snippet]') : null;
-      if (!code) return;
-      var text = code.textContent || '';
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function() {
-          showSnippetFeedback(btn, true);
-        }).catch(function() {
-          fallbackCopySnippet(text, btn);
-        });
-      } else {
-        fallbackCopySnippet(text, btn);
-      }
-    });
-  });
-
-  function fallbackCopySnippet(text, btn) {
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      document.execCommand('copy');
-      showSnippetFeedback(btn, true);
-    } catch (e) {
-      showSnippetFeedback(btn, false);
-    }
-    document.body.removeChild(ta);
-  }
-
-  function showSnippetFeedback(btn, success) {
-    var span = btn.querySelector('.snippet-copy-text');
-    var orig = span ? span.textContent : 'Copy';
-    if (span) span.textContent = success ? 'Copied!' : 'Failed';
-    btn.classList.add('copied');
-    setTimeout(function() {
-      btn.classList.remove('copied');
-      if (span) span.textContent = orig;
-    }, 2000);
-  }
-});
 
 // ─────────────────────────────────────────────
 // GSAP Micro-interactions
