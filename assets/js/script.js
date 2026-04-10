@@ -4490,6 +4490,21 @@ window.addEventListener('load', function() {
         '" class="btn-outline" target="_blank" rel="noopener noreferrer">View proposed site</a>\n';
     }
 
+    var nextStepsHtml =
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">Proposed next steps</div>\n' +
+      '    <div class="next-steps-grid">\n' +
+      '      <div class="next-step"><div class="next-step-num">01</div><div class="next-step-title">Review</div><span class="next-step-blurb">Confirm scope, investment, and deliverables match your goals.' +
+      (proposalUrlTrim
+        ? ' <a href="' +
+          escapeHtml(normalizeProposedSiteHref(proposalUrlTrim)) +
+          '" class="next-step-link" target="_blank" rel="noopener noreferrer">Open proposed site</a>.'
+        : '') +
+      '</span></div>\n' +
+      '      <div class="next-step"><div class="next-step-num">02</div><div class="next-step-title">Discuss</div><span class="next-step-blurb">Questions or adjustments? Reach out before you approve.</span></div>\n' +
+      '      <div class="next-step"><div class="next-step-num">03</div><div class="next-step-title">Approve</div><span class="next-step-blurb">Confirm acceptance in writing so kickoff, timeline, and next milestones can be scheduled.</span></div>\n' +
+      '    </div>\n';
+
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
       '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .section-title.section-title--compact { margin-bottom: 3px; } .scope-card { padding: 10px 12px; } .scope-card--list { padding-top: 8px !important; padding-bottom: 8px !important; } .scope-feature-list li { font-size: 11px; padding: 5px 0; line-height: 1.4; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 4px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-solo { padding: 10px 14px; } .addon-tier-price { font-size: 17px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
@@ -4547,6 +4562,7 @@ window.addEventListener('load', function() {
       '.next-step { }\n' +
       '.next-step-num { font-family: \'Playfair Display\', serif; font-size: 20px; font-weight: 700; color: ' + C.primary + '; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid ' + C.primary + '; }\n' +
       '.next-step-title { font-size: 13px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 4px; }\n' +
+      '.next-step-blurb { font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; display: block; margin-top: 2px; }\n' +
       '.next-step-link { font-size: 12px; color: ' + C.primary + '; text-decoration: underline; }\n' +
       '.footer-buttons { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }\n' +
       '.btn-primary { display: inline-block; padding: 12px 24px; background: ' + C.primary + '; color: ' + C.dark.bg + '; font-family: \'Inter\', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; text-decoration: none; border-radius: 8px; border: none; }\n' +
@@ -4576,8 +4592,8 @@ window.addEventListener('load', function() {
       '        <div class="price-meta">Includes scope outlined above. Final terms confirmed on acceptance.</div>\n' +
       '      </div>\n' +
       '      <div class="price-card price-card-secondary">\n' +
-      '        <div class="price-label">Details</div>\n' +
-      '        <div class="price-meta">Created: ' + created + '<br>Due: ' + due + '</div>\n' +
+      '        <div class="price-label">Created</div>\n' +
+      '        <div class="price-meta">' + created + '</div>\n' +
       '      </div>\n' +
       '    </div>\n' +
       addOnsBlockHtml +
@@ -4588,13 +4604,7 @@ window.addEventListener('load', function() {
       '      <li><strong>Pricing:</strong> Total and details at a glance.</li>\n' +
       '      <li><strong>Ready:</strong> Professional format for review and acceptance.</li>\n' +
       '    </ul>\n' +
-      '    <hr class="divider">\n' +
-      '    <div class="section-title">The Next Steps</div>\n' +
-      '    <div class="next-steps-grid">\n' +
-      '      <div class="next-step"><div class="next-step-num">01</div><div class="next-step-title">Visit Portfolio</div><a href="https://rubenjimenez.dev" class="next-step-link">rubenjimenez.dev</a></div>\n' +
-      '      <div class="next-step"><div class="next-step-num">02</div><div class="next-step-title">Review and Confirm</div><span style="font-size:12px;color:' + C.dark.muted + ';">Review scope and terms</span></div>\n' +
-      '      <div class="next-step"><div class="next-step-num">03</div><div class="next-step-title">Contact Me</div><a href="mailto:Ruben.Jim.co@gmail.com" class="next-step-link">Ruben.Jim.co@gmail.com</a></div>\n' +
-      '    </div>\n' +
+      nextStepsHtml +
       '    <hr class="divider">\n' +
       '    <div class="footer-buttons">\n' +
       proposedSiteFooterBtn +
