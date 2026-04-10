@@ -4502,6 +4502,14 @@ window.addEventListener('load', function() {
     var id = escapeHtml(params.id || '');
     var addOnsBlockHtml = params.addOnsBlockHtml || '';
     var proposedSiteCell = formatProposedSitePdfHtml(params.proposedSiteUrl || '');
+    var proposedSiteFooterBtn = '';
+    var proposalUrlTrim = (params.proposedSiteUrl || '').trim();
+    if (proposalUrlTrim) {
+      proposedSiteFooterBtn =
+        '      <a href="' +
+        escapeHtml(normalizeProposedSiteHref(proposalUrlTrim)) +
+        '" class="btn-outline" target="_blank" rel="noopener noreferrer">View proposed site</a>\n';
+    }
 
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
@@ -4612,6 +4620,7 @@ window.addEventListener('load', function() {
       '    <hr class="divider">\n' +
       '    <div class="footer-buttons">\n' +
       '      <a href="https://rubenjimenez.dev" class="btn-primary">View Portfolio</a>\n' +
+      proposedSiteFooterBtn +
       '      <a href="mailto:Ruben.Jim.co@gmail.com" class="btn-outline">Contact Me</a>\n' +
       '    </div>\n' +
       '    <div class="footer-meta">Generated from rubenjimenez.dev | ' + '</div>\n' +
