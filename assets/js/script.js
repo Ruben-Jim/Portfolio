@@ -4547,7 +4547,7 @@ window.addEventListener('load', function() {
       '.addon-tier-label { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; letter-spacing: 0.05em; line-height: 1.45; }\n' +
       '.addon-tier-price-block { flex-shrink: 0; display: flex; align-items: center; justify-content: center; min-width: 118px; padding: 12px 18px; background: rgba(234,179,8,0.13); border-left: 1px solid rgba(234,179,8,0.32); }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
-      '.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
+      '.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
       '.feature-col { }\n' +
       '.feature-title { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 6px; }\n' +
       '.feature-desc { font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
@@ -4586,7 +4586,6 @@ window.addEventListener('load', function() {
       '    <div class="section-title">Document Summary</div>\n' +
       '    <div class="features-grid">\n' +
       '      <div class="feature-col"><div class="feature-title">Client</div><div class="feature-desc">' + escapeHtml(customer.name || '—') + '</div></div>\n' +
-      '      <div class="feature-col"><div class="feature-title">Type</div><div class="feature-desc">' + typeLabel + '</div></div>\n' +
       '      <div class="feature-col"><div class="feature-title">Due Date</div><div class="feature-desc">' + due + '</div></div>\n' +
       '      <div class="feature-col"><div class="feature-title">Proposed Site</div><div class="feature-desc">' + proposedSiteCell + '</div></div>\n' +
       '    </div>\n' +
