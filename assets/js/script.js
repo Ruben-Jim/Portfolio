@@ -4339,6 +4339,105 @@ window.addEventListener('load', function() {
   }
 
   /**
+   * Rich HTML for Value Proposition / scope: card layout, optional bullet styling.
+   */
+  function buildScopeBodyHtml(raw) {
+    var fallback =
+      '<div class="scope-card"><p class="scope-para">Outline the project scope, deliverables, and key terms here.</p></div>';
+    if (raw == null || String(raw).trim() === '') return fallback;
+    var text = String(raw);
+    if (!/^[-*•]\s+/m.test(text)) {
+      return (
+        '<div class="scope-card"><div class="scope-plain">' +
+        escapeHtml(text).replace(/\n/g, '<br>') +
+        '</div></div>'
+      );
+    }
+    var lines = text.split(/\r?\n/);
+    var chunks = [];
+    var i = 0;
+    while (i < lines.length) {
+      var line = lines[i].trim();
+      if (!line) {
+        i++;
+        continue;
+      }
+      var bullet = line.match(/^[-*•]\s+(.*)$/);
+      if (bullet) {
+        var items = [bullet[1]];
+        i++;
+        while (i < lines.length) {
+          var next = lines[i].trim();
+          if (!next) {
+            i++;
+            continue;
+          }
+          var bm = next.match(/^[-*•]\s+(.*)$/);
+          if (bm) {
+            items.push(bm[1]);
+            i++;
+          } else break;
+        }
+        chunks.push({ type: 'ul', items: items });
+      } else {
+        var para = line;
+        i++;
+        while (i < lines.length) {
+          var ln = lines[i].trim();
+          if (!ln) break;
+          if (/^[-*•]\s+/.test(ln)) break;
+          para += ' ' + ln;
+          i++;
+        }
+        chunks.push({ type: 'p', text: para });
+      }
+    }
+    if (!chunks.length) return fallback;
+    var html = '<div class="scope-card">';
+    for (var c = 0; c < chunks.length; c++) {
+      if (chunks[c].type === 'p') {
+        html += '<p class="scope-para">' + escapeHtml(chunks[c].text) + '</p>';
+      } else {
+        html += '<ul class="scope-feature-list">';
+        for (var j = 0; j < chunks[c].items.length; j++) {
+          html += '<li>' + escapeHtml(chunks[c].items[j]) + '</li>';
+        }
+        html += '</ul>';
+      }
+    }
+    html += '</div>';
+    return html;
+  }
+
+  /**
+   * Add-on body copy: bullet lines become a compact list; otherwise preserve breaks.
+   */
+  function buildAddonDescriptionPdfHtml(raw) {
+    if (!raw || !String(raw).trim()) return '';
+    var text = String(raw);
+    if (!/^[-*•]\s+/m.test(text)) {
+      return escapeHtml(text).replace(/\n/g, '<br>');
+    }
+    var lines = text.split(/\r?\n/);
+    var items = [];
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (!t) continue;
+      var m = t.match(/^[-*•]\s+(.*)$/);
+      if (m) items.push(m[1]);
+      else if (items.length) items[items.length - 1] += ' ' + t;
+      else items.push(t);
+    }
+    if (!items.length) return escapeHtml(text).replace(/\n/g, '<br>');
+    var list = '<ul class="addon-desc-list">';
+    for (var j = 0; j < items.length; j++) {
+      list += '<li>' + escapeHtml(items[j]) + '</li>';
+    }
+    list += '</ul>';
+    return list;
+  }
+
+  /**
    * Builds optional add-ons block for PDF/print HTML (empty string if none).
    * @param {BusinessDocument} doc
    */
@@ -4351,34 +4450,32 @@ window.addEventListener('load', function() {
       var opts = addon.priceOptions && Array.isArray(addon.priceOptions) ? addon.priceOptions : [];
       if (!opts.length) continue;
       var nameEsc = escapeHtml(addon.name);
-      var descEsc = addon.description
-        ? escapeHtml(addon.description).replace(/\n/g, '<br>')
-        : '';
-      var rows = '';
+      var descInner = buildAddonDescriptionPdfHtml(addon.description || '');
+      var tierRows = '';
       for (var j = 0; j < opts.length; j++) {
         var o = opts[j];
         var amt = typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
-        rows +=
-          '<tr><td style="padding:8px 12px;border:1px solid rgba(255,255,255,0.1);color:#e8e6df;">' +
+        tierRows +=
+          '<div class="addon-tier-row">' +
+          '<span class="addon-tier-label">' +
           escapeHtml(o.label || '—') +
-          '</td><td style="padding:8px 12px;border:1px solid rgba(255,255,255,0.1);text-align:right;font-weight:600;color:#eab308;">' +
+          '</span>' +
+          '<span class="addon-tier-price">' +
           escapeHtml(formatCurrency(amt)) +
-          '</td></tr>';
+          '</span>' +
+          '</div>';
       }
       parts.push(
-        '<div class="addon-block" style="margin-bottom:18px;">' +
-          '<div style="font-weight:600;color:#eab308;margin-bottom:6px;font-size:14px;">' +
+        '<div class="addon-card">' +
+          '<div class="addon-card-title">' +
           nameEsc +
           '</div>' +
-          (descEsc
-            ? '<div style="font-size:12px;color:#94a3b8;margin-bottom:10px;line-height:1.55;">' +
-              descEsc +
-              '</div>'
+          (descInner
+            ? '<div class="addon-card-desc">' + descInner + '</div>'
             : '') +
-          '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
-          '<tbody>' +
-          rows +
-          '</tbody></table>' +
+          '<div class="addon-tier-rows">' +
+          tierRows +
+          '</div>' +
           '</div>'
       );
     }
@@ -4386,7 +4483,7 @@ window.addEventListener('load', function() {
     return (
       '    <hr class="divider">\n' +
       '    <div class="section-title">Optional Add-Ons &amp; Upgrades</div>\n' +
-      '    <div class="scope-body" style="margin-top:8px;">' +
+      '    <div class="addon-cards-grid">' +
       parts.join('') +
       '</div>\n'
     );
@@ -4402,7 +4499,7 @@ window.addEventListener('load', function() {
       primary: '#eab308',
       dark: { bg: '#0f172a', card: '#0f141a', text: '#e8e6df', muted: '#94a3b8' }
     };
-    var scopeHtml = params.scope ? escapeHtml(params.scope).replace(/\n/g, '<br>') : 'Outline the project scope, deliverables, and key terms here.';
+    var scopeHtml = buildScopeBodyHtml(params.scope);
     var clientName = escapeHtml((customer.name || 'Client').toString().toUpperCase());
     var typeLabel = escapeHtml(params.typeLabel || 'DOCUMENT');
     var statusLabel = escapeHtml(params.statusLabel || 'DRAFT');
@@ -4414,7 +4511,7 @@ window.addEventListener('load', function() {
 
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
-      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .scope-body { font-size: 12px; line-height: 1.45; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .scope-card { padding: 14px 16px; } .scope-plain { font-size: 12px; line-height: 1.45; } .scope-feature-list li { font-size: 12px; margin-bottom: 6px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; margin-bottom: 4px; } .addon-tier-row { padding: 8px 10px; } .addon-tier-price { font-size: 12px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
       '* { box-sizing: border-box; }\n' +
       'body { margin: 0; padding: 40px 32px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
       '.doc { max-width: 800px; margin: 0 auto; }\n' +
@@ -4424,7 +4521,26 @@ window.addEventListener('load', function() {
       '.doc-subtitle a { color: ' + C.primary + '; text-decoration: underline; }\n' +
       '.divider { border: none; height: 1px; background: rgba(255,255,255,0.1); margin: 24px 0; }\n' +
       '.section-title { font-family: \'Playfair Display\', serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: ' + C.primary + '; margin-bottom: 12px; }\n' +
-      '.scope-body { font-size: 14px; line-height: 1.6; color: ' + C.dark.text + '; }\n' +
+      '.scope-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px 22px; border-left: 3px solid ' + C.primary + '; }\n' +
+      '.scope-plain { font-size: 14px; line-height: 1.65; color: ' + C.dark.text + '; }\n' +
+      '.scope-para { font-size: 14px; line-height: 1.65; color: ' + C.dark.text + '; margin: 0 0 14px 0; }\n' +
+      '.scope-para:last-child { margin-bottom: 0; }\n' +
+      '.scope-feature-list { list-style: none; margin: 0; padding: 0; }\n' +
+      '.scope-feature-list li { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 14px; line-height: 1.55; color: ' + C.dark.text + '; }\n' +
+      '.scope-feature-list li:last-child { margin-bottom: 0; }\n' +
+      '.scope-feature-list li::before { content: \'\'; flex-shrink: 0; width: 6px; height: 6px; margin-top: 8px; border-radius: 50%; background: ' + C.primary + '; }\n' +
+      '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 12px; }\n' +
+      '.addon-desc-list { list-style: none; margin: 0; padding: 0; }\n' +
+      '.addon-desc-list li { position: relative; padding-left: 16px; margin-bottom: 8px; font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
+      '.addon-desc-list li:last-child { margin-bottom: 0; }\n' +
+      '.addon-desc-list li::before { content: \'\'; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: ' + C.primary + '; }\n' +
+      '.addon-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; min-height: 100%; }\n' +
+      '.addon-card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: ' + C.primary + '; margin-bottom: 10px; line-height: 1.35; }\n' +
+      '.addon-card-desc { font-size: 12px; color: ' + C.dark.muted + '; line-height: 1.55; margin-bottom: 14px; }\n' +
+      '.addon-tier-rows { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }\n' +
+      '.addon-tier-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 8px; background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.06); }\n' +
+      '.addon-tier-label { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; letter-spacing: 0.04em; text-transform: uppercase; }\n' +
+      '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; }\n' +
       '.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
       '.feature-col { }\n' +
       '.feature-title { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 6px; }\n' +
@@ -4457,7 +4573,7 @@ window.addEventListener('load', function() {
       '    <div class="doc-subtitle">Designed & Built by Ruben Jimenez | <a href="https://rubenjimenez.dev">rubenjimenez.dev</a></div>\n' +
       '    <hr class="divider">\n' +
       '    <div class="section-title">The Value Proposition</div>\n' +
-      '    <div class="scope-body">' + scopeHtml + '</div>\n' +
+      scopeHtml + '\n' +
       '    <hr class="divider">\n' +
       '    <div class="section-title">Document Summary</div>\n' +
       '    <div class="features-grid">\n' +
