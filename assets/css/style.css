@@ -5307,6 +5307,162 @@ body.project-modal-open {
   font-weight: var(--fw-600);
 }
 
+/* Business doc modal: optional add-ons / tiered pricing */
+.business-doc-addons-section {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid hsla(45, 100%, 72%, 0.12);
+}
+
+.business-doc-addons-header {
+  margin-bottom: 10px;
+}
+
+.business-doc-addons-label {
+  display: block;
+  font-size: var(--fs-6);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  margin-bottom: 4px;
+}
+
+.business-doc-addons-hint {
+  margin: 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  line-height: 1.45;
+}
+
+.business-doc-addons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.business-doc-addon-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--jet);
+  background: hsla(240, 2%, 14%, 0.6);
+}
+
+.business-doc-addon-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.business-doc-addon-card-title {
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--orange-yellow-crayola);
+}
+
+.business-doc-addon-remove {
+  padding: 4px 8px;
+  font-size: var(--fs-8);
+  border-radius: 6px;
+  border: 1px solid hsla(0, 70%, 50%, 0.4);
+  background: transparent;
+  color: hsl(0, 70%, 65%);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.business-doc-addon-remove:hover {
+  background: hsla(0, 70%, 50%, 0.12);
+}
+
+.business-doc-addon-field {
+  margin-bottom: 10px;
+}
+
+.business-doc-addon-field:last-child {
+  margin-bottom: 0;
+}
+
+.business-doc-addon-field label {
+  font-size: var(--fs-8);
+  margin-bottom: 4px;
+}
+
+.business-doc-addon-field input,
+.business-doc-addon-field textarea {
+  width: 100%;
+  min-height: 36px;
+  font-size: var(--fs-7);
+}
+
+.business-doc-addon-field textarea {
+  min-height: 56px;
+  resize: vertical;
+}
+
+.business-doc-addon-prices {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed hsla(45, 100%, 72%, 0.15);
+}
+
+.business-doc-addon-prices-label {
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.business-doc-addon-price-row {
+  display: grid;
+  grid-template-columns: 1fr 120px auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.business-doc-addon-price-row:last-child {
+  margin-bottom: 0;
+}
+
+.business-doc-addon-price-row .form-group {
+  margin-bottom: 0;
+}
+
+.business-doc-addon-price-remove {
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: var(--light-gray);
+  cursor: pointer;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.business-doc-addon-price-remove:hover {
+  color: hsl(0, 70%, 65%);
+  background: hsla(0, 70%, 50%, 0.1);
+}
+
+.business-doc-add-price-option-btn {
+  margin-top: 6px;
+  font-size: var(--fs-8);
+  padding: 6px 10px;
+}
+
+.business-doc-add-addon-btn {
+  width: 100%;
+  justify-content: center;
+  gap: 8px;
+}
+
 .add-blog-form {
   padding: 30px;
   flex: 1;

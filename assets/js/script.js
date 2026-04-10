@@ -3690,6 +3690,11 @@ window.addEventListener('load', function() {
   const BUSINESS_DOCS_STORAGE_KEY = 'businessDocs.v1';
 
   /**
+   * @typedef {{ label: string, amount: number }} BusinessDocAddOnPriceOption
+   * @typedef {{ name: string, description?: string, priceOptions: BusinessDocAddOnPriceOption[] }} BusinessDocAddOn
+   */
+
+  /**
    * @typedef {Object} BusinessDocument
    * @property {string} id
    * @property {'proposal'|'estimate'|'invoice'} type
@@ -3699,6 +3704,7 @@ window.addEventListener('load', function() {
    * @property {'draft'|'sent'|'accepted'|'paid'} status
    * @property {string=} dueDate
    * @property {string=} notes
+   * @property {BusinessDocAddOn[]=} addOns
    * @property {string} createdAt
    * @property {string} updatedAt
    */
@@ -3760,8 +3766,211 @@ window.addEventListener('load', function() {
   const businessDocModalOverlay = document.getElementById('business-doc-modal-overlay');
   const businessDocModalClose = document.getElementById('business-doc-modal-close');
   const businessDocCreateBtn = document.getElementById('business-doc-create-btn');
+  const businessDocAddonsList = document.getElementById('business-doc-addons-list');
+  const businessDocAddAddonBtn = document.getElementById('business-doc-add-addon-btn');
 
   let businessDocs = loadBusinessDocs();
+
+  function generateBusinessAddonDomId() {
+    return 'addon_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+  }
+
+  /**
+   * @param {BusinessDocAddOnPriceOption | null | undefined} opt
+   */
+  function createAddonPriceRowEl(opt) {
+    var row = document.createElement('div');
+    row.className = 'business-doc-addon-price-row';
+    var fg1 = document.createElement('div');
+    fg1.className = 'form-group';
+    var l1 = document.createElement('label');
+    l1.textContent = 'Option label';
+    var i1 = document.createElement('input');
+    i1.type = 'text';
+    i1.className = 'business-doc-addon-price-label';
+    i1.placeholder = 'e.g. Standard';
+    if (opt && opt.label) i1.value = opt.label;
+    fg1.appendChild(l1);
+    fg1.appendChild(i1);
+    var fg2 = document.createElement('div');
+    fg2.className = 'form-group';
+    var l2 = document.createElement('label');
+    l2.textContent = 'Amount';
+    var i2 = document.createElement('input');
+    i2.type = 'number';
+    i2.className = 'business-doc-addon-price-amount';
+    i2.min = '0';
+    i2.step = '0.01';
+    i2.placeholder = '0.00';
+    if (opt && typeof opt.amount === 'number' && !isNaN(opt.amount)) i2.value = String(opt.amount);
+    fg2.appendChild(l2);
+    fg2.appendChild(i2);
+    var rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'business-doc-addon-price-remove';
+    rm.setAttribute('aria-label', 'Remove price option');
+    rm.innerHTML = '<ion-icon name="close-outline"></ion-icon>';
+    rm.addEventListener('click', function () {
+      var inner = row.parentElement;
+      if (!inner) return;
+      if (inner.querySelectorAll('.business-doc-addon-price-row').length <= 1) return;
+      row.remove();
+    });
+    row.appendChild(fg1);
+    row.appendChild(fg2);
+    row.appendChild(rm);
+    return row;
+  }
+
+  /** @param {BusinessDocAddOn | {}} data */
+  function createAddonCardEl(data) {
+    data = data || {};
+    var card = document.createElement('div');
+    card.className = 'business-doc-addon-card';
+    card.setAttribute('data-addon-id', generateBusinessAddonDomId());
+    var header = document.createElement('div');
+    header.className = 'business-doc-addon-card-header';
+    var title = document.createElement('span');
+    title.className = 'business-doc-addon-card-title';
+    title.textContent = 'Add-on';
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'business-doc-addon-remove';
+    removeBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon> Remove';
+    removeBtn.addEventListener('click', function () {
+      card.remove();
+    });
+    header.appendChild(title);
+    header.appendChild(removeBtn);
+    var nameFg = document.createElement('div');
+    nameFg.className = 'business-doc-addon-field';
+    var nl = document.createElement('label');
+    nl.textContent = 'Name';
+    var ni = document.createElement('input');
+    ni.type = 'text';
+    ni.className = 'business-doc-addon-name';
+    ni.placeholder = 'Feature or module name';
+    if (data.name) ni.value = data.name;
+    nameFg.appendChild(nl);
+    nameFg.appendChild(ni);
+    var descFg = document.createElement('div');
+    descFg.className = 'business-doc-addon-field';
+    var dl = document.createElement('label');
+    dl.textContent = 'Description (optional)';
+    var ta = document.createElement('textarea');
+    ta.className = 'business-doc-addon-desc';
+    ta.rows = 2;
+    ta.placeholder = 'What this upgrade includes...';
+    if (data.description) ta.value = data.description;
+    descFg.appendChild(dl);
+    descFg.appendChild(ta);
+    var pricesWrap = document.createElement('div');
+    pricesWrap.className = 'business-doc-addon-prices';
+    var pl = document.createElement('span');
+    pl.className = 'business-doc-addon-prices-label';
+    pl.textContent = 'Price options';
+    var pricesInner = document.createElement('div');
+    pricesInner.className = 'business-doc-addon-prices-inner';
+    var po =
+      data.priceOptions && Array.isArray(data.priceOptions) && data.priceOptions.length > 0
+        ? data.priceOptions
+        : [{}];
+    po.forEach(function (p) {
+      pricesInner.appendChild(createAddonPriceRowEl(p));
+    });
+    var addPriceBtn = document.createElement('button');
+    addPriceBtn.type = 'button';
+    addPriceBtn.className = 'btn btn-secondary business-doc-add-price-option-btn';
+    addPriceBtn.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add price option';
+    addPriceBtn.addEventListener('click', function () {
+      pricesInner.appendChild(createAddonPriceRowEl(null));
+    });
+    pricesWrap.appendChild(pl);
+    pricesWrap.appendChild(pricesInner);
+    pricesWrap.appendChild(addPriceBtn);
+    card.appendChild(header);
+    card.appendChild(nameFg);
+    card.appendChild(descFg);
+    card.appendChild(pricesWrap);
+    return card;
+  }
+
+  function clearBusinessDocAddonsUI() {
+    if (!businessDocAddonsList) return;
+    businessDocAddonsList.innerHTML = '';
+  }
+
+  /**
+   * @param {BusinessDocument} doc
+   */
+  function fillBusinessDocAddonsUI(doc) {
+    clearBusinessDocAddonsUI();
+    if (!businessDocAddonsList) return;
+    var addOns = doc && doc.addOns && Array.isArray(doc.addOns) ? doc.addOns : [];
+    addOns.forEach(function (a) {
+      businessDocAddonsList.appendChild(createAddonCardEl(a));
+    });
+  }
+
+  /**
+   * @returns {BusinessDocAddOn[] | null} null = validation error
+   */
+  function collectBusinessDocAddonsFromForm() {
+    if (!businessDocAddonsList) return [];
+    var cards = businessDocAddonsList.querySelectorAll('.business-doc-addon-card');
+    var result = [];
+    for (var i = 0; i < cards.length; i++) {
+      var card = cards[i];
+      var nameEl = card.querySelector('.business-doc-addon-name');
+      var descEl = card.querySelector('.business-doc-addon-desc');
+      var nameVal = nameEl ? nameEl.value.trim() : '';
+      var descVal = descEl ? descEl.value.trim() : '';
+      var priceRows = card.querySelectorAll('.business-doc-addon-price-row');
+      var priceOptions = [];
+      for (var j = 0; j < priceRows.length; j++) {
+        var row = priceRows[j];
+        var lblEl = row.querySelector('.business-doc-addon-price-label');
+        var amtEl = row.querySelector('.business-doc-addon-price-amount');
+        var labelVal = lblEl ? lblEl.value.trim() : '';
+        var numVal = amtEl ? parseFloat(amtEl.value) : NaN;
+        var amtEmpty = !amtEl || amtEl.value === '' || String(amtEl.value).trim() === '';
+        if (labelVal === '' && amtEmpty) continue;
+        if (labelVal === '') {
+          alert('Each price option needs a label.');
+          return null;
+        }
+        if (isNaN(numVal) || numVal < 0) {
+          alert('Each price option needs a valid amount (0 or more).');
+          return null;
+        }
+        priceOptions.push({ label: labelVal, amount: numVal });
+      }
+      if (nameVal === '' && descVal === '' && priceOptions.length === 0) continue;
+      if (nameVal === '') {
+        alert('Add-on name is required when details or prices are provided.');
+        return null;
+      }
+      if (priceOptions.length === 0) {
+        alert('Add-on "' + nameVal + '" needs at least one price option.');
+        return null;
+      }
+      /** @type {BusinessDocAddOn} */
+      var o = { name: nameVal, priceOptions: priceOptions };
+      if (descVal) o.description = descVal;
+      result.push(o);
+    }
+    return result;
+  }
+
+  function initBusinessDocAddonsControls() {
+    if (businessDocAddAddonBtn && businessDocAddonsList) {
+      businessDocAddAddonBtn.addEventListener('click', function () {
+        businessDocAddonsList.appendChild(createAddonCardEl(null));
+      });
+    }
+  }
+
+  initBusinessDocAddonsControls();
 
   /**
    * @param {BusinessDocument} [doc] - If provided, fill form for edit; otherwise reset for create.
@@ -3791,6 +4000,7 @@ window.addEventListener('load', function() {
     if (businessDocIdInput) businessDocIdInput.value = '';
     if (businessDocTypeInput) businessDocTypeInput.value = 'proposal';
     if (businessDocStatusInput) businessDocStatusInput.value = 'draft';
+    clearBusinessDocAddonsUI();
   }
 
   /**
@@ -3806,6 +4016,7 @@ window.addEventListener('load', function() {
     if (businessDocTotalInput) businessDocTotalInput.value = String(doc.total || '');
     if (businessDocDueDateInput) businessDocDueDateInput.value = doc.dueDate || '';
     if (businessDocNotesInput) businessDocNotesInput.value = doc.notes || '';
+    fillBusinessDocAddonsUI(doc);
   }
 
   function getBusinessDocsFilters() {
@@ -3925,6 +4136,9 @@ window.addEventListener('load', function() {
       var id = businessDocIdInput && businessDocIdInput.value ? businessDocIdInput.value : generateBusinessDocId();
       var nowIso = new Date().toISOString();
 
+      var collectedAddOns = collectBusinessDocAddonsFromForm();
+      if (collectedAddOns === null) return;
+
       var doc = /** @type {BusinessDocument} */ ({
         id: id,
         type: businessDocTypeInput ? businessDocTypeInput.value : 'proposal',
@@ -3937,6 +4151,12 @@ window.addEventListener('load', function() {
         createdAt: nowIso,
         updatedAt: nowIso
       });
+
+      if (collectedAddOns.length > 0) {
+        doc.addOns = collectedAddOns;
+      } else {
+        delete doc.addOns;
+      }
 
       if (!doc.clientName || isNaN(doc.total)) {
         alert('Client name and total amount are required.');
@@ -4119,8 +4339,62 @@ window.addEventListener('load', function() {
   }
 
   /**
+   * Builds optional add-ons block for PDF/print HTML (empty string if none).
+   * @param {BusinessDocument} doc
+   */
+  function buildAddOnsPdfHtml(doc) {
+    if (!doc || !doc.addOns || !Array.isArray(doc.addOns) || doc.addOns.length === 0) return '';
+    var parts = [];
+    for (var i = 0; i < doc.addOns.length; i++) {
+      var addon = doc.addOns[i];
+      if (!addon || !addon.name) continue;
+      var opts = addon.priceOptions && Array.isArray(addon.priceOptions) ? addon.priceOptions : [];
+      if (!opts.length) continue;
+      var nameEsc = escapeHtml(addon.name);
+      var descEsc = addon.description
+        ? escapeHtml(addon.description).replace(/\n/g, '<br>')
+        : '';
+      var rows = '';
+      for (var j = 0; j < opts.length; j++) {
+        var o = opts[j];
+        var amt = typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
+        rows +=
+          '<tr><td style="padding:8px 12px;border:1px solid rgba(255,255,255,0.1);color:#e8e6df;">' +
+          escapeHtml(o.label || '—') +
+          '</td><td style="padding:8px 12px;border:1px solid rgba(255,255,255,0.1);text-align:right;font-weight:600;color:#eab308;">' +
+          escapeHtml(formatCurrency(amt)) +
+          '</td></tr>';
+      }
+      parts.push(
+        '<div class="addon-block" style="margin-bottom:18px;">' +
+          '<div style="font-weight:600;color:#eab308;margin-bottom:6px;font-size:14px;">' +
+          nameEsc +
+          '</div>' +
+          (descEsc
+            ? '<div style="font-size:12px;color:#94a3b8;margin-bottom:10px;line-height:1.55;">' +
+              descEsc +
+              '</div>'
+            : '') +
+          '<table style="width:100%;border-collapse:collapse;font-size:12px;">' +
+          '<tbody>' +
+          rows +
+          '</tbody></table>' +
+          '</div>'
+      );
+    }
+    if (!parts.length) return '';
+    return (
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">Optional Add-Ons &amp; Upgrades</div>\n' +
+      '    <div class="scope-body" style="margin-top:8px;">' +
+      parts.join('') +
+      '</div>\n'
+    );
+  }
+
+  /**
    * HTML generator for business documents. Produces print-optimized HTML
-   * matching Pro Cleaning proposal design. Params: { customer, items, typeLabel, statusLabel, created, due, scope, totalFormatted, id }
+   * matching Pro Cleaning proposal design. Params: { customer, items, typeLabel, statusLabel, created, due, scope, totalFormatted, id, addOnsBlockHtml }
    */
   function getBusinessDocumentHtml(params) {
     var customer = params.customer || {};
@@ -4136,6 +4410,7 @@ window.addEventListener('load', function() {
     var due = escapeHtml(params.due || '—');
     var totalFormatted = escapeHtml(params.totalFormatted || '$0.00');
     var id = escapeHtml(params.id || '');
+    var addOnsBlockHtml = params.addOnsBlockHtml || '';
 
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
@@ -4204,6 +4479,7 @@ window.addEventListener('load', function() {
       '        <div class="price-meta">Created: ' + created + '<br>Due: ' + due + '</div>\n' +
       '      </div>\n' +
       '    </div>\n' +
+      addOnsBlockHtml +
       '    <hr class="divider">\n' +
       '    <div class="section-title">Why This Document</div>\n' +
       '    <ul class="why-list">\n' +
@@ -4235,6 +4511,7 @@ window.addEventListener('load', function() {
       doc.type === 'estimate' ? 'ESTIMATE' :
       doc.type === 'invoice' ? 'INVOICE' : 'DOCUMENT';
     var items = [{ description: typeLabel + ' Total', amount: doc.total || 0 }];
+    var addOnsBlockHtml = buildAddOnsPdfHtml(doc);
     return getBusinessDocumentHtml({
       customer: { name: doc.clientName || '', email: doc.clientEmail || '' },
       items: items,
@@ -4244,7 +4521,8 @@ window.addEventListener('load', function() {
       due: due,
       scope: doc.notes || '',
       totalFormatted: formatCurrency(doc.total || 0),
-      id: doc.id || ''
+      id: doc.id || '',
+      addOnsBlockHtml: addOnsBlockHtml
     });
   }
 
