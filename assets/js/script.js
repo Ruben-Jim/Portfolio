@@ -3704,6 +3704,7 @@ window.addEventListener('load', function() {
    * @property {'draft'|'sent'|'accepted'|'paid'} status
    * @property {string=} dueDate
    * @property {string=} notes
+   * @property {string=} proposedSiteUrl
    * @property {BusinessDocAddOn[]=} addOns
    * @property {string} createdAt
    * @property {string} updatedAt
@@ -3758,6 +3759,8 @@ window.addEventListener('load', function() {
   const businessDocTotalInput = document.getElementById('business-doc-total');
   const businessDocDueDateInput = document.getElementById('business-doc-due-date');
   const businessDocNotesInput = document.getElementById('business-doc-notes');
+  const businessDocProposedSiteInput = document.getElementById('business-doc-proposed-site');
+  const businessDocProposedSiteWrap = document.getElementById('business-doc-proposed-site-wrap');
   const businessDocResetBtn = document.getElementById('business-doc-reset-btn');
   const businessDocsTbody = document.getElementById('business-docs-tbody');
   const businessDocFilterType = document.getElementById('business-doc-filter-type');
@@ -3859,8 +3862,8 @@ window.addEventListener('load', function() {
     dl.textContent = 'Description (optional)';
     var ta = document.createElement('textarea');
     ta.className = 'business-doc-addon-desc';
-    ta.rows = 2;
-    ta.placeholder = 'What this upgrade includes...';
+    ta.rows = 3;
+    ta.placeholder = 'One bullet per line (optional • or -). Example:\nFeature A\nFeature B';
     if (data.description) ta.value = data.description;
     descFg.appendChild(dl);
     descFg.appendChild(ta);
@@ -3975,12 +3978,19 @@ window.addEventListener('load', function() {
   /**
    * @param {BusinessDocument} [doc] - If provided, fill form for edit; otherwise reset for create.
    */
+  function updateBusinessDocProposedSiteVisibility() {
+    if (!businessDocProposedSiteWrap || !businessDocTypeInput) return;
+    businessDocProposedSiteWrap.style.display =
+      businessDocTypeInput.value === 'proposal' ? 'block' : 'none';
+  }
+
   function openBusinessDocModal(doc) {
     if (doc) {
       fillBusinessDocForm(doc);
     } else {
       resetBusinessDocForm();
     }
+    updateBusinessDocProposedSiteVisibility();
     if (businessDocModal) {
       businessDocModal.style.display = 'flex';
       businessDocModal.classList.add('active');
@@ -4000,7 +4010,9 @@ window.addEventListener('load', function() {
     if (businessDocIdInput) businessDocIdInput.value = '';
     if (businessDocTypeInput) businessDocTypeInput.value = 'proposal';
     if (businessDocStatusInput) businessDocStatusInput.value = 'draft';
+    if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = '';
     clearBusinessDocAddonsUI();
+    updateBusinessDocProposedSiteVisibility();
   }
 
   /**
@@ -4016,7 +4028,9 @@ window.addEventListener('load', function() {
     if (businessDocTotalInput) businessDocTotalInput.value = String(doc.total || '');
     if (businessDocDueDateInput) businessDocDueDateInput.value = doc.dueDate || '';
     if (businessDocNotesInput) businessDocNotesInput.value = doc.notes || '';
+    if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = doc.proposedSiteUrl || '';
     fillBusinessDocAddonsUI(doc);
+    updateBusinessDocProposedSiteVisibility();
   }
 
   function getBusinessDocsFilters() {
@@ -4152,6 +4166,13 @@ window.addEventListener('load', function() {
         updatedAt: nowIso
       });
 
+      var isProposal = businessDocTypeInput && businessDocTypeInput.value === 'proposal';
+      if (isProposal && businessDocProposedSiteInput && businessDocProposedSiteInput.value.trim()) {
+        doc.proposedSiteUrl = businessDocProposedSiteInput.value.trim();
+      } else {
+        delete doc.proposedSiteUrl;
+      }
+
       if (collectedAddOns.length > 0) {
         doc.addOns = collectedAddOns;
       } else {
@@ -4190,6 +4211,11 @@ window.addEventListener('load', function() {
 
   if (businessDocFilterStatus) {
     businessDocFilterStatus.addEventListener('change', renderBusinessDocs);
+  }
+
+  if (businessDocTypeInput) {
+    businessDocTypeInput.addEventListener('change', updateBusinessDocProposedSiteVisibility);
+    updateBusinessDocProposedSiteVisibility();
   }
 
   if (businessDocCreateBtn) {
@@ -4338,103 +4364,69 @@ window.addEventListener('load', function() {
       .replace(/'/g, '&#39;');
   }
 
-  /**
-   * Rich HTML for Value Proposition / scope: card layout, optional bullet styling.
-   */
-  function buildScopeBodyHtml(raw) {
-    var fallback =
-      '<div class="scope-card"><p class="scope-para">Outline the project scope, deliverables, and key terms here.</p></div>';
-    if (raw == null || String(raw).trim() === '') return fallback;
-    var text = String(raw);
-    if (!/^[-*•]\s+/m.test(text)) {
-      return (
-        '<div class="scope-card"><div class="scope-plain">' +
-        escapeHtml(text).replace(/\n/g, '<br>') +
-        '</div></div>'
-      );
-    }
-    var lines = text.split(/\r?\n/);
-    var chunks = [];
-    var i = 0;
-    while (i < lines.length) {
-      var line = lines[i].trim();
-      if (!line) {
-        i++;
-        continue;
-      }
-      var bullet = line.match(/^[-*•]\s+(.*)$/);
-      if (bullet) {
-        var items = [bullet[1]];
-        i++;
-        while (i < lines.length) {
-          var next = lines[i].trim();
-          if (!next) {
-            i++;
-            continue;
-          }
-          var bm = next.match(/^[-*•]\s+(.*)$/);
-          if (bm) {
-            items.push(bm[1]);
-            i++;
-          } else break;
-        }
-        chunks.push({ type: 'ul', items: items });
-      } else {
-        var para = line;
-        i++;
-        while (i < lines.length) {
-          var ln = lines[i].trim();
-          if (!ln) break;
-          if (/^[-*•]\s+/.test(ln)) break;
-          para += ' ' + ln;
-          i++;
-        }
-        chunks.push({ type: 'p', text: para });
-      }
-    }
-    if (!chunks.length) return fallback;
-    var html = '<div class="scope-card">';
-    for (var c = 0; c < chunks.length; c++) {
-      if (chunks[c].type === 'p') {
-        html += '<p class="scope-para">' + escapeHtml(chunks[c].text) + '</p>';
-      } else {
-        html += '<ul class="scope-feature-list">';
-        for (var j = 0; j < chunks[c].items.length; j++) {
-          html += '<li>' + escapeHtml(chunks[c].items[j]) + '</li>';
-        }
-        html += '</ul>';
-      }
-    }
-    html += '</div>';
-    return html;
+  /** Strips leading jot/bullet markers and numbered prefixes from one line. */
+  function stripLeadingBulletMarker(line) {
+    var s = String(line).replace(/^\s+/, '');
+    s = s.replace(/^\d+[\.\)]\s+/, '');
+    s = s.replace(/^[\u2022\u2023\u25E6\u25AA\u2043\u2219\u00B7\u25CF\-\*•·▪◦]\s*/, '');
+    return s.trim();
   }
 
   /**
-   * Add-on body copy: bullet lines become a compact list; otherwise preserve breaks.
+   * One list item per non-empty line (project scope & add-on descriptions are jot lists).
+   * @param {string} listClass e.g. scope-feature-list | addon-desc-list
    */
-  function buildAddonDescriptionPdfHtml(raw) {
-    if (!raw || !String(raw).trim()) return '';
-    var text = String(raw);
-    if (!/^[-*•]\s+/m.test(text)) {
-      return escapeHtml(text).replace(/\n/g, '<br>');
-    }
-    var lines = text.split(/\r?\n/);
+  function linesToBulletListHtml(raw, listClass) {
+    if (raw == null || String(raw).trim() === '') return '';
+    var lines = String(raw).split(/\r?\n/);
     var items = [];
     for (var i = 0; i < lines.length; i++) {
-      var t = lines[i].trim();
-      if (!t) continue;
-      var m = t.match(/^[-*•]\s+(.*)$/);
-      if (m) items.push(m[1]);
-      else if (items.length) items[items.length - 1] += ' ' + t;
-      else items.push(t);
+      var item = stripLeadingBulletMarker(lines[i]);
+      if (item) items.push(item);
     }
-    if (!items.length) return escapeHtml(text).replace(/\n/g, '<br>');
-    var list = '<ul class="addon-desc-list">';
+    if (!items.length) return '';
+    var html = '<ul class="' + listClass + '">';
     for (var j = 0; j < items.length; j++) {
-      list += '<li>' + escapeHtml(items[j]) + '</li>';
+      html += '<li><span class="bullet-li-text">' + escapeHtml(items[j]) + '</span></li>';
     }
-    list += '</ul>';
-    return list;
+    html += '</ul>';
+    return html;
+  }
+
+  function normalizeProposedSiteHref(url) {
+    var s = (url || '').trim();
+    if (!s) return '';
+    if (/^mailto:/i.test(s)) return s;
+    if (/^https?:\/\//i.test(s)) return s;
+    return 'https://' + s.replace(/^\/+/, '');
+  }
+
+  function formatProposedSitePdfHtml(url) {
+    var s = (url || '').trim();
+    if (!s) {
+      return '<span class="feature-desc-muted">—</span>';
+    }
+    var href = escapeHtml(normalizeProposedSiteHref(s));
+    var label = escapeHtml(s.replace(/^https?:\/\//i, ''));
+    return '<a href="' + href + '" class="feature-desc-link">' + label + '</a>';
+  }
+
+  /**
+   * Value Proposition / scope: card + line-based jot list.
+   */
+  function buildScopeBodyHtml(raw) {
+    var emptyHint =
+      '<div class="scope-card scope-card--list">' +
+      '<ul class="scope-feature-list">' +
+      '<li><span class="bullet-li-text">Outline the project scope, deliverables, and key terms here.</span></li>' +
+      '</ul></div>';
+    var inner = linesToBulletListHtml(raw, 'scope-feature-list');
+    if (!inner) return emptyHint;
+    return '<div class="scope-card scope-card--list">' + inner + '</div>';
+  }
+
+  function buildAddonDescriptionPdfHtml(raw) {
+    return linesToBulletListHtml(raw, 'addon-desc-list');
   }
 
   /**
@@ -4457,12 +4449,14 @@ window.addEventListener('load', function() {
         var amt = typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
         tierRows +=
           '<div class="addon-tier-row">' +
+          '<div class="addon-tier-label-block">' +
           '<span class="addon-tier-label">' +
           escapeHtml(o.label || '—') +
-          '</span>' +
+          '</span></div>' +
+          '<div class="addon-tier-price-block">' +
           '<span class="addon-tier-price">' +
           escapeHtml(formatCurrency(amt)) +
-          '</span>' +
+          '</span></div>' +
           '</div>';
       }
       parts.push(
@@ -4491,7 +4485,7 @@ window.addEventListener('load', function() {
 
   /**
    * HTML generator for business documents. Produces print-optimized HTML
-   * matching Pro Cleaning proposal design. Params: { customer, items, typeLabel, statusLabel, created, due, scope, totalFormatted, id, addOnsBlockHtml }
+   * Params: { customer, typeLabel, created, due, scope, totalFormatted, proposedSiteUrl, addOnsBlockHtml }
    */
   function getBusinessDocumentHtml(params) {
     var customer = params.customer || {};
@@ -4502,16 +4496,16 @@ window.addEventListener('load', function() {
     var scopeHtml = buildScopeBodyHtml(params.scope);
     var clientName = escapeHtml((customer.name || 'Client').toString().toUpperCase());
     var typeLabel = escapeHtml(params.typeLabel || 'DOCUMENT');
-    var statusLabel = escapeHtml(params.statusLabel || 'DRAFT');
     var created = escapeHtml(params.created || '');
     var due = escapeHtml(params.due || '—');
     var totalFormatted = escapeHtml(params.totalFormatted || '$0.00');
     var id = escapeHtml(params.id || '');
     var addOnsBlockHtml = params.addOnsBlockHtml || '';
+    var proposedSiteCell = formatProposedSitePdfHtml(params.proposedSiteUrl || '');
 
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
-      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .scope-card { padding: 14px 16px; } .scope-plain { font-size: 12px; line-height: 1.45; } .scope-feature-list li { font-size: 12px; margin-bottom: 6px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; margin-bottom: 4px; } .addon-tier-row { padding: 8px 10px; } .addon-tier-price { font-size: 12px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .scope-card { padding: 14px 16px; } .scope-feature-list li { font-size: 12px; padding: 8px 0; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-label-block { padding: 10px 12px; } .addon-tier-price-block { padding: 10px 12px; min-width: 96px; } .addon-tier-price { font-size: 17px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
       '* { box-sizing: border-box; }\n' +
       'body { margin: 0; padding: 40px 32px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
       '.doc { max-width: 800px; margin: 0 auto; }\n' +
@@ -4522,29 +4516,34 @@ window.addEventListener('load', function() {
       '.divider { border: none; height: 1px; background: rgba(255,255,255,0.1); margin: 24px 0; }\n' +
       '.section-title { font-family: \'Playfair Display\', serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: ' + C.primary + '; margin-bottom: 12px; }\n' +
       '.scope-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px 22px; border-left: 3px solid ' + C.primary + '; }\n' +
-      '.scope-plain { font-size: 14px; line-height: 1.65; color: ' + C.dark.text + '; }\n' +
-      '.scope-para { font-size: 14px; line-height: 1.65; color: ' + C.dark.text + '; margin: 0 0 14px 0; }\n' +
-      '.scope-para:last-child { margin-bottom: 0; }\n' +
+      '.scope-card--list { padding-top: 18px; padding-bottom: 18px; }\n' +
       '.scope-feature-list { list-style: none; margin: 0; padding: 0; }\n' +
-      '.scope-feature-list li { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; font-size: 14px; line-height: 1.55; color: ' + C.dark.text + '; }\n' +
-      '.scope-feature-list li:last-child { margin-bottom: 0; }\n' +
-      '.scope-feature-list li::before { content: \'\'; flex-shrink: 0; width: 6px; height: 6px; margin-top: 8px; border-radius: 50%; background: ' + C.primary + '; }\n' +
+      '.scope-feature-list li { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.07); font-size: 14px; line-height: 1.55; color: ' + C.dark.text + '; }\n' +
+      '.scope-feature-list li:first-child { padding-top: 0; }\n' +
+      '.scope-feature-list li:last-child { border-bottom: none; padding-bottom: 0; }\n' +
+      '.scope-feature-list li::before { content: \'\'; flex-shrink: 0; width: 8px; height: 8px; margin-top: 6px; border-radius: 2px; background: linear-gradient(145deg, ' + C.primary + ', #ca8a04); box-shadow: 0 0 0 1px rgba(234,179,8,0.35); }\n' +
+      '.bullet-li-text { flex: 1; min-width: 0; }\n' +
       '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 12px; }\n' +
       '.addon-desc-list { list-style: none; margin: 0; padding: 0; }\n' +
-      '.addon-desc-list li { position: relative; padding-left: 16px; margin-bottom: 8px; font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
-      '.addon-desc-list li:last-child { margin-bottom: 0; }\n' +
-      '.addon-desc-list li::before { content: \'\'; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: ' + C.primary + '; }\n' +
+      '.addon-desc-list li { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
+      '.addon-desc-list li:first-child { padding-top: 0; }\n' +
+      '.addon-desc-list li:last-child { border-bottom: none; padding-bottom: 0; }\n' +
+      '.addon-desc-list li::before { content: \'\'; flex-shrink: 0; width: 5px; height: 5px; margin-top: 6px; border-radius: 50%; background: ' + C.primary + '; opacity: 0.95; }\n' +
       '.addon-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; min-height: 100%; }\n' +
       '.addon-card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: ' + C.primary + '; margin-bottom: 10px; line-height: 1.35; }\n' +
       '.addon-card-desc { font-size: 12px; color: ' + C.dark.muted + '; line-height: 1.55; margin-bottom: 14px; }\n' +
-      '.addon-tier-rows { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }\n' +
-      '.addon-tier-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 8px; background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.06); }\n' +
-      '.addon-tier-label { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; letter-spacing: 0.04em; text-transform: uppercase; }\n' +
-      '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; }\n' +
+      '.addon-tier-rows { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }\n' +
+      '.addon-tier-row { display: flex; align-items: stretch; justify-content: space-between; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.22) 100%); }\n' +
+      '.addon-tier-label-block { flex: 1; min-width: 0; padding: 14px 16px; display: flex; align-items: center; border-left: 3px solid ' + C.primary + '; }\n' +
+      '.addon-tier-label { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; letter-spacing: 0.05em; line-height: 1.45; }\n' +
+      '.addon-tier-price-block { flex-shrink: 0; display: flex; align-items: center; justify-content: center; min-width: 118px; padding: 12px 18px; background: rgba(234,179,8,0.13); border-left: 1px solid rgba(234,179,8,0.32); }\n' +
+      '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
       '.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
       '.feature-col { }\n' +
       '.feature-title { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 6px; }\n' +
       '.feature-desc { font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
+      '.feature-desc-muted { color: ' + C.dark.muted + '; }\n' +
+      '.feature-desc-link { color: ' + C.primary + '; font-weight: 500; text-decoration: none; word-break: break-all; border-bottom: 1px solid rgba(234,179,8,0.45); }\n' +
       '.pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
       '.price-card { padding: 20px; border-radius: 12px; }\n' +
       '.price-card-primary { background: ' + C.primary + '; color: ' + C.dark.bg + '; }\n' +
@@ -4579,8 +4578,8 @@ window.addEventListener('load', function() {
       '    <div class="features-grid">\n' +
       '      <div class="feature-col"><div class="feature-title">Client</div><div class="feature-desc">' + escapeHtml(customer.name || '—') + '</div></div>\n' +
       '      <div class="feature-col"><div class="feature-title">Type</div><div class="feature-desc">' + typeLabel + '</div></div>\n' +
-      '      <div class="feature-col"><div class="feature-title">Status</div><div class="feature-desc">' + statusLabel + '</div></div>\n' +
       '      <div class="feature-col"><div class="feature-title">Due Date</div><div class="feature-desc">' + due + '</div></div>\n' +
+      '      <div class="feature-col"><div class="feature-title">Proposed Site</div><div class="feature-desc">' + proposedSiteCell + '</div></div>\n' +
       '    </div>\n' +
       '    <hr class="divider">\n' +
       '    <div class="section-title">Turn-Key Pricing</div>\n' +
@@ -4632,10 +4631,10 @@ window.addEventListener('load', function() {
       customer: { name: doc.clientName || '', email: doc.clientEmail || '' },
       items: items,
       typeLabel: typeLabel,
-      statusLabel: (doc.status || '').toString().toUpperCase(),
       created: created,
       due: due,
       scope: doc.notes || '',
+      proposedSiteUrl: doc.proposedSiteUrl || '',
       totalFormatted: formatCurrency(doc.total || 0),
       id: doc.id || '',
       addOnsBlockHtml: addOnsBlockHtml
