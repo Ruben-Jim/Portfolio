@@ -4619,8 +4619,8 @@ window.addEventListener('load', function() {
       '    </div>\n' +
       '    <hr class="divider">\n' +
       '    <div class="footer-buttons">\n' +
-      '      <a href="https://rubenjimenez.dev" class="btn-primary">View Portfolio</a>\n' +
       proposedSiteFooterBtn +
+      '      <a href="https://rubenjimenez.dev" class="btn-primary">View Portfolio</a>\n' +
       '      <a href="mailto:Ruben.Jim.co@gmail.com" class="btn-outline">Contact Me</a>\n' +
       '    </div>\n' +
       '    <div class="footer-meta">Generated from rubenjimenez.dev | ' + '</div>\n' +

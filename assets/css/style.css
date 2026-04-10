@@ -5307,6 +5307,117 @@ body.project-modal-open {
   font-weight: var(--fw-600);
 }
 
+/* Business doc modal: project scope / value proposition (PDF) */
+.business-doc-scope-section {
+  margin-top: 4px;
+  padding-top: 18px;
+  border-top: 1px solid hsla(45, 100%, 72%, 0.12);
+}
+
+.business-doc-scope-header {
+  margin-bottom: 12px;
+}
+
+.business-doc-scope-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.business-doc-scope-label {
+  font-size: var(--fs-6);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  margin: 0;
+  cursor: pointer;
+}
+
+.business-doc-scope-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(45, 100%, 12%);
+  background: linear-gradient(
+    135deg,
+    hsl(45, 100%, 72%) 0%,
+    hsl(43, 96%, 58%) 100%
+  );
+  box-shadow: 0 1px 0 hsla(0, 0%, 100%, 0.12) inset;
+}
+
+.business-doc-scope-hint {
+  margin: 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  line-height: 1.5;
+  max-width: 52ch;
+}
+
+.business-doc-scope-hint kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 0 1px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--white-1);
+  background: hsla(0, 0%, 100%, 0.08);
+  border: 1px solid hsla(0, 0%, 100%, 0.12);
+}
+
+.business-doc-scope-editor-wrap {
+  border-radius: 12px;
+  padding: 2px;
+  background: linear-gradient(
+    145deg,
+    hsla(45, 100%, 72%, 0.35) 0%,
+    hsla(240, 6%, 18%, 0.95) 38%,
+    hsla(240, 8%, 12%, 1) 100%
+  );
+  box-shadow: 0 8px 28px hsla(0, 0%, 0%, 0.35);
+}
+
+.business-doc-modal-body .form-group textarea.business-doc-notes-input,
+.business-doc-modal-body .business-doc-notes-input,
+.business-doc-notes-input {
+  display: block;
+  width: 100%;
+  min-height: 168px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  background: hsl(240, 6%, 9%);
+  color: var(--white-1);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: var(--fs-7);
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.business-doc-modal-body .business-doc-notes-input::placeholder,
+.business-doc-notes-input::placeholder {
+  color: hsla(0, 0%, 100%, 0.32);
+  line-height: 1.5;
+}
+
+.business-doc-modal-body .business-doc-notes-input:focus,
+.business-doc-notes-input:focus {
+  outline: none;
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 2px hsla(45, 100%, 50%, 0.22);
+}
+
 /* Business doc modal: optional add-ons / tiered pricing */
 .business-doc-addons-section {
   margin-top: 8px;

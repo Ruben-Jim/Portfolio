@@ -3139,9 +3139,17 @@
                   </div>
                 </div>
 
-                <div class="form-group">
-                  <label for="business-doc-notes">Project Scope / Notes</label>
-                  <textarea class="has-scrollbar" id="business-doc-notes" rows="5" placeholder="One bullet per line (optional • or - prefix). Example:&#10;One-page site&#10;Quotes&#10;Admin dashboard"></textarea>
+                <div class="form-group business-doc-scope-section">
+                  <div class="business-doc-scope-header">
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-scope-label" for="business-doc-notes">Project scope &amp; notes</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · Value proposition</span>
+                    </div>
+                    <p class="business-doc-scope-hint">Each line becomes one bullet in the proposal. Optional markers (<kbd>•</kbd> <kbd>-</kbd> <kbd>1.</kbd>) are stripped automatically.</p>
+                  </div>
+                  <div class="business-doc-scope-editor-wrap">
+                    <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-notes" rows="7" spellcheck="true" placeholder="One line per deliverable or feature&#10;&#10;Example:&#10;One-page site&#10;Quote request form&#10;Admin dashboard&#10;Offline payment (cash/check)"></textarea>
+                  </div>
                 </div>
 
                 <div class="form-group business-doc-addons-section">
@@ -4556,7 +4564,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
-  <script src="./assets/js/script.js?v=bizdoc-20260411"></script>
+  <script src="./assets/js/script.js?v=bizdoc-20260411-2"></script>
   
 
   <!--
