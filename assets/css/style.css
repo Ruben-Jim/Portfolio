@@ -5531,7 +5531,7 @@ body.project-modal-open {
 
 .business-doc-addon-price-row {
   display: grid;
-  grid-template-columns: 1fr 120px auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
   align-items: end;
   margin-bottom: 8px;

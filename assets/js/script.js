@@ -3784,17 +3784,6 @@ window.addEventListener('load', function() {
   function createAddonPriceRowEl(opt) {
     var row = document.createElement('div');
     row.className = 'business-doc-addon-price-row';
-    var fg1 = document.createElement('div');
-    fg1.className = 'form-group';
-    var l1 = document.createElement('label');
-    l1.textContent = 'Option label';
-    var i1 = document.createElement('input');
-    i1.type = 'text';
-    i1.className = 'business-doc-addon-price-label';
-    i1.placeholder = 'e.g. Standard';
-    if (opt && opt.label) i1.value = opt.label;
-    fg1.appendChild(l1);
-    fg1.appendChild(i1);
     var fg2 = document.createElement('div');
     fg2.className = 'form-group';
     var l2 = document.createElement('label');
@@ -3805,6 +3794,7 @@ window.addEventListener('load', function() {
     i2.min = '0';
     i2.step = '0.01';
     i2.placeholder = '0.00';
+    i2.setAttribute('aria-label', 'Add-on price amount');
     if (opt && typeof opt.amount === 'number' && !isNaN(opt.amount)) i2.value = String(opt.amount);
     fg2.appendChild(l2);
     fg2.appendChild(i2);
@@ -3819,7 +3809,6 @@ window.addEventListener('load', function() {
       if (inner.querySelectorAll('.business-doc-addon-price-row').length <= 1) return;
       row.remove();
     });
-    row.appendChild(fg1);
     row.appendChild(fg2);
     row.appendChild(rm);
     return row;
@@ -3932,21 +3921,15 @@ window.addEventListener('load', function() {
       var priceOptions = [];
       for (var j = 0; j < priceRows.length; j++) {
         var row = priceRows[j];
-        var lblEl = row.querySelector('.business-doc-addon-price-label');
         var amtEl = row.querySelector('.business-doc-addon-price-amount');
-        var labelVal = lblEl ? lblEl.value.trim() : '';
         var numVal = amtEl ? parseFloat(amtEl.value) : NaN;
         var amtEmpty = !amtEl || amtEl.value === '' || String(amtEl.value).trim() === '';
-        if (labelVal === '' && amtEmpty) continue;
-        if (labelVal === '') {
-          alert('Each price option needs a label.');
-          return null;
-        }
+        if (amtEmpty) continue;
         if (isNaN(numVal) || numVal < 0) {
           alert('Each price option needs a valid amount (0 or more).');
           return null;
         }
-        priceOptions.push({ label: labelVal, amount: numVal });
+        priceOptions.push({ label: '', amount: numVal });
       }
       if (nameVal === '' && descVal === '' && priceOptions.length === 0) continue;
       if (nameVal === '') {
@@ -4448,12 +4431,8 @@ window.addEventListener('load', function() {
         var o = opts[j];
         var amt = typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
         tierRows +=
-          '<div class="addon-tier-row">' +
-          '<div class="addon-tier-label-block">' +
-          '<span class="addon-tier-label">' +
-          escapeHtml(o.label || '—') +
-          '</span></div>' +
-          '<div class="addon-tier-price-block">' +
+          '<div class="addon-tier-row addon-tier-only">' +
+          '<div class="addon-tier-solo">' +
           '<span class="addon-tier-price">' +
           escapeHtml(formatCurrency(amt)) +
           '</span></div>' +
@@ -4513,7 +4492,7 @@ window.addEventListener('load', function() {
 
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
-      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .section-title.section-title--compact { margin-bottom: 3px; } .scope-card { padding: 10px 12px; } .scope-card--list { padding-top: 8px !important; padding-bottom: 8px !important; } .scope-feature-list li { font-size: 11px; padding: 5px 0; line-height: 1.4; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 4px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-label-block { padding: 10px 12px; } .addon-tier-price-block { padding: 10px 12px; min-width: 96px; } .addon-tier-price { font-size: 17px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .section-title.section-title--compact { margin-bottom: 3px; } .scope-card { padding: 10px 12px; } .scope-card--list { padding-top: 8px !important; padding-bottom: 8px !important; } .scope-feature-list li { font-size: 11px; padding: 5px 0; line-height: 1.4; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 4px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-solo { padding: 10px 14px; } .addon-tier-price { font-size: 17px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
       '* { box-sizing: border-box; }\n' +
       'body { margin: 0; padding: 40px 32px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
       '.doc { max-width: 800px; margin: 0 auto; }\n' +
@@ -4542,10 +4521,9 @@ window.addEventListener('load', function() {
       '.addon-card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: ' + C.primary + '; margin-bottom: 10px; line-height: 1.35; }\n' +
       '.addon-card-desc { font-size: 12px; color: ' + C.dark.muted + '; line-height: 1.55; margin-bottom: 14px; }\n' +
       '.addon-tier-rows { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }\n' +
-      '.addon-tier-row { display: flex; align-items: stretch; justify-content: space-between; border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.22) 100%); }\n' +
-      '.addon-tier-label-block { flex: 1; min-width: 0; padding: 14px 16px; display: flex; align-items: center; border-left: 3px solid ' + C.primary + '; }\n' +
-      '.addon-tier-label { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; letter-spacing: 0.05em; line-height: 1.45; }\n' +
-      '.addon-tier-price-block { flex-shrink: 0; display: flex; align-items: center; justify-content: center; min-width: 118px; padding: 12px 18px; background: rgba(234,179,8,0.13); border-left: 1px solid rgba(234,179,8,0.32); }\n' +
+      '.addon-tier-row { border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.22) 100%); }\n' +
+      '.addon-tier-row.addon-tier-only { display: block; }\n' +
+      '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 14px 18px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.13); }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
       '.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
       '.feature-col { }\n' +
