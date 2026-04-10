@@ -3083,13 +3083,16 @@
           <div class="business-doc-modal-overlay" id="business-doc-modal-overlay"></div>
           <div class="business-doc-modal-content">
             <div class="business-doc-modal-header">
-              <h3 class="h3">Create / Edit Document</h3>
+              <div class="business-doc-modal-header-text">
+                <h3 class="h3">Create / Edit Document</h3>
+                <p class="business-doc-modal-subtitle">Save your document, then use the PDF icon in the list—<strong>Print → Save as PDF</strong> for a client-ready file.</p>
+              </div>
               <button type="button" class="business-doc-modal-close" id="business-doc-modal-close" aria-label="Close">
                 <ion-icon name="close-outline"></ion-icon>
               </button>
             </div>
             <div class="business-doc-modal-body has-scrollbar">
-              <p class="business-docs-form-hint">Create a document, save it, then click the PDF icon to open and use <strong>Print → Save as PDF</strong>.</p>
+              <p class="business-doc-form-hint">The <strong>Value proposition</strong> and <strong>upgrade options</strong> you enter here match the headings and layout on the generated PDF.</p>
               <form id="business-doc-form">
                 <input type="hidden" id="business-doc-id">
                 <div class="form-row">
@@ -3142,10 +3145,11 @@
                 <div class="form-group business-doc-scope-section">
                   <div class="business-doc-scope-header">
                     <div class="business-doc-scope-title-row">
-                      <label class="business-doc-scope-label" for="business-doc-notes">Project scope &amp; notes</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · Value proposition</span>
+                      <label class="business-doc-scope-label" for="business-doc-notes">Value proposition</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · The Value Proposition</span>
                     </div>
-                    <p class="business-doc-scope-hint">Each line becomes one bullet in the proposal. Optional markers (<kbd>•</kbd> <kbd>-</kbd> <kbd>1.</kbd>) are stripped automatically.</p>
+                    <p class="business-doc-scope-subline">Proposed scope &amp; deliverables for the client</p>
+                    <p class="business-doc-scope-hint">Each line becomes one bullet on the PDF. Optional markers (<kbd>•</kbd> <kbd>-</kbd> <kbd>1.</kbd>) are removed automatically.</p>
                   </div>
                   <div class="business-doc-scope-editor-wrap">
                     <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-notes" rows="7" spellcheck="true" placeholder="One line per deliverable or feature&#10;&#10;Example:&#10;One-page site&#10;Quote request form&#10;Admin dashboard&#10;Offline payment (cash/check)"></textarea>
@@ -3154,13 +3158,13 @@
 
                 <div class="form-group business-doc-addons-section">
                   <div class="business-doc-addons-header">
-                    <label class="business-doc-addons-label">Optional add-ons &amp; upgrades</label>
-                    <p class="business-doc-addons-hint">Extra features with tiered pricing. Shown on the generated PDF after the main total.</p>
+                    <label class="business-doc-addons-label">Optional upgrades for the proposed site</label>
+                    <p class="business-doc-addons-hint">Optional ways for your client to enhance or extend the proposed build. Each add-on can include multiple price tiers; they appear on the PDF after the main total.</p>
                   </div>
                   <div id="business-doc-addons-list" class="business-doc-addons-list" aria-live="polite"></div>
                   <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="business-doc-add-addon-btn">
                     <ion-icon name="add-circle-outline"></ion-icon>
-                    Add add-on
+                    Add upgrade option
                   </button>
                 </div>
 
@@ -4564,7 +4568,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
-  <script src="./assets/js/script.js?v=bizdoc-20260411-4"></script>
+  <script src="./assets/js/script.js?v=bizdoc-20260411-6"></script>
   
 
   <!--
