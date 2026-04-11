@@ -3083,16 +3083,13 @@
           <div class="business-doc-modal-overlay" id="business-doc-modal-overlay"></div>
           <div class="business-doc-modal-content">
             <div class="business-doc-modal-header">
-              <div class="business-doc-modal-header-text">
-                <h3 class="h3">Create / Edit Document</h3>
-                <p class="business-doc-modal-subtitle">Save your document, then use the PDF icon in the list—<strong>Print → Save as PDF</strong> for a client-ready file.</p>
-              </div>
+              <h3 class="h3">Create / Edit Document</h3>
               <button type="button" class="business-doc-modal-close" id="business-doc-modal-close" aria-label="Close">
                 <ion-icon name="close-outline"></ion-icon>
               </button>
             </div>
             <div class="business-doc-modal-body has-scrollbar">
-              <p class="business-doc-form-hint">The <strong>Value proposition</strong> and <strong>upgrade options</strong> you enter here match the headings and layout on the generated PDF.</p>
+              <p class="business-docs-form-hint">Create a document, save it, then click the PDF icon to open and use <strong>Print → Save as PDF</strong>.</p>
               <form id="business-doc-form">
                 <input type="hidden" id="business-doc-id">
                 <div class="form-row">
@@ -3145,11 +3142,10 @@
                 <div class="form-group business-doc-scope-section">
                   <div class="business-doc-scope-header">
                     <div class="business-doc-scope-title-row">
-                      <label class="business-doc-scope-label" for="business-doc-notes">Value proposition</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · The Value Proposition</span>
+                      <label class="business-doc-scope-label" for="business-doc-notes">Project scope &amp; notes</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · Value proposition</span>
                     </div>
-                    <p class="business-doc-scope-subline">Proposed scope &amp; deliverables for the client</p>
-                    <p class="business-doc-scope-hint">Each line becomes one bullet on the PDF. Optional markers (<kbd>•</kbd> <kbd>-</kbd> <kbd>1.</kbd>) are removed automatically.</p>
+                    <p class="business-doc-scope-hint">Each line becomes one bullet in the proposal. Optional markers (<kbd>•</kbd> <kbd>-</kbd> <kbd>1.</kbd>) are stripped automatically.</p>
                   </div>
                   <div class="business-doc-scope-editor-wrap">
                     <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-notes" rows="7" spellcheck="true" placeholder="One line per deliverable or feature&#10;&#10;Example:&#10;One-page site&#10;Quote request form&#10;Admin dashboard&#10;Offline payment (cash/check)"></textarea>

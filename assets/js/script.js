@@ -4395,17 +4395,28 @@ window.addEventListener('load', function() {
   }
 
   /**
-   * Value Proposition / scope: card + line-based jot list.
+   * Value Proposition / scope: framed block + kicker (matches modal “proposed scope”) + jot list.
    */
   function buildScopeBodyHtml(raw) {
+    var wrapScope = function (listInner) {
+      return (
+        '<div class="scope-block">' +
+        '<div class="scope-frame">' +
+        '<div class="scope-frame-inner">' +
+        '<p class="scope-kicker">Proposed scope &amp; deliverables</p>' +
+        listInner +
+        '</div></div></div>'
+      );
+    };
     var emptyHint =
-      '<div class="scope-card scope-card--list">' +
-      '<ul class="scope-feature-list">' +
-      '<li><span class="bullet-li-text">Outline the project scope, deliverables, and key terms here.</span></li>' +
-      '</ul></div>';
+      wrapScope(
+        '<ul class="scope-feature-list">' +
+          '<li><span class="bullet-li-text">Outline the project scope, deliverables, and key terms here.</span></li>' +
+          '</ul>'
+      );
     var inner = linesToBulletListHtml(raw, 'scope-feature-list');
     if (!inner) return emptyHint;
-    return '<div class="scope-card scope-card--list">' + inner + '</div>';
+    return wrapScope(inner);
   }
 
   function buildAddonDescriptionPdfHtml(raw) {
@@ -4508,7 +4519,7 @@ window.addEventListener('load', function() {
 
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
-      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .addons-section-intro { font-size: 10px; margin: -2px 0 10px 0; } .section-title.section-title--compact { margin-bottom: 3px; } .scope-card { padding: 10px 12px; } .scope-card--list { padding-top: 8px !important; padding-bottom: 8px !important; } .scope-feature-list li { font-size: 11px; padding: 5px 0; line-height: 1.4; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 4px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-solo { padding: 10px 14px; } .addon-tier-price { font-size: 17px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .addons-section-intro { font-size: 10px; margin: -2px 0 10px 0; } .section-title.section-title--compact { margin-bottom: 3px; } .scope-frame { box-shadow: none !important; } .scope-frame-inner { padding: 10px 12px !important; } .scope-kicker { font-size: 9px; padding-bottom: 6px !important; margin-bottom: 8px !important; } .scope-feature-list li { font-size: 11px; padding: 6px 8px !important; margin-bottom: 4px !important; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 5px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-solo { padding: 10px 14px; } .addon-tier-price { font-size: 17px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
       '* { box-sizing: border-box; }\n' +
       'body { margin: 0; padding: 40px 32px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
       '.doc { max-width: 800px; margin: 0 auto; }\n' +
@@ -4520,14 +4531,15 @@ window.addEventListener('load', function() {
       '.section-title { font-family: \'Playfair Display\', serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: ' + C.primary + '; margin-bottom: 12px; }\n' +
       '.addons-section-intro { font-size: 12px; line-height: 1.55; color: ' + C.dark.muted + '; margin: -4px 0 14px 0; max-width: 58ch; }\n' +
       '.section-title.section-title--compact { margin-bottom: 6px; }\n' +
-      '.scope-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; border-left: 3px solid ' + C.primary + '; }\n' +
-      '.scope-card--list { padding-top: 10px; padding-bottom: 10px; }\n' +
+      '.scope-block { margin-top: 4px; }\n' +
+      '.scope-frame { padding: 2px; border-radius: 14px; background: linear-gradient(145deg, ' + C.primary + ' 0%, rgba(234,179,8,0.35) 18%, rgba(15,23,42,0.95) 55%, ' + C.dark.bg + ' 100%); box-shadow: 0 16px 48px rgba(0,0,0,0.4); }\n' +
+      '.scope-frame-inner { border-radius: 12px; padding: 18px 20px 16px; background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.2) 100%); border: 1px solid rgba(255,255,255,0.1); }\n' +
+      '.scope-kicker { margin: 0 0 14px 0; padding: 0 0 10px 0; border-bottom: 1px solid rgba(234,179,8,0.25); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: ' + C.primary + '; }\n' +
       '.scope-feature-list { list-style: none; margin: 0; padding: 0; }\n' +
-      '.scope-feature-list li { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; line-height: 1.4; color: ' + C.dark.text + '; }\n' +
-      '.scope-feature-list li:first-child { padding-top: 0; }\n' +
-      '.scope-feature-list li:last-child { border-bottom: none; padding-bottom: 0; }\n' +
-      '.scope-feature-list li::before { content: \'\'; flex-shrink: 0; width: 6px; height: 6px; margin-top: 5px; border-radius: 2px; background: linear-gradient(145deg, ' + C.primary + ', #ca8a04); box-shadow: 0 0 0 1px rgba(234,179,8,0.35); }\n' +
-      '.bullet-li-text { flex: 1; min-width: 0; }\n' +
+      '.scope-feature-list li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.18); font-size: 13px; line-height: 1.5; font-weight: 500; color: ' + C.dark.text + '; }\n' +
+      '.scope-feature-list li:last-child { margin-bottom: 0; }\n' +
+      '.scope-feature-list li::before { content: \'\'; flex-shrink: 0; width: 7px; height: 7px; margin-top: 6px; border-radius: 2px; background: linear-gradient(145deg, ' + C.primary + ', #ca8a04); box-shadow: 0 0 0 1px rgba(234,179,8,0.4); }\n' +
+      '.bullet-li-text { flex: 1; min-width: 0; letter-spacing: 0.01em; }\n' +
       '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 12px; }\n' +
       '.addon-desc-list { list-style: none; margin: 0; padding: 0; }\n' +
       '.addon-desc-list li { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
