@@ -8583,6 +8583,13 @@ article.contact[data-page="contact"] {
   max-height: 120px;
   overflow-y: auto;
   text-align: left;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+#admin-dashboard-content .message-card-text::-webkit-scrollbar,
+.messages-list .message-card-text::-webkit-scrollbar {
+  display: none;
 }
 
 #admin-dashboard-content .message-card-footer,
