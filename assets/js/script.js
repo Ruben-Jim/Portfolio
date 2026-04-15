@@ -4987,8 +4987,6 @@ window.addEventListener('load', function() {
       from_name: 'Ruben Jimenez',
       subject: subject,
       message: message,
-      original_subject: messageData.subject,
-      original_message: messageData.message,
       timestamp: new Date().toISOString()
     };
 

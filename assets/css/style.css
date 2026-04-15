@@ -8229,6 +8229,12 @@ body.project-modal-open {
 .reply-form .form-textarea {
   resize: vertical;
   min-height: 120px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.reply-form .form-textarea::-webkit-scrollbar {
+  display: none;
 }
 
 .reply-form-actions {
