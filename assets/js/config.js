@@ -16,9 +16,17 @@ const FIREBASE_CONFIG = {
 const EMAILJS_CONFIG = {
   serviceId: "service_portfolio", // You'll need to create this in EmailJS
   templateId: "portfolio_template", // You'll need to create this in EmailJS
+  replyTemplateId: "reply_template", // Dedicated template for admin replies
   publicKey: "G0WAMInPaotIyePKR" // You'll get this from EmailJS
+};
+
+const DM_FEATURE_FLAGS = {
+  enableProfessionalInbox: true,
+  enableCustomerMagicLinks: true,
+  enableLegacyMigration: true
 };
 
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
 window.EMAILJS_CONFIG = EMAILJS_CONFIG;
+window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;

@@ -7027,16 +7027,19 @@ body.project-modal-open {
 
 @media (min-width: 1400px) {
   .admin-main-grid {
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 28px;
+    grid-template-columns: minmax(300px, 1fr) minmax(380px, 1.25fr) minmax(300px, 1fr);
+    gap: 20px;
+    align-items: start;
   }
 
   .admin-main-grid #blog-section {
     grid-column: auto;
   }
 
+  .admin-main-grid .business-docs-table-wrapper,
+  .admin-main-grid #messages-section .messages-list,
   .admin-main-grid #blog-section .blog-posts-list {
-    max-height: 420px;
+    max-height: 460px;
     overflow-y: auto;
   }
 }
@@ -7826,6 +7829,14 @@ body.project-modal-open {
   min-height: 200px;
   max-height: 800px;
   overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.messages-list::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 /* Consolidated to bottom overrides */
@@ -8237,6 +8248,169 @@ body.project-modal-open {
   display: none;
 }
 
+/* Professional DM system */
+.dm-search-input {
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.dm-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 380px) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.dm-conversation-list-wrap .messages-list {
+  max-height: 640px;
+}
+
+.dm-thread-panel {
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  background: var(--eerie-black-2);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dm-thread-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.dm-thread-header h4 {
+  margin: 0;
+  color: var(--white-2);
+}
+
+.dm-thread-subtitle,
+#dm-thread-subtitle {
+  margin: 0;
+  color: var(--light-gray-70);
+  font-size: var(--fs-7);
+}
+
+.dm-thread-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dm-mini-input,
+.dm-mini-select {
+  min-width: 120px;
+  font-size: var(--fs-7);
+}
+
+.dm-message-list {
+  min-height: 280px;
+  max-height: 460px;
+  overflow-y: auto;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dm-message-row {
+  display: flex;
+}
+
+.dm-message-admin {
+  justify-content: flex-end;
+}
+
+.dm-message-customer {
+  justify-content: flex-start;
+}
+
+.dm-message-bubble {
+  max-width: 86%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.dm-message-admin .dm-message-bubble {
+  background: rgba(255, 193, 7, 0.12);
+  border-color: rgba(255, 193, 7, 0.35);
+}
+
+.dm-message-author {
+  margin: 0 0 4px;
+  font-size: var(--fs-8);
+  color: var(--orange-yellow-crayola);
+}
+
+.dm-message-meta {
+  margin: 8px 0 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.dm-presence-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dm-presence-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--jet);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+}
+
+.dm-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dm-composer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dm-conversation-card.dm-conversation-active {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 1px rgba(255, 193, 7, 0.35);
+}
+
+.dm-help-text {
+  color: var(--light-gray-70);
+  margin-bottom: 12px;
+}
+
+.dm-link-output {
+  color: var(--orange-yellow-crayola);
+  font-size: var(--fs-7);
+  word-break: break-all;
+}
+
+.dm-customer-thread {
+  margin-top: 16px;
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--eerie-black-2);
+}
+
+@media (max-width: 992px) {
+  .dm-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .reply-form-actions {
   display: flex;
   gap: 12px;
@@ -8487,8 +8661,8 @@ article.contact[data-page="contact"] {
   }
 }
 
-/* 3 columns for large desktops */
-@media (min-width: 1250px) {
+/* 2-column message cards only on very wide desktops */
+@media (min-width: 1700px) {
   #admin-dashboard-content .message-grid,
   .messages-list .message-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -8717,21 +8891,72 @@ article.contact[data-page="contact"] {
 }
 
 @media (max-width: 480px) {
+  #admin-dashboard-content .message-grid,
+  .messages-list .message-grid {
+    gap: 12px;
+  }
+
   #admin-dashboard-content .message-card,
   .messages-list .message-card {
-    padding: 20px;
+    padding: 14px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  #admin-dashboard-content .message-card-icon,
+  .messages-list .message-card-icon {
+    margin-bottom: 0;
+  }
+
+  #admin-dashboard-content .message-card-icon ion-icon,
+  .messages-list .message-card-icon ion-icon {
+    font-size: 30px;
+  }
+
+  #admin-dashboard-content .message-card-content,
+  .messages-list .message-card-content {
+    gap: 8px;
   }
 
   #admin-dashboard-content .message-card-header,
   .messages-list .message-card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 5px;
+    gap: 4px;
+  }
+
+  #admin-dashboard-content .message-card-name,
+  .messages-list .message-card-name {
+    font-size: var(--fs-6);
+  }
+
+  #admin-dashboard-content .message-card-email,
+  .messages-list .message-card-email,
+  #admin-dashboard-content .message-card-subject,
+  .messages-list .message-card-subject {
+    font-size: var(--fs-8);
+  }
+
+  #admin-dashboard-content .message-card-text,
+  .messages-list .message-card-text {
+    padding: 9px;
+    line-height: 1.45;
+    max-height: 88px;
   }
 
   #admin-dashboard-content .message-card-actions,
   .messages-list .message-card-actions {
     flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  #admin-dashboard-content .reply-btn,
+  #admin-dashboard-content .mark-replied-btn,
+  .messages-list .reply-btn,
+  .messages-list .mark-replied-btn {
+    padding: 7px 10px;
+    font-size: var(--fs-8);
   }
 }
 

@@ -2939,7 +2939,7 @@
               </div>
             </div>
 
-            <div class="messages-list has-scrollbar" id="messages-list">
+            <div class="messages-list" id="messages-list">
               <div class="no-messages">
                 <ion-icon name="mail-outline"></ion-icon>
                 <p>No messages yet</p>
@@ -3767,7 +3767,7 @@
           <!-- Component Mix-and-Match -->
           <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-components">
             <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
-              <ion-icon name="puzzle-outline" class="text-2xl"></ion-icon>
+              <ion-icon name="extension-puzzle-outline" class="text-2xl"></ion-icon>
               Component Mix-and-Match
             </h2>
             <p class="text-zinc-400">
@@ -4109,7 +4109,7 @@
   <div class="components-content">
     <div class="components-header">
       <div class="header-left">
-        <ion-icon name="puzzle-outline" class="header-icon"></ion-icon>
+        <ion-icon name="extension-puzzle-outline" class="header-icon"></ion-icon>
         <h3 class="h3">Component Mix-and-Match</h3>
         <span class="editor-badge">REUSE LIBRARY</span>
       </div>
@@ -4409,7 +4409,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - Structured Data (JSON-LD) for SEO
   -->
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="application/ld+json">
+  <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -4525,7 +4525,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     // Import the functions you need from the SDKs you need
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, collection, addDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
     // Make Firebase functions available globally
     window.initializeApp = initializeApp;
@@ -4541,13 +4541,21 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     window.collection = collection;
     window.addDoc = addDoc;
     window.getDocs = getDocs;
+    window.getDoc = getDoc;
+    window.setDoc = setDoc;
     window.orderBy = orderBy;
+    window.where = where;
     window.query = query;
+    window.limit = limit;
+    window.startAfter = startAfter;
     window.serverTimestamp = serverTimestamp;
     window.updateDoc = updateDoc;
     window.deleteDoc = deleteDoc;
     window.doc = doc;
     window.onSnapshot = onSnapshot;
+    window.increment = increment;
+    window.arrayUnion = arrayUnion;
+    window.arrayRemove = arrayRemove;
   </script>
 
   <!--
@@ -4564,7 +4572,8 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
-  <script src="./assets/js/script.js?v=bizdoc-20260411-7"></script>
+  <script src="./assets/js/script.js?v=bizdoc-20260415-dmfix1"></script>
+  <script src="./assets/js/dm-migration.js"></script>
   
 
   <!--
@@ -4574,7 +4583,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     
     // Your web app's Firebase configuration
     const firebaseConfig = window.FIREBASE_CONFIG;
@@ -4587,13 +4596,22 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     window.db = db;
     window.addDoc = addDoc;
     window.getDocs = getDocs;
+    window.getDoc = getDoc;
+    window.setDoc = setDoc;
     window.collection = collection;
     window.orderBy = orderBy;
+    window.where = where;
     window.query = query;
+    window.limit = limit;
+    window.startAfter = startAfter;
     window.serverTimestamp = serverTimestamp;
     window.updateDoc = updateDoc;
     window.deleteDoc = deleteDoc;
     window.doc = doc;
+    window.onSnapshot = onSnapshot;
+    window.increment = increment;
+    window.arrayUnion = arrayUnion;
+    window.arrayRemove = arrayRemove;
   </script>
 
   <!--

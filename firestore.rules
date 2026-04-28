@@ -1,18 +1,61 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Messages collection
-    // - Anyone can create messages (contact form submissions)
-    // - Anyone can read/update/delete (admin check is done in application code)
+    function isValidString(field, maxLen) {
+      return field is string && field.size() > 0 && field.size() <= maxLen;
+    }
+
+    // Legacy contact intake collection.
+    // Keep creates public for website form, but restrict broad mutation.
     match /messages/{messageId} {
-      allow create, read, update, delete: if true;
+      allow create: if
+        request.resource.data.keys().hasAll(['name', 'email', 'subject', 'message']) &&
+        isValidString(request.resource.data.name, 120) &&
+        isValidString(request.resource.data.email, 160) &&
+        isValidString(request.resource.data.subject, 200) &&
+        isValidString(request.resource.data.message, 5000);
+      allow read, update: if true;
+      allow delete: if false;
+    }
+
+    // Conversation inbox model for professional DM.
+    match /conversations/{conversationId} {
+      allow create: if true;
+      allow read, update: if true;
+      allow delete: if false;
+
+      match /messages/{threadMessageId} {
+        allow create: if
+          request.resource.data.keys().hasAll(['senderRole', 'body', 'createdAt']) &&
+          request.resource.data.senderRole in ['admin', 'customer'] &&
+          isValidString(request.resource.data.body, 8000);
+        allow read, update: if true;
+        allow delete: if false;
+      }
+
+      match /presence/{presenceId} {
+        allow create, update: if true;
+        allow read: if true;
+        allow delete: if false;
+      }
+    }
+
+    // Magic link docs (token id based) for customer portal access.
+    match /magicLinks/{tokenId} {
+      allow create: if
+        request.resource.data.keys().hasAll(['conversationId', 'customerEmail', 'expiresAtMs']) &&
+        isValidString(request.resource.data.conversationId, 128) &&
+        isValidString(request.resource.data.customerEmail, 160) &&
+        request.resource.data.expiresAtMs is int;
+      allow read, update: if true;
+      allow delete: if false;
     }
 
     // Blog posts collection
-    // - Anyone can read blog posts (public viewing)
-    // - Anyone can create/update/delete (admin check is done in application code)
     match /blogPosts/{postId} {
-      allow read, create, update, delete: if true;
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if false;
     }
   }
 }

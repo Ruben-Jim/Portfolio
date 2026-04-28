@@ -744,8 +744,9 @@ const wordCount = document.querySelector('.word-count');
 // Update line numbers
 function updateLineNumbers() {
   if (!lineNumbers || !contentTextarea) return;
-  
-  const lines = contentTextarea.value.split('\n');
+
+  const textareaValue = typeof contentTextarea.value === 'string' ? contentTextarea.value : '';
+  const lines = textareaValue.split('\n');
   const lineCount = lines.length || 1;
   
   let lineNumbersHTML = '';
@@ -4990,25 +4991,20 @@ window.addEventListener('load', function() {
       timestamp: new Date().toISOString()
     };
 
-    // Try to use a reply template first, fallback to contact template
-    let templateId = 'reply_template';
+    const templateId =
+      (window.EMAILJS_CONFIG && window.EMAILJS_CONFIG.replyTemplateId) ||
+      'reply_template';
     let response;
 
     try {
-      response = await emailjs.send(
-      window.EMAILJS_CONFIG.serviceId,
-        templateId,
-      templateParams
-    );
-    } catch (error) {
-      // If reply template doesn't exist, try the contact template
-      console.warn('Reply template not found, trying contact template:', error);
-      templateId = window.EMAILJS_CONFIG.templateId;
       response = await emailjs.send(
         window.EMAILJS_CONFIG.serviceId,
         templateId,
         templateParams
       );
+    } catch (error) {
+      console.error('Reply template send failed (no fallback enabled):', error);
+      throw new Error('Reply template failed. Please verify replyTemplateId in EmailJS config.');
     }
 
     if (response.status !== 200) {
@@ -5035,6 +5031,7 @@ window.addEventListener('load', function() {
   window.showLogin = showLogin;
   window.showDashboard = showDashboard;
   window.fetchMessages = fetchMessages;
+  window.sendReplyEmail = sendReplyEmail;
 
 })();
 
@@ -5411,3 +5408,908 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
+
+// ─────────────────────────────────────────────
+// Professional DM System (Conversations + Magic Links)
+// ─────────────────────────────────────────────
+(function () {
+  'use strict';
+
+  const DM = {
+    conversations: [],
+    filteredConversations: [],
+    activeConversationId: null,
+    activeConversationData: null,
+    lastMessagesCursor: null,
+    currentMessagePageSize: 30,
+    unsubConversations: null,
+    unsubMessages: null,
+    unsubAdminPresence: null,
+    unsubCustomerPresence: null,
+    typingTimer: null,
+    customerSession: null
+  };
+
+  function hasDMDeps() {
+    return !!(
+      window.db &&
+      window.collection &&
+      window.addDoc &&
+      window.setDoc &&
+      window.getDoc &&
+      window.getDocs &&
+      window.query &&
+      window.orderBy &&
+      window.onSnapshot
+    );
+  }
+
+  function formatDMDate(value) {
+    if (!value) return '';
+    const date = value.toDate ? value.toDate() : new Date(value);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function randomToken(length) {
+    const bytes = new Uint8Array(length);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes).map(function (b) {
+      return b.toString(16).padStart(2, '0');
+    }).join('');
+  }
+
+  function isAdminSession() {
+    try {
+      const saved = sessionStorage.getItem('adminUser');
+      if (!saved) return false;
+      const user = JSON.parse(saved);
+      return !!(user && user.role === 'admin');
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function getAdminIdentity() {
+    try {
+      const saved = sessionStorage.getItem('adminUser');
+      if (!saved) return { id: 'admin', name: 'Admin' };
+      const user = JSON.parse(saved);
+      return {
+        id: 'admin-' + (user.username || 'default'),
+        name: user.username || 'Admin'
+      };
+    } catch (error) {
+      return { id: 'admin', name: 'Admin' };
+    }
+  }
+
+  function messageCollection(conversationId) {
+    return window.collection(window.db, 'conversations', conversationId, 'messages');
+  }
+
+  function adminPresenceDoc(conversationId) {
+    return window.doc(window.db, 'conversations', conversationId, 'presence', 'admin');
+  }
+
+  function customerPresenceDoc(conversationId) {
+    return window.doc(window.db, 'conversations', conversationId, 'presence', 'customer');
+  }
+
+  function ensureAdminInboxUI() {
+    const messagesContent = document.getElementById('messages-content');
+    const messagesList = document.getElementById('messages-list');
+    const controls = document.querySelector('.messages-controls');
+    if (!messagesContent || !messagesList || !controls) return;
+
+    if (!document.getElementById('dm-search-input')) {
+      const search = document.createElement('input');
+      search.type = 'search';
+      search.id = 'dm-search-input';
+      search.className = 'form-input dm-search-input';
+      search.placeholder = 'Search name, email, tag...';
+      controls.prepend(search);
+    }
+
+    if (!document.getElementById('dm-migrate-btn')) {
+      const actions = controls.querySelector('.messages-actions');
+      if (actions) {
+        const migrateBtn = document.createElement('button');
+        migrateBtn.className = 'btn-icon';
+        migrateBtn.id = 'dm-migrate-btn';
+        migrateBtn.title = 'Migrate legacy messages into conversations';
+        migrateBtn.innerHTML = '<ion-icon name="shuffle-outline"></ion-icon>';
+        actions.appendChild(migrateBtn);
+      }
+    }
+
+    if (!document.getElementById('dm-layout')) {
+      const messagesParent = messagesList.parentElement;
+      if (!messagesParent) return;
+
+      const layout = document.createElement('div');
+      layout.className = 'dm-layout';
+      layout.id = 'dm-layout';
+
+      const thread = document.createElement('section');
+      thread.className = 'dm-thread-panel';
+      thread.id = 'dm-thread-panel';
+      thread.innerHTML = [
+        '<header class="dm-thread-header">',
+        '<div class="dm-thread-meta">',
+        '<h4 id="dm-thread-title">Select a conversation</h4>',
+        '<p id="dm-thread-subtitle">Pick a customer conversation to start messaging.</p>',
+        '</div>',
+        '<div class="dm-thread-actions">',
+        '<input id="dm-tag-input" class="form-input dm-mini-input" placeholder="tag1, tag2">',
+        '<select id="dm-status-select" class="dm-mini-select"><option value="open">Open</option><option value="pending">Pending</option><option value="closed">Closed</option></select>',
+        '<select id="dm-priority-select" class="dm-mini-select"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select>',
+        '<button id="dm-save-meta" class="btn btn-secondary btn-sm">Save</button>',
+        '</div>',
+        '</header>',
+        '<div class="dm-presence-row">',
+        '<span id="dm-presence-customer" class="dm-presence-pill">Customer offline</span>',
+        '<span id="dm-presence-typing" class="dm-presence-pill">Not typing</span>',
+        '</div>',
+        '<div id="dm-message-list" class="dm-message-list has-scrollbar"></div>',
+        '<button id="dm-load-more" type="button" class="btn btn-secondary btn-sm">Load older messages</button>',
+        '<form id="dm-admin-composer" class="dm-composer">',
+        '<input id="dm-attachment-url" class="form-input dm-mini-input" placeholder="Attachment URL (optional)">',
+        '<textarea id="dm-admin-message" class="form-textarea" rows="4" placeholder="Reply to customer..." required></textarea>',
+        '<div class="dm-composer-actions">',
+        '<button id="dm-send-reply-email" type="button" class="btn btn-secondary">Send Email Copy</button>',
+        '<button type="submit" class="btn btn-primary">Send In Thread</button>',
+        '</div>',
+        '</form>'
+      ].join('');
+
+      const listWrap = document.createElement('div');
+      listWrap.className = 'dm-conversation-list-wrap';
+      layout.appendChild(listWrap);
+      listWrap.appendChild(messagesList);
+      layout.appendChild(thread);
+      messagesParent.appendChild(layout);
+    }
+  }
+
+  function renderConversationList() {
+    const messagesList = document.getElementById('messages-list');
+    const totalEl = document.getElementById('total-messages');
+    const newEl = document.getElementById('new-messages');
+    const repliedEl = document.getElementById('replied-messages');
+    if (!messagesList) return;
+
+    const list = DM.filteredConversations.length ? DM.filteredConversations : DM.conversations;
+    if (totalEl) totalEl.textContent = String(DM.conversations.length);
+    if (newEl) newEl.textContent = String(DM.conversations.filter(function (c) { return (c.unreadAdmin || 0) > 0; }).length);
+    if (repliedEl) repliedEl.textContent = String(DM.conversations.filter(function (c) { return c.status === 'closed'; }).length);
+
+    if (!list.length) {
+      messagesList.innerHTML = '<div class="no-messages"><ion-icon name="chatbubbles-outline"></ion-icon><p>No conversations yet</p></div>';
+      return;
+    }
+
+    messagesList.innerHTML = '<ul class="message-grid">' + list.map(function (conv) {
+      const activeClass = DM.activeConversationId === conv.id ? ' dm-conversation-active' : '';
+      const unread = conv.unreadAdmin || 0;
+      const tags = Array.isArray(conv.tags) ? conv.tags.slice(0, 3) : [];
+      return [
+        '<li class="message-item" data-status="' + (conv.status || 'open') + '">',
+        '<article class="message-card dm-conversation-card' + activeClass + '" data-conversation-id="' + conv.id + '">',
+        '<div class="message-card-header">',
+        '<h4 class="message-card-name">' + (conv.customerName || 'Customer') + '</h4>',
+        '<span class="status-badge status-' + (conv.status || 'open') + '">' + (conv.status || 'open') + '</span>',
+        '</div>',
+        '<p class="message-card-email">' + (conv.customerEmail || '') + '</p>',
+        '<p class="message-card-subject">' + (conv.lastMessage || 'No messages yet') + '</p>',
+        '<div class="message-card-footer">',
+        '<p class="message-card-date">' + formatDMDate(conv.lastMessageAt || conv.updatedAt || conv.createdAt) + '</p>',
+        tags.length ? '<p class="message-card-source">Tags: ' + tags.join(', ') + '</p>' : '',
+        '</div>',
+        '<div class="message-card-actions">',
+        '<button class="reply-btn dm-open-conversation" data-id="' + conv.id + '"><ion-icon name="chatbox-ellipses-outline"></ion-icon><span>Open</span></button>',
+        unread > 0 ? '<span class="status-badge status-new">Unread ' + unread + '</span>' : '',
+        '</div>',
+        '</article>',
+        '</li>'
+      ].join('');
+    }).join('') + '</ul>';
+
+    messagesList.querySelectorAll('.dm-open-conversation').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        const id = e.currentTarget.dataset.id;
+        openConversation(id);
+      });
+    });
+  }
+
+  function applyConversationFilters() {
+    const searchInput = document.getElementById('dm-search-input');
+    const queryText = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    const activeFilter = document.querySelector('.messages-filter .filter-btn.active');
+    const statusFilter = activeFilter ? activeFilter.dataset.filter : 'all';
+
+    DM.filteredConversations = DM.conversations.filter(function (conv) {
+      const statusMatch = statusFilter === 'all' ? true : (
+        statusFilter === 'new'
+          ? (conv.unreadAdmin || 0) > 0
+          : statusFilter === 'replied'
+            ? conv.status === 'closed'
+            : conv.status === statusFilter
+      );
+      if (!statusMatch) return false;
+      if (!queryText) return true;
+      const haystack = [
+        conv.customerName,
+        conv.customerEmail,
+        conv.lastMessage,
+        Array.isArray(conv.tags) ? conv.tags.join(' ') : ''
+      ].join(' ').toLowerCase();
+      return haystack.includes(queryText);
+    });
+  }
+
+  function renderThread(conversation, messages) {
+    const title = document.getElementById('dm-thread-title');
+    const subtitle = document.getElementById('dm-thread-subtitle');
+    const list = document.getElementById('dm-message-list');
+    const statusSelect = document.getElementById('dm-status-select');
+    const prioritySelect = document.getElementById('dm-priority-select');
+    const tagInput = document.getElementById('dm-tag-input');
+    if (!title || !subtitle || !list) return;
+
+    title.textContent = conversation.customerName || 'Customer';
+    subtitle.textContent = (conversation.customerEmail || '') + ' · Assigned: ' + (conversation.assignee || 'unassigned');
+    if (statusSelect) statusSelect.value = conversation.status || 'open';
+    if (prioritySelect) prioritySelect.value = conversation.priority || 'normal';
+    if (tagInput) tagInput.value = Array.isArray(conversation.tags) ? conversation.tags.join(', ') : '';
+
+    if (!messages.length) {
+      list.innerHTML = '<div class="no-messages"><p>No thread messages yet.</p></div>';
+      return;
+    }
+
+    list.innerHTML = messages.map(function (msg) {
+      const mine = msg.senderRole === 'admin';
+      return [
+        '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
+        '<div class="dm-message-bubble">',
+        '<p class="dm-message-author">' + (msg.senderName || msg.senderRole || 'unknown') + '</p>',
+        '<p>' + (msg.body || '').replace(/\n/g, '<br>') + '</p>',
+        msg.attachmentUrl ? '<a class="dm-attachment-link" href="' + msg.attachmentUrl + '" target="_blank" rel="noopener">Attachment</a>' : '',
+        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Customer read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
+        '</div>',
+        '</div>'
+      ].join('');
+    }).join('');
+    list.scrollTop = list.scrollHeight;
+  }
+
+  async function markMessagesReadForAdmin(conversationId, messages) {
+    const unread = messages.filter(function (m) { return !m.readByAdmin; });
+    if (!unread.length) return;
+    await Promise.all(unread.map(function (msg) {
+      return window.updateDoc(window.doc(window.db, 'conversations', conversationId, 'messages', msg.id), {
+        readByAdmin: true,
+        readAtAdmin: window.serverTimestamp()
+      }).catch(function () {});
+    }));
+    await window.updateDoc(window.doc(window.db, 'conversations', conversationId), {
+      unreadAdmin: 0,
+      updatedAt: window.serverTimestamp()
+    });
+  }
+
+  function subscribeThreadPresence(conversationId) {
+    if (DM.unsubAdminPresence) DM.unsubAdminPresence();
+    if (DM.unsubCustomerPresence) DM.unsubCustomerPresence();
+
+    const customerPresenceEl = document.getElementById('dm-presence-customer');
+    const typingEl = document.getElementById('dm-presence-typing');
+    DM.unsubCustomerPresence = window.onSnapshot(customerPresenceDoc(conversationId), function (snap) {
+      const data = snap.exists() ? snap.data() : {};
+      if (customerPresenceEl) customerPresenceEl.textContent = data.isOnline ? 'Customer online' : 'Customer offline';
+      if (typingEl) typingEl.textContent = data.isTyping ? 'Customer typing...' : 'Not typing';
+    });
+  }
+
+  function setAdminPresence(conversationId, isTyping, isOnline) {
+    if (!conversationId) return Promise.resolve();
+    const identity = getAdminIdentity();
+    return window.setDoc(adminPresenceDoc(conversationId), {
+      userId: identity.id,
+      senderRole: 'admin',
+      isTyping: !!isTyping,
+      isOnline: !!isOnline,
+      updatedAt: window.serverTimestamp()
+    }, { merge: true });
+  }
+
+  async function openConversation(conversationId) {
+    if (!conversationId) return;
+    DM.activeConversationId = conversationId;
+    DM.activeConversationData = DM.conversations.find(function (c) { return c.id === conversationId; }) || null;
+    applyConversationFilters();
+    renderConversationList();
+
+    if (DM.unsubMessages) DM.unsubMessages();
+    const loadMoreBtn = document.getElementById('dm-load-more');
+    if (loadMoreBtn) loadMoreBtn.disabled = true;
+
+    const q = window.query(
+      messageCollection(conversationId),
+      window.orderBy('createdAt', 'desc'),
+      window.limit(DM.currentMessagePageSize)
+    );
+
+    DM.unsubMessages = window.onSnapshot(q, async function (snapshot) {
+      const records = [];
+      snapshot.forEach(function (docSnap) {
+        records.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      DM.lastMessagesCursor = snapshot.docs[snapshot.docs.length - 1] || null;
+      records.reverse();
+      if (DM.activeConversationData) {
+        renderThread(DM.activeConversationData, records);
+      }
+      await markMessagesReadForAdmin(conversationId, records);
+      if (loadMoreBtn) loadMoreBtn.disabled = !DM.lastMessagesCursor;
+    });
+
+    subscribeThreadPresence(conversationId);
+    await setAdminPresence(conversationId, false, true);
+  }
+
+  async function loadOlderMessages() {
+    if (!DM.activeConversationId || !DM.lastMessagesCursor) return;
+    const q = window.query(
+      messageCollection(DM.activeConversationId),
+      window.orderBy('createdAt', 'desc'),
+      window.startAfter(DM.lastMessagesCursor),
+      window.limit(DM.currentMessagePageSize)
+    );
+    const snapshot = await window.getDocs(q);
+    const list = document.getElementById('dm-message-list');
+    if (!list) return;
+    const older = [];
+    snapshot.forEach(function (docSnap) {
+      older.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    if (!older.length) return;
+    older.reverse();
+    const existingHtml = list.innerHTML;
+    const olderHtml = older.map(function (msg) {
+      const mine = msg.senderRole === 'admin';
+      return [
+        '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
+        '<div class="dm-message-bubble">',
+        '<p class="dm-message-author">' + (msg.senderName || msg.senderRole || 'unknown') + '</p>',
+        '<p>' + (msg.body || '').replace(/\n/g, '<br>') + '</p>',
+        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + '</p>',
+        '</div></div>'
+      ].join('');
+    }).join('');
+    list.innerHTML = olderHtml + existingHtml;
+    DM.lastMessagesCursor = snapshot.docs[snapshot.docs.length - 1] || null;
+  }
+
+  async function saveConversationMeta() {
+    if (!DM.activeConversationId) return;
+    const status = document.getElementById('dm-status-select');
+    const priority = document.getElementById('dm-priority-select');
+    const tags = document.getElementById('dm-tag-input');
+    const data = {
+      status: status ? status.value : 'open',
+      priority: priority ? priority.value : 'normal',
+      tags: tags ? tags.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean) : [],
+      assignee: getAdminIdentity().name,
+      updatedAt: window.serverTimestamp()
+    };
+    await window.updateDoc(window.doc(window.db, 'conversations', DM.activeConversationId), data);
+  }
+
+  async function sendAdminThreadMessage(sendEmailCopy) {
+    if (!DM.activeConversationId || !DM.activeConversationData) {
+      alert('Select a conversation first.');
+      return;
+    }
+    const messageInput = document.getElementById('dm-admin-message');
+    const attachmentInput = document.getElementById('dm-attachment-url');
+    if (!messageInput || !messageInput.value.trim()) return;
+
+    const body = messageInput.value.trim();
+    const attachmentUrl = attachmentInput && attachmentInput.value.trim() ? attachmentInput.value.trim() : '';
+    const admin = getAdminIdentity();
+
+    await window.addDoc(messageCollection(DM.activeConversationId), {
+      senderRole: 'admin',
+      senderName: admin.name,
+      senderId: admin.id,
+      body: body,
+      attachmentUrl: attachmentUrl,
+      createdAt: window.serverTimestamp(),
+      readByAdmin: true,
+      readByCustomer: false,
+      type: attachmentUrl ? 'attachment' : 'text'
+    });
+
+    await window.updateDoc(window.doc(window.db, 'conversations', DM.activeConversationId), {
+      lastMessage: body,
+      lastMessageAt: window.serverTimestamp(),
+      status: 'pending',
+      assignee: admin.name,
+      unreadCustomer: window.increment ? window.increment(1) : (DM.activeConversationData.unreadCustomer || 0) + 1,
+      updatedAt: window.serverTimestamp()
+    });
+
+    if (sendEmailCopy) {
+      try {
+        await window.sendReplyEmail(
+          {
+            name: DM.activeConversationData.customerName || 'Customer',
+            email: DM.activeConversationData.customerEmail || ''
+          },
+          'Re: ' + (DM.activeConversationData.lastMessage || 'Conversation Update'),
+          body
+        );
+      } catch (error) {
+        alert('Thread message saved, but email copy failed: ' + error.message);
+      }
+    }
+
+    messageInput.value = '';
+    if (attachmentInput) attachmentInput.value = '';
+    await setAdminPresence(DM.activeConversationId, false, true);
+  }
+
+  function bindAdminInboxEvents() {
+    const searchInput = document.getElementById('dm-search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        applyConversationFilters();
+        renderConversationList();
+      });
+    }
+
+    document.querySelectorAll('.messages-filter .filter-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setTimeout(function () {
+          applyConversationFilters();
+          renderConversationList();
+        }, 0);
+      });
+    });
+
+    const loadMoreBtn = document.getElementById('dm-load-more');
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', function () {
+        loadOlderMessages().catch(function (error) {
+          console.error('Load older messages failed:', error);
+        });
+      });
+    }
+
+    const saveMetaBtn = document.getElementById('dm-save-meta');
+    if (saveMetaBtn) {
+      saveMetaBtn.addEventListener('click', function () {
+        saveConversationMeta().catch(function (error) {
+          alert('Failed to save conversation metadata: ' + error.message);
+        });
+      });
+    }
+
+    const composer = document.getElementById('dm-admin-composer');
+    if (composer) {
+      composer.addEventListener('submit', function (e) {
+        e.preventDefault();
+        sendAdminThreadMessage(false).catch(function (error) {
+          alert('Failed to send message: ' + error.message);
+        });
+      });
+    }
+
+    const sendEmailBtn = document.getElementById('dm-send-reply-email');
+    if (sendEmailBtn) {
+      sendEmailBtn.addEventListener('click', function () {
+        sendAdminThreadMessage(true).catch(function (error) {
+          alert('Failed to send message: ' + error.message);
+        });
+      });
+    }
+
+    const adminInput = document.getElementById('dm-admin-message');
+    if (adminInput) {
+      adminInput.addEventListener('input', function () {
+        if (!DM.activeConversationId) return;
+        setAdminPresence(DM.activeConversationId, true, true).catch(function () {});
+        clearTimeout(DM.typingTimer);
+        DM.typingTimer = setTimeout(function () {
+          setAdminPresence(DM.activeConversationId, false, true).catch(function () {});
+        }, 1500);
+      });
+    }
+
+    const migrateBtn = document.getElementById('dm-migrate-btn');
+    if (migrateBtn && (!window.DM_FEATURE_FLAGS || window.DM_FEATURE_FLAGS.enableLegacyMigration !== false)) {
+      migrateBtn.addEventListener('click', function () {
+        migrateLegacyMessagesToConversations().catch(function (error) {
+          alert('Migration failed: ' + error.message);
+        });
+      });
+    } else if (migrateBtn) {
+      migrateBtn.style.display = 'none';
+    }
+  }
+
+  async function migrateLegacyMessagesToConversations() {
+    const snap = await window.getDocs(window.query(window.collection(window.db, 'messages'), window.orderBy('timestamp', 'asc')));
+    let count = 0;
+    for (const docSnap of snap.docs) {
+      const legacy = docSnap.data();
+      if (legacy.conversationId) continue;
+      const conversationId = 'conv_' + docSnap.id;
+      const conversationRef = window.doc(window.db, 'conversations', conversationId);
+      const conversationData = {
+        customerName: legacy.name || 'Customer',
+        customerEmail: legacy.email || '',
+        source: legacy.source || 'contact',
+        status: legacy.status === 'replied' ? 'closed' : 'open',
+        priority: 'normal',
+        assignee: 'Admin',
+        tags: ['migrated'],
+        unreadAdmin: 0,
+        unreadCustomer: 0,
+        lastMessage: legacy.message || '',
+        lastMessageAt: legacy.timestamp || window.serverTimestamp(),
+        createdAt: legacy.timestamp || window.serverTimestamp(),
+        updatedAt: window.serverTimestamp(),
+        legacyMessageId: docSnap.id
+      };
+      await window.setDoc(conversationRef, conversationData, { merge: true });
+      const firstMsgRef = messageCollection(conversationId);
+      await window.addDoc(firstMsgRef, {
+        senderRole: 'customer',
+        senderName: legacy.name || 'Customer',
+        body: legacy.message || '',
+        createdAt: legacy.timestamp || window.serverTimestamp(),
+        readByAdmin: true,
+        readByCustomer: true,
+        type: 'text',
+        migratedFrom: docSnap.id
+      });
+      await window.updateDoc(window.doc(window.db, 'messages', docSnap.id), {
+        conversationId: conversationId,
+        migratedAt: window.serverTimestamp()
+      });
+      count++;
+    }
+    alert('Legacy migration completed. Converted ' + count + ' messages.');
+  }
+
+  function subscribeConversations() {
+    if (DM.unsubConversations) DM.unsubConversations();
+    const q = window.query(window.collection(window.db, 'conversations'), window.orderBy('updatedAt', 'desc'), window.limit(150));
+    DM.unsubConversations = window.onSnapshot(q, function (snapshot) {
+      const records = [];
+      snapshot.forEach(function (docSnap) {
+        records.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      DM.conversations = records;
+      applyConversationFilters();
+      renderConversationList();
+      if (DM.activeConversationId) {
+        const stillThere = records.some(function (r) { return r.id === DM.activeConversationId; });
+        if (stillThere) {
+          DM.activeConversationData = records.find(function (r) { return r.id === DM.activeConversationId; }) || null;
+        } else {
+          DM.activeConversationId = null;
+          DM.activeConversationData = null;
+        }
+      }
+    });
+  }
+
+  function setupCustomerPortalUI() {
+    if (window.DM_FEATURE_FLAGS && window.DM_FEATURE_FLAGS.enableCustomerMagicLinks === false) return;
+    const contactArticle = document.querySelector('article[data-page="contact"]');
+    if (!contactArticle || document.getElementById('customer-dm-portal')) return;
+
+    const section = document.createElement('section');
+    section.className = 'contact-form';
+    section.id = 'customer-dm-portal';
+    section.innerHTML = [
+      '<h3 class="h3 form-title">Customer Message Portal</h3>',
+      '<p class="dm-help-text">Use your secure magic link token to continue your conversation with Ruben.</p>',
+      '<div class="dm-customer-auth">',
+      '<form id="dm-request-link-form" class="form">',
+      '<div class="input-wrapper">',
+      '<input type="text" id="dm-request-name" class="form-input" placeholder="Your name" required>',
+      '<input type="email" id="dm-request-email" class="form-input" placeholder="Your email" required>',
+      '</div>',
+      '<button class="form-btn" type="submit"><ion-icon name="key-outline"></ion-icon><span>Generate Magic Link</span></button>',
+      '</form>',
+      '<form id="dm-open-link-form" class="form">',
+      '<input type="text" id="dm-token-input" class="form-input" placeholder="Paste token from your link" required>',
+      '<button class="form-btn" type="submit"><ion-icon name="chatbubbles-outline"></ion-icon><span>Open Conversation</span></button>',
+      '</form>',
+      '<p id="dm-link-output" class="dm-link-output"></p>',
+      '</div>',
+      '<section id="dm-customer-thread" class="dm-customer-thread" style="display:none;">',
+      '<div id="dm-customer-message-list" class="dm-message-list has-scrollbar"></div>',
+      '<form id="dm-customer-composer" class="dm-composer">',
+      '<textarea id="dm-customer-message" class="form-textarea" rows="4" placeholder="Type your message..." required></textarea>',
+      '<button class="form-btn" type="submit"><ion-icon name="send-outline"></ion-icon><span>Send Message</span></button>',
+      '</form>',
+      '</section>'
+    ].join('');
+    contactArticle.appendChild(section);
+
+    const tokenFromUrl = new URLSearchParams(window.location.search).get('dm_token');
+    if (tokenFromUrl) {
+      const tokenInput = document.getElementById('dm-token-input');
+      if (tokenInput) tokenInput.value = tokenFromUrl;
+    }
+
+    bindCustomerPortalEvents();
+  }
+
+  async function getOrCreateConversationForEmail(email, name) {
+    const q = window.query(
+      window.collection(window.db, 'conversations'),
+      window.where('customerEmail', '==', email.toLowerCase()),
+      window.limit(1)
+    );
+    const snap = await window.getDocs(q);
+    if (!snap.empty) {
+      const docSnap = snap.docs[0];
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+
+    const newRef = window.doc(window.collection(window.db, 'conversations'));
+    const now = window.serverTimestamp();
+    await window.setDoc(newRef, {
+      customerName: name,
+      customerEmail: email.toLowerCase(),
+      source: 'portal',
+      status: 'open',
+      priority: 'normal',
+      tags: ['magic-link'],
+      assignee: 'Admin',
+      unreadAdmin: 0,
+      unreadCustomer: 0,
+      lastMessage: '',
+      createdAt: now,
+      updatedAt: now
+    });
+    return { id: newRef.id, customerName: name, customerEmail: email.toLowerCase() };
+  }
+
+  async function createMagicLink(email, name) {
+    const conversation = await getOrCreateConversationForEmail(email, name);
+    const token = randomToken(24);
+    const link = window.location.origin + window.location.pathname + '?dm_token=' + token;
+    const expiresAtMs = Date.now() + (7 * 24 * 60 * 60 * 1000);
+    await window.setDoc(window.doc(window.db, 'magicLinks', token), {
+      token: token,
+      conversationId: conversation.id,
+      customerEmail: email.toLowerCase(),
+      customerName: name,
+      createdAt: window.serverTimestamp(),
+      expiresAtMs: expiresAtMs,
+      used: false
+    });
+    return { token: token, link: link, conversationId: conversation.id };
+  }
+
+  async function validateMagicToken(token) {
+    const tokenRef = window.doc(window.db, 'magicLinks', token.trim());
+    const snap = await window.getDoc(tokenRef);
+    if (!snap.exists()) throw new Error('Invalid token.');
+    const data = snap.data();
+    if (!data.expiresAtMs || Date.now() > data.expiresAtMs) {
+      throw new Error('Token expired. Request a new magic link.');
+    }
+    await window.updateDoc(tokenRef, {
+      used: true,
+      lastUsedAt: window.serverTimestamp()
+    });
+    DM.customerSession = {
+      token: token.trim(),
+      conversationId: data.conversationId,
+      customerEmail: data.customerEmail || ''
+    };
+    localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
+    return DM.customerSession;
+  }
+
+  function renderCustomerThread(messages) {
+    const list = document.getElementById('dm-customer-message-list');
+    if (!list) return;
+    if (!messages.length) {
+      list.innerHTML = '<div class="no-messages"><p>No messages yet.</p></div>';
+      return;
+    }
+    list.innerHTML = messages.map(function (msg) {
+      const mine = msg.senderRole === 'customer';
+      return [
+        '<div class="dm-message-row ' + (mine ? 'dm-message-customer' : 'dm-message-admin') + '">',
+        '<div class="dm-message-bubble">',
+        '<p class="dm-message-author">' + (mine ? 'You' : 'Admin') + '</p>',
+        '<p>' + (msg.body || '').replace(/\n/g, '<br>') + '</p>',
+        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? '' : (' · Read by you: ' + (msg.readByCustomer ? 'yes' : 'no')) ) + '</p>',
+        '</div>',
+        '</div>'
+      ].join('');
+    }).join('');
+    list.scrollTop = list.scrollHeight;
+  }
+
+  async function startCustomerThread(session) {
+    if (!session || !session.conversationId) return;
+    const thread = document.getElementById('dm-customer-thread');
+    if (thread) thread.style.display = 'block';
+
+    if (DM.unsubMessages) DM.unsubMessages();
+    const q = window.query(messageCollection(session.conversationId), window.orderBy('createdAt', 'asc'), window.limit(200));
+    DM.unsubMessages = window.onSnapshot(q, async function (snapshot) {
+      const messages = [];
+      snapshot.forEach(function (docSnap) {
+        messages.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      renderCustomerThread(messages);
+      const unread = messages.filter(function (m) { return !m.readByCustomer; });
+      await Promise.all(unread.map(function (msg) {
+        return window.updateDoc(window.doc(window.db, 'conversations', session.conversationId, 'messages', msg.id), {
+          readByCustomer: true,
+          readAtCustomer: window.serverTimestamp()
+        }).catch(function () {});
+      }));
+      await window.updateDoc(window.doc(window.db, 'conversations', session.conversationId), {
+        unreadCustomer: 0,
+        updatedAt: window.serverTimestamp()
+      });
+    });
+
+    await window.setDoc(customerPresenceDoc(session.conversationId), {
+      senderRole: 'customer',
+      isOnline: true,
+      isTyping: false,
+      updatedAt: window.serverTimestamp()
+    }, { merge: true });
+  }
+
+  function bindCustomerPortalEvents() {
+    const requestForm = document.getElementById('dm-request-link-form');
+    const openForm = document.getElementById('dm-open-link-form');
+    const output = document.getElementById('dm-link-output');
+    const composer = document.getElementById('dm-customer-composer');
+    const input = document.getElementById('dm-customer-message');
+
+    const saved = localStorage.getItem('customerDmSession');
+    if (saved) {
+      try {
+        DM.customerSession = JSON.parse(saved);
+        startCustomerThread(DM.customerSession).catch(function () {});
+      } catch (error) {}
+    }
+
+    if (requestForm) {
+      requestForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const emailEl = document.getElementById('dm-request-email');
+        const nameEl = document.getElementById('dm-request-name');
+        if (!emailEl || !nameEl) return;
+        createMagicLink(emailEl.value.trim(), nameEl.value.trim())
+          .then(function (result) {
+            if (output) output.textContent = 'Magic link (share privately): ' + result.link;
+            const tokenInput = document.getElementById('dm-token-input');
+            if (tokenInput) tokenInput.value = result.token;
+          })
+          .catch(function (error) {
+            if (output) output.textContent = 'Failed to generate link: ' + error.message;
+          });
+      });
+    }
+
+    if (openForm) {
+      openForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const tokenEl = document.getElementById('dm-token-input');
+        if (!tokenEl) return;
+        validateMagicToken(tokenEl.value)
+          .then(function (session) { return startCustomerThread(session); })
+          .catch(function (error) {
+            alert(error.message);
+          });
+      });
+    }
+
+    if (composer && input) {
+      composer.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!DM.customerSession || !DM.customerSession.conversationId) {
+          alert('Open your conversation token first.');
+          return;
+        }
+        const text = input.value.trim();
+        if (!text) return;
+        window.addDoc(messageCollection(DM.customerSession.conversationId), {
+          senderRole: 'customer',
+          senderName: 'Customer',
+          body: text,
+          createdAt: window.serverTimestamp(),
+          readByAdmin: false,
+          readByCustomer: true,
+          type: 'text'
+        }).then(function () {
+          return window.updateDoc(window.doc(window.db, 'conversations', DM.customerSession.conversationId), {
+            lastMessage: text,
+            lastMessageAt: window.serverTimestamp(),
+            status: 'open',
+            unreadAdmin: window.increment ? window.increment(1) : 1,
+            updatedAt: window.serverTimestamp()
+          });
+        }).then(function () {
+          input.value = '';
+        }).catch(function (error) {
+          alert('Failed to send: ' + error.message);
+        });
+      });
+
+      input.addEventListener('input', function () {
+        if (!DM.customerSession || !DM.customerSession.conversationId) return;
+        window.setDoc(customerPresenceDoc(DM.customerSession.conversationId), {
+          senderRole: 'customer',
+          isOnline: true,
+          isTyping: true,
+          updatedAt: window.serverTimestamp()
+        }, { merge: true }).catch(function () {});
+        clearTimeout(DM.typingTimer);
+        DM.typingTimer = setTimeout(function () {
+          window.setDoc(customerPresenceDoc(DM.customerSession.conversationId), {
+            senderRole: 'customer',
+            isOnline: true,
+            isTyping: false,
+            updatedAt: window.serverTimestamp()
+          }, { merge: true }).catch(function () {});
+        }, 1200);
+      });
+    }
+  }
+
+  function initializeProfessionalDM() {
+    if (!hasDMDeps()) return;
+    if (window.DM_FEATURE_FLAGS && window.DM_FEATURE_FLAGS.enableProfessionalInbox === false) return;
+    ensureAdminInboxUI();
+    setupCustomerPortalUI();
+    bindAdminInboxEvents();
+
+    // Override legacy fetchMessages with conversation inbox loader.
+    window.fetchMessages = function () {
+      if (!isAdminSession()) return;
+      subscribeConversations();
+    };
+
+    if (isAdminSession()) {
+      subscribeConversations();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(initializeProfessionalDM, 250);
+  });
+
+  window.addEventListener('beforeunload', function () {
+    if (DM.activeConversationId) {
+      setAdminPresence(DM.activeConversationId, false, false).catch(function () {});
+    }
+    if (DM.customerSession && DM.customerSession.conversationId) {
+      window.setDoc(customerPresenceDoc(DM.customerSession.conversationId), {
+        senderRole: 'customer',
+        isOnline: false,
+        isTyping: false,
+        updatedAt: window.serverTimestamp()
+      }, { merge: true }).catch(function () {});
+    }
+  });
+})();
