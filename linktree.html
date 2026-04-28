@@ -270,20 +270,33 @@
     }
     .project-card:hover .arrow { color: var(--gold); transform: translateX(3px); }
 
-    /* ── Tech stack ── */
-    .stack-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
-
-    .pill {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--eerie-black-1);
-      border: 1px solid var(--border-1);
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 0.77rem; color: var(--light-gray);
-      transition: border-color var(--ease), color var(--ease);
-    }
-    .pill:hover { border-color: var(--gold); color: var(--gold); }
-    .pill span { font-size: 0.9rem; }
+    /* Tech Stack Marquee */
+    .hire-tech-marquee-wrap {
+            margin-bottom: 20px; overflow: hidden; padding: 2px 0 6px;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
+          }
+          .hire-tech-track {
+            display: flex; width: max-content;
+            animation: hire-marquee 28s linear infinite; will-change: transform;
+          }
+          .hire-tech-track:hover { animation-play-state: paused; }
+          @media (prefers-reduced-motion: reduce) { .hire-tech-track { animation: none; } }
+          .hire-tech-content {
+            display: flex; align-items: center; gap: 36px; padding: 0 18px;
+          }
+          .hire-tech-item {
+            display: flex; align-items: center; gap: 7px;
+            color: var(--light-gray-70); font-size: var(--fs-7);
+            white-space: nowrap; flex-shrink: 0;
+            filter: grayscale(0.5); opacity: 0.8;
+            transition: filter 0.2s, opacity 0.2s, color 0.2s;
+          }
+          .hire-tech-item:hover { filter: grayscale(0); opacity: 1; color: var(--orange-yellow-crayola); }
+          .hire-tech-item ion-icon { font-size: 20px; color: inherit; }
+          @keyframes hire-marquee {
+            0% { transform: translateX(0); } 100% { transform: translateX(-50%); }
+          }
 
     /* ── Contact grid ── */
     .contact-grid {
