@@ -200,6 +200,17 @@ body {
   background: var(--smoky-black);
   scrollbar-width: none;
   -ms-overflow-style: none;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(hsla(0, 0%, 100%, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+  z-index: 0;
 }
 
 body::-webkit-scrollbar { display: none; }
@@ -331,22 +342,14 @@ article.active {
 
 .content-card {
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   padding: 15px;
   padding-top: 45px;
   border-radius: 14px;
   box-shadow: var(--shadow-2);
   cursor: pointer;
   z-index: 1;
-}
-
-.content-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: -1;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 
@@ -384,26 +387,14 @@ article.active {
 
 .bento-card {
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   padding: 20px;
   border-radius: 16px;
   box-shadow: var(--shadow-2);
   z-index: 1;
   overflow: hidden;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
   transform-origin: center;
-}
-
-.bento-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: -1;
-  opacity: 0.9;
 }
 
 .bento-card-title {
@@ -1164,19 +1155,10 @@ article.active {
 
 .snippet-card {
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   border-radius: 12px;
   overflow: hidden;
-  border: 1px solid hsla(0, 0%, 100%, 0.06);
-}
-
-.snippet-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: 0;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 .snippet-header {
@@ -1667,20 +1649,12 @@ article {
 
 .service-item {
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   padding: 20px;
   border-radius: 14px;
   box-shadow: var(--shadow-2);
   z-index: 1;
-}
-
-.service-item::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: -1;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 .service-icon-box { margin-bottom: 10px; }
@@ -2016,20 +1990,12 @@ article {
 
 .github-item { 
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   padding: 20px;
   border-radius: 14px;
   box-shadow: var(--shadow-2);
   z-index: 1;
-}
-
-.github-item::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: -1;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 
@@ -2756,21 +2722,13 @@ article {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   border-radius: 20px;
   overflow: hidden;
   box-shadow: var(--shadow-2);
   transition: var(--transition-1);
   z-index: 1;
-}
-
-.project-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: -1;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 .project-card:hover {
@@ -2793,22 +2751,13 @@ article {
 
 .project-details-card {
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   margin: 0;
   padding: 25px;
   border-radius: 16px;
   box-shadow: inset 0 2px 8px hsla(0, 0%, 0%, 0.2);
   z-index: 1;
   border: 1px solid hsla(45, 100%, 72%, 0.1);
-}
-
-.project-details-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: -1;
 }
 
 .project-description {
@@ -3114,20 +3063,12 @@ article {
 
 .blog-post-item > a {
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   height: 100%;
   box-shadow: var(--shadow-4);
   border-radius: 16px;
   z-index: 1;
-}
-
-.blog-post-item > a::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  border-radius: inherit;
-  background: var(--eerie-black-1);
-  z-index: -1;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 .blog-banner-box {
@@ -6598,35 +6539,23 @@ body.project-modal-open {
 
 .pricing-card {
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   border-radius: 20px;
   padding: 30px;
   box-shadow: var(--shadow-2);
   transition: var(--transition-1);
   z-index: 1;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
-.pricing-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: -1;
+.pricing-card-featured {
+  border: 2px solid var(--orange-yellow-crayola);
+  background: var(--eerie-black-2);
 }
 
 .pricing-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 20px 40px hsla(0, 0%, 0%, 0.4);
-}
-
-.pricing-card-featured {
-  border: 2px solid var(--orange-yellow-crayola);
-  background: var(--border-gradient-onyx);
-}
-
-.pricing-card-featured::before {
-  background: linear-gradient(135deg, var(--bg-gradient-jet), hsla(45, 100%, 72%, 0.05));
 }
 
 .pricing-badge {
@@ -8679,7 +8608,7 @@ article.contact[data-page="contact"] {
 #admin-dashboard-content .message-card,
 .messages-list .message-card {
   position: relative;
-  background: var(--border-gradient-onyx);
+  background: var(--eerie-black-2);
   padding: 25px;
   border-radius: 14px;
   box-shadow: var(--shadow-2);
@@ -8688,16 +8617,7 @@ article.contact[data-page="contact"] {
   display: flex;
   flex-direction: column;
   gap: 15px;
-}
-
-#admin-dashboard-content .message-card::before,
-.messages-list .message-card::before {
-  content: "";
-  position: absolute;
-  inset: 1px;
-  background: var(--bg-gradient-jet);
-  border-radius: inherit;
-  z-index: -1;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 #admin-dashboard-content .message-card-icon,
@@ -9993,5 +9913,3 @@ body.modal-open {
 .components-header ion-icon {
   color: var(--orange-yellow-crayola) !important;
 }
-
-/* Linktree styling */
