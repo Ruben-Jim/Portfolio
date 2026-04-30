@@ -269,7 +269,7 @@
     }
     .project-card:hover .arrow { color: var(--gold); transform: translateX(3px); }
 
-    /* Tech Stack Marquee */
+    /* Technologies & Clients Marquee (matches home page pattern) */
     .hire-tech-marquee-wrap {
       overflow: hidden;
       -webkit-mask-image: linear-gradient(to right, transparent 0%, black 8%, black 92%, transparent 100%);
@@ -293,6 +293,19 @@
     }
     .hire-tech-item:hover { filter: grayscale(0); opacity: 1; color: var(--orange-yellow-crayola); }
     .hire-tech-item ion-icon { font-size: 20px; color: inherit; }
+    .hire-tech-logo {
+      height: 20px;
+      width: auto;
+      flex-shrink: 0;
+      filter: grayscale(0.5);
+      opacity: 0.8;
+      transition: filter 0.2s, opacity 0.2s, transform 0.2s;
+    }
+    .hire-tech-logo:hover {
+      filter: grayscale(0);
+      opacity: 1;
+      transform: translateY(-1px);
+    }
     @keyframes hire-marquee {
       0% { transform: translateX(0); } 100% { transform: translateX(-50%); }
     }
@@ -469,36 +482,50 @@
     -->
 
 
-    <!-- Tech Stack -->
+    <!-- Technologies & Clients -->
     
     <div class="section">
-      <p class="section-label">Tech Stack</p>
+      <p class="section-label">Technologies &amp; Clients</p>
 
       <div class="hire-tech-marquee-wrap">
         <div class="hire-tech-track">
           <div class="hire-tech-content">
-            <span class="hire-tech-item"><ion-icon name="logo-react"></ion-icon> React Native</span>
             <span class="hire-tech-item"><ion-icon name="logo-react"></ion-icon> React</span>
-            <span class="hire-tech-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
             <span class="hire-tech-item"><ion-icon name="logo-firebase"></ion-icon> Firebase</span>
-            <span class="hire-tech-item"><ion-icon name="logo-nodejs"></ion-icon> Node.js</span>
+            <span class="hire-tech-item"><ion-icon name="logo-nodejs"></ion-icon> Node</span>
+            <span class="hire-tech-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
             <span class="hire-tech-item"><ion-icon name="code-slash-outline"></ion-icon> TypeScript</span>
+            <img src="./assets/images/logo-1-color.png" alt="" class="hire-tech-logo">
+            <img src="./assets/images/logo-2-color.png" alt="" class="hire-tech-logo">
+            <img src="./assets/images/logo-3-color.png" alt="" class="hire-tech-logo">
+            <span class="hire-tech-item"><ion-icon name="logo-react"></ion-icon> React Native</span>
             <span class="hire-tech-item"><ion-icon name="phone-portrait-outline"></ion-icon> Expo</span>
-            <span class="hire-tech-item"><ion-icon name="terminal-outline"></ion-icon> C++</span>
-            <span class="hire-tech-item"><ion-icon name="color-palette-outline"></ion-icon> UI / UX</span>
-            <span class="hire-tech-item"><ion-icon name="cloud-outline"></ion-icon> Cloud</span>
+            <span class="hire-tech-item"><ion-icon name="logo-firebase"></ion-icon> Firebase</span>
+            <span class="hire-tech-item"><ion-icon name="logo-nodejs"></ion-icon> Node</span>
+            <span class="hire-tech-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
+            <span class="hire-tech-item"><ion-icon name="code-slash-outline"></ion-icon> TypeScript</span>
+            <img src="./assets/images/logo-1-color.png" alt="" class="hire-tech-logo">
+            <img src="./assets/images/logo-2-color.png" alt="" class="hire-tech-logo">
+            <img src="./assets/images/logo-3-color.png" alt="" class="hire-tech-logo">
           </div>
           <div class="hire-tech-content">
-            <span class="hire-tech-item"><ion-icon name="logo-react"></ion-icon> React Native</span>
             <span class="hire-tech-item"><ion-icon name="logo-react"></ion-icon> React</span>
-            <span class="hire-tech-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
             <span class="hire-tech-item"><ion-icon name="logo-firebase"></ion-icon> Firebase</span>
-            <span class="hire-tech-item"><ion-icon name="logo-nodejs"></ion-icon> Node.js</span>
+            <span class="hire-tech-item"><ion-icon name="logo-nodejs"></ion-icon> Node</span>
+            <span class="hire-tech-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
             <span class="hire-tech-item"><ion-icon name="code-slash-outline"></ion-icon> TypeScript</span>
+            <img src="./assets/images/logo-1-color.png" alt="" class="hire-tech-logo">
+            <img src="./assets/images/logo-2-color.png" alt="" class="hire-tech-logo">
+            <img src="./assets/images/logo-3-color.png" alt="" class="hire-tech-logo">
+            <span class="hire-tech-item"><ion-icon name="logo-react"></ion-icon> React Native</span>
             <span class="hire-tech-item"><ion-icon name="phone-portrait-outline"></ion-icon> Expo</span>
-            <span class="hire-tech-item"><ion-icon name="terminal-outline"></ion-icon> C++</span>
-            <span class="hire-tech-item"><ion-icon name="color-palette-outline"></ion-icon> UI / UX</span>
-            <span class="hire-tech-item"><ion-icon name="cloud-outline"></ion-icon> Cloud</span>
+            <span class="hire-tech-item"><ion-icon name="logo-firebase"></ion-icon> Firebase</span>
+            <span class="hire-tech-item"><ion-icon name="logo-nodejs"></ion-icon> Node</span>
+            <span class="hire-tech-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
+            <span class="hire-tech-item"><ion-icon name="code-slash-outline"></ion-icon> TypeScript</span>
+            <img src="./assets/images/logo-1-color.png" alt="" class="hire-tech-logo">
+            <img src="./assets/images/logo-2-color.png" alt="" class="hire-tech-logo">
+            <img src="./assets/images/logo-3-color.png" alt="" class="hire-tech-logo">
           </div>
         </div>
       </div>
