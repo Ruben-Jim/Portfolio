@@ -277,7 +277,7 @@
     }
     .hire-tech-track {
       display: flex; width: max-content;
-      animation: hire-marquee 28s linear infinite; will-change: transform;
+      animation: hire-marquee 40s linear infinite; will-change: transform;
     }
     .hire-tech-track:hover { animation-play-state: paused; }
     @media (prefers-reduced-motion: reduce) { .hire-tech-track { animation: none; } }
@@ -289,12 +289,12 @@
       color: var(--light-gray-70); font-size: var(--fs-7);
       white-space: nowrap; flex-shrink: 0;
       filter: grayscale(0.5); opacity: 0.8;
-      transition: filter 0.2s, opacity 0.2s, color 0.2s;
+      transition: filter 0.2s, opacity 0.2s, color 0.2s, transform 0.2s;
     }
-    .hire-tech-item:hover { filter: grayscale(0); opacity: 1; color: var(--orange-yellow-crayola); }
+    .hire-tech-item:hover { filter: grayscale(0); opacity: 1; color: var(--gold); transform: translateY(-1px); }
     .hire-tech-item ion-icon { font-size: 20px; color: inherit; }
     .hire-tech-logo {
-      height: 20px;
+      height: 24px;
       width: auto;
       flex-shrink: 0;
       filter: grayscale(0.5);
