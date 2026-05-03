@@ -745,7 +745,8 @@ const wordCount = document.querySelector('.word-count');
 function updateLineNumbers() {
   if (!lineNumbers || !contentTextarea) return;
 
-  const textareaValue = typeof contentTextarea.value === 'string' ? contentTextarea.value : '';
+  const textareaValue =
+    contentTextarea && typeof contentTextarea.value === 'string' ? contentTextarea.value : '';
   const lines = textareaValue.split('\n');
   const lineCount = lines.length || 1;
   
@@ -761,7 +762,7 @@ function updateLineNumbers() {
 function updateCounts() {
   if (!charCount || !wordCount || !contentTextarea) return;
   
-  const text = contentTextarea.value;
+  const text = typeof contentTextarea.value === 'string' ? contentTextarea.value : '';
   const charCountValue = text.length;
   const wordCountValue = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
   
@@ -4412,7 +4413,7 @@ window.addEventListener('load', function() {
   // Blog Management collapsible (optional accordion header)
   var blogSection = document.getElementById('blog-section');
   var blogToggle = document.getElementById('blog-toggle');
-  var blogContent = document.getElementById('blog-content');
+  var blogContent = document.getElementById('admin-blog-collapsible-content');
   var BLOG_OPEN_KEY = 'adminBlogSectionOpen';
 
   function setBlogOpen(open) {
