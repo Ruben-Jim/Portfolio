@@ -40,6 +40,33 @@ Defaults in code: `RESEND_FROM` defaults to `Portfolio <onboarding@resend.dev>` 
 firebase deploy --only functions:sendPortfolioEmail
 ```
 
+The function is deployed with **`invoker: "public"`** in [`functions/index.js`](functions/index.js). Gen 2 functions run on **Cloud Run**; sometimes IAM is not updated on deploy, and **every caller gets 403** until unauthenticated invoke is allowed.
+
+If **`curl -X POST`** still returns HTML **403 Forbidden**, run (replace project/region if needed):
+
+```bash
+gcloud run services add-iam-policy-binding sendportfolioemail \
+  --region=us-central1 \
+  --member=allUsers \
+  --role=roles/run.invoker \
+  --project=portfolio-2578e
+```
+
+Service name is **`sendportfolioemail`** (see `gcloud run services list --project=portfolio-2578e --region=us-central1`). Same fix in the console: **Cloud Run → sendportfolioemail → Permissions → Grant access → Principal `allUsers` → Role Cloud Run Invoker.**
+
+Some orgs block **`allUsers`** via policy; then use a different pattern (API Gateway, Cloudflare Worker, or authenticated callers only).
+
+### Test correctly (POST, not GET)
+
+Opening the function URL in a **browser tab** sends **GET**, which returns **405** from our handler after IAM allows the request. Quick check:
+
+```bash
+curl -sS -X POST 'https://us-central1-portfolio-2578e.cloudfunctions.net/sendPortfolioEmail' \
+  -H 'Content-Type: application/json' \
+  -d '{"type":"contact","payload":{"fullname":"Test","email":"you@example.com","message":"hi","subject":"test","timestamp":"","website":"","user_agent":"curl"}}'
+```
+
+Use your deployed URL if the region or project differs.
 
 After deploy, copy the function URL (shape):
 

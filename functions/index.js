@@ -43,6 +43,8 @@ exports.sendPortfolioEmail = onRequest(
   {
     region: "us-central1",
     cors: true,
+    /** Allow browser / curl without Google-signed identity (required for portfolio forms). */
+    invoker: "public",
     secrets: [resendApiKey],
     memory: "256MiB",
     timeoutSeconds: 30,

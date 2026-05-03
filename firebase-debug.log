@@ -1,0 +1,87 @@
+[debug] [2026-05-03T07:06:32.177Z] ----------------------------------------------------------------------
+[debug] [2026-05-03T07:06:32.180Z] Command:       /Users/ruben/.nvm/versions/node/v22.13.0/bin/node /Users/ruben/.nvm/versions/node/v22.13.0/bin/firebase deploy --only functions:sendPortfolioEmail
+[debug] [2026-05-03T07:06:32.180Z] CLI Version:   15.6.0
+[debug] [2026-05-03T07:06:32.181Z] Platform:      darwin
+[debug] [2026-05-03T07:06:32.181Z] Node Version:  v22.13.0
+[debug] [2026-05-03T07:06:32.181Z] Time:          Sun May 03 2026 00:06:32 GMT-0700 (Pacific Daylight Time)
+[debug] [2026-05-03T07:06:32.181Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-05-03T07:06:33.034Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-03T07:06:33.034Z] > authorizing via signed-in user (ruben.jim.co@gmail.com)
+[debug] [2026-05-03T07:06:33.034Z] [iam] checking project portfolio-2578e for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2026-05-03T07:06:33.035Z] Checked if tokens are valid: false, expires at: 1777792355480
+[debug] [2026-05-03T07:06:33.035Z] Checked if tokens are valid: false, expires at: 1777792355480
+[debug] [2026-05-03T07:06:33.035Z] > refreshing access token with scopes: []
+[debug] [2026-05-03T07:06:33.036Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-05-03T07:06:33.036Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-05-03T07:06:33.262Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-05-03T07:06:33.262Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-05-03T07:06:33.274Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e:testIamPermissions [none]
+[debug] [2026-05-03T07:06:33.274Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e:testIamPermissions  x-goog-user-project=portfolio-2578e
+[debug] [2026-05-03T07:06:33.275Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-05-03T07:06:33.463Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e:testIamPermissions 200
+[debug] [2026-05-03T07:06:33.464Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2026-05-03T07:06:33.464Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:33.464Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:33.464Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/portfolio-2578e/serviceAccounts/portfolio-2578e@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2026-05-03T07:06:33.464Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/portfolio-2578e/serviceAccounts/portfolio-2578e@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2026-05-03T07:06:33.705Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/portfolio-2578e/serviceAccounts/portfolio-2578e@appspot.gserviceaccount.com:testIamPermissions 200
+[debug] [2026-05-03T07:06:33.705Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/portfolio-2578e/serviceAccounts/portfolio-2578e@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[info] 
+[info] === Deploying to 'portfolio-2578e'...
+[info] 
+[info] i  deploying functions 
+[info] ✔  functions: Finished running predeploy script. 
+[debug] [2026-05-03T07:06:33.709Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:33.709Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:33.710Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e [none]
+[debug] [2026-05-03T07:06:33.876Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e 200
+[debug] [2026-05-03T07:06:33.877Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e {"projectNumber":"980239353589","projectId":"portfolio-2578e","lifecycleState":"ACTIVE","name":"Portfolio","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-09-27T06:29:23.731801Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2026-05-03T07:06:33.879Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:33.879Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:33.879Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/portfolio-2578e/adminSdkConfig [none]
+[debug] [2026-05-03T07:06:34.175Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/portfolio-2578e/adminSdkConfig 200
+[debug] [2026-05-03T07:06:34.176Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/portfolio-2578e/adminSdkConfig {"projectId":"portfolio-2578e","databaseURL":"https://portfolio-2578e-default-rtdb.firebaseio.com","storageBucket":"portfolio-2578e.firebasestorage.app"}
+[debug] [2026-05-03T07:06:34.176Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:34.176Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:34.176Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/portfolio-2578e/configs [none]
+[debug] [2026-05-03T07:06:34.462Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/portfolio-2578e/configs 200
+[debug] [2026-05-03T07:06:34.463Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/portfolio-2578e/configs {}
+[debug] [2026-05-03T07:06:34.464Z] Validating nodejs source
+[warn] ⚠  functions: Runtime Node.js 20 was deprecated on 2026-04-30 and will be decommissioned on 2026-10-30, after which you will not be able to deploy without upgrading. Consider upgrading now to avoid disruption. See https://cloud.google.com/functions/docs/runtime-support for full details on the lifecycle policy 
+[warn] ⚠  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[warn] ⚠  functions: Please note that there will be breaking changes when you upgrade. 
+[debug] [2026-05-03T07:06:35.180Z] > [functions] package.json contents: {
+  "name": "portfolio-functions",
+  "description": "HTTPS email relay for portfolio (Resend)",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.1.0",
+    "resend": "^4.0.1"
+  }
+}
+[debug] [2026-05-03T07:06:35.180Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2026-05-03T07:06:35.180Z] Could not find functions.yaml. Must use http discovery
+[debug] [2026-05-03T07:06:35.186Z] Found firebase-functions binary at '/Users/ruben/Dev/Apps/Portfolio/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8964
+
+[debug] [2026-05-03T07:06:35.468Z] Got response from /__/functions.yaml {"endpoints":{"sendPortfolioEmail":{"availableMemoryMb":256,"timeoutSeconds":30,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","region":["us-central1"],"secretEnvironmentVariables":[{"key":"RESEND_API_KEY"}],"labels":{},"httpsTrigger":{"invoker":["public"]},"entryPoint":"sendPortfolioEmail"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{},"params":[{"type":"secret","name":"RESEND_API_KEY"},{"name":"RESEND_FROM","type":"string","default":"Portfolio <onboarding@resend.dev>"},{"name":"NOTIFY_TO_EMAIL","type":"string","default":""}]}
+[info] i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[debug] [2026-05-03T07:06:39.491Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-05-03T07:06:39.491Z] > authorizing via signed-in user (ruben.jim.co@gmail.com)
+[debug] [2026-05-03T07:06:39.492Z] [iam] checking project portfolio-2578e for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[debug] [2026-05-03T07:06:39.492Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:39.492Z] Checked if tokens are valid: true, expires at: 1777795592262
+[debug] [2026-05-03T07:06:39.492Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e:testIamPermissions [none]
+[debug] [2026-05-03T07:06:39.492Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e:testIamPermissions  x-goog-user-project=portfolio-2578e
+[debug] [2026-05-03T07:06:39.492Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/portfolio-2578e:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
