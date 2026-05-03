@@ -5691,6 +5691,34 @@ document.addEventListener('DOMContentLoaded', function() {
     return window.rtdbRef(window.rtdb, 'dm/presence/' + conversationId + '/' + role);
   }
 
+  function promiseWithTimeout(promise, ms) {
+    return Promise.race([
+      promise,
+      new Promise(function (_, reject) {
+        setTimeout(function () {
+          reject(new Error('TIMED_OUT'));
+        }, ms);
+      })
+    ]);
+  }
+
+  function formatRtdbPortalError(err) {
+    if (!err) return 'Could not connect to the message server.';
+    var code = err.code != null ? String(err.code) : '';
+    var raw = typeof err.message === 'string' ? err.message : String(err);
+    var low = (raw + ' ' + code).toLowerCase();
+    if (low.indexOf('disabled') !== -1) {
+      return 'Realtime Database is disabled in the Firebase project. In Firebase Console → Build → Realtime Database, create or re-enable the database, then try again.';
+    }
+    if (code === 'PERMISSION_DENIED' || low.indexOf('permission_denied') !== -1) {
+      return 'Permission denied. Deploy database rules (firebase deploy --only database).';
+    }
+    if (raw === 'TIMED_OUT') {
+      return 'Connection timed out. Confirm Realtime Database is enabled and your network allows access.';
+    }
+    return raw || 'Something went wrong.';
+  }
+
   function isCustomerDmPortalEnabled() {
     const flags = window.DM_FEATURE_FLAGS || {};
     if (typeof flags.enableCustomerDmPortal === 'boolean') {
@@ -6349,7 +6377,7 @@ document.addEventListener('DOMContentLoaded', function() {
       window.rtdbEqualTo(email.toLowerCase()),
       window.rtdbLimitToFirst(1)
     );
-    const snap = await window.rtdbGet(q);
+    const snap = await promiseWithTimeout(window.rtdbGet(q), 20000);
     const val = snap.val();
     if (val) {
       const id = Object.keys(val)[0];
@@ -6359,7 +6387,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const newRef = window.rtdbPush(metaRoot);
     const id = newRef.key;
     const now = window.rtdbServerTimestamp();
-    await window.rtdbSet(newRef, {
+    await promiseWithTimeout(window.rtdbSet(newRef, {
       customerName: name,
       customerEmail: email.toLowerCase(),
       source: 'portal',
@@ -6372,7 +6400,7 @@ document.addEventListener('DOMContentLoaded', function() {
       lastMessage: '',
       createdAt: now,
       updatedAt: now
-    });
+    }), 20000);
     return { id: id, customerName: name, customerEmail: email.toLowerCase() };
   }
 
@@ -6401,7 +6429,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const list = document.getElementById('dm-customer-message-list');
     if (!list) return;
     if (!messages.length) {
-      list.innerHTML = '<div class="no-messages"><p>No messages yet.</p></div>';
+      list.innerHTML = [
+        '<div class="dm-thread-empty no-messages" role="status">',
+        '<ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>',
+        '<p class="dm-thread-empty-title">No messages yet</p>',
+        '<p class="dm-thread-empty-hint">Your conversation appears here in real time.</p>',
+        '</div>'
+      ].join('');
       return;
     }
     list.innerHTML = messages.map(function (msg) {
@@ -6410,8 +6444,8 @@ document.addEventListener('DOMContentLoaded', function() {
         '<div class="dm-message-row ' + (mine ? 'dm-message-customer' : 'dm-message-admin') + '">',
         '<div class="dm-message-bubble">',
         '<p class="dm-message-author">' + (mine ? 'You' : 'Admin') + '</p>',
-        '<p>' + (msg.body || '').replace(/\n/g, '<br>') + '</p>',
-        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? '' : (' · Read by you: ' + (msg.readByCustomer ? 'yes' : 'no')) ) + '</p>',
+        '<div class="dm-message-body">' + (msg.body || '').replace(/\n/g, '<br>') + '</div>',
+        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? '' : (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) ) + '</p>',
         '</div>',
         '</div>'
       ].join('');
@@ -6575,7 +6609,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return startCustomerThread(DM.customerSession);
           })
           .catch(function (error) {
-            setPortalStatus(error.message || 'Something went wrong.', true);
+            setPortalStatus(formatRtdbPortalError(error), true);
           });
       });
     }
