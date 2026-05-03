@@ -2464,7 +2464,7 @@
         </nav>
         <header>
           <h2 class="h2 article-title">Messages</h2>
-          <p class="about-text">Continue an existing conversation or open the secure customer portal below.</p>
+          <p class="about-text">Open your conversation below with the same name and email you use here—threads sync in real time with Firebase Realtime Database. No sign-in email is sent.</p>
         </header>
       </article>
 
@@ -2595,7 +2595,7 @@
               <button class="btn-icon" id="refresh-messages" title="Refresh messages">
                 <ion-icon name="refresh-outline"></ion-icon>
               </button>
-              <button class="btn-icon" id="test-firestore" title="Test Firestore connection">
+              <button class="btn-icon" id="test-firestore" title="Test Firestore (legacy messages) + Realtime Database (DM inbox)">
                 <ion-icon name="cloud-outline"></ion-icon>
               </button>
             </div>
@@ -4004,12 +4004,11 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
 
   <!-- Firebase SDKs -->
   <script type="module">
-    // Import the functions you need from the SDKs you need
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-    import { getFirestore, collection, addDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getDatabase, ref, onValue, push, set, update, get, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-    // Make Firebase functions available globally
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
     window.signInWithEmailAndPassword = signInWithEmailAndPassword;
@@ -4023,49 +4022,46 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     window.collection = collection;
     window.addDoc = addDoc;
     window.getDocs = getDocs;
+    window.getDoc = getDoc;
+    window.setDoc = setDoc;
     window.orderBy = orderBy;
+    window.where = where;
     window.query = query;
+    window.limit = limit;
+    window.startAfter = startAfter;
     window.serverTimestamp = serverTimestamp;
     window.updateDoc = updateDoc;
     window.deleteDoc = deleteDoc;
     window.doc = doc;
     window.onSnapshot = onSnapshot;
+    window.increment = increment;
+    window.arrayUnion = arrayUnion;
+    window.arrayRemove = arrayRemove;
+
+    window.getDatabase = getDatabase;
+    window.rtdbRef = ref;
+    window.rtdbOnValue = onValue;
+    window.rtdbPush = push;
+    window.rtdbSet = set;
+    window.rtdbUpdate = update;
+    window.rtdbGet = get;
+    window.rtdbQuery = rtdbQuery;
+    window.rtdbOrderByChild = orderByChild;
+    window.rtdbOrderByKey = orderByKey;
+    window.rtdbLimitToLast = limitToLast;
+    window.rtdbLimitToFirst = limitToFirst;
+    window.rtdbEqualTo = equalTo;
+    window.rtdbEndBefore = endBefore;
+    window.rtdbStartAfter = rtdbStartAfter;
+    window.rtdbServerTimestamp = rtdbServerTimestamp;
+    window.rtdbIncrement = rtdbIncrement;
   </script>
 
   <!--
     - custom js link
   -->
   <script src="./assets/js/script.js?v=bizdoc-20260411-7"></script>
-  
-
-  <!--
-    - Firebase SDK
-  -->
-    
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, orderBy, query, serverTimestamp, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    
-    // Your web app's Firebase configuration
-    const firebaseConfig = window.FIREBASE_CONFIG;
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    
-    // Make Firebase available globally
-    window.db = db;
-    window.addDoc = addDoc;
-    window.getDocs = getDocs;
-    window.collection = collection;
-    window.orderBy = orderBy;
-    window.query = query;
-    window.serverTimestamp = serverTimestamp;
-    window.updateDoc = updateDoc;
-    window.deleteDoc = deleteDoc;
-    window.doc = doc;
-  </script>
+  <script src="./assets/js/dm-migration.js"></script>
 
   <!--
     - ionicon link

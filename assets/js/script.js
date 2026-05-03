@@ -2452,9 +2452,6 @@ form.addEventListener("submit", async function(e) {
       throw new Error('Please fill in all required fields');
     }
     
-    const composedMessage = isHireMeForm
-      ? `Project Type: ${projectType}\nBudget: ${budget}\n\nMessage:\n${message}`
-      : message;
     const subject = isHireMeForm
       ? 'New Hire Me Inquiry - Portfolio'
       : 'New Contact Form Submission - Portfolio';
@@ -2462,7 +2459,7 @@ form.addEventListener("submit", async function(e) {
     const emailPayload = {
       fullname: String(fullname),
       email: String(email),
-      message: String(composedMessage),
+      message: String(message),
       subject,
       timestamp: new Date().toISOString(),
       website: window.location.href,
@@ -2481,11 +2478,14 @@ form.addEventListener("submit", async function(e) {
         await saveMessageToFirestore({
           name: fullname,
           email: email,
-          message: composedMessage,
+          message: String(message),
           subject,
           timestamp: window.serverTimestamp(),
           status: 'new',
-          source: isHireMeForm ? 'hire-me' : 'contact'
+          source: isHireMeForm ? 'hire-me' : 'contact',
+          ...(isHireMeForm
+            ? { project_type: String(projectType), budget: String(budget) }
+            : {})
         });
         console.log('Message saved to Firestore');
       } catch (firestoreError) {
@@ -3263,15 +3263,20 @@ window.addEventListener('load', function() {
         return false;
       }
 
-      // Initialize Firebase (only Firestore, no Auth)
       const app = window.initializeApp(firebaseConfig);
       const db = window.getFirestore(app);
-      
-      // Make db available globally
       window.db = db;
+
+      if (typeof window.getDatabase === 'function' && firebaseConfig.databaseURL) {
+        window.rtdb = window.getDatabase(app);
+      } else {
+        window.rtdb = null;
+        console.warn('Realtime Database not initialized (missing getDatabase or databaseURL).');
+      }
 
       console.log('Firebase initialized successfully');
       console.log('Firestore database:', window.db);
+      console.log('Realtime Database:', window.rtdb);
       console.log('Note: Make sure firestore.rules is deployed to Firebase Console for proper permissions');
 
       // Test Firestore connectivity
@@ -3322,17 +3327,29 @@ window.addEventListener('load', function() {
     logWindowResolution();
   });
 
-  // Test Firestore connectivity
+  // Test Firestore connectivity (legacy contact submissions, blog, etc.)
   function testFirestoreConnection() {
     if (!window.db) return;
 
     try {
-      // Try to get a reference to test connectivity
       const testRef = window.collection(window.db, 'messages');
       console.log('Firestore connection test: collection reference created');
     } catch (error) {
       console.error('Firestore connection test failed:', error);
     }
+  }
+
+  /** DM inbox + magic links (Firebase Realtime Database, dm/* paths) */
+  function testRealtimeDatabaseConnection() {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) {
+      console.warn('Realtime Database connection test: skipped (not initialized — check databaseURL in config.js)');
+      return;
+    }
+    window.rtdbGet(window.rtdbRef(window.rtdb, 'dm/meta')).then(function () {
+      console.log('Realtime Database connection test: reachable (read dm/meta)');
+    }).catch(function (err) {
+      console.error('Realtime Database connection test failed:', err);
+    });
   }
 
   // Setup authentication - check for existing session
@@ -3422,6 +3439,7 @@ window.addEventListener('load', function() {
     if (testBtn) {
       testBtn.addEventListener('click', async () => {
         testFirestoreConnection();
+        testRealtimeDatabaseConnection();
       });
     }
 
@@ -4915,6 +4933,47 @@ window.addEventListener('load', function() {
     }
   }
 
+  /** Legacy hire-me docs stored one string: "Project Type: …\\nBudget: …\\n\\nMessage:\\n…" */
+  function parseLegacyHireMeComposedMessage(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+    const m = raw.match(
+      /^Project Type:\s*(.+?)\r?\nBudget:\s*(.+?)\r?\n\r?\nMessage:\r?\n([\s\S]*)$/
+    );
+    if (!m) return null;
+    return {
+      project_type: m[1].trim(),
+      budget: m[2].trim(),
+      body: m[3]
+    };
+  }
+
+  function normalizeHireMeCardDisplay(message) {
+    const raw = String(message.message || '');
+    if ((message.source || '') !== 'hire-me') {
+      return { showHireDetails: false, project_type: '', budget: '', body: raw };
+    }
+    const ptStored = message.project_type != null ? String(message.project_type).trim() : '';
+    const bdStored = message.budget != null ? String(message.budget).trim() : '';
+    if (ptStored !== '' || bdStored !== '') {
+      return {
+        showHireDetails: true,
+        project_type: ptStored,
+        budget: bdStored,
+        body: raw
+      };
+    }
+    const legacy = parseLegacyHireMeComposedMessage(raw);
+    if (legacy) {
+      return {
+        showHireDetails: true,
+        project_type: legacy.project_type,
+        budget: legacy.budget,
+        body: legacy.body
+      };
+    }
+    return { showHireDetails: false, project_type: '', budget: '', body: raw };
+  }
+
   // Render messages in the dashboard
   function renderMessages(messages) {
     if (!messagesList) return;
@@ -4929,7 +4988,9 @@ window.addEventListener('load', function() {
       return;
     }
 
-    messagesList.innerHTML = `<ul class="message-grid">${messages.map(message => `
+    messagesList.innerHTML = `<ul class="message-grid">${messages.map(message => {
+      const disp = normalizeHireMeCardDisplay(message);
+      return `
       <li class="message-item" data-status="${message.status || 'new'}" data-id="${message.id}">
         <div class="message-card">
         <div class="message-card-icon">
@@ -4942,7 +5003,26 @@ window.addEventListener('load', function() {
           </div>
           <p class="message-card-email">${message.email || ''}</p>
           <p class="message-card-subject">${message.subject || 'No subject'}</p>
-            <div class="message-card-text has-scrollbar">${(message.message || '').replace(/\n/g, '<br>')}</div>
+            ${disp.showHireDetails ? `
+            <div class="message-card-hire-meta">
+              ${disp.project_type !== '' ? `
+              <div class="message-card-hire-section message-card-hire-section--project">
+                <div class="message-card-hire-section-head">
+                  <span class="message-card-hire-icon-wrap"><ion-icon name="layers-outline" aria-hidden="true"></ion-icon></span>
+                  <span class="message-card-hire-section-label">Project type</span>
+                </div>
+                <p class="message-card-hire-section-value">${disp.project_type}</p>
+              </div>` : ''}
+              ${disp.budget !== '' ? `
+              <div class="message-card-hire-section message-card-hire-section--budget">
+                <div class="message-card-hire-section-head">
+                  <span class="message-card-hire-icon-wrap"><ion-icon name="wallet-outline" aria-hidden="true"></ion-icon></span>
+                  <span class="message-card-hire-section-label">Budget</span>
+                </div>
+                <p class="message-card-hire-section-value">${disp.budget}</p>
+              </div>` : ''}
+            </div>` : ''}
+            <div class="message-card-text">${disp.body.replace(/\n/g, '<br>')}</div>
             <div class="message-card-footer">
           <p class="message-card-date">${formatDate(message.timestamp)}</p>
           ${message.source ? `<p class="message-card-source">Source: ${message.source}</p>` : ''}
@@ -4963,7 +5043,8 @@ window.addEventListener('load', function() {
           </div>
         </div>
       </li>
-    `).join('')}</ul>`;
+    `;
+    }).join('')}</ul>`;
 
     // Add event listeners to buttons
     document.querySelectorAll('.reply-btn').forEach(btn => {
@@ -5531,7 +5612,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ─────────────────────────────────────────────
-// Professional DM System (Conversations + Magic Links)
+// Professional DM System (Realtime Database inbox + customer portal)
 // ─────────────────────────────────────────────
 (function () {
   'use strict';
@@ -5541,10 +5622,11 @@ document.addEventListener('DOMContentLoaded', function() {
     filteredConversations: [],
     activeConversationId: null,
     activeConversationData: null,
-    lastMessagesCursor: null,
+    oldestMessageKey: null,
     currentMessagePageSize: 30,
     unsubConversations: null,
     unsubMessages: null,
+    unsubCustomerMessages: null,
     unsubAdminPresence: null,
     unsubCustomerPresence: null,
     typingTimer: null,
@@ -5553,31 +5635,65 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function hasDMDeps() {
     return !!(
+      window.rtdb &&
+      window.rtdbRef &&
+      window.rtdbOnValue &&
+      window.rtdbPush &&
+      window.rtdbSet &&
+      window.rtdbUpdate &&
+      window.rtdbGet &&
+      window.rtdbQuery &&
+      window.rtdbOrderByChild &&
+      window.rtdbOrderByKey &&
+      window.rtdbLimitToLast &&
+      window.rtdbLimitToFirst &&
+      window.rtdbEqualTo &&
+      window.rtdbEndBefore &&
+      window.rtdbServerTimestamp &&
       window.db &&
       window.collection &&
-      window.addDoc &&
-      window.setDoc &&
-      window.getDoc &&
       window.getDocs &&
-      window.query &&
-      window.orderBy &&
-      window.onSnapshot
+      window.query
     );
   }
 
   function formatDMDate(value) {
-    if (!value) return '';
-    const date = value.toDate ? value.toDate() : new Date(value);
+    if (value == null || value === '') return '';
+    var date;
+    if (typeof value === 'number') {
+      date = new Date(value);
+    } else if (value && typeof value.toDate === 'function') {
+      date = value.toDate();
+    } else if (value && typeof value === 'object' && value.seconds != null) {
+      date = new Date(value.seconds * 1000);
+    } else {
+      date = new Date(value);
+    }
     if (isNaN(date.getTime())) return '';
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  function randomToken(length) {
-    const bytes = new Uint8Array(length);
-    window.crypto.getRandomValues(bytes);
-    return Array.from(bytes).map(function (b) {
-      return b.toString(16).padStart(2, '0');
-    }).join('');
+  function rtdbThreadRef(conversationId) {
+    return window.rtdbRef(window.rtdb, 'dm/threadMessages/' + conversationId);
+  }
+
+  function rtdbMetaRef(conversationId) {
+    return window.rtdbRef(window.rtdb, 'dm/meta/' + conversationId);
+  }
+
+  function rtdbPresenceRef(conversationId, role) {
+    return window.rtdbRef(window.rtdb, 'dm/presence/' + conversationId + '/' + role);
+  }
+
+  function isCustomerDmPortalEnabled() {
+    const flags = window.DM_FEATURE_FLAGS || {};
+    if (typeof flags.enableCustomerDmPortal === 'boolean') {
+      return flags.enableCustomerDmPortal;
+    }
+    if (typeof flags.enableCustomerMagicLinks === 'boolean') {
+      return flags.enableCustomerMagicLinks;
+    }
+    return true;
   }
 
   function isAdminSession() {
@@ -5603,18 +5719,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (error) {
       return { id: 'admin', name: 'Admin' };
     }
-  }
-
-  function messageCollection(conversationId) {
-    return window.collection(window.db, 'conversations', conversationId, 'messages');
-  }
-
-  function adminPresenceDoc(conversationId) {
-    return window.doc(window.db, 'conversations', conversationId, 'presence', 'admin');
-  }
-
-  function customerPresenceDoc(conversationId) {
-    return window.doc(window.db, 'conversations', conversationId, 'presence', 'customer');
   }
 
   function ensureAdminInboxUI() {
@@ -5749,8 +5853,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     messagesList.querySelectorAll('.dm-open-conversation').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
+        e.stopPropagation();
         const id = e.currentTarget.dataset.id;
         openConversation(id);
+      });
+    });
+
+    messagesList.querySelectorAll('.dm-conversation-card').forEach(function (card) {
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
+      card.addEventListener('click', function (e) {
+        if (e.target.closest('button')) return;
+        const id = card.getAttribute('data-conversation-id');
+        if (id) openConversation(id);
+      });
+      card.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        if (e.target.closest('button')) return;
+        const id = card.getAttribute('data-conversation-id');
+        if (id) openConversation(id);
       });
     });
   }
@@ -5825,16 +5946,17 @@ document.addEventListener('DOMContentLoaded', function() {
   async function markMessagesReadForAdmin(conversationId, messages) {
     const unread = messages.filter(function (m) { return !m.readByAdmin; });
     if (!unread.length) return;
-    await Promise.all(unread.map(function (msg) {
-      return window.updateDoc(window.doc(window.db, 'conversations', conversationId, 'messages', msg.id), {
-        readByAdmin: true,
-        readAtAdmin: window.serverTimestamp()
-      }).catch(function () {});
-    }));
-    await window.updateDoc(window.doc(window.db, 'conversations', conversationId), {
-      unreadAdmin: 0,
-      updatedAt: window.serverTimestamp()
+    const rootRef = window.rtdbRef(window.rtdb);
+    const patch = {};
+    unread.forEach(function (msg) {
+      patch['dm/threadMessages/' + conversationId + '/' + msg.id + '/readByAdmin'] = true;
+      patch['dm/threadMessages/' + conversationId + '/' + msg.id + '/readAtAdmin'] = window.rtdbServerTimestamp();
     });
+    await window.rtdbUpdate(rootRef, patch).catch(function () {});
+    await window.rtdbUpdate(rtdbMetaRef(conversationId), {
+      unreadAdmin: 0,
+      updatedAt: window.rtdbServerTimestamp()
+    }).catch(function () {});
   }
 
   function subscribeThreadPresence(conversationId) {
@@ -5843,8 +5965,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const customerPresenceEl = document.getElementById('dm-presence-customer');
     const typingEl = document.getElementById('dm-presence-typing');
-    DM.unsubCustomerPresence = window.onSnapshot(customerPresenceDoc(conversationId), function (snap) {
-      const data = snap.exists() ? snap.data() : {};
+    DM.unsubCustomerPresence = window.rtdbOnValue(rtdbPresenceRef(conversationId, 'customer'), function (snap) {
+      const data = snap.val() || {};
       if (customerPresenceEl) customerPresenceEl.textContent = data.isOnline ? 'Customer online' : 'Customer offline';
       if (typingEl) typingEl.textContent = data.isTyping ? 'Customer typing...' : 'Not typing';
     });
@@ -5853,13 +5975,13 @@ document.addEventListener('DOMContentLoaded', function() {
   function setAdminPresence(conversationId, isTyping, isOnline) {
     if (!conversationId) return Promise.resolve();
     const identity = getAdminIdentity();
-    return window.setDoc(adminPresenceDoc(conversationId), {
+    return window.rtdbSet(rtdbPresenceRef(conversationId, 'admin'), {
       userId: identity.id,
       senderRole: 'admin',
       isTyping: !!isTyping,
       isOnline: !!isOnline,
-      updatedAt: window.serverTimestamp()
-    }, { merge: true });
+      updatedAt: window.rtdbServerTimestamp()
+    });
   }
 
   async function openConversation(conversationId) {
@@ -5873,24 +5995,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadMoreBtn = document.getElementById('dm-load-more');
     if (loadMoreBtn) loadMoreBtn.disabled = true;
 
-    const q = window.query(
-      messageCollection(conversationId),
-      window.orderBy('createdAt', 'desc'),
-      window.limit(DM.currentMessagePageSize)
-    );
+    const threadRef = rtdbThreadRef(conversationId);
+    const q = window.rtdbQuery(threadRef, window.rtdbOrderByKey(), window.rtdbLimitToLast(DM.currentMessagePageSize));
 
-    DM.unsubMessages = window.onSnapshot(q, async function (snapshot) {
-      const records = [];
-      snapshot.forEach(function (docSnap) {
-        records.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      DM.lastMessagesCursor = snapshot.docs[snapshot.docs.length - 1] || null;
-      records.reverse();
+    DM.unsubMessages = window.rtdbOnValue(q, async function (snap) {
+      const val = snap.val() || {};
+      const entries = Object.entries(val).sort(function (a, b) { return a[0].localeCompare(b[0]); });
+      const records = entries.map(function (pair) { return { id: pair[0], ...pair[1] }; });
+      DM.oldestMessageKey = records.length ? records[0].id : null;
       if (DM.activeConversationData) {
         renderThread(DM.activeConversationData, records);
       }
       await markMessagesReadForAdmin(conversationId, records);
-      if (loadMoreBtn) loadMoreBtn.disabled = !DM.lastMessagesCursor;
+      if (loadMoreBtn) {
+        loadMoreBtn.disabled = records.length === 0 || entries.length < DM.currentMessagePageSize;
+      }
     });
 
     subscribeThreadPresence(conversationId);
@@ -5898,22 +6017,27 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   async function loadOlderMessages() {
-    if (!DM.activeConversationId || !DM.lastMessagesCursor) return;
-    const q = window.query(
-      messageCollection(DM.activeConversationId),
-      window.orderBy('createdAt', 'desc'),
-      window.startAfter(DM.lastMessagesCursor),
-      window.limit(DM.currentMessagePageSize)
+    if (!DM.activeConversationId || !DM.oldestMessageKey) return;
+    const threadRef = rtdbThreadRef(DM.activeConversationId);
+    const q = window.rtdbQuery(
+      threadRef,
+      window.rtdbOrderByKey(),
+      window.rtdbEndBefore(DM.oldestMessageKey),
+      window.rtdbLimitToLast(DM.currentMessagePageSize)
     );
-    const snapshot = await window.getDocs(q);
+    const snapshot = await window.rtdbGet(q);
     const list = document.getElementById('dm-message-list');
     if (!list) return;
-    const older = [];
-    snapshot.forEach(function (docSnap) {
-      older.push({ id: docSnap.id, ...docSnap.data() });
-    });
-    if (!older.length) return;
-    older.reverse();
+    const val = snapshot.val() || {};
+    const entries = Object.entries(val).sort(function (a, b) { return a[0].localeCompare(b[0]); });
+    if (!entries.length) {
+      DM.oldestMessageKey = null;
+      const loadMoreBtn = document.getElementById('dm-load-more');
+      if (loadMoreBtn) loadMoreBtn.disabled = true;
+      return;
+    }
+    const older = entries.map(function (pair) { return { id: pair[0], ...pair[1] }; });
+    DM.oldestMessageKey = older[0].id;
     const existingHtml = list.innerHTML;
     const olderHtml = older.map(function (msg) {
       const mine = msg.senderRole === 'admin';
@@ -5927,7 +6051,10 @@ document.addEventListener('DOMContentLoaded', function() {
       ].join('');
     }).join('');
     list.innerHTML = olderHtml + existingHtml;
-    DM.lastMessagesCursor = snapshot.docs[snapshot.docs.length - 1] || null;
+    if (entries.length < DM.currentMessagePageSize) {
+      const loadMoreBtn = document.getElementById('dm-load-more');
+      if (loadMoreBtn) loadMoreBtn.disabled = true;
+    }
   }
 
   async function saveConversationMeta() {
@@ -5940,9 +6067,9 @@ document.addEventListener('DOMContentLoaded', function() {
       priority: priority ? priority.value : 'normal',
       tags: tags ? tags.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean) : [],
       assignee: getAdminIdentity().name,
-      updatedAt: window.serverTimestamp()
+      updatedAt: window.rtdbServerTimestamp()
     };
-    await window.updateDoc(window.doc(window.db, 'conversations', DM.activeConversationId), data);
+    await window.rtdbUpdate(rtdbMetaRef(DM.activeConversationId), data);
   }
 
   async function sendAdminThreadMessage(sendEmailCopy) {
@@ -5958,26 +6085,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const attachmentUrl = attachmentInput && attachmentInput.value.trim() ? attachmentInput.value.trim() : '';
     const admin = getAdminIdentity();
 
-    await window.addDoc(messageCollection(DM.activeConversationId), {
+    const newMsgRef = window.rtdbPush(rtdbThreadRef(DM.activeConversationId));
+    await window.rtdbSet(newMsgRef, {
       senderRole: 'admin',
       senderName: admin.name,
       senderId: admin.id,
       body: body,
       attachmentUrl: attachmentUrl,
-      createdAt: window.serverTimestamp(),
+      createdAt: window.rtdbServerTimestamp(),
       readByAdmin: true,
       readByCustomer: false,
       type: attachmentUrl ? 'attachment' : 'text'
     });
 
-    await window.updateDoc(window.doc(window.db, 'conversations', DM.activeConversationId), {
+    const metaPatch = {
       lastMessage: body,
-      lastMessageAt: window.serverTimestamp(),
+      lastMessageAt: window.rtdbServerTimestamp(),
       status: 'pending',
       assignee: admin.name,
-      unreadCustomer: window.increment ? window.increment(1) : (DM.activeConversationData.unreadCustomer || 0) + 1,
-      updatedAt: window.serverTimestamp()
-    });
+      updatedAt: window.rtdbServerTimestamp()
+    };
+    if (window.rtdbIncrement) {
+      metaPatch.unreadCustomer = window.rtdbIncrement(1);
+    } else {
+      metaPatch.unreadCustomer = (DM.activeConversationData.unreadCustomer || 0) + 1;
+    }
+    await window.rtdbUpdate(rtdbMetaRef(DM.activeConversationId), metaPatch);
 
     if (sendEmailCopy) {
       try {
@@ -6069,6 +6202,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const migrateBtn = document.getElementById('dm-migrate-btn');
     if (migrateBtn && (!window.DM_FEATURE_FLAGS || window.DM_FEATURE_FLAGS.enableLegacyMigration !== false)) {
       migrateBtn.addEventListener('click', function () {
+        if (!window.rtdb || !hasDMDeps()) {
+          alert('Realtime Database is not initialized. Configure databaseURL and deploy database.rules.json before migrating.');
+          return;
+        }
         migrateLegacyMessagesToConversations().catch(function (error) {
           alert('Migration failed: ' + error.message);
         });
@@ -6078,6 +6215,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  function legacyTimestampToMillis(ts) {
+    if (!ts) return Date.now();
+    if (typeof ts === 'number') return ts;
+    if (ts && typeof ts.toMillis === 'function') return ts.toMillis();
+    if (ts && typeof ts.seconds === 'number') return ts.seconds * 1000;
+    return Date.now();
+  }
+
   async function migrateLegacyMessagesToConversations() {
     const snap = await window.getDocs(window.query(window.collection(window.db, 'messages'), window.orderBy('timestamp', 'asc')));
     let count = 0;
@@ -6085,7 +6230,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const legacy = docSnap.data();
       if (legacy.conversationId) continue;
       const conversationId = 'conv_' + docSnap.id;
-      const conversationRef = window.doc(window.db, 'conversations', conversationId);
+      const tsMillis = legacyTimestampToMillis(legacy.timestamp);
       const conversationData = {
         customerName: legacy.name || 'Customer',
         customerEmail: legacy.email || '',
@@ -6097,18 +6242,18 @@ document.addEventListener('DOMContentLoaded', function() {
         unreadAdmin: 0,
         unreadCustomer: 0,
         lastMessage: legacy.message || '',
-        lastMessageAt: legacy.timestamp || window.serverTimestamp(),
-        createdAt: legacy.timestamp || window.serverTimestamp(),
-        updatedAt: window.serverTimestamp(),
+        lastMessageAt: tsMillis,
+        createdAt: tsMillis,
+        updatedAt: window.rtdbServerTimestamp(),
         legacyMessageId: docSnap.id
       };
-      await window.setDoc(conversationRef, conversationData, { merge: true });
-      const firstMsgRef = messageCollection(conversationId);
-      await window.addDoc(firstMsgRef, {
+      await window.rtdbSet(rtdbMetaRef(conversationId), conversationData);
+      const firstMsgRef = window.rtdbPush(rtdbThreadRef(conversationId));
+      await window.rtdbSet(firstMsgRef, {
         senderRole: 'customer',
         senderName: legacy.name || 'Customer',
         body: legacy.message || '',
-        createdAt: legacy.timestamp || window.serverTimestamp(),
+        createdAt: tsMillis,
         readByAdmin: true,
         readByCustomer: true,
         type: 'text',
@@ -6125,11 +6270,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function subscribeConversations() {
     if (DM.unsubConversations) DM.unsubConversations();
-    const q = window.query(window.collection(window.db, 'conversations'), window.orderBy('updatedAt', 'desc'), window.limit(150));
-    DM.unsubConversations = window.onSnapshot(q, function (snapshot) {
+    const metaRoot = window.rtdbRef(window.rtdb, 'dm/meta');
+    const q = window.rtdbQuery(metaRoot, window.rtdbOrderByChild('updatedAt'), window.rtdbLimitToLast(150));
+    DM.unsubConversations = window.rtdbOnValue(q, function (snap) {
+      const val = snap.val() || {};
       const records = [];
-      snapshot.forEach(function (docSnap) {
-        records.push({ id: docSnap.id, ...docSnap.data() });
+      Object.keys(val).forEach(function (k) {
+        records.push({ id: k, ...val[k] });
+      });
+      records.sort(function (a, b) {
+        return (b.updatedAt || 0) - (a.updatedAt || 0);
       });
       DM.conversations = records;
       applyConversationFilters();
@@ -6147,7 +6297,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function setupCustomerPortalUI() {
-    if (window.DM_FEATURE_FLAGS && window.DM_FEATURE_FLAGS.enableCustomerMagicLinks === false) return;
+    if (!isCustomerDmPortalEnabled()) return;
     const portalHost = document.querySelector('article[data-page="messages"]');
     if (!portalHost || document.getElementById('customer-dm-portal')) return;
 
@@ -6155,23 +6305,24 @@ document.addEventListener('DOMContentLoaded', function() {
     section.className = 'contact-form';
     section.id = 'customer-dm-portal';
     section.innerHTML = [
+      (!window.rtdb ? '<p class="dm-help-text dm-rtdb-unavailable" role="alert">Realtime Database is not connected. Add <code>databaseURL</code> in Firebase config, deploy <code>database.rules.json</code> (<code>firebase deploy --only database</code>), then reload.</p>' : ''),
       '<h3 class="h3 form-title">Customer Message Portal</h3>',
-      '<p class="dm-help-text">Use your secure magic link token to continue your conversation with Ruben.</p>',
-      '<div class="dm-customer-auth">',
-      '<form id="dm-request-link-form" class="form">',
+      '<p class="dm-help-text">Enter the same name and email you use with this site. We open your conversation in real time (Firebase Realtime Database). No email is sent—this only identifies your thread in this browser.</p>',
+      '<div class="dm-customer-auth" id="dm-customer-auth">',
+      '<form id="dm-portal-open-form" class="form">',
       '<div class="input-wrapper">',
-      '<input type="text" id="dm-request-name" class="form-input" placeholder="Your name" required>',
-      '<input type="email" id="dm-request-email" class="form-input" placeholder="Your email" required>',
+      '<input type="text" id="dm-portal-name" class="form-input" placeholder="Your name" required>',
+      '<input type="email" id="dm-portal-email" class="form-input" placeholder="Your email" required>',
       '</div>',
-      '<button class="form-btn" type="submit"><ion-icon name="key-outline"></ion-icon><span>Generate Magic Link</span></button>',
+      '<p id="dm-portal-status" class="dm-portal-status" role="status" aria-live="polite"></p>',
+      '<button class="form-btn" type="submit"><ion-icon name="chatbubbles-outline"></ion-icon><span>Open my conversation</span></button>',
       '</form>',
-      '<form id="dm-open-link-form" class="form">',
-      '<input type="text" id="dm-token-input" class="form-input" placeholder="Paste token from your link" required>',
-      '<button class="form-btn" type="submit"><ion-icon name="chatbubbles-outline"></ion-icon><span>Open Conversation</span></button>',
-      '</form>',
-      '<p id="dm-link-output" class="dm-link-output"></p>',
       '</div>',
       '<section id="dm-customer-thread" class="dm-customer-thread" style="display:none;">',
+      '<div class="dm-customer-thread-toolbar">',
+      '<p class="dm-customer-thread-email" id="dm-portal-session-email"></p>',
+      '<button type="button" class="dm-portal-sign-out" id="dm-portal-sign-out">Use different email</button>',
+      '</div>',
       '<div id="dm-customer-message-list" class="dm-message-list has-scrollbar"></div>',
       '<form id="dm-customer-composer" class="dm-composer">',
       '<textarea id="dm-customer-message" class="form-textarea" rows="4" placeholder="Type your message..." required></textarea>',
@@ -6181,36 +6332,34 @@ document.addEventListener('DOMContentLoaded', function() {
     ].join('');
     portalHost.appendChild(section);
 
-    const tokenFromUrl = new URLSearchParams(window.location.search).get('dm_token');
-    if (tokenFromUrl) {
-      const tokenInput = document.getElementById('dm-token-input');
-      if (tokenInput) tokenInput.value = tokenFromUrl;
-    }
-
     bindCustomerPortalEvents();
   }
 
   async function getOrCreateConversationForEmail(email, name) {
-    const q = window.query(
-      window.collection(window.db, 'conversations'),
-      window.where('customerEmail', '==', email.toLowerCase()),
-      window.limit(1)
+    const metaRoot = window.rtdbRef(window.rtdb, 'dm/meta');
+    const q = window.rtdbQuery(
+      metaRoot,
+      window.rtdbOrderByChild('customerEmail'),
+      window.rtdbEqualTo(email.toLowerCase()),
+      window.rtdbLimitToFirst(1)
     );
-    const snap = await window.getDocs(q);
-    if (!snap.empty) {
-      const docSnap = snap.docs[0];
-      return { id: docSnap.id, ...docSnap.data() };
+    const snap = await window.rtdbGet(q);
+    const val = snap.val();
+    if (val) {
+      const id = Object.keys(val)[0];
+      return { id: id, ...val[id] };
     }
 
-    const newRef = window.doc(window.collection(window.db, 'conversations'));
-    const now = window.serverTimestamp();
-    await window.setDoc(newRef, {
+    const newRef = window.rtdbPush(metaRoot);
+    const id = newRef.key;
+    const now = window.rtdbServerTimestamp();
+    await window.rtdbSet(newRef, {
       customerName: name,
       customerEmail: email.toLowerCase(),
       source: 'portal',
       status: 'open',
       priority: 'normal',
-      tags: ['magic-link'],
+      tags: ['portal'],
       assignee: 'Admin',
       unreadAdmin: 0,
       unreadCustomer: 0,
@@ -6218,42 +6367,25 @@ document.addEventListener('DOMContentLoaded', function() {
       createdAt: now,
       updatedAt: now
     });
-    return { id: newRef.id, customerName: name, customerEmail: email.toLowerCase() };
-  }
-
-  async function createMagicLink(email, name) {
-    const conversation = await getOrCreateConversationForEmail(email, name);
-    const token = randomToken(24);
-    const link = window.location.origin + window.location.pathname + '?dm_token=' + token;
-    const expiresAtMs = Date.now() + (7 * 24 * 60 * 60 * 1000);
-    await window.setDoc(window.doc(window.db, 'magicLinks', token), {
-      token: token,
-      conversationId: conversation.id,
-      customerEmail: email.toLowerCase(),
-      customerName: name,
-      createdAt: window.serverTimestamp(),
-      expiresAtMs: expiresAtMs,
-      used: false
-    });
-    return { token: token, link: link, conversationId: conversation.id };
+    return { id: id, customerName: name, customerEmail: email.toLowerCase() };
   }
 
   async function validateMagicToken(token) {
-    const tokenRef = window.doc(window.db, 'magicLinks', token.trim());
-    const snap = await window.getDoc(tokenRef);
-    if (!snap.exists()) throw new Error('Invalid token.');
-    const data = snap.data();
+    const tokenRef = window.rtdbRef(window.rtdb, 'dm/magicLinks/' + token.trim());
+    const snap = await window.rtdbGet(tokenRef);
+    if (!snap.exists) throw new Error('Invalid token.');
+    const data = snap.val();
     if (!data.expiresAtMs || Date.now() > data.expiresAtMs) {
-      throw new Error('Token expired. Request a new magic link.');
+      throw new Error('Token expired. Open your conversation with your email above.');
     }
-    await window.updateDoc(tokenRef, {
+    await window.rtdbUpdate(tokenRef, {
       used: true,
-      lastUsedAt: window.serverTimestamp()
+      lastUsedAt: window.rtdbServerTimestamp()
     });
     DM.customerSession = {
-      token: token.trim(),
       conversationId: data.conversationId,
-      customerEmail: data.customerEmail || ''
+      customerEmail: (data.customerEmail || '').toLowerCase(),
+      customerName: data.customerName || 'Customer'
     };
     localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
     return DM.customerSession;
@@ -6286,78 +6418,171 @@ document.addEventListener('DOMContentLoaded', function() {
     const thread = document.getElementById('dm-customer-thread');
     if (thread) thread.style.display = 'block';
 
-    if (DM.unsubMessages) DM.unsubMessages();
-    const q = window.query(messageCollection(session.conversationId), window.orderBy('createdAt', 'asc'), window.limit(200));
-    DM.unsubMessages = window.onSnapshot(q, async function (snapshot) {
-      const messages = [];
-      snapshot.forEach(function (docSnap) {
-        messages.push({ id: docSnap.id, ...docSnap.data() });
-      });
+    if (DM.unsubCustomerMessages) DM.unsubCustomerMessages();
+    const threadRef = rtdbThreadRef(session.conversationId);
+    const q = window.rtdbQuery(threadRef, window.rtdbOrderByChild('createdAt'), window.rtdbLimitToFirst(200));
+    DM.unsubCustomerMessages = window.rtdbOnValue(q, async function (snap) {
+      const val = snap.val() || {};
+      const messages = Object.keys(val)
+        .map(function (k) { return { id: k, ...val[k] }; })
+        .sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
       renderCustomerThread(messages);
       const unread = messages.filter(function (m) { return !m.readByCustomer; });
-      await Promise.all(unread.map(function (msg) {
-        return window.updateDoc(window.doc(window.db, 'conversations', session.conversationId, 'messages', msg.id), {
-          readByCustomer: true,
-          readAtCustomer: window.serverTimestamp()
-        }).catch(function () {});
-      }));
-      await window.updateDoc(window.doc(window.db, 'conversations', session.conversationId), {
+      if (unread.length) {
+        const rootRef = window.rtdbRef(window.rtdb);
+        const patch = {};
+        unread.forEach(function (msg) {
+          patch['dm/threadMessages/' + session.conversationId + '/' + msg.id + '/readByCustomer'] = true;
+          patch['dm/threadMessages/' + session.conversationId + '/' + msg.id + '/readAtCustomer'] = window.rtdbServerTimestamp();
+        });
+        await window.rtdbUpdate(rootRef, patch).catch(function () {});
+      }
+      await window.rtdbUpdate(rtdbMetaRef(session.conversationId), {
         unreadCustomer: 0,
-        updatedAt: window.serverTimestamp()
-      });
+        updatedAt: window.rtdbServerTimestamp()
+      }).catch(function () {});
     });
 
-    await window.setDoc(customerPresenceDoc(session.conversationId), {
+    await window.rtdbSet(rtdbPresenceRef(session.conversationId, 'customer'), {
       senderRole: 'customer',
       isOnline: true,
       isTyping: false,
-      updatedAt: window.serverTimestamp()
-    }, { merge: true });
+      updatedAt: window.rtdbServerTimestamp()
+    });
+  }
+
+  function stripDmTokenQueryParam() {
+    try {
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has('dm_token')) return;
+      url.searchParams.delete('dm_token');
+      const next = url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash;
+      window.history.replaceState({}, '', next);
+    } catch (err) {}
+  }
+
+  function stopCustomerDmMessageSubscription() {
+    if (DM.unsubCustomerMessages && typeof DM.unsubCustomerMessages === 'function') {
+      DM.unsubCustomerMessages();
+      DM.unsubCustomerMessages = null;
+    }
+  }
+
+  function setCustomerPortalAuthVisible(visible) {
+    const auth = document.getElementById('dm-customer-auth');
+    const thread = document.getElementById('dm-customer-thread');
+    if (auth) auth.style.display = visible ? '' : 'none';
+    if (thread) thread.style.display = visible ? 'none' : 'block';
+  }
+
+  function updateCustomerPortalSessionLabel() {
+    const el = document.getElementById('dm-portal-session-email');
+    if (!el || !DM.customerSession) return;
+    const name = DM.customerSession.customerName || '';
+    const email = DM.customerSession.customerEmail || '';
+    el.textContent = name ? name + ' · ' + email : email;
+  }
+
+  function openCustomerPortalSession() {
+    updateCustomerPortalSessionLabel();
+    setCustomerPortalAuthVisible(false);
+  }
+
+  function tryLegacyDmTokenFromUrl() {
+    const raw = new URLSearchParams(window.location.search).get('dm_token');
+    if (!raw) return Promise.resolve(false);
+    if (!window.rtdb) return Promise.resolve(false);
+    return validateMagicToken(raw)
+      .then(function (session) {
+        stripDmTokenQueryParam();
+        openCustomerPortalSession();
+        return startCustomerThread(session);
+      })
+      .then(function () {
+        return true;
+      })
+      .catch(function () {
+        stripDmTokenQueryParam();
+        return false;
+      });
+  }
+
+  function restoreCustomerPortalFromStorage() {
+    const saved = localStorage.getItem('customerDmSession');
+    if (!saved) return false;
+    try {
+      DM.customerSession = JSON.parse(saved);
+      if (!DM.customerSession || !DM.customerSession.conversationId) return false;
+      openCustomerPortalSession();
+      startCustomerThread(DM.customerSession).catch(function () {});
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   function bindCustomerPortalEvents() {
-    const requestForm = document.getElementById('dm-request-link-form');
-    const openForm = document.getElementById('dm-open-link-form');
-    const output = document.getElementById('dm-link-output');
+    const portalForm = document.getElementById('dm-portal-open-form');
+    const statusEl = document.getElementById('dm-portal-status');
+    const signOutBtn = document.getElementById('dm-portal-sign-out');
     const composer = document.getElementById('dm-customer-composer');
     const input = document.getElementById('dm-customer-message');
 
-    const saved = localStorage.getItem('customerDmSession');
-    if (saved) {
-      try {
-        DM.customerSession = JSON.parse(saved);
-        startCustomerThread(DM.customerSession).catch(function () {});
-      } catch (error) {}
+    function setPortalStatus(message, isError) {
+      if (!statusEl) return;
+      statusEl.textContent = message || '';
+      statusEl.classList.toggle('dm-portal-status-error', !!isError);
     }
 
-    if (requestForm) {
-      requestForm.addEventListener('submit', function (e) {
+    tryLegacyDmTokenFromUrl().then(function (openedFromToken) {
+      if (!openedFromToken) {
+        restoreCustomerPortalFromStorage();
+      }
+    });
+
+    if (portalForm) {
+      portalForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        const emailEl = document.getElementById('dm-request-email');
-        const nameEl = document.getElementById('dm-request-name');
-        if (!emailEl || !nameEl) return;
-        createMagicLink(emailEl.value.trim(), nameEl.value.trim())
-          .then(function (result) {
-            if (output) output.textContent = 'Magic link (share privately): ' + result.link;
-            const tokenInput = document.getElementById('dm-token-input');
-            if (tokenInput) tokenInput.value = result.token;
+        const emailEl = document.getElementById('dm-portal-email');
+        const nameEl = document.getElementById('dm-portal-name');
+        if (!emailEl || !nameEl || !window.rtdb) {
+          setPortalStatus('Realtime Database is not available.', true);
+          return;
+        }
+        const email = emailEl.value.trim();
+        const name = nameEl.value.trim();
+        if (!email || !name) {
+          setPortalStatus('Please enter your name and email.', true);
+          return;
+        }
+        setPortalStatus('Opening…', false);
+        getOrCreateConversationForEmail(email, name)
+          .then(function (conv) {
+            DM.customerSession = {
+              conversationId: conv.id,
+              customerEmail: (conv.customerEmail || email).toLowerCase(),
+              customerName: conv.customerName || name
+            };
+            localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
+            setPortalStatus('', false);
+            openCustomerPortalSession();
+            return startCustomerThread(DM.customerSession);
           })
           .catch(function (error) {
-            if (output) output.textContent = 'Failed to generate link: ' + error.message;
+            setPortalStatus(error.message || 'Something went wrong.', true);
           });
       });
     }
 
-    if (openForm) {
-      openForm.addEventListener('submit', function (e) {
-        e.preventDefault();
-        const tokenEl = document.getElementById('dm-token-input');
-        if (!tokenEl) return;
-        validateMagicToken(tokenEl.value)
-          .then(function (session) { return startCustomerThread(session); })
-          .catch(function (error) {
-            alert(error.message);
-          });
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', function () {
+        stopCustomerDmMessageSubscription();
+        DM.customerSession = null;
+        localStorage.removeItem('customerDmSession');
+        setCustomerPortalAuthVisible(true);
+        const list = document.getElementById('dm-customer-message-list');
+        if (list) list.innerHTML = '';
+        if (input) input.value = '';
       });
     }
 
@@ -6365,27 +6590,34 @@ document.addEventListener('DOMContentLoaded', function() {
       composer.addEventListener('submit', function (e) {
         e.preventDefault();
         if (!DM.customerSession || !DM.customerSession.conversationId) {
-          alert('Open your conversation token first.');
+          alert('Enter your name and email above to open your conversation.');
           return;
         }
         const text = input.value.trim();
         if (!text) return;
-        window.addDoc(messageCollection(DM.customerSession.conversationId), {
+        const displayName = DM.customerSession.customerName || 'Customer';
+        const msgRef = window.rtdbPush(rtdbThreadRef(DM.customerSession.conversationId));
+        window.rtdbSet(msgRef, {
           senderRole: 'customer',
-          senderName: 'Customer',
+          senderName: displayName,
           body: text,
-          createdAt: window.serverTimestamp(),
+          createdAt: window.rtdbServerTimestamp(),
           readByAdmin: false,
           readByCustomer: true,
           type: 'text'
         }).then(function () {
-          return window.updateDoc(window.doc(window.db, 'conversations', DM.customerSession.conversationId), {
+          const metaPatch = {
             lastMessage: text,
-            lastMessageAt: window.serverTimestamp(),
+            lastMessageAt: window.rtdbServerTimestamp(),
             status: 'open',
-            unreadAdmin: window.increment ? window.increment(1) : 1,
-            updatedAt: window.serverTimestamp()
-          });
+            updatedAt: window.rtdbServerTimestamp()
+          };
+          if (window.rtdbIncrement) {
+            metaPatch.unreadAdmin = window.rtdbIncrement(1);
+          } else {
+            metaPatch.unreadAdmin = 1;
+          }
+          return window.rtdbUpdate(rtdbMetaRef(DM.customerSession.conversationId), metaPatch);
         }).then(function () {
           input.value = '';
         }).catch(function (error) {
@@ -6395,33 +6627,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
       input.addEventListener('input', function () {
         if (!DM.customerSession || !DM.customerSession.conversationId) return;
-        window.setDoc(customerPresenceDoc(DM.customerSession.conversationId), {
+        window.rtdbSet(rtdbPresenceRef(DM.customerSession.conversationId, 'customer'), {
           senderRole: 'customer',
           isOnline: true,
           isTyping: true,
-          updatedAt: window.serverTimestamp()
-        }, { merge: true }).catch(function () {});
+          updatedAt: window.rtdbServerTimestamp()
+        }).catch(function () {});
         clearTimeout(DM.typingTimer);
         DM.typingTimer = setTimeout(function () {
-          window.setDoc(customerPresenceDoc(DM.customerSession.conversationId), {
+          window.rtdbSet(rtdbPresenceRef(DM.customerSession.conversationId, 'customer'), {
             senderRole: 'customer',
             isOnline: true,
             isTyping: false,
-            updatedAt: window.serverTimestamp()
-          }, { merge: true }).catch(function () {});
+            updatedAt: window.rtdbServerTimestamp()
+          }).catch(function () {});
         }, 1200);
       });
     }
   }
 
   function initializeProfessionalDM() {
-    if (!hasDMDeps()) return;
+    if (!window.db) return;
     if (window.DM_FEATURE_FLAGS && window.DM_FEATURE_FLAGS.enableProfessionalInbox === false) return;
+
     ensureAdminInboxUI();
-    setupCustomerPortalUI();
+
+    if (isCustomerDmPortalEnabled()) {
+      setupCustomerPortalUI();
+    }
+
     bindAdminInboxEvents();
 
-    // Override legacy fetchMessages with conversation inbox loader.
+    if (!hasDMDeps()) {
+      console.warn(
+        'Portfolio DM: Realtime Database not ready. Set databaseURL in assets/js/config.js, deploy database.rules.json, and reload. Legacy Firestore messages still work when inbox fallback applies.'
+      );
+      return;
+    }
+
     window.fetchMessages = function () {
       if (!isAdminSession()) return;
       subscribeConversations();
@@ -6441,12 +6684,12 @@ document.addEventListener('DOMContentLoaded', function() {
       setAdminPresence(DM.activeConversationId, false, false).catch(function () {});
     }
     if (DM.customerSession && DM.customerSession.conversationId) {
-      window.setDoc(customerPresenceDoc(DM.customerSession.conversationId), {
+      window.rtdbSet(rtdbPresenceRef(DM.customerSession.conversationId, 'customer'), {
         senderRole: 'customer',
         isOnline: false,
         isTyping: false,
-        updatedAt: window.serverTimestamp()
-      }, { merge: true }).catch(function () {});
+        updatedAt: window.rtdbServerTimestamp()
+      }).catch(function () {});
     }
   });
 })();

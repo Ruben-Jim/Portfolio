@@ -8432,13 +8432,19 @@ body.project-modal-open {
 
 /* Professional DM system */
 .dm-search-input {
-  min-width: 200px;
-  max-width: 280px;
+  min-width: 0;
+  flex: 1 1 180px;
+  max-width: none;
+}
+
+#admin-dashboard-content .messages-controls {
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .dm-layout {
   display: grid;
-  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 1fr);
   gap: 16px;
   margin-top: 12px;
   min-width: 0;
@@ -8446,17 +8452,17 @@ body.project-modal-open {
   align-items: start;
 }
 
-/* Admin inbox: prioritize thread width on desktop */
-@media (min-width: 1024px) {
+/* Admin inbox: wider list column so multiple compact cards fit (auto-fill grid) */
+@media (min-width: 992px) {
   #admin-dashboard-content .dm-layout {
-    grid-template-columns: minmax(260px, 340px) minmax(320px, 1fr);
+    grid-template-columns: minmax(300px, min(44vw, 680px)) minmax(280px, 1fr);
     gap: 18px;
   }
 }
 
 @media (min-width: 1400px) {
   #admin-dashboard-content .dm-layout {
-    grid-template-columns: minmax(280px, 380px) minmax(400px, 1fr);
+    grid-template-columns: minmax(360px, min(40vw, 720px)) minmax(380px, 1fr);
   }
 }
 
@@ -8464,23 +8470,113 @@ body.project-modal-open {
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
+  container-type: inline-size;
+  container-name: dm-inbox;
 }
 
 .dm-conversation-list-wrap .messages-list {
-  max-height: 640px;
+  max-height: none;
+  overflow-y: visible;
+}
+
+/* Legacy Firestore messages list: grow with content; scroll the page, not this pane */
+#admin-dashboard-content #messages-section .messages-list {
+  max-height: none;
+  overflow-y: visible;
 }
 
 /*
- * Inbox list shares a row with the thread panel (~260–380px wide). A 2-column card
- * grid (global admin rule at 1700px+) overflows into the thread column and looks
- * like the panel is floating over the list. Keep this pane single-column always.
+ * Conversation inbox: at most 2 columns (never 3+).
  */
 #admin-dashboard-content .dm-conversation-list-wrap .message-grid {
+  display: grid;
   grid-template-columns: 1fr;
+  gap: 12px 14px;
+  align-items: stretch;
+}
+
+@container dm-inbox (min-width: 400px) {
+  #admin-dashboard-content .dm-conversation-list-wrap .message-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 #admin-dashboard-content .dm-conversation-list-wrap .messages-list .message-card {
   z-index: auto;
+}
+
+/* Compact DM cards — fit more threads above the fold */
+#admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-card {
+  padding: 12px 14px;
+  gap: 6px;
+  border-radius: 12px;
+  cursor: pointer;
+  min-height: 0;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-card:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-card .message-card-header {
+  align-items: center;
+  gap: 8px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .message-card-name {
+  font-size: var(--fs-6);
+  line-height: 1.25;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .message-card-email {
+  font-size: var(--fs-8);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .message-card-subject {
+  font-size: var(--fs-7);
+  line-height: 1.35;
+  font-weight: var(--fw-400);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .message-card-footer {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .message-card-date,
+#admin-dashboard-content .dm-conversation-list-wrap .message-card-source {
+  font-size: 10px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .message-card-actions {
+  margin-top: 6px;
+  gap: 6px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .reply-btn {
+  padding: 6px 10px;
+  font-size: var(--fs-8);
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .reply-btn span {
+  display: inline;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .status-badge {
+  font-size: 10px;
+  padding: 3px 8px;
 }
 
 .dm-thread-panel {
@@ -8720,10 +8816,61 @@ body.project-modal-open {
   margin-bottom: 12px;
 }
 
-.dm-link-output {
+.dm-help-text.dm-rtdb-unavailable {
+  color: #e57373;
+  border: 1px solid rgba(229, 115, 115, 0.45);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.25);
+  line-height: 1.5;
+}
+
+.dm-help-text.dm-rtdb-unavailable code {
+  font-size: 0.9em;
+  color: var(--light-gray);
+}
+
+.dm-portal-status {
+  min-height: 1.25em;
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+  margin: 8px 0 0;
+}
+
+.dm-portal-status-error {
+  color: #e57373;
+}
+
+.dm-customer-thread-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--jet);
+}
+
+.dm-customer-thread-email {
+  margin: 0;
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+}
+
+.dm-portal-sign-out {
+  background: transparent;
+  border: 1px solid var(--jet);
   color: var(--orange-yellow-crayola);
   font-size: var(--fs-7);
-  word-break: break-all;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition-1);
+}
+
+.dm-portal-sign-out:hover {
+  border-color: var(--orange-yellow-crayola);
 }
 
 .dm-customer-thread {
@@ -8900,6 +9047,11 @@ article.contact[data-page="contact"] {
     max-height: 320px;
   }
 
+  #admin-dashboard-content #dm-layout .dm-conversation-list-wrap .messages-list {
+    max-height: none;
+    overflow-y: visible;
+  }
+
   .blog-management-controls {
     flex-wrap: wrap;
   }
@@ -9070,6 +9222,119 @@ article.contact[data-page="contact"] {
   font-weight: var(--fw-500);
 }
 
+/* Hire Me — separate meta tiles on contact message cards */
+#admin-dashboard-content .message-card-hire-meta,
+.messages-list .message-card-hire-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 12px;
+  margin: 10px 0 14px;
+  text-align: left;
+}
+
+#admin-dashboard-content .message-card-hire-section,
+.messages-list .message-card-hire-section {
+  position: relative;
+  padding: 14px 16px 16px;
+  border-radius: 12px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.055) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 8px 24px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+#admin-dashboard-content .message-card-hire-section::before,
+.messages-list .message-card-hire-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 12px 12px 0 0;
+}
+
+#admin-dashboard-content .message-card-hire-section--project::before,
+.messages-list .message-card-hire-section--project::before {
+  background: linear-gradient(
+    90deg,
+    rgba(72, 205, 190, 0.95),
+    rgba(99, 179, 237, 0.85)
+  );
+}
+
+#admin-dashboard-content .message-card-hire-section--budget::before,
+.messages-list .message-card-hire-section--budget::before {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 184, 77, 0.95),
+    rgba(255, 209, 140, 0.75)
+  );
+}
+
+#admin-dashboard-content .message-card-hire-section-head,
+.messages-list .message-card-hire-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+#admin-dashboard-content .message-card-hire-icon-wrap,
+.messages-list .message-card-hire-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+#admin-dashboard-content .message-card-hire-section--project .message-card-hire-icon-wrap,
+.messages-list .message-card-hire-section--project .message-card-hire-icon-wrap {
+  background: rgba(72, 205, 190, 0.12);
+  color: rgba(129, 230, 217, 0.95);
+}
+
+#admin-dashboard-content .message-card-hire-section--budget .message-card-hire-icon-wrap,
+.messages-list .message-card-hire-section--budget .message-card-hire-icon-wrap {
+  background: rgba(255, 184, 77, 0.14);
+  color: var(--orange-yellow-crayola);
+}
+
+#admin-dashboard-content .message-card-hire-icon-wrap ion-icon,
+.messages-list .message-card-hire-icon-wrap ion-icon {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+#admin-dashboard-content .message-card-hire-section-label,
+.messages-list .message-card-hire-section-label {
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--light-gray-70);
+}
+
+#admin-dashboard-content .message-card-hire-section-value,
+.messages-list .message-card-hire-section-value {
+  margin: 0;
+  font-size: var(--fs-6);
+  font-weight: var(--fw-500);
+  line-height: 1.45;
+  color: var(--white-1);
+  word-break: break-word;
+}
+
 #admin-dashboard-content .message-card-text,
 .messages-list .message-card-text {
   color: var(--light-gray);
@@ -9079,16 +9344,8 @@ article.contact[data-page="contact"] {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
   border-left: 3px solid var(--orange-yellow-crayola);
-  max-height: 120px;
-  overflow-y: auto;
   text-align: left;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-#admin-dashboard-content .message-card-text::-webkit-scrollbar,
-.messages-list .message-card-text::-webkit-scrollbar {
-  display: none;
+  overflow: visible;
 }
 
 #admin-dashboard-content .message-card-footer,
@@ -9260,7 +9517,6 @@ article.contact[data-page="contact"] {
   .messages-list .message-card-text {
     padding: 9px;
     line-height: 1.45;
-    max-height: 88px;
   }
 
   #admin-dashboard-content .message-card-actions,

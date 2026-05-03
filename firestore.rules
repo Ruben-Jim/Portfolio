@@ -17,37 +17,13 @@ service cloud.firestore {
       allow read, update, delete: if true;
     }
 
-    // Conversation inbox model for professional DM.
-    match /conversations/{conversationId} {
-      allow create: if true;
-      allow read, update: if true;
-      allow delete: if false;
-
-      match /messages/{threadMessageId} {
-        allow create: if
-          request.resource.data.keys().hasAll(['senderRole', 'body', 'createdAt']) &&
-          request.resource.data.senderRole in ['admin', 'customer'] &&
-          isValidString(request.resource.data.body, 8000);
-        allow read, update: if true;
-        allow delete: if false;
-      }
-
-      match /presence/{presenceId} {
-        allow create, update: if true;
-        allow read: if true;
-        allow delete: if false;
-      }
+    // Professional DM moved to Realtime Database (dm/*). Deny all Firestore access under these paths.
+    match /conversations/{document=**} {
+      allow read, write: if false;
     }
 
-    // Magic link docs (token id based) for customer portal access.
     match /magicLinks/{tokenId} {
-      allow create: if
-        request.resource.data.keys().hasAll(['conversationId', 'customerEmail', 'expiresAtMs']) &&
-        isValidString(request.resource.data.conversationId, 128) &&
-        isValidString(request.resource.data.customerEmail, 160) &&
-        request.resource.data.expiresAtMs is int;
-      allow read, update: if true;
-      allow delete: if false;
+      allow read, write: if false;
     }
 
     // Blog posts collection

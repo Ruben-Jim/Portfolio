@@ -1,0 +1,35 @@
+{
+  "rules": {
+    "dm": {
+      "meta": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": ["updatedAt", "customerEmail"]
+      },
+      "threadMessages": {
+        ".read": true,
+        "$conversationId": {
+          ".write": true,
+          ".indexOn": ["createdAt"]
+        }
+      },
+      "presence": {
+        ".read": true,
+        "$conversationId": {
+          "admin": {
+            ".write": true
+          },
+          "customer": {
+            ".write": true
+          }
+        }
+      },
+      "magicLinks": {
+        ".read": true,
+        "$token": {
+          ".write": true
+        }
+      }
+    }
+  }
+}
