@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Reference layout for contact notifications. Live HTML is built in functions/emailTemplates.js (Resend). -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -241,7 +242,7 @@
         <div class="email-header">
             <div class="email-header-content">
                 <h1 class="email-title">New Contact Form Submission</h1>
-                <p class="email-subtitle">Portfolio Contact Form</p>
+                <p class="email-subtitle">Portfolio · Contact form</p>
             </div>
         </div>
         
@@ -288,7 +289,7 @@
             
             <!-- Call to Action -->
             <div style="text-align: center;">
-                <a href="mailto:{{email}}?subject=Re: Your Portfolio Contact Form Submission" class="cta-button">
+                <a href="mailto:{{email}}?subject=Re%3A%20Your%20portfolio%20contact%20message" class="cta-button">
                     Reply to {{fullname}}
                 </a>
             </div>

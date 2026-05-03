@@ -1,2 +1,4 @@
 .env.local
 .env.production
+functions/node_modules/
+.firebase/

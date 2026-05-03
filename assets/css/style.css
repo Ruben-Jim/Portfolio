@@ -93,6 +93,11 @@
   --fw-600: 600;
 
   /**
+   * layout — extra top inset so article body clears absolute navbar (all viewports)
+   */
+  --article-navbar-extra-top: 46px;
+
+  /**
    * shadow
    */
   
@@ -232,6 +237,10 @@ article {
   box-shadow: var(--shadow-1);
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+article {
+  padding-top: calc(15px + var(--article-navbar-extra-top) + env(safe-area-inset-top, 0px));
 }
 
 article::-webkit-scrollbar { 
@@ -3420,6 +3429,59 @@ textarea.form-input::-webkit-resizer { display: none; }
 
 .form-input:focus:invalid { border-color: var(--bittersweet-shimmer); }
 
+/* Override Chrome/Safari/Firefox autofill — keeps dark-theme colors when fields are prefilled */
+.form-input:-webkit-autofill,
+.form-input:-webkit-autofill:hover,
+.form-input:-webkit-autofill:focus,
+.form-input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--white-2);
+  caret-color: var(--orange-yellow-crayola);
+  border: 1px solid var(--jet);
+  box-shadow: 0 0 0 1000px var(--eerie-black-1) inset;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.form-input:-webkit-autofill:focus {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 1000px var(--eerie-black-1) inset;
+}
+
+.form-input:autofill,
+.form-input:autofill:hover,
+.form-input:autofill:focus,
+.form-input:autofill:active {
+  box-shadow: 0 0 0 1000px var(--eerie-black-1) inset;
+  color: var(--white-2);
+  border: 1px solid var(--jet);
+}
+
+.form-input:autofill:focus {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 1000px var(--eerie-black-1) inset;
+}
+
+.form-textarea:-webkit-autofill,
+.form-textarea:-webkit-autofill:hover,
+.form-textarea:-webkit-autofill:focus,
+.form-textarea:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--white-2);
+  caret-color: var(--orange-yellow-crayola);
+  border: 1px solid var(--jet);
+  box-shadow: 0 0 0 1000px var(--eerie-black-1) inset;
+  transition: background-color 99999s ease-out 0s;
+}
+
+.form-textarea:-webkit-autofill:focus {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 1000px var(--eerie-black-1) inset;
+}
+
+.form-textarea:autofill,
+.form-textarea:autofill:focus {
+  box-shadow: 0 0 0 1000px var(--eerie-black-1) inset;
+  color: var(--white-2);
+}
+
 .form-btn {
   position: relative;
   width: 100%;
@@ -3502,6 +3564,56 @@ textarea.form-input::-webkit-resizer { display: none; }
   font-size: var(--fs-6);
   font-weight: var(--fw-400);
   line-height: 1.4;
+}
+
+/* Hire Me — success replaces form panel */
+.hire-form-submitted {
+  margin-top: 0;
+  padding: 28px 22px;
+  border-radius: 14px;
+  border: 1px solid var(--jet);
+  background: var(--bg-gradient-jet);
+  animation: slideIn 0.35s ease-out;
+  /* Keep confirmation off the viewport top when scrollIntoView runs (avoids sitting under the article nav) */
+  scroll-margin-top: calc(24px + var(--article-navbar-extra-top) + env(safe-area-inset-top, 0px));
+  scroll-margin-bottom: 32px;
+}
+
+.hire-form-submitted-inner {
+  text-align: center;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.hire-form-submitted-icon {
+  margin-bottom: 14px;
+  line-height: 1;
+}
+
+.hire-form-submitted-icon ion-icon {
+  font-size: 44px;
+  color: var(--orange-yellow-crayola);
+  vertical-align: middle;
+}
+
+.hire-form-submitted-title {
+  margin-bottom: 10px;
+  color: var(--white-1);
+}
+
+.hire-form-submitted-text {
+  font-size: var(--fs-7);
+  color: var(--light-gray-70);
+  line-height: 1.65;
+}
+
+.hire-form-submitted-text a {
+  color: var(--orange-yellow-crayola);
+  text-decoration: none;
+}
+
+.hire-form-submitted-text a:hover {
+  text-decoration: underline;
 }
 
 /* Form Loading State */
@@ -3595,6 +3707,11 @@ textarea.form-input::-webkit-resizer { display: none; }
   :root {
 
     /**
+     * layout — larger toggle (32px icon); keep flow below navbar + dropdown offset
+     */
+    --article-navbar-extra-top: 42px;
+
+    /**
      * typography
      */
 
@@ -3618,6 +3735,10 @@ textarea.form-input::-webkit-resizer { display: none; }
     width: 520px;
     margin-inline: auto;
     padding: 30px;
+  }
+
+  article {
+    padding-top: calc(30px + var(--article-navbar-extra-top) + env(safe-area-inset-top, 0px));
   }
 
   .article-title {
@@ -6910,66 +7031,192 @@ body.project-modal-open {
   margin: 0;
 }
 
-.admin-main-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
+.admin-tabs {
   margin-bottom: 24px;
   min-width: 0;
 }
 
-@media (min-width: 768px) {
-  .admin-main-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
+.admin-tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 6px;
+  background: var(--eerie-black-1);
+  border: 1px solid var(--jet);
+  border-radius: 14px;
+}
+
+.admin-tab {
+  flex: 1 1 auto;
+  min-width: min(140px, 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--light-gray);
+  font-family: inherit;
+  font-size: var(--fs-7);
+  font-weight: var(--fw-600);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-tab ion-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.admin-tab:hover {
+  color: var(--white-2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.admin-tab:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.admin-tab.is-active {
+  background: var(--border-gradient-onyx);
+  color: var(--orange-yellow-crayola);
+  border-color: rgba(255, 193, 7, 0.2);
+}
+
+/* Admin subtabs — readable layout & touch targets on phones / small tablets */
+@media (max-width: 767px) {
+  .admin-tabs {
+    margin-bottom: 16px;
   }
 
-  .admin-main-grid .business-docs-table-wrapper,
-  .admin-messages-section .messages-list {
-    max-height: 360px;
+  .admin-tab-bar {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 6px;
+    padding: 8px;
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+    border-radius: 12px;
   }
 
-  /* Blog full-width below Documents + Messages until 3-column layout */
-  .admin-main-grid #blog-section {
-    grid-column: 1 / -1;
+  .admin-tab {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    justify-content: flex-start;
+    padding: 12px 14px 12px 16px;
+    gap: 12px;
+    font-size: var(--fs-6);
+    line-height: 1.25;
+    text-align: left;
+    border-radius: 10px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .admin-tab ion-icon {
+    font-size: 22px;
+  }
+
+  .admin-tab span {
+    flex: 1;
+    text-align: left;
+    min-width: 0;
+  }
+
+  .admin-tab.is-active {
+    box-shadow: inset 0 0 0 1px rgba(255, 193, 7, 0.25);
+  }
+
+  .admin-tab:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+
+  .admin-tab:active:not(.is-active):not(:disabled) {
+    background: rgba(255, 255, 255, 0.06);
   }
 }
 
-@media (min-width: 1024px) {
-  .admin-main-grid {
-    gap: 28px;
-    margin-bottom: 28px;
+/* Slightly compact bar on very narrow widths */
+@media (max-width: 379px) {
+  .admin-tab-bar {
+    padding: 6px;
+    gap: 4px;
+    border-radius: 10px;
   }
 
-  .admin-main-grid .business-docs-table-wrapper,
-  .admin-messages-section .messages-list {
-    max-height: 380px;
+  .admin-tab {
+    min-height: 46px;
+    padding: 10px 12px;
+    font-size: var(--fs-7);
+    gap: 10px;
+  }
+
+  .admin-tab ion-icon {
+    font-size: 20px;
   }
 }
 
-@media (min-width: 1250px) {
-  .admin-main-grid {
-    gap: 32px;
-    margin-bottom: 32px;
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .admin-tab:active:not(:disabled) {
+    transform: none;
   }
 }
 
-@media (min-width: 1400px) {
-  .admin-main-grid {
-    grid-template-columns: minmax(300px, 1fr) minmax(380px, 1.25fr) minmax(300px, 1fr);
-    gap: 20px;
-    align-items: start;
+.admin-tab-panels {
+  min-width: 0;
+}
+
+.admin-panel-heading {
+  margin-bottom: 18px;
+}
+
+.admin-panel-title {
+  margin-bottom: 4px;
+}
+
+.admin-panel-lead {
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+  margin: 0;
+}
+
+.admin-tabs .business-docs-table-wrapper,
+.admin-tabs #blog-section .blog-posts-list {
+  max-height: min(48vh, 520px);
+  overflow-y: auto;
+}
+
+.admin-tabs #messages-section .messages-list {
+  max-height: min(54vh, 580px);
+  overflow-y: auto;
+}
+
+@media (min-width: 1280px) {
+  .admin-tabs .business-docs-table-wrapper,
+  .admin-tabs #blog-section .blog-posts-list {
+    max-height: min(50vh, 560px);
   }
 
-  .admin-main-grid #blog-section {
-    grid-column: auto;
+  .admin-tabs #messages-section .messages-list {
+    max-height: min(58vh, 640px);
+  }
+}
+
+@media (min-width: 1600px) {
+  .admin-tabs .business-docs-table-wrapper,
+  .admin-tabs #blog-section .blog-posts-list {
+    max-height: min(52vh, 600px);
   }
 
-  .admin-main-grid .business-docs-table-wrapper,
-  .admin-main-grid #messages-section .messages-list,
-  .admin-main-grid #blog-section .blog-posts-list {
-    max-height: 460px;
-    overflow-y: auto;
+  .admin-tabs #messages-section .messages-list {
+    max-height: min(60vh, 680px);
   }
 }
 
@@ -6984,6 +7231,16 @@ body.project-modal-open {
 
 .admin-messages-section .messages-list {
   max-height: 420px;
+}
+
+.delete-message-btn {
+  flex-shrink: 0;
+  color: var(--light-gray);
+}
+
+.delete-message-btn:hover {
+  color: var(--bittersweet-shimmer);
+  border-color: rgba(255, 107, 107, 0.35);
 }
 
 /* Compact stats row (replaces large stat cards) */
@@ -7165,7 +7422,7 @@ body.project-modal-open {
 }
 
 /* Business Documents layout inside admin dashboard */
-.admin-main-grid .business-docs-section {
+.admin-tabs .business-docs-section {
   margin-top: 0;
 }
 
@@ -7354,10 +7611,6 @@ body.project-modal-open {
 
 /* Mobile: tighter vertical rhythm when sections are collapsed */
 @media (max-width: 767px) {
-  .admin-main-grid {
-    gap: 10px;
-  }
-
   .business-docs-section:not(.business-docs-open) .business-docs-section-header,
   .admin-collapsible-section:not(.admin-collapsible-open) .admin-collapsible-header {
     margin-bottom: 6px;
@@ -7380,7 +7633,7 @@ body.project-modal-open {
 }
 
 @media (min-width: 768px) {
-  .admin-main-grid .business-docs-layout {
+  .admin-tabs .business-docs-layout {
     max-width: 100%;
   }
 }
@@ -8185,48 +8438,104 @@ body.project-modal-open {
 
 .dm-layout {
   display: grid;
-  grid-template-columns: minmax(260px, 380px) minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
   gap: 16px;
   margin-top: 12px;
+  min-width: 0;
+  width: 100%;
+  align-items: start;
+}
+
+/* Admin inbox: prioritize thread width on desktop */
+@media (min-width: 1024px) {
+  #admin-dashboard-content .dm-layout {
+    grid-template-columns: minmax(260px, 340px) minmax(320px, 1fr);
+    gap: 18px;
+  }
+}
+
+@media (min-width: 1400px) {
+  #admin-dashboard-content .dm-layout {
+    grid-template-columns: minmax(280px, 380px) minmax(400px, 1fr);
+  }
+}
+
+.dm-conversation-list-wrap {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .dm-conversation-list-wrap .messages-list {
   max-height: 640px;
 }
 
+/*
+ * Inbox list shares a row with the thread panel (~260–380px wide). A 2-column card
+ * grid (global admin rule at 1700px+) overflows into the thread column and looks
+ * like the panel is floating over the list. Keep this pane single-column always.
+ */
+#admin-dashboard-content .dm-conversation-list-wrap .message-grid {
+  grid-template-columns: 1fr;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .messages-list .message-card {
+  z-index: auto;
+}
+
 .dm-thread-panel {
-  border: 1px solid var(--jet);
-  border-radius: 12px;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
+  border-radius: 14px;
   background: var(--eerie-black-2);
-  padding: 14px;
+  box-shadow: var(--shadow-2);
+  padding: 22px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  min-width: 0;
+  flex: 1 1 auto;
+  position: relative;
+  z-index: 2;
 }
 
 .dm-thread-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 0;
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
-.dm-thread-header h4 {
-  margin: 0;
+.dm-thread-title,
+#dm-thread-title.dm-thread-title {
+  margin: 0 0 6px;
   color: var(--white-2);
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
 }
 
-.dm-thread-subtitle,
-#dm-thread-subtitle {
+.dm-thread-lead,
+#dm-thread-subtitle.dm-thread-lead {
   margin: 0;
-  color: var(--light-gray-70);
   font-size: var(--fs-7);
+  color: var(--light-gray);
+  line-height: 1.5;
+}
+
+.dm-thread-toolbar {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  border-radius: 12px;
 }
 
 .dm-thread-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -8236,14 +8545,91 @@ body.project-modal-open {
   font-size: var(--fs-7);
 }
 
+#dm-thread-panel .form-input.dm-mini-input {
+  background: var(--bg-gradient-onyx);
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+#dm-thread-panel select.form-input.dm-mini-select {
+  appearance: none;
+  cursor: pointer;
+  padding: 10px 32px 10px 14px;
+  border-radius: 10px;
+  color: var(--white-2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23c8c8c8' d='M2.5 4h7L6 8.5 2.5 4z'/%3E%3C/svg%3E"),
+    var(--bg-gradient-onyx);
+  background-repeat: no-repeat, no-repeat;
+  background-position: center right 12px, center;
+  background-size: 12px 12px, 100% 100%;
+}
+
+#dm-thread-panel .dm-attachment-field {
+  width: 100%;
+  background: var(--bg-gradient-onyx);
+}
+
+#dm-thread-panel textarea.form-input.dm-reply-textarea {
+  width: 100%;
+  margin-bottom: 0;
+  min-height: 120px;
+  background: var(--bg-gradient-onyx);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.dm-load-more-btn {
+  width: 100%;
+  justify-content: center;
+}
+
 .dm-message-list {
-  min-height: 280px;
+  min-height: 220px;
   max-height: 460px;
   overflow-y: auto;
-  padding-right: 6px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  border-radius: 12px;
+  border-left: 3px solid var(--orange-yellow-crayola);
+}
+
+.dm-thread-placeholder,
+.dm-message-list .dm-thread-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  min-height: 200px;
+  padding: 28px 16px;
+  color: var(--light-gray);
+}
+
+.dm-thread-placeholder ion-icon,
+.dm-message-list .dm-thread-empty ion-icon {
+  font-size: 42px;
+  margin-bottom: 12px;
+  color: var(--orange-yellow-crayola);
+  opacity: 0.55;
+}
+
+.dm-thread-placeholder p,
+.dm-message-list .dm-thread-empty p {
+  margin: 0;
+  font-size: var(--fs-6);
+  max-width: 280px;
+  line-height: 1.45;
+}
+
+.dm-message-list .no-messages.dm-thread-empty {
+  padding: 36px 16px;
 }
 
 .dm-message-row {
@@ -8285,29 +8671,43 @@ body.project-modal-open {
 
 .dm-presence-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .dm-presence-pill {
   display: inline-flex;
   align-items: center;
-  border: 1px solid var(--jet);
-  border-radius: 999px;
-  padding: 4px 10px;
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  border-radius: 10px;
+  padding: 6px 12px;
   font-size: var(--fs-8);
   color: var(--light-gray);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .dm-composer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  padding-top: 16px;
+  margin-top: 0;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 .dm-composer-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 579px) {
+  #dm-thread-panel .dm-composer-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: min(160px, 100%);
+  }
 }
 
 .dm-conversation-card.dm-conversation-active {
@@ -8476,9 +8876,8 @@ article.contact[data-page="contact"] {
     padding: 16px 18px;
   }
 
-  .admin-main-grid {
-    gap: 10px;
-    margin-bottom: 24px;
+  .admin-tabs {
+    margin-bottom: 20px;
   }
 
   .admin-intro {
@@ -8540,7 +8939,7 @@ article.contact[data-page="contact"] {
 
 @media (min-width: 768px) {
   article.admin[data-page="admin"] {
-    width: min(720px, calc(100vw - 32px));
+    width: min(1200px, calc(100vw - 40px));
     min-width: 0;
     padding: 28px;
   }

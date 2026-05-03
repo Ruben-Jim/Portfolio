@@ -51,7 +51,7 @@
         var path = (window.location && window.location.pathname) ? window.location.pathname : '';
         var clean = path.replace(/^\/+|\/+$/g, '');
         if (!clean) return;
-        var valid = ['about', 'home', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'admin'];
+        var valid = ['about', 'home', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'messages', 'admin'];
         if (valid.indexOf(clean) === -1) return;
         // Host can't rewrite /admin -> /index.html, so redirect to root and let script.js restore the page.
         var dest = '/?redirect=' + encodeURIComponent('/' + clean);
@@ -242,6 +242,9 @@
               </li>
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link>Contact</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>Messages</button>
               </li>
               <li class="navbar-item" style="display: none;">
                 <button class="navbar-link" data-nav-link>Admin</button>
@@ -599,6 +602,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
             </ul>
           </div>
@@ -1053,6 +1057,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
             </ul>
           </div>
@@ -1696,6 +1701,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
             </ul>
           </div>
@@ -1948,6 +1954,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
             </ul>
           </div>
@@ -2127,10 +2134,14 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
             </ul>
           </div>
         </nav>
+
+        <div data-hire-main-content>
+
         <header>
           <h2 class="h2 article-title">Hire Me</h2>
         </header>
@@ -2292,51 +2303,62 @@
 
         <section class="contact-form">
 
-          <h3 class="h3 form-title">Let's Work Together</h3>
+          <div data-hire-form-panel>
+            <h3 class="h3 form-title">Let's Work Together</h3>
 
-          <!-- <p style="color: var(--light-gray); margin-bottom: 25px; line-height: 1.6;">
-            Fill out the form below to discuss your project. I'll get back to you within 24 hours to discuss your requirements and provide a quote.
-          </p> -->
+            <form class="form" data-form>
 
-          <form class="form" data-form>
+              <div class="input-wrapper">
+                <input type="text" name="fullname" class="form-input" placeholder="Full name" required data-form-input>
 
-            <div class="input-wrapper">
-              <input type="text" name="fullname" class="form-input" placeholder="Full name" required data-form-input>
-
-              <input type="email" name="email" class="form-input" placeholder="Email address" required data-form-input>
-            </div>
-
-            <div class="input-wrapper">
-              <input type="text" name="project-type" class="form-input" placeholder="Project Type (Web App, Mobile App, etc.)" data-form-input>
-
-              <input type="text" name="budget" class="form-input" placeholder="Budget Range (Optional)" data-form-input>
-            </div>
-
-            <textarea name="message" class="form-input" placeholder="Tell me about your project..." required data-form-input></textarea>
-
-            <button class="form-btn" type="submit" disabled data-form-btn>
-              <ion-icon name="paper-plane"></ion-icon>
-              <span>Send Inquiry</span>
-            </button>
-
-            <!-- Success/Error Messages -->
-            <div class="form-message" id="hire-form-message" style="display: none;">
-              <div class="message-content">
-                <ion-icon name="checkmark-circle" class="message-icon success-icon"></ion-icon>
-                <span class="message-text">Inquiry sent successfully! I'll get back to you within 24 hours.</span>
+                <input type="email" name="email" class="form-input" placeholder="Email address" required data-form-input>
               </div>
-            </div>
 
-            <div class="form-message error" id="hire-form-error" style="display: none;">
-              <div class="message-content">
-                <ion-icon name="close-circle" class="message-icon error-icon"></ion-icon>
-                <span class="message-text">Failed to send inquiry. Please try again.</span>
+              <div class="input-wrapper">
+                <input type="text" name="project-type" class="form-input" placeholder="Project Type (Web App, Mobile App, etc.)" data-form-input>
+
+                <input type="text" name="budget" class="form-input" placeholder="Budget Range (Optional)" data-form-input>
               </div>
-            </div>
 
-          </form>
+              <textarea name="message" class="form-input" placeholder="Tell me about your project..." required data-form-input></textarea>
+
+              <button class="form-btn" type="submit" disabled data-form-btn>
+                <ion-icon name="paper-plane"></ion-icon>
+                <span>Send Inquiry</span>
+              </button>
+
+              <div class="form-message" id="hire-form-message" style="display: none;">
+                <div class="message-content">
+                  <ion-icon name="checkmark-circle" class="message-icon success-icon"></ion-icon>
+                  <span class="message-text">Inquiry sent successfully! I'll get back to you within 24 hours.</span>
+                </div>
+              </div>
+
+              <div class="form-message error" id="hire-form-error" style="display: none;">
+                <div class="message-content">
+                  <ion-icon name="close-circle" class="message-icon error-icon"></ion-icon>
+                  <span class="message-text">Failed to send inquiry. Please try again.</span>
+                </div>
+              </div>
+
+            </form>
+          </div>
 
         </section>
+
+        </div><!-- data-hire-main-content -->
+
+        <div class="hire-form-submitted" data-hire-form-submitted hidden role="status" aria-live="polite">
+          <div class="hire-form-submitted-inner">
+            <div class="hire-form-submitted-icon">
+              <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="h3 hire-form-submitted-title">Your inquiry was sent</h3>
+            <p class="hire-form-submitted-text">
+              Thanks for the details — I’ve received your message and will follow up within 24 hours. If you need to reach me sooner, email <a href="mailto:contact@rubenjimenez.dev">contact@rubenjimenez.dev</a>.
+            </p>
+          </div>
+        </div>
 
       </article>
 
@@ -2359,6 +2381,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
             </ul>
           </div>
@@ -2416,6 +2439,36 @@
       </article>
 
       <!--
+        - #MESSAGES — Customer Message Portal (injected by assets/js/script.js)
+      -->
+
+      <article class="messages" data-page="messages">
+        <nav class="navbar" data-navbar>
+          <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
+            <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
+            <ion-icon name="close-outline" class="navbar-toggle-icon-close"></ion-icon>
+          </button>
+          <div class="navbar-menu" data-navbar-menu>
+            <ul class="navbar-list">
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
+            </ul>
+          </div>
+        </nav>
+        <header>
+          <h2 class="h2 article-title">Messages</h2>
+          <p class="about-text">Continue an existing conversation or open the secure customer portal below.</p>
+        </header>
+      </article>
+
+      <!--
         - #ADMIN
       -->
 
@@ -2434,6 +2487,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
             </ul>
           </div>
@@ -3948,14 +4002,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   -->
   <script src="./assets/js/config.js"></script>
 
-  <!--
-    - EmailJS SDK
-  -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-  <!--
-    - Firebase SDKs
-  -->
+  <!-- Firebase SDKs -->
   <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';

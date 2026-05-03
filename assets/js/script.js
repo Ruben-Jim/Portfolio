@@ -2362,7 +2362,36 @@ for (let i = 0; i < filterBtn.length; i++) {
 
 }
 
-
+/**
+ * POST to Firebase sendPortfolioEmail (Resend). apiUrl from window.RESEND_EMAIL_CONFIG.
+ * @param {{ type: string, payload: Record<string, string> }} body
+ * @returns {Promise<Record<string, unknown>>}
+ */
+async function sendPortfolioEmailRequest(body) {
+  const apiUrl =
+    window.RESEND_EMAIL_CONFIG && String(window.RESEND_EMAIL_CONFIG.apiUrl || "").trim();
+  if (!apiUrl) {
+    throw new Error(
+      "Email API URL is not configured. Set RESEND_EMAIL_CONFIG.apiUrl in assets/js/config.js after deploying sendPortfolioEmail (see RESEND_SETUP.md)."
+    );
+  }
+  const res = await fetch(apiUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(body),
+  });
+  let data = {};
+  try {
+    data = await res.json();
+  } catch (parseErr) {
+    /* ignore */
+  }
+  if (!res.ok || !data.ok) {
+    const msg = (data && data.error) || res.statusText || "Email request failed";
+    throw new Error(typeof msg === "string" ? msg : "Email request failed");
+  }
+  return data;
+}
 
 // contact form variables
 const forms = document.querySelectorAll("[data-form]");
@@ -2392,14 +2421,7 @@ for (let i = 0; i < formInputs.length; i++) {
   form._formError = formError;
 });
 
-// Initialize EmailJS when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  if (window.EMAILJS_CONFIG && window.EMAILJS_CONFIG.publicKey) {
-    emailjs.init(window.EMAILJS_CONFIG.publicKey);
-  }
-});
-
-// Enhanced form submission with EmailJS for all forms
+// Enhanced form submission — portfolio email via Resend (HTTPS function)
 forms.forEach((form) => {
 form.addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -2417,11 +2439,6 @@ form.addEventListener("submit", async function(e) {
     showFormLoading(formBtn, isHireMeForm);
   
   try {
-    // Check if EmailJS is available
-    if (typeof emailjs === 'undefined') {
-      throw new Error('EmailJS not loaded');
-    }
-    
     // Get form data
     const formData = new FormData(form);
     const fullname = formData.get('fullname');
@@ -2435,46 +2452,37 @@ form.addEventListener("submit", async function(e) {
       throw new Error('Please fill in all required fields');
     }
     
-    // Create email template parameters
-    const templateParams = {
-      fullname: fullname,
-      email: email,
-        message: isHireMeForm 
-          ? `Project Type: ${projectType}\nBudget: ${budget}\n\nMessage:\n${message}`
-          : message,
+    const composedMessage = isHireMeForm
+      ? `Project Type: ${projectType}\nBudget: ${budget}\n\nMessage:\n${message}`
+      : message;
+    const subject = isHireMeForm
+      ? 'New Hire Me Inquiry - Portfolio'
+      : 'New Contact Form Submission - Portfolio';
+
+    const emailPayload = {
+      fullname: String(fullname),
+      email: String(email),
+      message: String(composedMessage),
+      subject,
       timestamp: new Date().toISOString(),
       website: window.location.href,
       user_agent: navigator.userAgent,
-        ip_address: 'N/A',
-        to_email: 'Ruben.Jim.co@gmail.com',
-        subject: isHireMeForm 
-          ? 'New Hire Me Inquiry - Portfolio'
-          : 'New Contact Form Submission - Portfolio'
+      project_type: isHireMeForm ? String(projectType) : '',
+      budget: isHireMeForm ? String(budget) : ''
     };
-    
-    console.log('Sending email with params:', templateParams);
-    
-    // Send email using EmailJS
-    const response = await emailjs.send(
-      window.EMAILJS_CONFIG.serviceId,
-      window.EMAILJS_CONFIG.templateId,
-      templateParams
-    );
-    
-    console.log('EmailJS response:', response);
 
-    if (response.status === 200) {
+    await sendPortfolioEmailRequest({
+      type: isHireMeForm ? 'hire_me' : 'contact',
+      payload: emailPayload
+    });
+
       // Save to Firestore after successful email send
       try {
         await saveMessageToFirestore({
           name: fullname,
           email: email,
-          message: isHireMeForm
-            ? `Project Type: ${projectType}\nBudget: ${budget}\n\nMessage:\n${message}`
-            : message,
-          subject: isHireMeForm
-            ? 'New Hire Me Inquiry - Portfolio'
-            : 'New Contact Form Submission - Portfolio',
+          message: composedMessage,
+          subject,
           timestamp: window.serverTimestamp(),
           status: 'new',
           source: isHireMeForm ? 'hire-me' : 'contact'
@@ -2485,12 +2493,27 @@ form.addEventListener("submit", async function(e) {
         // Don't fail the form submission if Firestore fails, just log it
       }
 
-      showFormSuccess(formMessage, formError);
+      const hireArticle = form.closest('[data-page="hire-me"]');
+      const hireMain = hireArticle?.querySelector('[data-hire-main-content]');
+      const hirePanel = hireArticle?.querySelector('[data-hire-form-panel]');
+      const hireSubmitted = hireArticle?.querySelector('[data-hire-form-submitted]');
+      const showHireSuccessState = isHireMeForm && hireSubmitted && (hireMain || hirePanel);
+
+      if (showHireSuccessState) {
+        if (hireMain) hireMain.hidden = true;
+        else if (hirePanel) hirePanel.hidden = true;
+        hireSubmitted.hidden = false;
+        hireSubmitted.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      } else {
+        showFormSuccess(formMessage, formError);
+      }
+
       form.reset();
       formBtn.setAttribute("disabled", "");
-    } else {
-      throw new Error('Email sending failed');
-    }
     
   } catch (error) {
     console.error('Form submission error:', error);
@@ -2544,7 +2567,7 @@ async function saveMessageToFirestore(messageData) {
   try {
     // Access the global db instance from the admin module
     if (!window.db) {
-      console.warn('Firestore not initialized, but message will still be sent via EmailJS');
+      console.warn('Firestore not initialized; email may still have been sent via Resend.');
       return;
     }
 
@@ -2803,7 +2826,7 @@ const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
 // Valid path segments for rubenjimenez.dev/(tab)
-var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'admin'];
+var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'messages', 'admin'];
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
@@ -2868,6 +2891,9 @@ function switchToPage(pageName, skipSave = false) {
         if (navPageName === "hire me") {
           navPageName = "hire-me";
         }
+        if (navPageName === "dm") {
+          navPageName = "messages";
+        }
         if (navPageName === "home") {
           navPageName = "about";
         }
@@ -2917,6 +2943,8 @@ for (let i = 0; i < navigationLinks.length; i++) {
       pageName = "services-pricing";
     } else if (pageName === "hire me") {
       pageName = "hire-me";
+    } else if (pageName === "dm") {
+      pageName = "messages";
     } else if (pageName === "home") {
       pageName = "about";
     }
@@ -4223,87 +4251,177 @@ window.addEventListener('load', function() {
   // Initial render on load
   renderBusinessDocs();
 
-  // Business Documents section collapsible
+  // Admin dashboard tabs (Business Documents | Contact Messages | Blog Management)
+  function initAdminTabs() {
+    var root = document.getElementById('admin-tabs');
+    if (!root) return;
+    var tabBar = root.querySelector('.admin-tab-bar');
+    if (!tabBar) return;
+    var tabs = tabBar.querySelectorAll('.admin-tab[role="tab"]');
+    var panels = root.querySelectorAll('.admin-tab-panel');
+    var STORAGE_KEY = 'adminActiveTab';
+    var VALID = { docs: 1, messages: 1, blog: 1 };
+
+    function activate(tabId) {
+      if (!VALID[tabId]) return;
+      tabs.forEach(function(t) {
+        var id = t.getAttribute('data-admin-tab');
+        var on = id === tabId;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.setAttribute('tabindex', on ? '0' : '-1');
+      });
+      panels.forEach(function(p) {
+        var id = p.getAttribute('data-admin-tab');
+        var on = id === tabId;
+        p.classList.toggle('is-active', on);
+        p.hidden = !on;
+      });
+      try {
+        sessionStorage.setItem(STORAGE_KEY, tabId);
+      } catch (e) {}
+    }
+
+    var saved = null;
+    try {
+      saved = sessionStorage.getItem(STORAGE_KEY);
+    } catch (e) {}
+    var initial = saved && VALID[saved] ? saved : 'messages';
+
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        activate(tab.getAttribute('data-admin-tab'));
+      });
+    });
+
+    tabBar.addEventListener('keydown', function(e) {
+      var list = Array.prototype.slice.call(tabs);
+      var i = list.indexOf(document.activeElement);
+      if (i < 0) return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        var dir = e.key === 'ArrowRight' ? 1 : -1;
+        var j = (i + dir + list.length) % list.length;
+        list[j].focus();
+        activate(list[j].getAttribute('data-admin-tab'));
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        list[0].focus();
+        activate(list[0].getAttribute('data-admin-tab'));
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        list[list.length - 1].focus();
+        activate(list[list.length - 1].getAttribute('data-admin-tab'));
+      }
+    });
+
+    activate(initial);
+  }
+
+  initAdminTabs();
+
+  // Business Documents section collapsible (optional accordion header)
   var businessDocsSection = document.getElementById('business-docs-section');
   var businessDocsToggle = document.getElementById('business-docs-toggle');
   var businessDocsContent = document.getElementById('business-docs-content');
   var BUSINESS_DOCS_OPEN_KEY = 'businessDocsSectionOpen';
 
   function setBusinessDocsOpen(open) {
-    if (!businessDocsSection || !businessDocsToggle || !businessDocsContent) return;
+    if (!businessDocsSection || !businessDocsContent) return;
     try {
       sessionStorage.setItem(BUSINESS_DOCS_OPEN_KEY, open ? '1' : '0');
     } catch (e) {}
     businessDocsSection.classList.toggle('business-docs-open', !!open);
-    businessDocsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (businessDocsToggle) {
+      businessDocsToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
   }
 
-  if (businessDocsToggle && businessDocsContent) {
-    var stored = null;
-    try {
-      stored = sessionStorage.getItem(BUSINESS_DOCS_OPEN_KEY);
-    } catch (e) {}
-    var initiallyOpen = stored === '1';
-    setBusinessDocsOpen(initiallyOpen);
-
-    businessDocsToggle.addEventListener('click', function() {
-      var isOpen = businessDocsSection.classList.contains('business-docs-open');
-      setBusinessDocsOpen(!isOpen);
-    });
+  if (businessDocsContent) {
+    if (businessDocsToggle) {
+      var stored = null;
+      try {
+        stored = sessionStorage.getItem(BUSINESS_DOCS_OPEN_KEY);
+      } catch (e) {}
+      var initiallyOpen = stored === '1';
+      setBusinessDocsOpen(initiallyOpen);
+      businessDocsToggle.addEventListener('click', function() {
+        var isOpen = businessDocsSection.classList.contains('business-docs-open');
+        setBusinessDocsOpen(!isOpen);
+      });
+    } else {
+      setBusinessDocsOpen(true);
+    }
   }
 
-  // Contact Messages collapsible
+  // Contact Messages collapsible (optional accordion header)
   var messagesSection = document.getElementById('messages-section');
   var messagesToggle = document.getElementById('messages-toggle');
   var messagesContent = document.getElementById('messages-content');
   var MESSAGES_OPEN_KEY = 'adminMessagesSectionOpen';
 
   function setMessagesOpen(open) {
-    if (!messagesSection || !messagesToggle || !messagesContent) return;
+    if (!messagesSection || !messagesContent) return;
     try {
       sessionStorage.setItem(MESSAGES_OPEN_KEY, open ? '1' : '0');
     } catch (e) {}
     messagesSection.classList.toggle('admin-collapsible-open', !!open);
-    messagesToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (messagesToggle) {
+      messagesToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
   }
 
-  if (messagesToggle && messagesContent) {
-    var messagesStored = null;
-    try {
-      messagesStored = sessionStorage.getItem(MESSAGES_OPEN_KEY);
-    } catch (e) {}
-    setMessagesOpen(messagesStored === '1');
-    messagesToggle.addEventListener('click', function() {
-      var isOpen = messagesSection.classList.contains('admin-collapsible-open');
-      setMessagesOpen(!isOpen);
-    });
+  if (messagesContent) {
+    if (messagesToggle) {
+      var messagesStored = null;
+      try {
+        messagesStored = sessionStorage.getItem(MESSAGES_OPEN_KEY);
+      } catch (e) {}
+      var messagesDefaultDesktop =
+        messagesStored === '1' ||
+        (messagesStored == null && typeof window.matchMedia === 'function' &&
+          window.matchMedia('(min-width: 1024px)').matches);
+      setMessagesOpen(messagesDefaultDesktop);
+      messagesToggle.addEventListener('click', function() {
+        var isOpen = messagesSection.classList.contains('admin-collapsible-open');
+        setMessagesOpen(!isOpen);
+      });
+    } else {
+      setMessagesOpen(true);
+    }
   }
 
-  // Blog Management collapsible
+  // Blog Management collapsible (optional accordion header)
   var blogSection = document.getElementById('blog-section');
   var blogToggle = document.getElementById('blog-toggle');
   var blogContent = document.getElementById('blog-content');
   var BLOG_OPEN_KEY = 'adminBlogSectionOpen';
 
   function setBlogOpen(open) {
-    if (!blogSection || !blogToggle || !blogContent) return;
+    if (!blogSection || !blogContent) return;
     try {
       sessionStorage.setItem(BLOG_OPEN_KEY, open ? '1' : '0');
     } catch (e) {}
     blogSection.classList.toggle('admin-collapsible-open', !!open);
-    blogToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (blogToggle) {
+      blogToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
   }
 
-  if (blogToggle && blogContent) {
-    var blogStored = null;
-    try {
-      blogStored = sessionStorage.getItem(BLOG_OPEN_KEY);
-    } catch (e) {}
-    setBlogOpen(blogStored === '1');
-    blogToggle.addEventListener('click', function() {
-      var isOpen = blogSection.classList.contains('admin-collapsible-open');
-      setBlogOpen(!isOpen);
-    });
+  if (blogContent) {
+    if (blogToggle) {
+      var blogStored = null;
+      try {
+        blogStored = sessionStorage.getItem(BLOG_OPEN_KEY);
+      } catch (e) {}
+      setBlogOpen(blogStored === '1');
+      blogToggle.addEventListener('click', function() {
+        var isOpen = blogSection.classList.contains('admin-collapsible-open');
+        setBlogOpen(!isOpen);
+      });
+    } else {
+      setBlogOpen(true);
+    }
   }
 
   // Copy-Paste Snippets collapsible (blog tab)
@@ -4838,6 +4956,9 @@ window.addEventListener('load', function() {
               <ion-icon name="checkmark-outline"></ion-icon>
               <span>Mark Replied</span>
             </button>` : ''}
+            <button type="button" class="delete-message-btn btn-icon" data-id="${message.id}" title="Delete submission">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
             </div>
           </div>
         </div>
@@ -4851,6 +4972,10 @@ window.addEventListener('load', function() {
 
     document.querySelectorAll('.mark-replied-btn').forEach(btn => {
       btn.addEventListener('click', handleMarkRepliedClick);
+    });
+
+    document.querySelectorAll('.delete-message-btn').forEach(btn => {
+      btn.addEventListener('click', handleDeleteMessageBtnClick);
     });
   }
 
@@ -4890,7 +5015,9 @@ window.addEventListener('load', function() {
 
   // Handle mark as replied button click
   async function handleMarkRepliedClick(e) {
-    const messageId = e.target.dataset.id;
+    const btn = e.target.closest('.mark-replied-btn');
+    const messageId = btn && btn.dataset ? btn.dataset.id : e.target.dataset.id;
+    if (!messageId) return;
 
     try {
       const messageRef = window.doc(window.db, 'messages', messageId);
@@ -4899,6 +5026,19 @@ window.addEventListener('load', function() {
       });
     } catch (error) {
       console.error('Error marking message as replied:', error);
+    }
+  }
+
+  async function handleDeleteMessageBtnClick(e) {
+    const btn = e.target.closest('.delete-message-btn');
+    if (!btn || !window.db || !window.deleteDoc) return;
+    const messageId = btn.dataset.id;
+    if (!messageId) return;
+    if (!confirm('Delete this form submission permanently?')) return;
+    try {
+      await window.deleteDoc(window.doc(window.db, 'messages', messageId));
+    } catch (error) {
+      alert('Could not delete: ' + (error && error.message ? error.message : String(error)));
     }
   }
 
@@ -4976,42 +5116,23 @@ window.addEventListener('load', function() {
     }
   }
 
-  // Send reply email via EmailJS
+  // Send reply / customer copy via Resend (HTTPS function)
   async function sendReplyEmail(messageData, subject, message) {
-    if (typeof emailjs === 'undefined') {
-      throw new Error('EmailJS not loaded');
+    if (!messageData || !messageData.email) {
+      throw new Error('Missing customer email');
     }
-
-    const templateParams = {
-      to_email: messageData.email,
-      to_name: messageData.name,
-      from_name: 'Ruben Jimenez',
-      subject: subject,
-      message: message,
-      timestamp: new Date().toISOString()
-    };
-
-    const templateId =
-      (window.EMAILJS_CONFIG && window.EMAILJS_CONFIG.replyTemplateId) ||
-      'reply_template';
-    let response;
-
-    try {
-      response = await emailjs.send(
-        window.EMAILJS_CONFIG.serviceId,
-        templateId,
-        templateParams
-      );
-    } catch (error) {
-      console.error('Reply template send failed (no fallback enabled):', error);
-      throw new Error('Reply template failed. Please verify replyTemplateId in EmailJS config.');
-    }
-
-    if (response.status !== 200) {
-      throw new Error('Email sending failed');
-    }
-
-    return response;
+    await sendPortfolioEmailRequest({
+      type: 'admin_reply',
+      payload: {
+        to_email: String(messageData.email),
+        to_name: String(messageData.name || 'Customer'),
+        from_name: 'Ruben Jimenez',
+        subject: String(subject),
+        message: String(message),
+        timestamp: new Date().toISOString()
+      }
+    });
+    return { ok: true };
   }
 
   // Update message status in Firestore
@@ -5537,28 +5658,39 @@ document.addEventListener('DOMContentLoaded', function() {
       thread.innerHTML = [
         '<header class="dm-thread-header">',
         '<div class="dm-thread-meta">',
-        '<h4 id="dm-thread-title">Select a conversation</h4>',
-        '<p id="dm-thread-subtitle">Pick a customer conversation to start messaging.</p>',
+        '<h4 id="dm-thread-title" class="h4 dm-thread-title">Select a conversation</h4>',
+        '<p id="dm-thread-subtitle" class="dm-thread-lead">Pick a customer from the list to view the thread and reply.</p>',
         '</div>',
+        '<div class="dm-thread-toolbar">',
         '<div class="dm-thread-actions">',
-        '<input id="dm-tag-input" class="form-input dm-mini-input" placeholder="tag1, tag2">',
-        '<select id="dm-status-select" class="dm-mini-select"><option value="open">Open</option><option value="pending">Pending</option><option value="closed">Closed</option></select>',
-        '<select id="dm-priority-select" class="dm-mini-select"><option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select>',
-        '<button id="dm-save-meta" class="btn btn-secondary btn-sm">Save</button>',
+        '<input id="dm-tag-input" class="form-input dm-mini-input" type="text" placeholder="Tags (comma-separated)">',
+        '<select id="dm-status-select" class="form-input dm-mini-select" aria-label="Conversation status">',
+        '<option value="open">Open</option><option value="pending">Pending</option><option value="closed">Closed</option>',
+        '</select>',
+        '<select id="dm-priority-select" class="form-input dm-mini-select" aria-label="Priority">',
+        '<option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option>',
+        '</select>',
+        '<button id="dm-save-meta" type="button" class="btn btn-secondary btn-sm">Save</button>',
+        '</div>',
         '</div>',
         '</header>',
-        '<div class="dm-presence-row">',
+        '<div class="dm-presence-row" role="status" aria-live="polite">',
         '<span id="dm-presence-customer" class="dm-presence-pill">Customer offline</span>',
         '<span id="dm-presence-typing" class="dm-presence-pill">Not typing</span>',
         '</div>',
-        '<div id="dm-message-list" class="dm-message-list has-scrollbar"></div>',
-        '<button id="dm-load-more" type="button" class="btn btn-secondary btn-sm">Load older messages</button>',
-        '<form id="dm-admin-composer" class="dm-composer">',
-        '<input id="dm-attachment-url" class="form-input dm-mini-input" placeholder="Attachment URL (optional)">',
-        '<textarea id="dm-admin-message" class="form-textarea" rows="4" placeholder="Reply to customer..." required></textarea>',
+        '<div id="dm-message-list" class="dm-message-list has-scrollbar">',
+        '<div class="dm-thread-placeholder">',
+        '<ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>',
+        '<p>Choose a conversation to load messages here.</p>',
+        '</div>',
+        '</div>',
+        '<button id="dm-load-more" type="button" class="btn btn-secondary btn-sm dm-load-more-btn">Load older messages</button>',
+        '<form id="dm-admin-composer" class="dm-composer" autocomplete="off">',
+        '<input id="dm-attachment-url" class="form-input dm-attachment-field" type="url" placeholder="Attachment URL (optional)" aria-label="Attachment URL (optional)">',
+        '<textarea id="dm-admin-message" class="form-input dm-reply-textarea" rows="4" placeholder="Reply to customer…" aria-label="Reply to customer" required></textarea>',
         '<div class="dm-composer-actions">',
-        '<button id="dm-send-reply-email" type="button" class="btn btn-secondary">Send Email Copy</button>',
-        '<button type="submit" class="btn btn-primary">Send In Thread</button>',
+        '<button id="dm-send-reply-email" type="button" class="btn btn-secondary">Send email copy</button>',
+        '<button type="submit" class="btn btn-primary">Send in thread</button>',
         '</div>',
         '</form>'
       ].join('');
@@ -5665,7 +5797,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tagInput) tagInput.value = Array.isArray(conversation.tags) ? conversation.tags.join(', ') : '';
 
     if (!messages.length) {
-      list.innerHTML = '<div class="no-messages"><p>No thread messages yet.</p></div>';
+      list.innerHTML = [
+        '<div class="no-messages dm-thread-empty">',
+        '<ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>',
+        '<p>No messages in this thread yet.</p>',
+        '</div>'
+      ].join('');
       return;
     }
 
@@ -6011,8 +6148,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function setupCustomerPortalUI() {
     if (window.DM_FEATURE_FLAGS && window.DM_FEATURE_FLAGS.enableCustomerMagicLinks === false) return;
-    const contactArticle = document.querySelector('article[data-page="contact"]');
-    if (!contactArticle || document.getElementById('customer-dm-portal')) return;
+    const portalHost = document.querySelector('article[data-page="messages"]');
+    if (!portalHost || document.getElementById('customer-dm-portal')) return;
 
     const section = document.createElement('section');
     section.className = 'contact-form';
@@ -6042,7 +6179,7 @@ document.addEventListener('DOMContentLoaded', function() {
       '</form>',
       '</section>'
     ].join('');
-    contactArticle.appendChild(section);
+    portalHost.appendChild(section);
 
     const tokenFromUrl = new URLSearchParams(window.location.search).get('dm_token');
     if (tokenFromUrl) {

@@ -14,8 +14,7 @@ service cloud.firestore {
         isValidString(request.resource.data.email, 160) &&
         isValidString(request.resource.data.subject, 200) &&
         isValidString(request.resource.data.message, 5000);
-      allow read, update: if true;
-      allow delete: if false;
+      allow read, update, delete: if true;
     }
 
     // Conversation inbox model for professional DM.
