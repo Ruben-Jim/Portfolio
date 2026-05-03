@@ -736,10 +736,15 @@ const addBlogOverlay = document.getElementById('add-blog-overlay');
 const addBlogCloseBtn = document.getElementById('add-blog-close-btn');
 const cancelBlogBtn = document.getElementById('cancel-blog-btn');
 const addBlogForm = document.getElementById('add-blog-form');
-const contentTextarea = document.getElementById('blog-content');
-const lineNumbers = document.getElementById('editor-line-numbers');
-const charCount = document.querySelector('.char-count');
-const wordCount = document.querySelector('.word-count');
+// Scope to add modal so duplicate ids elsewhere (e.g. admin wrappers) cannot grab the wrong node.
+const contentTextarea = addBlogModal
+  ? addBlogModal.querySelector('textarea#blog-content')
+  : document.getElementById('blog-content');
+const lineNumbers = addBlogModal
+  ? addBlogModal.querySelector('#editor-line-numbers')
+  : document.getElementById('editor-line-numbers');
+const charCount = addBlogModal ? addBlogModal.querySelector('.char-count') : document.querySelector('.char-count');
+const wordCount = addBlogModal ? addBlogModal.querySelector('.word-count') : document.querySelector('.word-count');
 
 // Update line numbers
 function updateLineNumbers() {
