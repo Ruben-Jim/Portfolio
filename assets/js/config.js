@@ -32,8 +32,7 @@ const DM_FEATURE_FLAGS = {
   /** Customer Messages page: name + email opens RTDB thread (no email sent). */
   enableCustomerDmPortal: true,
   /** @deprecated Use enableCustomerDmPortal. If only this is set, it still gates the portal. */
-  enableCustomerMagicLinks: true,
-  enableLegacyMigration: true
+  enableCustomerMagicLinks: true
 };
 
 // Make it available globally

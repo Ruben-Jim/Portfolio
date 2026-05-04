@@ -114,6 +114,25 @@
   --transition-1: 0.25s ease;
   --transition-2: 0.5s ease-in-out;
 
+  /**
+   * Admin — Hire Me inquiry tiles (project type / budget)
+   */
+  --admin-hire-project-line: linear-gradient(
+    90deg,
+    hsl(172, 55%, 46%),
+    hsl(192, 52%, 52%)
+  );
+  --admin-hire-project-icon-bg: hsla(172, 48%, 56%, 0.14);
+  --admin-hire-project-icon-color: hsl(168, 58%, 68%);
+  --admin-hire-budget-line: linear-gradient(
+    90deg,
+    hsl(45, 58%, 54%),
+    hsl(45, 100%, 72%)
+  );
+  --admin-hire-budget-icon-bg: hsla(45, 72%, 58%, 0.16);
+  --admin-hire-tile-surface: hsla(240, 4%, 11%, 0.92);
+  --admin-hire-tile-border: hsla(0, 0%, 100%, 0.07);
+
 }
 
 /* Light theme overrides */
@@ -7071,6 +7090,16 @@ body.project-modal-open {
   flex-shrink: 0;
 }
 
+.admin-tab .admin-tab-label {
+  flex: 1;
+  min-width: 0;
+  text-align: inherit;
+}
+
+.admin-tab-label-mobile {
+  display: none;
+}
+
 .admin-tab:hover {
   color: var(--white-2);
   background: rgba(255, 255, 255, 0.04);
@@ -7087,55 +7116,76 @@ body.project-modal-open {
   border-color: rgba(255, 193, 7, 0.2);
 }
 
-/* Admin subtabs — readable layout & touch targets on phones / small tablets */
+/* Admin subtabs — compact segmented control on phones / small tablets */
 @media (max-width: 767px) {
   .admin-tabs {
     margin-bottom: 16px;
   }
 
   .admin-tab-bar {
-    flex-direction: column;
+    flex-direction: row;
     flex-wrap: nowrap;
     align-items: stretch;
-    gap: 6px;
-    padding: 8px;
-    padding-left: max(8px, env(safe-area-inset-left));
-    padding-right: max(8px, env(safe-area-inset-right));
-    border-radius: 12px;
+    justify-content: stretch;
+    gap: 4px;
+    padding: 4px;
+    padding-left: max(4px, env(safe-area-inset-left));
+    padding-right: max(4px, env(safe-area-inset-right));
+    border-radius: 999px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .admin-tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-tab-label-desktop {
+    display: none;
+  }
+
+  .admin-tab-label-mobile {
+    display: block;
   }
 
   .admin-tab {
-    flex: none;
-    width: 100%;
+    flex: 1 1 0;
     min-width: 0;
-    min-height: 48px;
-    justify-content: flex-start;
-    padding: 12px 14px 12px 16px;
-    gap: 12px;
-    font-size: var(--fs-6);
-    line-height: 1.25;
-    text-align: left;
-    border-radius: 10px;
+    min-height: 44px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 6px;
+    font-size: 10px;
+    font-weight: var(--fw-600);
+    line-height: 1.15;
+    letter-spacing: 0.01em;
+    text-align: center;
+    border-radius: 999px;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
 
-  .admin-tab ion-icon {
-    font-size: 22px;
+  .admin-tab .admin-tab-label {
+    flex: 0 0 auto;
+    max-width: 100%;
   }
 
-  .admin-tab span {
-    flex: 1;
-    text-align: left;
-    min-width: 0;
+  .admin-tab ion-icon {
+    font-size: 20px;
   }
 
   .admin-tab.is-active {
-    box-shadow: inset 0 0 0 1px rgba(255, 193, 7, 0.25);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06),
+      0 4px 14px rgba(0, 0, 0, 0.28);
   }
 
   .admin-tab:active:not(:disabled) {
-    transform: scale(0.99);
+    transform: scale(0.98);
   }
 
   .admin-tab:active:not(.is-active):not(:disabled) {
@@ -7143,23 +7193,20 @@ body.project-modal-open {
   }
 }
 
-/* Slightly compact bar on very narrow widths */
 @media (max-width: 379px) {
   .admin-tab-bar {
-    padding: 6px;
-    gap: 4px;
-    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
   }
 
   .admin-tab {
-    min-height: 46px;
-    padding: 10px 12px;
-    font-size: var(--fs-7);
-    gap: 10px;
+    min-height: 42px;
+    padding: 6px 4px;
+    font-size: 9px;
   }
 
   .admin-tab ion-icon {
-    font-size: 20px;
+    font-size: 18px;
   }
 }
 
@@ -7175,6 +7222,47 @@ body.project-modal-open {
 
 .admin-panel-heading {
   margin-bottom: 18px;
+}
+
+.admin-panel-heading--with-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px 20px;
+}
+
+.admin-panel-heading--with-action .admin-panel-heading-main {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.admin-panel-heading-action {
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.admin-panel-heading--with-action .admin-panel-title {
+  margin-bottom: 4px;
+}
+
+@media (max-width: 639px) {
+  .admin-panel-heading--with-action {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .admin-panel-heading--with-action .admin-panel-heading-action {
+    order: -1;
+    align-self: stretch;
+  }
+
+  .admin-panel-heading--with-action .admin-open-dm-btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+  }
 }
 
 .admin-panel-title {
@@ -7348,8 +7436,27 @@ body.project-modal-open {
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
+}
+
+.admin-dashboard-actions-row {
+  width: 100%;
+  min-width: 0;
+}
+
+#admin-dashboard-content > .admin-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#admin-dashboard-content > .admin-tabs > .admin-tab-bar {
+  margin-bottom: 0;
+}
+
+#admin-dashboard-content > .admin-tabs > .admin-intro {
+  margin-bottom: 0;
 }
 
 .admin-dashboard-actions {
@@ -8452,6 +8559,63 @@ body.project-modal-open {
   align-items: start;
 }
 
+/* Admin DM: inbox list only (no thread column) */
+#admin-dashboard-content .dm-layout.dm-layout--no-thread,
+#admin-dm-sheet-body .dm-layout.dm-layout--no-thread {
+  grid-template-columns: 1fr;
+}
+
+/* Admin DM: conversation open — hide inbox toolbar + list (!important beats wide-screen grid rules).
+   :has(#dm-thread-panel:not([hidden])) mirrors JS classes so layout stays correct if dm-inbox--thread-open / dm-layout--thread-only lag or fail.
+   #dm-layout.dm-layout--thread-only does not rely on :has() on the thread (fixes browsers / cases where [hidden] is overridden by display:flex). */
+#admin-dm-sheet-body.dm-inbox--thread-open .dm-inbox-toolbar,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) .dm-inbox-toolbar,
+#admin-dm-sheet-body:has(#dm-layout.dm-layout--thread-only) .dm-inbox-toolbar {
+  display: none !important;
+}
+
+#admin-dm-sheet-body.dm-inbox--thread-open #dm-layout.dm-layout--thread-only .dm-conversation-list-wrap,
+#admin-dashboard-content #admin-dm-sheet-body.dm-inbox--thread-open #dm-layout.dm-layout--thread-only .dm-conversation-list-wrap,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only .dm-conversation-list-wrap,
+#admin-dashboard-content #admin-dm-sheet-body #dm-layout.dm-layout--thread-only .dm-conversation-list-wrap,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout .dm-conversation-list-wrap,
+#admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout .dm-conversation-list-wrap {
+  display: none !important;
+}
+
+#admin-dashboard-content .dm-layout.dm-layout--thread-only,
+#admin-dm-sheet-body .dm-layout.dm-layout--thread-only,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout,
+#admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout {
+  grid-template-columns: 1fr !important;
+  gap: 0;
+}
+
+#admin-dashboard-content .dm-layout.dm-layout--thread-only #dm-thread-panel,
+#admin-dm-sheet-body .dm-layout.dm-layout--thread-only #dm-thread-panel,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout #dm-thread-panel,
+#admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout #dm-thread-panel {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Sheet chrome: conversation mode — tighter header, hide inbox stats row */
+#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-lead,
+#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-stats,
+#admin-dm-sheet-root:has(#dm-thread-panel:not([hidden])) #admin-dm-sheet .admin-dm-sheet-lead,
+#admin-dm-sheet-root:has(#dm-thread-panel:not([hidden])) #admin-dm-sheet .admin-dm-sheet-stats,
+#admin-dm-sheet-root:has(#dm-layout.dm-layout--thread-only) #admin-dm-sheet .admin-dm-sheet-lead,
+#admin-dm-sheet-root:has(#dm-layout.dm-layout--thread-only) #admin-dm-sheet .admin-dm-sheet-stats {
+  display: none !important;
+}
+
+#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-head,
+#admin-dm-sheet-root:has(#dm-thread-panel:not([hidden])) #admin-dm-sheet .admin-dm-sheet-head,
+#admin-dm-sheet-root:has(#dm-layout.dm-layout--thread-only) #admin-dm-sheet .admin-dm-sheet-head {
+  padding-bottom: 10px;
+}
+
 /* Admin inbox: wider list column so multiple compact cards fit (auto-fill grid) */
 @media (min-width: 992px) {
   #admin-dashboard-content .dm-layout {
@@ -8463,6 +8627,24 @@ body.project-modal-open {
 @media (min-width: 1400px) {
   #admin-dashboard-content .dm-layout {
     grid-template-columns: minmax(360px, min(40vw, 720px)) minmax(380px, 1fr);
+  }
+}
+
+@media (min-width: 992px) {
+  #admin-dashboard-content .dm-layout.dm-layout--thread-only,
+  #admin-dm-sheet-body .dm-layout.dm-layout--thread-only,
+  #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout,
+  #admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 1400px) {
+  #admin-dashboard-content .dm-layout.dm-layout--thread-only,
+  #admin-dm-sheet-body .dm-layout.dm-layout--thread-only,
+  #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout,
+  #admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout {
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -8480,7 +8662,8 @@ body.project-modal-open {
 }
 
 /* Legacy Firestore messages list: grow with content; scroll the page, not this pane */
-#admin-dashboard-content #messages-section .messages-list {
+#admin-dashboard-content #messages-section .messages-list,
+#admin-dashboard-content #firestore-messages-list.messages-list {
   max-height: none;
   overflow-y: visible;
 }
@@ -8579,6 +8762,17 @@ body.project-modal-open {
   padding: 3px 8px;
 }
 
+#admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-delete {
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 10px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-delete ion-icon {
+  font-size: 18px;
+}
+
 .dm-thread-panel {
   border: 1px solid hsla(0, 0%, 100%, 0.07);
   border-radius: 14px;
@@ -8591,7 +8785,7 @@ body.project-modal-open {
   min-width: 0;
   flex: 1 1 auto;
   position: relative;
-  z-index: 2;
+  z-index: auto;
 }
 
 .dm-thread-header {
@@ -8782,6 +8976,393 @@ body.project-modal-open {
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* ─── Admin DM thread (#dm-thread-panel): modern panel, bubbles, composer row ─── */
+#dm-thread-panel {
+  padding: 14px 16px 18px;
+  gap: 14px;
+}
+
+/* Thread inside bottom sheet: avoid nested “card on card”; let the message list carry elevation. */
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel.dm-thread-panel {
+  padding: 8px 12px 16px;
+  gap: 12px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* Minimal thread: back + message list + composer (no admin meta / presence / load-more / mail).
+   :has(...) hides admin chrome whenever the thread is visible even if dm-thread-panel--minimal is missing.
+   #dm-layout.dm-layout--thread-only … works without :has on #dm-thread-panel (see [hidden] vs display:flex note above). */
+#dm-thread-panel.dm-thread-panel--minimal,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel,
+#admin-dashboard-content #admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 10px;
+}
+
+#dm-thread-panel.dm-thread-panel--minimal .dm-thread-admin-meta,
+#dm-thread-panel.dm-thread-panel--minimal .dm-presence-row,
+#dm-thread-panel.dm-thread-panel--minimal #dm-load-more,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel .dm-thread-admin-meta,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel .dm-presence-row,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-load-more,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel .dm-thread-admin-meta,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel .dm-presence-row,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-load-more {
+  display: none !important;
+}
+
+#dm-thread-panel.dm-thread-panel--minimal #dm-send-reply-email,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-send-reply-email,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-send-reply-email {
+  display: none !important;
+}
+
+#dm-thread-panel.dm-thread-panel--minimal #dm-message-list.dm-message-list,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-message-list.dm-message-list,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-message-list.dm-message-list {
+  flex: 1 1 auto;
+  min-height: min(200px, 28vh);
+}
+
+/* List-only inbox: never show the thread column (author .dm-thread-panel { display:flex } can defeat the [hidden] attribute). */
+#admin-dm-sheet-body #dm-layout.dm-layout--no-thread #dm-thread-panel,
+#admin-dashboard-content #admin-dm-sheet-body #dm-layout.dm-layout--no-thread #dm-thread-panel {
+  display: none !important;
+}
+
+#dm-thread-panel .dm-thread-header--admin {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 10px;
+  padding-bottom: 12px;
+  margin-bottom: 0;
+}
+
+#dm-thread-panel .dm-thread-header--admin .dm-thread-header-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#dm-thread-panel .dm-thread-toolbar {
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+
+#dm-thread-panel .dm-thread-actions {
+  gap: 8px;
+}
+
+#dm-thread-panel .dm-presence-row {
+  gap: 6px;
+  margin-top: 0;
+}
+
+#dm-thread-panel .dm-presence-pill {
+  padding: 4px 10px;
+  font-size: 10px;
+  border-radius: 999px;
+}
+
+#dm-thread-panel #dm-message-list.dm-message-list {
+  border-left: none;
+  background: linear-gradient(165deg, hsla(240, 4%, 12%, 0.92) 0%, hsla(240, 3%, 9%, 0.88) 100%);
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  border-radius: 18px;
+  padding: 12px 12px 14px;
+  gap: 8px;
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.06),
+    0 10px 40px hsla(0, 0%, 0%, 0.28);
+}
+
+#dm-thread-panel .dm-message-row.dm-message-customer {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+#dm-thread-panel .dm-message-row.dm-message-admin {
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+#dm-thread-panel .dm-message-bubble {
+  max-width: 86%;
+  padding: 9px 13px 10px;
+  border-radius: 18px;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
+  box-shadow: 0 3px 12px hsla(0, 0%, 0%, 0.16);
+}
+
+#dm-thread-panel .dm-message-customer .dm-message-bubble {
+  border-radius: 8px 20px 20px 20px;
+  background: linear-gradient(165deg, hsla(240, 3%, 18%, 0.95) 0%, hsla(240, 2%, 14%, 0.92) 100%);
+  border-color: hsla(0, 0%, 100%, 0.09);
+  box-shadow: 0 3px 14px hsla(0, 0%, 0%, 0.2);
+}
+
+#dm-thread-panel .dm-message-admin .dm-message-bubble {
+  border-radius: 20px 20px 8px 20px;
+  background: linear-gradient(
+    155deg,
+    hsla(45, 22%, 22%, 0.55) 0%,
+    hsla(240, 4%, 12%, 0.9) 100%
+  );
+  border-color: hsla(45, 42%, 48%, 0.2);
+  box-shadow:
+    inset 0 1px 0 hsla(45, 70%, 70%, 0.08),
+    0 3px 14px hsla(0, 0%, 0%, 0.18);
+}
+
+#dm-thread-panel .dm-message-author {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsla(45, 62%, 70%, 0.88);
+}
+
+#dm-thread-panel .dm-message-customer .dm-message-author {
+  color: hsla(45, 28%, 62%, 0.75);
+}
+
+#dm-thread-panel .dm-message-body {
+  margin: 0;
+  font-size: var(--fs-6);
+  line-height: 1.5;
+  color: var(--white-2);
+  word-break: break-word;
+}
+
+#dm-thread-panel .dm-message-meta {
+  margin: 8px 0 0;
+  padding-top: 0;
+  border-top: none;
+  font-size: 10px;
+  font-weight: var(--fw-500);
+  letter-spacing: 0.02em;
+  color: hsla(0, 0%, 88%, 0.38);
+}
+
+#dm-thread-panel .dm-admin-composer {
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  margin-top: 0;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.06);
+}
+
+#dm-thread-panel .dm-admin-composer-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+#dm-thread-panel .dm-admin-composer-input-wrap {
+  flex: 1;
+  min-width: 0;
+  border-radius: 12px;
+  padding: 1px;
+  background: linear-gradient(180deg, hsla(0, 0%, 100%, 0.06) 0%, hsla(0, 0%, 100%, 0.03) 100%);
+  border: 1px solid hsla(0, 0%, 100%, 0.09);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.05);
+}
+
+#dm-thread-panel #dm-admin-composer:focus-within .dm-admin-composer-input-wrap {
+  border-color: hsla(45, 85%, 62%, 0.28);
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.05),
+    0 0 0 1px hsla(45, 100%, 72%, 0.12);
+}
+
+#dm-thread-panel textarea.dm-admin-composer-textarea.form-input.dm-reply-textarea {
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  max-height: min(168px, 32vh);
+  resize: none;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  background: hsla(240, 4%, 11%, 0.82);
+  font-family: inherit;
+  font-size: var(--fs-6);
+  line-height: 1.45;
+  color: var(--white-2);
+  field-sizing: content;
+}
+
+#dm-thread-panel textarea.dm-admin-composer-textarea.form-input.dm-reply-textarea::placeholder {
+  color: hsla(0, 0%, 100%, 0.32);
+}
+
+#dm-thread-panel .dm-admin-attachment-panel {
+  margin-top: 2px;
+}
+
+#dm-thread-panel .dm-admin-attachment-panel .dm-attachment-field {
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: var(--fs-7);
+}
+
+#dm-thread-panel .dm-admin-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 48%, 52%, 0.36);
+  background: linear-gradient(165deg, hsla(0, 0%, 100%, 0.07) 0%, hsla(0, 0%, 100%, 0.02) 100%);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.07);
+  color: var(--orange-yellow-crayola);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+#dm-thread-panel .dm-admin-icon-btn:hover {
+  border-color: hsla(45, 85%, 68%, 0.5);
+  background: hsla(45, 100%, 72%, 0.09);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.09), 0 3px 12px hsla(0, 0%, 0%, 0.16);
+}
+
+#dm-thread-panel .dm-admin-icon-btn:active {
+  transform: scale(0.96);
+}
+
+#dm-thread-panel .dm-admin-icon-btn:focus-visible {
+  outline: 2px solid hsla(45, 100%, 72%, 0.4);
+  outline-offset: 2px;
+}
+
+#dm-thread-panel .dm-admin-icon-btn-mail {
+  border-color: hsla(0, 0%, 100%, 0.12);
+  color: var(--light-gray);
+}
+
+#dm-thread-panel .dm-admin-icon-btn-mail:hover {
+  color: var(--orange-yellow-crayola);
+  border-color: hsla(45, 50%, 55%, 0.4);
+}
+
+#dm-thread-panel .dm-admin-send-btn {
+  background: linear-gradient(
+    145deg,
+    hsla(45, 50%, 44%, 0.42) 0%,
+    hsla(240, 4%, 12%, 0.9) 100%
+  );
+  border-color: hsla(45, 55%, 54%, 0.4);
+  box-shadow:
+    inset 0 1px 0 hsla(45, 100%, 78%, 0.16),
+    0 4px 16px hsla(0, 0%, 0%, 0.22);
+}
+
+#dm-thread-panel .dm-admin-icon-btn ion-icon {
+  font-size: 22px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .reply-btn {
+  min-width: auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .reply-btn span {
+  display: none;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .reply-btn ion-icon {
+  margin: 0;
+  font-size: 20px;
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-card {
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  background: hsla(240, 2%, 11%, 0.6);
+  box-shadow: 0 4px 20px hsla(0, 0%, 0%, 0.15);
+}
+
+#admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-card.dm-conversation-active {
+  background: hsla(45, 25%, 18%, 0.35);
+  border-color: hsla(45, 55%, 55%, 0.45);
+  box-shadow: 0 0 0 1px hsla(45, 100%, 72%, 0.25), 0 8px 28px hsla(0, 0%, 0%, 0.2);
+}
+
+[data-theme="light"] #admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-card {
+  background: hsl(0, 0%, 100%);
+  border-color: hsla(0, 0%, 0%, 0.08);
+  box-shadow: 0 4px 18px hsla(0, 0%, 0%, 0.06);
+}
+
+[data-theme="light"] #admin-dashboard-content .dm-conversation-list-wrap .dm-conversation-card.dm-conversation-active {
+  background: hsla(45, 80%, 96%, 1);
+  border-color: hsla(45, 50%, 58%, 0.45);
+}
+
+[data-theme="light"] #dm-thread-panel #dm-message-list.dm-message-list {
+  background: linear-gradient(165deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
+  border-color: hsla(0, 0%, 0%, 0.07);
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 1),
+    0 10px 36px hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme="light"] #dm-thread-panel .dm-message-customer .dm-message-bubble {
+  background: hsl(0, 0%, 99%);
+  border-color: hsla(0, 0%, 0%, 0.08);
+  box-shadow: 0 3px 12px hsla(0, 0%, 0%, 0.06);
+}
+
+[data-theme="light"] #dm-thread-panel .dm-message-admin .dm-message-bubble {
+  background: linear-gradient(155deg, hsla(45, 70%, 94%, 1) 0%, hsl(0, 0%, 99%) 100%);
+  border-color: hsla(45, 45%, 58%, 0.35);
+  box-shadow:
+    inset 0 1px 0 hsla(45, 100%, 100%, 0.8),
+    0 4px 14px hsla(0, 0%, 0%, 0.07);
+}
+
+[data-theme="light"] #dm-thread-panel .dm-message-customer .dm-message-author {
+  color: hsla(45, 35%, 38%, 0.65);
+}
+
+[data-theme="light"] #dm-thread-panel textarea.dm-admin-composer-textarea.form-input.dm-reply-textarea {
+  background: hsl(0, 0%, 100%);
+  color: hsl(240, 6%, 12%);
+}
+
+[data-theme="light"] #dm-thread-panel textarea.dm-admin-composer-textarea.form-input.dm-reply-textarea::placeholder {
+  color: hsla(0, 0%, 0%, 0.35);
+}
+
+[data-theme="light"] #dm-thread-panel .dm-admin-composer-input-wrap {
+  background: linear-gradient(180deg, hsla(0, 0%, 100%, 1) 0%, hsl(0, 0%, 99%) 100%);
+  border-color: hsla(0, 0%, 0%, 0.1);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1);
+}
+
 .dm-composer {
   display: flex;
   flex-direction: column;
@@ -8841,67 +9422,652 @@ body.project-modal-open {
   color: #e57373;
 }
 
-.dm-customer-thread-toolbar {
+#customer-dm-portal {
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Customer DM — bottom sheet (opens after “Open my conversation”) */
+.dm-customer-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0.32s step-end;
+}
+
+.dm-customer-sheet-root.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  transition: visibility 0s step-start;
+}
+
+.dm-customer-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.58);
+  opacity: 0;
+  transition: opacity 0.32s ease;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.dm-customer-sheet-root.is-open .dm-customer-sheet-backdrop {
+  opacity: 1;
+}
+
+.dm-customer-sheet {
+  --dm-sheet-max-vh: 85;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  /* No fixed px cap — 100 = full viewport height so users can expand edge-to-edge */
+  max-height: calc(var(--dm-sheet-max-vh) * 1vh);
+  max-height: calc(var(--dm-sheet-max-vh) * 1dvh);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  background: var(--eerie-black-1);
+  border: 1px solid hsla(45, 40%, 50%, 0.2);
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -16px 56px hsla(0, 0%, 0%, 0.5);
+  transform: translate3d(0, 100%, 0);
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), max-height 0.12s ease-out;
+  will-change: transform;
+}
+
+.dm-customer-sheet.is-resizing {
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), max-height 0s;
+}
+
+.dm-customer-sheet-root.is-open .dm-customer-sheet {
+  transform: translate3d(0, 0, 0);
+}
+
+@media (min-width: 640px) {
+  .dm-customer-sheet {
+    left: 50%;
+    right: auto;
+    width: min(520px, calc(100vw - 48px));
+    transform: translate3d(-50%, 100%, 0);
+  }
+
+  .dm-customer-sheet-root.is-open .dm-customer-sheet {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.dm-customer-sheet-grabber {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 32px;
+  margin: 0;
+  padding: 8px 16px 10px;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: transparent;
+}
+
+.dm-customer-sheet-grabber::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 5px;
+  border-radius: 4px;
+  background: hsla(45, 50%, 55%, 0.45);
+}
+
+.dm-customer-sheet-grabber:focus-visible {
+  outline: 2px solid hsla(45, 100%, 72%, 0.55);
+  outline-offset: 2px;
+}
+
+.dm-customer-sheet-grabber.is-dragging {
+  opacity: 0.85;
+}
+
+.dm-customer-sheet-grabber[aria-grabbed='true'] {
+  cursor: grabbing;
+}
+
+.dm-customer-sheet-head {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--jet);
+  gap: 12px;
+  padding: 0 16px 10px;
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.08);
+  flex-shrink: 0;
 }
 
-.dm-customer-thread-email {
+.dm-customer-sheet-title {
   margin: 0;
-  font-size: var(--fs-7);
-  color: var(--light-gray);
+  font-size: var(--fs-3);
+  font-weight: var(--fw-600);
+  color: var(--orange-yellow-crayola);
+  letter-spacing: 0.02em;
 }
 
-.dm-portal-sign-out {
-  background: transparent;
-  border: 1px solid var(--jet);
+.dm-customer-sheet-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid hsla(45, 50%, 55%, 0.35);
+  border-radius: 12px;
+  background: hsla(0, 0%, 100%, 0.04);
   color: var(--orange-yellow-crayola);
-  font-size: var(--fs-7);
-  padding: 6px 12px;
-  border-radius: 8px;
   cursor: pointer;
   transition: var(--transition-1);
 }
 
-.dm-portal-sign-out:hover {
+.dm-customer-sheet-close:hover {
   border-color: var(--orange-yellow-crayola);
+  background: hsla(45, 100%, 72%, 0.12);
 }
 
-.dm-customer-thread {
-  margin-top: 16px;
-  border: 1px solid var(--jet);
+.dm-customer-sheet-close ion-icon {
+  font-size: 22px;
+}
+
+body.dm-customer-sheet-open {
+  overflow: hidden;
+}
+
+/* Admin DM inbox — overlay + bottom sheet (realtime threads) */
+.admin-dm-launch-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-open-dm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.admin-dm-unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  border-radius: 999px;
+  background: hsla(45, 100%, 72%, 0.18);
+  border: 1px solid hsla(45, 55%, 55%, 0.45);
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-dm-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0.32s step-end;
+}
+
+.admin-dm-sheet-root.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  transition: visibility 0s step-start;
+}
+
+.admin-dm-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  opacity: 0;
+  transition: opacity 0.32s ease;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.admin-dm-sheet-root.is-open .admin-dm-sheet-backdrop {
+  opacity: 1;
+}
+
+.admin-dm-sheet {
+  --dm-sheet-max-vh: 90;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(var(--dm-sheet-max-vh) * 1vh);
+  max-height: calc(var(--dm-sheet-max-vh) * 1dvh);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  background: var(--eerie-black-1);
+  border: 1px solid hsla(45, 40%, 50%, 0.22);
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -18px 60px hsla(0, 0%, 0%, 0.55);
+  transform: translate3d(0, 100%, 0);
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), max-height 0.12s ease-out;
+  will-change: transform;
+}
+
+.admin-dm-sheet.is-resizing {
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), max-height 0s;
+}
+
+.admin-dm-sheet-root.is-open .admin-dm-sheet {
+  transform: translate3d(0, 0, 0);
+}
+
+@media (min-width: 768px) {
+  .admin-dm-sheet {
+    left: 50%;
+    right: auto;
+    width: min(960px, calc(100vw - 40px));
+    transform: translate3d(-50%, 100%, 0);
+  }
+
+  .admin-dm-sheet-root.is-open .admin-dm-sheet {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.admin-dm-sheet-grabber {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 22px;
+  margin: 0;
+  padding: 4px 16px 6px;
+  padding-top: max(4px, env(safe-area-inset-top));
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: transparent;
+}
+
+.admin-dm-sheet-grabber::after {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: hsla(0, 0%, 100%, 0.14);
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.12),
+    0 1px 3px hsla(0, 0%, 0%, 0.35);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.admin-dm-sheet-grabber:hover::after {
+  background: hsla(0, 0%, 100%, 0.2);
+}
+
+.admin-dm-sheet-grabber:focus-visible {
+  outline: 2px solid hsla(45, 100%, 72%, 0.45);
+  outline-offset: 2px;
+}
+
+.admin-dm-sheet-grabber.is-dragging::after {
+  background: hsla(45, 45%, 52%, 0.45);
+  box-shadow:
+    inset 0 1px 0 hsla(45, 90%, 75%, 0.2),
+    0 2px 8px hsla(0, 0%, 0%, 0.35);
+}
+
+.admin-dm-sheet-grabber.is-dragging {
+  opacity: 0.95;
+}
+
+.admin-dm-sheet-grabber[aria-grabbed='true'] {
+  cursor: grabbing;
+}
+
+.admin-dm-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 14px 14px;
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
+  flex-shrink: 0;
+}
+
+#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-head {
+  padding-top: 4px;
+  padding-bottom: 16px;
+  border-bottom-color: hsla(0, 0%, 100%, 0.055);
+  background: linear-gradient(180deg, hsla(240, 5%, 10%, 0.55) 0%, transparent 100%);
+}
+
+#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-head-main {
+  text-align: center;
+}
+
+#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-title {
+  font-size: clamp(1.05rem, 3.2vw, 1.35rem);
+  font-weight: var(--fw-600);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.admin-dm-sheet-back[hidden] {
+  display: none !important;
+}
+
+.admin-dm-sheet-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 1px solid hsla(45, 48%, 52%, 0.38);
   border-radius: 12px;
-  padding: 12px;
-  background: var(--eerie-black-2);
+  background: linear-gradient(165deg, hsla(0, 0%, 100%, 0.07) 0%, hsla(0, 0%, 100%, 0.02) 100%);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.08);
+  color: var(--orange-yellow-crayola);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
 }
 
-/* Customer portal — message list, bubbles, composer (scoped so admin inbox stays unchanged) */
+.admin-dm-sheet-back:hover:not(:disabled) {
+  border-color: hsla(45, 85%, 68%, 0.55);
+  background: hsla(45, 100%, 72%, 0.11);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.1), 0 4px 18px hsla(0, 0%, 0%, 0.2);
+}
+
+.admin-dm-sheet-back:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.admin-dm-sheet-back:focus-visible {
+  outline: 2px solid hsla(45, 100%, 72%, 0.45);
+  outline-offset: 2px;
+}
+
+.admin-dm-sheet-back ion-icon {
+  font-size: 22px;
+}
+
+.admin-dm-sheet-head-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-dm-sheet-title {
+  margin: 0;
+  font-size: var(--fs-3);
+  font-weight: var(--fw-600);
+  color: var(--orange-yellow-crayola);
+  letter-spacing: 0.02em;
+}
+
+.admin-dm-sheet-lead {
+  margin: 4px 0 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.admin-dm-sheet-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 8px;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+}
+
+.admin-dm-sheet-stats strong {
+  color: var(--white-2);
+  font-weight: var(--fw-600);
+}
+
+.admin-dm-stat-new strong {
+  color: hsl(45, 85%, 72%);
+}
+
+.admin-dm-sheet-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  flex-shrink: 0;
+  border: 1px solid hsla(45, 48%, 52%, 0.38);
+  border-radius: 12px;
+  background: linear-gradient(165deg, hsla(0, 0%, 100%, 0.07) 0%, hsla(0, 0%, 100%, 0.02) 100%);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.08);
+  color: var(--orange-yellow-crayola);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.admin-dm-sheet-close:hover {
+  border-color: hsla(45, 85%, 68%, 0.55);
+  background: hsla(45, 100%, 72%, 0.11);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.1), 0 4px 18px hsla(0, 0%, 0%, 0.2);
+}
+
+.admin-dm-sheet-close:active {
+  transform: scale(0.97);
+}
+
+.admin-dm-sheet-close:focus-visible {
+  outline: 2px solid hsla(45, 100%, 72%, 0.45);
+  outline-offset: 2px;
+}
+
+.admin-dm-sheet-close ion-icon {
+  font-size: 22px;
+}
+
+#admin-dm-sheet-body.admin-dm-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 16px max(16px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+#admin-dm-sheet-body .dm-inbox-toolbar {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.dm-inbox-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.dm-inbox-toolbar .dm-search-input {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.dm-inbox-toolbar .dm-inbox-filters {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+/* RTDB thread inbox: readable labels (not legacy “replied” / all-caps message filters). */
+.dm-inbox-toolbar .dm-inbox-filters .filter-btn {
+  padding: 7px 12px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+#admin-dm-sheet-body .dm-layout {
+  flex: 1;
+  min-height: min(520px, 56vh);
+  margin-top: 0;
+}
+
+#admin-dm-sheet-body .dm-conversation-list-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+#admin-dm-sheet-body #dm-thread-panel {
+  min-height: 0;
+}
+
+#admin-dm-sheet-body #dm-thread-panel #dm-message-list.dm-message-list {
+  flex: 1 1 auto;
+  min-height: min(200px, 28vh);
+  max-height: min(420px, 40vh);
+}
+
+#admin-dm-sheet-body.dm-inbox--thread-open #dm-thread-panel #dm-message-list.dm-message-list,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-message-list.dm-message-list,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-message-list.dm-message-list {
+  max-height: min(560px, 52vh);
+}
+
+#admin-dm-sheet-body.dm-inbox--thread-open #dm-thread-panel.dm-thread-panel--minimal #dm-message-list.dm-message-list,
+#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-message-list.dm-message-list,
+#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-message-list.dm-message-list {
+  max-height: min(640px, 62vh);
+}
+
+/* Mobile / narrow sheet: list uses tall min-height; conversation mode should flex inside the sheet instead of forcing ~520px layout. */
+@media (max-width: 767px) {
+  /* DM inbox toolbar: stacked search + filters (16px+ on search avoids iOS input zoom). */
+  #admin-dm-sheet-body .dm-inbox-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  #admin-dm-sheet-body .dm-inbox-toolbar .dm-search-input {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  #admin-dm-sheet-body .dm-inbox-toolbar .dm-inbox-filters {
+    width: 100%;
+  }
+
+  #admin-dm-sheet-body #dm-layout.dm-layout--thread-only {
+    min-height: 0;
+    flex: 1 1 auto;
+    align-self: stretch;
+  }
+
+  #admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+  }
+
+  #admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-message-list.dm-message-list {
+    max-height: min(58vh, 560px);
+    max-height: min(58dvh, 560px);
+    min-height: min(140px, 22vh);
+    min-height: min(140px, 22dvh);
+  }
+}
+
+body.admin-dm-sheet-open {
+  overflow: hidden;
+}
+
+[data-theme='light'] .admin-dm-sheet {
+  background: hsl(0, 0%, 99%);
+  border-color: hsla(0, 0%, 0%, 0.1);
+  box-shadow: 0 -12px 48px hsla(0, 0%, 0%, 0.12);
+}
+
+[data-theme='light'] .admin-dm-sheet-backdrop {
+  background: rgba(20, 20, 24, 0.38);
+}
+
+#customer-dm-portal .dm-customer-thread {
+  margin-top: 0;
+  border: none;
+  border-radius: 0;
+  padding: 10px 12px 14px;
+  background: transparent;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Customer portal — message list, bubbles (scoped; admin inbox unchanged) */
 #customer-dm-portal #dm-customer-message-list.dm-message-list {
   min-height: 260px;
   max-height: min(52vh, 500px);
-  padding: 18px 18px 20px 22px;
-  gap: 14px;
-  background: linear-gradient(
-    180deg,
-    hsla(240, 3%, 11%, 0.98) 0%,
-    hsla(240, 2%, 8%, 0.99) 100%
-  );
-  border: 1px solid hsla(45, 45%, 55%, 0.14);
-  border-radius: 16px;
-  border-left: 4px solid var(--orange-yellow-crayola);
-  box-shadow:
-    inset 0 1px 0 hsla(0, 0%, 100%, 0.05),
-    0 12px 40px hsla(0, 0%, 0%, 0.22);
+  padding: 12px 14px 14px;
+  gap: 10px;
+  background: hsla(240, 3%, 10%, 0.55);
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.04);
+}
+
+#customer-dm-portal .dm-customer-sheet-root.is-open #dm-customer-message-list.dm-message-list {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
 }
 
 #customer-dm-portal #dm-customer-message-list .dm-thread-empty {
   min-height: 220px;
+}
+
+#customer-dm-portal .dm-customer-sheet-root.is-open #dm-customer-message-list .dm-thread-empty {
+  min-height: 160px;
 }
 
 #customer-dm-portal #dm-customer-message-list .dm-thread-empty-title {
@@ -8920,46 +10086,50 @@ body.project-modal-open {
   line-height: 1.5;
 }
 
-#customer-dm-portal .dm-message-row {
+/* You = outgoing right; Admin = incoming left */
+#customer-dm-portal .dm-message-row.dm-message-customer {
+  justify-content: flex-end;
   align-items: flex-end;
 }
 
+#customer-dm-portal .dm-message-row.dm-message-admin {
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
 #customer-dm-portal .dm-message-bubble {
-  max-width: 90%;
-  padding: 14px 16px 12px;
-  border-radius: 18px;
-  border: 1px solid hsla(0, 0%, 100%, 0.08);
-  box-shadow: 0 6px 24px hsla(0, 0%, 0%, 0.18);
+  max-width: 80%;
+  padding: 10px 14px 10px;
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  box-shadow: 0 2px 12px hsla(0, 0%, 0%, 0.12);
 }
 
+/* Outgoing: warm tint, subtle tail toward edge (bottom-right) */
 #customer-dm-portal .dm-message-customer .dm-message-bubble {
-  background: linear-gradient(
-    145deg,
-    hsla(45, 35%, 22%, 0.42) 0%,
-    hsla(240, 3%, 14%, 0.92) 55%,
-    hsla(240, 2%, 12%, 0.96) 100%
-  );
-  border-color: hsla(45, 55%, 58%, 0.28);
-  border-left: 3px solid var(--orange-yellow-crayola);
+  border-radius: 18px 18px 6px 18px;
+  background: hsla(45, 28%, 24%, 0.55);
+  border-color: hsla(45, 45%, 52%, 0.22);
 }
 
+/* Incoming: neutral surface */
 #customer-dm-portal .dm-message-admin .dm-message-bubble {
-  background: linear-gradient(
-    315deg,
-    hsla(45, 50%, 28%, 0.35) 0%,
-    hsla(240, 2%, 15%, 0.94) 100%
-  );
-  border-color: hsla(45, 70%, 65%, 0.32);
-  border-right: 3px solid hsla(45, 100%, 72%, 0.55);
+  border-radius: 6px 18px 18px 18px;
+  background: hsla(240, 2%, 16%, 0.85);
+  border-color: hsla(0, 0%, 100%, 0.07);
 }
 
 #customer-dm-portal .dm-message-author {
-  margin: 0 0 8px;
-  font-size: var(--fs-8);
-  font-weight: var(--fw-600);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--orange-yellow-crayola);
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: var(--fw-500);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: hsla(45, 70%, 72%, 0.85);
+  opacity: 0.95;
+}
+
+#customer-dm-portal .dm-message-admin .dm-message-author {
+  color: var(--light-gray-70);
 }
 
 #customer-dm-portal .dm-message-body {
@@ -8967,78 +10137,209 @@ body.project-modal-open {
   font-size: var(--fs-6);
   font-weight: var(--fw-400);
   color: var(--white-2);
-  line-height: 1.62;
+  line-height: 1.5;
   word-break: break-word;
 }
 
 #customer-dm-portal .dm-message-meta {
-  margin: 12px 0 0;
-  padding-top: 10px;
-  border-top: 1px solid hsla(0, 0%, 100%, 0.07);
-  font-size: var(--fs-8);
-  color: var(--light-gray-70);
-  letter-spacing: 0.02em;
+  margin: 6px 0 0;
+  padding-top: 0;
+  border-top: none;
+  font-size: 10px;
+  color: hsla(0, 0%, 84%, 0.45);
+  letter-spacing: 0.01em;
 }
 
 #customer-dm-portal #dm-customer-composer.dm-composer {
-  padding-top: 18px;
-  margin-top: 6px;
-  border-top: 1px solid hsla(45, 35%, 50%, 0.12);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 10px;
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.06);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
-#customer-dm-portal #dm-customer-composer .form-textarea {
-  border-radius: 14px;
-  border: 1px solid hsla(0, 0%, 100%, 0.1);
-  background: hsla(240, 2%, 10%, 0.65);
-  min-height: 108px;
-  font-size: var(--fs-6);
-  line-height: 1.5;
+#customer-dm-portal #dm-customer-composer .dm-composer-input-wrap {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  border-radius: 22px;
+  padding: 1px;
+  background: hsla(0, 0%, 100%, 0.07);
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.05);
   transition: border-color var(--transition-1), box-shadow var(--transition-1);
 }
 
-#customer-dm-portal #dm-customer-composer .form-textarea:focus {
-  border-color: hsla(45, 100%, 72%, 0.5);
-  box-shadow: 0 0 0 2px hsla(45, 100%, 72%, 0.12);
+#customer-dm-portal #dm-customer-composer.dm-composer:focus-within .dm-composer-input-wrap {
+  border-color: hsla(45, 100%, 72%, 0.35);
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.06),
+    0 0 0 2px hsla(45, 100%, 72%, 0.12);
 }
 
-#customer-dm-portal #dm-customer-composer .form-btn {
-  align-self: flex-end;
-  min-width: 160px;
+#customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  box-sizing: border-box;
+  resize: none;
+  min-height: 48px;
+  max-height: min(168px, 32vh);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsla(45, 45%, 48%, 0.55) hsla(0, 0%, 100%, 0.05);
+  padding: 12px 16px;
+  border: none;
+  border-radius: 21px;
+  outline: none;
+  font-family: var(--ff-poppins);
+  font-size: var(--fs-6);
+  line-height: 1.45;
+  color: var(--white-2);
+  caret-color: var(--orange-yellow-crayola);
+  background: hsla(240, 3%, 12%, 0.75);
+  -webkit-overflow-scrolling: touch;
+}
+
+#customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea::placeholder {
+  color: var(--light-gray-70);
+  font-weight: var(--fw-400);
+  opacity: 1;
+}
+
+#customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea:focus {
+  outline: none;
+}
+
+#customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+#customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea::-webkit-scrollbar-track {
+  background: hsla(0, 0%, 100%, 0.03);
+  border-radius: 8px;
+}
+
+#customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea::-webkit-scrollbar-thumb {
+  background: hsla(45, 45%, 48%, 0.45);
+  border-radius: 8px;
+}
+
+#customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea::-webkit-scrollbar-thumb:hover {
+  background: hsla(45, 55%, 58%, 0.65);
+}
+
+#customer-dm-portal #dm-customer-composer .form-btn.dm-composer-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  margin: 0;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid hsla(45, 55%, 55%, 0.4);
+  background: linear-gradient(
+    145deg,
+    hsla(45, 55%, 42%, 0.5) 0%,
+    hsla(240, 3%, 14%, 0.95) 100%
+  );
+  color: var(--orange-yellow-crayola);
+  box-shadow: 0 4px 16px hsla(0, 0%, 0%, 0.2);
+  transition: transform 0.15s ease, border-color var(--transition-1), box-shadow var(--transition-1);
+}
+
+#customer-dm-portal #dm-customer-composer .form-btn.dm-composer-send:hover {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 6px 20px hsla(45, 100%, 72%, 0.15);
+}
+
+#customer-dm-portal #dm-customer-composer .form-btn.dm-composer-send:active {
+  transform: scale(0.96);
+}
+
+#customer-dm-portal #dm-customer-composer .form-btn.dm-composer-send ion-icon {
+  font-size: 22px;
 }
 
 [data-theme="light"] #customer-dm-portal #dm-customer-message-list.dm-message-list {
-  background: linear-gradient(
-    180deg,
-    hsla(0, 0%, 100%, 0.95) 0%,
-    hsla(45, 40%, 98%, 0.98) 100%
-  );
-  border-color: hsla(45, 40%, 70%, 0.35);
-  box-shadow:
-    inset 0 1px 0 hsla(0, 0%, 100%, 0.8),
-    0 10px 36px hsla(0, 0%, 0%, 0.08);
+  background: hsla(0, 0%, 100%, 0.72);
+  border-color: hsla(0, 0%, 0%, 0.06);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.9);
 }
 
 [data-theme="light"] #customer-dm-portal .dm-message-customer .dm-message-bubble {
-  background: linear-gradient(
-    145deg,
-    hsla(45, 80%, 94%, 0.95) 0%,
-    hsl(0, 0%, 100%) 100%
-  );
-  border-color: hsla(45, 50%, 65%, 0.4);
+  background: hsla(45, 55%, 88%, 0.95);
+  border-color: hsla(45, 40%, 58%, 0.28);
+  box-shadow: 0 2px 10px hsla(0, 0%, 0%, 0.06);
 }
 
 [data-theme="light"] #customer-dm-portal .dm-message-admin .dm-message-bubble {
-  background: linear-gradient(
-    315deg,
-    hsla(45, 90%, 92%, 0.98) 0%,
-    hsl(0, 0%, 100%) 100%
-  );
-  border-color: hsla(45, 60%, 58%, 0.45);
+  background: hsl(0, 0%, 97%);
+  border-color: hsla(0, 0%, 0%, 0.08);
+  box-shadow: 0 2px 10px hsla(0, 0%, 0%, 0.04);
 }
 
-[data-theme="light"] #customer-dm-portal #dm-customer-composer .form-textarea {
-  background: hsla(0, 0%, 100%, 0.92);
-  border-color: hsla(0, 0%, 0%, 0.1);
+[data-theme="light"] #customer-dm-portal .dm-message-author {
+  color: hsla(45, 50%, 38%, 0.9);
+}
+
+[data-theme="light"] #customer-dm-portal .dm-message-admin .dm-message-author {
+  color: var(--light-gray-70);
+}
+
+[data-theme="light"] #customer-dm-portal .dm-message-meta {
+  color: hsla(0, 0%, 25%, 0.45);
+}
+
+[data-theme="light"] #customer-dm-portal #dm-customer-composer .dm-composer-input-wrap {
+  background: hsla(0, 0%, 100%, 0.85);
+  border-color: hsla(0, 0%, 0%, 0.08);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.9);
+}
+
+[data-theme="light"] #customer-dm-portal #dm-customer-composer.dm-composer:focus-within .dm-composer-input-wrap {
+  border-color: hsla(45, 55%, 48%, 0.4);
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 1),
+    0 0 0 2px hsla(45, 60%, 55%, 0.2);
+}
+
+[data-theme="light"] #customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea {
+  background: hsl(0, 0%, 99%);
+  color: var(--white-2);
+}
+
+[data-theme="light"] #customer-dm-portal #dm-customer-composer .dm-composer-textarea.form-textarea::placeholder {
+  color: var(--light-gray-70);
+}
+
+[data-theme="light"] #customer-dm-portal #dm-customer-composer .form-btn.dm-composer-send {
+  background: linear-gradient(145deg, hsla(45, 70%, 88%, 0.95) 0%, hsl(0, 0%, 100%) 100%);
+  border-color: hsla(45, 45%, 55%, 0.45);
+  color: hsla(45, 50%, 38%, 1);
+  box-shadow: 0 4px 14px hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme="light"] .dm-customer-sheet {
+  box-shadow: 0 -12px 48px hsla(0, 0%, 0%, 0.12);
+  border-color: hsla(45, 35%, 70%, 0.35);
+}
+
+[data-theme="light"] .dm-customer-sheet-backdrop {
+  background: hsla(0, 0%, 30%, 0.35);
 }
 
 @media (max-width: 992px) {
@@ -9172,6 +10473,35 @@ article.contact[data-page="contact"] {
   box-shadow: var(--shadow-1);
 }
 
+/* Contact messages tab: remove dead air between intro + stats on phones (grid 1fr was stretching) */
+@media (max-width: 767px) {
+  #admin-panel-messages .admin-panel-heading {
+    margin-bottom: 0;
+  }
+
+  #admin-panel-messages .admin-panel-heading--with-action {
+    gap: 8px 14px;
+  }
+
+  #admin-panel-messages .admin-panel-heading--with-action .admin-panel-title {
+    margin-bottom: 2px;
+  }
+
+  #admin-panel-messages #messages-content.admin-collapsible-content {
+    margin-top: 0;
+  }
+
+  #admin-panel-messages .admin-collapsible-section.admin-collapsible-open > .admin-collapsible-content {
+    grid-template-rows: minmax(0, max-content);
+  }
+
+  #admin-panel-messages .admin-collapsible-inner-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
 /* Responsive adjustments for admin article - mobile */
 @media (max-width: 579px) {
   article.admin[data-page="admin"] {
@@ -9205,6 +10535,25 @@ article.contact[data-page="contact"] {
 
   .admin-messages-section .messages-list {
     max-height: 320px;
+  }
+
+  #admin-panel-messages .admin-dm-launch-row,
+  #admin-panel-messages .admin-fs-stats-row,
+  #admin-panel-messages .admin-fs-messages-controls,
+  #admin-panel-messages #firestore-messages-list.messages-list {
+    margin: 0;
+  }
+
+  #admin-panel-messages .admin-fs-messages-controls {
+    gap: 10px;
+  }
+
+  #admin-panel-messages #firestore-messages-list.messages-list {
+    margin-top: 4px;
+  }
+
+  #admin-panel-messages #firestore-messages-list .no-messages {
+    padding: 34px 14px;
   }
 
   #admin-dashboard-content #dm-layout .dm-conversation-list-wrap .messages-list {
@@ -9316,6 +10665,15 @@ article.contact[data-page="contact"] {
   list-style: none;
 }
 
+/* Contact datasheet <tr> reuses .message-item for Firestore filters — keep real table layout */
+.admin-contact-table tbody tr.message-item {
+  display: table-row !important;
+}
+
+.admin-contact-table tbody tr.message-item > td {
+  display: table-cell !important;
+}
+
 #admin-dashboard-content .message-card,
 .messages-list .message-card {
   position: relative;
@@ -9361,6 +10719,104 @@ article.contact[data-page="contact"] {
   gap: 10px;
 }
 
+.dm-conversation-card-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.dm-conversation-card-actions .reply-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dm-conversation-delete {
+  flex-shrink: 0;
+  width: 44px;
+  min-width: 44px;
+  height: auto;
+  min-height: 44px;
+  align-self: stretch;
+  border-radius: 10px;
+  border: 1px solid hsla(0, 55%, 50%, 0.4);
+  color: hsl(0, 55%, 72%);
+  background: hsla(0, 35%, 45%, 0.15);
+}
+
+.dm-conversation-delete:hover:not(:disabled) {
+  border-color: hsl(0, 65%, 58%);
+  background: hsla(0, 45%, 48%, 0.28);
+  color: hsl(0, 80%, 80%);
+}
+
+.dm-conversation-delete:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dm-conversation-delete ion-icon {
+  font-size: 20px;
+}
+
+[data-theme='light'] .dm-conversation-delete {
+  border-color: hsla(0, 45%, 45%, 0.35);
+  color: hsl(0, 45%, 42%);
+  background: hsla(0, 40%, 92%, 0.9);
+}
+
+[data-theme='light'] .dm-conversation-delete:hover:not(:disabled) {
+  border-color: hsl(0, 55%, 48%);
+  background: hsla(0, 50%, 88%, 1);
+}
+
+[data-theme='light'] .admin-dm-sheet-grabber::after {
+  background: hsla(0, 0%, 0%, 0.12);
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.65),
+    0 1px 2px hsla(0, 0%, 0%, 0.1);
+}
+
+[data-theme='light'] .admin-dm-sheet-grabber:hover::after {
+  background: hsla(0, 0%, 0%, 0.18);
+}
+
+[data-theme='light'] .admin-dm-sheet-grabber.is-dragging::after {
+  background: hsla(45, 40%, 48%, 0.35);
+}
+
+[data-theme='light'] .admin-dm-sheet-back {
+  border-color: hsla(45, 35%, 48%, 0.4);
+  background: linear-gradient(165deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1);
+  color: hsla(45, 50%, 36%, 0.95);
+}
+
+[data-theme='light'] .admin-dm-sheet-back:hover:not(:disabled) {
+  border-color: hsla(45, 55%, 45%, 0.55);
+  background: hsl(45, 85%, 97%);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1), 0 4px 16px hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme='light'] #admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-head {
+  background: linear-gradient(180deg, hsla(0, 0%, 100%, 0.92) 0%, transparent 100%);
+  border-bottom-color: hsla(0, 0%, 0%, 0.06);
+}
+
+[data-theme='light'] .admin-dm-sheet-close {
+  border-color: hsla(45, 35%, 48%, 0.4);
+  background: linear-gradient(165deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1);
+  color: hsla(45, 50%, 36%, 0.95);
+}
+
+[data-theme='light'] .admin-dm-sheet-close:hover {
+  border-color: hsla(45, 55%, 45%, 0.55);
+  background: hsl(45, 85%, 97%);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1), 0 4px 16px hsla(0, 0%, 0%, 0.08);
+}
+
 #admin-dashboard-content .message-card-name,
 .messages-list .message-card-name {
   color: var(--white-2);
@@ -9382,31 +10838,40 @@ article.contact[data-page="contact"] {
   font-weight: var(--fw-500);
 }
 
-/* Hire Me — separate meta tiles on contact message cards */
+/* Hire Me — separate meta tiles on contact message cards (portfolio gold + cool teal accent) */
 #admin-dashboard-content .message-card-hire-meta,
 .messages-list .message-card-hire-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
-  gap: 12px;
-  margin: 10px 0 14px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin: 12px 0 16px;
   text-align: left;
 }
 
 #admin-dashboard-content .message-card-hire-section,
 .messages-list .message-card-hire-section {
   position: relative;
-  padding: 14px 16px 16px;
-  border-radius: 12px;
-  background: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.055) 0%,
-    rgba(255, 255, 255, 0.02) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 16px 16px 18px;
+  border-radius: 14px;
+  background: var(--admin-hire-tile-surface);
+  border: 1px solid var(--admin-hire-tile-border);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.04) inset,
-    0 8px 24px rgba(0, 0, 0, 0.22);
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.06),
+    0 10px 36px hsla(0, 0%, 0%, 0.28);
   overflow: hidden;
+  transition:
+    border-color var(--transition-1),
+    box-shadow var(--transition-1),
+    transform var(--transition-1);
+}
+
+#admin-dashboard-content .message-card-hire-section:hover,
+.messages-list .message-card-hire-section:hover {
+  border-color: hsla(0, 0%, 100%, 0.11);
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.07),
+    0 14px 40px hsla(0, 0%, 0%, 0.32);
+  transform: translateY(-1px);
 }
 
 #admin-dashboard-content .message-card-hire-section::before,
@@ -9417,25 +10882,19 @@ article.contact[data-page="contact"] {
   left: 0;
   right: 0;
   height: 3px;
-  border-radius: 12px 12px 0 0;
+  border-radius: 14px 14px 0 0;
 }
 
 #admin-dashboard-content .message-card-hire-section--project::before,
 .messages-list .message-card-hire-section--project::before {
-  background: linear-gradient(
-    90deg,
-    rgba(72, 205, 190, 0.95),
-    rgba(99, 179, 237, 0.85)
-  );
+  background: var(--admin-hire-project-line);
+  box-shadow: 0 2px 16px hsla(172, 55%, 45%, 0.35);
 }
 
 #admin-dashboard-content .message-card-hire-section--budget::before,
 .messages-list .message-card-hire-section--budget::before {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 184, 77, 0.95),
-    rgba(255, 209, 140, 0.75)
-  );
+  background: var(--admin-hire-budget-line);
+  box-shadow: 0 2px 14px hsla(45, 80%, 55%, 0.28);
 }
 
 #admin-dashboard-content .message-card-hire-section-head,
@@ -9443,7 +10902,7 @@ article.contact[data-page="contact"] {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 #admin-dashboard-content .message-card-hire-icon-wrap,
@@ -9451,23 +10910,26 @@ article.contact[data-page="contact"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   flex-shrink: 0;
   font-size: 18px;
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
 }
 
 #admin-dashboard-content .message-card-hire-section--project .message-card-hire-icon-wrap,
 .messages-list .message-card-hire-section--project .message-card-hire-icon-wrap {
-  background: rgba(72, 205, 190, 0.12);
-  color: rgba(129, 230, 217, 0.95);
+  background: var(--admin-hire-project-icon-bg);
+  color: var(--admin-hire-project-icon-color);
+  border-color: hsla(172, 45%, 55%, 0.22);
 }
 
 #admin-dashboard-content .message-card-hire-section--budget .message-card-hire-icon-wrap,
 .messages-list .message-card-hire-section--budget .message-card-hire-icon-wrap {
-  background: rgba(255, 184, 77, 0.14);
+  background: var(--admin-hire-budget-icon-bg);
   color: var(--orange-yellow-crayola);
+  border-color: hsla(45, 55%, 55%, 0.28);
 }
 
 #admin-dashboard-content .message-card-hire-icon-wrap ion-icon,
@@ -9479,20 +10941,66 @@ article.contact[data-page="contact"] {
 #admin-dashboard-content .message-card-hire-section-label,
 .messages-list .message-card-hire-section-label {
   font-size: var(--fs-8);
-  font-weight: var(--fw-500);
-  letter-spacing: 0.12em;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--light-gray-70);
+  color: hsla(0, 0%, 84%, 0.55);
 }
 
 #admin-dashboard-content .message-card-hire-section-value,
 .messages-list .message-card-hire-section-value {
   margin: 0;
-  font-size: var(--fs-6);
-  font-weight: var(--fw-500);
-  line-height: 1.45;
-  color: var(--white-1);
+  padding-left: 46px;
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  line-height: 1.4;
+  color: var(--white-2);
+  letter-spacing: 0.01em;
   word-break: break-word;
+}
+
+/* Align value under label when label wraps: offset matches icon column + gap */
+#admin-dashboard-content .message-card-hire-section--budget .message-card-hire-section-value,
+.messages-list .message-card-hire-section--budget .message-card-hire-section-value {
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme="light"] {
+  --admin-hire-tile-surface: hsl(0, 0%, 100%);
+  --admin-hire-tile-border: hsla(0, 0%, 0%, 0.08);
+  --admin-hire-project-icon-bg: hsla(172, 45%, 42%, 0.12);
+  --admin-hire-project-icon-color: hsl(172, 48%, 32%);
+  --admin-hire-budget-icon-bg: hsla(45, 85%, 88%, 0.95);
+}
+
+[data-theme="light"] #admin-dashboard-content .message-card-hire-section,
+[data-theme="light"] .messages-list .message-card-hire-section {
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.9),
+    0 8px 28px hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme="light"] #admin-dashboard-content .message-card-hire-section:hover,
+[data-theme="light"] .messages-list .message-card-hire-section:hover {
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.95),
+    0 12px 36px hsla(0, 0%, 0%, 0.1);
+}
+
+[data-theme="light"] #admin-dashboard-content .message-card-hire-section-label,
+[data-theme="light"] .messages-list .message-card-hire-section-label {
+  color: hsla(0, 0%, 25%, 0.65);
+}
+
+[data-theme="light"] #admin-dashboard-content .message-card-hire-section--budget .message-card-hire-icon-wrap,
+[data-theme="light"] .messages-list .message-card-hire-section--budget .message-card-hire-icon-wrap {
+  border-color: hsla(45, 50%, 48%, 0.35);
+  color: hsl(45, 55%, 38%);
+}
+
+[data-theme="light"] #admin-dashboard-content .message-card-hire-section--project .message-card-hire-icon-wrap,
+[data-theme="light"] .messages-list .message-card-hire-section--project .message-card-hire-icon-wrap {
+  border-color: hsla(172, 40%, 38%, 0.3);
 }
 
 #admin-dashboard-content .message-card-text,
@@ -10727,4 +12235,522 @@ body.modal-open {
 .questions-header ion-icon,
 .components-header ion-icon {
   color: var(--orange-yellow-crayola) !important;
+}
+
+/* ─── Admin contact submissions: datasheet + detail drawer (all breakpoints; cards removed) ─── */
+.admin-contact-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.admin-contact-messages__table-wrap {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  background: hsla(240, 4%, 10%, 0.55);
+}
+
+/* Thin themed scrollbar (WebKit) + Firefox; has-scroll toggled when content overflows horizontally */
+.admin-contact-messages__table-wrap.has-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--orange-yellow-crayola) var(--onyx);
+}
+
+.admin-contact-messages__table-wrap.has-scrollbar.has-scroll {
+  scrollbar-gutter: stable;
+}
+
+.admin-contact-table {
+  width: 100%;
+  min-width: 560px;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: var(--fs-7);
+}
+
+/* Sticky header on <th> only — sticky on <thead> breaks column alignment in WebKit/Chromium. */
+.admin-contact-table thead {
+  display: table-header-group;
+}
+
+.admin-contact-table tbody {
+  display: table-row-group;
+}
+
+.admin-contact-table__th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: var(--fw-600);
+  color: var(--light-gray);
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.08);
+  white-space: nowrap;
+  background: hsla(240, 4%, 12%, 0.98);
+  box-shadow: 0 1px 0 hsla(0, 0%, 100%, 0.06);
+}
+
+/* Fixed column share so header cells line up with body cells (no “headers right / data left” gap). */
+.admin-contact-table th:nth-child(1),
+.admin-contact-table td:nth-child(1) {
+  width: 19%;
+}
+
+.admin-contact-table th:nth-child(2),
+.admin-contact-table td:nth-child(2) {
+  width: 10%;
+}
+
+.admin-contact-table th:nth-child(3),
+.admin-contact-table td:nth-child(3) {
+  width: 17%;
+}
+
+.admin-contact-table th:nth-child(4),
+.admin-contact-table td:nth-child(4) {
+  width: 36%;
+}
+
+.admin-contact-table th:nth-child(5),
+.admin-contact-table td:nth-child(5) {
+  width: 18%;
+}
+
+.admin-contact-table__th--sortable {
+  cursor: pointer;
+  user-select: none;
+  color: var(--white-2);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.admin-contact-table__th--sortable:hover {
+  color: var(--orange-yellow-crayola);
+  background: hsla(45, 80%, 55%, 0.06);
+}
+
+.admin-contact-table__th--sortable.is-active {
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-contact-table__td {
+  padding: 10px 12px;
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.05);
+  vertical-align: top;
+  color: var(--white-2);
+}
+
+.admin-contact-table__td--muted {
+  color: var(--light-gray-70);
+  white-space: nowrap;
+  max-width: none;
+}
+
+.admin-contact-table__td--ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-contact-table tbody tr.admin-contact-table__row {
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.admin-contact-table tbody tr.admin-contact-table__row:hover {
+  background: hsla(0, 0%, 100%, 0.05);
+}
+
+.admin-contact-table tbody tr.admin-contact-table__row:active {
+  opacity: 0.94;
+}
+
+.admin-contact-table tbody tr.admin-contact-table__row:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-contact-table tbody tr.admin-contact-table__row {
+    transition: none;
+  }
+
+  .admin-contact-table tbody tr.admin-contact-table__row:active {
+    opacity: 1;
+  }
+}
+
+.admin-contact-table__td a {
+  color: var(--light-gray-70);
+  text-decoration: underline;
+  text-decoration-color: hsla(45, 55%, 55%, 0.45);
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.admin-contact-table__td a:hover {
+  color: var(--orange-yellow-crayola);
+}
+
+/* Contact table: opaque cells so overflowing text does not paint into neighboring columns */
+.admin-contact-table tbody .admin-contact-table__td {
+  background-color: hsla(240, 4%, 9%, 0.98);
+}
+
+.admin-contact-table tbody tr.admin-contact-table__row:hover .admin-contact-table__td {
+  background-color: hsla(0, 0%, 100%, 0.05);
+}
+
+@media (max-width: 767px) {
+  .admin-contact-messages__table-wrap {
+    border-radius: 10px;
+  }
+
+  .admin-contact-table {
+    min-width: 720px;
+    font-size: var(--fs-8);
+  }
+
+  .admin-contact-table__th,
+  .admin-contact-table__td {
+    padding: 8px 10px;
+  }
+
+  /* Avoid sticky thead fighting nested vertical scroll on small admin panes */
+  .admin-contact-table__th,
+  [data-theme="light"] .admin-contact-table__th {
+    position: static;
+    top: auto;
+    box-shadow: none;
+  }
+
+  .admin-contact-table th:nth-child(1),
+  .admin-contact-table td:nth-child(1) {
+    width: 26%;
+  }
+
+  .admin-contact-table th:nth-child(2),
+  .admin-contact-table td:nth-child(2) {
+    width: 14%;
+  }
+
+  .admin-contact-table th:nth-child(3),
+  .admin-contact-table td:nth-child(3) {
+    width: 18%;
+  }
+
+  .admin-contact-table th:nth-child(4),
+  .admin-contact-table td:nth-child(4) {
+    width: 28%;
+  }
+
+  .admin-contact-table th:nth-child(5),
+  .admin-contact-table td:nth-child(5) {
+    width: 14%;
+  }
+
+  .admin-contact-table tbody .admin-contact-table__td:nth-child(1),
+  .admin-contact-table tbody .admin-contact-table__td:nth-child(3) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+
+  .admin-contact-table tbody .admin-contact-table__td:nth-child(2) {
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  #admin-dashboard-content .admin-contact-table .status-badge,
+  .messages-list .admin-contact-table .status-badge {
+    max-width: 100%;
+    box-sizing: border-box;
+    vertical-align: middle;
+  }
+}
+
+.admin-contact-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.admin-contact-detail.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  opacity: 1;
+}
+
+body.admin-contact-detail-open {
+  overflow: hidden;
+}
+
+.admin-contact-detail__backdrop {
+  position: absolute;
+  inset: 0;
+  background: hsl(0, 0%, 5%);
+  opacity: 0.72;
+}
+
+.admin-contact-detail__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(440px, 100vw);
+  max-width: 100%;
+  background: var(--eerie-black-2);
+  border-left: 1px solid var(--jet);
+  box-shadow: -8px 0 40px hsla(0, 0%, 0%, 0.35);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-contact-detail.is-open .admin-contact-detail__panel {
+  transform: translateX(0);
+}
+
+.admin-contact-detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
+  flex-shrink: 0;
+}
+
+.admin-contact-detail__title {
+  margin: 0;
+  font-size: var(--fs-4);
+  font-weight: var(--fw-600);
+  color: var(--orange-yellow-crayola);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.admin-contact-detail__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid hsla(0, 0%, 100%, 0.1);
+  background: hsla(0, 0%, 100%, 0.05);
+  color: var(--light-gray);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.admin-contact-detail__close:hover {
+  color: var(--orange-yellow-crayola);
+  border-color: hsla(45, 55%, 55%, 0.45);
+  background: hsla(45, 55%, 55%, 0.08);
+}
+
+.admin-contact-detail__close:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.admin-contact-detail__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 18px 18px;
+}
+
+.admin-contact-detail__meta {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 0;
+}
+
+.admin-contact-detail__field {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
+  background: hsla(240, 3%, 10%, 0.85);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.04);
+}
+
+.admin-contact-detail__field--message {
+  border-left: 3px solid hsla(45, 70%, 58%, 0.55);
+  padding-left: 13px;
+}
+
+.admin-contact-detail__field dt {
+  margin: 0 0 6px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsla(0, 0%, 84%, 0.55);
+}
+
+.admin-contact-detail__field dd {
+  margin: 0;
+  font-size: var(--fs-6);
+  font-weight: var(--fw-400);
+  color: var(--white-2);
+  word-break: break-word;
+}
+
+.admin-contact-detail__mailto {
+  color: var(--white-2);
+  text-decoration: none;
+  border-bottom: 1px solid hsla(45, 55%, 55%, 0.35);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-contact-detail__mailto:hover {
+  color: var(--orange-yellow-crayola);
+  border-bottom-color: hsla(45, 100%, 72%, 0.65);
+}
+
+.admin-contact-detail__mailto:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.admin-contact-detail__empty {
+  color: var(--light-gray-70);
+  font-style: normal;
+}
+
+.admin-contact-detail__prose {
+  font-size: var(--fs-6);
+  line-height: 1.65;
+  color: var(--white-2);
+  word-break: break-word;
+}
+
+.admin-contact-detail__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 18px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid hsla(0, 0%, 100%, 0.07);
+  flex-shrink: 0;
+  background: linear-gradient(180deg, transparent 0%, hsla(240, 4%, 8%, 0.92) 35%);
+}
+
+@media (max-width: 767px) {
+  .admin-contact-detail__panel {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    height: min(88vh, 100%);
+    border-left: none;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    transform: translateY(100%);
+  }
+
+  .admin-contact-detail.is-open .admin-contact-detail__panel {
+    transform: translateY(0);
+  }
+}
+
+[data-theme="light"] .admin-contact-messages__table-wrap {
+  background: hsl(0, 0%, 100%);
+  border-color: hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme="light"] .admin-contact-table__th {
+  color: hsl(240, 5%, 32%);
+  border-bottom-color: hsla(0, 0%, 0%, 0.08);
+  background: hsl(0, 0%, 99%);
+  box-shadow: 0 1px 0 hsla(0, 0%, 0%, 0.06);
+}
+
+[data-theme="light"] .admin-contact-table__td {
+  color: hsl(240, 6%, 14%);
+  border-bottom-color: hsla(0, 0%, 0%, 0.06);
+}
+
+[data-theme="light"] .admin-contact-table tbody .admin-contact-table__td {
+  background-color: hsl(0, 0%, 100%);
+}
+
+[data-theme="light"] .admin-contact-table tbody tr.admin-contact-table__row:hover .admin-contact-table__td {
+  background-color: hsl(240, 30%, 97%);
+}
+
+[data-theme="light"] .admin-contact-detail__panel {
+  background: hsl(0, 0%, 100%);
+  border-left-color: hsla(0, 0%, 0%, 0.1);
+}
+
+[data-theme="light"] .admin-contact-detail__backdrop {
+  opacity: 0.45;
+}
+
+[data-theme="light"] .admin-contact-detail__head {
+  border-bottom-color: hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme="light"] .admin-contact-detail__field {
+  background: hsl(240, 8%, 98%);
+  border-color: hsla(0, 0%, 0%, 0.08);
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1);
+}
+
+[data-theme="light"] .admin-contact-detail__field dt {
+  color: hsl(240, 5%, 42%);
+}
+
+[data-theme="light"] .admin-contact-detail__field dd,
+[data-theme="light"] .admin-contact-detail__prose {
+  color: hsl(240, 6%, 14%);
+}
+
+[data-theme="light"] .admin-contact-detail__mailto {
+  color: hsl(240, 6%, 14%);
+  border-bottom-color: hsla(45, 50%, 48%, 0.45);
+}
+
+[data-theme="light"] .admin-contact-detail__mailto:hover {
+  color: hsl(45, 55%, 38%);
+  border-bottom-color: hsla(45, 65%, 42%, 0.85);
+}
+
+[data-theme="light"] .admin-contact-detail__empty {
+  color: hsl(240, 5%, 46%);
+}
+
+[data-theme="light"] .admin-contact-detail__close {
+  background: hsl(0, 0%, 97%);
+  border-color: hsla(0, 0%, 0%, 0.1);
+  color: hsl(240, 5%, 35%);
+}
+
+[data-theme="light"] .admin-contact-detail__foot {
+  border-top-color: hsla(0, 0%, 0%, 0.08);
+  background: linear-gradient(180deg, transparent 0%, hsla(0, 0%, 100%, 0.97) 40%);
 }

@@ -53,7 +53,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/style.css?v=bizdoc-20260504-contact-messages-spacing">
 
   <!--
     - google font link
@@ -2885,6 +2885,25 @@
         <div id="admin-dashboard-content" style="display: none;">
           <header class="admin-dashboard-header">
             <h2 class="h2 article-title">Admin<br> Dashboard</h2>
+          </header>
+
+        <div class="admin-tabs" id="admin-tabs">
+          <div class="admin-tab-bar" role="tablist" aria-label="Admin dashboard sections">
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1" aria-label="Business Documents">
+              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Documents</span><span class="admin-tab-label-mobile">Docs</span></span>
+            </button>
+            <button type="button" class="admin-tab is-active" role="tab" id="admin-tab-messages" data-admin-tab="messages" aria-selected="true" aria-controls="admin-panel-messages" tabindex="0" aria-label="Contact Messages">
+              <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
+            </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-blog" data-admin-tab="blog" aria-selected="false" aria-controls="admin-panel-blog" tabindex="-1" aria-label="Blog Management">
+              <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Blog Management</span><span class="admin-tab-label-mobile">Blog</span></span>
+            </button>
+          </div>
+
+          <div class="admin-dashboard-actions-row">
             <div class="admin-dashboard-actions">
               <button class="btn btn-secondary" id="admin-logout-btn" style="display: none;">
                 <ion-icon name="log-out-outline"></ion-icon>
@@ -2895,29 +2914,13 @@
                 <span>Business Ops Manual</span>
               </button>
             </div>
-          </header>
+          </div>
 
         <section class="about-text admin-intro">
           <p>
-            Use the tabs below to switch between business documents, contact messages, and blog tools.
+            Use the section tabs to switch between business documents, contact messages, and blog tools.
           </p>
         </section>
-
-        <div class="admin-tabs" id="admin-tabs">
-          <div class="admin-tab-bar" role="tablist" aria-label="Admin dashboard sections">
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1">
-              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
-              <span>Business Documents</span>
-            </button>
-            <button type="button" class="admin-tab is-active" role="tab" id="admin-tab-messages" data-admin-tab="messages" aria-selected="true" aria-controls="admin-panel-messages" tabindex="0">
-              <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
-              <span>Contact Messages</span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-blog" data-admin-tab="blog" aria-selected="false" aria-controls="admin-panel-blog" tabindex="-1">
-              <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
-              <span>Blog Management</span>
-            </button>
-          </div>
 
           <div class="admin-tab-panels">
           <!-- —— Business Documents —— -->
@@ -2983,17 +2986,26 @@
         </section>
           </div><!-- /admin-panel-docs -->
 
-          <!-- Contact Messages -->
+          <!-- Contact Messages (Firestore form submissions) + entry to DM inbox -->
           <div id="admin-panel-messages" class="admin-tab-panel is-active" role="tabpanel" aria-labelledby="admin-tab-messages" data-admin-tab="messages">
           <section class="service admin-collapsible-section admin-messages-section admin-collapsible-open" id="messages-section">
-          <div class="admin-panel-heading">
-            <h3 class="h3 admin-panel-title">Contact Messages</h3>
-            <p class="admin-panel-lead">View and manage inquiries</p>
+          <div class="admin-panel-heading admin-panel-heading--with-action">
+            <div class="admin-panel-heading-main">
+              <h3 class="h3 admin-panel-title">Contact form messages</h3>
+              <p class="admin-panel-lead">Firestore submissions (hire form, contact). Open <strong>DM inbox</strong> for realtime threads.</p>
+            </div>
+            <div class="admin-panel-heading-action">
+              <button type="button" class="btn btn-primary admin-open-dm-btn" id="admin-open-dm-inbox" title="Open realtime DM inbox">
+                <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
+                <span>Open DM inbox</span>
+                <span class="admin-dm-unread-badge" id="admin-dm-unread-badge" hidden aria-live="polite">0</span>
+              </button>
+            </div>
           </div>
 
             <div class="admin-collapsible-content" id="messages-content">
             <div class="admin-collapsible-inner-content">
-            <div class="admin-stats-row">
+            <div class="admin-stats-row admin-fs-stats-row">
               <div class="admin-stat-mini">
                 <span class="admin-stat-label">Total</span>
                 <span class="admin-stat-value" id="total-messages">0</span>
@@ -3008,15 +3020,15 @@
               </div>
             </div>
 
-            <div class="messages-controls">
-              <div class="messages-filter">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="new">New</button>
-                <button class="filter-btn" data-filter="replied">Replied</button>
+            <div class="messages-controls admin-fs-messages-controls">
+              <div class="messages-filter" id="firestore-messages-filter" role="group" aria-label="Filter contact form messages">
+                <button type="button" class="filter-btn active" data-filter="all">All</button>
+                <button type="button" class="filter-btn" data-filter="new">New</button>
+                <button type="button" class="filter-btn" data-filter="replied">Replied</button>
               </div>
 
               <div class="messages-actions">
-                <button class="btn-icon" id="refresh-messages" title="Refresh messages">
+                <button class="btn-icon" id="refresh-messages" title="Refresh contact messages and DM inbox">
                   <ion-icon name="refresh-outline"></ion-icon>
                 </button>
                 <button class="btn-icon" id="test-firestore" title="Test Firestore (legacy messages) + Realtime Database (DM inbox)">
@@ -3025,10 +3037,24 @@
               </div>
             </div>
 
-            <div class="messages-list" id="messages-list">
+            <div class="messages-list has-scrollbar" id="firestore-messages-list">
               <div class="no-messages">
                 <ion-icon name="mail-outline"></ion-icon>
                 <p>No messages yet</p>
+              </div>
+            </div>
+
+            <div id="admin-contact-detail" class="admin-contact-detail" aria-hidden="true">
+              <div class="admin-contact-detail__backdrop" id="admin-contact-detail-backdrop" tabindex="-1"></div>
+              <div class="admin-contact-detail__panel" role="dialog" aria-modal="true" aria-labelledby="admin-contact-detail-title" data-lenis-prevent>
+                <header class="admin-contact-detail__head">
+                  <h4 id="admin-contact-detail-title" class="admin-contact-detail__title">Submission</h4>
+                  <button type="button" class="admin-contact-detail__close" id="admin-contact-detail-close" aria-label="Close submission details">
+                    <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                </header>
+                <div class="admin-contact-detail__body has-scrollbar" id="admin-contact-detail-body"></div>
+                <footer class="admin-contact-detail__foot" id="admin-contact-detail-foot"></footer>
               </div>
             </div>
             </div>
@@ -3085,6 +3111,32 @@
           </div><!-- /admin-panel-blog -->
           </div><!-- /admin-tab-panels -->
         </div><!-- /admin-tabs -->
+
+        <!-- Admin DM inbox: fullscreen overlay / bottom sheet (content injected by script.js) -->
+        <div id="admin-dm-sheet-root" class="admin-dm-sheet-root" aria-hidden="true">
+          <div class="admin-dm-sheet-backdrop" id="admin-dm-sheet-backdrop" tabindex="-1"></div>
+          <div class="admin-dm-sheet" id="admin-dm-sheet" role="dialog" aria-modal="true" aria-labelledby="admin-dm-sheet-title" data-lenis-prevent>
+            <div class="admin-dm-sheet-grabber" id="admin-dm-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag to resize inbox height" tabindex="0"></div>
+            <div class="admin-dm-sheet-head">
+              <button type="button" id="admin-dm-sheet-back" class="admin-dm-sheet-back btn-icon" aria-label="Back to inbox list" hidden>
+                <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <div class="admin-dm-sheet-head-main">
+                <h3 id="admin-dm-sheet-title" class="admin-dm-sheet-title">DM inbox</h3>
+                <p class="admin-dm-sheet-lead">Realtime Database · threads &amp; replies</p>
+                <div class="admin-dm-sheet-stats" aria-label="Inbox summary">
+                  <span><strong id="dm-inbox-total">0</strong> conv.</span>
+                  <span class="admin-dm-stat-new"><strong id="dm-inbox-new">0</strong> unread</span>
+                  <span><strong id="dm-inbox-closed">0</strong> closed</span>
+                </div>
+              </div>
+              <button type="button" class="admin-dm-sheet-close" id="admin-dm-sheet-close" aria-label="Close DM inbox">
+                <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+              </button>
+            </div>
+            <div id="admin-dm-sheet-body" class="admin-dm-sheet-body has-scrollbar"></div>
+          </div>
+        </div>
 
         </div> <!-- End admin-dashboard-content -->
 
@@ -4668,7 +4720,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
-  <script src="./assets/js/script.js?v=bizdoc-20260503-portalui"></script>
+  <script src="./assets/js/script.js?v=bizdoc-20260504-contact-table-scroll-mobile"></script>
   <script src="./assets/js/dm-migration.js"></script>
 
   <!--

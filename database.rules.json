@@ -16,6 +16,7 @@
       "presence": {
         ".read": true,
         "$conversationId": {
+          ".write": true,
           "admin": {
             ".write": true
           },

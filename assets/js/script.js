@@ -2872,6 +2872,9 @@ function updateUrlForPage(pageName, replace) {
 
 // Function to switch to a specific page
 function switchToPage(pageName, skipSave = false) {
+  if (pageName !== 'messages' && typeof window.dismissCustomerDmSheetForNavigation === 'function') {
+    window.dismissCustomerDmSheetForNavigation();
+  }
   // First, remove active class from all pages and navigation links
   for (let i = 0; i < pages.length; i++) {
     pages[i].classList.remove("active");
@@ -3253,7 +3256,15 @@ window.addEventListener('load', function() {
   const adminLogoutBtn = document.getElementById('admin-logout-btn');
   const adminLoginForm = document.getElementById('admin-login-form');
   const adminLoginError = document.getElementById('admin-login-error');
-  const messagesList = document.getElementById('messages-list');
+  const messagesList = document.getElementById('firestore-messages-list');
+
+  /** Unsubscribe from prior Firestore snapshot when refresh re-runs fetchMessages */
+  let firestoreMessagesUnsubscribe = null;
+
+  /** Latest Firestore contact submissions (for table + drawer + reply). */
+  let lastContactFormMessages = [];
+  let contactMessagesSort = { key: 'date', dir: 'desc' };
+  let contactDetailOpenId = null;
 
   // Stats elements
   const totalMessagesEl = document.getElementById('total-messages');
@@ -3426,8 +3437,7 @@ window.addEventListener('load', function() {
       });
     }
 
-    // Filter buttons
-    document.querySelectorAll('.filter-btn').forEach(btn => {
+    document.querySelectorAll('#firestore-messages-filter .filter-btn').forEach(btn => {
       btn.addEventListener('click', handleFilterClick);
     });
 
@@ -3470,6 +3480,73 @@ window.addEventListener('load', function() {
 
     if (replyForm) {
       replyForm.addEventListener('submit', handleReplySubmit);
+    }
+
+    const contactDetailClose = document.getElementById('admin-contact-detail-close');
+    const contactDetailBackdrop = document.getElementById('admin-contact-detail-backdrop');
+    if (contactDetailClose && !contactDetailClose.dataset.contactDetailBound) {
+      contactDetailClose.dataset.contactDetailBound = '1';
+      contactDetailClose.addEventListener('click', function () {
+        closeContactDetailDrawer();
+      });
+    }
+    if (contactDetailBackdrop && !contactDetailBackdrop.dataset.contactDetailBound) {
+      contactDetailBackdrop.dataset.contactDetailBound = '1';
+      contactDetailBackdrop.addEventListener('click', function () {
+        closeContactDetailDrawer();
+      });
+    }
+
+    if (messagesList && !messagesList.dataset.adminContactListBound) {
+      messagesList.dataset.adminContactListBound = '1';
+      messagesList.addEventListener('click', function (e) {
+        const th = e.target.closest('th[data-contact-sort]');
+        if (th && messagesList.contains(th)) {
+          e.preventDefault();
+          handleContactTableSortFromTh(th);
+          return;
+        }
+        const row = e.target.closest('tbody tr.admin-contact-table__row[data-id]');
+        if (!row || !messagesList.contains(row)) return;
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        openContactDetailDrawer(row.getAttribute('data-id'));
+      });
+      messagesList.addEventListener('keydown', function (e) {
+        const th = e.target.closest('th[data-contact-sort]');
+        if (th && messagesList.contains(th)) {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          e.preventDefault();
+          handleContactTableSortFromTh(th);
+          return;
+        }
+        const row = e.target.closest('tbody tr.admin-contact-table__row[data-id]');
+        if (!row || !messagesList.contains(row)) return;
+        if (e.key !== 'Enter') return;
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        e.preventDefault();
+        openContactDetailDrawer(row.getAttribute('data-id'));
+      });
+    }
+
+    if (messagesList && !messagesList.dataset.adminContactTableScrollObs) {
+      messagesList.dataset.adminContactTableScrollObs = '1';
+      try {
+        if (typeof ResizeObserver !== 'undefined') {
+          new ResizeObserver(scheduleAdminContactTableScrollSync).observe(messagesList);
+        }
+      } catch (e) {}
+      window.addEventListener('resize', scheduleAdminContactTableScrollSync);
+    }
+
+    if (!document.documentElement.dataset.adminContactEscapeBound) {
+      document.documentElement.dataset.adminContactEscapeBound = '1';
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        const root = document.getElementById('admin-contact-detail');
+        if (root && root.classList.contains('is-open')) {
+          closeContactDetailDrawer();
+        }
+      });
     }
   }
 
@@ -3701,39 +3778,51 @@ window.addEventListener('load', function() {
     }
   }
 
-  // Handle filter button clicks
+  // Handle filter button clicks (Firestore contact list only — DM filters live in the inbox sheet)
   function handleFilterClick(e) {
-    const filter = e.target.dataset.filter;
+    const btn = e.target.closest('#firestore-messages-filter .filter-btn');
+    if (!btn) return;
+    const filter = btn.dataset.filter;
+    if (!filter) return;
 
-    // Update active button
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    e.target.classList.add('active');
+    const group = document.getElementById('firestore-messages-filter');
+    if (group) {
+      group.querySelectorAll('.filter-btn').forEach(function (b) {
+        b.classList.remove('active');
+      });
+    }
+    btn.classList.add('active');
 
-    // Filter messages
     filterMessages(filter);
   }
 
-  // Filter messages based on status
+  // Filter messages based on status (datasheet rows)
   function filterMessages(filter) {
-    const messageItems = document.querySelectorAll('.message-item');
+    if (!filter) {
+      const activeBtn = document.querySelector('#firestore-messages-filter .filter-btn.active');
+      filter = activeBtn && activeBtn.dataset.filter ? activeBtn.dataset.filter : 'all';
+    }
+    const messageItems = document.querySelectorAll('#firestore-messages-list .message-item');
 
     messageItems.forEach(item => {
       const status = item.dataset.status;
-
+      let show = false;
       switch (filter) {
         case 'all':
-          item.style.display = 'list-item';
+          show = true;
           break;
         case 'new':
-          item.style.display = status === 'new' ? 'list-item' : 'none';
+          show = status === 'new';
           break;
         case 'replied':
-          item.style.display = status === 'replied' ? 'list-item' : 'none';
+          show = status === 'replied';
           break;
+        default:
+          show = true;
       }
+      item.style.display = show ? '' : 'none';
     });
+    scheduleAdminContactTableScrollSync();
   }
 
   // ----------------------------
@@ -4885,6 +4974,9 @@ window.addEventListener('load', function() {
     console.log('fetchMessages called, db available:', !!window.db);
     if (!window.db) {
       console.warn('Firestore not initialized, cannot fetch messages');
+      lastContactFormMessages = [];
+      contactDetailOpenId = null;
+      closeContactDetailDrawer();
       if (messagesList) {
         messagesList.innerHTML = `
           <div class="no-messages">
@@ -4898,10 +4990,19 @@ window.addEventListener('load', function() {
 
     try {
       console.log('Setting up Firestore listener...');
+      if (typeof firestoreMessagesUnsubscribe === 'function') {
+        try {
+          firestoreMessagesUnsubscribe();
+        } catch (unsubErr) {
+          console.warn('Firestore listener cleanup:', unsubErr);
+        }
+        firestoreMessagesUnsubscribe = null;
+      }
+
       const messagesRef = window.collection(window.db, 'messages');
       const q = window.query(messagesRef, window.orderBy('timestamp', 'desc'));
 
-      window.onSnapshot(q, (snapshot) => {
+      const snapUnsub = window.onSnapshot(q, (snapshot) => {
         console.log('Firestore snapshot received, docs count:', snapshot.size);
         const messages = [];
         snapshot.forEach((doc) => {
@@ -4916,6 +5017,9 @@ window.addEventListener('load', function() {
       }, (error) => {
         console.error('Error fetching messages:', error);
         // Show error in UI
+        lastContactFormMessages = [];
+        contactDetailOpenId = null;
+        closeContactDetailDrawer();
         if (messagesList) {
           messagesList.innerHTML = `
             <div class="no-messages">
@@ -4926,8 +5030,14 @@ window.addEventListener('load', function() {
           `;
         }
       });
+      if (typeof snapUnsub === 'function') {
+        firestoreMessagesUnsubscribe = snapUnsub;
+      }
     } catch (error) {
       console.error('Error setting up message listener:', error);
+      lastContactFormMessages = [];
+      contactDetailOpenId = null;
+      closeContactDetailDrawer();
       if (messagesList) {
         messagesList.innerHTML = `
           <div class="no-messages">
@@ -4980,11 +5090,235 @@ window.addEventListener('load', function() {
     return { showHireDetails: false, project_type: '', budget: '', body: raw };
   }
 
-  // Render messages in the dashboard
+  function getContactMessageById(messageId) {
+    return lastContactFormMessages.find(function (m) {
+      return m.id === messageId;
+    });
+  }
+
+  function getContactTimestampMs(message) {
+    if (!message || !message.timestamp) return 0;
+    try {
+      const d = message.timestamp.toDate ? message.timestamp.toDate() : new Date(message.timestamp);
+      const t = d.getTime();
+      return isNaN(t) ? 0 : t;
+    } catch (err) {
+      return 0;
+    }
+  }
+
+  function sortContactMessagesSnapshot(arr, spec) {
+    const key = spec.key || 'date';
+    const dirMult = spec.dir === 'asc' ? 1 : -1;
+    return arr.slice().sort(function (a, b) {
+      let cmp = 0;
+      if (key === 'date') {
+        cmp = getContactTimestampMs(a) - getContactTimestampMs(b);
+      } else if (key === 'name') {
+        cmp = String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+      } else if (key === 'status') {
+        cmp = String(a.status || 'new').localeCompare(String(b.status || 'new'));
+      }
+      return cmp * dirMult;
+    });
+  }
+
+  function formatContactTableDate(ts) {
+    if (!ts) return '—';
+    try {
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      if (isNaN(d.getTime())) return '—';
+      return d.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return '—';
+    }
+  }
+
+  function renderContactSortTh(key, label) {
+    const on = contactMessagesSort.key === key;
+    const cls =
+      'admin-contact-table__th admin-contact-table__th--sortable' +
+      (on ? ' is-active is-' + contactMessagesSort.dir : '');
+    const ariaSort = on ? (contactMessagesSort.dir === 'desc' ? 'descending' : 'ascending') : 'none';
+    return (
+      '<th scope="col" class="' +
+      cls +
+      '" data-contact-sort="' +
+      key +
+      '" role="columnheader" tabindex="0" aria-sort="' +
+      ariaSort +
+      '">' +
+      label +
+      '</th>'
+    );
+  }
+
+  function closeContactDetailDrawer() {
+    const root = document.getElementById('admin-contact-detail');
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    contactDetailOpenId = null;
+    document.body.classList.remove('admin-contact-detail-open');
+  }
+
+  function fillContactDetailDrawer(message) {
+    const titleEl = document.getElementById('admin-contact-detail-title');
+    const bodyEl = document.getElementById('admin-contact-detail-body');
+    const footEl = document.getElementById('admin-contact-detail-foot');
+    if (!message || !titleEl || !bodyEl || !footEl) return;
+
+    const disp = normalizeHireMeCardDisplay(message);
+    const st = message.status || 'new';
+    const safeSt = escapeHtml(st);
+
+    titleEl.textContent = message.subject || 'Contact submission';
+
+    const hireBlocks =
+      disp.showHireDetails && (disp.project_type !== '' || disp.budget !== '')
+        ? [
+            '<div class="message-card-hire-meta">',
+            disp.project_type !== ''
+              ? '<div class="message-card-hire-section message-card-hire-section--project"><div class="message-card-hire-section-head">' +
+                '<span class="message-card-hire-icon-wrap"><ion-icon name="layers-outline" aria-hidden="true"></ion-icon></span>' +
+                '<span class="message-card-hire-section-label">Project type</span></div>' +
+                '<p class="message-card-hire-section-value">' +
+                escapeHtml(disp.project_type) +
+                '</p></div>'
+              : '',
+            disp.budget !== ''
+              ? '<div class="message-card-hire-section message-card-hire-section--budget"><div class="message-card-hire-section-head">' +
+                '<span class="message-card-hire-icon-wrap"><ion-icon name="wallet-outline" aria-hidden="true"></ion-icon></span>' +
+                '<span class="message-card-hire-section-label">Budget</span></div>' +
+                '<p class="message-card-hire-section-value">' +
+                escapeHtml(disp.budget) +
+                '</p></div>'
+              : '',
+            '</div>'
+          ].join('')
+        : '';
+
+    const emailRaw = (message.email || '').trim();
+    const emailBlock = emailRaw
+      ? [
+          '<div class="admin-contact-detail__field"><dt>Email</dt><dd><a class="admin-contact-detail__mailto" href="mailto:',
+          escapeHtml(emailRaw),
+          '">',
+          escapeHtml(emailRaw),
+          '</a></dd></div>'
+        ].join('')
+      : '<div class="admin-contact-detail__field"><dt>Email</dt><dd class="admin-contact-detail__empty">—</dd></div>';
+
+    bodyEl.innerHTML = [
+      '<dl class="admin-contact-detail__meta">',
+      '<div class="admin-contact-detail__field"><dt>From</dt><dd>',
+      escapeHtml(message.name || 'Anonymous'),
+      '</dd></div>',
+      emailBlock,
+      '<div class="admin-contact-detail__field"><dt>Status</dt><dd><span class="status-badge status-' + safeSt + '">' + safeSt + '</span></dd></div>',
+      message.source
+        ? '<div class="admin-contact-detail__field"><dt>Source</dt><dd>' + escapeHtml(String(message.source)) + '</dd></div>'
+        : '',
+      '<div class="admin-contact-detail__field"><dt>Date</dt><dd>',
+      escapeHtml(formatDate(message.timestamp)),
+      '</dd></div>',
+      '<div class="admin-contact-detail__field admin-contact-detail__field--message"><dt>Message</dt><dd class="admin-contact-detail__prose">',
+      escapeHtml(disp.body).replace(/\n/g, '<br>'),
+      '</dd></div>',
+      '</dl>',
+      hireBlocks
+    ].join('');
+
+    footEl.innerHTML = [
+      '<button type="button" class="btn reply-btn" data-id="',
+      escapeHtml(message.id),
+      '" title="Reply to this message"><ion-icon name="return-up-forward-outline" aria-hidden="true"></ion-icon><span>Reply</span></button>',
+      message.status !== 'replied'
+        ? '<button type="button" class="btn btn-secondary mark-replied-btn" data-id="' +
+          escapeHtml(message.id) +
+          '" title="Mark as replied"><ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon><span>Mark replied</span></button>'
+        : '',
+      '<button type="button" class="delete-message-btn btn-icon" data-id="' +
+        escapeHtml(message.id) +
+        '" title="Delete submission"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon></button>'
+    ].join('');
+
+    footEl.querySelectorAll('.reply-btn').forEach(function (btn) {
+      btn.addEventListener('click', handleReplyClick);
+    });
+    footEl.querySelectorAll('.mark-replied-btn').forEach(function (btn) {
+      btn.addEventListener('click', handleMarkRepliedClick);
+    });
+    footEl.querySelectorAll('.delete-message-btn').forEach(function (btn) {
+      btn.addEventListener('click', handleDeleteMessageBtnClick);
+    });
+  }
+
+  function openContactDetailDrawer(messageId) {
+    const root = document.getElementById('admin-contact-detail');
+    const msg = getContactMessageById(messageId);
+    if (!root || !msg) return;
+    contactDetailOpenId = messageId;
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('admin-contact-detail-open');
+    fillContactDetailDrawer(msg);
+    try {
+      const closeBtn = document.getElementById('admin-contact-detail-close');
+      if (closeBtn) closeBtn.focus();
+    } catch (fe) {}
+  }
+
+  function refreshContactDetailDrawerIfOpen() {
+    if (!contactDetailOpenId) return;
+    const msg = getContactMessageById(contactDetailOpenId);
+    if (msg) {
+      fillContactDetailDrawer(msg);
+    } else {
+      closeContactDetailDrawer();
+    }
+  }
+
+  function handleContactTableSortFromTh(th) {
+    const key = th.getAttribute('data-contact-sort');
+    if (!key) return;
+    if (contactMessagesSort.key === key) {
+      contactMessagesSort.dir = contactMessagesSort.dir === 'desc' ? 'asc' : 'desc';
+    } else {
+      contactMessagesSort.key = key;
+      contactMessagesSort.dir = key === 'date' ? 'desc' : 'asc';
+    }
+    renderMessages(lastContactFormMessages);
+    refreshContactDetailDrawerIfOpen();
+    try {
+      const active = messagesList && messagesList.querySelector('th[data-contact-sort="' + key + '"]');
+      if (active) active.focus();
+    } catch (e) {}
+  }
+
+  /** Toggle has-scroll on the contact table wrap when horizontal overflow exists (pairs with has-scrollbar). */
+  let adminContactTableScrollSyncTimer = null;
+  function syncAdminContactTableScrollState() {
+    if (!messagesList) return;
+    const wrap = messagesList.querySelector('.admin-contact-messages__table-wrap');
+    if (!wrap || !wrap.classList.contains('has-scrollbar')) return;
+    wrap.classList.toggle('has-scroll', wrap.scrollWidth > wrap.clientWidth + 2);
+  }
+
+  function scheduleAdminContactTableScrollSync() {
+    if (!messagesList) return;
+    clearTimeout(adminContactTableScrollSyncTimer);
+    adminContactTableScrollSyncTimer = setTimeout(syncAdminContactTableScrollState, 60);
+  }
+
+  // Render messages in the dashboard (datasheet all sizes; row opens detail drawer)
   function renderMessages(messages) {
     if (!messagesList) return;
 
     if (messages.length === 0) {
+      lastContactFormMessages = [];
+      contactDetailOpenId = null;
+      closeContactDetailDrawer();
       messagesList.innerHTML = `
         <div class="no-messages">
           <ion-icon name="mail-outline"></ion-icon>
@@ -4994,76 +5328,64 @@ window.addEventListener('load', function() {
       return;
     }
 
-    messagesList.innerHTML = `<ul class="message-grid">${messages.map(message => {
-      const disp = normalizeHireMeCardDisplay(message);
-      return `
-      <li class="message-item" data-status="${message.status || 'new'}" data-id="${message.id}">
-        <div class="message-card">
-        <div class="message-card-icon">
-          <ion-icon name="${message.status === 'replied' ? 'checkmark-done-outline' : 'mail-unread-outline'}"></ion-icon>
-        </div>
-        <div class="message-card-content">
-          <div class="message-card-header">
-            <h4 class="message-card-name">${message.name || 'Anonymous'}</h4>
-            <span class="status-badge status-${message.status || 'new'}">${message.status || 'new'}</span>
-          </div>
-          <p class="message-card-email">${message.email || ''}</p>
-          <p class="message-card-subject">${message.subject || 'No subject'}</p>
-            ${disp.showHireDetails ? `
-            <div class="message-card-hire-meta">
-              ${disp.project_type !== '' ? `
-              <div class="message-card-hire-section message-card-hire-section--project">
-                <div class="message-card-hire-section-head">
-                  <span class="message-card-hire-icon-wrap"><ion-icon name="layers-outline" aria-hidden="true"></ion-icon></span>
-                  <span class="message-card-hire-section-label">Project type</span>
-                </div>
-                <p class="message-card-hire-section-value">${disp.project_type}</p>
-              </div>` : ''}
-              ${disp.budget !== '' ? `
-              <div class="message-card-hire-section message-card-hire-section--budget">
-                <div class="message-card-hire-section-head">
-                  <span class="message-card-hire-icon-wrap"><ion-icon name="wallet-outline" aria-hidden="true"></ion-icon></span>
-                  <span class="message-card-hire-section-label">Budget</span>
-                </div>
-                <p class="message-card-hire-section-value">${disp.budget}</p>
-              </div>` : ''}
-            </div>` : ''}
-            <div class="message-card-text">${disp.body.replace(/\n/g, '<br>')}</div>
-            <div class="message-card-footer">
-          <p class="message-card-date">${formatDate(message.timestamp)}</p>
-          ${message.source ? `<p class="message-card-source">Source: ${message.source}</p>` : ''}
-            </div>
-          <div class="message-card-actions">
-            <button class="reply-btn" data-id="${message.id}" title="Reply to this message">
-              <ion-icon name="return-up-forward-outline"></ion-icon>
-              <span>Reply</span>
-            </button>
-            ${message.status !== 'replied' ? `<button class="mark-replied-btn" data-id="${message.id}" title="Mark as replied">
-              <ion-icon name="checkmark-outline"></ion-icon>
-              <span>Mark Replied</span>
-            </button>` : ''}
-            <button type="button" class="delete-message-btn btn-icon" data-id="${message.id}" title="Delete submission">
-              <ion-icon name="trash-outline"></ion-icon>
-            </button>
-            </div>
-          </div>
-        </div>
-      </li>
-    `;
-    }).join('')}</ul>`;
+    lastContactFormMessages = messages.slice();
+    const sorted = sortContactMessagesSnapshot(lastContactFormMessages, contactMessagesSort);
 
-    // Add event listeners to buttons
-    document.querySelectorAll('.reply-btn').forEach(btn => {
-      btn.addEventListener('click', handleReplyClick);
-    });
+    const tableRows = sorted
+      .map(function (message) {
+        const st = message.status || 'new';
+        const safeSt = escapeHtml(st);
+        const em = escapeHtml(message.email || '');
+        const src = message.source ? escapeHtml(String(message.source)) : '—';
+        return [
+          '<tr class="message-item admin-contact-table__row" role="button" tabindex="0" aria-label="Open submission details" data-status="',
+          st,
+          '" data-id="',
+          escapeHtml(message.id),
+          '">',
+          '<td class="admin-contact-table__td admin-contact-table__td--muted">',
+          escapeHtml(formatContactTableDate(message.timestamp)),
+          '</td>',
+          '<td class="admin-contact-table__td"><span class="status-badge status-' + safeSt + '">' + safeSt + '</span></td>',
+          '<td class="admin-contact-table__td">',
+          escapeHtml(message.name || 'Anonymous'),
+          '</td>',
+          '<td class="admin-contact-table__td admin-contact-table__td--ellipsis">',
+          em ? '<a href="mailto:' + em + '">' + em + '</a>' : '—',
+          '</td>',
+          '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" title="',
+          src,
+          '">',
+          src,
+          '</td>',
+          '</tr>'
+        ].join('');
+      })
+      .join('');
 
-    document.querySelectorAll('.mark-replied-btn').forEach(btn => {
-      btn.addEventListener('click', handleMarkRepliedClick);
-    });
+    messagesList.innerHTML =
+      '<div class="admin-contact-messages">' +
+      '<div class="admin-contact-messages__table-wrap has-scrollbar" role="region" aria-label="Contact submissions table">' +
+      '<table class="admin-contact-table">' +
+      '<thead><tr>' +
+      renderContactSortTh('date', 'Date') +
+      renderContactSortTh('status', 'Status') +
+      renderContactSortTh('name', 'From') +
+      '<th scope="col" class="admin-contact-table__th">Email</th>' +
+      '<th scope="col" class="admin-contact-table__th">Source</th>' +
+      '</tr></thead><tbody>' +
+      tableRows +
+      '</tbody></table></div></div>';
 
-    document.querySelectorAll('.delete-message-btn').forEach(btn => {
-      btn.addEventListener('click', handleDeleteMessageBtnClick);
-    });
+    filterMessages();
+    refreshContactDetailDrawerIfOpen();
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(syncAdminContactTableScrollState);
+      });
+    } else {
+      syncAdminContactTableScrollState();
+    }
   }
 
   // Update dashboard stats
@@ -5085,19 +5407,20 @@ window.addEventListener('load', function() {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
-  // Handle reply button click
+  // Handle reply button click (detail drawer footer — data from Firestore cache)
   function handleReplyClick(e) {
-    const messageId = e.target.closest('.reply-btn').dataset.id;
-    const messageCard = e.target.closest('.message-card');
-    const messageData = {
-      name: messageCard.querySelector('.message-card-name').textContent,
-      email: messageCard.querySelector('.message-card-email').textContent,
-      subject: messageCard.querySelector('.message-card-subject').textContent,
-      message: messageCard.querySelector('.message-card-text').textContent,
-      id: messageId
-    };
-
-    showReplyModal(messageData);
+    const btn = e.target.closest('.reply-btn');
+    if (!btn || !btn.dataset || !btn.dataset.id) return;
+    const msg = getContactMessageById(btn.dataset.id);
+    if (!msg) return;
+    const disp = normalizeHireMeCardDisplay(msg);
+    showReplyModal({
+      id: btn.dataset.id,
+      name: msg.name || 'Anonymous',
+      email: msg.email || '',
+      subject: msg.subject || 'No subject',
+      message: disp.body
+    });
   }
 
   // Handle mark as replied button click
@@ -5140,6 +5463,7 @@ window.addEventListener('load', function() {
     const replyForm = document.getElementById('reply-form');
 
     if (replyModal && replyFrom && replySubject && replyMessage && replySubjectInput && replyMessageInput) {
+      closeContactDetailDrawer();
       // Populate original message data
       replyFrom.textContent = `${messageData.name} (${messageData.email})`;
       replySubject.textContent = messageData.subject;
@@ -5679,6 +6003,21 @@ document.addEventListener('DOMContentLoaded', function() {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
+  /** Milliseconds for sorting thread rows (RTDB key order can diverge from createdAt after imports or skew). */
+  function dmMessageCreatedMs(msg) {
+    if (!msg || msg.createdAt == null || msg.createdAt === '') return 0;
+    var v = msg.createdAt;
+    if (typeof v === 'number') return v;
+    if (typeof v === 'object' && v != null) {
+      if (typeof v.toMillis === 'function') return v.toMillis();
+      if (v.seconds != null) {
+        return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
+      }
+    }
+    var t = new Date(v).getTime();
+    return isNaN(t) ? 0 : t;
+  }
+
   function rtdbThreadRef(conversationId) {
     return window.rtdbRef(window.rtdb, 'dm/threadMessages/' + conversationId);
   }
@@ -5689,6 +6028,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function rtdbPresenceRef(conversationId, role) {
     return window.rtdbRef(window.rtdb, 'dm/presence/' + conversationId + '/' + role);
+  }
+
+  /**
+   * Removes conversation meta, all thread messages, and presence for one id (atomic multi-path update).
+   */
+  async function deleteConversationFromRtdb(conversationId) {
+    const id = String(conversationId || '').trim();
+    if (!id) throw new Error('Invalid conversation id');
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbUpdate) {
+      throw new Error('Realtime Database is not ready');
+    }
+    const rootRef = window.rtdbRef(window.rtdb);
+    const patch = {};
+    patch['dm/meta/' + id] = null;
+    patch['dm/threadMessages/' + id] = null;
+    patch['dm/presence/' + id] = null;
+    await window.rtdbUpdate(rootRef, patch);
   }
 
   function promiseWithTimeout(promise, ms) {
@@ -5755,37 +6111,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  function upgradeDmInboxFilterStrip() {
+    const root = document.getElementById('dm-inbox-filters');
+    if (!root || root.querySelector('[data-filter="pending"]')) return;
+    var activeBtn = root.querySelector('.filter-btn.active');
+    var key = activeBtn && activeBtn.getAttribute('data-filter') ? activeBtn.getAttribute('data-filter') : 'all';
+    if (key === 'new') key = 'unread';
+    if (key === 'replied') key = 'closed';
+    if (['all', 'unread', 'open', 'pending', 'closed'].indexOf(key) === -1) key = 'all';
+    root.innerHTML = [
+      '<button type="button" class="filter-btn' + (key === 'all' ? ' active' : '') + '" data-filter="all">All</button>',
+      '<button type="button" class="filter-btn' + (key === 'unread' ? ' active' : '') + '" data-filter="unread">Unread</button>',
+      '<button type="button" class="filter-btn' + (key === 'open' ? ' active' : '') + '" data-filter="open">Open</button>',
+      '<button type="button" class="filter-btn' + (key === 'pending' ? ' active' : '') + '" data-filter="pending">Pending</button>',
+      '<button type="button" class="filter-btn' + (key === 'closed' ? ' active' : '') + '" data-filter="closed">Closed</button>'
+    ].join('');
+  }
+
   function ensureAdminInboxUI() {
-    const messagesContent = document.getElementById('messages-content');
-    const messagesList = document.getElementById('messages-list');
-    const controls = document.querySelector('.messages-controls');
-    if (!messagesContent || !messagesList || !controls) return;
+    const sheetBody = document.getElementById('admin-dm-sheet-body');
+    if (!sheetBody) return;
 
-    if (!document.getElementById('dm-search-input')) {
-      const search = document.createElement('input');
-      search.type = 'search';
-      search.id = 'dm-search-input';
-      search.className = 'form-input dm-search-input';
-      search.placeholder = 'Search name, email, tag...';
-      controls.prepend(search);
-    }
-
-    if (!document.getElementById('dm-migrate-btn')) {
-      const actions = controls.querySelector('.messages-actions');
-      if (actions) {
-        const migrateBtn = document.createElement('button');
-        migrateBtn.className = 'btn-icon';
-        migrateBtn.id = 'dm-migrate-btn';
-        migrateBtn.title = 'Migrate legacy messages into conversations';
-        migrateBtn.innerHTML = '<ion-icon name="shuffle-outline"></ion-icon>';
-        actions.appendChild(migrateBtn);
-      }
+    if (!document.getElementById('dm-inbox-toolbar')) {
+      const toolbar = document.createElement('div');
+      toolbar.id = 'dm-inbox-toolbar';
+      toolbar.className = 'dm-inbox-toolbar messages-controls';
+      toolbar.innerHTML = [
+        '<input type="search" id="dm-search-input" class="form-input dm-search-input" placeholder="Search threads: name, email, tags…">',
+        '<div id="dm-inbox-filters" class="messages-filter dm-inbox-filters" role="group" aria-label="Filter threads by inbox status">',
+        '<button type="button" class="filter-btn active" data-filter="all">All</button>',
+        '<button type="button" class="filter-btn" data-filter="unread">Unread</button>',
+        '<button type="button" class="filter-btn" data-filter="open">Open</button>',
+        '<button type="button" class="filter-btn" data-filter="pending">Pending</button>',
+        '<button type="button" class="filter-btn" data-filter="closed">Closed</button>',
+        '</div>'
+      ].join('');
+      sheetBody.insertBefore(toolbar, sheetBody.firstChild);
     }
 
     if (!document.getElementById('dm-layout')) {
-      const messagesParent = messagesList.parentElement;
-      if (!messagesParent) return;
-
       const layout = document.createElement('div');
       layout.className = 'dm-layout';
       layout.id = 'dm-layout';
@@ -5794,10 +6158,12 @@ document.addEventListener('DOMContentLoaded', function() {
       thread.className = 'dm-thread-panel';
       thread.id = 'dm-thread-panel';
       thread.innerHTML = [
-        '<header class="dm-thread-header">',
+        '<div class="dm-thread-admin-meta">',
+        '<header class="dm-thread-header dm-thread-header--admin">',
+        '<div class="dm-thread-header-main">',
         '<div class="dm-thread-meta">',
-        '<h4 id="dm-thread-title" class="h4 dm-thread-title">Select a conversation</h4>',
-        '<p id="dm-thread-subtitle" class="dm-thread-lead">Pick a customer from the list to view the thread and reply.</p>',
+        '<h4 id="dm-thread-title" class="h4 dm-thread-title">Conversation</h4>',
+        '<p id="dm-thread-subtitle" class="dm-thread-lead"></p>',
         '</div>',
         '<div class="dm-thread-toolbar">',
         '<div class="dm-thread-actions">',
@@ -5811,55 +6177,156 @@ document.addEventListener('DOMContentLoaded', function() {
         '<button id="dm-save-meta" type="button" class="btn btn-secondary btn-sm">Save</button>',
         '</div>',
         '</div>',
+        '</div>',
         '</header>',
+        '</div>',
         '<div class="dm-presence-row" role="status" aria-live="polite">',
         '<span id="dm-presence-customer" class="dm-presence-pill">Customer offline</span>',
         '<span id="dm-presence-typing" class="dm-presence-pill">Not typing</span>',
         '</div>',
-        '<div id="dm-message-list" class="dm-message-list has-scrollbar">',
-        '<div class="dm-thread-placeholder">',
-        '<ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>',
-        '<p>Choose a conversation to load messages here.</p>',
-        '</div>',
-        '</div>',
+        '<div id="dm-message-list" class="dm-message-list has-scrollbar"></div>',
         '<button id="dm-load-more" type="button" class="btn btn-secondary btn-sm dm-load-more-btn">Load older messages</button>',
-        '<form id="dm-admin-composer" class="dm-composer" autocomplete="off">',
-        '<input id="dm-attachment-url" class="form-input dm-attachment-field" type="url" placeholder="Attachment URL (optional)" aria-label="Attachment URL (optional)">',
-        '<textarea id="dm-admin-message" class="form-input dm-reply-textarea" rows="4" placeholder="Reply to customer…" aria-label="Reply to customer" required></textarea>',
-        '<div class="dm-composer-actions">',
-        '<button id="dm-send-reply-email" type="button" class="btn btn-secondary">Send email copy</button>',
-        '<button type="submit" class="btn btn-primary">Send in thread</button>',
+        '<form id="dm-admin-composer" class="dm-composer dm-admin-composer" autocomplete="off">',
+        '<div class="dm-admin-composer-bar">',
+        '<button type="button" id="dm-attachment-toggle" class="dm-admin-icon-btn" aria-label="Add attachment link" aria-expanded="false" aria-controls="dm-admin-attachment-panel">',
+        '<ion-icon name="link-outline" aria-hidden="true"></ion-icon>',
+        '</button>',
+        '<div class="dm-admin-composer-input-wrap">',
+        '<textarea id="dm-admin-message" class="form-input dm-reply-textarea dm-admin-composer-textarea" rows="1" placeholder="Reply…" aria-label="Reply to customer" required></textarea>',
+        '</div>',
+        '<button type="button" id="dm-send-reply-email" class="dm-admin-icon-btn dm-admin-icon-btn-mail" aria-label="Send email copy to customer">',
+        '<ion-icon name="mail-outline" aria-hidden="true"></ion-icon>',
+        '</button>',
+        '<button type="submit" class="dm-admin-icon-btn dm-admin-send-btn" aria-label="Send in thread">',
+        '<ion-icon name="send-outline" aria-hidden="true"></ion-icon>',
+        '</button>',
+        '</div>',
+        '<div id="dm-admin-attachment-panel" class="dm-admin-attachment-panel" hidden>',
+        '<input id="dm-attachment-url" class="form-input dm-attachment-field" type="url" placeholder="https://…" aria-label="Attachment URL (optional)">',
         '</div>',
         '</form>'
       ].join('');
 
       const listWrap = document.createElement('div');
       listWrap.className = 'dm-conversation-list-wrap';
+      const convList = document.createElement('div');
+      convList.id = 'dm-conversation-list';
+      convList.className = 'messages-list has-scrollbar';
+      listWrap.appendChild(convList);
       layout.appendChild(listWrap);
-      listWrap.appendChild(messagesList);
       layout.appendChild(thread);
-      messagesParent.appendChild(layout);
+      sheetBody.appendChild(layout);
+    }
+    upgradeDmInboxFilterStrip();
+    syncAdminDmLayoutClass();
+  }
+
+  function syncAdminDmLayoutClass() {
+    const layout = document.getElementById('dm-layout');
+    const thread = document.getElementById('dm-thread-panel');
+    const sheetBody = document.getElementById('admin-dm-sheet-body');
+    const sheet = document.getElementById('admin-dm-sheet');
+    const sheetTitle = document.getElementById('admin-dm-sheet-title');
+    const hasThread = !!DM.activeConversationId;
+
+    const sheetBack = document.getElementById('admin-dm-sheet-back');
+    if (sheetBack) {
+      sheetBack.hidden = !hasThread;
+      sheetBack.setAttribute('aria-hidden', hasThread ? 'false' : 'true');
+    }
+    if (sheetTitle) {
+      if (!sheetTitle.getAttribute('data-dm-default-title')) {
+        sheetTitle.setAttribute('data-dm-default-title', sheetTitle.textContent.trim() || 'DM inbox');
+      }
+      if (hasThread) {
+        sheetTitle.textContent = (DM.activeConversationData && DM.activeConversationData.customerName) || 'Conversation';
+      } else {
+        sheetTitle.textContent = sheetTitle.getAttribute('data-dm-default-title') || 'DM inbox';
+      }
+    }
+    if (sheetBody) {
+      sheetBody.classList.toggle('dm-inbox--thread-open', hasThread);
+    }
+    if (sheet) {
+      sheet.classList.toggle('admin-dm-sheet--conversation-open', hasThread);
+    }
+
+    if (!layout || !thread) return;
+
+    layout.classList.toggle('dm-layout--no-thread', !hasThread);
+    layout.classList.toggle('dm-layout--thread-only', hasThread);
+
+    thread.classList.toggle('dm-thread-panel--minimal', hasThread);
+    if (hasThread) {
+      thread.removeAttribute('hidden');
+      thread.setAttribute('aria-hidden', 'false');
+    } else {
+      thread.classList.remove('dm-thread-panel--minimal');
+      thread.setAttribute('hidden', '');
+      thread.setAttribute('aria-hidden', 'true');
     }
   }
 
+  function clearAdminThreadSelection() {
+    const prevId = DM.activeConversationId;
+    if (DM.unsubMessages) {
+      try {
+        DM.unsubMessages();
+      } catch (e) {}
+      DM.unsubMessages = null;
+    }
+    if (DM.unsubCustomerPresence) {
+      try {
+        DM.unsubCustomerPresence();
+      } catch (e) {}
+      DM.unsubCustomerPresence = null;
+    }
+    if (DM.unsubAdminPresence) {
+      try {
+        DM.unsubAdminPresence();
+      } catch (e) {}
+      DM.unsubAdminPresence = null;
+    }
+    if (prevId) {
+      setAdminPresence(prevId, false, false).catch(function () {});
+    }
+    DM.activeConversationId = null;
+    DM.activeConversationData = null;
+    DM.oldestMessageKey = null;
+    const loadMoreBtn = document.getElementById('dm-load-more');
+    if (loadMoreBtn) loadMoreBtn.disabled = true;
+    applyConversationFilters();
+    renderConversationList();
+    syncAdminDmLayoutClass();
+  }
+
   function renderConversationList() {
-    const messagesList = document.getElementById('messages-list');
-    const totalEl = document.getElementById('total-messages');
-    const newEl = document.getElementById('new-messages');
-    const repliedEl = document.getElementById('replied-messages');
-    if (!messagesList) return;
+    const listEl = document.getElementById('dm-conversation-list');
+    const totalEl = document.getElementById('dm-inbox-total');
+    const newEl = document.getElementById('dm-inbox-new');
+    const closedEl = document.getElementById('dm-inbox-closed');
+    if (!listEl) return;
 
     const list = DM.filteredConversations.length ? DM.filteredConversations : DM.conversations;
     if (totalEl) totalEl.textContent = String(DM.conversations.length);
     if (newEl) newEl.textContent = String(DM.conversations.filter(function (c) { return (c.unreadAdmin || 0) > 0; }).length);
-    if (repliedEl) repliedEl.textContent = String(DM.conversations.filter(function (c) { return c.status === 'closed'; }).length);
+    if (closedEl) closedEl.textContent = String(DM.conversations.filter(function (c) { return c.status === 'closed'; }).length);
+
+    const unreadSum = DM.conversations.reduce(function (acc, c) {
+      return acc + (c.unreadAdmin || 0);
+    }, 0);
+    const badge = document.getElementById('admin-dm-unread-badge');
+    if (badge) {
+      badge.textContent = String(unreadSum);
+      badge.hidden = unreadSum === 0;
+    }
 
     if (!list.length) {
-      messagesList.innerHTML = '<div class="no-messages"><ion-icon name="chatbubbles-outline"></ion-icon><p>No conversations yet</p></div>';
+      listEl.innerHTML = '<div class="no-messages"><ion-icon name="chatbubbles-outline"></ion-icon><p>No conversations yet</p></div>';
       return;
     }
 
-    messagesList.innerHTML = '<ul class="message-grid">' + list.map(function (conv) {
+    listEl.innerHTML = '<ul class="message-grid">' + list.map(function (conv) {
       const activeClass = DM.activeConversationId === conv.id ? ' dm-conversation-active' : '';
       const unread = conv.unreadAdmin || 0;
       const tags = Array.isArray(conv.tags) ? conv.tags.slice(0, 3) : [];
@@ -5876,8 +6343,12 @@ document.addEventListener('DOMContentLoaded', function() {
         '<p class="message-card-date">' + formatDMDate(conv.lastMessageAt || conv.updatedAt || conv.createdAt) + '</p>',
         tags.length ? '<p class="message-card-source">Tags: ' + tags.join(', ') + '</p>' : '',
         '</div>',
-        '<div class="message-card-actions">',
+        '<div class="message-card-actions dm-conversation-card-actions">',
         '<button class="reply-btn dm-open-conversation" data-id="' + conv.id + '"><ion-icon name="chatbox-ellipses-outline"></ion-icon><span>Open</span></button>',
+        (isAdminSession()
+          ? '<button type="button" class="btn-icon dm-conversation-delete" data-id="' + conv.id + '" aria-label="Delete conversation" title="Delete conversation">'
+            + '<ion-icon name="trash-outline" aria-hidden="true"></ion-icon></button>'
+          : ''),
         unread > 0 ? '<span class="status-badge status-new">Unread ' + unread + '</span>' : '',
         '</div>',
         '</article>',
@@ -5885,7 +6356,7 @@ document.addEventListener('DOMContentLoaded', function() {
       ].join('');
     }).join('') + '</ul>';
 
-    messagesList.querySelectorAll('.dm-open-conversation').forEach(function (btn) {
+    listEl.querySelectorAll('.dm-open-conversation').forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         const id = e.currentTarget.dataset.id;
@@ -5893,7 +6364,40 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
 
-    messagesList.querySelectorAll('.dm-conversation-card').forEach(function (card) {
+    listEl.querySelectorAll('.dm-conversation-delete').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!isAdminSession()) {
+          alert('Sign in as admin to delete conversations.');
+          return;
+        }
+        const id = e.currentTarget.getAttribute('data-id');
+        if (!id || !hasDMDeps()) return;
+        const card = e.currentTarget.closest('.dm-conversation-card');
+        const nameEl = card ? card.querySelector('.message-card-name') : null;
+        const label = nameEl ? nameEl.textContent.trim() : id;
+        if (!window.confirm('Delete conversation with ' + label + '? This removes all messages and cannot be undone.')) {
+          return;
+        }
+        const delBtn = e.currentTarget;
+        delBtn.disabled = true;
+        delBtn.setAttribute('aria-busy', 'true');
+        deleteConversationFromRtdb(id)
+          .then(function () {
+            if (DM.activeConversationId === id) {
+              clearAdminThreadSelection();
+            }
+          })
+          .catch(function (err) {
+            alert(formatRtdbPortalError(err));
+            delBtn.disabled = false;
+            delBtn.removeAttribute('aria-busy');
+          });
+      });
+    });
+
+    listEl.querySelectorAll('.dm-conversation-card').forEach(function (card) {
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
       card.addEventListener('click', function (e) {
@@ -5913,17 +6417,23 @@ document.addEventListener('DOMContentLoaded', function() {
   function applyConversationFilters() {
     const searchInput = document.getElementById('dm-search-input');
     const queryText = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    const activeFilter = document.querySelector('.messages-filter .filter-btn.active');
+    const activeFilter = document.querySelector('#dm-inbox-filters .filter-btn.active');
     const statusFilter = activeFilter ? activeFilter.dataset.filter : 'all';
 
     DM.filteredConversations = DM.conversations.filter(function (conv) {
-      const statusMatch = statusFilter === 'all' ? true : (
-        statusFilter === 'new'
-          ? (conv.unreadAdmin || 0) > 0
-          : statusFilter === 'replied'
-            ? conv.status === 'closed'
-            : conv.status === statusFilter
-      );
+      const convStatus = String(conv.status || 'open').toLowerCase();
+      const statusMatch =
+        statusFilter === 'all'
+          ? true
+          : statusFilter === 'unread'
+            ? (conv.unreadAdmin || 0) > 0
+            : statusFilter === 'open'
+              ? convStatus === 'open'
+              : statusFilter === 'pending'
+                ? convStatus === 'pending'
+                : statusFilter === 'closed'
+                  ? convStatus === 'closed'
+                  : convStatus === statusFilter;
       if (!statusMatch) return false;
       if (!queryText) return true;
       const haystack = [
@@ -5958,23 +6468,26 @@ document.addEventListener('DOMContentLoaded', function() {
         '<p>No messages in this thread yet.</p>',
         '</div>'
       ].join('');
+      syncAdminDmLayoutClass();
       return;
     }
 
     list.innerHTML = messages.map(function (msg) {
       const mine = msg.senderRole === 'admin';
+      const authorLabel = mine ? 'You' : 'Customer';
       return [
         '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
         '<div class="dm-message-bubble">',
-        '<p class="dm-message-author">' + (msg.senderName || msg.senderRole || 'unknown') + '</p>',
-        '<p>' + (msg.body || '').replace(/\n/g, '<br>') + '</p>',
+        '<p class="dm-message-author">' + authorLabel + '</p>',
+        '<div class="dm-message-body">' + (msg.body || '').replace(/\n/g, '<br>') + '</div>',
         msg.attachmentUrl ? '<a class="dm-attachment-link" href="' + msg.attachmentUrl + '" target="_blank" rel="noopener">Attachment</a>' : '',
-        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Customer read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
+        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
         '</div>',
         '</div>'
       ].join('');
     }).join('');
     list.scrollTop = list.scrollHeight;
+    syncAdminDmLayoutClass();
   }
 
   async function markMessagesReadForAdmin(conversationId, messages) {
@@ -6020,6 +6533,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function openConversation(conversationId) {
     if (!conversationId) return;
+    conversationId = String(conversationId).trim();
     DM.activeConversationId = conversationId;
     DM.activeConversationData = DM.conversations.find(function (c) { return c.id === conversationId; }) || null;
     applyConversationFilters();
@@ -6033,12 +6547,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const q = window.rtdbQuery(threadRef, window.rtdbOrderByKey(), window.rtdbLimitToLast(DM.currentMessagePageSize));
 
     DM.unsubMessages = window.rtdbOnValue(q, async function (snap) {
+      if (DM.activeConversationId !== conversationId) return;
       const val = snap.val() || {};
       const entries = Object.entries(val).sort(function (a, b) { return a[0].localeCompare(b[0]); });
-      const records = entries.map(function (pair) { return { id: pair[0], ...pair[1] }; });
-      DM.oldestMessageKey = records.length ? records[0].id : null;
-      if (DM.activeConversationData) {
-        renderThread(DM.activeConversationData, records);
+      DM.oldestMessageKey = entries.length ? entries[0][0] : null;
+      const records = entries.map(function (pair) {
+        return Object.assign({}, pair[1], { id: pair[0] });
+      });
+      records.sort(function (a, b) {
+        var ta = dmMessageCreatedMs(a);
+        var tb = dmMessageCreatedMs(b);
+        if (ta !== tb) return ta - tb;
+        return String(a.id || '').localeCompare(String(b.id || ''));
+      });
+      var conv =
+        DM.conversations.find(function (c) { return c.id === conversationId; }) ||
+        DM.activeConversationData;
+      if (!conv) {
+        conv = {
+          id: conversationId,
+          customerName: 'Customer',
+          customerEmail: '',
+          assignee: 'unassigned',
+          status: 'open',
+          priority: 'normal',
+          tags: []
+        };
+      }
+      DM.activeConversationData = conv;
+      try {
+        renderThread(conv, records);
+      } catch (renderErr) {
+        console.error('renderThread failed:', renderErr);
       }
       await markMessagesReadForAdmin(conversationId, records);
       if (loadMoreBtn) {
@@ -6048,6 +6588,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     subscribeThreadPresence(conversationId);
     await setAdminPresence(conversationId, false, true);
+    syncAdminDmLayoutClass();
   }
 
   async function loadOlderMessages() {
@@ -6070,17 +6611,27 @@ document.addEventListener('DOMContentLoaded', function() {
       if (loadMoreBtn) loadMoreBtn.disabled = true;
       return;
     }
-    const older = entries.map(function (pair) { return { id: pair[0], ...pair[1] }; });
-    DM.oldestMessageKey = older[0].id;
+    const older = entries.map(function (pair) {
+      return Object.assign({}, pair[1], { id: pair[0] });
+    });
+    DM.oldestMessageKey = entries[0][0];
+    older.sort(function (a, b) {
+      var ta = dmMessageCreatedMs(a);
+      var tb = dmMessageCreatedMs(b);
+      if (ta !== tb) return ta - tb;
+      return String(a.id || '').localeCompare(String(b.id || ''));
+    });
     const existingHtml = list.innerHTML;
     const olderHtml = older.map(function (msg) {
       const mine = msg.senderRole === 'admin';
+      const authorLabel = mine ? 'You' : 'Customer';
       return [
         '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
         '<div class="dm-message-bubble">',
-        '<p class="dm-message-author">' + (msg.senderName || msg.senderRole || 'unknown') + '</p>',
-        '<p>' + (msg.body || '').replace(/\n/g, '<br>') + '</p>',
-        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + '</p>',
+        '<p class="dm-message-author">' + authorLabel + '</p>',
+        '<div class="dm-message-body">' + (msg.body || '').replace(/\n/g, '<br>') + '</div>',
+        msg.attachmentUrl ? '<a class="dm-attachment-link" href="' + msg.attachmentUrl + '" target="_blank" rel="noopener">Attachment</a>' : '',
+        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
         '</div></div>'
       ].join('');
     }).join('');
@@ -6175,14 +6726,22 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    document.querySelectorAll('.messages-filter .filter-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
+    const dmFilterRoot = document.getElementById('dm-inbox-filters');
+    if (dmFilterRoot && !dmFilterRoot.dataset.dmInboxFilterClickBound) {
+      dmFilterRoot.dataset.dmInboxFilterClickBound = '1';
+      dmFilterRoot.addEventListener('click', function (e) {
+        const clicked = e.target.closest('.filter-btn');
+        if (!clicked || !dmFilterRoot.contains(clicked)) return;
+        dmFilterRoot.querySelectorAll('.filter-btn').forEach(function (b) {
+          b.classList.remove('active');
+        });
+        clicked.classList.add('active');
         setTimeout(function () {
           applyConversationFilters();
           renderConversationList();
         }, 0);
       });
-    });
+    }
 
     const loadMoreBtn = document.getElementById('dm-load-more');
     if (loadMoreBtn) {
@@ -6190,6 +6749,13 @@ document.addEventListener('DOMContentLoaded', function() {
         loadOlderMessages().catch(function (error) {
           console.error('Load older messages failed:', error);
         });
+      });
+    }
+
+    const sheetBackBtn = document.getElementById('admin-dm-sheet-back');
+    if (sheetBackBtn) {
+      sheetBackBtn.addEventListener('click', function () {
+        clearAdminThreadSelection();
       });
     }
 
@@ -6221,6 +6787,23 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
+    const attachmentToggle = document.getElementById('dm-attachment-toggle');
+    const attachmentPanel = document.getElementById('dm-admin-attachment-panel');
+    const attachmentUrlInput = document.getElementById('dm-attachment-url');
+    if (attachmentToggle && attachmentPanel) {
+      attachmentToggle.addEventListener('click', function () {
+        const isHidden = attachmentPanel.hasAttribute('hidden');
+        if (isHidden) {
+          attachmentPanel.removeAttribute('hidden');
+          attachmentToggle.setAttribute('aria-expanded', 'true');
+          if (attachmentUrlInput) attachmentUrlInput.focus();
+        } else {
+          attachmentPanel.setAttribute('hidden', '');
+          attachmentToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
     const adminInput = document.getElementById('dm-admin-message');
     if (adminInput) {
       adminInput.addEventListener('input', function () {
@@ -6233,73 +6816,6 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    const migrateBtn = document.getElementById('dm-migrate-btn');
-    if (migrateBtn && (!window.DM_FEATURE_FLAGS || window.DM_FEATURE_FLAGS.enableLegacyMigration !== false)) {
-      migrateBtn.addEventListener('click', function () {
-        if (!window.rtdb || !hasDMDeps()) {
-          alert('Realtime Database is not initialized. Configure databaseURL and deploy database.rules.json before migrating.');
-          return;
-        }
-        migrateLegacyMessagesToConversations().catch(function (error) {
-          alert('Migration failed: ' + error.message);
-        });
-      });
-    } else if (migrateBtn) {
-      migrateBtn.style.display = 'none';
-    }
-  }
-
-  function legacyTimestampToMillis(ts) {
-    if (!ts) return Date.now();
-    if (typeof ts === 'number') return ts;
-    if (ts && typeof ts.toMillis === 'function') return ts.toMillis();
-    if (ts && typeof ts.seconds === 'number') return ts.seconds * 1000;
-    return Date.now();
-  }
-
-  async function migrateLegacyMessagesToConversations() {
-    const snap = await window.getDocs(window.query(window.collection(window.db, 'messages'), window.orderBy('timestamp', 'asc')));
-    let count = 0;
-    for (const docSnap of snap.docs) {
-      const legacy = docSnap.data();
-      if (legacy.conversationId) continue;
-      const conversationId = 'conv_' + docSnap.id;
-      const tsMillis = legacyTimestampToMillis(legacy.timestamp);
-      const conversationData = {
-        customerName: legacy.name || 'Customer',
-        customerEmail: legacy.email || '',
-        source: legacy.source || 'contact',
-        status: legacy.status === 'replied' ? 'closed' : 'open',
-        priority: 'normal',
-        assignee: 'Admin',
-        tags: ['migrated'],
-        unreadAdmin: 0,
-        unreadCustomer: 0,
-        lastMessage: legacy.message || '',
-        lastMessageAt: tsMillis,
-        createdAt: tsMillis,
-        updatedAt: window.rtdbServerTimestamp(),
-        legacyMessageId: docSnap.id
-      };
-      await window.rtdbSet(rtdbMetaRef(conversationId), conversationData);
-      const firstMsgRef = window.rtdbPush(rtdbThreadRef(conversationId));
-      await window.rtdbSet(firstMsgRef, {
-        senderRole: 'customer',
-        senderName: legacy.name || 'Customer',
-        body: legacy.message || '',
-        createdAt: tsMillis,
-        readByAdmin: true,
-        readByCustomer: true,
-        type: 'text',
-        migratedFrom: docSnap.id
-      });
-      await window.updateDoc(window.doc(window.db, 'messages', docSnap.id), {
-        conversationId: conversationId,
-        migratedAt: window.serverTimestamp()
-      });
-      count++;
-    }
-    alert('Legacy migration completed. Converted ' + count + ' messages.');
   }
 
   function subscribeConversations() {
@@ -6310,7 +6826,7 @@ document.addEventListener('DOMContentLoaded', function() {
       const val = snap.val() || {};
       const records = [];
       Object.keys(val).forEach(function (k) {
-        records.push({ id: k, ...val[k] });
+        records.push(Object.assign({}, val[k], { id: k }));
       });
       records.sort(function (a, b) {
         return (b.updatedAt || 0) - (a.updatedAt || 0);
@@ -6323,10 +6839,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (stillThere) {
           DM.activeConversationData = records.find(function (r) { return r.id === DM.activeConversationId; }) || null;
         } else {
-          DM.activeConversationId = null;
-          DM.activeConversationData = null;
+          clearAdminThreadSelection();
         }
       }
+      syncAdminDmLayoutClass();
     });
   }
 
@@ -6352,17 +6868,27 @@ document.addEventListener('DOMContentLoaded', function() {
       '<button class="form-btn" type="submit"><ion-icon name="chatbubbles-outline"></ion-icon><span>Open my conversation</span></button>',
       '</form>',
       '</div>',
-      '<section id="dm-customer-thread" class="dm-customer-thread" style="display:none;">',
-      '<div class="dm-customer-thread-toolbar">',
-      '<p class="dm-customer-thread-email" id="dm-portal-session-email"></p>',
-      '<button type="button" class="dm-portal-sign-out" id="dm-portal-sign-out">Use different email</button>',
+      '<div id="dm-customer-sheet-root" class="dm-customer-sheet-root" aria-hidden="true">',
+      '<div class="dm-customer-sheet-backdrop" id="dm-customer-sheet-backdrop"></div>',
+      '<div class="dm-customer-sheet" role="dialog" aria-modal="true" aria-labelledby="dm-customer-sheet-title">',
+      '<div class="dm-customer-sheet-grabber" id="dm-customer-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag up or down to resize" tabindex="0"></div>',
+      '<div class="dm-customer-sheet-head">',
+      '<h3 id="dm-customer-sheet-title" class="dm-customer-sheet-title">Messages</h3>',
+      '<button type="button" class="dm-customer-sheet-close" id="dm-customer-sheet-close" aria-label="Close conversation">',
+      '<ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>',
+      '</button>',
       '</div>',
+      '<section id="dm-customer-thread" class="dm-customer-thread">',
       '<div id="dm-customer-message-list" class="dm-message-list has-scrollbar"></div>',
       '<form id="dm-customer-composer" class="dm-composer">',
-      '<textarea id="dm-customer-message" class="form-textarea" rows="4" placeholder="Type your message..." required></textarea>',
-      '<button class="form-btn" type="submit"><ion-icon name="send-outline"></ion-icon><span>Send Message</span></button>',
+      '<div class="dm-composer-input-wrap">',
+      '<textarea id="dm-customer-message" class="form-textarea dm-composer-textarea" rows="2" spellcheck="true" placeholder="Message" aria-label="Your message" required></textarea>',
+      '</div>',
+      '<button class="form-btn dm-composer-send" type="submit" aria-label="Send message"><ion-icon name="send-outline" aria-hidden="true"></ion-icon></button>',
       '</form>',
-      '</section>'
+      '</section>',
+      '</div>',
+      '</div>'
     ].join('');
     portalHost.appendChild(section);
 
@@ -6381,7 +6907,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const val = snap.val();
     if (val) {
       const id = Object.keys(val)[0];
-      return { id: id, ...val[id] };
+      return Object.assign({}, val[id], { id: id });
     }
 
     const newRef = window.rtdbPush(metaRoot);
@@ -6455,8 +6981,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function startCustomerThread(session) {
     if (!session || !session.conversationId) return;
-    const thread = document.getElementById('dm-customer-thread');
-    if (thread) thread.style.display = 'block';
 
     if (DM.unsubCustomerMessages) DM.unsubCustomerMessages();
     const threadRef = rtdbThreadRef(session.conversationId);
@@ -6464,7 +6988,9 @@ document.addEventListener('DOMContentLoaded', function() {
     DM.unsubCustomerMessages = window.rtdbOnValue(q, async function (snap) {
       const val = snap.val() || {};
       const messages = Object.keys(val)
-        .map(function (k) { return { id: k, ...val[k] }; })
+        .map(function (k) {
+          return Object.assign({}, val[k], { id: k });
+        })
         .sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
       renderCustomerThread(messages);
       const unread = messages.filter(function (m) { return !m.readByCustomer; });
@@ -6508,23 +7034,264 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  function setCustomerPortalAuthVisible(visible) {
-    const auth = document.getElementById('dm-customer-auth');
-    const thread = document.getElementById('dm-customer-thread');
-    if (auth) auth.style.display = visible ? '' : 'none';
-    if (thread) thread.style.display = visible ? 'none' : 'block';
+  function prefillCustomerPortalForm() {
+    if (!DM.customerSession) return;
+    const nameEl = document.getElementById('dm-portal-name');
+    const emailEl = document.getElementById('dm-portal-email');
+    if (nameEl) nameEl.value = DM.customerSession.customerName || '';
+    if (emailEl) emailEl.value = DM.customerSession.customerEmail || '';
   }
 
-  function updateCustomerPortalSessionLabel() {
-    const el = document.getElementById('dm-portal-session-email');
-    if (!el || !DM.customerSession) return;
-    const name = DM.customerSession.customerName || '';
-    const email = DM.customerSession.customerEmail || '';
-    el.textContent = name ? name + ' · ' + email : email;
+  const DM_SHEET_MAX_VH_KEY = 'dmCustomerSheetMaxHeightVh';
+  const DM_SHEET_MIN_VH = 36;
+  const DM_SHEET_MAX_VH_CAP = 100;
+  const DM_SHEET_DEFAULT_VH = 85;
+
+  function readStoredCustomerSheetMaxVh() {
+    try {
+      const n = parseFloat(localStorage.getItem(DM_SHEET_MAX_VH_KEY));
+      if (!isNaN(n)) return Math.max(DM_SHEET_MIN_VH, Math.min(DM_SHEET_MAX_VH_CAP, n));
+    } catch (e) {}
+    return DM_SHEET_DEFAULT_VH;
+  }
+
+  function applyCustomerSheetMaxVh(sheetEl, vh) {
+    if (!sheetEl) return;
+    const v = Math.max(DM_SHEET_MIN_VH, Math.min(DM_SHEET_MAX_VH_CAP, vh));
+    sheetEl.style.setProperty('--dm-sheet-max-vh', String(v));
+  }
+
+  function syncCustomerSheetHeightFromStorage() {
+    const el = document.querySelector('#dm-customer-sheet-root .dm-customer-sheet');
+    if (el) applyCustomerSheetMaxVh(el, readStoredCustomerSheetMaxVh());
+  }
+
+  function getCustomerSheetMaxVhFromDom(sheetEl) {
+    if (!sheetEl) return readStoredCustomerSheetMaxVh();
+    const raw = sheetEl.style.getPropertyValue('--dm-sheet-max-vh').trim();
+    if (raw) {
+      const p = parseFloat(raw);
+      if (!isNaN(p)) return Math.max(DM_SHEET_MIN_VH, Math.min(DM_SHEET_MAX_VH_CAP, p));
+    }
+    return readStoredCustomerSheetMaxVh();
+  }
+
+  const ADMIN_DM_SHEET_MAX_VH_KEY = 'dmAdminSheetMaxHeightVh';
+  const ADMIN_DM_SHEET_DEFAULT_VH = 90;
+
+  function readStoredAdminSheetMaxVh() {
+    try {
+      const n = parseFloat(localStorage.getItem(ADMIN_DM_SHEET_MAX_VH_KEY));
+      if (!isNaN(n)) return Math.max(DM_SHEET_MIN_VH, Math.min(DM_SHEET_MAX_VH_CAP, n));
+    } catch (e) {}
+    return ADMIN_DM_SHEET_DEFAULT_VH;
+  }
+
+  function syncAdminSheetHeightFromStorage() {
+    const el = document.querySelector('#admin-dm-sheet-root .admin-dm-sheet');
+    if (el) applyCustomerSheetMaxVh(el, readStoredAdminSheetMaxVh());
+  }
+
+  function getAdminSheetMaxVhFromDom(sheetEl) {
+    if (!sheetEl) return readStoredAdminSheetMaxVh();
+    const raw = sheetEl.style.getPropertyValue('--dm-sheet-max-vh').trim();
+    if (raw) {
+      const p = parseFloat(raw);
+      if (!isNaN(p)) return Math.max(DM_SHEET_MIN_VH, Math.min(DM_SHEET_MAX_VH_CAP, p));
+    }
+    return readStoredAdminSheetMaxVh();
+  }
+
+  function initAdminDmSheetResize() {
+    const sheet = document.querySelector('#admin-dm-sheet-root .admin-dm-sheet');
+    const grabber = document.getElementById('admin-dm-sheet-grabber');
+    if (!sheet || !grabber) return;
+
+    syncAdminSheetHeightFromStorage();
+
+    let dragging = false;
+    let startY = 0;
+    let startVh = 0;
+
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      grabber.removeAttribute('aria-grabbed');
+      grabber.classList.remove('is-dragging');
+      sheet.classList.remove('is-resizing');
+      try {
+        if (e && e.pointerId != null) grabber.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+      try {
+        const raw = sheet.style.getPropertyValue('--dm-sheet-max-vh').trim();
+        const v = parseFloat(raw);
+        if (!isNaN(v)) localStorage.setItem(ADMIN_DM_SHEET_MAX_VH_KEY, String(v));
+      } catch (err) {}
+    }
+
+    function onPointerDown(e) {
+      if (e.button != null && e.button !== 0) return;
+      dragging = true;
+      startY = e.clientY;
+      startVh = getAdminSheetMaxVhFromDom(sheet);
+      grabber.setAttribute('aria-grabbed', 'true');
+      grabber.classList.add('is-dragging');
+      sheet.classList.add('is-resizing');
+      try {
+        grabber.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      e.preventDefault();
+    }
+
+    function onPointerMove(e) {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      const next = startVh - (dy / window.innerHeight) * 100;
+      applyCustomerSheetMaxVh(sheet, next);
+      e.preventDefault();
+    }
+
+    grabber.addEventListener('pointerdown', onPointerDown);
+    grabber.addEventListener('pointermove', onPointerMove);
+    grabber.addEventListener('pointerup', endDrag);
+    grabber.addEventListener('pointercancel', endDrag);
+  }
+
+  function setAdminDmSheetOpen(open) {
+    const root = document.getElementById('admin-dm-sheet-root');
+    if (!root) return;
+    if (open) {
+      root.classList.add('is-open');
+      root.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('admin-dm-sheet-open');
+      syncAdminSheetHeightFromStorage();
+      applyConversationFilters();
+      renderConversationList();
+      syncAdminDmLayoutClass();
+      requestAnimationFrame(function () {
+        const search = document.getElementById('dm-search-input');
+        if (search) {
+          try {
+            search.focus();
+          } catch (e) {}
+        }
+      });
+    } else {
+      root.classList.remove('is-open');
+      root.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('admin-dm-sheet-open');
+      clearAdminThreadSelection();
+    }
+  }
+
+  function initAdminDmSheet() {
+    const openBtn = document.getElementById('admin-open-dm-inbox');
+    const root = document.getElementById('admin-dm-sheet-root');
+    const backdrop = document.getElementById('admin-dm-sheet-backdrop');
+    const closeBtn = document.getElementById('admin-dm-sheet-close');
+
+    initAdminDmSheetResize();
+
+    if (openBtn) {
+      openBtn.addEventListener('click', function () {
+        setAdminDmSheetOpen(true);
+      });
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', function () {
+        setAdminDmSheetOpen(false);
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        setAdminDmSheetOpen(false);
+      });
+    }
+
+    document.addEventListener('keydown', function adminDmSheetEsc(e) {
+      if (e.key !== 'Escape' && e.keyCode !== 27) return;
+      if (!root || !root.classList.contains('is-open')) return;
+      setAdminDmSheetOpen(false);
+    });
+  }
+
+  function initCustomerSheetResize() {
+    const sheet = document.querySelector('#dm-customer-sheet-root .dm-customer-sheet');
+    const grabber = document.getElementById('dm-customer-sheet-grabber');
+    if (!sheet || !grabber) return;
+
+    syncCustomerSheetHeightFromStorage();
+
+    let dragging = false;
+    let startY = 0;
+    let startVh = 0;
+
+    function endDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      grabber.removeAttribute('aria-grabbed');
+      grabber.classList.remove('is-dragging');
+      sheet.classList.remove('is-resizing');
+      try {
+        if (e && e.pointerId != null) grabber.releasePointerCapture(e.pointerId);
+      } catch (err) {}
+      try {
+        const raw = sheet.style.getPropertyValue('--dm-sheet-max-vh').trim();
+        const v = parseFloat(raw);
+        if (!isNaN(v)) localStorage.setItem(DM_SHEET_MAX_VH_KEY, String(v));
+      } catch (err) {}
+    }
+
+    function onPointerDown(e) {
+      if (e.button != null && e.button !== 0) return;
+      dragging = true;
+      startY = e.clientY;
+      startVh = getCustomerSheetMaxVhFromDom(sheet);
+      grabber.setAttribute('aria-grabbed', 'true');
+      grabber.classList.add('is-dragging');
+      sheet.classList.add('is-resizing');
+      try {
+        grabber.setPointerCapture(e.pointerId);
+      } catch (err) {}
+      e.preventDefault();
+    }
+
+    function onPointerMove(e) {
+      if (!dragging) return;
+      const dy = e.clientY - startY;
+      const next = startVh - (dy / window.innerHeight) * 100;
+      applyCustomerSheetMaxVh(sheet, next);
+      e.preventDefault();
+    }
+
+    grabber.addEventListener('pointerdown', onPointerDown);
+    grabber.addEventListener('pointermove', onPointerMove);
+    grabber.addEventListener('pointerup', endDrag);
+    grabber.addEventListener('pointercancel', endDrag);
+  }
+
+  function setCustomerPortalAuthVisible(visible) {
+    const auth = document.getElementById('dm-customer-auth');
+    const sheetRoot = document.getElementById('dm-customer-sheet-root');
+    if (auth) auth.style.display = visible ? '' : 'none';
+    if (sheetRoot) {
+      if (visible) {
+        sheetRoot.classList.remove('is-open');
+        sheetRoot.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('dm-customer-sheet-open');
+      } else {
+        sheetRoot.classList.add('is-open');
+        sheetRoot.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('dm-customer-sheet-open');
+        syncCustomerSheetHeightFromStorage();
+      }
+    }
+    if (visible && DM.customerSession) {
+      prefillCustomerPortalForm();
+    }
   }
 
   function openCustomerPortalSession() {
-    updateCustomerPortalSessionLabel();
     setCustomerPortalAuthVisible(false);
   }
 
@@ -6564,7 +7331,6 @@ document.addEventListener('DOMContentLoaded', function() {
   function bindCustomerPortalEvents() {
     const portalForm = document.getElementById('dm-portal-open-form');
     const statusEl = document.getElementById('dm-portal-status');
-    const signOutBtn = document.getElementById('dm-portal-sign-out');
     const composer = document.getElementById('dm-customer-composer');
     const input = document.getElementById('dm-customer-message');
 
@@ -6614,17 +7380,25 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    if (signOutBtn) {
-      signOutBtn.addEventListener('click', function () {
-        stopCustomerDmMessageSubscription();
-        DM.customerSession = null;
-        localStorage.removeItem('customerDmSession');
-        setCustomerPortalAuthVisible(true);
-        const list = document.getElementById('dm-customer-message-list');
-        if (list) list.innerHTML = '';
-        if (input) input.value = '';
-      });
+    function closeCustomerSheetToPortal() {
+      setCustomerPortalAuthVisible(true);
     }
+
+    const sheetBackdrop = document.getElementById('dm-customer-sheet-backdrop');
+    const sheetCloseBtn = document.getElementById('dm-customer-sheet-close');
+    if (sheetBackdrop) {
+      sheetBackdrop.addEventListener('click', closeCustomerSheetToPortal);
+    }
+    if (sheetCloseBtn) {
+      sheetCloseBtn.addEventListener('click', closeCustomerSheetToPortal);
+    }
+
+    document.addEventListener('keydown', function customerSheetEsc(e) {
+      if (e.key !== 'Escape' && e.keyCode !== 27) return;
+      const root = document.getElementById('dm-customer-sheet-root');
+      if (!root || !root.classList.contains('is-open')) return;
+      closeCustomerSheetToPortal();
+    });
 
     if (composer && input) {
       composer.addEventListener('submit', function (e) {
@@ -6684,11 +7458,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1200);
       });
     }
+
+    initCustomerSheetResize();
   }
 
   function initializeProfessionalDM() {
     if (!window.db) return;
     if (window.DM_FEATURE_FLAGS && window.DM_FEATURE_FLAGS.enableProfessionalInbox === false) return;
+
+    const previousFetchMessages = typeof window.fetchMessages === 'function' ? window.fetchMessages : null;
 
     ensureAdminInboxUI();
 
@@ -6697,6 +7475,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     bindAdminInboxEvents();
+    initAdminDmSheet();
+
+    window.fetchMessages = function () {
+      if (typeof previousFetchMessages === 'function') {
+        previousFetchMessages();
+      }
+      if (!isAdminSession()) return;
+      if (hasDMDeps()) {
+        subscribeConversations();
+      }
+    };
 
     if (!hasDMDeps()) {
       console.warn(
@@ -6704,11 +7493,6 @@ document.addEventListener('DOMContentLoaded', function() {
       );
       return;
     }
-
-    window.fetchMessages = function () {
-      if (!isAdminSession()) return;
-      subscribeConversations();
-    };
 
     if (isAdminSession()) {
       subscribeConversations();
@@ -6732,4 +7516,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }).catch(function () {});
     }
   });
+
+  window.dismissCustomerDmSheetForNavigation = function () {
+    const root = document.getElementById('dm-customer-sheet-root');
+    if (!root || !root.classList.contains('is-open')) return;
+    setCustomerPortalAuthVisible(true);
+  };
 })();
