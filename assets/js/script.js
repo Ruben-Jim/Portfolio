@@ -28,6 +28,14 @@ document.addEventListener("keydown", function (e) {
   }
 });
 
+// Close open navbar menus when clicking/tapping outside
+document.addEventListener("click", function (e) {
+  if (e.target.closest("[data-navbar]")) return;
+  document.querySelectorAll("[data-navbar].open").forEach(function (nav) {
+    nav.classList.remove("open");
+  });
+});
+
 // testimonials variables
 const testimonialsItem = document.querySelectorAll("[data-testimonials-item]");
 const modalContainer = document.querySelector("[data-modal-container]");
@@ -1818,47 +1826,104 @@ if (editBlogForm) {
   });
 }
 
-// Handle delete button
+function closeDeleteBlogConfirmModal() {
+  const modal = document.getElementById('delete-blog-confirm-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
+  delete modal.dataset.pendingPostId;
+}
+
+function openDeleteBlogConfirmModal(postId) {
+  const modal = document.getElementById('delete-blog-confirm-modal');
+  if (!modal || !postId) return;
+  modal.dataset.pendingPostId = postId;
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  const cancelBtn = document.getElementById('delete-blog-confirm-cancel');
+  if (cancelBtn) {
+    setTimeout(function () {
+      cancelBtn.focus();
+    }, 40);
+  }
+}
+
+async function handleDeleteBlogConfirmClick() {
+  const modal = document.getElementById('delete-blog-confirm-modal');
+  const postId = modal && modal.dataset ? modal.dataset.pendingPostId : '';
+  if (!postId) {
+    closeDeleteBlogConfirmModal();
+    return;
+  }
+  if (!currentUser || currentUser.role !== 'admin') {
+    showErrorMessage('Access denied. Admin privileges required to delete blog posts.');
+    closeDeleteBlogConfirmModal();
+    return;
+  }
+  try {
+    await deleteBlogPostFromFirestore(postId);
+    blogPosts = blogPosts.filter(function (p) {
+      return p.id !== postId;
+    });
+    renderBlogPosts();
+    if (currentUser && currentUser.role === 'admin') {
+      renderAdminBlogPosts();
+    }
+    closeDeleteBlogConfirmModal();
+    var editIdEl = document.getElementById('edit-blog-id');
+    if (
+      editIdEl &&
+      editIdEl.value === postId &&
+      editBlogModal &&
+      editBlogModal.classList.contains('active')
+    ) {
+      closeEditBlogModal();
+    }
+    showSuccessMessage('Blog post deleted successfully!');
+  } catch (error) {
+    console.error('Error deleting blog post:', error);
+    closeDeleteBlogConfirmModal();
+  }
+}
+
+function setupDeleteBlogConfirmModal() {
+  const modal = document.getElementById('delete-blog-confirm-modal');
+  const overlay = document.getElementById('delete-blog-confirm-overlay');
+  const btnClose = document.getElementById('delete-blog-confirm-close');
+  const btnCancel = document.getElementById('delete-blog-confirm-cancel');
+  const btnDelete = document.getElementById('delete-blog-confirm-delete');
+  if (!modal || modal.dataset.bound || !overlay || !btnCancel || !btnDelete) return;
+  modal.dataset.bound = '1';
+  overlay.addEventListener('click', closeDeleteBlogConfirmModal);
+  if (btnClose) {
+    btnClose.addEventListener('click', closeDeleteBlogConfirmModal);
+  }
+  btnCancel.addEventListener('click', closeDeleteBlogConfirmModal);
+  btnDelete.addEventListener('click', handleDeleteBlogConfirmClick);
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    if (!modal.classList.contains('active')) return;
+    ev.preventDefault();
+    closeDeleteBlogConfirmModal();
+  });
+}
+
+setupDeleteBlogConfirmModal();
+
+// Handle delete button (opens custom confirm modal)
 if (deleteBlogBtn) {
-  deleteBlogBtn.addEventListener('click', async function(e) {
+  deleteBlogBtn.addEventListener('click', function (e) {
     e.preventDefault();
-    
-    // Security check: Only allow admin users to delete blog posts
+
     if (!currentUser || currentUser.role !== 'admin') {
       showErrorMessage('Access denied. Admin privileges required to delete blog posts.');
       return;
     }
-    
+
     const postId = document.getElementById('edit-blog-id').value;
     if (!postId) return;
-    
-    if (!confirm('Are you sure you want to delete this blog post? This action cannot be undone.')) {
-      return;
-    }
-    
-    try {
-      // Delete from Firestore
-      await deleteBlogPostFromFirestore(postId);
-      
-      // Remove from local array
-      blogPosts = blogPosts.filter(p => p.id !== postId);
-      
-      // Re-render blog posts (both regular view and admin dashboard)
-      renderBlogPosts();
-      if (currentUser && currentUser.role === 'admin') {
-        renderAdminBlogPosts();
-      }
-      
-      // Close modal
-      closeEditBlogModal();
-      
-      // Show success message
-      showSuccessMessage('Blog post deleted successfully!');
-      
-    } catch (error) {
-      console.error('Error deleting blog post:', error);
-      showErrorMessage('Failed to delete blog post. Please try again.');
-    }
+
+    openDeleteBlogConfirmModal(postId);
   });
 }
 
@@ -1974,37 +2039,17 @@ function attachEditDeleteListeners() {
     const newBtn = btn.cloneNode(true);
     btn.parentNode.replaceChild(newBtn, btn);
     
-    newBtn.addEventListener('click', async function(e) {
+    newBtn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      
-      // Security check: Only allow admin users to delete blog posts
+
       if (!isAdmin()) {
         showErrorMessage('Access denied. Admin privileges required to delete blog posts.');
         return;
       }
-      
+
       const postId = this.getAttribute('data-delete-blog');
-      
-      if (!confirm('Are you sure you want to delete this blog post? This action cannot be undone.')) {
-        return;
-      }
-      
-      try {
-        await deleteBlogPostFromFirestore(postId);
-        blogPosts = blogPosts.filter(p => p.id !== postId);
-        
-        // Re-render blog posts (both regular view and admin dashboard)
-        renderBlogPosts();
-        if (currentUser && currentUser.role === 'admin') {
-          renderAdminBlogPosts();
-        }
-        
-        showSuccessMessage('Blog post deleted successfully!');
-      } catch (error) {
-        console.error('Error deleting blog post:', error);
-        showErrorMessage('Failed to delete blog post. Please try again.');
-      }
+      openDeleteBlogConfirmModal(postId);
     });
   });
 }
@@ -2436,10 +2481,13 @@ form.addEventListener("submit", async function(e) {
     const formMessage = form._formMessage;
     const formError = form._formError;
     const isHireMeForm = form.closest('[data-page="hire-me"]') !== null;
+    const isContactForm = form.closest('[data-page="contact"]') !== null;
   
-  // Hide any existing messages
-    if (formMessage) formMessage.style.display = 'none';
-    if (formError) formError.style.display = 'none';
+  // Hide any existing inline messages (hire-me still uses them when not showing submitted state)
+    if (!isContactForm) {
+      if (formMessage) formMessage.style.display = 'none';
+      if (formError) formError.style.display = 'none';
+    }
   
   // Show loading state
     showFormLoading(formBtn, isHireMeForm);
@@ -2508,12 +2556,20 @@ form.addEventListener("submit", async function(e) {
       if (showHireSuccessState) {
         if (hireMain) hireMain.hidden = true;
         else if (hirePanel) hirePanel.hidden = true;
+        hireSubmitted.classList.remove('hire-form-submitted--animating');
         hireSubmitted.hidden = false;
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            hireSubmitted.classList.add('hire-form-submitted--animating');
+          });
+        });
         hireSubmitted.scrollIntoView({
           behavior: 'smooth',
           block: 'center',
           inline: 'nearest'
         });
+      } else if (isContactForm) {
+        showSuccessMessage("Message sent successfully! I'll get back to you soon.");
       } else {
         showFormSuccess(formMessage, formError);
       }
@@ -2523,7 +2579,15 @@ form.addEventListener("submit", async function(e) {
     
   } catch (error) {
     console.error('Form submission error:', error);
-      showFormError(formMessage, formError);
+      if (isContactForm) {
+        const msg =
+          error && error.message === 'Please fill in all required fields'
+            ? error.message
+            : 'Failed to send message. Please try again.';
+        showErrorMessage(msg);
+      } else {
+        showFormError(formMessage, formError);
+      }
   } finally {
       hideFormLoading(formBtn, isHireMeForm);
   }
@@ -3253,7 +3317,6 @@ window.addEventListener('load', function() {
   const adminCancelLoginBtn = document.getElementById('admin-cancel-login-btn');
   const adminDashboardContent = document.getElementById('admin-dashboard-content');
   const adminLoginBtn = document.getElementById('admin-login-btn');
-  const adminLogoutBtn = document.getElementById('admin-logout-btn');
   const adminLoginForm = document.getElementById('admin-login-form');
   const adminLoginError = document.getElementById('admin-login-error');
   const messagesList = document.getElementById('firestore-messages-list');
@@ -3369,6 +3432,54 @@ window.addEventListener('load', function() {
     });
   }
 
+  /** Syncs `data-admin-auth` on the admin article for guest vs signed-in styling. */
+  function syncAdminArticleAuth() {
+    var el = document.querySelector('article.admin[data-page="admin"]');
+    if (!el) return;
+    el.setAttribute(
+      'data-admin-auth',
+      currentUser && currentUser.role === 'admin' ? 'signed-in' : 'guest'
+    );
+  }
+
+  function syncAdminNavVisibility() {
+    var isSignedInAdmin = !!(currentUser && currentUser.role === 'admin');
+
+    document.querySelectorAll('[data-nav-link]').forEach(function (link) {
+      if ((link.textContent || '').trim() !== 'Admin') return;
+      var item = link.closest('.navbar-item');
+      if (item) {
+        item.style.display = isSignedInAdmin ? '' : 'none';
+      }
+    });
+  }
+
+  function getAdminLogoutButtons() {
+    return Array.from(document.querySelectorAll('.admin-navbar-logout'));
+  }
+
+  function setAdminLogoutButtonsVisible(isVisible) {
+    getAdminLogoutButtons().forEach(function (btn) {
+      btn.style.display = isVisible ? 'inline-flex' : 'none';
+    });
+  }
+
+  function ensureGlobalNavbarLogoutButtons() {
+    var navLists = document.querySelectorAll('.navbar .navbar-list');
+    navLists.forEach(function (list) {
+      if (list.querySelector('.admin-navbar-logout')) return;
+
+      var item = document.createElement('li');
+      item.className = 'navbar-item';
+      item.innerHTML =
+        '<button type="button" class="navbar-link admin-navbar-logout" style="display: none;" aria-label="Log out of admin">' +
+        '<ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>' +
+        '<span>Logout</span>' +
+        '</button>';
+      list.appendChild(item);
+    });
+  }
+
   // Setup authentication - check for existing session
   function setupAuthListeners() {
     // Check if user is already logged in (from sessionStorage)
@@ -3383,6 +3494,7 @@ window.addEventListener('load', function() {
           if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
           if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
           updateAuthUI();
+          syncAdminArticleAuth();
           return;
         }
       } catch (e) {
@@ -3397,6 +3509,8 @@ window.addEventListener('load', function() {
 
   // Setup admin event listeners
   function setupAdminEventListeners() {
+    ensureGlobalNavbarLogoutButtons();
+
     // Login button click
     if (adminLoginBtn) {
       adminLoginBtn.addEventListener('click', function() {
@@ -3412,9 +3526,11 @@ window.addEventListener('load', function() {
     }
 
 
-    if (adminLogoutBtn) {
-      adminLogoutBtn.addEventListener('click', handleLogout);
-    }
+    getAdminLogoutButtons().forEach(function (btn) {
+      if (btn.dataset.logoutBound) return;
+      btn.dataset.logoutBound = '1';
+      btn.addEventListener('click', handleLogout);
+    });
 
     // Modal controls
     if (adminLoginCloseBtn) {
@@ -3480,6 +3596,33 @@ window.addEventListener('load', function() {
 
     if (replyForm) {
       replyForm.addEventListener('submit', handleReplySubmit);
+    }
+
+    const deleteContactConfirmModal = document.getElementById('delete-contact-confirm-modal');
+    const deleteContactConfirmOverlay = document.getElementById('delete-contact-confirm-overlay');
+    const deleteContactConfirmClose = document.getElementById('delete-contact-confirm-close');
+    const deleteContactConfirmCancel = document.getElementById('delete-contact-confirm-cancel');
+    const deleteContactConfirmDelete = document.getElementById('delete-contact-confirm-delete');
+    if (
+      deleteContactConfirmModal &&
+      !deleteContactConfirmModal.dataset.bound &&
+      deleteContactConfirmOverlay &&
+      deleteContactConfirmCancel &&
+      deleteContactConfirmDelete
+    ) {
+      deleteContactConfirmModal.dataset.bound = '1';
+      deleteContactConfirmOverlay.addEventListener('click', closeDeleteContactConfirmModal);
+      if (deleteContactConfirmClose) {
+        deleteContactConfirmClose.addEventListener('click', closeDeleteContactConfirmModal);
+      }
+      deleteContactConfirmCancel.addEventListener('click', closeDeleteContactConfirmModal);
+      deleteContactConfirmDelete.addEventListener('click', handleDeleteContactConfirmClick);
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'Escape') return;
+        if (!deleteContactConfirmModal.classList.contains('active')) return;
+        ev.preventDefault();
+        closeDeleteContactConfirmModal();
+      });
     }
 
     const contactDetailClose = document.getElementById('admin-contact-detail-close');
@@ -3559,7 +3702,9 @@ window.addEventListener('load', function() {
     if (adminDashboardContent) adminDashboardContent.style.display = 'none';
     // Show login button, hide logout button
     if (adminLoginBtn) adminLoginBtn.style.display = 'inline-flex';
-    if (adminLogoutBtn) adminLogoutBtn.style.display = 'none';
+    setAdminLogoutButtonsVisible(false);
+    syncAdminArticleAuth();
+    syncAdminNavVisibility();
   }
 
   // Show dashboard
@@ -3571,14 +3716,20 @@ window.addEventListener('load', function() {
     if (adminDashboardContent) adminDashboardContent.style.display = 'block';
     // Hide login button, show logout button
     if (adminLoginBtn) adminLoginBtn.style.display = 'none';
-    if (adminLogoutBtn) adminLogoutBtn.style.display = 'inline-flex';
+    setAdminLogoutButtonsVisible(true);
+    syncAdminArticleAuth();
+    syncAdminNavVisibility();
   }
 
   // Close login modal
   function closeAdminLoginModal() {
-    if (adminLoginModal) adminLoginModal.classList.remove('active');
+    if (adminLoginModal) {
+      adminLoginModal.classList.remove('active');
+      adminLoginModal.style.display = 'none';
+    }
     if (adminLoginForm) adminLoginForm.reset();
     if (adminLoginError) adminLoginError.style.display = 'none';
+    syncAdminArticleAuth();
   }
 
   // Handle admin login with username/password
@@ -3589,6 +3740,11 @@ window.addEventListener('load', function() {
     const password = document.getElementById('admin-password').value;
 
     showAdminLoginError(''); // Clear previous errors
+
+    if (!username || !password) {
+      showAdminLoginError('Please enter both username and password.');
+      return;
+    }
 
     // Simple credential check
     if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
@@ -3913,6 +4069,7 @@ window.addEventListener('load', function() {
   const businessDocCreateBtn = document.getElementById('business-doc-create-btn');
   const businessDocAddonsList = document.getElementById('business-doc-addons-list');
   const businessDocAddAddonBtn = document.getElementById('business-doc-add-addon-btn');
+  const businessDocsSummary = document.getElementById('business-docs-summary');
 
   let businessDocs = loadBusinessDocs();
 
@@ -4174,12 +4331,46 @@ window.addEventListener('load', function() {
     });
   }
 
+  function renderBusinessDocsSummary(allDocs, filteredDocs) {
+    if (!businessDocsSummary) return;
+    var draftCount = allDocs.filter(function (d) { return d.status === 'draft'; }).length;
+    var openCount = allDocs.filter(function (d) {
+      return d.status === 'sent' || d.status === 'accepted';
+    }).length;
+    var proposalCount = allDocs.filter(function (d) { return d.type === 'proposal'; }).length;
+    var estimateCount = allDocs.filter(function (d) { return d.type === 'estimate'; }).length;
+    var invoiceCount = allDocs.filter(function (d) { return d.type === 'invoice'; }).length;
+    var paidCount = allDocs.filter(function (d) { return d.status === 'paid'; }).length;
+    var visibleValue = filteredDocs.reduce(function (sum, d) {
+      var n = Number(d.total || 0);
+      return sum + (isNaN(n) ? 0 : n);
+    }, 0);
+    var totalValue = allDocs.reduce(function (sum, d) {
+      var n = Number(d.total || 0);
+      return sum + (isNaN(n) ? 0 : n);
+    }, 0);
+
+    businessDocsSummary.innerHTML = [
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Total docs</span><span class="business-docs-summary-value">' + allDocs.length + '</span></div>',
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Showing</span><span class="business-docs-summary-value">' + filteredDocs.length + '</span></div>',
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Proposals</span><span class="business-docs-summary-value">' + proposalCount + '</span></div>',
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Estimates</span><span class="business-docs-summary-value">' + estimateCount + '</span></div>',
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Invoices</span><span class="business-docs-summary-value">' + invoiceCount + '</span></div>',
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Draft</span><span class="business-docs-summary-value">' + draftCount + '</span></div>',
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Open</span><span class="business-docs-summary-value">' + openCount + '</span></div>',
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Paid</span><span class="business-docs-summary-value">' + paidCount + '</span></div>',
+      '<div class="business-docs-summary-item business-docs-summary-item--value"><span class="business-docs-summary-label">Portfolio value</span><span class="business-docs-summary-value">$' + totalValue.toFixed(2) + '</span></div>',
+      '<div class="business-docs-summary-item business-docs-summary-item--value"><span class="business-docs-summary-label">Visible value</span><span class="business-docs-summary-value">$' + visibleValue.toFixed(2) + '</span></div>'
+    ].join('');
+  }
+
   function renderBusinessDocs() {
     if (!businessDocsTbody) return;
 
     const filtered = applyBusinessDocsFilters(businessDocs.slice().sort(function(a, b) {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }));
+    renderBusinessDocsSummary(businessDocs, filtered);
 
     if (filtered.length === 0) {
       businessDocsTbody.innerHTML =
@@ -4252,11 +4443,8 @@ window.addEventListener('load', function() {
       deleteBtn.className = 'btn-icon';
       deleteBtn.title = 'Delete';
       deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
-      deleteBtn.addEventListener('click', function() {
-        if (!confirm('Delete this document?')) return;
-        businessDocs = businessDocs.filter(function(d) { return d.id !== doc.id; });
-        saveBusinessDocs(businessDocs);
-        renderBusinessDocs();
+      deleteBtn.addEventListener('click', function () {
+        openDeleteDocumentConfirmModal(doc.id);
       });
 
       actionsTd.appendChild(editBtn);
@@ -4268,6 +4456,81 @@ window.addEventListener('load', function() {
       businessDocsTbody.appendChild(tr);
     });
   }
+
+  function closeDeleteDocumentConfirmModal() {
+    var modal = document.getElementById('delete-document-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    delete modal.dataset.pendingDocumentId;
+  }
+
+  function openDeleteDocumentConfirmModal(documentId) {
+    var modal = document.getElementById('delete-document-confirm-modal');
+    if (!modal || !documentId) return;
+    modal.dataset.pendingDocumentId = documentId;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var cancelBtn = document.getElementById('delete-document-confirm-cancel');
+    if (cancelBtn) {
+      setTimeout(function () {
+        cancelBtn.focus();
+      }, 40);
+    }
+  }
+
+  function handleDeleteDocumentConfirmClick() {
+    var modal = document.getElementById('delete-document-confirm-modal');
+    var docId = modal && modal.dataset ? modal.dataset.pendingDocumentId : '';
+    if (!docId) {
+      closeDeleteDocumentConfirmModal();
+      return;
+    }
+    businessDocs = businessDocs.filter(function (d) {
+      return d.id !== docId;
+    });
+    saveBusinessDocs(businessDocs);
+    renderBusinessDocs();
+    closeDeleteDocumentConfirmModal();
+    if (
+      businessDocIdInput &&
+      businessDocIdInput.value === docId &&
+      businessDocModal &&
+      businessDocModal.classList.contains('active')
+    ) {
+      closeBusinessDocModal();
+      resetBusinessDocForm();
+    }
+  }
+
+  function setupDeleteDocumentConfirmModal() {
+    var modal = document.getElementById('delete-document-confirm-modal');
+    var overlay = document.getElementById('delete-document-confirm-overlay');
+    var btnClose = document.getElementById('delete-document-confirm-close');
+    var btnCancel = document.getElementById('delete-document-confirm-cancel');
+    var btnDelete = document.getElementById('delete-document-confirm-delete');
+    if (!modal || modal.dataset.bound || !overlay || !btnCancel || !btnDelete) return;
+    modal.dataset.bound = '1';
+    overlay.addEventListener('click', closeDeleteDocumentConfirmModal);
+    if (btnClose) {
+      btnClose.addEventListener('click', closeDeleteDocumentConfirmModal);
+    }
+    btnCancel.addEventListener('click', closeDeleteDocumentConfirmModal);
+    btnDelete.addEventListener('click', handleDeleteDocumentConfirmClick);
+    document.addEventListener(
+      'keydown',
+      function (ev) {
+        if (ev.key !== 'Escape') return;
+        if (!modal.classList.contains('active')) return;
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        closeDeleteDocumentConfirmModal();
+      },
+      true
+    );
+  }
+
+  setupDeleteDocumentConfirmModal();
 
   if (businessDocForm) {
     businessDocForm.addEventListener('submit', function(e) {
@@ -4373,7 +4636,7 @@ window.addEventListener('load', function() {
     var tabs = tabBar.querySelectorAll('.admin-tab[role="tab"]');
     var panels = root.querySelectorAll('.admin-tab-panel');
     var STORAGE_KEY = 'adminActiveTab';
-    var VALID = { docs: 1, messages: 1, blog: 1 };
+    var VALID = { docs: 1, messages: 1, blog: 1, ops: 1 };
 
     function activate(tabId) {
       if (!VALID[tabId]) return;
@@ -5211,11 +5474,11 @@ window.addEventListener('load', function() {
 
     bodyEl.innerHTML = [
       '<dl class="admin-contact-detail__meta">',
+      '<div class="admin-contact-detail__field"><dt>Status</dt><dd><span class="status-badge status-' + safeSt + '">' + safeSt + '</span></dd></div>',
       '<div class="admin-contact-detail__field"><dt>From</dt><dd>',
       escapeHtml(message.name || 'Anonymous'),
       '</dd></div>',
       emailBlock,
-      '<div class="admin-contact-detail__field"><dt>Status</dt><dd><span class="status-badge status-' + safeSt + '">' + safeSt + '</span></dd></div>',
       message.source
         ? '<div class="admin-contact-detail__field"><dt>Source</dt><dd>' + escapeHtml(String(message.source)) + '</dd></div>'
         : '',
@@ -5439,17 +5702,59 @@ window.addEventListener('load', function() {
     }
   }
 
-  async function handleDeleteMessageBtnClick(e) {
+  function closeDeleteContactConfirmModal() {
+    const modal = document.getElementById('delete-contact-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    delete modal.dataset.pendingMessageId;
+  }
+
+  function openDeleteContactConfirmModal(messageId) {
+    const modal = document.getElementById('delete-contact-confirm-modal');
+    if (!modal) return;
+    modal.dataset.pendingMessageId = messageId;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var cancelBtn = document.getElementById('delete-contact-confirm-cancel');
+    if (cancelBtn) {
+      setTimeout(function () {
+        cancelBtn.focus();
+      }, 40);
+    }
+  }
+
+  async function handleDeleteContactConfirmClick() {
+    var modal = document.getElementById('delete-contact-confirm-modal');
+    var messageId = modal && modal.dataset ? modal.dataset.pendingMessageId : '';
+    if (!messageId || !window.db || !window.deleteDoc) {
+      closeDeleteContactConfirmModal();
+      return;
+    }
+    try {
+      await window.deleteDoc(window.doc(window.db, 'messages', messageId));
+      closeDeleteContactConfirmModal();
+      if (contactDetailOpenId === messageId) {
+        closeContactDetailDrawer();
+      }
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      var msg = error && error.message ? error.message : String(error);
+      if (typeof showErrorMessage === 'function') {
+        showErrorMessage('Could not delete: ' + msg);
+      } else {
+        alert('Could not delete: ' + msg);
+      }
+      closeDeleteContactConfirmModal();
+    }
+  }
+
+  function handleDeleteMessageBtnClick(e) {
     const btn = e.target.closest('.delete-message-btn');
     if (!btn || !window.db || !window.deleteDoc) return;
     const messageId = btn.dataset.id;
     if (!messageId) return;
-    if (!confirm('Delete this form submission permanently?')) return;
-    try {
-      await window.deleteDoc(window.doc(window.db, 'messages', messageId));
-    } catch (error) {
-      alert('Could not delete: ' + (error && error.message ? error.message : String(error)));
-    }
+    openDeleteContactConfirmModal(messageId);
   }
 
   // Show reply modal
@@ -5568,44 +5873,10 @@ window.addEventListener('load', function() {
 })();
 
 // ─────────────────────────────────────────────
-// Main Business Ops Manual Modal
+// Business Ops protocol links (now on own admin subtab)
 // ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  const opsModal    = document.getElementById('ops-modal');
-  const opsOverlay  = document.getElementById('ops-overlay');
-  const opsCloseBtn = document.getElementById('ops-close-btn');
-  const showOpsBtn  = document.getElementById('show-ops-manual');
-
-  if (!opsModal || !showOpsBtn) {
-    console.warn('Main Ops modal elements missing');
-    return;
-  }
-
-  // Open main modal
-  showOpsBtn.addEventListener('click', () => {
-    opsModal.classList.add('active');
-    document.body.classList.add('modal-open');
-    opsModal.querySelector('button')?.focus();
-
-    // IMPORTANT: Attach sub-modal listeners NOW (after main modal is visible)
-    attachSubModalListeners();
-  });
-
-  // Close main modal
-  const closeOpsModal = () => {
-    opsModal.classList.remove('active');
-    document.body.classList.remove('modal-open');
-    showOpsBtn.focus();
-  };
-
-  opsCloseBtn.addEventListener('click', closeOpsModal);
-  opsOverlay.addEventListener('click', closeOpsModal);
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && opsModal.classList.contains('active')) {
-      closeOpsModal();
-    }
-  });
+  attachSubModalListeners();
 });
 
 // ─────────────────────────────────────────────
@@ -5791,7 +6062,12 @@ function toggleTheme() {
   let filtered = [];
   let selectedIndex = 0;
 
+  function isContactDetailDrawerOpen() {
+    return document.body.classList.contains('admin-contact-detail-open');
+  }
+
   function open() {
+    if (isContactDetailDrawerOpen()) return;
     overlay.classList.add('active');
     overlay.setAttribute('aria-hidden', 'false');
     input.value = '';
@@ -5874,6 +6150,7 @@ function toggleTheme() {
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
+      if (isContactDetailDrawerOpen()) return;
       if (overlay.classList.contains('active')) close();
       else open();
     }
@@ -5900,7 +6177,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
   gsap.registerPlugin(ScrollTrigger);
 
-  // Staggered Bento reveal on load
+  var heroReveal = document.querySelector('[data-home-hero-reveal]');
+  if (heroReveal) {
+    gsap.from(heroReveal, {
+      opacity: 0,
+      y: 20,
+      duration: 0.55,
+      ease: 'power2.out'
+    });
+  }
+
+  // Staggered Bento reveal on load (includes home Who I Am card after grid)
   var bentoCells = document.querySelectorAll('[data-bento-cell]');
   if (bentoCells.length) {
     gsap.from(bentoCells, {

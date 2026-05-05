@@ -53,7 +53,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=bizdoc-20260504-contact-messages-spacing">
+  <link rel="stylesheet" href="./assets/css/style.css?v=bizdoc-20260504-home-hero-v2">
 
   <!--
     - google font link
@@ -266,24 +266,61 @@
             </ul>
           </div>
         </nav>
-        <header class="landing-header">
-          <h2 class="h2 article-title">Home</h2>
-          <p class="landing-tagline">Fullstack Developer · Web & Mobile Apps</p>
-        </header>
+
+        <section class="home-hero" aria-labelledby="home-hero-title">
+          <div class="home-hero-bg" aria-hidden="true"></div>
+          <div class="home-hero-noise" aria-hidden="true"></div>
+          <div class="home-hero-grid">
+            <div class="home-hero-inner" data-home-hero-reveal>
+              <div class="home-hero-kicker">
+                <span class="home-hero-kicker-line" aria-hidden="true"></span>
+                <p class="home-hero-eyebrow">Fullstack Developer · Web & Mobile Apps</p>
+              </div>
+              <h2 class="home-hero-title" id="home-hero-title">Ship-ready apps, front to back</h2>
+              <p class="home-hero-lead">From Fresno, California—clear interfaces, solid backends, and products built with React Native, Node, and Firebase.</p>
+              <ul class="home-hero-pills" aria-label="Core stack">
+                <li>React Native</li>
+                <li>TypeScript</li>
+                <li>Node.js</li>
+                <li>Firebase</li>
+              </ul>
+              <div class="home-hero-actions">
+                <button type="button" class="btn btn-primary home-hero-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View portfolio</button>
+                <button type="button" class="btn home-hero-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Contact</button>
+                <button type="button" class="btn home-hero-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Hire me</button>
+              </div>
+            </div>
+            <div class="home-hero-visual" aria-hidden="true">
+              <div class="home-hero-visual-gridline"></div>
+              <div class="home-hero-visual-card">
+                <p class="home-hero-visual-kicker">Delivery Focus</p>
+                <h3 class="home-hero-visual-title">Web + Mobile Build Flow</h3>
+                <ul class="home-hero-visual-steps">
+                  <li><span class="home-hero-step-dot"></span> Scope & architecture</li>
+                  <li><span class="home-hero-step-dot"></span> Build & QA</li>
+                  <li><span class="home-hero-step-dot"></span> Ship & support</li>
+                </ul>
+                <div class="home-hero-visual-metrics">
+                  <div class="home-hero-visual-metric">
+                    <span class="home-hero-visual-metric-label">Response</span>
+                    <strong>24h</strong>
+                  </div>
+                  <div class="home-hero-visual-metric">
+                    <span class="home-hero-visual-metric-label">Launches</span>
+                    <strong>10+</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="home-hero-visual-badge">
+                <ion-icon name="code-slash-outline"></ion-icon>
+                <span>Build · Ship · Iterate</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <!-- Bento Grid -->
         <section class="bento-grid" aria-label="Portfolio highlights">
-          <div class="bento-card bento-intro" data-bento-cell>
-            <h3 class="h3 bento-card-title">Who I Am</h3>
-            <p class="bento-intro-text">I'm a <span class="highlight-primary">fullstack developer</span> from <span class="highlight-secondary">Fresno, California</span>, building <span class="highlight-accent">web and mobile apps</span>. I focus on clear, modern interfaces and reliable backends—<span class="highlight-accent">React Native, Node, Firebase</span>, and more.</p>
-            <div class="bento-intro-links">
-              <a href="#portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Portfolio</a>
-              <a href="#resume" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('resume'); } return false;">Resume</a>
-              <a href="#contact" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Contact</a>
-              <a href="#blog" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('blog'); } return false;">Blog</a>
-            </div>
-          </div>
-
           <div class="bento-card bento-latest-project" data-bento-cell>
             <h3 class="h3 bento-card-title">Latest Project</h3>
             <a href="https://roof-cleaning-template.expo.app" class="bento-project-link" target="_blank" rel="noopener noreferrer">
@@ -328,6 +365,19 @@
                 <span>Mobile apps</span>
               </li>
             </ul>
+          </div>
+        </section>
+
+        <section class="home-who-i-am" aria-labelledby="who-i-am-title">
+          <div class="bento-card home-who-i-am-card" data-bento-cell>
+            <h3 class="h3 bento-card-title" id="who-i-am-title">Who I Am</h3>
+            <p class="bento-intro-text">I'm a <span class="highlight-primary">fullstack developer</span> from <span class="highlight-secondary">Fresno, California</span>, building <span class="highlight-accent">web and mobile apps</span>. I focus on clear, modern interfaces and reliable backends—<span class="highlight-accent">React Native, Node, Firebase</span>, and more.</p>
+            <div class="bento-intro-links">
+              <a href="#portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Portfolio</a>
+              <a href="#resume" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('resume'); } return false;">Resume</a>
+              <a href="#contact" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Contact</a>
+              <a href="#blog" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('blog'); } return false;">Blog</a>
+            </div>
           </div>
         </section>
 
@@ -1058,6 +1108,12 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
+              <li class="navbar-item">
+                <button type="button" class="navbar-link admin-navbar-logout" id="admin-logout-btn" style="display: none;" aria-label="Log out of admin">
+                  <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+                  <span>Logout</span>
+                </button>
+              </li>
             </ul>
           </div>
         </nav>
@@ -2794,21 +2850,6 @@
               <span>Send Message</span>
             </button>
 
-            <!-- Success/Error Messages -->
-            <div class="form-message" id="form-message" style="display: none;">
-              <div class="message-content">
-                <ion-icon name="checkmark-circle" class="message-icon success-icon"></ion-icon>
-                <span class="message-text">Message sent successfully! I'll get back to you soon.</span>
-              </div>
-            </div>
-
-            <div class="form-message error" id="form-error" style="display: none;">
-              <div class="message-content">
-                <ion-icon name="close-circle" class="message-icon error-icon"></ion-icon>
-                <span class="message-text">Failed to send message. Please try again.</span>
-              </div>
-            </div>
-
           </form>
 
         </section>
@@ -2851,7 +2892,7 @@
         - #ADMIN
       -->
 
-      <article class="admin" data-page="admin">
+      <article class="admin" data-page="admin" data-admin-auth="guest">
         <nav class="navbar" data-navbar>
           <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
             <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
@@ -2871,13 +2912,19 @@
             </ul>
           </div>
         </nav>
-        <!-- Admin Management Section (similar to blog management) -->
-        <section class="admin-management">
-          <div class="admin-actions">
-            <button class="btn btn-secondary" id="admin-login-btn" style="display: none;">
-              <ion-icon name="log-in-outline"></ion-icon>
-              Admin Login
-            </button>
+        <!-- Admin guest gate (logged-out surface; hidden when signed in via CSS) -->
+        <section class="admin-management" aria-label="Admin sign-in">
+          <div class="admin-guest-gate">
+            <p class="admin-guest-gate__kicker">Private dashboard</p>
+            <h2 class="h2 article-title admin-guest-gate__title">Portfolio admin</h2>
+            <p class="admin-guest-gate__lead">Sign in to manage contact messages, blog posts, snippets, and business documents.</p>
+            <div class="admin-guest-gate__actions">
+              <button type="button" class="btn btn-primary" id="admin-login-btn" style="display: none;">
+                <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
+                <span>Admin sign in</span>
+              </button>
+              <button type="button" class="admin-guest-gate__back" data-nav-link>Home</button>
+            </div>
           </div>
         </section>
 
@@ -2901,19 +2948,10 @@
               <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Blog Management</span><span class="admin-tab-label-mobile">Blog</span></span>
             </button>
-          </div>
-
-          <div class="admin-dashboard-actions-row">
-            <div class="admin-dashboard-actions">
-              <button class="btn btn-secondary" id="admin-logout-btn" style="display: none;">
-                <ion-icon name="log-out-outline"></ion-icon>
-                Logout
-              </button>
-              <button class="btn btn-primary admin-ops-btn" id="show-ops-manual">
-                <ion-icon name="document-text-outline"></ion-icon>
-                <span>Business Ops Manual</span>
-              </button>
-            </div>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-ops" data-admin-tab="ops" aria-selected="false" aria-controls="admin-panel-ops" tabindex="-1" aria-label="Business Ops Manual">
+              <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Ops Manual</span><span class="admin-tab-label-mobile">Ops</span></span>
+            </button>
           </div>
 
         <section class="about-text admin-intro">
@@ -2926,11 +2964,6 @@
           <!-- —— Business Documents —— -->
           <div id="admin-panel-docs" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-docs" data-admin-tab="docs" hidden>
           <section class="service business-docs-section business-docs-open" id="business-docs-section">
-          <div class="admin-panel-heading">
-            <h3 class="h3 admin-panel-title">Business Documents</h3>
-            <p class="admin-panel-lead">Proposals, estimates, invoices</p>
-          </div>
-
           <div class="business-docs-content" id="business-docs-content">
           <div class="business-docs-layout">
             <div class="business-docs-list-card">
@@ -2958,6 +2991,7 @@
                   </button>
                 </div>
               </div>
+              <div class="business-docs-summary" id="business-docs-summary" aria-live="polite"></div>
 
               <div class="business-docs-table-wrapper has-scrollbar">
                 <table class="business-docs-table">
@@ -3109,6 +3143,79 @@
             </div>
           </section>
           </div><!-- /admin-panel-blog -->
+
+          <!-- Business Ops Manual -->
+          <div id="admin-panel-ops" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-ops" data-admin-tab="ops" hidden>
+          <section class="service admin-ops-panel" id="admin-ops-panel">
+          <div class="admin-panel-heading">
+            <h3 class="h3 admin-panel-title">Business Ops Manual</h3>
+            <p class="admin-panel-lead">Internal playbooks, templates, and product/policy reference.</p>
+          </div>
+          <div class="ops-body has-scrollbar" id="ops-body">
+            <div class="ops-wrapper">
+              <nav class="ops-manual-protocols" aria-label="Protocol shortcuts">
+                <p class="ops-manual-section-label">Open a protocol</p>
+                <div class="ops-manual-protocols-grid">
+                  <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-sales-routine">
+                    <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="alarm-outline" class="text-2xl"></ion-icon>The "1-2 Sales" Daily Routine</h2>
+                    <p class="text-zinc-400">2h deep work + 30min show your work + 1h outreach <span class="text-vegas-gold font-medium">→ daily momentum engine</span></p>
+                  </div>
+                  <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-template-scripts">
+                    <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="chatbubbles-outline" class="text-2xl"></ion-icon>Template Outreach Scripts</h2>
+                    <p class="text-zinc-400">ProcCleaning (email), Field Trades (cold call + voicemail + text), HOA (email), generic follow-up — swap placeholders</p>
+                  </div>
+                  <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-turnkey">
+                    <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="build-outline" class="text-2xl"></ion-icon>Turn-Key Client Architecture</h2>
+                    <p class="text-zinc-400">4-phase process from lead ingestion to deployment & handover</p>
+                  </div>
+                  <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-endtoend">
+                    <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="git-network-outline" class="text-2xl"></ion-icon>End-to-End Client Flow</h2>
+                    <p class="text-zinc-400">Fit & Filter → Asset Transfer (Buyout / HOA)</p>
+                  </div>
+                  <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-questions">
+                    <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="help-circle-outline" class="text-2xl"></ion-icon>Questions to Personalize Your Flow</h2>
+                    <p class="text-zinc-400">6 key decision points that shape scope, ownership & pricing</p>
+                  </div>
+                  <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-components">
+                    <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="extension-puzzle-outline" class="text-2xl"></ion-icon>Component Mix-and-Match</h2>
+                    <p class="text-zinc-400">Reuse proven modules from private library – never rewrite</p>
+                  </div>
+                </div>
+              </nav>
+
+              <div class="ops-manual-reference">
+                <p class="ops-manual-section-label">Products &amp; policies</p>
+                <section class="ops-card">
+                  <h2>Product Inventory</h2>
+                  <div class="phase-grid mt-6">
+                    <div class="phase-box"><span class="tag">Standard</span><h3 class="text-lg font-semibold mt-3 mb-2">Managed Turn-Key (SaaS)</h3><ol class="step-list text-sm"><li>Client rents performance + hosting.</li><li>Ruben owns code/repo/infrastructure.</li><li>Deliverable: Branded app in stores + admin access.</li><li>Pricing: $1,500 setup + $49/mo maintenance.</li></ol></div>
+                    <div class="phase-box"><span class="tag">Enterprise</span><h3 class="text-lg font-semibold mt-3 mb-2">Asset Buyout (Transfer)</h3><ol class="step-list text-sm"><li>Client purchases full source code + IP.</li><li>Client manages hosting (Convex/Firebase).</li><li>Deliverable: GitHub repo transfer + documentation.</li><li>Pricing: $5,000–$10,000+ one-time fee.</li></ol></div>
+                  </div>
+                </section>
+                <section class="ops-card">
+                  <h2>Maintenance & Retainer</h2>
+                  <div class="phase-grid">
+                    <div class="phase-box"><p class="accent font-semibold mb-2 uppercase tracking-tighter">In Scope</p><ul class="space-y-1 opacity-80 text-xs"><li>● Database Hosting Costs</li><li>● API Versioning Updates</li><li>● UI Text/Content Refinement</li><li>● Error Log Monitoring</li></ul></div>
+                    <div class="phase-box"><p class="text-zinc-500 font-semibold mb-2 uppercase tracking-tighter">Out of Scope</p><ul class="space-y-1 opacity-50 text-xs"><li>● Core Feature Development</li><li>● Custom 3rd Party API Setup</li><li>● Staff Training Sessions</li></ul></div>
+                  </div>
+                </section>
+                <section class="ops-card">
+                  <h2>Legal & Safety Guardrails</h2>
+                  <div class="phase-grid">
+                    <div class="phase-box"><h4 class="text-xs font-bold text-white uppercase">Non-Resale Protection</h4><p class="text-[11px] text-zinc-400 italic">Code transfers are single-entity use only. Client legally barred from reselling.</p></div>
+                    <div class="phase-box"><h4 class="text-xs font-bold text-white uppercase">Liability Cap</h4><p class="text-[11px] text-zinc-400 italic">No responsibility for business loss due to 3rd party (Convex/Google) downtime.</p></div>
+                    <div class="phase-box"><h4 class="text-xs font-bold text-white uppercase">As-Is Clause</h4><p class="text-[11px] text-zinc-400 italic">Software delivered as-is. Not liable for server-side data loss or lead/revenue impact.</p></div>
+                  </div>
+                </section>
+              </div>
+
+              <footer class="ops-manual-footer mt-12 text-center">
+                <p class="text-[10px] text-zinc-600 uppercase tracking-[5px]">© 2026 Ruben Jimenez Systems</p>
+              </footer>
+            </div>
+          </div>
+          </section>
+          </div><!-- /admin-panel-ops -->
           </div><!-- /admin-tab-panels -->
         </div><!-- /admin-tabs -->
 
@@ -3152,15 +3259,15 @@
               </button>
             </div>
 
-            <form class="login-form" id="admin-login-form">
+            <form class="login-form" id="admin-login-form" novalidate>
               <div class="form-group">
                 <label for="admin-username">Username</label>
-                <input type="text" id="admin-username" name="username" placeholder="admin" required>
+                <input type="text" id="admin-username" name="username" placeholder="admin" autocomplete="username" required>
               </div>
 
               <div class="form-group">
                 <label for="admin-password">Password</label>
-                <input type="password" id="admin-password" name="password" required>
+                <input type="password" id="admin-password" name="password" autocomplete="current-password" required>
               </div>
 
               <div class="form-actions">
@@ -3210,6 +3317,66 @@
                   </button>
                 </div>
               </form>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete contact submission confirmation (replaces native confirm()) -->
+        <div class="modal-container" id="delete-contact-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-contact-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-contact-confirm-title" aria-describedby="delete-contact-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-contact-confirm-title">Delete submission?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-contact-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-contact-confirm-desc">This permanently removes the contact form submission from your inbox. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-contact-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-contact-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete blog post confirmation (admin blog management) -->
+        <div class="modal-container" id="delete-blog-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-blog-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-blog-confirm-title" aria-describedby="delete-blog-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-blog-confirm-title">Delete blog post?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-blog-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-blog-confirm-desc">This permanently removes the blog post. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-blog-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-blog-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete business document confirmation -->
+        <div class="modal-container" id="delete-document-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-document-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-document-confirm-title" aria-describedby="delete-document-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-document-confirm-title">Delete document?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-document-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-document-confirm-desc">This permanently removes the proposal, estimate, or invoice from your saved documents. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-document-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-document-confirm-delete">Delete</button>
             </div>
           </section>
         </div>
@@ -3817,178 +3984,6 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Business Ops Manual Modal -->
-  <div class="ops-modal" id="ops-modal">
-    <div class="ops-overlay" id="ops-overlay"></div>
-    
-    <div class="ops-content">
-      <!-- Header -->
-      <div class="business-doc-modal-header">
-        <div class="header-left">
-          <ion-icon name="settings-outline" class="header-icon"></ion-icon>
-          <h3 class="h3">Business Operations Manual</h3>
-          <span class="editor-badge">INTERNAL PROTOCOL</span>
-        </div>
-        <button type="button" class="business-doc-modal-close" id="ops-close-btn" aria-label="Close">
-          <ion-icon name="close-outline"></ion-icon>
-        </button>
-      </div>
-      
-
-
-
-
-      <!-- Scrollable content area -->
-      <div class="ops-body has-scrollbar" id="ops-body">
-        <div class="ops-wrapper">
-          <nav class="ops-manual-protocols" aria-label="Protocol shortcuts">
-            <p class="ops-manual-section-label">Open a protocol</p>
-            <div class="ops-manual-protocols-grid">
-          <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-sales-routine">
-            <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
-              <ion-icon name="alarm-outline" class="text-2xl"></ion-icon>
-              The "1-2 Sales" Daily Routine
-            </h2>
-            <p class="text-zinc-400">
-              2h deep work + 30min show your work + 1h outreach  
-              <span class="text-vegas-gold font-medium">→ daily momentum engine</span>
-            </p>
-          </div>
-
-          <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-template-scripts">
-            <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
-              <ion-icon name="chatbubbles-outline" class="text-2xl"></ion-icon>
-              Template Outreach Scripts
-            </h2>
-            <p class="text-zinc-400">
-              ProcCleaning (email), Field Trades (cold call + voicemail + text), HOA (email), generic follow-up — swap placeholders
-            </p>
-          </div>
-
-          <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-turnkey">
-            <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
-              <ion-icon name="build-outline" class="text-2xl"></ion-icon>
-              Turn-Key Client Architecture
-            </h2>
-            <p class="text-zinc-400">
-              4-phase process from lead ingestion to deployment & handover
-            </p>
-          </div>
-
-          <!-- End-to-End Client Flow -->
-          <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-endtoend">
-            <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
-              <ion-icon name="git-network-outline" class="text-2xl"></ion-icon>
-              End-to-End Client Flow
-            </h2>
-            <p class="text-zinc-400">
-              Fit & Filter → Asset Transfer (Buyout / HOA)
-            </p>
-          </div>
-
-          <!-- Questions to Personalize Flow – questions now in accent color -->
-          <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-questions">
-            <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
-              <ion-icon name="help-circle-outline" class="text-2xl"></ion-icon>
-              Questions to Personalize Your Flow
-            </h2>
-            <p class="text-zinc-400">
-              6 key decision points that shape scope, ownership & pricing
-            </p>
-          </div>
-
-          <!-- Component Mix-and-Match -->
-          <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-components">
-            <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3">
-              <ion-icon name="extension-puzzle-outline" class="text-2xl"></ion-icon>
-              Component Mix-and-Match
-            </h2>
-            <p class="text-zinc-400">
-              Reuse proven modules from private library – never rewrite
-            </p>
-          </div>
-            </div>
-          </nav>
-
-          <div class="ops-manual-reference">
-            <p class="ops-manual-section-label">Products &amp; policies (in this modal)</p>
-          <section class="ops-card">
-            <h2>Product Inventory</h2>
-            <div class="phase-grid mt-6">
-              <div class="phase-box">
-                <span class="tag">Standard</span>
-                <h3 class="text-lg font-semibold mt-3 mb-2">Managed Turn-Key (SaaS)</h3>
-                <ol class="step-list text-sm">
-                  <li>Client rents performance + hosting.</li>
-                  <li>Ruben owns code/repo/infrastructure.</li>
-                  <li>Deliverable: Branded app in stores + admin access.</li>
-                  <li>Pricing: $1,500 setup + $49/mo maintenance.</li>
-                </ol>
-              </div>
-              <div class="phase-box">
-                <span class="tag">Enterprise</span>
-                <h3 class="text-lg font-semibold mt-3 mb-2">Asset Buyout (Transfer)</h3>
-                <ol class="step-list text-sm">
-                  <li>Client purchases full source code + IP.</li>
-                  <li>Client manages hosting (Convex/Firebase).</li>
-                  <li>Deliverable: GitHub repo transfer + documentation.</li>
-                  <li>Pricing: $5,000–$10,000+ one-time fee.</li>
-                </ol>
-              </div>
-            </div>
-          </section>
-
-          <section class="ops-card">
-            <h2>Maintenance & Retainer</h2>
-            <div class="phase-grid">
-              <div class="phase-box">
-                <p class="accent font-semibold mb-2 uppercase tracking-tighter">In Scope</p>
-                <ul class="space-y-1 opacity-80 text-xs">
-                  <li>● Database Hosting Costs</li>
-                  <li>● API Versioning Updates</li>
-                  <li>● UI Text/Content Refinement</li>
-                  <li>● Error Log Monitoring</li>
-                </ul>
-              </div>
-              <div class="phase-box">
-                <p class="text-zinc-500 font-semibold mb-2 uppercase tracking-tighter">Out of Scope</p>
-                <ul class="space-y-1 opacity-50 text-xs">
-                  <li>● Core Feature Development</li>
-                  <li>● Custom 3rd Party API Setup</li>
-                  <li>● Staff Training Sessions</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          <!-- Legal & Safety Guardrails -->
-          <section class="ops-card">
-            <h2>Legal & Safety Guardrails</h2>
-            <div class="phase-grid">
-              <div class="phase-box">
-                <h4 class="text-xs font-bold text-white uppercase">Non-Resale Protection</h4>
-                <p class="text-[11px] text-zinc-400 italic">Code transfers are single-entity use only. Client legally barred from reselling.</p>
-              </div>
-              <div class="phase-box">
-                <h4 class="text-xs font-bold text-white uppercase">Liability Cap</h4>
-                <p class="text-[11px] text-zinc-400 italic">No responsibility for business loss due to 3rd party (Convex/Google) downtime.</p>
-              </div>
-              <div class="phase-box">
-                <h4 class="text-xs font-bold text-white uppercase">As-Is Clause</h4>
-                <p class="text-[11px] text-zinc-400 italic">Software delivered as-is. Not liable for server-side data loss or lead/revenue impact.</p>
-              </div>
-            </div>
-          </section>
-          </div>
-
-          <footer class="ops-manual-footer mt-12 text-center">
-            <p class="text-[10px] text-zinc-600 uppercase tracking-[5px]">© 2026 Ruben Jimenez Systems</p>
-          </footer>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -4720,7 +4715,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
-  <script src="./assets/js/script.js?v=bizdoc-20260504-contact-table-scroll-mobile"></script>
+  <script src="./assets/js/script.js?v=bizdoc-20260504-home-hero-v2"></script>
   <script src="./assets/js/dm-migration.js"></script>
 
   <!--

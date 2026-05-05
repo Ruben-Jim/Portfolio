@@ -68,7 +68,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=bizdoc-20260504-contact-messages-spacing">
+  <link rel="stylesheet" href="./assets/css/style.css?v=bizdoc-20260504-trusted-by-2x">
 
   <!--
     - google font link
@@ -604,6 +604,12 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
+              <li class="navbar-item">
+                <button type="button" class="navbar-link admin-navbar-logout" id="admin-logout-btn" style="display: none;" aria-label="Log out of admin">
+                  <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+                  <span>Logout</span>
+                </button>
+              </li>
             </ul>
           </div>
         </nav>
@@ -2417,21 +2423,6 @@
               <span>Send Message</span>
             </button>
 
-            <!-- Success/Error Messages -->
-            <div class="form-message" id="form-message" style="display: none;">
-              <div class="message-content">
-                <ion-icon name="checkmark-circle" class="message-icon success-icon"></ion-icon>
-                <span class="message-text">Message sent successfully! I'll get back to you soon.</span>
-              </div>
-            </div>
-
-            <div class="form-message error" id="form-error" style="display: none;">
-              <div class="message-content">
-                <ion-icon name="close-circle" class="message-icon error-icon"></ion-icon>
-                <span class="message-text">Failed to send message. Please try again.</span>
-              </div>
-            </div>
-
           </form>
 
         </section>
@@ -2472,7 +2463,7 @@
         - #ADMIN
       -->
 
-      <article class="admin" data-page="admin">
+      <article class="admin" data-page="admin" data-admin-auth="guest">
         <nav class="navbar" data-navbar>
           <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
             <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
@@ -2492,13 +2483,19 @@
             </ul>
           </div>
         </nav>
-        <!-- Admin Management Section (similar to blog management) -->
-        <section class="admin-management">
-          <div class="admin-actions">
-            <button class="btn btn-secondary" id="admin-login-btn" style="display: none;">
-              <ion-icon name="log-in-outline"></ion-icon>
-              Admin Login
-            </button>
+        <!-- Admin guest gate (logged-out surface; hidden when signed in via CSS) -->
+        <section class="admin-management" aria-label="Admin sign-in">
+          <div class="admin-guest-gate">
+            <p class="admin-guest-gate__kicker">Private dashboard</p>
+            <h2 class="h2 article-title admin-guest-gate__title">Portfolio admin</h2>
+            <p class="admin-guest-gate__lead">Sign in to manage contact messages, blog posts, snippets, and business documents.</p>
+            <div class="admin-guest-gate__actions">
+              <button type="button" class="btn btn-primary" id="admin-login-btn" style="display: none;">
+                <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
+                <span>Admin sign in</span>
+              </button>
+              <button type="button" class="admin-guest-gate__back" data-nav-link>About</button>
+            </div>
           </div>
         </section>
 
@@ -2513,20 +2510,6 @@
             Welcome to the admin dashboard. Here you can view and manage contact form submissions,
             reply to inquiries, and track message statistics.
           </p>
-        </section>
-
-        <!-- Logout Section -->
-        <section class="logout-section">
-          <div class="logout-actions">
-            <button class="btn btn-secondary" id="admin-logout-btn" style="display: none;">
-              <ion-icon name="log-out-outline"></ion-icon>
-              Logout
-            </button>
-            <button class="btn btn-primary admin-ops-btn" id="show-ops-manual">
-              <ion-icon name="document-text-outline"></ion-icon>
-              <span>Business Ops Manual</span>
-            </button>
-          </div>
         </section>
 
         <section class="admin-stats-section service">
@@ -2693,15 +2676,15 @@
               </button>
             </div>
 
-            <form class="login-form" id="admin-login-form">
+            <form class="login-form" id="admin-login-form" novalidate>
               <div class="form-group">
                 <label for="admin-username">Username</label>
-                <input type="text" id="admin-username" name="username" placeholder="admin" required>
+                <input type="text" id="admin-username" name="username" placeholder="admin" autocomplete="username" required>
               </div>
 
               <div class="form-group">
                 <label for="admin-password">Password</label>
-                <input type="password" id="admin-password" name="password" required>
+                <input type="password" id="admin-password" name="password" autocomplete="current-password" required>
               </div>
 
               <div class="form-actions">
@@ -2751,6 +2734,66 @@
                   </button>
                 </div>
               </form>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete contact submission confirmation (replaces native confirm()) -->
+        <div class="modal-container" id="delete-contact-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-contact-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-contact-confirm-title" aria-describedby="delete-contact-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-contact-confirm-title">Delete submission?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-contact-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-contact-confirm-desc">This permanently removes the contact form submission from your inbox. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-contact-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-contact-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete blog post confirmation (admin blog management) -->
+        <div class="modal-container" id="delete-blog-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-blog-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-blog-confirm-title" aria-describedby="delete-blog-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-blog-confirm-title">Delete blog post?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-blog-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-blog-confirm-desc">This permanently removes the blog post. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-blog-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-blog-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete business document confirmation -->
+        <div class="modal-container" id="delete-document-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-document-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-document-confirm-title" aria-describedby="delete-document-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-document-confirm-title">Delete document?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-document-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-document-confirm-desc">This permanently removes the proposal, estimate, or invoice from your saved documents. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-document-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-document-confirm-delete">Delete</button>
             </div>
           </section>
         </div>
@@ -4107,7 +4150,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
-  <script src="./assets/js/script.js?v=bizdoc-20260504-contact-table-scroll-mobile"></script>
+  <script src="./assets/js/script.js?v=bizdoc-20260504-admin-guest-space"></script>
   <script src="./assets/js/dm-migration.js"></script>
 
   <!--
