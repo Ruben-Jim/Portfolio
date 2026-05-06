@@ -3619,12 +3619,13 @@ const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
 // Valid path segments for rubenjimenez.dev/(tab)
-var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'messages', 'admin'];
+var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'hire-me', 'contact', 'messages', 'admin'];
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
   if (path === '') return null;
   if (path === 'home') return 'about';
+  if (path === 'service-pricing') return 'services-pricing';
   if (VALID_PAGES.indexOf(path) !== -1) return path;
   return null;
 }
@@ -3637,6 +3638,7 @@ function getPageFromRedirectParam() {
     if (!redirect) return null;
     var normalized = redirect.toString().replace(/^https?:\/\/[^/]+/i, '').replace(/^\/+|\/+$/g, '');
     if (normalized === 'home') return 'about';
+    if (normalized === 'service-pricing') return 'services-pricing';
     if (VALID_PAGES.indexOf(normalized) !== -1) return normalized;
     return null;
   } catch (e) {

@@ -51,7 +51,7 @@
         var path = (window.location && window.location.pathname) ? window.location.pathname : '';
         var clean = path.replace(/^\/+|\/+$/g, '');
         if (!clean) return;
-        var valid = ['about', 'home', 'resume', 'portfolio', 'blog', 'services-pricing', 'hire-me', 'contact', 'messages', 'admin'];
+        var valid = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'hire-me', 'contact', 'messages', 'admin'];
         if (valid.indexOf(clean) === -1) return;
         // Host can't rewrite /admin -> /index.html, so redirect to root and let script.js restore the page.
         var dest = '/?redirect=' + encodeURIComponent('/' + clean);
