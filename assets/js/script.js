@@ -3505,6 +3505,14 @@ function initPortfolioProjectModal() {
 
   function closeProjectModal() {
     if (!modal) return;
+    // Prevent aria-hidden warning when close button still holds focus.
+    if (document.activeElement && modal.contains(document.activeElement)) {
+      try {
+        document.activeElement.blur();
+      } catch (e) {
+        // no-op
+      }
+    }
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('project-modal-open');
@@ -4138,12 +4146,32 @@ window.addEventListener('load', function() {
         initPortfolioProjectModal();
         setupPortfolioAdminControls();
         syncAdminPortfolioLocalBanner();
+        ensurePortfolioRenderCompletes();
       } catch (err) {
         console.error('Portfolio bootstrap failed', err);
         renderPublicPortfolioProjects();
         applyCurrentPortfolioFilter();
         initPortfolioProjectModal();
+        ensurePortfolioRenderCompletes();
       }
+    }
+
+    /**
+     * Last-resort guard: if loading placeholder still exists after bootstrap,
+     * force a render from effective (RTDB or built-in) project data.
+     */
+    function ensurePortfolioRenderCompletes() {
+      window.setTimeout(function () {
+        const list = document.getElementById('portfolio-project-list');
+        if (!list) return;
+        const loadingText = list.querySelector('.portfolio-projects-loading-text');
+        if (!loadingText) return;
+        const text = String(loadingText.textContent || '').toLowerCase();
+        if (text.indexOf('loading projects') === -1) return;
+        console.warn('Portfolio list still showing loading placeholder; forcing fallback render.');
+        renderPublicPortfolioProjects();
+        applyCurrentPortfolioFilter();
+      }, 1200);
     }
 
     if (initializeFirebase()) {
