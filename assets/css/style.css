@@ -3615,6 +3615,320 @@ article {
   margin-top: 0;
 }
 
+.admin-portfolio-toolbar {
+  margin-bottom: 12px;
+}
+
+.admin-portfolio-local-banner {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid hsla(45, 100%, 72%, 0.2);
+  background: hsla(45, 100%, 72%, 0.06);
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+  line-height: 1.45;
+}
+
+.admin-portfolio-list-panel {
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 14px;
+  align-content: start;
+}
+
+#portfolio-admin-section .admin-portfolio-list-panel {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 700px) {
+  #portfolio-admin-section .admin-portfolio-list-panel {
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  }
+}
+
+.admin-portfolio-row {
+  --admin-portfolio-accent: hsla(45, 54%, 58%, 0.55);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 14px 14px 16px;
+  border-radius: 14px;
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  background: linear-gradient(
+    135deg,
+    hsla(0, 0%, 100%, 0.04) 0%,
+    hsla(240, 4%, 8%, 0.65) 100%
+  );
+  box-shadow: var(--shadow-4);
+  position: relative;
+  isolation: isolate;
+  transition: border-color var(--transition-1), box-shadow var(--transition-1), transform 0.2s ease;
+}
+
+.admin-portfolio-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--admin-portfolio-accent);
+  opacity: 0.95;
+  z-index: 0;
+}
+
+.admin-portfolio-row:hover {
+  border-color: hsla(45, 100%, 72%, 0.22);
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+.admin-portfolio-row--professional {
+  --admin-portfolio-accent: hsla(192, 52%, 52%, 0.75);
+}
+
+.admin-portfolio-row--templates {
+  --admin-portfolio-accent: hsla(45, 72%, 58%, 0.85);
+}
+
+.admin-portfolio-row--creative {
+  --admin-portfolio-accent: hsla(270, 45%, 62%, 0.75);
+}
+
+.admin-portfolio-row-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-portfolio-thumb-wrap {
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 12px;
+  background: linear-gradient(
+    145deg,
+    hsla(45, 100%, 72%, 0.22),
+    hsla(0, 0%, 100%, 0.06)
+  );
+  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.08);
+}
+
+.admin-portfolio-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  display: block;
+  background: hsla(0, 0%, 100%, 0.05);
+}
+
+.admin-portfolio-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-portfolio-title {
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  font-size: var(--fs-5);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-portfolio-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-portfolio-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  letter-spacing: 0.02em;
+  border: 1px solid hsla(0, 0%, 100%, 0.1);
+}
+
+.admin-portfolio-badge--professional {
+  color: hsl(192, 58%, 78%);
+  background: hsla(192, 45%, 45%, 0.14);
+  border-color: hsla(192, 50%, 55%, 0.25);
+}
+
+.admin-portfolio-badge--templates {
+  color: hsl(45, 90%, 82%);
+  background: hsla(45, 72%, 50%, 0.14);
+  border-color: hsla(45, 65%, 55%, 0.28);
+}
+
+.admin-portfolio-badge--creative {
+  color: hsl(270, 55%, 86%);
+  background: hsla(270, 40%, 50%, 0.16);
+  border-color: hsla(270, 38%, 58%, 0.28);
+}
+
+.admin-portfolio-order {
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  font-variant-numeric: tabular-nums;
+  color: var(--light-gray);
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: hsla(0, 0%, 100%, 0.06);
+  border: 1px solid hsla(0, 0%, 100%, 0.1);
+  min-width: 42px;
+  text-align: center;
+}
+
+.admin-portfolio-order-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 8px;
+  background: hsla(0, 0%, 100%, 0.03);
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+}
+
+.admin-portfolio-order-btn {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 6px;
+}
+
+.admin-portfolio-order-btn ion-icon {
+  font-size: 16px;
+}
+
+#portfolio-admin-section .admin-portfolio-list-panel > .empty-item {
+  grid-column: 1 / -1;
+}
+
+.admin-portfolio-row-actions {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 4px;
+  border-radius: 10px;
+  background: hsla(0, 0%, 0%, 0.2);
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  position: relative;
+  z-index: 1;
+}
+
+.admin-portfolio-row:hover .admin-portfolio-row-actions {
+  border-color: hsla(45, 100%, 72%, 0.15);
+  background: hsla(0, 0%, 0%, 0.28);
+}
+
+.admin-portfolio-action-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.admin-portfolio-action-btn ion-icon {
+  font-size: 20px;
+}
+
+[data-theme="light"] .admin-portfolio-row {
+  background: linear-gradient(
+    135deg,
+    hsla(0, 0%, 100%, 0.95) 0%,
+    hsla(0, 0%, 96%, 0.98) 100%
+  );
+  border-color: hsla(0, 0%, 0%, 0.08);
+  box-shadow: 0 12px 28px hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme="light"] .admin-portfolio-row:hover {
+  border-color: hsla(45, 58%, 45%, 0.35);
+}
+
+[data-theme="light"] .admin-portfolio-title {
+  color: var(--white-1);
+}
+
+[data-theme="light"] .admin-portfolio-order {
+  background: hsla(0, 0%, 0%, 0.04);
+  border-color: hsla(0, 0%, 0%, 0.08);
+  color: var(--light-gray);
+}
+
+[data-theme="light"] .admin-portfolio-order-controls {
+  background: hsla(0, 0%, 0%, 0.03);
+  border-color: hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme="light"] .admin-portfolio-row-actions {
+  background: hsla(0, 0%, 100%, 0.7);
+  border-color: hsla(0, 0%, 0%, 0.08);
+}
+
+[data-theme="light"] .admin-portfolio-thumb-wrap {
+  background: linear-gradient(
+    145deg,
+    hsla(45, 58%, 45%, 0.2),
+    hsla(0, 0%, 0%, 0.04)
+  );
+}
+
+.portfolio-projects-loading-card {
+  padding: 28px 16px;
+  text-align: center;
+}
+
+.portfolio-projects-loading-text {
+  margin: 0;
+  color: var(--light-gray);
+  font-size: var(--fs-6);
+}
+
+.portfolio-project-modal-content .add-blog-form {
+  max-height: min(78vh, 900px);
+}
+
+.form-group-checkbox-row {
+  margin: 8px 0 12px;
+}
+
+.portfolio-project-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+}
+
+.portfolio-project-checkbox input {
+  width: auto;
+  accent-color: var(--orange-yellow-crayola);
+}
+
 .admin-snippets-details > summary {
   list-style: none;
   cursor: pointer;
@@ -4663,9 +4977,10 @@ textarea.form-input::-webkit-resizer { display: none; }
 
   .filter-list {
     display: flex;
+    flex-wrap: wrap;
     justify-content: flex-start;
     align-items: center;
-    gap: 25px;
+    gap: 12px 25px;
     padding-left: 5px;
     margin-bottom: 30px;
   }
@@ -5114,16 +5429,29 @@ textarea.form-input::-webkit-resizer { display: none; }
 .project-detail-media {
   margin: 0;
   min-height: 100%;
-  background: linear-gradient(145deg, hsla(45, 100%, 72%, 0.12), hsla(240, 2%, 14%, 0.95));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 15% 10%, hsla(45, 100%, 72%, 0.14), transparent 46%),
+    linear-gradient(145deg, hsla(45, 100%, 72%, 0.1), hsla(240, 2%, 14%, 0.95));
   border-right: 1px solid hsla(45, 100%, 72%, 0.12);
 }
 
 .project-detail-media img {
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: min(72vh, 640px);
   min-height: 300px;
-  object-fit: cover;
-  object-position: top center;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 14px;
+  border: 1px solid hsla(45, 100%, 72%, 0.14);
+  box-shadow:
+    0 18px 42px hsla(0, 0%, 0%, 0.38),
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.06);
+  background: hsla(240, 2%, 8%, 0.88);
 }
 
 .project-detail-body {
@@ -5323,10 +5651,12 @@ body.project-modal-open {
   .project-detail-media {
     border-right: 0;
     border-bottom: 1px solid hsla(45, 100%, 72%, 0.12);
+    padding: 14px;
   }
 
   .project-detail-media img {
-    max-height: 250px;
+    max-height: 300px;
+    min-height: 200px;
   }
 
   .project-detail-body {
@@ -6351,6 +6681,52 @@ body.project-modal-open {
 .form-group textarea {
   resize: vertical;
   min-height: 80px;
+}
+
+/* Native checkbox/radio: undo full-width text-input rules (later .form-group input wins over .portfolio-project-checkbox input) */
+.form-group input[type="checkbox"],
+.form-group input[type="radio"] {
+  width: 1.15em;
+  height: 1.15em;
+  max-width: none;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  margin-top: 3px;
+  align-self: flex-start;
+  border-radius: 4px;
+  box-shadow: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.form-group input[type="checkbox"]:focus,
+.form-group input[type="radio"]:focus {
+  outline: none;
+}
+
+.form-group input[type="checkbox"]:focus-visible,
+.form-group input[type="radio"]:focus-visible {
+  outline: 2px solid var(--vegas-gold);
+  outline-offset: 2px;
+}
+
+.form-group.form-group-checkbox-row label.portfolio-project-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 0;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: var(--fw-500);
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+  line-height: 1.45;
+}
+
+.form-group.form-group-checkbox-row label.portfolio-project-checkbox span {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Login modal inputs use .form-group only (not .form-input) — override autofill to match dark UI */
@@ -9219,7 +9595,8 @@ body.project-modal-open {
 /* Delete confirmations — contact / blog / business docs; stacks above drawers & editor modals */
 #delete-contact-confirm-modal,
 #delete-blog-confirm-modal,
-#delete-document-confirm-modal {
+#delete-document-confirm-modal,
+#delete-portfolio-confirm-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -9246,16 +9623,22 @@ body.project-modal-open {
   z-index: 10050;
 }
 
+#delete-portfolio-confirm-modal {
+  z-index: 10060;
+}
+
 #delete-contact-confirm-modal.active,
 #delete-blog-confirm-modal.active,
-#delete-document-confirm-modal.active {
+#delete-document-confirm-modal.active,
+#delete-portfolio-confirm-modal.active {
   pointer-events: all;
   visibility: visible;
 }
 
 #delete-contact-confirm-modal .overlay,
 #delete-blog-confirm-modal .overlay,
-#delete-document-confirm-modal .overlay {
+#delete-document-confirm-modal .overlay,
+#delete-portfolio-confirm-modal .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -9271,7 +9654,8 @@ body.project-modal-open {
 
 #delete-contact-confirm-modal.active .overlay,
 #delete-blog-confirm-modal.active .overlay,
-#delete-document-confirm-modal.active .overlay {
+#delete-document-confirm-modal.active .overlay,
+#delete-portfolio-confirm-modal.active .overlay {
   opacity: 0.85;
   visibility: visible;
   pointer-events: all;
@@ -9296,7 +9680,8 @@ body.project-modal-open {
 
 #delete-contact-confirm-modal.active .confirm-delete-modal,
 #delete-blog-confirm-modal.active .confirm-delete-modal,
-#delete-document-confirm-modal.active .confirm-delete-modal {
+#delete-document-confirm-modal.active .confirm-delete-modal,
+#delete-portfolio-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
 }

@@ -102,6 +102,15 @@ function updateAuthUI() {
   // Also update admin dashboard if user is admin
   if (currentUser && currentUser.role === 'admin') {
     renderAdminBlogPosts();
+    if (typeof renderAdminPortfolioProjects === 'function') {
+      renderAdminPortfolioProjects();
+    }
+    if (typeof setupPortfolioAdminControls === 'function') {
+      setupPortfolioAdminControls();
+    }
+    if (typeof syncAdminPortfolioLocalBanner === 'function') {
+      syncAdminPortfolioLocalBanner();
+    }
   }
 }
 
@@ -847,9 +856,26 @@ if (addBlogModal) {
   }
 }
 
+(function bindPortfolioModalContentStopPropagation() {
+  const root = document.getElementById('portfolio-project-modal');
+  if (!root) return;
+  const inner = root.querySelector('.add-blog-content');
+  if (inner && !inner.dataset.stopBound) {
+    inner.dataset.stopBound = '1';
+    inner.addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
+  }
+})();
+
 // ESC key to close modals
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' || e.keyCode === 27) {
+    const portfolioModal = document.getElementById('portfolio-project-modal');
+    if (portfolioModal && portfolioModal.classList.contains('active')) {
+      closePortfolioProjectModal();
+      return;
+    }
     // Close add modal if it's open
     if (addBlogModal && addBlogModal.classList.contains('active')) {
       closeAddBlogModal();
@@ -2201,7 +2227,7 @@ function showErrorMessage(message) {
   }, 5000);
 }
 
-// Initialize blog posts on page load
+// Initialize blog posts on page load (portfolio loads after Firebase — see admin IIFE DOMContentLoaded)
 document.addEventListener('DOMContentLoaded', async function() {
   await loadBlogPostsFromFirestore();
   renderBlogPosts();
@@ -2353,6 +2379,668 @@ const defaultBlogPosts = [
 ];
 
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Portfolio projects — Realtime Database `portfolioProjects` + built-in fallback
+// (window.DEFAULT_PORTFOLIO_PROJECTS from portfolio-built-in-data.js)
+// ═══════════════════════════════════════════════════════════════════════════
+
+let portfolioProjectsRtdb = [];
+
+function portfolioEscapeHtml(str) {
+  if (str == null || str === '') return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** Numeric sort key for `order` (RTDB may store strings; avoids lexicographic ordering). */
+function portfolioNumericOrder(p) {
+  if (!p || p.order == null || p.order === '') return 0;
+  const n = Number(String(p.order).trim());
+  return Number.isFinite(n) ? n : 0;
+}
+
+function comparePortfolioProjectsByOrder(a, b) {
+  const da = portfolioNumericOrder(a);
+  const db = portfolioNumericOrder(b);
+  if (da !== db) return da - db;
+  return String(a.id || '').localeCompare(String(b.id || ''));
+}
+
+function getNextPortfolioOrderValue() {
+  if (!portfolioProjectsRtdb.length) return 10;
+  const maxOrder = portfolioProjectsRtdb.reduce(function (max, p) {
+    return Math.max(max, portfolioNumericOrder(p));
+  }, 0);
+  return maxOrder + 10;
+}
+
+function getBuiltInPortfolioProjects() {
+  const src = window.DEFAULT_PORTFOLIO_PROJECTS;
+  if (!Array.isArray(src) || src.length === 0) return [];
+  const list = src.map(function (p, i) {
+    return Object.assign({}, p, { id: 'builtin-' + i });
+  });
+  list.sort(comparePortfolioProjectsByOrder);
+  return list;
+}
+
+function getEffectivePortfolioProjects() {
+  const list =
+    portfolioProjectsRtdb.length > 0
+      ? portfolioProjectsRtdb.slice()
+      : getBuiltInPortfolioProjects();
+  list.sort(comparePortfolioProjectsByOrder);
+  return list;
+}
+
+function syncWindowPortfolioProjectsRef() {
+  window.portfolioProjects = getEffectivePortfolioProjects();
+}
+
+function normalizePortfolioRtdbRow(row) {
+  if (!row || typeof row !== 'object') return {};
+  const out = Object.assign({}, row);
+  if (out.order != null && out.order !== '') {
+    const n = Number(String(out.order).trim());
+    out.order = Number.isFinite(n) ? n : 0;
+  }
+  if (out.techTags && typeof out.techTags === 'object' && !Array.isArray(out.techTags)) {
+    out.techTags = Object.keys(out.techTags)
+      .sort()
+      .map(function (k) {
+        return out.techTags[k];
+      })
+      .filter(function (x) {
+        return x != null && String(x).trim() !== '';
+      });
+  }
+  return out;
+}
+
+async function loadPortfolioProjectsFromRtdb() {
+  portfolioProjectsRtdb = [];
+  if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) {
+    syncWindowPortfolioProjectsRef();
+    return;
+  }
+  try {
+    const snap = await window.rtdbGet(window.rtdbRef(window.rtdb, 'portfolioProjects'));
+    const val = snap.val();
+    if (val && typeof val === 'object') {
+      Object.keys(val).forEach(function (key) {
+        const row = normalizePortfolioRtdbRow(val[key]);
+        portfolioProjectsRtdb.push(Object.assign({ id: key }, row));
+      });
+      portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
+    }
+  } catch (err) {
+    console.error('Portfolio RTDB load failed', err);
+  }
+  syncWindowPortfolioProjectsRef();
+}
+
+function portfolioCategoryLabel(slug) {
+  const s = String(slug || '').toLowerCase();
+  if (s === 'creative') return 'Creative';
+  return 'Professional';
+}
+
+function portfolioParseTechTags(raw) {
+  if (raw == null || raw === '') return [];
+  if (Array.isArray(raw)) {
+    return raw.map(function (t) { return String(t).trim(); }).filter(Boolean).slice(0, 24);
+  }
+  return String(raw)
+    .split(/[\n,]+/)
+    .map(function (t) { return t.trim(); })
+    .filter(Boolean)
+    .slice(0, 24);
+}
+
+function portfolioTechTagsFromRecord(data) {
+  return portfolioParseTechTags(data.techTags);
+}
+
+function portfolioSanitizeDocumentPayload(data) {
+  const cat = String(data.category || 'professional').toLowerCase();
+  const category = ['professional', 'creative'].indexOf(cat) >= 0 ? cat : 'professional';
+  const out = {
+    order: Number(data.order) || 0,
+    category: category,
+    title: String(data.title || '').slice(0, 200),
+    projectUrl: String(data.projectUrl != null ? data.projectUrl : '').trim().slice(0, 2000),
+    imageUrl: String(data.imageUrl != null ? data.imageUrl : '').trim().slice(0, 2000),
+    imageAlt: String(data.imageAlt != null ? data.imageAlt : '').slice(0, 200),
+    description: String(data.description != null ? data.description : '').slice(0, 8000),
+    techTags: portfolioParseTechTags(data.techTags),
+    outcome: data.outcome != null ? String(data.outcome).slice(0, 4000) : '',
+    buyNowLabel: data.buyNowLabel != null ? String(data.buyNowLabel).slice(0, 120) : '',
+    buyPremiumLabel: data.buyPremiumLabel != null ? String(data.buyPremiumLabel).slice(0, 160) : '',
+    showQuoteButton: data.showQuoteButton !== false,
+    adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
+    bestFor: Array.isArray(data.bestFor)
+      ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
+      : []
+  };
+  return out;
+}
+
+async function saveNewPortfolioProject(payload) {
+  const clean = portfolioSanitizeDocumentPayload(payload);
+  clean.createdAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
+  const newRef = window.rtdbPush(window.rtdbRef(window.rtdb, 'portfolioProjects'));
+  await window.rtdbSet(newRef, clean);
+  return newRef.key;
+}
+
+async function updatePortfolioProjectDoc(id, payload) {
+  const clean = portfolioSanitizeDocumentPayload(payload);
+  clean.updatedAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
+  await window.rtdbSet(window.rtdbRef(window.rtdb, 'portfolioProjects/' + id), clean);
+}
+
+async function deletePortfolioProjectDoc(id) {
+  await window.rtdbRemove(window.rtdbRef(window.rtdb, 'portfolioProjects/' + id));
+}
+
+const PORTFOLIO_CONTACT_ONCLICK =
+  'onclick="if(typeof switchToPage === \'function\') { switchToPage(\'contact\'); } else { var btn = Array.from(document.querySelectorAll(\'[data-nav-link]\')).find(function(b){ return b.textContent.trim() === \'Contact\'; }); if(btn) btn.click(); } return false;"';
+
+function portfolioSafeProjectUrl(u) {
+  const s = String(u || '').trim();
+  if (!s || s === '#') return '#';
+  if (/^https?:\/\//i.test(s)) return s;
+  return '#';
+}
+
+function buildPortfolioProjectCardHtml(p) {
+  const catSlug = String(p.category || 'professional').toLowerCase();
+  const catLabel = portfolioCategoryLabel(catSlug);
+  const techArr = portfolioTechTagsFromRecord(p);
+  const techHtml = techArr
+    .map(function (t) {
+      return '<span class="tech-tag">' + portfolioEscapeHtml(t) + '</span>';
+    })
+    .join('');
+  let outcomeHtml = '';
+  if (p.outcome && String(p.outcome).trim()) {
+    outcomeHtml =
+      '<p class="project-outcome"><strong>Outcome:</strong> ' +
+      portfolioEscapeHtml(String(p.outcome).trim()) +
+      '</p>';
+  }
+  let actions = '<div class="project-actions">';
+  if (p.buyNowLabel && String(p.buyNowLabel).trim()) {
+    actions +=
+      '<a href="#contact" class="btn-buy-now" ' +
+      PORTFOLIO_CONTACT_ONCLICK +
+      '>' +
+      portfolioEscapeHtml(String(p.buyNowLabel).trim()) +
+      '</a>';
+  }
+  if (p.buyPremiumLabel && String(p.buyPremiumLabel).trim()) {
+    actions +=
+      '<a href="#contact" class="btn-buy-now btn-buy-premium" ' +
+      PORTFOLIO_CONTACT_ONCLICK +
+      '>' +
+      portfolioEscapeHtml(String(p.buyPremiumLabel).trim()) +
+      '</a>';
+  }
+  if (p.showQuoteButton !== false) {
+    actions +=
+      '<a href="#contact" class="btn-quote" ' +
+      PORTFOLIO_CONTACT_ONCLICK +
+      '>Similar Project? Get a Quote</a>';
+  }
+  actions += '</div>';
+  const liveHref = portfolioSafeProjectUrl(p.projectUrl);
+  return (
+    '<li class="project-item active" data-filter-item data-category="' +
+    portfolioEscapeHtml(catSlug) +
+    '" data-portfolio-id="' +
+    portfolioEscapeHtml(p.id) +
+    '">' +
+    '<div class="project-card">' +
+    '<a href="' +
+    portfolioEscapeHtml(liveHref) +
+    '" class="project-link">' +
+    '<figure class="project-img">' +
+    '<div class="project-item-icon-box">' +
+    '<ion-icon name="eye-outline"></ion-icon>' +
+    '</div>' +
+    '<img src="' +
+    portfolioEscapeHtml(p.imageUrl || './assets/images/project-comingsoon.svg') +
+    '" alt="' +
+    portfolioEscapeHtml(p.imageAlt || p.title || '') +
+    '" loading="lazy">' +
+    '</figure>' +
+    '</a>' +
+    '<div class="project-content">' +
+    '<h3 class="project-title">' +
+    portfolioEscapeHtml(p.title || '') +
+    '</h3>' +
+    '<p class="project-category">' +
+    portfolioEscapeHtml(catLabel) +
+    '</p>' +
+    '<div class="project-details-card">' +
+    '<p class="project-description">' +
+    portfolioEscapeHtml(p.description || '') +
+    '</p>' +
+    '<div class="project-tech">' +
+    techHtml +
+    '</div>' +
+    outcomeHtml +
+    actions +
+    '</div></div></div></li>'
+  );
+}
+
+function renderPublicPortfolioProjects() {
+  const ul = document.getElementById('portfolio-project-list');
+  if (!ul) return;
+  const list = getEffectivePortfolioProjects();
+  ul.innerHTML = '';
+  if (!list.length) {
+    ul.innerHTML =
+      '<li class="project-item active" data-filter-item data-category="professional"><div class="project-card"><p class="portfolio-projects-loading-text">No projects configured.</p></div></li>';
+    syncWindowPortfolioProjectsRef();
+    return;
+  }
+  list.forEach(function (p) {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = buildPortfolioProjectCardHtml(p).trim();
+    const li = wrap.firstElementChild;
+    if (li) ul.appendChild(li);
+  });
+  syncWindowPortfolioProjectsRef();
+}
+
+function getCurrentPortfolioFilterValue() {
+  const active = document.querySelector('.filter-item button.active');
+  if (active && active.innerText) return active.innerText.toLowerCase();
+  return 'professional';
+}
+
+function applyCurrentPortfolioFilter() {
+  filterFunc(getCurrentPortfolioFilterValue());
+}
+
+function syncAdminPortfolioLocalBanner() {
+  const banner = document.getElementById('admin-portfolio-local-banner');
+  if (!banner) return;
+  const empty = !portfolioProjectsRtdb.length;
+  banner.hidden = !empty || !window.rtdb;
+}
+
+function renderAdminPortfolioProjects() {
+  const listEl = document.getElementById('admin-portfolio-projects-list');
+  if (!listEl) return;
+  if (!isAdmin()) {
+    listEl.innerHTML = '<div class="empty-item"><p>Log in as admin to manage portfolio projects.</p></div>';
+    return;
+  }
+  syncAdminPortfolioLocalBanner();
+  if (!portfolioProjectsRtdb.length) {
+    listEl.innerHTML =
+      '<div class="empty-item"><p>No projects in Realtime Database yet. The public portfolio still shows the built-in list until you add one below.</p></div>';
+    return;
+  }
+  portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
+  listEl.innerHTML = '';
+  portfolioProjectsRtdb.forEach(function (p) {
+    const row = document.createElement('div');
+    var catKey = String(p.category || 'professional').toLowerCase();
+    if (['professional', 'creative'].indexOf(catKey) < 0) {
+      catKey = 'professional';
+    }
+    row.className = 'admin-portfolio-row admin-portfolio-row--' + catKey;
+    const thumb = p.imageUrl || './assets/images/project-comingsoon.svg';
+    const orderNum = p.order != null ? p.order : 0;
+    row.innerHTML =
+      '<div class="admin-portfolio-row-main">' +
+      '<div class="admin-portfolio-thumb-wrap">' +
+      '<img class="admin-portfolio-thumb" src="' +
+      portfolioEscapeHtml(thumb) +
+      '" alt="" loading="lazy">' +
+      '</div>' +
+      '<div class="admin-portfolio-row-text">' +
+      '<span class="admin-portfolio-title">' +
+      portfolioEscapeHtml(p.title || 'Untitled') +
+      '</span>' +
+      '<div class="admin-portfolio-meta-row">' +
+      '<span class="admin-portfolio-badge admin-portfolio-badge--' +
+      catKey +
+      '">' +
+      portfolioEscapeHtml(portfolioCategoryLabel(p.category)) +
+      '</span>' +
+      '<span class="admin-portfolio-order" title="Sort order">#' +
+      String(orderNum) +
+      '</span>' +
+      '</div></div></div>' +
+      '<div class="admin-portfolio-row-actions">' +
+      '<div class="admin-portfolio-order-controls" role="group" aria-label="Sort order controls">' +
+      '<button type="button" class="blog-action-btn admin-portfolio-order-btn" data-portfolio-order-up="' +
+      portfolioEscapeHtml(p.id) +
+      '" title="Move up"><ion-icon name="chevron-up-outline"></ion-icon></button>' +
+      '<button type="button" class="blog-action-btn admin-portfolio-order-btn" data-portfolio-order-down="' +
+      portfolioEscapeHtml(p.id) +
+      '" title="Move down"><ion-icon name="chevron-down-outline"></ion-icon></button>' +
+      '</div>' +
+      '<button type="button" class="blog-action-btn edit-btn admin-portfolio-action-btn" data-edit-portfolio="' +
+      portfolioEscapeHtml(p.id) +
+      '" title="Edit project"><ion-icon name="create-outline"></ion-icon></button>' +
+      '<button type="button" class="blog-action-btn delete-btn admin-portfolio-action-btn" data-delete-portfolio="' +
+      portfolioEscapeHtml(p.id) +
+      '" title="Delete project"><ion-icon name="trash-outline"></ion-icon></button>' +
+      '</div>';
+    listEl.appendChild(row);
+  });
+}
+
+let portfolioModalHandlersBound = false;
+let pendingDeletePortfolioId = null;
+
+function openPortfolioProjectModal(isNew, project) {
+  const modal = document.getElementById('portfolio-project-modal');
+  const titleEl = document.getElementById('portfolio-project-modal-title');
+  const form = document.getElementById('portfolio-project-form');
+  if (!modal || !form) return;
+  form.reset();
+  document.getElementById('portfolio-project-edit-id').value = isNew ? '' : (project && project.id) || '';
+  if (titleEl) titleEl.textContent = isNew ? 'New portfolio project' : 'Edit portfolio project';
+  if (!isNew && project) {
+    document.getElementById('portfolio-project-title').value = project.title || '';
+    document.getElementById('portfolio-project-category').value =
+      ['professional', 'creative'].indexOf(String(project.category || '').toLowerCase()) >= 0
+        ? String(project.category).toLowerCase()
+        : 'professional';
+    document.getElementById('portfolio-project-url').value = project.projectUrl || '';
+    document.getElementById('portfolio-project-image').value = project.imageUrl || '';
+    document.getElementById('portfolio-project-image-alt').value = project.imageAlt || '';
+    document.getElementById('portfolio-project-description').value = project.description || '';
+    document.getElementById('portfolio-project-tech').value = portfolioParseTechTags(project.techTags).join(', ');
+    document.getElementById('portfolio-project-outcome').value = project.outcome || '';
+    document.getElementById('portfolio-project-buy-now').value = project.buyNowLabel || '';
+    document.getElementById('portfolio-project-buy-premium').value = project.buyPremiumLabel || '';
+    document.getElementById('portfolio-project-show-quote').checked = project.showQuoteButton !== false;
+    document.getElementById('portfolio-project-admin-note').value = project.adminModalNote || '';
+    document.getElementById('portfolio-project-bestfor').value = Array.isArray(project.bestFor)
+      ? project.bestFor.join('\n')
+      : '';
+  } else {
+    document.getElementById('portfolio-project-show-quote').checked = true;
+  }
+  modal.classList.add('active');
+  modal.style.display = 'flex';
+  modal.style.visibility = 'visible';
+  modal.style.opacity = '1';
+  modal.style.zIndex = '9999';
+  modal.style.position = 'fixed';
+  modal.style.top = '0';
+  modal.style.left = '0';
+  modal.style.width = '100%';
+  modal.style.height = '100%';
+  const ov = document.getElementById('portfolio-project-modal-overlay');
+  if (ov) {
+    ov.style.opacity = '0.8';
+    ov.style.visibility = 'visible';
+    ov.style.zIndex = '9998';
+  }
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closePortfolioProjectModal() {
+  const modal = document.getElementById('portfolio-project-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.style.display = '';
+  modal.style.visibility = '';
+  modal.style.opacity = '';
+  modal.style.zIndex = '';
+  modal.style.position = '';
+  modal.style.top = '';
+  modal.style.left = '';
+  modal.style.width = '';
+  modal.style.height = '';
+  const ov = document.getElementById('portfolio-project-modal-overlay');
+  if (ov) {
+    ov.style.opacity = '';
+    ov.style.visibility = '';
+    ov.style.zIndex = '';
+  }
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function setupPortfolioAdminControls() {
+  const addBtn = document.getElementById('admin-add-portfolio-btn');
+  const form = document.getElementById('portfolio-project-form');
+  const cancelBtn = document.getElementById('portfolio-project-form-cancel');
+  const closeBtn = document.getElementById('portfolio-project-modal-close');
+  const overlay = document.getElementById('portfolio-project-modal-overlay');
+
+  if (addBtn && !addBtn.dataset.bound) {
+    addBtn.dataset.bound = '1';
+    addBtn.addEventListener('click', function () {
+      if (!isAdmin()) {
+        showErrorMessage('Admin privileges required.');
+        return;
+      }
+      if (!window.rtdb) {
+        showErrorMessage('Realtime Database is not initialized.');
+        return;
+      }
+      openPortfolioProjectModal(true, null);
+    });
+  }
+  if (form && !form.dataset.bound) {
+    form.dataset.bound = '1';
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!isAdmin()) {
+        showErrorMessage('Admin privileges required.');
+        return;
+      }
+      if (!window.rtdb) {
+        showErrorMessage('Realtime Database is not initialized.');
+        return;
+      }
+      const editId = document.getElementById('portfolio-project-edit-id').value.trim();
+      const payload = {
+        title: document.getElementById('portfolio-project-title').value,
+        category: document.getElementById('portfolio-project-category').value,
+        projectUrl: document.getElementById('portfolio-project-url').value,
+        imageUrl: document.getElementById('portfolio-project-image').value,
+        imageAlt: document.getElementById('portfolio-project-image-alt').value,
+        description: document.getElementById('portfolio-project-description').value,
+        techTags: document.getElementById('portfolio-project-tech').value,
+        outcome: document.getElementById('portfolio-project-outcome').value,
+        buyNowLabel: document.getElementById('portfolio-project-buy-now').value,
+        buyPremiumLabel: document.getElementById('portfolio-project-buy-premium').value,
+        showQuoteButton: document.getElementById('portfolio-project-show-quote').checked,
+        adminModalNote: document.getElementById('portfolio-project-admin-note').value,
+        bestFor: document
+          .getElementById('portfolio-project-bestfor')
+          .value.split(/\r?\n/)
+          .map(function (l) { return l.trim(); })
+          .filter(Boolean)
+      };
+      try {
+        if (editId) {
+          const existing = portfolioProjectsRtdb.find(function (x) { return x.id === editId; });
+          payload.order = existing ? portfolioNumericOrder(existing) : 0;
+          await updatePortfolioProjectDoc(editId, payload);
+          showSuccessMessage('Project updated.');
+        } else {
+          payload.order = getNextPortfolioOrderValue();
+          await saveNewPortfolioProject(payload);
+          showSuccessMessage('Project created.');
+        }
+        closePortfolioProjectModal();
+        await loadPortfolioProjectsFromRtdb();
+        renderPublicPortfolioProjects();
+        applyCurrentPortfolioFilter();
+        renderAdminPortfolioProjects();
+        syncAdminPortfolioLocalBanner();
+        if (typeof window.__renderPortfolioBestForHook === 'function') {
+          window.__renderPortfolioBestForHook();
+        }
+      } catch (err) {
+        console.error(err);
+        showErrorMessage(err.message || 'Save failed.');
+      }
+    });
+  }
+  if (cancelBtn && !cancelBtn.dataset.bound) {
+    cancelBtn.dataset.bound = '1';
+    cancelBtn.addEventListener('click', closePortfolioProjectModal);
+  }
+  if (closeBtn && !closeBtn.dataset.bound) {
+    closeBtn.dataset.bound = '1';
+    closeBtn.addEventListener('click', closePortfolioProjectModal);
+  }
+  if (overlay && !overlay.dataset.bound) {
+    overlay.dataset.bound = '1';
+    overlay.addEventListener('click', closePortfolioProjectModal);
+  }
+
+  const listEl = document.getElementById('admin-portfolio-projects-list');
+  if (listEl && !listEl.dataset.delegateBound) {
+    listEl.dataset.delegateBound = '1';
+    listEl.addEventListener('click', async function (e) {
+      const orderUpBtn = e.target.closest('[data-portfolio-order-up]');
+      const orderDownBtn = e.target.closest('[data-portfolio-order-down]');
+      const editBtn = e.target.closest('[data-edit-portfolio]');
+      const delBtn = e.target.closest('[data-delete-portfolio]');
+      if (orderUpBtn || orderDownBtn) {
+        if (!isAdmin()) {
+          showErrorMessage('Admin privileges required.');
+          return;
+        }
+        if (!window.rtdb) {
+          showErrorMessage('Realtime Database is not initialized.');
+          return;
+        }
+        const attr = orderUpBtn ? 'data-portfolio-order-up' : 'data-portfolio-order-down';
+        const id = (orderUpBtn || orderDownBtn).getAttribute(attr);
+        portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
+        const currentIndex = portfolioProjectsRtdb.findIndex(function (x) { return x.id === id; });
+        if (currentIndex < 0) return;
+        const targetIndex = orderUpBtn ? currentIndex - 1 : currentIndex + 1;
+        if (targetIndex < 0 || targetIndex >= portfolioProjectsRtdb.length) return;
+        const current = portfolioProjectsRtdb[currentIndex];
+        const neighbor = portfolioProjectsRtdb[targetIndex];
+        const currentPayload = Object.assign({}, current, { order: portfolioNumericOrder(neighbor) });
+        const neighborPayload = Object.assign({}, neighbor, { order: portfolioNumericOrder(current) });
+        try {
+          await Promise.all([
+            updatePortfolioProjectDoc(current.id, currentPayload),
+            updatePortfolioProjectDoc(neighbor.id, neighborPayload)
+          ]);
+          await loadPortfolioProjectsFromRtdb();
+          renderPublicPortfolioProjects();
+          applyCurrentPortfolioFilter();
+          renderAdminPortfolioProjects();
+          syncAdminPortfolioLocalBanner();
+          if (typeof window.__renderPortfolioBestForHook === 'function') {
+            window.__renderPortfolioBestForHook();
+          }
+        } catch (err) {
+          console.error(err);
+          showErrorMessage(err.message || 'Unable to update sort order.');
+        }
+        return;
+      }
+      if (editBtn) {
+        const id = editBtn.getAttribute('data-edit-portfolio');
+        const p = portfolioProjectsRtdb.find(function (x) { return x.id === id; });
+        if (p) openPortfolioProjectModal(false, p);
+      }
+      if (delBtn) {
+        const id = delBtn.getAttribute('data-delete-portfolio');
+        pendingDeletePortfolioId = id;
+        openDeletePortfolioConfirmModal();
+      }
+    });
+  }
+
+  setupDeletePortfolioConfirmModal();
+}
+
+function openDeletePortfolioConfirmModal() {
+  const modal = document.getElementById('delete-portfolio-confirm-modal');
+  if (!modal) return;
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  const cancelBtn = document.getElementById('delete-portfolio-confirm-cancel');
+  if (cancelBtn) {
+    setTimeout(function () {
+      cancelBtn.focus();
+    }, 40);
+  }
+}
+
+function closeDeletePortfolioConfirmModal() {
+  const modal = document.getElementById('delete-portfolio-confirm-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
+  pendingDeletePortfolioId = null;
+}
+
+function setupDeletePortfolioConfirmModal() {
+  const modal = document.getElementById('delete-portfolio-confirm-modal');
+  if (!modal || modal.dataset.portfolioDelBound) return;
+  modal.dataset.portfolioDelBound = '1';
+  const overlay = document.getElementById('delete-portfolio-confirm-overlay');
+  const btnClose = document.getElementById('delete-portfolio-confirm-close');
+  const btnCancel = document.getElementById('delete-portfolio-confirm-cancel');
+  const btnDelete = document.getElementById('delete-portfolio-confirm-delete');
+  function close() {
+    closeDeletePortfolioConfirmModal();
+  }
+  [overlay, btnClose, btnCancel].forEach(function (el) {
+    if (el) el.addEventListener('click', close);
+  });
+  if (btnDelete) {
+    btnDelete.addEventListener('click', async function () {
+      if (!pendingDeletePortfolioId || !window.rtdb) {
+        close();
+        return;
+      }
+      try {
+        await deletePortfolioProjectDoc(pendingDeletePortfolioId);
+        showSuccessMessage('Project deleted.');
+        close();
+        await loadPortfolioProjectsFromRtdb();
+        renderPublicPortfolioProjects();
+        applyCurrentPortfolioFilter();
+        renderAdminPortfolioProjects();
+        syncAdminPortfolioLocalBanner();
+        if (typeof window.__renderPortfolioBestForHook === 'function') {
+          window.__renderPortfolioBestForHook();
+        }
+      } catch (err) {
+        console.error(err);
+        showErrorMessage(err.message || 'Delete failed.');
+      }
+    });
+  }
+  document.addEventListener(
+    'keydown',
+    function portfolioDelEsc(ev) {
+      if (ev.key !== 'Escape') return;
+      const m = document.getElementById('delete-portfolio-confirm-modal');
+      if (!m || !m.classList.contains('active')) return;
+      ev.stopImmediatePropagation();
+      close();
+    },
+    true
+  );
+}
 
 
 // custom select variables
@@ -2375,13 +3063,10 @@ for (let i = 0; i < selectItems.length; i++) {
   });
 }
 
-// filter variables
-const filterItems = document.querySelectorAll("[data-filter-item]");
-
+// filter variables (re-query each time so dynamically injected portfolio items participate)
 const filterFunc = function (selectedValue) {
-
+  const filterItems = document.querySelectorAll("[data-filter-item]");
   for (let i = 0; i < filterItems.length; i++) {
-
     if (selectedValue === "all") {
       filterItems[i].classList.add("active");
     } else if (selectedValue === filterItems[i].dataset.category) {
@@ -2389,9 +3074,7 @@ const filterFunc = function (selectedValue) {
     } else {
       filterItems[i].classList.remove("active");
     }
-
   }
-
 }
 
 // add event in all filter button items for large screen
@@ -2693,9 +3376,8 @@ function trackEvent(eventName, eventLabel, eventValue) {
   }
 }
 
-// Track project clicks + modern project detail modal
-document.addEventListener('DOMContentLoaded', function() {
-  const projectLinks = document.querySelectorAll('.project-list .project-link');
+// Track project clicks + modern project detail modal (delegated on #portfolio-project-list)
+function initPortfolioProjectModal() {
   const modal = document.getElementById('project-detail-modal');
   const overlay = document.getElementById('project-detail-overlay');
   const closeBtn = document.getElementById('project-detail-close');
@@ -2770,8 +3452,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const titleText = titleNode.textContent.trim();
       const categoryText = categoryNode ? categoryNode.textContent.trim() : 'Project';
+      const rowItem = card.closest('.project-item');
+      const pid = rowItem ? rowItem.getAttribute('data-portfolio-id') : null;
+      let customBest = null;
+      if (pid && window.portfolioProjects) {
+        const rec = window.portfolioProjects.find(function (x) {
+          return x.id === pid;
+        });
+        if (rec && Array.isArray(rec.bestFor) && rec.bestFor.length) {
+          customBest = rec.bestFor;
+        }
+      }
       const preset = PROJECT_DETAIL_CONTENT[titleText];
-      const bestForItems = preset?.bestFor || getDefaultBestFor(titleText, categoryText);
+      const bestForItems =
+        customBest || preset?.bestFor || getDefaultBestFor(titleText, categoryText);
 
       const section = document.createElement('section');
       section.className = 'project-fit-section';
@@ -2826,6 +3520,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryText = cardCategory ? cardCategory.textContent.trim() : 'Project';
     const descriptionText = cardDescription ? cardDescription.textContent.trim() : '';
     const projectPreset = PROJECT_DETAIL_CONTENT[titleText];
+    const rowItem = card.closest('.project-item');
+    const pid = rowItem ? rowItem.getAttribute('data-portfolio-id') : null;
+    let record = null;
+    if (pid && window.portfolioProjects) {
+      record = window.portfolioProjects.find(function (x) {
+        return x.id === pid;
+      });
+    }
 
     if (cardImage && image) {
       image.src = cardImage.getAttribute('src') || './assets/images/project-comingsoon.svg';
@@ -2836,7 +3538,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (description) description.textContent = descriptionText;
 
     if (admin) {
-      if (projectPreset?.admin) {
+      if (record && record.adminModalNote && String(record.adminModalNote).trim()) {
+        admin.textContent = String(record.adminModalNote).trim();
+      } else if (projectPreset?.admin) {
         admin.textContent = projectPreset.admin;
       } else {
         admin.textContent = 'Admin page focus: central management panel for operations, user actions, and business updates.';
@@ -2854,26 +3558,42 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  projectLinks.forEach((link) => {
-    link.addEventListener('click', function(event) {
-      const projectCard = this.closest('.project-card');
-      const projectTitle = projectCard?.querySelector('.project-title')?.textContent || 'Unknown Project';
+  const listRoot = document.getElementById('portfolio-project-list');
+  if (listRoot && !portfolioModalHandlersBound) {
+    portfolioModalHandlersBound = true;
+    listRoot.addEventListener('click', function (event) {
+      const link = event.target.closest('.project-link');
+      if (!link) return;
+      const projectCard = link.closest('.project-card');
+      const projectTitle =
+        projectCard?.querySelector('.project-title')?.textContent || 'Unknown Project';
       trackEvent('project_click', projectTitle, 'Portfolio');
 
       if (!modal || !projectCard) return;
       event.preventDefault();
-      fillProjectModal(projectCard, this);
+      fillProjectModal(projectCard, link);
       openProjectModal();
     });
-  });
+  }
+
+  window.__renderPortfolioBestForHook = function () {
+    renderPortfolioBestForSections();
+  };
 
   renderPortfolioBestForSections();
 
-  if (closeBtn) closeBtn.addEventListener('click', closeProjectModal);
-  if (overlay) overlay.addEventListener('click', closeProjectModal);
+  if (closeBtn && !closeBtn.dataset.portfolioDetailBound) {
+    closeBtn.dataset.portfolioDetailBound = '1';
+    closeBtn.addEventListener('click', closeProjectModal);
+  }
+  if (overlay && !overlay.dataset.portfolioDetailBound) {
+    overlay.dataset.portfolioDetailBound = '1';
+    overlay.addEventListener('click', closeProjectModal);
+  }
 
-  if (quoteBtn) {
-    quoteBtn.addEventListener('click', function(event) {
+  if (quoteBtn && !quoteBtn.dataset.portfolioDetailBound) {
+    quoteBtn.dataset.portfolioDetailBound = '1';
+    quoteBtn.addEventListener('click', function (event) {
       event.preventDefault();
       closeProjectModal();
       if (typeof switchToPage === 'function') {
@@ -2882,12 +3602,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  document.addEventListener('keydown', function(event) {
-    if (event.key === 'Escape' && modal && modal.classList.contains('active')) {
-      closeProjectModal();
-    }
-  });
-});
+  if (!document.documentElement.dataset.portfolioModalEsc) {
+    document.documentElement.dataset.portfolioModalEsc = '1';
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && modal && modal.classList.contains('active')) {
+        closeProjectModal();
+      }
+    });
+  }
+}
 
 
 
@@ -3389,18 +4112,40 @@ window.addEventListener('load', function() {
   window.addEventListener('load', logWindowResolution);
   window.addEventListener('resize', logWindowResolution);
 
-  // Initialize Firebase when DOM is ready
-  document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Firebase when DOM is ready (load portfolio from Realtime Database before admin session UI)
+  document.addEventListener('DOMContentLoaded', async function() {
     // Check if running locally (file:// protocol) which can cause CORS issues
     if (window.location.protocol === 'file:') {
       console.warn('Running locally with file:// protocol. Firestore may not work properly. Deploy to a web server for full functionality.');
     }
 
+    async function bootstrapPortfolioUi() {
+      try {
+        await loadPortfolioProjectsFromRtdb();
+        renderPublicPortfolioProjects();
+        applyCurrentPortfolioFilter();
+        initPortfolioProjectModal();
+        setupPortfolioAdminControls();
+        syncAdminPortfolioLocalBanner();
+      } catch (err) {
+        console.error('Portfolio bootstrap failed', err);
+        renderPublicPortfolioProjects();
+        applyCurrentPortfolioFilter();
+        initPortfolioProjectModal();
+      }
+    }
+
     if (initializeFirebase()) {
+      await bootstrapPortfolioUi();
       setupAuthListeners();
       setupAdminEventListeners();
+      if (typeof updateAuthUI === 'function') updateAuthUI();
     } else {
       console.error('Firebase initialization failed');
+      await bootstrapPortfolioUi();
+      setupAuthListeners();
+      setupAdminEventListeners();
+      if (typeof updateAuthUI === 'function') updateAuthUI();
     }
     
     // Initial resolution log
@@ -3492,6 +4237,9 @@ window.addEventListener('load', function() {
           showDashboard();
           if (typeof fetchMessages === 'function') fetchMessages();
           if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
+          if (typeof renderAdminPortfolioProjects === 'function') renderAdminPortfolioProjects();
+          if (typeof setupPortfolioAdminControls === 'function') setupPortfolioAdminControls();
+          if (typeof syncAdminPortfolioLocalBanner === 'function') syncAdminPortfolioLocalBanner();
           if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
           updateAuthUI();
           syncAdminArticleAuth();
@@ -3763,6 +4511,9 @@ window.addEventListener('load', function() {
       showDashboard();
       if (typeof fetchMessages === 'function') fetchMessages();
       if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
+      if (typeof renderAdminPortfolioProjects === 'function') renderAdminPortfolioProjects();
+      if (typeof setupPortfolioAdminControls === 'function') setupPortfolioAdminControls();
+      if (typeof syncAdminPortfolioLocalBanner === 'function') syncAdminPortfolioLocalBanner();
       if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
       updateAuthUI();
     } else {
@@ -4636,7 +5387,7 @@ window.addEventListener('load', function() {
     var tabs = tabBar.querySelectorAll('.admin-tab[role="tab"]');
     var panels = root.querySelectorAll('.admin-tab-panel');
     var STORAGE_KEY = 'adminActiveTab';
-    var VALID = { docs: 1, messages: 1, blog: 1, ops: 1 };
+    var VALID = { docs: 1, messages: 1, blog: 1, portfolio: 1, ops: 1 };
 
     function activate(tabId) {
       if (!VALID[tabId]) return;
@@ -6000,16 +6751,22 @@ function toggleTheme() {
     { id: 'toggle-theme', label: 'Toggle dark mode', icon: 'moon-outline', action: () => { if (typeof toggleTheme === 'function') toggleTheme(); } }
   ];
 
-  const PROJECTS = [
-    { title: 'Field Trades demo', url: 'https://roof-cleaning-template.expo.app' },
-    { title: 'Rizo Pizzeria', url: 'https://rizo-pizza--by3ty9xb6t.expo.app' },
-    { title: 'Shelton Springs HOA', url: 'https://hoa-demo--l91yvra8kn.expo.app' },
-    { title: 'Gadget Garage', url: 'https://gadgetgarage.app' },
-    { title: 'Rosa\'s Beauty Salon', url: 'https://rosasalon.expo.app' },
-    { title: 'Zoom Realty', url: 'https://ruben-jim.github.io/ZoomRealty2025-main/' },
-    { title: 'Estate', url: 'https://ruben-jim.github.io/Real-Estate/' },
-    { title: 'Homeverse', url: 'https://ruben-jim.github.io/DEMO/' }
-  ];
+  function getCommandPaletteProjects() {
+    const raw =
+      window.portfolioProjects && window.portfolioProjects.length
+        ? window.portfolioProjects
+        : (window.DEFAULT_PORTFOLIO_PROJECTS || []).map(function (r, i) {
+            return Object.assign({}, r, { id: 'builtin-' + i });
+          });
+    return raw
+      .filter(function (p) {
+        const u = String(p.projectUrl || '').trim();
+        return u && u !== '#' && /^https?:\/\//i.test(u);
+      })
+      .map(function (p) {
+        return { title: p.title || 'Project', url: String(p.projectUrl).trim() };
+      });
+  }
 
   function copyEmail() {
     const email = 'Ruben.Jim.co@gmail.com';
@@ -6047,18 +6804,20 @@ function toggleTheme() {
 
   function buildFullList() {
     const nav = COMMANDS.map(c => ({ ...c, type: 'command', search: c.label.toLowerCase() }));
-    const projects = PROJECTS.map(p => ({
-      id: 'proj-' + p.title.toLowerCase().replace(/\s+/g, '-'),
-      label: 'Open ' + p.title,
-      icon: 'open-outline',
-      url: p.url,
-      type: 'project',
-      search: p.title.toLowerCase()
-    }));
+    const projects = getCommandPaletteProjects().map(function (p) {
+      return {
+        id: 'proj-' + p.title.toLowerCase().replace(/\s+/g, '-'),
+        label: 'Open ' + p.title,
+        icon: 'open-outline',
+        url: p.url,
+        type: 'project',
+        search: p.title.toLowerCase()
+      };
+    });
     return nav.concat(projects);
   }
 
-  const fullList = buildFullList();
+  let fullList = buildFullList();
   let filtered = [];
   let selectedIndex = 0;
 
@@ -6068,6 +6827,7 @@ function toggleTheme() {
 
   function open() {
     if (isContactDetailDrawerOpen()) return;
+    fullList = buildFullList();
     overlay.classList.add('active');
     overlay.setAttribute('aria-hidden', 'false');
     input.value = '';

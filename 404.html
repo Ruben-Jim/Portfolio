@@ -1081,15 +1081,15 @@
             </li>
 
             <li class="filter-item">
-              <button data-filter-btn>Applications</button>
+              <button data-filter-btn>Professional</button>
             </li>
 
             <li class="filter-item">
-              <button data-filter-btn>Web development</button>
+              <button data-filter-btn>Templates</button>
             </li>
 
             <li class="filter-item">
-              <button data-filter-btn>Web design</button>
+              <button data-filter-btn>Creative</button>
             </li>
 
           </ul>
@@ -1113,539 +1113,27 @@
               </li>
 
               <li class="select-item">
-                <button data-select-item>Web design</button>
+                <button data-select-item>Professional</button>
               </li>
 
               <li class="select-item">
-                <button data-select-item>Applications</button>
+                <button data-select-item>Templates</button>
               </li>
 
               <li class="select-item">
-                <button data-select-item>Web development</button>
+                <button data-select-item>Creative</button>
               </li>
 
             </ul>
 
           </div>
 
-        <ul class="project-list">
-
-          <!--
-            List of my Porfolio in order
-            |_Pro Cleaning App
-            |_Grippy Socks
-            |_Barber Shop
-            |_Central Valley Dealer App
-            |_Rizo Pizzeria
-            |_SHELTON SPRINGS HOA APP
-            |_HOA App
-            |_GADGET GARAGE
-            |_BLOG POST TERMINAL
-            |_ROSASBEAUTY
-            |_Homeverse
-            |_ZOOMREALTY
-            |_REAL ESTATE
-            |_FIRECON MERCH STORE
-            |_WEATHER
-            |_DIGITAL CLOCK
-          -->
-          <!-- Pro Cleaning App -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://roof-cleaning-template.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-procleaning.png" alt="Pro Cleaning App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Pro Cleaning</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A comprehensive mobile app for professional cleaning services featuring job scheduling, customer management, service tracking, and payment processing. Built to streamline operations for cleaning businesses and enhance customer experience.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Successfully deployed and helping cleaning professionals manage their business operations efficiently with improved scheduling and customer communication.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $2,000</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $2,250 - $2,750</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
+                <ul class="project-list" id="portfolio-project-list">
+          <li class="portfolio-projects-loading" aria-live="polite">
+            <div class="project-card portfolio-projects-loading-card">
+              <p class="portfolio-projects-loading-text">Loading projects…</p>
             </div>
           </li>
-
-          <!-- Grippy Socks App -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://grippysocks.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-comingsoon.svg" alt="Grippy Socks App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Grippy Socks</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">An Expo + Firebase e-commerce app for Grippy Socks with a soccer-themed storefront, single-page shop + cart flow, and admin order management at /admin. MVP checkout is Cash on Delivery, with Stripe card payments prepared for later activation.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Mobile</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Live production demo with real-time order handling (Realtime Database), Firestore product support, and a scalable checkout foundation ready for Stripe enablement.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Barber Shop App -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="#" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-barbershop.png" alt="Barber Shop App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Barber Shop</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A barber shop management app built with Expo Router, React Native, NativeWind, and Firebase Realtime Database. It supports both owner workflows (admin login, dashboard, appointments, services, customers, messages) and customer flows (booking and messaging).</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo Router</span>
-                    <span class="tech-tag">Firebase RTDB</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Production-ready web/mobile foundation with real-time bookings/messages, secure admin credentials via bcrypt, and optional Stripe payment integration prepared for activation.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Central Valley Dealer App -->
-          <!-- <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://central-valley-dealer.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-14.svg" alt="Central Valley Dealer App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Central Valley Dealer</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A professional mobile app for car dealerships featuring inventory management, vehicle listings, customer inquiries, test drive scheduling, and sales tracking. Designed to modernize dealership operations and improve customer engagement.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Successfully deployed and helping dealerships manage their inventory, track sales, and provide better customer service through streamlined digital processes.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-
-          <!-- Rizo Pizzeria -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://rizo-pizza--by3ty9xb6t.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-rizopizzeria.png" alt="Rizo Pizzeria" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Rizo Pizzeria</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A production-ready mobile app for Rizo Pizzeria featuring online ordering, real-time order tracking, menu browsing, and seamless payment integration. Built to enhance customer experience and streamline restaurant operations.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Successfully deployed and in active use—increased online orders by 40% and improved customer satisfaction with streamlined ordering and real-time tracking.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $500</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $750 - $1,000</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Shelton Springs App -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://hoa-demo--l91yvra8kn.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-sheltonsprings.png" alt="Shelton Springs HOA App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Shelton Springs Home Owners Association App</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A production-ready mobile app for HOA community management with real-time notifications, document sharing, and resident communication.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Successfully deployed and in active use by Shelton Springs HOA—streamlined operations and improved resident engagement.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $1,500</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $2,000 - $2,500</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- HOA Template App-->
-          <!-- <li class="project-item  active" data-filter-item data-category="web development">
-            <div class="project-card">
-              <a href="https://hoa-community-app--a7f6nhxo8x.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-10.png" alt="HOA App Template" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">HOA App Template</h3>
-                <p class="project-category">Web development</p>
-                <div class="project-details-card">
-                  <p class="project-description">A customizable HOA community management app template. Built with React Native, Expo, and Firebase for community management, notifications, and document sharing.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                    <span class="tech-tag">Node.js</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Sold to first client for $500—streamlined HOA operations and improved resident communication.</p>
-                  <div class="project-actions">
-                     <a href="https://gumroad.com" target="_blank" class="btn-buy-now">Buy Now - $500</a>
-                    <a href="#contact" class="btn-buy-now" onclick="trackEvent('buy_now_click', 'HOA App Template', 'Base License - $500'); prefillContactForm('HOA App Template - Base License', 'Interested in purchasing HOA App Template base license ($500)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now - $500</a>
-                    <a href="https://gumroad.com" target="_blank" class="btn-buy-now btn-buy-premium">Premium with Customizations - $1,000</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="trackEvent('buy_now_click', 'HOA App Template', 'Premium License - $1,000'); prefillContactForm('HOA App Template - Premium', 'Interested in purchasing HOA App Template premium license with customizations ($1,000)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations - $1,000</a>
-                    <a href="#contact" class="btn-quote" onclick="trackEvent('quote_request', 'HOA App Template', 'Similar Project Quote'); if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-
-          <!-- Gadget garage -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://gadgetgarage.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-gadgetgarage.png" alt="Gadget Garage App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Gadget Garage</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A comprehensive mobile app for managing and tracking your tech gadgets, warranties, and maintenance schedules. Built with modern mobile technologies.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Firebase</span>
-                    <span class="tech-tag">Node.js</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Live production app helping users organize their tech inventory efficiently.</p>
-                  <div class="project-actions">
-                    <!-- <a href="https://gumroad.com" target="_blank" class="btn-buy-now">Buy Now - $500</a> -->
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $500</a>
-                    <!-- <a href="https://gumroad.com" target="_blank" class="btn-buy-now btn-buy-premium">Premium with Customizations - $1,000</a> -->
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $750 - $1,000</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Blog post in terminal
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://github.com/Ruben-Jim/BlogPostTerminal" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-2.png" alt="Blog Post Terminal" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Blog Post Terminal</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A terminal-based blog post management system for developers who prefer command-line interfaces. Create, edit, and manage blog posts directly from your terminal.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">Node.js</span>
-                    <span class="tech-tag">CLI</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-
-          <!-- Rosa's Beauty -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://rosasalon.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-rosasalon.png" alt="Rosa's Beauty Salon" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Rosa's Beauty Salon</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A modern booking and management system for beauty salons. Features appointment scheduling, client management, and service tracking.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">Web App</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Zoom Realty -->
-          <li class="project-item  active" data-filter-item data-category="web development">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/ZoomRealty2025-main/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-zoomrealty.png" alt="Zoom Realty" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Zoom Realty</h3>
-                <p class="project-category">Web development</p>
-                <div class="project-details-card">
-                  <p class="project-description">A modern real estate website with property listings, search functionality, and agent profiles. Responsive design optimized for all devices.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">HTML</span>
-                    <span class="tech-tag">CSS</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $500</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $750 - $2,500</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Real Estate -->
-          <li class="project-item active" data-filter-item data-category="web development">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/Real-Estate/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-realestate.png" alt="Real Estate" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Estate</h3>
-                <p class="project-category">Web development</p>
-                <div class="project-details-card">
-                  <p class="project-description">A clean and modern real estate platform showcasing properties with advanced filtering and search capabilities.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">HTML</span>
-                    <span class="tech-tag">CSS</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Homeverse -->
-          <li class="project-item  active" data-filter-item data-category="web development">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/DEMO/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-homeverse.png" alt="Homeverse" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Homeverse</h3>
-                <p class="project-category">Web development</p>
-                <div class="project-details-card">
-                  <p class="project-description">An elegant real estate website featuring property showcases, virtual tours, and seamless user experience.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">HTML</span>
-                    <span class="tech-tag">CSS</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-          
-          <!-- Firecon merch store -->
-          <!-- <li class="project-item  active" data-filter-item data-category="web design">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/FIreCON-merch-store/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-7.png" alt="Firecon Merch Store" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Firecon Merch</h3>
-                <p class="project-category">Web design</p>
-                <div class="project-details-card">
-                  <p class="project-description">A modern e-commerce storefront for merchandise with shopping cart functionality and product showcases.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">HTML</span>
-                    <span class="tech-tag">CSS</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-          
-          <!-- Weather App 
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/weather/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-8.png" alt="Worldwide Weather App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Worldwide Weather App</h3>
-                <p class="project-category">Applications</p>
-                <div class="project-details-card">
-                  <p class="project-description">A responsive weather application providing real-time weather data for cities worldwide with beautiful UI and accurate forecasts.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">JavaScript</span>
-                    <span class="tech-tag">Weather API</span>
-                    <span class="tech-tag">HTML/span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-
-          <!-- Digital Clock
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/Digital-Clock/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-9.png" alt="Digital Clock" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Digital Clock</h3>
-                <p class="project-category">Applications</p>
-                <div class="project-details-card">
-                  <p class="project-description">A sleek digital clock application with multiple timezone support and customizable themes.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">JavaScript</span>
-                    <span class="tech-tag">CSS3</span>
-                    <span class="tech-tag">HTML</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
         </ul>
         </section>
       </article>
@@ -4097,7 +3585,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-    import { getDatabase, ref, onValue, push, set, update, get, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
@@ -4135,6 +3623,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     window.rtdbSet = set;
     window.rtdbUpdate = update;
     window.rtdbGet = get;
+    window.rtdbRemove = remove;
     window.rtdbQuery = rtdbQuery;
     window.rtdbOrderByChild = orderByChild;
     window.rtdbOrderByKey = orderByKey;
@@ -4150,6 +3639,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
+  <script src="./assets/js/portfolio-built-in-data.js"></script>
   <script src="./assets/js/script.js?v=bizdoc-20260504-admin-guest-space"></script>
   <script src="./assets/js/dm-migration.js"></script>
 

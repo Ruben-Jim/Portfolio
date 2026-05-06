@@ -1126,19 +1126,11 @@
           <ul class="filter-list">
 
             <li class="filter-item">
-              <button class="active" data-filter-btn>All</button>
+              <button class="active" data-filter-btn>Professional</button>
             </li>
 
             <li class="filter-item">
-              <button data-filter-btn>Applications</button>
-            </li>
-
-            <li class="filter-item">
-              <button data-filter-btn>Web development</button>
-            </li>
-
-            <li class="filter-item">
-              <button data-filter-btn>Web design</button>
+              <button data-filter-btn>Creative</button>
             </li>
 
           </ul>
@@ -1147,7 +1139,7 @@
 
             <button class="filter-select" data-select>
 
-              <div class="select-value" data-select-value>Select category</div>
+              <div class="select-value" data-select-value>Professional</div>
 
               <div class="select-icon">
                 <ion-icon name="chevron-down"></ion-icon>
@@ -1158,543 +1150,23 @@
             <ul class="select-list">
 
               <li class="select-item">
-                <button data-select-item>All</button>
+                <button data-select-item>Professional</button>
               </li>
 
               <li class="select-item">
-                <button data-select-item>Applications</button>
-              </li>
-
-              <li class="select-item">
-                <button data-select-item>Web development</button>
-              </li>
-
-              <li class="select-item">
-                <button data-select-item>Web design</button>
+                <button data-select-item>Creative</button>
               </li>
 
             </ul>
 
           </div>
 
-        <ul class="project-list">
-
-          <!--
-            List of my Porfolio in order
-            |_Pro Cleaning App
-            |_Grippy Socks
-            |_Barber Shop
-            |_Central Valley Dealer App
-            |_Rizo Pizzeria
-            |_SHELTON SPRINGS HOA APP
-            |_HOA App
-            |_GADGET GARAGE
-            |_BLOG POST TERMINAL
-            |_ROSASBEAUTY
-            |_Homeverse
-            |_ZOOMREALTY
-            |_REAL ESTATE
-            |_FIRECON MERCH STORE
-            |_WEATHER
-            |_DIGITAL CLOCK
-          -->
-          <!-- Pro Cleaning App -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://roof-cleaning-template.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-procleaning.png" alt="Pro Cleaning App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Pro Cleaning</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A comprehensive mobile app for professional cleaning services featuring job scheduling, customer management, service tracking, and payment processing. Built to streamline operations for cleaning businesses and enhance customer experience.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Successfully deployed and helping cleaning professionals manage their business operations efficiently with improved scheduling and customer communication.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $2,000</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $2,250 - $2,750</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
+                <ul class="project-list" id="portfolio-project-list">
+          <li class="portfolio-projects-loading" aria-live="polite">
+            <div class="project-card portfolio-projects-loading-card">
+              <p class="portfolio-projects-loading-text">Loading projects…</p>
             </div>
           </li>
-
-          <!-- Grippy Socks App -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://grippysocks.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-grippysocks.png" alt="Grippy Socks App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Grippy Socks</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">An Expo + Firebase e-commerce app for Grippy Socks with a soccer-themed storefront, single-page shop + cart flow, and admin order management at /admin. MVP checkout is Cash on Delivery, with Stripe card payments prepared for later activation.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Mobile</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Live production demo with real-time order handling (Realtime Database), Firestore product support, and a scalable checkout foundation ready for Stripe enablement.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Barber Shop App -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="#" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-barbershop.png" alt="Barber Shop App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Barber Shop</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A barber shop management app built with Expo Router, React Native, NativeWind, and Firebase Realtime Database. It supports both owner workflows (admin login, dashboard, appointments, services, customers, messages) and customer flows (booking and messaging).</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo Router</span>
-                    <span class="tech-tag">Firebase RTDB</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Production-ready web/mobile foundation with real-time bookings/messages, secure admin credentials via bcrypt, and optional Stripe payment integration prepared for activation.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Central Valley Dealer App -->
-          <!-- <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://central-valley-dealer.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-14.svg" alt="Central Valley Dealer App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Central Valley Dealer</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A professional mobile app for car dealerships featuring inventory management, vehicle listings, customer inquiries, test drive scheduling, and sales tracking. Designed to modernize dealership operations and improve customer engagement.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Successfully deployed and helping dealerships manage their inventory, track sales, and provide better customer service through streamlined digital processes.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-
-          <!-- Rizo Pizzeria -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://rizo-pizza--by3ty9xb6t.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-rizopizzeria.png" alt="Rizo Pizzeria" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Rizo Pizzeria</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A production-ready mobile app for Rizo Pizzeria featuring online ordering, real-time order tracking, menu browsing, and seamless payment integration. Built to enhance customer experience and streamline restaurant operations.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Successfully deployed and in active use—increased online orders by 40% and improved customer satisfaction with streamlined ordering and real-time tracking.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $500</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $750 - $1,000</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Shelton Springs App -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://hoa-demo--l91yvra8kn.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-sheltonsprings.png" alt="Shelton Springs HOA App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Shelton Springs Home Owners Association App</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A production-ready mobile app for HOA community management with real-time notifications, document sharing, and resident communication.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Successfully deployed and in active use by Shelton Springs HOA—streamlined operations and improved resident engagement.</p>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $1,500</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $2,000 - $2,500</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- HOA Template App-->
-          <!-- <li class="project-item  active" data-filter-item data-category="web development">
-            <div class="project-card">
-              <a href="https://hoa-community-app--a7f6nhxo8x.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-10.png" alt="HOA App Template" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">HOA App Template</h3>
-                <p class="project-category">Web development</p>
-                <div class="project-details-card">
-                  <p class="project-description">A customizable HOA community management app template. Built with React Native, Expo, and Firebase for community management, notifications, and document sharing.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Expo</span>
-                    <span class="tech-tag">Firebase</span>
-                    <span class="tech-tag">Node.js</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Sold to first client for $500—streamlined HOA operations and improved resident communication.</p>
-                  <div class="project-actions">
-                     <a href="https://gumroad.com" target="_blank" class="btn-buy-now">Buy Now - $500</a>
-                    <a href="#contact" class="btn-buy-now" onclick="trackEvent('buy_now_click', 'HOA App Template', 'Base License - $500'); prefillContactForm('HOA App Template - Base License', 'Interested in purchasing HOA App Template base license ($500)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now - $500</a>
-                    <a href="https://gumroad.com" target="_blank" class="btn-buy-now btn-buy-premium">Premium with Customizations - $1,000</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="trackEvent('buy_now_click', 'HOA App Template', 'Premium License - $1,000'); prefillContactForm('HOA App Template - Premium', 'Interested in purchasing HOA App Template premium license with customizations ($1,000)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations - $1,000</a>
-                    <a href="#contact" class="btn-quote" onclick="trackEvent('quote_request', 'HOA App Template', 'Similar Project Quote'); if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-
-          <!-- Gadget garage -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://gadgetgarage.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-gadgetgarage.png" alt="Gadget Garage App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Gadget Garage</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A comprehensive mobile app for managing and tracking your tech gadgets, warranties, and maintenance schedules. Built with modern mobile technologies.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">React Native</span>
-                    <span class="tech-tag">Firebase</span>
-                    <span class="tech-tag">Node.js</span>
-                  </div>
-                  <p class="project-outcome"><strong>Outcome:</strong> Live production app helping users organize their tech inventory efficiently.</p>
-                  <div class="project-actions">
-                    <!-- <a href="https://gumroad.com" target="_blank" class="btn-buy-now">Buy Now - $500</a> -->
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $500</a>
-                    <!-- <a href="https://gumroad.com" target="_blank" class="btn-buy-now btn-buy-premium">Premium with Customizations - $1,000</a> -->
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $750 - $1,000</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Blog post in terminal
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://github.com/Ruben-Jim/BlogPostTerminal" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-2.png" alt="Blog Post Terminal" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Blog Post Terminal</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A terminal-based blog post management system for developers who prefer command-line interfaces. Create, edit, and manage blog posts directly from your terminal.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">Node.js</span>
-                    <span class="tech-tag">CLI</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-
-          <!-- Rosa's Beauty -->
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://rosasalon.expo.app" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-rosasalon.png" alt="Rosa's Beauty Salon" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Rosa's Beauty Salon</h3>
-                <p class="project-category">Application</p>
-                <div class="project-details-card">
-                  <p class="project-description">A modern booking and management system for beauty salons. Features appointment scheduling, client management, and service tracking.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">Web App</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Zoom Realty -->
-          <li class="project-item  active" data-filter-item data-category="web development">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/ZoomRealty2025-main/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-zoomrealty.png" alt="Zoom Realty" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Zoom Realty</h3>
-                <p class="project-category">Web development</p>
-                <div class="project-details-card">
-                  <p class="project-description">A modern real estate website with property listings, search functionality, and agent profiles. Responsive design optimized for all devices.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">HTML</span>
-                    <span class="tech-tag">CSS</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-buy-now" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Buy Now: $500</a>
-                    <a href="#contact" class="btn-buy-now btn-buy-premium" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Premium with Customizations: $750 - $2,500</a>
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Real Estate -->
-          <li class="project-item active" data-filter-item data-category="web development">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/Real-Estate/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-realestate.png" alt="Real Estate" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Estate</h3>
-                <p class="project-category">Web development</p>
-                <div class="project-details-card">
-                  <p class="project-description">A clean and modern real estate platform showcasing properties with advanced filtering and search capabilities.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">HTML</span>
-                    <span class="tech-tag">CSS</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- Homeverse -->
-          <li class="project-item  active" data-filter-item data-category="web development">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/DEMO/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-homeverse.png" alt="Homeverse" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Homeverse</h3>
-                <p class="project-category">Web development</p>
-                <div class="project-details-card">
-                  <p class="project-description">An elegant real estate website featuring property showcases, virtual tours, and seamless user experience.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">HTML</span>
-                    <span class="tech-tag">CSS</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li>
-          
-          <!-- Firecon merch store -->
-          <!-- <li class="project-item  active" data-filter-item data-category="web design">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/FIreCON-merch-store/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-7.png" alt="Firecon Merch Store" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Firecon Merch</h3>
-                <p class="project-category">Web design</p>
-                <div class="project-details-card">
-                  <p class="project-description">A modern e-commerce storefront for merchandise with shopping cart functionality and product showcases.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">HTML</span>
-                    <span class="tech-tag">CSS</span>
-                    <span class="tech-tag">JavaScript</span>
-                  </div>
-                  <div class="project-actions">
-                    <a href="#contact" class="btn-quote" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } else { const btn = Array.from(document.querySelectorAll('[data-nav-link]')).find(b => b.textContent.trim() === 'Contact'); if(btn) btn.click(); } return false;">Similar Project? Get a Quote</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-          
-          <!-- Weather App 
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/weather/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-8.png" alt="Worldwide Weather App" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Worldwide Weather App</h3>
-                <p class="project-category">Applications</p>
-                <div class="project-details-card">
-                  <p class="project-description">A responsive weather application providing real-time weather data for cities worldwide with beautiful UI and accurate forecasts.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">JavaScript</span>
-                    <span class="tech-tag">Weather API</span>
-                    <span class="tech-tag">HTML/span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
-
-          <!-- Digital Clock
-          <li class="project-item  active" data-filter-item data-category="applications">
-            <div class="project-card">
-              <a href="https://ruben-jim.github.io/Digital-Clock/" class="project-link">
-                <figure class="project-img">
-                  <div class="project-item-icon-box">
-                    <ion-icon name="eye-outline"></ion-icon>
-                  </div>
-                  <img src="./assets/images/project-9.png" alt="Digital Clock" loading="lazy">
-                </figure>
-              </a>
-
-              <div class="project-content">
-                <h3 class="project-title">Digital Clock</h3>
-                <p class="project-category">Applications</p>
-                <div class="project-details-card">
-                  <p class="project-description">A sleek digital clock application with multiple timezone support and customizable themes.</p>
-                  <div class="project-tech">
-                    <span class="tech-tag">JavaScript</span>
-                    <span class="tech-tag">CSS3</span>
-                    <span class="tech-tag">HTML</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </li> -->
         </ul>
         </section>
       </article>
@@ -2948,6 +2420,10 @@
               <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Blog Management</span><span class="admin-tab-label-mobile">Blog</span></span>
             </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-portfolio" data-admin-tab="portfolio" aria-selected="false" aria-controls="admin-panel-portfolio" tabindex="-1" aria-label="Portfolio Projects">
+              <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Portfolio Projects</span><span class="admin-tab-label-mobile">Portfolio</span></span>
+            </button>
             <button type="button" class="admin-tab" role="tab" id="admin-tab-ops" data-admin-tab="ops" aria-selected="false" aria-controls="admin-panel-ops" tabindex="-1" aria-label="Business Ops Manual">
               <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Ops Manual</span><span class="admin-tab-label-mobile">Ops</span></span>
@@ -2956,7 +2432,7 @@
 
         <section class="about-text admin-intro">
           <p>
-            Use the section tabs to switch between business documents, contact messages, and blog tools.
+            Use the section tabs to switch between business documents, messages, blog, portfolio projects, and ops reference.
           </p>
         </section>
 
@@ -3143,6 +2619,36 @@
             </div>
           </section>
           </div><!-- /admin-panel-blog -->
+
+          <!-- Portfolio Projects (Realtime Database) -->
+          <div id="admin-panel-portfolio" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-portfolio" data-admin-tab="portfolio" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open" id="portfolio-admin-section">
+          <div class="admin-panel-heading admin-panel-heading--with-action">
+            <div class="admin-panel-heading-main">
+              <h3 class="h3 admin-panel-title">Portfolio projects</h3>
+              <p class="admin-panel-lead">Create and edit portfolio cards shown on the public Portfolio page (Realtime Database path <code>portfolioProjects</code>).</p>
+            </div>
+          </div>
+            <div class="admin-collapsible-content">
+            <div class="admin-collapsible-inner-content">
+              <p class="admin-portfolio-local-banner" id="admin-portfolio-local-banner" hidden>
+                <strong>No projects in Realtime Database yet.</strong> Visitors still see the built-in list until you add at least one project below.
+              </p>
+              <div class="blog-management-controls admin-portfolio-toolbar">
+                <div class="blog-management-actions">
+                  <button type="button" class="btn btn-primary" id="admin-add-portfolio-btn">
+                    <ion-icon name="add-outline"></ion-icon>
+                    Add project
+                  </button>
+                </div>
+              </div>
+              <div class="blog-posts-list admin-portfolio-list-panel" id="admin-portfolio-projects-list">
+                <div class="empty-item"><p>Loading portfolio projects…</p></div>
+              </div>
+            </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-portfolio -->
 
           <!-- Business Ops Manual -->
           <div id="admin-panel-ops" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-ops" data-admin-tab="ops" hidden>
@@ -3357,6 +2863,26 @@
             <div class="confirm-delete-modal__actions">
               <button type="button" class="btn btn-secondary" id="delete-blog-confirm-cancel">Cancel</button>
               <button type="button" class="btn btn-danger" id="delete-blog-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete portfolio project confirmation -->
+        <div class="modal-container" id="delete-portfolio-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-portfolio-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-portfolio-confirm-title" aria-describedby="delete-portfolio-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-portfolio-confirm-title">Delete portfolio project?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-portfolio-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-portfolio-confirm-desc">This permanently removes the project from Realtime Database and the public portfolio. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-portfolio-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-portfolio-confirm-delete">Delete</button>
             </div>
           </section>
         </div>
@@ -3944,10 +3470,96 @@
               Cancel
             </button>
             <button type="submit" class="btn btn-primary">
-              <ion-icon name="checkmark-cabout:blank#blockedircle-outline"></ion-icon>
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
               Update Post
             </button>
           </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Portfolio project create / edit (admin) -->
+  <div class="add-blog-modal" id="portfolio-project-modal" aria-hidden="true">
+    <div class="add-blog-overlay" id="portfolio-project-modal-overlay"></div>
+    <div class="add-blog-content portfolio-project-modal-content">
+      <div class="add-blog-header">
+        <div class="header-left">
+          <ion-icon name="albums-outline" class="header-icon"></ion-icon>
+          <h3 class="h3" id="portfolio-project-modal-title">Portfolio project</h3>
+        </div>
+        <button type="button" class="add-blog-close-btn" id="portfolio-project-modal-close" aria-label="Close">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <form class="add-blog-form has-scrollbar" id="portfolio-project-form" onsubmit="event.preventDefault(); return false;">
+        <input type="hidden" id="portfolio-project-edit-id" value="">
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label for="portfolio-project-title">Title</label>
+            <input type="text" id="portfolio-project-title" required maxlength="200" placeholder="Project name">
+          </div>
+          <div class="form-group form-group-half">
+            <label for="portfolio-project-category">Filter category</label>
+            <select id="portfolio-project-category" required>
+              <option value="professional">Professional</option>
+              <option value="creative">Creative</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="portfolio-project-url">Live project URL</label>
+          <input type="url" id="portfolio-project-url" inputmode="url" placeholder="https:// or leave empty / #">
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label for="portfolio-project-image">Image URL</label>
+            <input type="text" id="portfolio-project-image" placeholder="./assets/images/... or https://">
+          </div>
+          <div class="form-group form-group-half">
+            <label for="portfolio-project-image-alt">Image alt text</label>
+            <input type="text" id="portfolio-project-image-alt" maxlength="200" placeholder="Screen reader description">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="portfolio-project-description">Description</label>
+          <textarea id="portfolio-project-description" rows="4" required placeholder="Short summary for the card and detail modal."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="portfolio-project-tech">Tech stack (comma or line separated)</label>
+          <textarea id="portfolio-project-tech" rows="2" placeholder="React Native, Expo, Firebase"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="portfolio-project-outcome">Outcome (optional)</label>
+          <textarea id="portfolio-project-outcome" rows="2" placeholder="Result or impact (shown under Outcome:)."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label for="portfolio-project-buy-now">Buy now label (optional)</label>
+            <input type="text" id="portfolio-project-buy-now" maxlength="120" placeholder="Buy Now: $500">
+          </div>
+          <div class="form-group form-group-half">
+            <label for="portfolio-project-buy-premium">Premium label (optional)</label>
+            <input type="text" id="portfolio-project-buy-premium" maxlength="160" placeholder="Premium: $750 - $1,000">
+          </div>
+        </div>
+        <div class="form-group form-group-checkbox-row">
+          <label class="portfolio-project-checkbox">
+            <input type="checkbox" id="portfolio-project-show-quote" checked>
+            <span>Show “Similar project? Get a quote”</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label for="portfolio-project-admin-note">Detail modal — admin focus (optional)</label>
+          <textarea id="portfolio-project-admin-note" rows="2" placeholder="Custom text for the admin section in the project detail modal."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="portfolio-project-bestfor">“Best for” lines (optional, one per line)</label>
+          <textarea id="portfolio-project-bestfor" rows="3" placeholder="Barbershops&#10;Studios with appointments"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="portfolio-project-form-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="portfolio-project-form-save">Save project</button>
         </div>
       </form>
     </div>
@@ -4651,7 +4263,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-    import { getDatabase, ref, onValue, push, set, update, get, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
@@ -4689,6 +4301,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     window.rtdbSet = set;
     window.rtdbUpdate = update;
     window.rtdbGet = get;
+    window.rtdbRemove = remove;
     window.rtdbQuery = rtdbQuery;
     window.rtdbOrderByChild = orderByChild;
     window.rtdbOrderByKey = orderByKey;
@@ -4715,6 +4328,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
+  <script src="./assets/js/portfolio-built-in-data.js"></script>
   <script src="./assets/js/script.js?v=bizdoc-20260504-home-hero-v2"></script>
   <script src="./assets/js/dm-migration.js"></script>
 

@@ -31,6 +31,10 @@
           ".write": true
         }
       }
+    },
+    "portfolioProjects": {
+      ".read": true,
+      ".write": true
     }
   }
 }
