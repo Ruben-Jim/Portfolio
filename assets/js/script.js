@@ -2468,7 +2468,16 @@ async function loadPortfolioProjectsFromRtdb() {
     return;
   }
   try {
-    const snap = await window.rtdbGet(window.rtdbRef(window.rtdb, 'portfolioProjects'));
+    // Fail open so the public portfolio never stays stuck on "Loading projects..."
+    // when the RTDB read hangs (network/rules/SDK edge cases).
+    const snap = await Promise.race([
+      window.rtdbGet(window.rtdbRef(window.rtdb, 'portfolioProjects')),
+      new Promise(function (_, reject) {
+        window.setTimeout(function () {
+          reject(new Error('Realtime Database read timeout (portfolioProjects)'));
+        }, 5000);
+      })
+    ]);
     const val = snap.val();
     if (val && typeof val === 'object') {
       Object.keys(val).forEach(function (key) {
@@ -2478,7 +2487,7 @@ async function loadPortfolioProjectsFromRtdb() {
       portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
     }
   } catch (err) {
-    console.error('Portfolio RTDB load failed', err);
+    console.error('Portfolio RTDB load failed; falling back to built-in projects', err);
   }
   syncWindowPortfolioProjectsRef();
 }
