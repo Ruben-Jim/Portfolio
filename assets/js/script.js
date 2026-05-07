@@ -3634,6 +3634,8 @@ function initPortfolioProjectModal() {
 // page navigation variables
 const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
+const standalonePage = String(window.__STANDALONE_PAGE__ || '').trim();
+const isStandalonePageMode = !!standalonePage;
 
 // Valid path segments for rubenjimenez.dev/(tab)
 var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'hire-me', 'contact', 'messages', 'admin'];
@@ -3641,6 +3643,9 @@ var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pric
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
   if (path === '') return null;
+  if (/\.html$/i.test(path)) {
+    path = path.replace(/\.html$/i, '');
+  }
   if (path === 'home') return 'about';
   if (path === 'service-pricing') return 'services-pricing';
   if (VALID_PAGES.indexOf(path) !== -1) return path;
@@ -3664,6 +3669,7 @@ function getPageFromRedirectParam() {
 }
 
 function updateUrlForPage(pageName, replace) {
+  if (isStandalonePageMode) return;
   // Only update URL on http(s); file:// would produce invalid URLs like file:///.../index.html/portfolio
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
     return;
@@ -3678,6 +3684,10 @@ function updateUrlForPage(pageName, replace) {
 
 // Function to switch to a specific page
 function switchToPage(pageName, skipSave = false) {
+  if (isStandalonePageMode && pageName && pageName !== standalonePage) {
+    window.location.assign('/' + pageName);
+    return;
+  }
   if (pageName !== 'messages' && typeof window.dismissCustomerDmSheetForNavigation === 'function') {
     window.dismissCustomerDmSheetForNavigation();
   }
@@ -3763,7 +3773,13 @@ for (let i = 0; i < navigationLinks.length; i++) {
     } else if (pageName === "home") {
       pageName = "about";
     }
-    switchToPage(pageName);
+    if (isStandalonePageMode) {
+      if (pageName !== standalonePage) {
+        window.location.assign('/' + pageName);
+      }
+    } else {
+      switchToPage(pageName);
+    }
     // close all hamburger menus after navigation
     document.querySelectorAll("[data-navbar]").forEach(function (nav) {
       nav.classList.remove("open");
@@ -3773,6 +3789,10 @@ for (let i = 0; i < navigationLinks.length; i++) {
 
 // Restore active page from URL path or localStorage on page load with loading animation
 function restoreActivePage() {
+  if (isStandalonePageMode) {
+    switchToPage(standalonePage || 'about', true);
+    return;
+  }
   var loadingScreen = document.getElementById('loading-screen');
   var redirectPage = getPageFromRedirectParam();
   var pageFromPath = getPageFromPath();
