@@ -1770,6 +1770,8 @@ function setupAddBlogFormListener() {
 window.setupAddBlogFormListener = setupAddBlogFormListener;
 
 function bindProfessionalBlogFormEnhancements() {
+  const addFormEl = document.getElementById('add-blog-form');
+  const editFormEl = document.getElementById('edit-blog-form');
   const addTitle = document.getElementById('blog-title');
   const addSlug = document.getElementById('blog-slug');
   const editTitle = document.getElementById('edit-blog-title');
@@ -1824,13 +1826,13 @@ function bindProfessionalBlogFormEnhancements() {
     syncPreview(editContent, editPreview);
   }
 
-  if (addBlogForm) {
-    addBlogForm.addEventListener('input', function () {
+  if (addFormEl) {
+    addFormEl.addEventListener('input', function () {
       markBlogFormDirty('add');
     });
   }
-  if (editBlogForm) {
-    editBlogForm.addEventListener('input', function () {
+  if (editFormEl) {
+    editFormEl.addEventListener('input', function () {
       markBlogFormDirty('edit');
     });
   }
