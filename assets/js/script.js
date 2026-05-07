@@ -147,8 +147,14 @@ async function loadBlogPostsFromFirestore() {
     showLoadingState();
 
     const blogPostsRef = window.collection(window.db, 'blogPosts');
-    const q = window.query(blogPostsRef, window.orderBy('createdAt', 'desc'));
-    const querySnapshot = await window.getDocs(q);
+    let querySnapshot;
+    try {
+      const q = window.query(blogPostsRef, window.orderBy('createdAt', 'desc'));
+      querySnapshot = await window.getDocs(q);
+    } catch (orderedErr) {
+      console.warn('Ordered blog query failed; falling back to unordered fetch', orderedErr);
+      querySnapshot = await window.getDocs(blogPostsRef);
+    }
     
     blogPosts = [];
     querySnapshot.forEach((doc) => {
@@ -163,6 +169,36 @@ async function loadBlogPostsFromFirestore() {
         content: data.content,
         createdAt: data.createdAt
       });
+    });
+
+    // If ordered query effectively filtered out all docs (e.g., missing createdAt),
+    // retry unordered to avoid false "no posts" fallback.
+    if (blogPosts.length === 0) {
+      const unorderedSnapshot = await window.getDocs(blogPostsRef);
+      unorderedSnapshot.forEach((doc) => {
+        const data = doc.data();
+        blogPosts.push({
+          id: doc.id,
+          title: data.title,
+          category: data.category,
+          date: data.date,
+          image: data.image || './assets/images/blog-1.jpg',
+          excerpt: data.excerpt,
+          content: data.content,
+          createdAt: data.createdAt
+        });
+      });
+    }
+
+    // Stable client-side ordering for mixed legacy documents.
+    blogPosts.sort(function (a, b) {
+      const av = a && a.createdAt && typeof a.createdAt.toMillis === 'function'
+        ? a.createdAt.toMillis()
+        : Date.parse((a && a.date) || 0) || 0;
+      const bv = b && b.createdAt && typeof b.createdAt.toMillis === 'function'
+        ? b.createdAt.toMillis()
+        : Date.parse((b && b.date) || 0) || 0;
+      return bv - av;
     });
 
     // If no posts in Firestore, use default posts
@@ -4175,6 +4211,13 @@ window.addEventListener('load', function() {
     }
 
     if (initializeFirebase()) {
+      try {
+        await loadBlogPostsFromFirestore();
+        renderBlogPosts();
+        if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
+      } catch (blogErr) {
+        console.error('Post-init blog refresh failed', blogErr);
+      }
       await bootstrapPortfolioUi();
       setupAuthListeners();
       setupAdminEventListeners();
