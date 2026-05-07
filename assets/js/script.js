@@ -135,11 +135,89 @@ const blogModalFunc = function () {
 }
 
 // Firestore functions
+function toIsoDateOnly(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toISOString().split('T')[0];
+}
+
+function slugifyPostTitle(title) {
+  return String(title || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function sanitizeBlogContentHtml(raw) {
+  const text = String(raw || '').trim();
+  // Keep author flexibility but strip script tags and inline handlers.
+  return text
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+    .replace(/\son\w+="[^"]*"/gi, '')
+    .replace(/\son\w+='[^']*'/gi, '');
+}
+
+function normalizeBlogPostRecord(input, id) {
+  const rec = input || {};
+  const tagsArray = Array.isArray(rec.tags)
+    ? rec.tags
+    : String(rec.tags || '')
+        .split(',')
+        .map(function (t) { return t.trim(); })
+        .filter(Boolean);
+  const status = String(rec.status || 'published').toLowerCase();
+  return {
+    id: id || rec.id || '',
+    title: String(rec.title || ''),
+    category: String(rec.category || 'General'),
+    date: String(rec.date || toIsoDateOnly(Date.now())),
+    image: String(rec.image || './assets/images/blog-1.jpg'),
+    imageAlt: String(rec.imageAlt || rec.title || ''),
+    imageCaption: String(rec.imageCaption || ''),
+    excerpt: String(rec.excerpt || ''),
+    content: sanitizeBlogContentHtml(rec.content),
+    slug: String(rec.slug || slugifyPostTitle(rec.title)),
+    seoTitle: String(rec.seoTitle || rec.title || ''),
+    seoDescription: String(rec.seoDescription || rec.excerpt || ''),
+    authorName: String(rec.authorName || 'Ruben Jimenez'),
+    readTimeMinutes: Number(rec.readTimeMinutes) > 0 ? Number(rec.readTimeMinutes) : '',
+    tags: tagsArray.slice(0, 20),
+    status: ['draft', 'published'].indexOf(status) >= 0 ? status : 'published',
+    publishAt: String(rec.publishAt || ''),
+    createdAt: rec.createdAt || null,
+    updatedAt: rec.updatedAt || null
+  };
+}
+
+function isBlogPostPublished(post) {
+  if (!post) return false;
+  if (String(post.status || '').toLowerCase() !== 'published') return false;
+  if (post.publishAt) {
+    const publishAtMs = new Date(post.publishAt).getTime();
+    if (!Number.isNaN(publishAtMs) && publishAtMs > Date.now()) return false;
+  }
+  return true;
+}
+
+function isSlugUnique(slug, excludeId) {
+  const target = String(slug || '').trim().toLowerCase();
+  if (!target) return false;
+  return !blogPosts.some(function (p) {
+    if (!p) return false;
+    if (excludeId && p.id === excludeId) return false;
+    return String(p.slug || '').trim().toLowerCase() === target;
+  });
+}
+
 async function loadBlogPostsFromFirestore() {
   try {
     if (!window.db) {
       console.log('Firebase not initialized, using default posts');
-      blogPosts = [...defaultBlogPosts];
+      blogPosts = defaultBlogPosts.map(function (p) { return normalizeBlogPostRecord(p, p.id); });
       return;
     }
 
@@ -147,17 +225,7 @@ async function loadBlogPostsFromFirestore() {
     showLoadingState();
 
     function mapBlogDoc(doc) {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        title: data.title,
-        category: data.category,
-        date: data.date,
-        image: data.image || './assets/images/blog-1.jpg',
-        excerpt: data.excerpt,
-        content: data.content,
-        createdAt: data.createdAt
-      };
+      return normalizeBlogPostRecord(doc.data(), doc.id);
     }
 
     const collectionCandidates = ['blogPosts', 'blogs', 'blogposts'];
@@ -210,13 +278,13 @@ async function loadBlogPostsFromFirestore() {
 
     // If no posts in Firestore, use default posts
     if (blogPosts.length === 0) {
-      blogPosts = [...defaultBlogPosts];
+      blogPosts = defaultBlogPosts.map(function (p) { return normalizeBlogPostRecord(p, p.id); });
     }
 
     hideLoadingState();
   } catch (error) {
     console.error('Error loading blog posts:', error);
-    blogPosts = [...defaultBlogPosts];
+    blogPosts = defaultBlogPosts.map(function (p) { return normalizeBlogPostRecord(p, p.id); });
     hideLoadingState();
     showError('Failed to load blog posts. Using default content.');
   }
@@ -237,11 +305,12 @@ async function saveBlogPostToFirestore(postData) {
     console.log('window.addDoc:', typeof window.addDoc);
     console.log('window.serverTimestamp:', typeof window.serverTimestamp);
     
+    const cleanPost = normalizeBlogPostRecord(postData);
     const blogPostsRef = window.collection(window.db, 'blogPosts');
     console.log('blogPostsRef created:', blogPostsRef);
     
     const docRef = await window.addDoc(blogPostsRef, {
-      ...postData,
+      ...cleanPost,
       createdAt: window.serverTimestamp()
     });
 
@@ -253,7 +322,7 @@ async function saveBlogPostToFirestore(postData) {
     }
     
     return {
-      ...postData,
+      ...cleanPost,
       id: docRef.id
     };
   } catch (error) {
@@ -273,16 +342,17 @@ async function updateBlogPostInFirestore(postId, postData) {
       return postData;
     }
 
-    console.log('Updating blog post in Firestore:', postId, postData);
+    const cleanPost = normalizeBlogPostRecord(postData, postId);
+    console.log('Updating blog post in Firestore:', postId, cleanPost);
     const postRef = window.doc(window.db, 'blogPosts', postId);
     await window.updateDoc(postRef, {
-      ...postData,
+      ...cleanPost,
       updatedAt: window.serverTimestamp()
     });
 
     console.log('Blog post updated successfully');
     return {
-      ...postData,
+      ...cleanPost,
       id: postId
     };
   } catch (error) {
@@ -340,19 +410,20 @@ function showError(message) {
 function renderBlogPosts() {
   const blogPostsList = document.getElementById('blog-posts-list');
   blogPostsList.innerHTML = '';
+  const publicPosts = blogPosts.filter(isBlogPostPublished);
 
-  if (blogPosts.length === 0) {
+  if (publicPosts.length === 0) {
     blogPostsList.innerHTML = `
       <li class="empty-item">
-        <p>No blog posts found. Create your first post!</p>
+        <p>No published blog posts yet.</p>
       </li>
     `;
     return;
   }
 
-  console.log('Rendering blog posts:', blogPosts);
+  console.log('Rendering blog posts:', publicPosts);
 
-  blogPosts.forEach(post => {
+  publicPosts.forEach(post => {
     const blogItem = document.createElement('li');
     blogItem.className = 'blog-post-item';
     blogItem.innerHTML = `
@@ -371,6 +442,9 @@ function renderBlogPosts() {
           <h3 class="h3 blog-item-title" data-blog-title>${post.title}</h3>
           
           <p class="blog-text" data-blog-excerpt>${post.excerpt}</p>
+          <p class="blog-text" style="font-size: 12px; opacity: 0.75; margin-top: 8px;">
+            ${post.authorName || 'Ruben Jimenez'}${post.readTimeMinutes ? ` • ${post.readTimeMinutes} min read` : ''}
+          </p>
         </div>
       </a>
     `;
@@ -418,6 +492,9 @@ function renderAdminBlogPosts() {
           <h3 class="h3 blog-item-title" data-blog-title>${post.title}</h3>
 
           <p class="blog-text" data-blog-excerpt>${post.excerpt}</p>
+          <p class="blog-text" style="font-size: 12px; opacity: 0.75; margin-top: 8px;">
+            ${String(post.status || 'published').toUpperCase()}${post.publishAt ? ` • ${post.publishAt}` : ''}
+          </p>
         </div>
       </a>
         <div class="blog-post-actions">
@@ -796,6 +873,81 @@ const addBlogOverlay = document.getElementById('add-blog-overlay');
 const addBlogCloseBtn = document.getElementById('add-blog-close-btn');
 const cancelBlogBtn = document.getElementById('cancel-blog-btn');
 const addBlogForm = document.getElementById('add-blog-form');
+let addBlogDirty = false;
+let editBlogDirty = false;
+
+function markBlogFormDirty(type) {
+  if (type === 'add') addBlogDirty = true;
+  if (type === 'edit') editBlogDirty = true;
+}
+
+function resetBlogFormDirty(type) {
+  if (type === 'add') addBlogDirty = false;
+  if (type === 'edit') editBlogDirty = false;
+}
+
+function ensureBlogFormCanClose(type) {
+  const isDirty = type === 'add' ? addBlogDirty : editBlogDirty;
+  if (!isDirty) return true;
+  return window.confirm('You have unsaved changes. Close without saving?');
+}
+
+function collectBlogPostFromForm(form, isEdit) {
+  const formData = new FormData(form);
+  const id = isEdit ? String(formData.get('id') || '').trim() : '';
+  const title = String(formData.get('title') || '').trim();
+  const slugRaw = String(formData.get('slug') || '').trim();
+  const slug = slugRaw || slugifyPostTitle(title);
+  const category = String(formData.get('category') || '').trim();
+  const excerpt = String(formData.get('excerpt') || '').trim();
+  const content = sanitizeBlogContentHtml(String(formData.get('content') || ''));
+  const image = String(formData.get('image') || '').trim() || './assets/images/blog-1.jpg';
+  const authorName = String(formData.get('authorName') || '').trim();
+  const status = String(formData.get('status') || '').toLowerCase().trim();
+  const publishAt = String(formData.get('publishAt') || '').trim();
+  const date = String(formData.get('date') || '').trim() || toIsoDateOnly(Date.now());
+  const seoTitle = String(formData.get('seoTitle') || '').trim();
+  const seoDescription = String(formData.get('seoDescription') || '').trim();
+  const imageAlt = String(formData.get('imageAlt') || '').trim();
+  const imageCaption = String(formData.get('imageCaption') || '').trim();
+  const readTimeMinutes = Number(formData.get('readTimeMinutes') || 0);
+  const tags = String(formData.get('tags') || '')
+    .split(',')
+    .map(function (t) { return t.trim(); })
+    .filter(Boolean);
+
+  if (!title || !category || !excerpt || !content || !authorName) {
+    throw new Error('Please complete all required fields.');
+  }
+  if (!slug || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+    throw new Error('Slug must use lowercase letters, numbers, and hyphens only.');
+  }
+  if (!isSlugUnique(slug, id || null)) {
+    throw new Error('Slug already exists. Please choose a unique slug.');
+  }
+  if (['draft', 'published'].indexOf(status) < 0) {
+    throw new Error('Status must be draft or published.');
+  }
+
+  return normalizeBlogPostRecord({
+    title: title,
+    slug: slug,
+    category: category,
+    date: date,
+    image: image,
+    imageAlt: imageAlt || title,
+    imageCaption: imageCaption,
+    excerpt: excerpt,
+    content: content,
+    seoTitle: seoTitle || title,
+    seoDescription: seoDescription || excerpt,
+    authorName: authorName,
+    readTimeMinutes: readTimeMinutes > 0 ? readTimeMinutes : '',
+    tags: tags,
+    status: status,
+    publishAt: publishAt
+  }, id || undefined);
+}
 // Scope to add modal so duplicate ids elsewhere (e.g. admin wrappers) cannot grab the wrong node.
 const contentTextarea = addBlogModal
   ? addBlogModal.querySelector('textarea#blog-content')
@@ -851,6 +1003,7 @@ if (addBlogBtn) {
 
 // Close add blog modal
 function closeAddBlogModal() {
+  if (!ensureBlogFormCanClose('add')) return;
   if (addBlogModal) {
     addBlogModal.classList.remove('active');
     // Clear all inline styles set when opening the modal
@@ -876,6 +1029,7 @@ function closeAddBlogModal() {
   if (addBlogForm) {
     addBlogForm.reset();
   }
+  resetBlogFormDirty('add');
 }
 
 // Event listeners for add modal
@@ -1552,23 +1706,11 @@ function setupAddBlogFormListener() {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Creating...';
       
-      const formData = new FormData(this);
-      const newPost = {
-        title: formData.get('title'),
-        category: formData.get('category'),
-        date: formData.get('date'),
-        image: formData.get('image') || './assets/images/blog-1.jpg',
-        excerpt: formData.get('excerpt'),
-        content: formData.get('content')
-      };
+      const newPost = collectBlogPostFromForm(this, false);
       
       console.log('New post data:', newPost);
       
       // Validate required fields
-      if (!newPost.title || !newPost.category || !newPost.date || !newPost.excerpt || !newPost.content) {
-        throw new Error('Please fill in all required fields');
-      }
-      
       // Save to Firestore
       console.log('Saving to Firestore...');
       const savedPost = await saveBlogPostToFirestore(newPost);
@@ -1600,6 +1742,7 @@ function setupAddBlogFormListener() {
       });
       
       // Close modal
+      resetBlogFormDirty('add');
       closeAddBlogModal();
       
       // Show success message
@@ -1626,14 +1769,83 @@ function setupAddBlogFormListener() {
 // Make function globally accessible
 window.setupAddBlogFormListener = setupAddBlogFormListener;
 
+function bindProfessionalBlogFormEnhancements() {
+  const addTitle = document.getElementById('blog-title');
+  const addSlug = document.getElementById('blog-slug');
+  const editTitle = document.getElementById('edit-blog-title');
+  const editSlug = document.getElementById('edit-blog-slug');
+  const addContent = document.getElementById('blog-content');
+  const editContent = document.getElementById('edit-blog-content');
+  const addPreview = document.getElementById('blog-live-preview');
+  const editPreview = document.getElementById('edit-blog-live-preview');
+
+  function syncPreview(sourceEl, targetEl) {
+    if (!sourceEl || !targetEl) return;
+    targetEl.innerHTML = sanitizeBlogContentHtml(sourceEl.value || '');
+  }
+
+  if (addTitle && addSlug) {
+    addTitle.addEventListener('input', function () {
+      if (!addSlug.value || addSlug.dataset.auto === '1') {
+        addSlug.value = slugifyPostTitle(addTitle.value);
+        addSlug.dataset.auto = '1';
+      }
+    });
+    addSlug.addEventListener('input', function () {
+      addSlug.dataset.auto = '0';
+    });
+  }
+
+  if (editTitle && editSlug) {
+    editTitle.addEventListener('input', function () {
+      if (!editSlug.value || editSlug.dataset.auto === '1') {
+        editSlug.value = slugifyPostTitle(editTitle.value);
+        editSlug.dataset.auto = '1';
+      }
+    });
+    editSlug.addEventListener('input', function () {
+      editSlug.dataset.auto = '0';
+    });
+  }
+
+  if (addContent && addPreview) {
+    addContent.addEventListener('input', function () {
+      markBlogFormDirty('add');
+      syncPreview(addContent, addPreview);
+    });
+    syncPreview(addContent, addPreview);
+  }
+
+  if (editContent && editPreview) {
+    editContent.addEventListener('input', function () {
+      markBlogFormDirty('edit');
+      syncPreview(editContent, editPreview);
+    });
+    syncPreview(editContent, editPreview);
+  }
+
+  if (addBlogForm) {
+    addBlogForm.addEventListener('input', function () {
+      markBlogFormDirty('add');
+    });
+  }
+  if (editBlogForm) {
+    editBlogForm.addEventListener('input', function () {
+      markBlogFormDirty('edit');
+    });
+  }
+}
+
 // Setup form listener when DOM is ready
 if (addBlogForm) {
   setupAddBlogFormListener();
+  bindProfessionalBlogFormEnhancements();
 } else {
   // If form not found initially, try again when DOM is fully loaded
   document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('add-blog-form')) {
       setupAddBlogFormListener();
+      bindProfessionalBlogFormEnhancements();
     }
   });
 }
@@ -1737,11 +1949,35 @@ function openEditBlogModal(postId) {
   document.getElementById('edit-blog-date').value = post.date;
   document.getElementById('edit-blog-image').value = post.image || '';
   document.getElementById('edit-blog-excerpt').value = post.excerpt;
+  var editSlugEl = document.getElementById('edit-blog-slug');
+  if (editSlugEl) editSlugEl.value = post.slug || slugifyPostTitle(post.title);
+  var editSeoTitleEl = document.getElementById('edit-blog-seo-title');
+  if (editSeoTitleEl) editSeoTitleEl.value = post.seoTitle || post.title || '';
+  var editSeoDescEl = document.getElementById('edit-blog-seo-description');
+  if (editSeoDescEl) editSeoDescEl.value = post.seoDescription || post.excerpt || '';
+  var editImageAltEl = document.getElementById('edit-blog-image-alt');
+  if (editImageAltEl) editImageAltEl.value = post.imageAlt || post.title || '';
+  var editImageCaptionEl = document.getElementById('edit-blog-image-caption');
+  if (editImageCaptionEl) editImageCaptionEl.value = post.imageCaption || '';
+  var editAuthorEl = document.getElementById('edit-blog-author');
+  if (editAuthorEl) editAuthorEl.value = post.authorName || 'Ruben Jimenez';
+  var editReadTimeEl = document.getElementById('edit-blog-read-time');
+  if (editReadTimeEl) editReadTimeEl.value = post.readTimeMinutes || '';
+  var editTagsEl = document.getElementById('edit-blog-tags');
+  if (editTagsEl) editTagsEl.value = Array.isArray(post.tags) ? post.tags.join(', ') : '';
+  var editStatusEl = document.getElementById('edit-blog-status');
+  if (editStatusEl) editStatusEl.value = post.status || 'published';
+  var editPublishAtEl = document.getElementById('edit-blog-publish-at');
+  if (editPublishAtEl) editPublishAtEl.value = post.publishAt || '';
   
   // Set content using editor instance if available
   const editTextarea = document.getElementById('edit-blog-content');
   if (editTextarea) {
     editTextarea.value = post.content;
+    var editPreview = document.getElementById('edit-blog-live-preview');
+    if (editPreview) {
+      editPreview.innerHTML = sanitizeBlogContentHtml(post.content || '');
+    }
     
     // Update editor stats if editor is initialized
     if (window.editEditor) {
@@ -1751,6 +1987,7 @@ function openEditBlogModal(postId) {
       }, 100);
     }
   }
+  resetBlogFormDirty('edit');
 
   // Open modal with forced visibility
   if (editBlogModal) {
@@ -1781,6 +2018,7 @@ function openEditBlogModal(postId) {
 
 // Close edit modal
 function closeEditBlogModal() {
+  if (!ensureBlogFormCanClose('edit')) return;
   if (editBlogModal) {
     editBlogModal.classList.remove('active');
     // Clear all inline styles set when opening the modal
@@ -1806,6 +2044,7 @@ function closeEditBlogModal() {
   if (editBlogForm) {
     editBlogForm.reset();
   }
+  resetBlogFormDirty('edit');
 }
 
 // Event listeners for edit modal
@@ -1848,16 +2087,7 @@ if (editBlogForm) {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Updating...';
       
-      const formData = new FormData(this);
-      const contentEl = document.getElementById('edit-blog-content');
-      const updatedPost = {
-        title: formData.get('title'),
-        category: formData.get('category'),
-        date: formData.get('date'),
-        image: formData.get('image') || './assets/images/blog-1.jpg',
-        excerpt: formData.get('excerpt'),
-        content: (contentEl && contentEl.value) || formData.get('content') || ''
-      };
+      const updatedPost = collectBlogPostFromForm(this, true);
       
       if (!postId) {
         showErrorMessage('Post ID is missing. Please close and reopen the edit modal.');
@@ -1880,6 +2110,7 @@ if (editBlogForm) {
       }
       
       // Close modal
+      resetBlogFormDirty('edit');
       closeEditBlogModal();
       
       // Show success message
@@ -2057,6 +2288,17 @@ function openAddBlogModal() {
       const today = new Date().toISOString().split('T')[0];
       dateInput.value = today;
     }
+    var statusInput = document.getElementById('blog-status');
+    if (statusInput) statusInput.value = 'published';
+    var authorInput = document.getElementById('blog-author');
+    if (authorInput) authorInput.value = 'Ruben Jimenez';
+    var slugInput = document.getElementById('blog-slug');
+    if (slugInput) {
+      slugInput.value = '';
+      slugInput.dataset.auto = '1';
+    }
+    var previewEl = document.getElementById('blog-live-preview');
+    if (previewEl) previewEl.innerHTML = '<p class="blog-editor-preview-empty">Live preview appears here as you write.</p>';
 
     // Focus on title input
     const titleInput = document.getElementById('blog-title');
@@ -2068,6 +2310,7 @@ function openAddBlogModal() {
     setTimeout(() => {
       if (typeof updateCounts === 'function') updateCounts();
     }, 100);
+    resetBlogFormDirty('add');
   }
 }
 

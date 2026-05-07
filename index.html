@@ -3087,6 +3087,69 @@
           </label>
           <textarea id="blog-excerpt" name="excerpt" rows="2" placeholder="A short description that will appear in the blog preview..." required></textarea>
         </div>
+
+        <section class="blog-editor-section blog-editor-section-glass">
+          <h4 class="h4">Publishing</h4>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="blog-status">Status</label>
+              <select id="blog-status" name="status" required>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
+            </div>
+            <div class="form-group form-group-half">
+              <label for="blog-publish-at">Publish Date/Time</label>
+              <input type="datetime-local" id="blog-publish-at" name="publishAt">
+            </div>
+          </div>
+        </section>
+
+        <section class="blog-editor-section blog-editor-section-glass">
+          <h4 class="h4">Metadata</h4>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="blog-slug">Slug</label>
+              <input type="text" id="blog-slug" name="slug" placeholder="my-post-slug" required>
+            </div>
+            <div class="form-group form-group-half">
+              <label for="blog-author">Author</label>
+              <input type="text" id="blog-author" name="authorName" placeholder="Author name" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="blog-read-time">Read Time (minutes)</label>
+              <input type="number" min="1" id="blog-read-time" name="readTimeMinutes" placeholder="6">
+            </div>
+            <div class="form-group form-group-half">
+              <label for="blog-tags">Tags (comma separated)</label>
+              <input type="text" id="blog-tags" name="tags" placeholder="firebase, portfolio, update">
+            </div>
+          </div>
+        </section>
+
+        <section class="blog-editor-section blog-editor-section-glass">
+          <h4 class="h4">Media + SEO</h4>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="blog-image-alt">Image Alt Text</label>
+              <input type="text" id="blog-image-alt" name="imageAlt" placeholder="Describe featured image">
+            </div>
+            <div class="form-group form-group-half">
+              <label for="blog-image-caption">Image Caption</label>
+              <input type="text" id="blog-image-caption" name="imageCaption" placeholder="Optional caption">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="blog-seo-title">SEO Title</label>
+            <input type="text" id="blog-seo-title" name="seoTitle" placeholder="Optimized page title">
+          </div>
+          <div class="form-group">
+            <label for="blog-seo-description">SEO Description</label>
+            <textarea id="blog-seo-description" name="seoDescription" rows="2" placeholder="Meta description for search results"></textarea>
+          </div>
+        </section>
         
         <div class="form-group">
           <label for="blog-content">
@@ -3230,6 +3293,13 @@
             </div>
           </div>
         </div>
+
+        <section class="blog-editor-section blog-editor-section-glass">
+          <h4 class="h4">Live Preview</h4>
+          <div id="blog-live-preview" class="blog-live-preview">
+            <p class="blog-editor-preview-empty">Live preview appears here as you write.</p>
+          </div>
+        </section>
         
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="cancel-blog-btn">
@@ -3315,6 +3385,69 @@
           </label>
           <textarea id="edit-blog-excerpt" name="excerpt" rows="2" placeholder="A short description that will appear in the blog preview..." required></textarea>
         </div>
+
+        <section class="blog-editor-section blog-editor-section-glass">
+          <h4 class="h4">Publishing</h4>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="edit-blog-status">Status</label>
+              <select id="edit-blog-status" name="status" required>
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
+            </div>
+            <div class="form-group form-group-half">
+              <label for="edit-blog-publish-at">Publish Date/Time</label>
+              <input type="datetime-local" id="edit-blog-publish-at" name="publishAt">
+            </div>
+          </div>
+        </section>
+
+        <section class="blog-editor-section blog-editor-section-glass">
+          <h4 class="h4">Metadata</h4>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="edit-blog-slug">Slug</label>
+              <input type="text" id="edit-blog-slug" name="slug" placeholder="my-post-slug" required>
+            </div>
+            <div class="form-group form-group-half">
+              <label for="edit-blog-author">Author</label>
+              <input type="text" id="edit-blog-author" name="authorName" placeholder="Author name" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="edit-blog-read-time">Read Time (minutes)</label>
+              <input type="number" min="1" id="edit-blog-read-time" name="readTimeMinutes" placeholder="6">
+            </div>
+            <div class="form-group form-group-half">
+              <label for="edit-blog-tags">Tags (comma separated)</label>
+              <input type="text" id="edit-blog-tags" name="tags" placeholder="firebase, portfolio, update">
+            </div>
+          </div>
+        </section>
+
+        <section class="blog-editor-section blog-editor-section-glass">
+          <h4 class="h4">Media + SEO</h4>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="edit-blog-image-alt">Image Alt Text</label>
+              <input type="text" id="edit-blog-image-alt" name="imageAlt" placeholder="Describe featured image">
+            </div>
+            <div class="form-group form-group-half">
+              <label for="edit-blog-image-caption">Image Caption</label>
+              <input type="text" id="edit-blog-image-caption" name="imageCaption" placeholder="Optional caption">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="edit-blog-seo-title">SEO Title</label>
+            <input type="text" id="edit-blog-seo-title" name="seoTitle" placeholder="Optimized page title">
+          </div>
+          <div class="form-group">
+            <label for="edit-blog-seo-description">SEO Description</label>
+            <textarea id="edit-blog-seo-description" name="seoDescription" rows="2" placeholder="Meta description for search results"></textarea>
+          </div>
+        </section>
         
         <div class="form-group">
           <label for="edit-blog-content">
@@ -3458,6 +3591,13 @@
             </div>
           </div>
         </div>
+
+        <section class="blog-editor-section blog-editor-section-glass">
+          <h4 class="h4">Live Preview</h4>
+          <div id="edit-blog-live-preview" class="blog-live-preview">
+            <p class="blog-editor-preview-empty">Live preview appears here as you write.</p>
+          </div>
+        </section>
         
         <div class="form-actions">
           <button type="button" class="btn btn-danger" id="delete-blog-btn">
@@ -4329,7 +4469,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     - custom js link
   -->
   <script src="./assets/js/portfolio-built-in-data.js"></script>
-  <script src="./assets/js/script.js?v=bizdoc-20260506-blog-firestore-source-fallback"></script>
+  <script src="./assets/js/script.js?v=bizdoc-20260506-pro-blog-editor-v1"></script>
   <script src="./assets/js/dm-migration.js"></script>
 
   <!--

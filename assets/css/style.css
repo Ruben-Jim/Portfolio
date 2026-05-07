@@ -6607,6 +6607,52 @@ body.project-modal-open {
   background: var(--eerie-black-2);
 }
 
+/* Professional blog editor (glass UI) */
+.blog-editor-section {
+  margin-top: 18px;
+}
+
+.blog-editor-section-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  padding: 14px;
+  backdrop-filter: blur(10px);
+}
+
+.blog-editor-section-glass .h4 {
+  margin-bottom: 10px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.blog-live-preview {
+  min-height: 120px;
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(12, 18, 34, 0.45);
+}
+
+.blog-editor-preview-empty {
+  opacity: 0.72;
+  font-size: 13px;
+}
+
+.add-blog-modal .form-group label {
+  font-weight: 600;
+}
+
+.add-blog-modal .editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(12, 18, 34, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
