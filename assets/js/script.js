@@ -146,20 +146,9 @@ async function loadBlogPostsFromFirestore() {
     isLoading = true;
     showLoadingState();
 
-    const blogPostsRef = window.collection(window.db, 'blogPosts');
-    let querySnapshot;
-    try {
-      const q = window.query(blogPostsRef, window.orderBy('createdAt', 'desc'));
-      querySnapshot = await window.getDocs(q);
-    } catch (orderedErr) {
-      console.warn('Ordered blog query failed; falling back to unordered fetch', orderedErr);
-      querySnapshot = await window.getDocs(blogPostsRef);
-    }
-    
-    blogPosts = [];
-    querySnapshot.forEach((doc) => {
+    function mapBlogDoc(doc) {
       const data = doc.data();
-      blogPosts.push({
+      return {
         id: doc.id,
         title: data.title,
         category: data.category,
@@ -168,26 +157,44 @@ async function loadBlogPostsFromFirestore() {
         excerpt: data.excerpt,
         content: data.content,
         createdAt: data.createdAt
-      });
-    });
+      };
+    }
 
-    // If ordered query effectively filtered out all docs (e.g., missing createdAt),
-    // retry unordered to avoid false "no posts" fallback.
-    if (blogPosts.length === 0) {
-      const unorderedSnapshot = await window.getDocs(blogPostsRef);
-      unorderedSnapshot.forEach((doc) => {
-        const data = doc.data();
-        blogPosts.push({
-          id: doc.id,
-          title: data.title,
-          category: data.category,
-          date: data.date,
-          image: data.image || './assets/images/blog-1.jpg',
-          excerpt: data.excerpt,
-          content: data.content,
-          createdAt: data.createdAt
+    const collectionCandidates = ['blogPosts', 'blogs', 'blogposts'];
+    let foundCollection = null;
+    blogPosts = [];
+
+    for (const collectionName of collectionCandidates) {
+      const blogPostsRef = window.collection(window.db, collectionName);
+      let rows = [];
+      try {
+        const q = window.query(blogPostsRef, window.orderBy('createdAt', 'desc'));
+        const orderedSnapshot = await window.getDocs(q);
+        orderedSnapshot.forEach((doc) => {
+          rows.push(mapBlogDoc(doc));
         });
-      });
+      } catch (orderedErr) {
+        console.warn('Ordered blog query failed for', collectionName, '- trying unordered fetch', orderedErr);
+      }
+
+      if (rows.length === 0) {
+        const unorderedSnapshot = await window.getDocs(blogPostsRef);
+        unorderedSnapshot.forEach((doc) => {
+          rows.push(mapBlogDoc(doc));
+        });
+      }
+
+      if (rows.length > 0) {
+        foundCollection = collectionName;
+        blogPosts = rows;
+        break;
+      }
+    }
+
+    if (foundCollection) {
+      console.log('Loaded blog posts from Firestore collection:', foundCollection, 'count:', blogPosts.length);
+    } else {
+      console.warn('No blog documents found in Firestore collections:', collectionCandidates.join(', '));
     }
 
     // Stable client-side ordering for mixed legacy documents.
