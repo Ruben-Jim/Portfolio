@@ -12,44 +12,8 @@
     ],
     "rewrites": [
       {
-        "source": "/",
+        "source": "**",
         "destination": "/index.html"
-      },
-      {
-        "source": "/resume",
-        "destination": "/resume.html"
-      },
-      {
-        "source": "/portfolio",
-        "destination": "/portfolio.html"
-      },
-      {
-        "source": "/blog",
-        "destination": "/blog.html"
-      },
-      {
-        "source": "/service-pricing",
-        "destination": "/service-pricing.html"
-      },
-      {
-        "source": "/services-pricing",
-        "destination": "/service-pricing.html"
-      },
-      {
-        "source": "/hire-me",
-        "destination": "/hire-me.html"
-      },
-      {
-        "source": "/contact",
-        "destination": "/contact.html"
-      },
-      {
-        "source": "/messages",
-        "destination": "/messages.html"
-      },
-      {
-        "source": "/admin",
-        "destination": "/admin.html"
       }
     ]
   },
