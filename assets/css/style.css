@@ -3854,6 +3854,67 @@ article {
   font-size: 20px;
 }
 
+@media (max-width: 640px) {
+  .admin-portfolio-toolbar .btn {
+    width: 100%;
+  }
+
+  .admin-portfolio-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .admin-portfolio-row-main {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .admin-portfolio-thumb {
+    width: 56px;
+    height: 56px;
+  }
+
+  .admin-portfolio-title {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: initial;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .admin-portfolio-row-actions {
+    width: 100%;
+    justify-content: flex-start;
+    align-self: stretch;
+    gap: 6px;
+    padding: 3px;
+  }
+
+  .admin-portfolio-order-controls {
+    flex: 0 0 auto;
+    justify-content: flex-start;
+    background: transparent;
+    border-color: transparent;
+    padding: 0;
+    gap: 6px;
+  }
+
+  .admin-portfolio-action-btn:last-child {
+    margin-right: 0;
+  }
+
+  .admin-portfolio-action-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .admin-portfolio-action-btn ion-icon {
+    font-size: 18px;
+  }
+}
+
 [data-theme="light"] .admin-portfolio-row {
   background: linear-gradient(
     135deg,
@@ -5365,15 +5426,21 @@ textarea.form-input::-webkit-resizer { display: none; }
 .project-detail-modal {
   position: fixed;
   inset: 0;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   z-index: 16;
   transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.project-detail-modal[aria-hidden="false"] {
+  display: flex;
 }
 
 .project-detail-modal.active {
@@ -5457,6 +5524,8 @@ textarea.form-input::-webkit-resizer { display: none; }
 .project-detail-body {
   padding: 30px;
   overflow-y: auto;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .project-detail-meta {
@@ -5640,18 +5709,21 @@ body.project-modal-open {
 @media (max-width: 900px) {
   .project-detail-modal {
     padding: 14px;
+    align-items: flex-start;
   }
 
   .project-detail-content {
     width: min(100%, 760px);
-    max-height: calc(100vh - 28px);
-    grid-template-columns: 1fr;
+    max-height: calc(100dvh - 28px);
+    display: flex;
+    flex-direction: column;
   }
 
   .project-detail-media {
     border-right: 0;
     border-bottom: 1px solid hsla(45, 100%, 72%, 0.12);
     padding: 14px;
+    flex-shrink: 0;
   }
 
   .project-detail-media img {
@@ -5660,6 +5732,8 @@ body.project-modal-open {
   }
 
   .project-detail-body {
+    flex: 1 1 auto;
+    min-height: 0;
     padding: 22px 18px;
   }
 
@@ -6626,21 +6700,6 @@ body.project-modal-open {
   letter-spacing: 0.02em;
 }
 
-.blog-live-preview {
-  min-height: 120px;
-  max-height: 280px;
-  overflow: auto;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-  padding: 12px;
-  background: rgba(12, 18, 34, 0.45);
-}
-
-.blog-editor-preview-empty {
-  opacity: 0.72;
-  font-size: 13px;
-}
-
 .add-blog-modal .form-group label {
   font-weight: 600;
 }
@@ -6840,11 +6899,11 @@ body.project-modal-open {
 }
 
 .editor-btn {
-  background: transparent;
-  border: none;
-  color: var(--light-gray);
-  padding: 6px 10px;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: var(--light-gray-70);
+  padding: 6px 9px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s ease;
   display: flex;
@@ -6858,7 +6917,8 @@ body.project-modal-open {
 }
 
 .editor-btn:hover {
-  background: var(--onyx);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
   color: var(--white-1);
 }
 
@@ -6867,17 +6927,23 @@ body.project-modal-open {
 }
 
 .editor-btn.active {
-  background: var(--vegas-gold);
-  color: var(--smoky-black);
+  background: rgba(255, 193, 7, 0.18);
+  border-color: rgba(255, 193, 7, 0.35);
+  color: var(--white-1);
 }
 
 .editor-btn ion-icon {
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .editor-btn span {
   font-size: 12px;
   font-weight: 600;
+}
+
+.editor-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.18);
 }
 
 .btn-label {
@@ -10494,6 +10560,28 @@ body.project-modal-open {
   font-weight: var(--fw-500);
   letter-spacing: 0.02em;
   color: hsla(0, 0%, 88%, 0.38);
+}
+
+.dm-attachment-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 7px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  letter-spacing: 0.02em;
+  color: var(--orange-yellow-crayola);
+  border: 1px solid hsla(45, 100%, 72%, 0.3);
+  background: hsla(45, 100%, 72%, 0.08);
+  transition: var(--transition-1);
+}
+
+.dm-attachment-link:hover,
+.dm-attachment-link:focus-visible {
+  background: hsla(45, 100%, 72%, 0.16);
+  border-color: hsla(45, 100%, 72%, 0.5);
 }
 
 #dm-thread-panel .dm-admin-composer {

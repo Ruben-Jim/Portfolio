@@ -1778,13 +1778,6 @@ function bindProfessionalBlogFormEnhancements() {
   const editSlug = document.getElementById('edit-blog-slug');
   const addContent = document.getElementById('blog-content');
   const editContent = document.getElementById('edit-blog-content');
-  const addPreview = document.getElementById('blog-live-preview');
-  const editPreview = document.getElementById('edit-blog-live-preview');
-
-  function syncPreview(sourceEl, targetEl) {
-    if (!sourceEl || !targetEl) return;
-    targetEl.innerHTML = sanitizeBlogContentHtml(sourceEl.value || '');
-  }
 
   if (addTitle && addSlug) {
     addTitle.addEventListener('input', function () {
@@ -1810,20 +1803,16 @@ function bindProfessionalBlogFormEnhancements() {
     });
   }
 
-  if (addContent && addPreview) {
+  if (addContent) {
     addContent.addEventListener('input', function () {
       markBlogFormDirty('add');
-      syncPreview(addContent, addPreview);
     });
-    syncPreview(addContent, addPreview);
   }
 
-  if (editContent && editPreview) {
+  if (editContent) {
     editContent.addEventListener('input', function () {
       markBlogFormDirty('edit');
-      syncPreview(editContent, editPreview);
     });
-    syncPreview(editContent, editPreview);
   }
 
   if (addFormEl) {
@@ -1976,10 +1965,6 @@ function openEditBlogModal(postId) {
   const editTextarea = document.getElementById('edit-blog-content');
   if (editTextarea) {
     editTextarea.value = post.content;
-    var editPreview = document.getElementById('edit-blog-live-preview');
-    if (editPreview) {
-      editPreview.innerHTML = sanitizeBlogContentHtml(post.content || '');
-    }
     
     // Update editor stats if editor is initialized
     if (window.editEditor) {
@@ -2299,8 +2284,6 @@ function openAddBlogModal() {
       slugInput.value = '';
       slugInput.dataset.auto = '1';
     }
-    var previewEl = document.getElementById('blog-live-preview');
-    if (previewEl) previewEl.innerHTML = '<p class="blog-editor-preview-empty">Live preview appears here as you write.</p>';
 
     // Focus on title input
     const titleInput = document.getElementById('blog-title');
@@ -3685,6 +3668,13 @@ function initPortfolioProjectModal() {
   const admin = document.getElementById('project-detail-admin');
   const liveBtn = document.getElementById('project-detail-live');
   const quoteBtn = document.getElementById('project-detail-quote');
+
+  // Hard reset modal state on init so it never renders open by default.
+  if (modal) {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  document.body.classList.remove('project-modal-open');
 
   const PROJECT_DETAIL_CONTENT = {
     'Grippy Socks': {
@@ -7827,6 +7817,37 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  function escapeDmHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function normalizeDmAttachmentUrl(raw) {
+    const input = String(raw == null ? '' : raw).trim();
+    if (!input) return '';
+    try {
+      const parsed = new URL(input);
+      if (!/^https?:$/i.test(parsed.protocol)) return '';
+      return parsed.href;
+    } catch (error) {
+      return '';
+    }
+  }
+
+  function renderDmMessageBodyHtml(msg) {
+    return escapeDmHtml(msg && msg.body ? msg.body : '').replace(/\n/g, '<br>');
+  }
+
+  function renderDmAttachmentHtml(msg) {
+    const href = normalizeDmAttachmentUrl(msg && msg.attachmentUrl);
+    if (!href) return '';
+    return '<a class="dm-attachment-link" href="' + escapeDmHtml(href) + '" target="_blank" rel="noopener noreferrer">Attachment</a>';
+  }
+
   function renderThread(conversation, messages) {
     const title = document.getElementById('dm-thread-title');
     const subtitle = document.getElementById('dm-thread-subtitle');
@@ -7860,8 +7881,8 @@ document.addEventListener('DOMContentLoaded', function() {
         '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
         '<div class="dm-message-bubble">',
         '<p class="dm-message-author">' + authorLabel + '</p>',
-        '<div class="dm-message-body">' + (msg.body || '').replace(/\n/g, '<br>') + '</div>',
-        msg.attachmentUrl ? '<a class="dm-attachment-link" href="' + msg.attachmentUrl + '" target="_blank" rel="noopener">Attachment</a>' : '',
+        '<div class="dm-message-body">' + renderDmMessageBodyHtml(msg) + '</div>',
+        renderDmAttachmentHtml(msg),
         '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
         '</div>',
         '</div>'
@@ -8010,8 +8031,8 @@ document.addEventListener('DOMContentLoaded', function() {
         '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
         '<div class="dm-message-bubble">',
         '<p class="dm-message-author">' + authorLabel + '</p>',
-        '<div class="dm-message-body">' + (msg.body || '').replace(/\n/g, '<br>') + '</div>',
-        msg.attachmentUrl ? '<a class="dm-attachment-link" href="' + msg.attachmentUrl + '" target="_blank" rel="noopener">Attachment</a>' : '',
+        '<div class="dm-message-body">' + renderDmMessageBodyHtml(msg) + '</div>',
+        renderDmAttachmentHtml(msg),
         '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
         '</div></div>'
       ].join('');
@@ -8351,7 +8372,8 @@ document.addEventListener('DOMContentLoaded', function() {
         '<div class="dm-message-row ' + (mine ? 'dm-message-customer' : 'dm-message-admin') + '">',
         '<div class="dm-message-bubble">',
         '<p class="dm-message-author">' + (mine ? 'You' : 'Admin') + '</p>',
-        '<div class="dm-message-body">' + (msg.body || '').replace(/\n/g, '<br>') + '</div>',
+        '<div class="dm-message-body">' + renderDmMessageBodyHtml(msg) + '</div>',
+        renderDmAttachmentHtml(msg),
         '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? '' : (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) ) + '</p>',
         '</div>',
         '</div>'
