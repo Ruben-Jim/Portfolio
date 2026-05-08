@@ -2840,43 +2840,6 @@ function portfolioSafeProjectUrl(u) {
 function buildPortfolioProjectCardHtml(p) {
   const catSlug = String(p.category || 'professional').toLowerCase();
   const catLabel = portfolioCategoryLabel(catSlug);
-  const techArr = portfolioTechTagsFromRecord(p);
-  const techHtml = techArr
-    .map(function (t) {
-      return '<span class="tech-tag">' + portfolioEscapeHtml(t) + '</span>';
-    })
-    .join('');
-  let outcomeHtml = '';
-  if (p.outcome && String(p.outcome).trim()) {
-    outcomeHtml =
-      '<p class="project-outcome"><strong>Outcome:</strong> ' +
-      portfolioEscapeHtml(String(p.outcome).trim()) +
-      '</p>';
-  }
-  let actions = '<div class="project-actions">';
-  if (p.buyNowLabel && String(p.buyNowLabel).trim()) {
-    actions +=
-      '<a href="#contact" class="btn-buy-now" ' +
-      PORTFOLIO_CONTACT_ONCLICK +
-      '>' +
-      portfolioEscapeHtml(String(p.buyNowLabel).trim()) +
-      '</a>';
-  }
-  if (p.buyPremiumLabel && String(p.buyPremiumLabel).trim()) {
-    actions +=
-      '<a href="#contact" class="btn-buy-now btn-buy-premium" ' +
-      PORTFOLIO_CONTACT_ONCLICK +
-      '>' +
-      portfolioEscapeHtml(String(p.buyPremiumLabel).trim()) +
-      '</a>';
-  }
-  if (p.showQuoteButton !== false) {
-    actions +=
-      '<a href="#contact" class="btn-quote" ' +
-      PORTFOLIO_CONTACT_ONCLICK +
-      '>Similar Project? Get a Quote</a>';
-  }
-  actions += '</div>';
   const liveHref = portfolioSafeProjectUrl(p.projectUrl);
   return (
     '<li class="project-item active" data-filter-item data-category="' +
@@ -2898,7 +2861,6 @@ function buildPortfolioProjectCardHtml(p) {
     portfolioEscapeHtml(p.imageAlt || p.title || '') +
     '" loading="lazy">' +
     '</figure>' +
-    '</a>' +
     '<div class="project-content">' +
     '<h3 class="project-title">' +
     portfolioEscapeHtml(p.title || '') +
@@ -2906,16 +2868,10 @@ function buildPortfolioProjectCardHtml(p) {
     '<p class="project-category">' +
     portfolioEscapeHtml(catLabel) +
     '</p>' +
-    '<div class="project-details-card">' +
-    '<p class="project-description">' +
-    portfolioEscapeHtml(p.description || '') +
-    '</p>' +
-    '<div class="project-tech">' +
-    techHtml +
+    '<div class="project-bestfor-card" aria-label="Best for"></div>' +
     '</div>' +
-    outcomeHtml +
-    actions +
-    '</div></div></div></li>'
+    '</a>' +
+    '</div></li>'
   );
 }
 
@@ -3665,8 +3621,12 @@ function initPortfolioProjectModal() {
   const category = document.getElementById('project-detail-category');
   const title = document.getElementById('project-detail-title');
   const description = document.getElementById('project-detail-description');
+  const tech = document.getElementById('project-detail-tech');
+  const outcome = document.getElementById('project-detail-outcome');
   const admin = document.getElementById('project-detail-admin');
   const liveBtn = document.getElementById('project-detail-live');
+  const buyNowBtn = document.getElementById('project-detail-buy-now');
+  const buyPremiumBtn = document.getElementById('project-detail-buy-premium');
   const quoteBtn = document.getElementById('project-detail-quote');
 
   // Hard reset modal state on init so it never renders open by default.
@@ -3733,9 +3693,10 @@ function initPortfolioProjectModal() {
     projectCards.forEach((card) => {
       const titleNode = card.querySelector('.project-title');
       const categoryNode = card.querySelector('.project-category');
-      const detailsCard = card.querySelector('.project-details-card');
-      const existingSection = card.querySelector('.project-fit-section');
-      if (!titleNode || !detailsCard || existingSection) return;
+    const bestForContainer =
+      card.querySelector('.project-bestfor-card') || card.querySelector('.project-details-card');
+    const existingSection = card.querySelector('.project-fit-section');
+    if (!titleNode || !bestForContainer || existingSection) return;
 
       const titleText = titleNode.textContent.trim();
       const categoryText = categoryNode ? categoryNode.textContent.trim() : 'Project';
@@ -3772,12 +3733,7 @@ function initPortfolioProjectModal() {
       section.appendChild(heading);
       section.appendChild(list);
 
-      const actions = detailsCard.querySelector('.project-actions');
-      if (actions) {
-        detailsCard.insertBefore(section, actions);
-      } else {
-        detailsCard.appendChild(section);
-      }
+      bestForContainer.appendChild(section);
     });
   }
 
@@ -3813,7 +3769,7 @@ function initPortfolioProjectModal() {
 
     const titleText = cardTitle ? cardTitle.textContent.trim() : 'Project';
     const categoryText = cardCategory ? cardCategory.textContent.trim() : 'Project';
-    const descriptionText = cardDescription ? cardDescription.textContent.trim() : '';
+    let descriptionText = cardDescription ? cardDescription.textContent.trim() : '';
     const projectPreset = PROJECT_DETAIL_CONTENT[titleText];
     const rowItem = card.closest('.project-item');
     const pid = rowItem ? rowItem.getAttribute('data-portfolio-id') : null;
@@ -3824,6 +3780,12 @@ function initPortfolioProjectModal() {
       });
     }
 
+    // Card markup is intentionally minimal; rely on the source record for modal description.
+    if (record && record.description != null) {
+      const d = String(record.description).trim();
+      if (d) descriptionText = d;
+    }
+
     if (cardImage && image) {
       image.src = cardImage.getAttribute('src') || './assets/images/project-comingsoon.svg';
       image.alt = cardImage.getAttribute('alt') || 'Project preview';
@@ -3831,6 +3793,30 @@ function initPortfolioProjectModal() {
     if (title) title.textContent = titleText;
     if (category) category.textContent = categoryText;
     if (description) description.textContent = descriptionText;
+    if (tech) {
+      const tags = record ? portfolioTechTagsFromRecord(record) : [];
+      if (tags.length) {
+        tech.innerHTML = tags
+          .map(function (tag) {
+            return '<span class="tech-tag">' + portfolioEscapeHtml(String(tag)) + '</span>';
+          })
+          .join('');
+        tech.hidden = false;
+      } else {
+        tech.innerHTML = '';
+        tech.hidden = true;
+      }
+    }
+    if (outcome) {
+      const outcomeText = record && record.outcome != null ? String(record.outcome).trim() : '';
+      if (outcomeText) {
+        outcome.innerHTML = '<strong>Outcome:</strong> ' + portfolioEscapeHtml(outcomeText);
+        outcome.hidden = false;
+      } else {
+        outcome.textContent = '';
+        outcome.hidden = true;
+      }
+    }
 
     if (admin) {
       if (record && record.adminModalNote && String(record.adminModalNote).trim()) {
@@ -3849,6 +3835,27 @@ function initPortfolioProjectModal() {
       } else {
         liveBtn.href = '#';
         liveBtn.style.display = 'none';
+      }
+    }
+    if (buyNowBtn) {
+      const buyNowLabel = record && record.buyNowLabel != null ? String(record.buyNowLabel).trim() : '';
+      if (buyNowLabel) {
+        buyNowBtn.innerHTML =
+          '<ion-icon name="cart-outline"></ion-icon>' + portfolioEscapeHtml(buyNowLabel);
+        buyNowBtn.hidden = false;
+      } else {
+        buyNowBtn.hidden = true;
+      }
+    }
+    if (buyPremiumBtn) {
+      const buyPremiumLabel =
+        record && record.buyPremiumLabel != null ? String(record.buyPremiumLabel).trim() : '';
+      if (buyPremiumLabel) {
+        buyPremiumBtn.innerHTML =
+          '<ion-icon name="star-outline"></ion-icon>' + portfolioEscapeHtml(buyPremiumLabel);
+        buyPremiumBtn.hidden = false;
+      } else {
+        buyPremiumBtn.hidden = true;
       }
     }
   }
@@ -3889,6 +3896,26 @@ function initPortfolioProjectModal() {
   if (quoteBtn && !quoteBtn.dataset.portfolioDetailBound) {
     quoteBtn.dataset.portfolioDetailBound = '1';
     quoteBtn.addEventListener('click', function (event) {
+      event.preventDefault();
+      closeProjectModal();
+      if (typeof switchToPage === 'function') {
+        switchToPage('contact');
+      }
+    });
+  }
+  if (buyNowBtn && !buyNowBtn.dataset.portfolioDetailBound) {
+    buyNowBtn.dataset.portfolioDetailBound = '1';
+    buyNowBtn.addEventListener('click', function (event) {
+      event.preventDefault();
+      closeProjectModal();
+      if (typeof switchToPage === 'function') {
+        switchToPage('contact');
+      }
+    });
+  }
+  if (buyPremiumBtn && !buyPremiumBtn.dataset.portfolioDetailBound) {
+    buyPremiumBtn.dataset.portfolioDetailBound = '1';
+    buyPremiumBtn.addEventListener('click', function (event) {
       event.preventDefault();
       closeProjectModal();
       if (typeof switchToPage === 'function') {

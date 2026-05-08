@@ -3165,6 +3165,8 @@ article {
   text-transform: capitalize;
   line-height: 1.4;
   margin-bottom: 8px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .project-category {
@@ -3173,7 +3175,7 @@ article {
   font-weight: var(--fw-500);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 /* Enhanced Project Card Styles */
@@ -3183,17 +3185,17 @@ article {
   flex-direction: column;
   height: 100%;
   background: var(--eerie-black-2);
-  border-radius: 20px;
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: var(--shadow-2);
+  box-shadow: 0 18px 50px hsla(0, 0%, 0%, 0.28);
   transition: var(--transition-1);
   z-index: 1;
   border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
 
 .project-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px hsla(0, 0%, 0%, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 24px 70px hsla(0, 0%, 0%, 0.42);
 }
 
 .project-link {
@@ -3203,10 +3205,15 @@ article {
 }
 
 .project-content {
-  padding: 25px;
-  flex: 1;
+  padding: 20px 18px;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
+}
+
+/* Card-level Best For chips (injected by JS) */
+.project-bestfor-card {
+  min-width: 0;
 }
 
 .project-details-card {
@@ -3271,6 +3278,14 @@ article {
   margin: 14px 0 18px;
 }
 
+.project-bestfor-card .project-fit-section {
+  margin: 0;
+}
+
+.project-bestfor-card .project-fit-title {
+  margin: 0 0 10px;
+}
+
 .project-fit-title {
   margin: 0 0 8px;
   font-size: var(--fs-7);
@@ -3299,6 +3314,24 @@ article {
   color: var(--orange-yellow-crayola);
   font-size: var(--fs-8);
   font-weight: var(--fw-500);
+}
+
+@media (max-width: 480px) {
+  .project-content {
+    padding: 18px 16px;
+  }
+
+  .project-category {
+    margin-bottom: 10px;
+  }
+
+  .project-bestfor-card .project-fit-title {
+    margin-bottom: 8px;
+  }
+
+  .project-fit-list li {
+    padding: 6px 10px;
+  }
 }
 
 /* Button Styles */
