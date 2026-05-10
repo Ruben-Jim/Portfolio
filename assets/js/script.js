@@ -8953,3 +8953,34 @@ document.addEventListener('DOMContentLoaded', function() {
     setCustomerPortalAuthVisible(true);
   };
 })();
+
+/* ============================================
+   PRICING TAB SWITCHER
+   ============================================ */
+(function () {
+  function initPricingTabs() {
+    var tabs = document.querySelectorAll('[data-pricing-tab]');
+    if (!tabs.length) return;
+
+    tabs.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var target = btn.dataset.pricingTab;
+
+        tabs.forEach(function (b) {
+          b.classList.toggle('active', b === btn);
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+        });
+
+        document.querySelectorAll('.pricing-tab-panel').forEach(function (panel) {
+          panel.classList.toggle('active', panel.id === 'panel-' + target);
+        });
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPricingTabs);
+  } else {
+    initPricingTabs();
+  }
+})();

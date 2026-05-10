@@ -1526,151 +1526,267 @@
 
         <section class="about-text">
           <p>
-            Transparent pricing for all development services. All projects include consultation, planning, and professional delivery. Get a custom quote tailored to your specific needs.
+            Transparent fixed bundles for mixed project needs, including design + development, development-only builds, marketing websites, and e-commerce setups. Every package total includes maintenance for the first year.
           </p>
         </section>
 
         <section class="service">
 
-          <h3 class="h3 service-title">Services & Pricing</h3>
+          <div class="pricing-tab-bar" role="tablist" aria-label="Pricing tiers">
+            <button
+              class="pricing-tab-btn active"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panel-standard"
+              data-pricing-tab="standard"
+            >Solo &amp; local</button>
+            <button
+              class="pricing-tab-btn"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-enterprise"
+              data-pricing-tab="enterprise"
+            >Enterprise <span class="tab-badge">Custom</span></button>
+          </div>
 
-          <ul class="service-list">
+          <div id="panel-standard" class="pricing-tab-panel active" role="tabpanel">
+            <h3 class="h3 service-title">Services & Pricing</h3>
 
-            <li class="service-item">
+            <div class="enterprise-grid standard-bundles-grid">
 
-              <div class="service-icon-box">
-                <ion-icon name="code-slash-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web & Mobile App Development + Code Licensing</h4>
-
-                <p class="service-item-text">
-                  Custom web/mobile builds with reusable licensing options, including deployment setup and source code access.
-                </p>
-
-                <div class="service-pricing">
-                  <span class="price-amount">$500-$3,000</span>
-                  <span class="price-type">Typical Project Range</span>
+              <div class="enterprise-card">
+                <div class="enterprise-card-title">Starter Essentials</div>
+                <div class="enterprise-card-sub">
+                  1-3 page website or starter storefront for fast launch projects. Ideal for new businesses needing a clean online presence quickly.
                 </div>
-
-                <p class="service-note">12 months support included. After year 1:<br>
-                  Web only maintenance starts at $50/month &nbsp;·&nbsp; Web + Mobile (iOS &amp; Android) starts at $125/month
-                </p>
-
-                <a href="#contact" class="btn-pricing" onclick="prefillContactForm('Web & Mobile App Development + Code Licensing', 'Interested in web/mobile app development with code licensing options ($500-$3,000 typical project range + 12 months support included)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                <div class="enterprise-price">$500</div>
+                <div class="enterprise-price-note">Fixed package · Maintenance included · Year 1 only</div>
+                <ul class="enterprise-feature-list">
+                  <li>Frontend UI pages (1-3 pages)</li>
+                  <li>Quote request + booking request forms</li>
+                  <li>DM/contact channel links (Instagram/WhatsApp/email)</li>
+                  <li>Basic SEO setup + analytics tracking</li>
+                  <li>Deployment + hosting setup support</li>
+                </ul>
+                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Starter Essentials ($500)', 'Interested in the Starter Essentials package at $500 (maintenance included for the first year only). I need a fast-launch site/store with core pages and setup support.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Get a Quote
+                  Start at $500
                 </a>
               </div>
 
-            </li>
-
-            <li class="service-item">
-
-              <div class="service-icon-box">
-                <ion-icon name="repeat-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Maintenance Plans (After Year 1)</h4>
-
-                <p class="service-item-text">
-                  Ongoing support for hosting, updates, monitoring, and minor fixes after your first year. New features and major scope changes are quoted separately.
-                </p>
-
-                <div class="maintenance-plan-grid">
-                  <div class="maintenance-plan-card">
-                    <span class="maintenance-plan-label">Web Only</span>
-                    <span class="maintenance-plan-price">$50-$99/mo</span>
-                    <ul class="maintenance-plan-list">
-                      <li>Response: within 72 business hours</li>
-                    </ul>
-                  </div>
-
-                  <div class="maintenance-plan-card">
-                    <span class="maintenance-plan-label">Web + Mobile</span>
-                    <span class="maintenance-plan-price">$125-$249/mo</span>
-                    <ul class="maintenance-plan-list">
-                      <li>Response: within 24 business hours</li>
-                      <li>Web + iOS + Android support</li>
-                    </ul>
-                  </div>
+              <div class="enterprise-card featured-card">
+                <span class="enterprise-card-badge">Most Popular</span>
+                <div class="enterprise-card-title">Growth Presence</div>
+                <div class="enterprise-card-sub">
+                  Everything in Starter plus up to 5 pages, stronger branding polish, lead capture setup, SEO basics, and optional simple product catalog.
                 </div>
-
-                <p class="service-note">
-                  Update frequency: Web only = 1 maintenance window/month. Web + Mobile = 2 maintenance windows/month. Emergency incidents acknowledged in 4-12 hours during business hours.
-                </p>
-
-                <a href="#contact" class="btn-pricing" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance plans after year 1 (Web only $50-$99/mo or Web + Mobile $125-$249/mo)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                <div class="enterprise-price">$750</div>
+                <div class="enterprise-price-note">Fixed package · Maintenance included · Year 1 only</div>
+                <ul class="enterprise-feature-list">
+                  <li>Everything in Starter + up to 5 pages</li>
+                  <li>Firebase backend/API for quotes, booking, and DM leads</li>
+                  <li>Firestore database + Firebase Auth (email/social login)</li>
+                  <li>CMS/Admin panel for leads/content updates</li>
+                  <li>Cloud Functions + basic Storage + analytics events</li>
+                </ul>
+                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Growth Presence ($750)', 'Interested in the Growth Presence package at $750 (maintenance included for the first year only). I want stronger branding, up to 5 pages, and lead-focused setup.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Discuss Plan
+                  Choose $750 Package
                 </a>
               </div>
 
-            </li>
-
-            <!-- <li class="service-item">
-
-              <div class="service-icon-box">
-                <ion-icon name="time-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Hourly Consulting</h4>
-
-                <p class="service-item-text">
-                  Expert guidance for Expo/React Native development, API integrations (e.g., football data), code reviews, bug fixes, architecture consultation, and performance optimization.
-                </p>
-
-                <div class="service-pricing">
-                  <span class="price-amount">$75/hour</span>
-                  <span class="price-type">Hourly Rate</span>
+              <div class="enterprise-card">
+                <div class="enterprise-card-title">Pro Automation</div>
+                <div class="enterprise-card-sub">
+                  Everything in Growth plus lightweight automation/integrations, enhanced form workflows, and QA/performance hardening.
                 </div>
-
-                <a href="#contact" class="btn-pricing" onclick="prefillContactForm('Hourly Consulting', 'Interested in hourly consulting ($75/hour)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                <div class="enterprise-price">$1000</div>
+                <div class="enterprise-price-note">Fixed package · Maintenance included · Year 1 only</div>
+                <ul class="enterprise-feature-list">
+                  <li>Everything in Growth + stronger Firebase workflows</li>
+                  <li>Role-based Auth + deeper Firestore data modeling</li>
+                  <li>Payments integration (Stripe/checkout/payment flow)</li>
+                  <li>Cloud Functions automation + Storage file handling</li>
+                  <li>Performance QA + Firebase Analytics conversion setup</li>
+                </ul>
+                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Pro Automation ($1000)', 'Interested in the Pro Automation package at $1000 (maintenance included for the first year only). I need integrations and smoother automated workflows.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Get a Quote
+                  Choose $1000 Package
                 </a>
               </div>
 
-            </li> -->
-
-            <!-- <li class="service-item service-item-featured">
-
-              <div class="service-icon-box">
-                <ion-icon name="cube-outline" style="font-size: 40px; color: var(--orange-yellow-crayola);"></ion-icon>
-              </div>
-
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Community Tech Package <span class="featured-badge">Popular</span></h4>
-
-                <p class="service-item-text">
-                  Complete solution bundle including HOA app code license, Gadget Garage integration, community management features, tech inventory tracking, 12 months support, custom branding, and setup assistance. Save $500+ vs. purchasing separately.
-                </p>
-
-                <div class="service-pricing">
-                  <span class="price-amount">$2,000</span>
-                  <span class="price-type">Bundle Package</span>
+              <div class="enterprise-card">
+                <div class="enterprise-card-title">Premium Build</div>
+                <div class="enterprise-card-sub">
+                  Higher-complexity build for larger websites or advanced stores with deeper integrations, admin handoff, and launch readiness checks.
                 </div>
-
-                <a href="#contact" class="btn-pricing btn-pricing-featured" onclick="prefillContactForm('Community Tech Package', 'Interested in Community Tech Package bundle ($2,000)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
-                  <ion-icon name="cart-outline"></ion-icon>
-                  Get This Package
+                <div class="enterprise-price">$2500</div>
+                <div class="enterprise-price-note">Fixed package · Maintenance included · Year 1 only</div>
+                <ul class="enterprise-feature-list">
+                  <li>Everything in Pro + advanced store/business scope</li>
+                  <li>Full Firebase stack: Auth, Firestore, Functions, Storage</li>
+                  <li>Payments + subscriptions + webhook-driven automations</li>
+                  <li>FCM notifications + Remote Config + App Check hardening</li>
+                  <li>Advanced CMS/Admin panel and operations tools</li>
+                  <li>Crashlytics/monitoring + deployment hardening + handoff</li>
+                </ul>
+                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Premium Build ($2500)', 'Interested in the Premium Build package at $2500 (maintenance included for the first year only). I need a larger-scope build with advanced integrations and launch support.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                  <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+                  Choose $2500 Package
                 </a>
               </div>
 
-            </li> -->
+            </div>
 
-          </ul>
+            <h3 class="h3 service-title standard-addons-heading">Maintenance Plans</h3>
+            <div class="enterprise-grid maintenance-tier-grid">
+              <div class="enterprise-card">
+                <span class="enterprise-card-badge">Web</span>
+                <div class="enterprise-card-title">Web Only</div>
+                <div class="enterprise-card-sub">
+                  Ongoing support for hosting, updates, monitoring, and minor fixes after your first year.
+                </div>
+                <div class="enterprise-price">$50–$99<span style="font-size:1rem">/mo</span></div>
+                <div class="enterprise-price-note">72-hour response · 1 maintenance window/month</div>
+                <ul class="enterprise-feature-list">
+                  <li>Response within 72 business hours</li>
+                  <li>Hosting, updates, monitoring, minor fixes</li>
+                </ul>
+              </div>
 
-        </section>
+              <div class="enterprise-card">
+                <span class="enterprise-card-badge">Web + Mobile</span>
+                <div class="enterprise-card-title">Web + Mobile</div>
+                <div class="enterprise-card-sub">
+                  Same ongoing coverage across web plus iOS and Android.
+                </div>
+                <div class="enterprise-price">$125–$249<span style="font-size:1rem">/mo</span></div>
+                <div class="enterprise-price-note">24-hour response · 2 maintenance windows/month</div>
+                <ul class="enterprise-feature-list">
+                  <li>Response within 24 business hours</li>
+                  <li>Web + iOS + Android support</li>
+                </ul>
+              </div>
+            </div>
 
-        <section class="about-text" style="margin-top: 30px;">
-          <p>
-            <strong>Note:</strong> All prices are starting points. Final quotes depend on project scope, complexity, and specific requirements. 
-            Contact me for a detailed estimate tailored to your needs.
-          </p>
+            <!-- <div class="enterprise-note-box maintenance-policies-note">
+              <p>
+                <strong>New features and major scope changes</strong> are quoted separately.
+                Update frequency: Web only = 1 maintenance window/month. Web + Mobile = 2 maintenance windows/month.
+                Emergency incidents acknowledged in 4–12 hours during business hours.
+              </p>
+            </div> -->
+
+            <div class="standard-addon-cta-wrap">
+              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance plans after year 1 (Web only $50-$99/mo or Web + Mobile $125-$249/mo)'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
+                Discuss Plan
+              </a>
+            </div>
+
+            <h3 class="h3 service-title standard-addons-heading">Ownership Upgrade (Buyout)</h3>
+            <div class="enterprise-grid standard-addons-grid">
+              <div class="enterprise-card full-width">
+                <span class="enterprise-card-badge">Optional</span>
+                <div class="enterprise-card-title">Ownership Upgrade (Buyout Option)</div>
+                <div class="enterprise-card-sub">
+                  Optional premium transfer path for full ownership rights, including source-code/IP transfer, repo handoff, and transition documentation.
+                </div>
+                <div class="enterprise-price">$5,000–$10,000</div>
+                <div class="enterprise-price-note">One-time buyout · Scope-based · Separate from fixed tiers</div>
+                <ul class="enterprise-feature-list">
+                  <li>Full ownership rights with source-code/IP transfer</li>
+                  <li>Repository handoff + transition documentation</li>
+                  <li>Scoped separately from the fixed package tiers</li>
+                </ul>
+                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Ownership Upgrade (Buyout Option)', 'Interested in Ownership Upgrade buyout ($5,000-$10,000 range). Please share what is included for source-code/IP transfer and handoff.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                  Discuss Buyout ($5k–$10k)
+                </a>
+              </div>
+            </div>
+
+
+            <section class="about-text" style="margin-top: 30px;">
+              <p>
+                <strong>Note:</strong> Final scope is confirmed after discovery; package pricing above includes maintenance for the first year only. Managed Turn-Key and Asset Buyout policies still apply where relevant.
+              </p>
+            </section>
+          </div>
+
+          <div id="panel-enterprise" class="pricing-tab-panel" role="tabpanel">
+            <div class="enterprise-grid">
+              <div class="enterprise-card">
+                <span class="enterprise-card-badge">Ongoing</span>
+                <div class="enterprise-card-title">Platform Retainer</div>
+                <div class="enterprise-card-sub">Dedicated monthly engineering hours</div>
+                <div class="enterprise-price">$2,000–$5,000<span style="font-size:1rem">/mo</span></div>
+                <div class="enterprise-price-note">Monthly · Minimum 3-month commitment</div>
+                <ul class="enterprise-feature-list">
+                  <li>40–100 dedicated engineering hours per month</li>
+                  <li>Priority response — 4-hour SLA during business hours</li>
+                  <li>New feature development + ongoing iterations</li>
+                  <li>Bug fixes, security patches, dependency updates</li>
+                  <li>Monthly strategy call + progress report</li>
+                  <li>All work tracked and reported transparently</li>
+                </ul>
+                <a href="#contact" class="enterprise-cta">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  Book a call
+                </a>
+              </div>
+
+              <div class="enterprise-card featured-card">
+                <span class="enterprise-card-badge">Most value</span>
+                <div class="enterprise-card-title">Multi-App Studio Deal</div>
+                <div class="enterprise-card-sub">Multiple platforms built under one engagement</div>
+                <div class="enterprise-price">Custom</div>
+                <div class="enterprise-price-note">Scope-based · Contact for quote</div>
+                <ul class="enterprise-feature-list">
+                  <li>Web platform + iOS + Android — one unified build</li>
+                  <li>Admin portal + client-facing portal + staff app</li>
+                  <li>Single Expo codebase across all surfaces</li>
+                  <li>Firebase backend, Stripe payments, push notifications</li>
+                  <li>Full bilingual support — English + Spanish</li>
+                  <li>Dedicated project manager + weekly syncs</li>
+                  <li>Full source handoff + documentation on completion</li>
+                </ul>
+                <a href="#contact" class="enterprise-cta">
+                  <ion-icon name="chatbubble-outline"></ion-icon>
+                  Let's talk scope
+                </a>
+              </div>
+
+              <div class="enterprise-card full-width">
+                <span class="enterprise-card-badge">Agency</span>
+                <div class="enterprise-card-title">White-Label Partner</div>
+                <div class="enterprise-card-sub">CWR builds under your agency's brand</div>
+                <div class="enterprise-price">$3,000–$8,000</div>
+                <div class="enterprise-price-note">Per project · Volume discounts available</div>
+                <ul class="enterprise-feature-list">
+                  <li>Full production builds delivered under your brand — no CWR attribution</li>
+                  <li>Your clients never know we exist — full NDA available on request</li>
+                  <li>Same CWR standards: TypeScript, Firebase, Expo, NativeWind</li>
+                  <li>Clean repo handoff — you own all the code</li>
+                  <li>Volume pricing for agencies with recurring project flow</li>
+                  <li>Dedicated Slack channel for agency partners</li>
+                </ul>
+                <a href="#contact" class="enterprise-cta">
+                  <ion-icon name="business-outline"></ion-icon>
+                  Partner inquiry
+                </a>
+              </div>
+            </div>
+
+            <div class="enterprise-note-box">
+              <p>
+                <strong>All enterprise engagements start with a free 30-minute discovery call.</strong>
+                Every project is scoped before any commitment. No retainer starts without a signed
+                agreement and 50% deposit. Existing clients get priority scheduling.
+              </p>
+            </div>
+          </div>
+
         </section>
 
       </article>
