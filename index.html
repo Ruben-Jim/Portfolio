@@ -3229,6 +3229,7 @@
               <select id="blog-status" name="status" required>
                 <option value="published">Published</option>
                 <option value="draft">Draft</option>
+                <option value="private">Private</option>
               </select>
             </div>
             <div class="form-group form-group-half">
@@ -3521,6 +3522,7 @@
               <select id="edit-blog-status" name="status" required>
                 <option value="published">Published</option>
                 <option value="draft">Draft</option>
+                <option value="private">Private</option>
               </select>
             </div>
             <div class="form-group form-group-half">
@@ -4589,6 +4591,35 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - custom js link
   -->
+  <!-- Private Blog Post Password Modal -->
+  <div class="private-post-modal" id="private-post-modal" role="dialog" aria-modal="true" aria-labelledby="private-post-modal-title">
+    <div class="private-post-overlay" id="private-post-overlay"></div>
+    <div class="private-post-content">
+      <button class="private-post-close-btn" id="private-post-close-btn" aria-label="Close">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+      <div class="private-post-icon">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+      </div>
+      <h3 class="h3" id="private-post-modal-title">Private Post</h3>
+      <p class="private-post-hint">This post is password protected. Enter the password to read it.</p>
+      <div class="private-post-input-wrap">
+        <input
+          type="password"
+          id="private-post-password-input"
+          class="private-post-input"
+          placeholder="Enter password"
+          autocomplete="off"
+        >
+        <p class="private-post-error" id="private-post-error">Incorrect password. Please try again.</p>
+      </div>
+      <button class="btn btn-primary private-post-submit-btn" id="private-post-submit-btn">
+        <ion-icon name="unlock-outline"></ion-icon>
+        Unlock
+      </button>
+    </div>
+  </div>
+
   <script src="./assets/js/portfolio-built-in-data.js"></script>
   <script src="./assets/js/script.js?v=bizdoc-20260506-pro-blog-editor-v2-fix-init-order"></script>
   <script src="./assets/js/dm-migration.js"></script>

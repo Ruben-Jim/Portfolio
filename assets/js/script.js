@@ -90,6 +90,9 @@ const ADMIN_CREDENTIALS = {
   password: 'admin123'
 };
 
+// Global password gate for private blog posts (UI-only, casual security)
+const PRIVATE_POST_PASSWORD = 'private123';
+
 // Global currentUser - simple session management
 let currentUser = null;
 
@@ -186,7 +189,7 @@ function normalizeBlogPostRecord(input, id) {
     authorName: String(rec.authorName || 'Ruben Jimenez'),
     readTimeMinutes: Number(rec.readTimeMinutes) > 0 ? Number(rec.readTimeMinutes) : '',
     tags: tagsArray.slice(0, 20),
-    status: ['draft', 'published'].indexOf(status) >= 0 ? status : 'published',
+    status: ['draft', 'published', 'private'].indexOf(status) >= 0 ? status : 'published',
     publishAt: String(rec.publishAt || ''),
     createdAt: rec.createdAt || null,
     updatedAt: rec.updatedAt || null
@@ -201,6 +204,66 @@ function isBlogPostPublished(post) {
     if (!Number.isNaN(publishAtMs) && publishAtMs > Date.now()) return false;
   }
   return true;
+}
+
+// Returns true for both published posts and private posts (both visible in the public list)
+function isBlogPostVisible(post) {
+  if (!post) return false;
+  const status = String(post.status || '').toLowerCase();
+  if (status === 'private') return true;
+  return isBlogPostPublished(post);
+}
+
+// Opens the blog reader modal with the given post's content
+function openBlogReader(post) {
+  blogModalImage.src = post.image;
+  blogModalImage.alt = post.title;
+  blogModalCategory.innerHTML = post.category;
+  blogModalDate.innerHTML = formatDate(post.date);
+  blogModalDate.setAttribute('datetime', post.date);
+  blogModalTitle.innerHTML = post.title;
+  blogModalText.innerHTML = post.content;
+  blogModalFunc();
+}
+
+// --- Private post password modal ---
+let pendingPrivatePost = null;
+
+function openPrivatePostModal(post) {
+  pendingPrivatePost = post;
+  const modal = document.getElementById('private-post-modal');
+  const input = document.getElementById('private-post-password-input');
+  const errorEl = document.getElementById('private-post-error');
+  if (input) input.value = '';
+  if (errorEl) errorEl.style.display = 'none';
+  if (modal) modal.classList.add('active');
+  if (input) setTimeout(function () { input.focus(); }, 80);
+}
+
+function closePrivatePostModal() {
+  const modal = document.getElementById('private-post-modal');
+  if (modal) modal.classList.remove('active');
+  pendingPrivatePost = null;
+}
+
+function submitPrivatePostPassword() {
+  const input = document.getElementById('private-post-password-input');
+  const errorEl = document.getElementById('private-post-error');
+  const val = input ? input.value : '';
+  if (val === PRIVATE_POST_PASSWORD) {
+    closePrivatePostModal();
+    if (pendingPrivatePost) {
+      openBlogReader(pendingPrivatePost);
+    }
+  } else {
+    if (input) {
+      input.classList.remove('shake');
+      void input.offsetWidth;
+      input.classList.add('shake');
+      input.value = '';
+    }
+    if (errorEl) errorEl.style.display = 'block';
+  }
 }
 
 function isSlugUnique(slug, excludeId) {
@@ -410,9 +473,9 @@ function showError(message) {
 function renderBlogPosts() {
   const blogPostsList = document.getElementById('blog-posts-list');
   blogPostsList.innerHTML = '';
-  const publicPosts = blogPosts.filter(isBlogPostPublished);
+  const visiblePosts = blogPosts.filter(isBlogPostVisible);
 
-  if (publicPosts.length === 0) {
+  if (visiblePosts.length === 0) {
     blogPostsList.innerHTML = `
       <li class="empty-item">
         <p>No published blog posts yet.</p>
@@ -421,15 +484,17 @@ function renderBlogPosts() {
     return;
   }
 
-  console.log('Rendering blog posts:', publicPosts);
+  console.log('Rendering blog posts:', visiblePosts);
 
-  publicPosts.forEach(post => {
+  visiblePosts.forEach(post => {
+    const isPrivate = String(post.status || '').toLowerCase() === 'private';
     const blogItem = document.createElement('li');
     blogItem.className = 'blog-post-item';
     blogItem.innerHTML = `
-      <a href="#" data-blog-item data-blog-id="${post.id}">
+      <a href="#" data-blog-item data-blog-id="${post.id}" data-blog-private="${isPrivate}">
         <figure class="blog-banner-box">
           <img src="${post.image}" alt="${post.title}" loading="lazy" data-blog-image>
+          ${isPrivate ? '<div class="blog-private-lock"><ion-icon name="lock-closed-outline"></ion-icon></div>' : ''}
         </figure>
         
         <div class="blog-content">
@@ -492,8 +557,9 @@ function renderAdminBlogPosts() {
           <h3 class="h3 blog-item-title" data-blog-title>${post.title}</h3>
 
           <p class="blog-text" data-blog-excerpt>${post.excerpt}</p>
-          <p class="blog-text" style="font-size: 12px; opacity: 0.75; margin-top: 8px;">
+          <p class="blog-text" style="font-size: 12px; opacity: 0.75; margin-top: 8px; display: flex; align-items: center; gap: 6px;">
             ${String(post.status || 'published').toUpperCase()}${post.publishAt ? ` • ${post.publishAt}` : ''}
+            ${String(post.status || '').toLowerCase() === 'private' ? '<span class="blog-private-badge"><ion-icon name="lock-closed-outline"></ion-icon> Private</span>' : ''}
           </p>
         </div>
       </a>
@@ -541,16 +607,12 @@ function attachBlogEventListeners() {
       
       if (post) {
         console.log('Found post:', post);
-        // Update modal content
-        blogModalImage.src = post.image;
-        blogModalImage.alt = post.title;
-        blogModalCategory.innerHTML = post.category;
-        blogModalDate.innerHTML = formatDate(post.date);
-        blogModalDate.setAttribute('datetime', post.date);
-        blogModalTitle.innerHTML = post.title;
-        blogModalText.innerHTML = post.content;
-        
-        blogModalFunc();
+        const isPrivate = String(post.status || '').toLowerCase() === 'private';
+        if (isPrivate && !isAdmin()) {
+          openPrivatePostModal(post);
+        } else {
+          openBlogReader(post);
+        }
       } else {
         console.error('Blog post not found:', blogId);
         console.error('Available IDs:', blogPosts.map(p => p.id));
@@ -925,8 +987,8 @@ function collectBlogPostFromForm(form, isEdit) {
   if (!isSlugUnique(slug, id || null)) {
     throw new Error('Slug already exists. Please choose a unique slug.');
   }
-  if (['draft', 'published'].indexOf(status) < 0) {
-    throw new Error('Status must be draft or published.');
+  if (['draft', 'published', 'private'].indexOf(status) < 0) {
+    throw new Error('Status must be draft, published, or private.');
   }
 
   return normalizeBlogPostRecord({
@@ -1042,6 +1104,30 @@ if (addBlogOverlay) {
 if (cancelBlogBtn) {
   cancelBlogBtn.addEventListener('click', closeAddBlogModal);
 }
+
+// Private post password modal event listeners
+(function bindPrivatePostModal() {
+  const modal = document.getElementById('private-post-modal');
+  if (!modal) return;
+
+  const overlay = document.getElementById('private-post-overlay');
+  const closeBtn = document.getElementById('private-post-close-btn');
+  const submitBtn = document.getElementById('private-post-submit-btn');
+  const input = document.getElementById('private-post-password-input');
+
+  if (overlay) overlay.addEventListener('click', closePrivatePostModal);
+  if (closeBtn) closeBtn.addEventListener('click', closePrivatePostModal);
+  if (submitBtn) submitBtn.addEventListener('click', submitPrivatePostPassword);
+  if (input) {
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') submitPrivatePostPassword();
+      if (e.key === 'Escape') closePrivatePostModal();
+    });
+    input.addEventListener('animationend', function () {
+      input.classList.remove('shake');
+    });
+  }
+}());
 
 // Prevent clicks inside modal content from closing the modal
 if (addBlogModal) {
