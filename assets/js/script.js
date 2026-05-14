@@ -4605,6 +4605,9 @@ window.addEventListener('load', function() {
       setupAuthListeners();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
+      if (typeof window.loadDynamicTestimonials === 'function') {
+        window.loadDynamicTestimonials();
+      }
     } else {
       console.error('Firebase initialization failed');
       await bootstrapPortfolioUi();
@@ -4652,21 +4655,38 @@ window.addEventListener('load', function() {
     return out;
   }
 
+  function testimonialCreatedMs(d) {
+    var c = d && d.createdAt;
+    if (!c) return 0;
+    if (typeof c.toMillis === "function") return c.toMillis();
+    if (typeof c.seconds === "number") return c.seconds * 1000 + (c.nanoseconds || 0) / 1e6;
+    return 0;
+  }
+
   async function loadDynamicTestimonials() {
-    if (!window.db || !window.collection || !window.query || !window.orderBy || !window.getDocs || !window.limit) {
+    if (!window.db || !window.collection || !window.getDocs) {
       return;
     }
-    var list = document.querySelector(".testimonials-list");
+    var list =
+      document.querySelector("article.about .testimonials-list") ||
+      document.querySelector(".testimonials-list");
     if (!list) return;
     try {
       var ref = window.collection(window.db, "testimonials");
-      var q = window.query(ref, window.orderBy("createdAt", "desc"), window.limit(40));
-      var snap = await window.getDocs(q);
+      var snap = await window.getDocs(ref);
+      var rows = [];
+      snap.forEach(function (docSnap) {
+        rows.push({ id: docSnap.id, data: docSnap.data() });
+      });
+      rows.sort(function (a, b) {
+        return testimonialCreatedMs(b.data) - testimonialCreatedMs(a.data);
+      });
+      rows = rows.slice(0, 40);
       list.querySelectorAll('li[data-dynamic-testimonial="1"]').forEach(function (n) {
         n.remove();
       });
-      snap.forEach(function (docSnap) {
-        var d = docSnap.data();
+      rows.forEach(function (row) {
+        var d = row.data;
         var name = escapeTestimonialHtml(d.name);
         var title = escapeTestimonialHtml(d.title);
         var company = escapeTestimonialHtml(d.company);
@@ -4721,6 +4741,14 @@ window.addEventListener('load', function() {
   }
 
   window.loadDynamicTestimonials = loadDynamicTestimonials;
+
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (typeof window.loadDynamicTestimonials === 'function') {
+        window.loadDynamicTestimonials();
+      }
+    }, 400);
+  });
 
   async function loadTestimonialAdminPanel() {
     if (!currentUser || currentUser.role !== "admin") return;
