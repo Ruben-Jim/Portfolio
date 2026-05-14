@@ -35,7 +35,15 @@ const DM_FEATURE_FLAGS = {
   enableCustomerMagicLinks: true
 };
 
+/**
+ * Public site origin for links in outbound emails (testimonial invites, etc.).
+ * Set to your live domain so invites work when sent from localhost or staging.
+ * Leave "" to use the current browser origin (fine if you only send invites from production).
+ */
+const PORTFOLIO_PUBLIC_ORIGIN = "https://rubenjimenez.dev";
+
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
 window.RESEND_EMAIL_CONFIG = RESEND_EMAIL_CONFIG;
 window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;
+window.PORTFOLIO_PUBLIC_ORIGIN = PORTFOLIO_PUBLIC_ORIGIN;

@@ -378,7 +378,17 @@ function buildTestimonialRequestHtml(p) {
     url +
     "</a></td></tr>" +
     wrapPanel(
-      infoRow("contact", "Product", p.product || ""),
+      '<tr><td style="padding:0 0 15px 0;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>' +
+      '<td style="vertical-align:top;width:90px;">' +
+      '<span style="color:' +
+      accent.label +
+      ';font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;">' +
+      "Product</span></td>" +
+      '<td style="vertical-align:top;padding-left:15px;">' +
+      '<span style="color:#e8e8e8;font-size:16px;font-weight:500;line-height:1.6;word-break:break-word;">' +
+      product +
+      "</span></td></tr></table></td></tr>",
       T.contact.panelBg,
       ""
     );

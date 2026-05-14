@@ -4172,12 +4172,30 @@ for (let i = 0; i < navigationLinks.length; i++) {
   });
 }
 
+/** True when URL is for standalone testimonial.html but the SPA shell (index) was served instead. */
+function isTestimonialUrlServedAsSpaShell() {
+  try {
+    var p = (window.location.pathname || '').toLowerCase();
+    if (p.indexOf('testimonial') === -1) return false;
+    if (document.getElementById('testimonial-form')) return false;
+    return !!document.querySelector('article.about[data-page="about"]');
+  } catch (e) {
+    return false;
+  }
+}
+
 // Restore active page from URL path or localStorage on page load with loading animation
 function restoreActivePage() {
   var loadingScreen = document.getElementById('loading-screen');
   var redirectPage = getPageFromRedirectParam();
   var pageFromPath = getPageFromPath();
   var savedPage = localStorage.getItem('activePage');
+  // If /testimonial(.html) was rewritten to index.html, do not apply last SPA tab (often "contact").
+  if (isTestimonialUrlServedAsSpaShell()) {
+    savedPage = null;
+    pageFromPath = null;
+    redirectPage = null;
+  }
   // URL path wins (e.g. rubenjimenez.dev/portfolio), then localStorage, then about
   // Redirect param wins (from 404 fallback), then URL path, then localStorage, then about
   var targetPage = redirectPage || pageFromPath || savedPage || 'about';
@@ -5097,7 +5115,11 @@ window.addEventListener('load', function() {
             return v.toString(16);
           });
         }
-        var url = window.location.origin + '/testimonial.html?token=' + encodeURIComponent(token);
+        var origin =
+          (window.PORTFOLIO_PUBLIC_ORIGIN && String(window.PORTFOLIO_PUBLIC_ORIGIN).trim()) ||
+          window.location.origin;
+        origin = origin.replace(/\/$/, '');
+        var url = origin + '/testimonial.html?token=' + encodeURIComponent(token);
         if (inviteStatus) inviteStatus.textContent = 'Saving invite and sending email…';
         try {
           await window.setDoc(window.doc(window.db, 'testimonialTokens', token), {
@@ -6122,7 +6144,18 @@ window.addEventListener('load', function() {
     var tabBar = root.querySelector('.admin-tab-bar');
     if (!tabBar) return;
     var tabs = tabBar.querySelectorAll('.admin-tab[role="tab"]');
-    var panels = root.querySelectorAll('.admin-tab-panel');
+    var panelHost = root.querySelector('.admin-tab-panels');
+    var panels = [];
+    if (panelHost) {
+      var ch = panelHost.children;
+      for (var pi = 0; pi < ch.length; pi++) {
+        if (ch[pi].classList && ch[pi].classList.contains('admin-tab-panel')) {
+          panels.push(ch[pi]);
+        }
+      }
+    } else {
+      panels = Array.prototype.slice.call(root.querySelectorAll('.admin-tab-panel'));
+    }
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = { docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, ops: 1 };
 
