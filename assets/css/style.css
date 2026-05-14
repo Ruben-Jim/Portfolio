@@ -8798,7 +8798,8 @@ body.project-modal-open {
 }
 
 .admin-tabs .business-docs-table-wrapper,
-.admin-tabs #blog-section .blog-posts-list {
+.admin-tabs #blog-section .blog-posts-list,
+.admin-tabs #admin-testimonials-combined-list {
   max-height: min(48vh, 520px);
   overflow-y: auto;
 }
@@ -8808,9 +8809,44 @@ body.project-modal-open {
   overflow-y: auto;
 }
 
+/* Combined testimonial invites + submissions: one card per row */
+#admin-testimonials-combined-list.admin-testimonials-combined-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 6px 4px 12px;
+}
+
+#admin-testimonials-combined-list .admin-testimonial-combined-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  background: var(--eerie-black-2);
+  box-shadow: var(--shadow-2);
+}
+
+#admin-testimonials-combined-list .admin-testimonial-combined-main {
+  flex: 1;
+  min-width: min(100%, 220px);
+}
+
+#admin-testimonials-combined-list .admin-testimonial-combined-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 168px;
+}
+
 @media (min-width: 1280px) {
   .admin-tabs .business-docs-table-wrapper,
-  .admin-tabs #blog-section .blog-posts-list {
+  .admin-tabs #blog-section .blog-posts-list,
+  .admin-tabs #admin-testimonials-combined-list {
     max-height: min(50vh, 560px);
   }
 
@@ -8821,7 +8857,8 @@ body.project-modal-open {
 
 @media (min-width: 1600px) {
   .admin-tabs .business-docs-table-wrapper,
-  .admin-tabs #blog-section .blog-posts-list {
+  .admin-tabs #blog-section .blog-posts-list,
+  .admin-tabs #admin-testimonials-combined-list {
     max-height: min(52vh, 600px);
   }
 
@@ -10072,7 +10109,8 @@ body.project-modal-open {
 #delete-contact-confirm-modal,
 #delete-blog-confirm-modal,
 #delete-document-confirm-modal,
-#delete-portfolio-confirm-modal {
+#delete-portfolio-confirm-modal,
+#delete-testimonial-confirm-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -10103,10 +10141,15 @@ body.project-modal-open {
   z-index: 10060;
 }
 
+#delete-testimonial-confirm-modal {
+  z-index: 10070;
+}
+
 #delete-contact-confirm-modal.active,
 #delete-blog-confirm-modal.active,
 #delete-document-confirm-modal.active,
-#delete-portfolio-confirm-modal.active {
+#delete-portfolio-confirm-modal.active,
+#delete-testimonial-confirm-modal.active {
   pointer-events: all;
   visibility: visible;
 }
@@ -10114,7 +10157,8 @@ body.project-modal-open {
 #delete-contact-confirm-modal .overlay,
 #delete-blog-confirm-modal .overlay,
 #delete-document-confirm-modal .overlay,
-#delete-portfolio-confirm-modal .overlay {
+#delete-portfolio-confirm-modal .overlay,
+#delete-testimonial-confirm-modal .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -10131,7 +10175,8 @@ body.project-modal-open {
 #delete-contact-confirm-modal.active .overlay,
 #delete-blog-confirm-modal.active .overlay,
 #delete-document-confirm-modal.active .overlay,
-#delete-portfolio-confirm-modal.active .overlay {
+#delete-portfolio-confirm-modal.active .overlay,
+#delete-testimonial-confirm-modal.active .overlay {
   opacity: 0.85;
   visibility: visible;
   pointer-events: all;
@@ -10157,7 +10202,8 @@ body.project-modal-open {
 #delete-contact-confirm-modal.active .confirm-delete-modal,
 #delete-blog-confirm-modal.active .confirm-delete-modal,
 #delete-document-confirm-modal.active .confirm-delete-modal,
-#delete-portfolio-confirm-modal.active .confirm-delete-modal {
+#delete-portfolio-confirm-modal.active .confirm-delete-modal,
+#delete-testimonial-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
 }

@@ -53,7 +53,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=bizdoc-20260504-home-hero-v2">
+  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-confirm-modal-20260514">
 
   <!--
     - google font link
@@ -537,7 +537,7 @@
 
               <h4 class="h3 modal-title" data-modal-title>Daniel lewis</h4>
 
-              <time datetime="2021-06-14">14 June, 2021</time>
+              <time class="modal-date" datetime="" data-modal-time hidden></time>
 
               <div data-modal-text>
                 <p>
@@ -2742,16 +2742,10 @@
                   <p class="admin-panel-lead" id="admin-testimonial-invite-status" style="margin-top:12px;margin-bottom:0;" aria-live="polite"></p>
                 </form>
 
-                <h4 class="h4 service-item-title" style="margin-top:24px;">Invites</h4>
-                <p class="admin-panel-lead" style="margin-top:4px;">Pending and used links (delete to revoke an unused invite).</p>
-                <div class="blog-posts-list has-scrollbar" id="admin-testimonial-invites-list" style="max-height:280px;">
-                  <div class="empty-item"><p>Open this tab while signed in to load invites.</p></div>
-                </div>
-
-                <h4 class="h4 service-item-title" style="margin-top:24px;">Published testimonials</h4>
-                <p class="admin-panel-lead" style="margin-top:4px;">Remove an entry from the site (does not re-open the invite).</p>
-                <div class="blog-posts-list has-scrollbar" id="admin-testimonials-published-list" style="max-height:280px;">
-                  <div class="empty-item"><p>Loading…</p></div>
+                <h4 class="h4 service-item-title" style="margin-top:24px;">Invites & submissions</h4>
+                <p class="admin-panel-lead" style="margin-top:4px;">Each row is one invite. Delete link removes the invite document (revoke unused links). Remove testimonial removes the customer’s published quote from the site; it does not reopen the invite.</p>
+                <div class="blog-posts-list admin-testimonials-combined-list has-scrollbar" id="admin-testimonials-combined-list">
+                  <div class="empty-item"><p>Open this tab while signed in to load invites and submissions.</p></div>
                 </div>
               </div>
             </div>
@@ -3089,6 +3083,26 @@
             <div class="confirm-delete-modal__actions">
               <button type="button" class="btn btn-secondary" id="delete-document-confirm-cancel">Cancel</button>
               <button type="button" class="btn btn-danger" id="delete-document-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete testimonial invite / published quote (admin Testimonials tab) -->
+        <div class="modal-container" id="delete-testimonial-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-testimonial-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-testimonial-confirm-title" aria-describedby="delete-testimonial-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-testimonial-confirm-title">Confirm</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-testimonial-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-testimonial-confirm-desc"></p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-testimonial-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-testimonial-confirm-delete">Delete</button>
             </div>
           </section>
         </div>
@@ -4675,7 +4689,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="./assets/js/portfolio-built-in-data.js"></script>
-  <script src="./assets/js/script.js?v=testimonial-20260514-display-refresh"></script>
+  <script src="./assets/js/script.js?v=testimonial-confirm-modal-20260514"></script>
   <script src="./assets/js/dm-migration.js"></script>
 
   <!--
