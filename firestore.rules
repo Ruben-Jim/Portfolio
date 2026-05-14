@@ -32,5 +32,62 @@ service cloud.firestore {
       allow create, update: if true;
       allow delete: if false;
     }
+
+    function isValidEmailField(field, maxLen) {
+      return field is string && field.size() > 0 && field.size() <= maxLen;
+    }
+
+    function isAvatarFile(field) {
+      return field is string &&
+        (field == 'avatar-1.png' || field == 'avatar-2.png' || field == 'avatar-3.png' ||
+         field == 'avatar-4.png' || field == 'avatar-5.png' || field == 'avatar-6.png');
+    }
+
+    // One-time testimonial invite links (admin creates; customer reads + marks used on submit).
+    match /testimonialTokens/{tokenId} {
+      allow read: if true;
+      allow create: if
+        tokenId is string &&
+        tokenId.size() >= 32 &&
+        tokenId.size() <= 48 &&
+        request.resource.data.keys().hasAll(['name', 'email', 'product', 'used']) &&
+        isValidString(request.resource.data.name, 120) &&
+        isValidEmailField(request.resource.data.email, 160) &&
+        isValidString(request.resource.data.product, 200) &&
+        request.resource.data.used == false;
+      allow update: if
+        resource.data.used == false &&
+        request.resource.data.used == true &&
+        request.resource.data.name == resource.data.name &&
+        request.resource.data.email == resource.data.email &&
+        request.resource.data.product == resource.data.product &&
+        request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if true;
+    }
+
+    // Customer-submitted testimonials (create only when matching token exists and is unused).
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow create: if
+        request.resource.data.keys().hasAll(
+          ['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'token']
+        ) &&
+        isValidString(request.resource.data.name, 120) &&
+        isValidString(request.resource.data.title, 120) &&
+        isValidString(request.resource.data.company, 160) &&
+        isValidString(request.resource.data.product, 200) &&
+        isValidString(request.resource.data.text, 5000) &&
+        request.resource.data.rating is int &&
+        request.resource.data.rating >= 1 &&
+        request.resource.data.rating <= 5 &&
+        isAvatarFile(request.resource.data.avatar) &&
+        request.resource.data.token is string &&
+        request.resource.data.token.size() >= 32 &&
+        request.resource.data.token.size() <= 48 &&
+        exists(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)) &&
+        get(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)).data.used == false;
+      allow update: if false;
+      allow delete: if true;
+    }
   }
 }

@@ -6,6 +6,7 @@ const { Resend } = require("resend");
 const {
   buildContactNotificationHtml,
   buildHireMeNotificationHtml,
+  buildTestimonialRequestHtml,
   buildAdminReplyHtml,
 } = require("./emailTemplates");
 
@@ -164,6 +165,45 @@ exports.sendPortfolioEmail = onRequest(
         });
         if (error) {
           console.error("Resend error (hire_me):", error);
+          res.status(502).json({ ok: false, error: error.message || "Resend failed" });
+          return;
+        }
+        res.status(200).json({ ok: true, id: data && data.id });
+        return;
+      }
+
+      if (type === "testimonial_request") {
+        const toEmail = String(payload.to_email || "").trim();
+        const toName = String(payload.to_name || "Customer").trim();
+        const product = String(payload.product || "my software").trim();
+        const testimonialUrl = String(payload.testimonial_url || "").trim();
+        const subject = String(
+          payload.subject || "You’re invited to share a quick testimonial"
+        ).trim();
+        if (!validEmail(toEmail) || !testimonialUrl || !/^https?:\/\//i.test(testimonialUrl)) {
+          res.status(400).json({
+            ok: false,
+            error: "Missing to_email or valid testimonial_url",
+          });
+          return;
+        }
+        const html = buildTestimonialRequestHtml({
+          to_name: toName,
+          to_email: toEmail,
+          product,
+          testimonial_url: testimonialUrl,
+          subject,
+        });
+        const replyTo = notifyToEmail.value().trim() || undefined;
+        const { data, error } = await resend.emails.send({
+          from,
+          to: [toEmail],
+          ...(replyTo ? { replyTo } : {}),
+          subject,
+          html,
+        });
+        if (error) {
+          console.error("Resend error (testimonial_request):", error);
           res.status(502).json({ ok: false, error: error.message || "Resend failed" });
           return;
         }

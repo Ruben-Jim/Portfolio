@@ -36,8 +36,8 @@ document.addEventListener("click", function (e) {
   });
 });
 
-// testimonials variables
-const testimonialsItem = document.querySelectorAll("[data-testimonials-item]");
+// testimonials modal — event delegation so dynamically loaded items work
+const testimonialsList = document.querySelector(".testimonials-list");
 const modalContainer = document.querySelector("[data-modal-container]");
 const modalCloseBtn = document.querySelector("[data-modal-close-btn]");
 const overlay = document.querySelector("[data-overlay]");
@@ -49,29 +49,30 @@ const modalText = document.querySelector("[data-modal-text]");
 
 // modal toggle function
 const testimonialsModalFunc = function () {
+  if (!modalContainer || !overlay) return;
   modalContainer.classList.toggle("active");
   overlay.classList.toggle("active");
-}
+};
 
-// add click event to all modal items
-for (let i = 0; i < testimonialsItem.length; i++) {
-
-  testimonialsItem[i].addEventListener("click", function () {
-
-    modalImg.src = this.querySelector("[data-testimonials-avatar]").src;
-    modalImg.alt = this.querySelector("[data-testimonials-avatar]").alt;
-    modalTitle.innerHTML = this.querySelector("[data-testimonials-title]").innerHTML;
-    modalText.innerHTML = this.querySelector("[data-testimonials-text]").innerHTML;
-
+if (testimonialsList && modalContainer && modalCloseBtn && overlay && modalImg && modalTitle && modalText) {
+  testimonialsList.addEventListener("click", function (e) {
+    const card = e.target.closest("[data-testimonials-item]");
+    if (!card || !testimonialsList.contains(card)) return;
+    const av = card.querySelector("[data-testimonials-avatar]");
+    const ti = card.querySelector("[data-testimonials-title]");
+    const tx = card.querySelector("[data-testimonials-text]");
+    if (av) {
+      modalImg.src = av.src;
+      modalImg.alt = av.alt || "";
+    }
+    if (ti) modalTitle.innerHTML = ti.innerHTML;
+    if (tx) modalText.innerHTML = tx.innerHTML;
     testimonialsModalFunc();
-
   });
 
+  modalCloseBtn.addEventListener("click", testimonialsModalFunc);
+  overlay.addEventListener("click", testimonialsModalFunc);
 }
-
-// add click event to modal close button
-modalCloseBtn.addEventListener("click", testimonialsModalFunc);
-overlay.addEventListener("click", testimonialsModalFunc);
 
 
 
@@ -4114,6 +4115,15 @@ function switchToPage(pageName, skipSave = false) {
         updateUrlForPage(pageName, false);
       }
 
+      // Dynamic testimonials when Home (about) is shown
+      if (pageName === "about") {
+        setTimeout(function () {
+          if (typeof window.loadDynamicTestimonials === "function") {
+            window.loadDynamicTestimonials();
+          }
+        }, 80);
+      }
+
       // Re-initialize accordions if resume page is shown
       if (pages[i].dataset.page === "resume") {
         accordionInitialized = false; // Reset flag to allow re-initialization
@@ -4601,6 +4611,188 @@ window.addEventListener('load', function() {
     }
   }
 
+  function escapeTestimonialHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function testimonialsStarHtml(rating) {
+    var n = Math.max(0, Math.min(5, parseInt(rating, 10) || 0));
+    var i;
+    var out =
+      '<p class="testimonials-rating" aria-label="' +
+      n +
+      ' out of 5 stars" style="margin:0 0 10px 0;letter-spacing:3px;color:hsl(45,54%,58%);font-size:14px;">';
+    for (i = 1; i <= 5; i++) {
+      out += n >= i ? "&#9733;" : "&#9734;";
+    }
+    out += "</p>";
+    return out;
+  }
+
+  async function loadDynamicTestimonials() {
+    if (!window.db || !window.collection || !window.query || !window.orderBy || !window.getDocs || !window.limit) {
+      return;
+    }
+    var list = document.querySelector(".testimonials-list");
+    if (!list) return;
+    try {
+      var ref = window.collection(window.db, "testimonials");
+      var q = window.query(ref, window.orderBy("createdAt", "desc"), window.limit(40));
+      var snap = await window.getDocs(q);
+      list.querySelectorAll('li[data-dynamic-testimonial="1"]').forEach(function (n) {
+        n.remove();
+      });
+      snap.forEach(function (docSnap) {
+        var d = docSnap.data();
+        var name = escapeTestimonialHtml(d.name);
+        var title = escapeTestimonialHtml(d.title);
+        var company = escapeTestimonialHtml(d.company);
+        var product = escapeTestimonialHtml(d.product);
+        var textRaw = d.text == null ? "" : String(d.text);
+        var text = escapeTestimonialHtml(textRaw).replace(/\n/g, "<br>");
+        var avatar = escapeTestimonialHtml(d.avatar || "avatar-1.png");
+        if (!/^avatar-[1-6]\.png$/.test(avatar)) avatar = "avatar-1.png";
+        li.className = "testimonials-item";
+        li.setAttribute("data-dynamic-testimonial", "1");
+        li.innerHTML =
+          '<div class="content-card" data-testimonials-item>' +
+          '<figure class="testimonials-avatar-box">' +
+          '<img src="./assets/images/' +
+          avatar +
+          '" alt="' +
+          name +
+          '" width="60" data-testimonials-avatar>' +
+          "</figure>" +
+          '<h4 class="h4 testimonials-item-title" data-testimonials-title>' +
+          name +
+          "</h4>" +
+          '<div class="testimonials-text" data-testimonials-text>' +
+          testimonialsStarHtml(rating) +
+          '<p class="testimonials-meta" style="font-size:12px;margin:0 0 10px 0;opacity:0.85;">' +
+          title +
+          " &middot; " +
+          company +
+          (product ? " &middot; " + product : "") +
+          "</p>" +
+          "<p>" +
+          text +
+          "</p>" +
+          "</div></div>";
+        list.appendChild(li);
+      });
+    } catch (e) {
+      console.error("loadDynamicTestimonials", e);
+    }
+  }
+
+  window.loadDynamicTestimonials = loadDynamicTestimonials;
+
+  async function loadTestimonialAdminPanel() {
+    if (!currentUser || currentUser.role !== "admin") return;
+    if (!window.db || !window.collection || !window.query || !window.orderBy || !window.getDocs || !window.limit) {
+      return;
+    }
+    var invList = document.getElementById("admin-testimonial-invites-list");
+    var pubList = document.getElementById("admin-testimonials-published-list");
+    function esc(s) {
+      return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+    try {
+      var tq = window.query(
+        window.collection(window.db, "testimonialTokens"),
+        window.orderBy("createdAt", "desc")
+      );
+      var tsnap = await window.getDocs(tq);
+      if (invList) {
+        invList.innerHTML = "";
+        if (tsnap.empty) {
+          invList.innerHTML = '<div class="empty-item"><p>No invites yet.</p></div>';
+        } else {
+          tsnap.forEach(function (d) {
+            var row = document.createElement("div");
+            row.className = "admin-testimonial-invite-row";
+            row.style.cssText =
+              "display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--jet);flex-wrap:wrap;";
+            var tokenId = d.id;
+            var dd = d.data();
+            var used = dd.used === true;
+            var main = document.createElement("div");
+            main.innerHTML =
+              "<strong>" +
+              esc(dd.name) +
+              "</strong> &lt;" +
+              esc(dd.email) +
+              "&gt;<br><span style=\"font-size:12px;opacity:.85;\">" +
+              esc(dd.product) +
+              '</span><br><span style="font-size:11px;">' +
+              (used ? "Used" : "Pending") +
+              "</span>";
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn btn-secondary btn-sm";
+            btn.setAttribute("data-delete-testimonial-token", tokenId);
+            btn.textContent = "Delete";
+            row.appendChild(main);
+            row.appendChild(btn);
+            invList.appendChild(row);
+          });
+        }
+      }
+      var pq = window.query(
+        window.collection(window.db, "testimonials"),
+        window.orderBy("createdAt", "desc"),
+        window.limit(80)
+      );
+      var psnap = await window.getDocs(pq);
+      if (pubList) {
+        pubList.innerHTML = "";
+        if (psnap.empty) {
+          pubList.innerHTML = '<div class="empty-item"><p>No submitted testimonials.</p></div>';
+        } else {
+          psnap.forEach(function (d) {
+            var row = document.createElement("div");
+            row.style.cssText =
+              "display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--jet);flex-wrap:wrap;";
+            var dd = d.data();
+            var snippet = String(dd.text || "");
+            var main = document.createElement("div");
+            main.innerHTML =
+              "<strong>" +
+              esc(dd.name) +
+              "</strong> &mdash; " +
+              esc(dd.product) +
+              '<br><span style="font-size:12px;">' +
+              esc(snippet.slice(0, 140)) +
+              (snippet.length > 140 ? "…" : "") +
+              "</span>";
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn btn-secondary btn-sm";
+            btn.setAttribute("data-delete-published-testimonial", d.id);
+            btn.textContent = "Remove";
+            row.appendChild(main);
+            row.appendChild(btn);
+            pubList.appendChild(row);
+          });
+        }
+      }
+    } catch (e) {
+      console.error("loadTestimonialAdminPanel", e);
+      if (invList) invList.innerHTML = '<div class="empty-item"><p>Could not load invites.</p></div>';
+      if (pubList) pubList.innerHTML = '<div class="empty-item"><p>Could not load testimonials.</p></div>';
+    }
+  }
+
+  window.loadTestimonialAdminPanel = loadTestimonialAdminPanel;
+
   /** DM inbox + magic links (Firebase Realtime Database, dm/* paths) */
   function testRealtimeDatabaseConnection() {
     if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) {
@@ -4874,6 +5066,114 @@ window.addEventListener('load', function() {
         if (root && root.classList.contains('is-open')) {
           closeContactDetailDrawer();
         }
+      });
+    }
+
+    const inviteForm = document.getElementById('admin-testimonial-invite-form');
+    const inviteStatus = document.getElementById('admin-testimonial-invite-status');
+    if (inviteForm && !inviteForm.dataset.boundTestimonial) {
+      inviteForm.dataset.boundTestimonial = '1';
+      inviteForm.addEventListener('submit', async function (ev) {
+        ev.preventDefault();
+        if (!currentUser || currentUser.role !== 'admin') return;
+        if (!window.db || !window.setDoc || !window.doc || !window.serverTimestamp) {
+          if (inviteStatus) inviteStatus.textContent = 'Firestore is not ready.';
+          return;
+        }
+        var name = document.getElementById('admin-testimonial-invite-name').value.trim();
+        var email = document.getElementById('admin-testimonial-invite-email').value.trim();
+        var product = document.getElementById('admin-testimonial-invite-product').value.trim();
+        if (!name || !email || !product) {
+          if (inviteStatus) inviteStatus.textContent = 'Fill in name, email, and product.';
+          return;
+        }
+        var token;
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+          token = crypto.randomUUID();
+        } else {
+          token = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (Math.random() * 16) | 0;
+            var v = c === 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          });
+        }
+        var url = window.location.origin + '/testimonial.html?token=' + encodeURIComponent(token);
+        if (inviteStatus) inviteStatus.textContent = 'Saving invite and sending email…';
+        try {
+          await window.setDoc(window.doc(window.db, 'testimonialTokens', token), {
+            name: name,
+            email: email,
+            product: product,
+            used: false,
+            createdAt: window.serverTimestamp()
+          });
+          if (typeof sendPortfolioEmailRequest !== 'function') {
+            throw new Error('Email helper missing');
+          }
+          await sendPortfolioEmailRequest({
+            type: 'testimonial_request',
+            payload: {
+              to_email: email,
+              to_name: name,
+              product: product,
+              testimonial_url: url,
+              subject: 'Quick testimonial request from Ruben Jimenez'
+            }
+          });
+          inviteForm.reset();
+          if (inviteStatus) inviteStatus.textContent = 'Invite sent to ' + email + '.';
+          if (typeof window.loadTestimonialAdminPanel === 'function') {
+            window.loadTestimonialAdminPanel();
+          }
+        } catch (err) {
+          console.error(err);
+          if (inviteStatus) {
+            inviteStatus.textContent = (err && err.message) ? String(err.message) : 'Failed to send invite.';
+          }
+        }
+      });
+    }
+
+    var invList = document.getElementById('admin-testimonial-invites-list');
+    if (invList && !invList.dataset.boundTestimonialDel) {
+      invList.dataset.boundTestimonialDel = '1';
+      invList.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-delete-testimonial-token]');
+        if (!btn || !invList.contains(btn)) return;
+        var id = btn.getAttribute('data-delete-testimonial-token');
+        if (!id || !window.db || !window.deleteDoc || !window.doc) return;
+        if (!confirm('Delete this invite link?')) return;
+        window.deleteDoc(window.doc(window.db, 'testimonialTokens', id)).then(function () {
+          if (typeof window.loadTestimonialAdminPanel === 'function') {
+            window.loadTestimonialAdminPanel();
+          }
+        }).catch(function (err) {
+          console.error(err);
+          alert('Could not delete invite.');
+        });
+      });
+    }
+
+    var pubList = document.getElementById('admin-testimonials-published-list');
+    if (pubList && !pubList.dataset.boundPublishedDel) {
+      pubList.dataset.boundPublishedDel = '1';
+      pubList.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-delete-published-testimonial]');
+        if (!btn || !pubList.contains(btn)) return;
+        var id = btn.getAttribute('data-delete-published-testimonial');
+        if (!id || !window.db || !window.deleteDoc || !window.doc) return;
+        if (!confirm('Remove this testimonial from the site?')) return;
+        window.deleteDoc(window.doc(window.db, 'testimonials', id)).then(function () {
+          if (typeof window.loadTestimonialAdminPanel === 'function') {
+            window.loadTestimonialAdminPanel();
+          }
+          if (typeof window.loadDynamicTestimonials === 'function') {
+            window.loadDynamicTestimonials();
+          }
+        }).catch(function (err) {
+          console.error(err);
+          alert('Could not delete testimonial.');
+        });
       });
     }
   }
@@ -5824,7 +6124,7 @@ window.addEventListener('load', function() {
     var tabs = tabBar.querySelectorAll('.admin-tab[role="tab"]');
     var panels = root.querySelectorAll('.admin-tab-panel');
     var STORAGE_KEY = 'adminActiveTab';
-    var VALID = { docs: 1, messages: 1, blog: 1, portfolio: 1, ops: 1 };
+    var VALID = { docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, ops: 1 };
 
     function activate(tabId) {
       if (!VALID[tabId]) return;
@@ -5844,6 +6144,9 @@ window.addEventListener('load', function() {
       try {
         sessionStorage.setItem(STORAGE_KEY, tabId);
       } catch (e) {}
+      if (tabId === 'testimonials' && typeof window.loadTestimonialAdminPanel === 'function') {
+        window.loadTestimonialAdminPanel();
+      }
     }
 
     var saved = null;

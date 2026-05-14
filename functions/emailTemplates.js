@@ -334,6 +334,62 @@ function buildHireMeNotificationHtml(p) {
   );
 }
 
+/** Outbound invite: customer receives link to leave a testimonial. */
+function buildTestimonialRequestHtml(p) {
+  const accent = T.contact;
+  const name = escapeHtml(p.to_name || "there");
+  const product = escapeHtml(p.product || "my software");
+  const url = escapeHtml(p.testimonial_url || "");
+  const inner =
+    '<tr><td style="padding:0 0 20px 0;">' +
+    '<p style="margin:0;color:' +
+    T.infoValue +
+    ';font-size:16px;line-height:1.7;font-weight:400;">' +
+    "Hi " +
+    name +
+    ",</p></td></tr>" +
+    '<tr><td style="padding:0 0 20px 0;">' +
+    '<p style="margin:0;color:' +
+    T.infoValue +
+    ';font-size:16px;line-height:1.7;font-weight:400;">' +
+    "Ruben would love a short testimonial about <strong style=\"color:" +
+    accent.label +
+    ';\">' +
+    product +
+    "</strong>. It only takes a minute — your words help others decide if the product is a good fit.</p></td></tr>" +
+    '<tr><td style="padding:0 0 30px 0;text-align:center;">' +
+    '<a href="' +
+    url +
+    '" style="display:inline-block;padding:14px 28px;background:' +
+    accent.headerOuter +
+    ";color:#1a1a1a;font-weight:600;font-size:16px;text-decoration:none;border-radius:10px;letter-spacing:0.3px;\">" +
+    "Share your testimonial</a></td></tr>" +
+    '<tr><td style="padding:0 0 12px 0;">' +
+    '<p style="margin:0;color:' +
+    T.subtitle +
+    ';font-size:13px;line-height:1.6;">' +
+    "If the button doesn’t work, copy and paste this link into your browser:</p></td></tr>" +
+    '<tr><td style="padding:0 0 30px 0;word-break:break-all;">' +
+    '<a href="' +
+    url +
+    '" style="color:' +
+    accent.link +
+    ';font-size:13px;">' +
+    url +
+    "</a></td></tr>" +
+    wrapPanel(
+      infoRow("contact", "Product", p.product || ""),
+      T.contact.panelBg,
+      ""
+    );
+  return wrapEmail(
+    "contact",
+    p.subject || "You’re invited to share a testimonial",
+    inner,
+    "Testimonial request — Ruben Jimenez"
+  );
+}
+
 /** @param {Record<string, string>} p */
 function buildAdminReplyHtml(p) {
   const inner =
@@ -361,5 +417,6 @@ module.exports = {
   escapeHtml,
   buildContactNotificationHtml,
   buildHireMeNotificationHtml,
+  buildTestimonialRequestHtml,
   buildAdminReplyHtml,
 };

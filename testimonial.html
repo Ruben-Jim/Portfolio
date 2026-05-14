@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Share a testimonial — Ruben Jimenez</title>
+  <link rel="shortcut icon" href="./assets/images/logo.jpg" type="image/x-icon">
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    .testimonial-page { max-width: 560px; margin: 0 auto; padding: 48px 20px 80px; min-height: 100vh; }
+    .testimonial-page h1 { font-size: var(--fs-2); margin-bottom: 12px; }
+    .testimonial-page .lead { color: var(--light-gray-70); margin-bottom: 28px; line-height: 1.6; }
+    .testimonial-page .card {
+      background: var(--border-gradient-onyx);
+      border: 1px solid var(--jet);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .testimonial-page .form-label { display: block; font-size: var(--fs-7); font-weight: var(--fw-500); margin-bottom: 8px; color: var(--white-1); }
+    .testimonial-page .form-field { margin-bottom: 18px; }
+    .testimonial-page .error-box { color: var(--bittersweet-shimmer); margin-top: 12px; font-size: var(--fs-7); }
+    .testimonial-page .avatar-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .testimonial-page .avatar-option { position: relative; cursor: pointer; border-radius: 12px; overflow: hidden; border: 2px solid transparent; }
+    .testimonial-page .avatar-option img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; }
+    .testimonial-page .avatar-option input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      margin: 0;
+    }
+    .testimonial-page .avatar-option:has(input:checked) { border-color: var(--orange-yellow-crayola); }
+    .testimonial-page .star-row { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 4px; }
+    .testimonial-page .btn-submit { margin-top: 8px; }
+    .testimonial-page .success-icon { font-size: 48px; color: var(--orange-yellow-crayola); margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <main class="testimonial-page content">
+    <h1 class="h2">Share your testimonial</h1>
+    <p class="lead" id="testimonial-lead">Loading…</p>
+
+    <div id="testimonial-state-loading" class="card" hidden>
+      <p>Checking your invite link…</p>
+    </div>
+
+    <div id="testimonial-state-error" class="card" hidden>
+      <p id="testimonial-error-text"></p>
+      <p style="margin-top:16px;"><a href="./" class="navbar-link">Back to portfolio</a></p>
+    </div>
+
+    <form id="testimonial-form" class="card" hidden novalidate>
+      <div class="form-field">
+        <label class="form-label" for="t-name">Your name</label>
+        <input class="form-input" type="text" id="t-name" name="name" required maxlength="120" autocomplete="name">
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="t-title">Job title</label>
+        <input class="form-input" type="text" id="t-title" name="title" required maxlength="120" autocomplete="organization-title">
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="t-company">Company</label>
+        <input class="form-input" type="text" id="t-company" name="company" required maxlength="160" autocomplete="organization">
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="t-product">Product you use</label>
+        <input class="form-input" type="text" id="t-product" name="product" required maxlength="200" readonly>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="t-rating">Rating</label>
+        <select class="form-input" id="t-rating" name="rating" required>
+          <option value="">Choose…</option>
+          <option value="5">5 stars — Excellent</option>
+          <option value="4">4 stars — Very good</option>
+          <option value="3">3 stars — Good</option>
+          <option value="2">2 stars — Fair</option>
+          <option value="1">1 star — Poor</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="t-text">Your testimonial</label>
+        <textarea class="form-input" id="t-text" name="text" required rows="5" maxlength="5000" placeholder="What worked well? Would you recommend it?"></textarea>
+      </div>
+      <div class="form-field">
+        <span class="form-label">Choose an avatar</span>
+        <div class="avatar-grid" id="t-avatar-grid"></div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-submit" id="t-submit">Submit testimonial</button>
+      <p class="error-box" id="t-form-error" hidden></p>
+    </form>
+
+    <div id="testimonial-state-thanks" class="card" hidden>
+      <div class="success-icon" aria-hidden="true">✓</div>
+      <h2 class="h3">Thank you!</h2>
+      <p class="lead" style="margin-bottom:0;">Your testimonial has been published. Ruben appreciates you taking the time.</p>
+      <p style="margin-top:20px;"><a href="./" class="navbar-link">Back to portfolio</a></p>
+    </div>
+  </main>
+
+  <script src="./assets/js/config.js"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      collection,
+      runTransaction,
+      serverTimestamp,
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    const AVATARS = ['avatar-1.png', 'avatar-2.png', 'avatar-3.png', 'avatar-4.png', 'avatar-5.png', 'avatar-6.png'];
+
+    function show(el, on) {
+      if (!el) return;
+      el.hidden = !on;
+    }
+
+    const lead = document.getElementById('testimonial-lead');
+    const stateLoading = document.getElementById('testimonial-state-loading');
+    const stateError = document.getElementById('testimonial-state-error');
+    const errorText = document.getElementById('testimonial-error-text');
+    const form = document.getElementById('testimonial-form');
+    const stateThanks = document.getElementById('testimonial-state-thanks');
+    const formError = document.getElementById('t-form-error');
+    const submitBtn = document.getElementById('t-submit');
+
+    const params = new URLSearchParams(window.location.search);
+    const tokenId = (params.get('token') || '').trim();
+
+    const grid = document.getElementById('t-avatar-grid');
+    AVATARS.forEach(function (file, i) {
+      const wrap = document.createElement('label');
+      wrap.className = 'avatar-option';
+      const inp = document.createElement('input');
+      inp.type = 'radio';
+      inp.name = 'avatar';
+      inp.value = file;
+      inp.required = true;
+      if (i === 0) inp.checked = true;
+      const img = document.createElement('img');
+      img.src = './assets/images/' + file;
+      img.alt = 'Avatar option ' + (i + 1);
+      img.width = 120;
+      img.height = 120;
+      wrap.appendChild(inp);
+      wrap.appendChild(img);
+      grid.appendChild(wrap);
+    });
+
+    function showError(msg) {
+      show(stateLoading, false);
+      show(form, false);
+      show(stateThanks, false);
+      errorText.textContent = msg;
+      show(stateError, true);
+      lead.textContent = 'This link is not valid or has expired.';
+    }
+
+    function showForm(prefill) {
+      show(stateLoading, false);
+      show(stateError, false);
+      show(stateThanks, false);
+      document.getElementById('t-name').value = prefill.name || '';
+      document.getElementById('t-product').value = prefill.product || '';
+      lead.textContent =
+        'You were invited to share feedback about ' +
+        (prefill.product ? '"' + prefill.product + '"' : 'Ruben\'s work') +
+        '. Fields marked with your invite are pre-filled; you can edit your name.';
+      show(form, true);
+    }
+
+    async function main() {
+      show(stateLoading, true);
+      lead.textContent = 'Checking your invite…';
+
+      if (!tokenId || tokenId.length < 32) {
+        showError('Missing or invalid link. Open the full URL from your email.');
+        return;
+      }
+
+      const cfg = window.FIREBASE_CONFIG;
+      if (!cfg) {
+        showError('Configuration error. Please try again later.');
+        return;
+      }
+
+      const app = initializeApp(cfg);
+      const db = getFirestore(app);
+      const tokenRef = doc(db, 'testimonialTokens', tokenId);
+      const snap = await getDoc(tokenRef);
+
+      show(stateLoading, false);
+
+      if (!snap.exists()) {
+        showError('We could not find this invite. It may have been mistyped or removed.');
+        return;
+      }
+
+      const data = snap.data();
+      if (data.used === true) {
+        showError('This invite link was already used. Thank you — if you need to change something, contact Ruben directly.');
+        return;
+      }
+
+      showForm({ name: data.name || '', product: data.product || '' });
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        formError.hidden = true;
+        const name = document.getElementById('t-name').value.trim();
+        const title = document.getElementById('t-title').value.trim();
+        const company = document.getElementById('t-company').value.trim();
+        const product = document.getElementById('t-product').value.trim();
+        const text = document.getElementById('t-text').value.trim();
+        const ratingEl = document.getElementById('t-rating');
+        const avatarEl = form.querySelector('input[name="avatar"]:checked');
+        if (!name || !title || !company || !product || !text || !ratingEl.value || !avatarEl) {
+          formError.textContent = 'Please fill in all fields, including rating and avatar.';
+          formError.hidden = false;
+          return;
+        }
+        const rating = parseInt(ratingEl.value, 10);
+        const avatar = avatarEl.value;
+        if (rating < 1 || rating > 5 || AVATARS.indexOf(avatar) === -1) {
+          formError.textContent = 'Invalid rating or avatar selection.';
+          formError.hidden = false;
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
+
+        try {
+          await runTransaction(db, async function (transaction) {
+            const tSnap = await transaction.get(tokenRef);
+            if (!tSnap.exists()) {
+              throw new Error('INVITE_GONE');
+            }
+            const tData = tSnap.data();
+            if (tData.used === true) {
+              throw new Error('ALREADY_USED');
+            }
+            const newRef = doc(collection(db, 'testimonials'));
+            transaction.set(newRef, {
+              name: name,
+              title: title,
+              company: company,
+              product: product,
+              text: text,
+              rating: rating,
+              avatar: avatar,
+              token: tokenId,
+              createdAt: serverTimestamp(),
+            });
+            transaction.update(tokenRef, { used: true });
+          });
+
+          show(form, false);
+          show(stateThanks, true);
+          lead.textContent = 'All set!';
+        } catch (err) {
+          console.error(err);
+          if (err && err.message === 'ALREADY_USED') {
+            formError.textContent = 'This link was just used. Refresh the page if you already submitted.';
+          } else if (err && err.message === 'INVITE_GONE') {
+            formError.textContent = 'This invite is no longer available.';
+          } else {
+            formError.textContent =
+              (err && err.code === 'permission-denied'
+                ? 'Permission denied. Deploy updated Firestore rules or try again.'
+                : 'Something went wrong. Please try again in a moment.') +
+              '';
+          }
+          formError.hidden = false;
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit testimonial';
+        }
+      });
+    }
+
+    main().catch(function (err) {
+      console.error(err);
+      show(stateLoading, false);
+      showError('Could not load this page. Check your connection and try again.');
+    });
+  </script>
+</body>
+</html>
