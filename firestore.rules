@@ -43,6 +43,21 @@ service cloud.firestore {
          field == 'avatar-4.png' || field == 'avatar-5.png' || field == 'avatar-6.png');
     }
 
+    function isValidCustomAvatarDataUrl(field) {
+      return field is string &&
+        field.size() > 500 &&
+        field.size() < 110000 &&
+        field.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$');
+    }
+
+    function validTestimonialAvatarPair() {
+      return (request.resource.data.avatar == 'custom' &&
+          request.resource.data.keys().hasAll(['avatarImageDataUrl']) &&
+          isValidCustomAvatarDataUrl(request.resource.data.avatarImageDataUrl)) ||
+        (isAvatarFile(request.resource.data.avatar) &&
+          !(request.resource.data.keys().hasAll(['avatarImageDataUrl'])));
+    }
+
     // One-time testimonial invite links (admin creates; customer reads + marks used on submit).
     match /testimonialTokens/{tokenId} {
       allow read: if true;
@@ -80,7 +95,7 @@ service cloud.firestore {
         request.resource.data.rating is int &&
         request.resource.data.rating >= 1 &&
         request.resource.data.rating <= 5 &&
-        isAvatarFile(request.resource.data.avatar) &&
+        validTestimonialAvatarPair() &&
         request.resource.data.token is string &&
         request.resource.data.token.size() >= 32 &&
         request.resource.data.token.size() <= 48 &&

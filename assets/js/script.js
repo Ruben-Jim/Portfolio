@@ -4673,15 +4673,27 @@ window.addEventListener('load', function() {
         var product = escapeTestimonialHtml(d.product);
         var textRaw = d.text == null ? "" : String(d.text);
         var text = escapeTestimonialHtml(textRaw).replace(/\n/g, "<br>");
-        var avatar = escapeTestimonialHtml(d.avatar || "avatar-1.png");
-        if (!/^avatar-[1-6]\.png$/.test(avatar)) avatar = "avatar-1.png";
+        var rating = d.rating;
+        var imgSrc = "";
+        if (d.avatar === "custom" && typeof d.avatarImageDataUrl === "string") {
+          var rawUrl = d.avatarImageDataUrl;
+          if (/^data:image\/jpeg;base64,/.test(rawUrl) && rawUrl.length < 120000) {
+            imgSrc = rawUrl;
+          }
+        }
+        if (!imgSrc) {
+          var avatar = escapeTestimonialHtml(d.avatar || "avatar-1.png");
+          if (!/^avatar-[1-6]\.png$/.test(avatar)) avatar = "avatar-1.png";
+          imgSrc = "./assets/images/" + avatar;
+        }
+        var li = document.createElement("li");
         li.className = "testimonials-item";
         li.setAttribute("data-dynamic-testimonial", "1");
         li.innerHTML =
           '<div class="content-card" data-testimonials-item>' +
           '<figure class="testimonials-avatar-box">' +
-          '<img src="./assets/images/' +
-          avatar +
+          '<img src="' +
+          imgSrc +
           '" alt="' +
           name +
           '" width="60" data-testimonials-avatar>' +
