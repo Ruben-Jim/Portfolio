@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#ceb15a">
+  <meta name="theme-color" content="hsl(45, 100%, 72%)">
   <title>Share a testimonial — Ruben Jimenez</title>
   <link rel="shortcut icon" href="./assets/images/logo.jpg" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-brand-20260514">
   <script>
     (function () {
       var saved = localStorage.getItem('portfolio-theme');
@@ -24,14 +24,14 @@
 
   <div class="testimonial-standalone-shell">
     <div class="testimonial-standalone-top">
-      <a class="testimonial-standalone-brand" href="./">
-        <img src="./assets/images/my-avatar.png" width="42" height="42" alt="">
+      <a class="testimonial-standalone-brand" href="./" id="testimonial-brand-link">
+        <img id="testimonial-brand-img" src="./assets/images/logo.svg" width="42" height="42" alt="Ruben Jimenez">
         <span>Ruben Jimenez</span>
       </a>
       <a href="./" class="btn btn-secondary" style="min-height: 44px;">Portfolio home</a>
     </div>
 
-    <h1 class="h2" style="margin: 0 0 8px; color: var(--white-1);">Share your testimonial</h1>
+    <h1 class="h2 testimonial-standalone-page-title">Share your testimonial</h1>
     <p class="testimonial-standalone-lead" id="testimonial-lead">Loading…</p>
 
     <div id="testimonial-state-loading" class="testimonial-standalone-card" hidden>
@@ -41,7 +41,7 @@
     <div id="testimonial-state-error" class="testimonial-standalone-card" hidden>
       <p id="testimonial-error-text" style="margin:0;color:var(--light-gray);"></p>
       <p style="margin-top:16px;margin-bottom:0;">
-        <a href="./" class="navbar-link">Back to portfolio</a>
+        <a href="./" class="testimonial-standalone-text-link">Back to portfolio</a>
       </p>
     </div>
 
@@ -80,30 +80,6 @@
         <textarea class="form-input" id="t-text" name="text" required rows="5" maxlength="5000" placeholder="What worked well? Would you recommend it?"></textarea>
       </div>
 
-      <div class="form-field" id="t-avatar-field">
-        <span class="form-label">Choose an avatar</span>
-        <div class="testimonial-avatar-grid" id="t-avatar-grid" aria-label="Preset avatars"></div>
-      </div>
-
-      <div id="t-apple-memoji" class="form-field testimonial-apple-block" hidden>
-        <span class="form-label">Memoji or photo (Apple only)</span>
-        <p class="testimonial-apple-hint">
-          On iPhone or Mac, open <strong>Messages</strong>, tap your Memoji, then drag it here or use <strong>Copy</strong> and tap &ldquo;Paste from clipboard&rdquo;.
-          You can also choose a photo from <strong>Photos</strong> (including a Memoji sticker you saved).
-        </p>
-        <div class="testimonial-apple-actions">
-          <label class="btn btn-secondary" style="cursor:pointer;margin:0;">
-            <span>Choose from Photos</span>
-            <input type="file" id="t-memoji-file" accept="image/*" style="display:none" aria-label="Choose image from photo library">
-          </label>
-          <button type="button" class="btn btn-secondary" id="t-memoji-paste">Paste from clipboard</button>
-        </div>
-        <div class="testimonial-apple-preview-wrap" id="t-memoji-preview-wrap">
-          <img id="t-memoji-preview" alt="Your Memoji or photo preview">
-          <button type="button" class="btn btn-primary" id="t-memoji-clear">Use preset avatar instead</button>
-        </div>
-      </div>
-
       <button type="submit" class="btn btn-primary" id="t-submit" style="margin-top:4px;">Submit testimonial</button>
       <p class="testimonial-standalone-error" id="t-form-error" hidden></p>
     </form>
@@ -115,7 +91,7 @@
         Your testimonial has been published. Ruben appreciates you taking the time.
       </p>
       <p style="margin-top:20px;margin-bottom:0;">
-        <a href="./" class="navbar-link">Back to portfolio</a>
+        <a href="./" class="testimonial-standalone-text-link">Back to portfolio</a>
       </p>
     </div>
   </div>
@@ -132,126 +108,9 @@
       serverTimestamp,
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-    const AVATARS = ['avatar-1.png', 'avatar-2.png', 'avatar-3.png', 'avatar-4.png', 'avatar-5.png', 'avatar-6.png'];
-
-    function isApplePlatformForMemojiUi() {
-      try {
-        var ua = navigator.userAgent || '';
-        if (/iPad|iPhone|iPod/i.test(ua)) return true;
-        if ((navigator.platform === 'MacIntel' || navigator.platform === 'iPad') && navigator.maxTouchPoints > 1) {
-          return true;
-        }
-        if (/Mac OS X|Macintosh|MacIntel/i.test(navigator.platform || '') || /Mac OS X/i.test(ua)) {
-          return true;
-        }
-      } catch (e) {}
-      return false;
-    }
-
     function show(el, on) {
       if (!el) return;
       el.hidden = !on;
-    }
-
-    let customMemojiDataUrl = null;
-
-    function compressToJpegDataUrl(file) {
-      return new Promise(function (resolve, reject) {
-        var url = URL.createObjectURL(file);
-        var img = new Image();
-        img.onload = function () {
-          URL.revokeObjectURL(url);
-          var max = 384;
-          var w = img.naturalWidth || img.width;
-          var h = img.naturalHeight || img.height;
-          if (!w || !h) {
-            reject(new Error('BAD_IMAGE'));
-            return;
-          }
-          var scale = Math.min(1, max / Math.max(w, h));
-          var cw = Math.max(1, Math.round(w * scale));
-          var ch = Math.max(1, Math.round(h * scale));
-          var c = document.createElement('canvas');
-          c.width = cw;
-          c.height = ch;
-          var ctx = c.getContext('2d');
-          if (!ctx) {
-            reject(new Error('NO_canvas'));
-            return;
-          }
-          ctx.drawImage(img, 0, 0, cw, ch);
-          var q = 0.88;
-          var dataUrl = c.toDataURL('image/jpeg', q);
-          var guard = 0;
-          while (dataUrl.length > 98000 && q > 0.42 && guard < 14) {
-            q -= 0.06;
-            dataUrl = c.toDataURL('image/jpeg', q);
-            guard += 1;
-          }
-          if (dataUrl.length > 108000) {
-            reject(new Error('IMAGE_TOO_LARGE'));
-            return;
-          }
-          resolve(dataUrl);
-        };
-        img.onerror = function () {
-          URL.revokeObjectURL(url);
-          reject(new Error('BAD_IMAGE'));
-        };
-        img.src = url;
-      });
-    }
-
-    function applyCustomMemojiPreview(dataUrl) {
-      customMemojiDataUrl = dataUrl;
-      var wrap = document.getElementById('t-memoji-preview-wrap');
-      var img = document.getElementById('t-memoji-preview');
-      var grid = document.getElementById('t-avatar-grid');
-      if (img && dataUrl) {
-        img.src = dataUrl;
-      }
-      if (wrap) wrap.classList.add('is-visible');
-      if (grid) {
-        grid.querySelectorAll('input[name="avatar"]').forEach(function (inp) {
-          inp.checked = false;
-          inp.required = false;
-        });
-        grid.querySelectorAll('.testimonial-avatar-option').forEach(function (el) {
-          el.classList.add('is-dimmed');
-          el.classList.remove('is-selected');
-        });
-      }
-    }
-
-    function clearCustomMemoji() {
-      customMemojiDataUrl = null;
-      var wrap = document.getElementById('t-memoji-preview-wrap');
-      var img = document.getElementById('t-memoji-preview');
-      var fileIn = document.getElementById('t-memoji-file');
-      if (wrap) wrap.classList.remove('is-visible');
-      if (img) img.removeAttribute('src');
-      if (fileIn) fileIn.value = '';
-      var grid = document.getElementById('t-avatar-grid');
-      if (grid) {
-        var first = grid.querySelector('input[name="avatar"]');
-        grid.querySelectorAll('input[name="avatar"]').forEach(function (inp) {
-          inp.required = true;
-        });
-        if (first) first.checked = true;
-        grid.querySelectorAll('.testimonial-avatar-option').forEach(function (el) {
-          el.classList.remove('is-dimmed');
-        });
-        syncAvatarSelectedClass();
-      }
-    }
-
-    function syncAvatarSelectedClass() {
-      var grid = document.getElementById('t-avatar-grid');
-      if (!grid) return;
-      grid.querySelectorAll('.testimonial-avatar-option').forEach(function (wrap) {
-        var inp = wrap.querySelector('input[name="avatar"]');
-        wrap.classList.toggle('is-selected', !!(inp && inp.checked));
-      });
     }
 
     const lead = document.getElementById('testimonial-lead');
@@ -264,34 +123,18 @@
     const submitBtn = document.getElementById('t-submit');
     const ratingInput = document.getElementById('t-rating');
     const starsEl = document.getElementById('t-stars');
+    const brandImg = document.getElementById('testimonial-brand-img');
+
+    var logoSrc =
+      (typeof window.TESTIMONIAL_BRAND_LOGO === 'string' && window.TESTIMONIAL_BRAND_LOGO.trim()) ||
+      './assets/images/logo.svg';
+    if (brandImg) {
+      brandImg.src = logoSrc;
+      brandImg.alt = 'Ruben Jimenez';
+    }
 
     const params = new URLSearchParams(window.location.search);
     const tokenId = (params.get('token') || '').trim();
-
-    const grid = document.getElementById('t-avatar-grid');
-    AVATARS.forEach(function (file, i) {
-      const wrap = document.createElement('label');
-      wrap.className = 'testimonial-avatar-option';
-      const inp = document.createElement('input');
-      inp.type = 'radio';
-      inp.name = 'avatar';
-      inp.value = file;
-      inp.required = true;
-      if (i === 0) inp.checked = true;
-      const img = document.createElement('img');
-      img.src = './assets/images/' + file;
-      img.alt = 'Preset avatar ' + (i + 1);
-      img.width = 120;
-      img.height = 120;
-      wrap.appendChild(inp);
-      wrap.appendChild(img);
-      inp.addEventListener('change', syncAvatarSelectedClass);
-      wrap.addEventListener('click', function () {
-        if (customMemojiDataUrl) clearCustomMemoji();
-      });
-      grid.appendChild(wrap);
-    });
-    syncAvatarSelectedClass();
 
     if (starsEl && ratingInput) {
       starsEl.querySelectorAll('.testimonial-star-btn').forEach(function (btn) {
@@ -302,61 +145,6 @@
           starsEl.setAttribute('data-rating', String(n));
         });
       });
-    }
-
-    if (isApplePlatformForMemojiUi()) {
-      var appleBlock = document.getElementById('t-apple-memoji');
-      if (appleBlock) appleBlock.hidden = false;
-      var fileInput = document.getElementById('t-memoji-file');
-      var pasteBtn = document.getElementById('t-memoji-paste');
-      var clearBtn = document.getElementById('t-memoji-clear');
-
-      if (fileInput) {
-        fileInput.addEventListener('change', async function () {
-          var f = fileInput.files && fileInput.files[0];
-          if (!f || !f.type || f.type.indexOf('image/') !== 0) return;
-          try {
-            var dataUrl = await compressToJpegDataUrl(f);
-            applyCustomMemojiPreview(dataUrl);
-          } catch (err) {
-            console.error(err);
-            formError.textContent = 'Could not use that image. Try a smaller photo or PNG/JPEG.';
-            formError.hidden = false;
-          }
-        });
-      }
-      if (pasteBtn) {
-        pasteBtn.addEventListener('click', async function () {
-          formError.hidden = true;
-          try {
-            var clip = await navigator.clipboard.read();
-            for (var i = 0; i < clip.length; i++) {
-              var item = clip[i];
-              for (var t = 0; t < item.types.length; t++) {
-                var ty = item.types[t];
-                if (ty && ty.indexOf('image/') === 0) {
-                  var blob = await item.getType(ty);
-                  var dataUrl = await compressToJpegDataUrl(blob);
-                  applyCustomMemojiPreview(dataUrl);
-                  return;
-                }
-              }
-            }
-            formError.textContent = 'No image found on the clipboard. Copy a Memoji or photo first.';
-            formError.hidden = false;
-          } catch (err) {
-            console.error(err);
-            formError.textContent =
-              'Clipboard access was denied or is unavailable. Use &ldquo;Choose from Photos&rdquo; or copy an image again.';
-            formError.hidden = false;
-          }
-        });
-      }
-      if (clearBtn) {
-        clearBtn.addEventListener('click', function () {
-          clearCustomMemoji();
-        });
-      }
     }
 
     function showError(msg) {
@@ -446,26 +234,8 @@
           rating: rating,
           token: tokenId,
           createdAt: serverTimestamp(),
+          avatar: 'avatar-1.png',
         };
-
-        if (customMemojiDataUrl) {
-          payload.avatar = 'custom';
-          payload.avatarImageDataUrl = customMemojiDataUrl;
-        } else {
-          var avatarEl = form.querySelector('input[name="avatar"]:checked');
-          if (!avatarEl) {
-            formError.textContent = 'Choose a preset avatar, or on Apple add your Memoji / photo above.';
-            formError.hidden = false;
-            return;
-          }
-          var avatar = avatarEl.value;
-          if (AVATARS.indexOf(avatar) === -1) {
-            formError.textContent = 'Invalid avatar selection.';
-            formError.hidden = false;
-            return;
-          }
-          payload.avatar = avatar;
-        }
 
         submitBtn.disabled = true;
         submitBtn.textContent = 'Submitting…';

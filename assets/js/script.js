@@ -4744,18 +4744,10 @@ window.addEventListener('load', function() {
         var textRaw = d.text == null ? "" : String(d.text);
         var text = escapeTestimonialHtml(textRaw).replace(/\n/g, "<br>");
         var rating = d.rating;
-        var imgSrc = "";
-        if (d.avatar === "custom" && typeof d.avatarImageDataUrl === "string") {
-          var rawUrl = d.avatarImageDataUrl;
-          if (/^data:image\/jpeg;base64,/.test(rawUrl) && rawUrl.length < 120000) {
-            imgSrc = rawUrl;
-          }
-        }
-        if (!imgSrc) {
-          var avatar = escapeTestimonialHtml(d.avatar || "avatar-1.png");
-          if (!/^avatar-[1-6]\.png$/.test(avatar)) avatar = "avatar-1.png";
-          imgSrc = "./assets/images/" + avatar;
-        }
+        var brand =
+          (typeof window.TESTIMONIAL_BRAND_LOGO === "string" && window.TESTIMONIAL_BRAND_LOGO.trim()) ||
+          "./assets/images/logo.svg";
+        var imgSrc = brand.indexOf('"') === -1 ? brand : "./assets/images/logo.svg";
         var li = document.createElement("li");
         li.className = "testimonials-item";
         li.setAttribute("data-dynamic-testimonial", "1");

@@ -42,8 +42,15 @@ const DM_FEATURE_FLAGS = {
  */
 const PORTFOLIO_PUBLIC_ORIGIN = "https://rubenjimenez.dev";
 
+/**
+ * Logo shown for customer-submitted testimonials (Home dynamic cards + testimonial.html header).
+ * Use a square-ish PNG/WebP/SVG under assets/images/ (e.g. your mark). Change this when you add your file.
+ */
+const TESTIMONIAL_BRAND_LOGO = "./assets/images/logo.svg";
+
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
 window.RESEND_EMAIL_CONFIG = RESEND_EMAIL_CONFIG;
 window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;
 window.PORTFOLIO_PUBLIC_ORIGIN = PORTFOLIO_PUBLIC_ORIGIN;
+window.TESTIMONIAL_BRAND_LOGO = TESTIMONIAL_BRAND_LOGO;

@@ -15127,6 +15127,25 @@ body.admin-contact-detail-open #command-palette-hint {
   #TESTIMONIAL STANDALONE (testimonial.html)
 \*-----------------------------------*/
 
+.testimonial-standalone-page-title {
+  margin: 0 0 8px;
+  color: var(--white-1);
+}
+
+.testimonial-standalone-text-link {
+  color: var(--orange-yellow-crayola);
+  text-decoration: none;
+  font-weight: var(--fw-500);
+  font-size: var(--fs-7);
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.testimonial-standalone-text-link:hover,
+.testimonial-standalone-text-link:focus-visible {
+  color: var(--vegas-gold);
+  outline: none;
+}
+
 .testimonial-standalone-body {
   font-family: var(--ff-poppins);
   background: var(--smoky-black);
@@ -15182,8 +15201,11 @@ body.admin-contact-detail-open #command-palette-hint {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid var(--jet);
+  background: var(--eerie-black-1);
+  padding: 6px;
+  box-sizing: border-box;
 }
 
 .testimonial-standalone-card {
@@ -15245,7 +15267,7 @@ body.admin-contact-detail-open #command-palette-hint {
   font-size: 32px;
   line-height: 1;
   cursor: pointer;
-  color: var(--jet);
+  color: hsla(0, 0%, 100%, 0.18);
   transition: color 0.15s ease, transform 0.12s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -15274,117 +15296,8 @@ body.admin-contact-detail-open #command-palette-hint {
   color: var(--orange-yellow-crayola);
 }
 
-.testimonial-avatar-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.testimonial-avatar-option {
-  position: relative;
-  cursor: pointer;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 2px solid transparent;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.testimonial-avatar-option img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-}
-
-.testimonial-avatar-option input {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  margin: 0;
-}
-
-.testimonial-avatar-option.is-selected,
-.testimonial-avatar-option:has(input:checked) {
-  border-color: var(--orange-yellow-crayola);
-  box-shadow: 0 0 0 1px hsla(45, 100%, 72%, 0.25);
-}
-
-.testimonial-avatar-option.is-dimmed {
-  opacity: 0.45;
-}
-
-.testimonial-apple-block {
-  margin-top: 8px;
-  padding: 16px;
-  border-radius: 14px;
-  border: 1px solid hsla(45, 54%, 58%, 0.22);
-  background: linear-gradient(
-    135deg,
-    hsla(45, 54%, 58%, 0.08) 0%,
-    hsla(240, 2%, 13%, 0.6) 100%
-  );
-}
-
-.testimonial-apple-block .form-label {
-  color: var(--orange-yellow-crayola);
-}
-
-.testimonial-apple-hint {
-  margin: 0 0 14px;
-  font-size: var(--fs-8);
-  color: var(--light-gray-70);
-  line-height: 1.55;
-}
-
-.testimonial-apple-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.testimonial-apple-paste {
-  min-height: 56px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px dashed hsla(0, 0%, 100%, 0.2);
-  background: var(--eerie-black-2);
-  color: var(--light-gray);
-  font-size: var(--fs-8);
-  cursor: pointer;
-  flex: 1 1 160px;
-  text-align: center;
-  transition: border-color 0.2s ease, background 0.2s ease;
-}
-
-.testimonial-apple-paste:hover,
-.testimonial-apple-paste:focus-visible {
-  border-color: var(--orange-yellow-crayola);
-  outline: none;
-}
-
-.testimonial-apple-preview-wrap {
-  margin-top: 12px;
-  display: none;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.testimonial-apple-preview-wrap.is-visible {
-  display: flex;
-}
-
-.testimonial-apple-preview-wrap img {
-  width: 88px;
-  height: 88px;
-  border-radius: 16px;
-  object-fit: cover;
-  border: 1px solid var(--jet);
+[data-theme="light"] .testimonial-standalone-body .testimonial-star-btn {
+  color: hsla(240, 2%, 35%, 0.35);
 }
 
 .testimonial-success-icon {
