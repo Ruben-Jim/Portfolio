@@ -6310,7 +6310,7 @@ window.addEventListener('load', function() {
       panels = Array.prototype.slice.call(root.querySelectorAll('.admin-tab-panel'));
     }
     var STORAGE_KEY = 'adminActiveTab';
-    var VALID = { docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, ops: 1 };
+    var VALID = { docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1, ops: 1 };
 
     function activate(tabId) {
       if (!VALID[tabId]) return;
@@ -6369,9 +6369,140 @@ window.addEventListener('load', function() {
     });
 
     activate(initial);
+
+    // Expose for KPI cards and Quick Action buttons
+    window.adminActivateTab = activate;
   }
 
   initAdminTabs();
+
+  // KPI cards and Quick Action buttons — switch to the target tab
+  document.querySelectorAll('[data-admin-kpi-tab], [data-admin-qa-tab]').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var tabId = el.getAttribute('data-admin-kpi-tab') || el.getAttribute('data-admin-qa-tab');
+      if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+      // For doc quick actions, also trigger the Create Document button after tab switch
+      var action = el.getAttribute('data-admin-qa-action');
+      if (action === 'create-doc' || action === 'create-invoice') {
+        setTimeout(function() {
+          var createBtn = document.getElementById('business-doc-create-btn');
+          if (createBtn) createBtn.click();
+          if (action === 'create-invoice') {
+            var typeSelect = document.getElementById('business-doc-filter-type');
+            var formType = document.getElementById('business-doc-type');
+            if (formType) formType.value = 'invoice';
+            if (typeSelect) typeSelect.value = 'invoice';
+          }
+        }, 80);
+      }
+      // For add-lead quick action, focus the Add Lead button
+      if (el.getAttribute('data-admin-qa-tab') === 'pipeline') {
+        setTimeout(function() {
+          var addLeadBtn = document.getElementById('admin-add-lead-btn');
+          if (addLeadBtn) addLeadBtn.focus();
+        }, 80);
+      }
+    });
+  });
+
+  // Sync kpi-new-messages from existing messages stats
+  var kpiNewMsgs = document.getElementById('kpi-new-messages');
+  var srcNewMsgs = document.getElementById('new-messages');
+  if (kpiNewMsgs && srcNewMsgs) {
+    var kpiObserver = new MutationObserver(function() {
+      kpiNewMsgs.textContent = srcNewMsgs.textContent || '0';
+    });
+    kpiObserver.observe(srcNewMsgs, { childList: true, characterData: true, subtree: true });
+    kpiNewMsgs.textContent = srcNewMsgs.textContent || '0';
+  }
+
+  // Mobile "More" overflow dropdown for admin tab bar
+  (function initAdminTabMore() {
+    var bar      = document.querySelector('.admin-tab-bar');
+    var moreWrap = document.getElementById('admin-tab-more-wrap');
+    var moreBtn  = document.getElementById('admin-tab-more-btn');
+    var dropdown = document.getElementById('admin-tab-more-dropdown');
+    if (!bar || !moreBtn || !dropdown) return;
+
+    // Collect overflow tabs (those without data-mobile-primary)
+    var overflowTabs = Array.prototype.slice.call(
+      bar.querySelectorAll('.admin-tab[data-admin-tab]:not([data-mobile-primary])')
+    );
+
+    // Build dropdown items
+    overflowTabs.forEach(function(tab) {
+      var tabId   = tab.getAttribute('data-admin-tab');
+      var iconEl  = tab.querySelector('ion-icon');
+      var labelEl = tab.querySelector('.admin-tab-label-mobile') || tab.querySelector('.admin-tab-label-desktop');
+      var iconName = iconEl ? iconEl.getAttribute('name') : 'apps-outline';
+      var label    = labelEl ? labelEl.textContent.trim() : tabId;
+
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'admin-tab-more-item';
+      item.setAttribute('role', 'option');
+      item.setAttribute('data-more-tab', tabId);
+      item.innerHTML = '<ion-icon name="' + iconName + '" aria-hidden="true"></ion-icon><span>' + label + '</span>';
+
+      item.addEventListener('click', function() {
+        if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+        closeDropdown();
+        syncMoreState();
+      });
+
+      dropdown.appendChild(item);
+    });
+
+    function openDropdown() {
+      var rect = moreBtn.getBoundingClientRect();
+      // Detach from tab bar and re-attach to body to escape overflow-x:auto clipping
+      if (dropdown.parentNode !== document.body) document.body.appendChild(dropdown);
+      // Open upward above the fixed bottom tab bar
+      dropdown.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+      dropdown.style.right  = (window.innerWidth - rect.right) + 'px';
+      dropdown.style.left   = 'auto';
+      dropdown.style.top    = 'auto';
+      moreBtn.setAttribute('aria-expanded', 'true');
+      dropdown.setAttribute('aria-hidden', 'false');
+      dropdown.classList.add('is-open');
+    }
+
+    function closeDropdown() {
+      moreBtn.setAttribute('aria-expanded', 'false');
+      dropdown.setAttribute('aria-hidden', 'true');
+      dropdown.classList.remove('is-open');
+    }
+
+    function syncMoreState() {
+      var anyActive = overflowTabs.some(function(t) { return t.classList.contains('is-active'); });
+      moreWrap.classList.toggle('has-active', anyActive);
+      var labelEl = moreBtn.querySelector('.admin-tab-more-label');
+      if (labelEl) labelEl.textContent = anyActive ? 'More' : 'More';
+
+      // Sync active state on dropdown items
+      dropdown.querySelectorAll('.admin-tab-more-item').forEach(function(item) {
+        var t = document.getElementById('admin-tab-' + item.getAttribute('data-more-tab'));
+        item.classList.toggle('is-active', !!(t && t.classList.contains('is-active')));
+      });
+    }
+
+    moreBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (dropdown.classList.contains('is-open')) { closeDropdown(); } else { openDropdown(); syncMoreState(); }
+    });
+
+    // Close on outside click (dropdown may be on body, so check both)
+    document.addEventListener('click', function(e) {
+      if (!moreWrap.contains(e.target) && !dropdown.contains(e.target)) closeDropdown();
+    });
+
+    // Re-sync whenever any tab is clicked (primary or overflow)
+    bar.querySelectorAll('.admin-tab[data-admin-tab]').forEach(function(tab) {
+      tab.addEventListener('click', function() { setTimeout(syncMoreState, 0); });
+    });
+
+    syncMoreState();
+  }());
 
   // Business Documents section collapsible (optional accordion header)
   var businessDocsSection = document.getElementById('business-docs-section');
@@ -7958,7 +8089,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Magnetic effect on primary buttons
-  var magneticTargets = document.querySelectorAll('.btn-hire-me, .btn-bento-cta, .bento-hire-btn');
+  var magneticTargets = document.querySelectorAll('.btn-hire-me, .btn-bento-cta');
   magneticTargets.forEach(function(btn) {
     btn.addEventListener('mouseenter', function() {
       gsap.to(btn, { scale: 1.02, duration: 0.2, ease: 'power2.out' });

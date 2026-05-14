@@ -775,7 +775,6 @@ article.active {
   grid-template-rows: auto;
   grid-template-areas:
     "latest"
-    "available"
     "services";
 }
 
@@ -946,38 +945,20 @@ article.active {
   box-shadow: 0 8px 28px hsla(45, 90%, 48%, 0.28);
 }
 
-.bento-available { grid-area: available;}
-
-.bento-status-badge {
-  align-self: flex-start;
-  display: inline-block;
-  padding: 7px 14px;
-  background: hsla(142, 55%, 42%, 0.18);
-  color: hsl(142, 58%, 62%);
-  font-size: 11px;
-  font-weight: var(--fw-600);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border-radius: 999px;
-  margin-bottom: 14px;
-  border: 1px solid hsla(142, 50%, 50%, 0.28);
-}
-
-.bento-status-text {
-  color: var(--light-gray-70);
-  font-size: var(--fs-6);
-  margin-bottom: 0;
-  line-height: 1.55;
-  flex: 1;
-}
-
 .bento-services { grid-area: services; }
+
+.bento-services .bento-card-title {
+  margin-bottom: 12px;
+}
+
+.bento-services .bento-services-list {
+  margin-top: auto;
+}
 
 .bento-services-list {
   display: flex;
   flex-direction: column;
   gap: 0;
-  margin-top: 4px;
 }
 
 .bento-service-item {
@@ -1003,40 +984,28 @@ article.active {
 
 @media (min-width: 580px) {
   .bento-grid {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "latest latest"
-      "available services";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "latest services";
     gap: 18px;
+    align-items: stretch;
   }
 
-  .bento-grid > .bento-available,
-  .bento-grid > .bento-services {
-    min-height: 268px;
-  }
-
-  .bento-available .bento-hire-btn {
+  .bento-grid > .bento-latest-project .btn-bento-cta {
     margin-top: auto;
-  }
-
-  .bento-services .bento-services-list {
-    flex: 1;
-    justify-content: center;
   }
 }
 
 @media (min-width: 1024px) {
   .bento-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
     grid-template-rows: auto;
-    grid-template-areas:
-      "latest available services";
+    grid-template-areas: "latest services";
     gap: 22px;
     align-items: stretch;
   }
 
   .bento-grid > .bento-card {
-    min-height: 328px;
+    min-height: 340px;
   }
 
   .bento-latest-project .bento-project-link {
@@ -1072,15 +1041,6 @@ article.active {
 
   .bento-grid > .bento-latest-project .btn-bento-cta {
     margin-top: auto;
-  }
-
-  .bento-grid > .bento-available .bento-hire-btn {
-    margin-top: auto;
-  }
-
-  .bento-services .bento-services-list {
-    flex: 1;
-    justify-content: center;
   }
 }
 
@@ -1746,8 +1706,17 @@ main::-webkit-scrollbar { display: none; }
   gap: 15px;
 }
 
+.info-content {
+  flex: 1 1 0%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
 
 .avatar-box {
+  flex-shrink: 0;
   background: var(--bg-gradient-onyx);
   border-radius: 20px;
 }
@@ -1757,6 +1726,8 @@ main::-webkit-scrollbar { display: none; }
   font-weight: var(--fw-500);
   letter-spacing: -0.25px;
   margin-bottom: 10px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   background: linear-gradient(135deg, var(--orange-yellow-crayola), var(--vegas-gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1768,16 +1739,18 @@ main::-webkit-scrollbar { display: none; }
   background: var(--onyx);
   font-size: var(--fs-8);
   font-weight: var(--fw-300);
+  max-width: 100%;
   width: max-content;
   padding: 3px 12px;
   border-radius: 8px;
 }
 
 .info_more-btn {
-  position: absolute;
-  top: -15px;
-  right: -15px;
-  border-radius: 0 15px;
+  position: relative;
+  inset: auto;
+  flex-shrink: 0;
+  align-self: center;
+  border-radius: 12px;
   font-size: 13px;
   color: var(--orange-yellow-crayola);
   background: var(--border-gradient-onyx);
@@ -3813,33 +3786,6 @@ article {
   color: var(--smoky-black);
 }
 
-/* Home bento: hire CTA must override global .btn-hire-me (comes later in cascade) */
-.bento-grid .btn-hire-me.bento-hire-btn {
-  max-width: none;
-  width: 100%;
-  min-height: 48px;
-  padding: 12px 18px;
-  font-size: var(--fs-6);
-  font-weight: var(--fw-600);
-  border-radius: 12px;
-  background: transparent;
-  color: var(--orange-yellow-crayola);
-  border: 1px solid hsla(45, 100%, 72%, 0.45);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.05);
-}
-
-.bento-grid .btn-hire-me.bento-hire-btn:hover {
-  background: hsla(45, 100%, 72%, 0.1);
-  color: var(--white-1);
-  border-color: hsla(45, 100%, 72%, 0.7);
-}
-
-.bento-grid .btn-hire-me.bento-hire-btn ion-icon,
-.bento-grid .btn-hire-me.bento-hire-btn:hover ion-icon {
-  color: inherit;
-  font-size: 1.25em;
-}
-
 /* Responsive adjustments for project cards */
 @media (min-width: 580px) {
   .project-list {
@@ -5166,7 +5112,7 @@ textarea.form-input::-webkit-resizer { display: none; }
 
   .avatar-box { border-radius: 30px; }
 
-  .avatar-box img { width: 120px; }
+  .avatar-box img { width: 50px; }
 
   .info-content .name {
     margin-bottom: 15px;
@@ -5179,8 +5125,8 @@ textarea.form-input::-webkit-resizer { display: none; }
   .info-content .title { padding: 5px 18px; }
 
   .info_more-btn {
-    top: -30px;
-    right: -30px;
+    position: relative;
+    inset: auto;
     padding: 10px 15px;
   }
 
@@ -5773,7 +5719,13 @@ textarea.form-input::-webkit-resizer { display: none; }
 
   .sidebar-info { flex-direction: column; }
 
-  .avatar-box img { width: 150px; }
+  .info-content {
+    flex: 0 1 auto;
+    width: 100%;
+    align-items: center;
+  }
+
+  .avatar-box img { width: 50px; }
 
   .info-content .name {
     white-space: nowrap;
@@ -15350,4 +15302,463 @@ body.admin-contact-detail-open #command-palette-hint {
   font-size: 28px;
   font-weight: var(--fw-600);
   margin-bottom: 16px;
+}
+
+/* =============================================
+   ADMIN — KPI BAR
+   ============================================= */
+
+.admin-kpi-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-kpi-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--border-gradient-onyx);
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  transition: border-color 0.2s;
+}
+
+.admin-kpi-card[role="button"] { cursor: pointer; }
+.admin-kpi-card[role="button"]:hover { border-color: var(--orange-yellow-crayola); }
+
+.admin-kpi-card ion-icon {
+  font-size: 26px;
+  color: var(--orange-yellow-crayola);
+  flex-shrink: 0;
+}
+
+.admin-kpi-value {
+  display: block;
+  font-size: 22px;
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  line-height: 1;
+}
+
+.admin-kpi-label {
+  display: block;
+  font-size: 11px;
+  color: var(--light-gray-70);
+  margin-top: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* =============================================
+   ADMIN — QUICK ACTIONS
+   ============================================= */
+
+.admin-quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.admin-quick-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--jet);
+  border: 1px solid var(--onyx);
+  border-radius: 8px;
+  color: var(--light-gray);
+  font-size: 12px;
+  font-weight: var(--fw-500);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.admin-quick-action-btn:hover {
+  background: var(--orange-yellow-crayola);
+  border-color: var(--orange-yellow-crayola);
+  color: var(--smoky-black);
+}
+
+.admin-quick-action-btn ion-icon { font-size: 15px; }
+
+/* =============================================
+   ADMIN — CLIENT PIPELINE (CRM)
+   ============================================= */
+
+.pipeline-summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.pipeline-summary-stat {
+  padding: 14px 16px;
+  background: var(--border-gradient-onyx);
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.pipeline-summary-value {
+  display: block;
+  font-size: 20px;
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  line-height: 1;
+}
+
+.pipeline-summary-value--active { color: #60a5fa; }
+.pipeline-summary-value--value  { color: var(--orange-yellow-crayola); }
+.pipeline-summary-value--won    { color: #34d399; }
+
+.pipeline-summary-label {
+  display: block;
+  font-size: 10px;
+  color: var(--light-gray-70);
+  margin-top: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pipeline-board {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  min-height: 420px;
+  align-items: flex-start;
+}
+
+.pipeline-col {
+  flex: 0 0 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pipeline-col-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--jet);
+  margin-bottom: 4px;
+}
+
+.pipeline-stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pipeline-dot--lead        { background: var(--light-gray-70); }
+.pipeline-dot--discovery   { background: #60a5fa; }
+.pipeline-dot--proposal    { background: #f59e0b; }
+.pipeline-dot--deposit     { background: #10b981; }
+.pipeline-dot--building    { background: var(--orange-yellow-crayola); }
+.pipeline-dot--launched    { background: #34d399; }
+.pipeline-dot--maintenance { background: #a78bfa; }
+
+.pipeline-col-title {
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+}
+
+.pipeline-col-count {
+  font-size: 11px;
+  color: var(--light-gray-70);
+  background: var(--jet);
+  border-radius: 10px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.pipeline-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.pipeline-empty {
+  font-size: 11px;
+  color: var(--light-gray-70);
+  text-align: center;
+  padding: 20px 8px;
+  border: 1px dashed var(--jet);
+  border-radius: 8px;
+  margin: 0;
+}
+
+.pipeline-card {
+  background: var(--border-gradient-onyx);
+  border: 1px solid var(--jet);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.pipeline-card:hover {
+  border-color: var(--orange-yellow-crayola);
+  transform: translateY(-1px);
+}
+
+.pipeline-card-name {
+  font-size: 13px;
+  font-weight: var(--fw-500);
+  color: var(--white-2);
+  margin-bottom: 5px;
+}
+
+.pipeline-card-value {
+  font-size: 12px;
+  color: var(--orange-yellow-crayola);
+  font-weight: var(--fw-600);
+}
+
+.pipeline-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.pipeline-card-type {
+  font-size: 10px;
+  color: var(--light-gray-70);
+  background: var(--jet);
+  border-radius: 4px;
+  padding: 1px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.pipeline-card-date {
+  font-size: 10px;
+  color: var(--light-gray-70);
+}
+
+/* Responsive: collapse KPI & pipeline summary to 2-col on smaller screens */
+@media (max-width: 580px) {
+  .admin-kpi-bar,
+  .pipeline-summary-row { grid-template-columns: repeat(2, 1fr); }
+  .admin-kpi-card { gap: 10px; padding: 12px; }
+  .admin-kpi-value { font-size: 18px; }
+}
+
+/* =============================================
+   ADMIN — TAB BAR "MORE" OVERFLOW (MOBILE)
+   ============================================= */
+
+/* Hidden on desktop; JS + CSS reveal on mobile */
+.admin-tab-more-wrap {
+  display: none;
+  position: relative;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.admin-tab-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  color: var(--light-gray-70);
+  font-size: 12px;
+  font-weight: var(--fw-500);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.admin-tab-more-btn:hover {
+  color: var(--white-2);
+  background: var(--jet);
+}
+
+.admin-tab-more-label {
+  font-size: 11px;
+  font-weight: var(--fw-500);
+}
+
+.admin-tab-more-chevron {
+  font-size: 11px;
+  transition: transform 0.2s;
+}
+
+.admin-tab-more-btn[aria-expanded="true"] .admin-tab-more-chevron {
+  transform: rotate(180deg);
+}
+
+/* Dot indicator when an overflow tab is active */
+.admin-tab-more-wrap.has-active .admin-tab-more-btn {
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-tab-more-wrap.has-active .admin-tab-more-btn::after {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--orange-yellow-crayola);
+  flex-shrink: 0;
+}
+
+/* Dropdown */
+.admin-tab-more-dropdown {
+  display: none;
+  position: fixed; /* escapes overflow-x:auto on the bottom tab bar */
+  background: var(--eerie-black-2, #1e1e1e);
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  overflow: hidden;
+  min-width: 185px;
+  z-index: 9999;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.6);
+}
+
+.admin-tab-more-dropdown.is-open { display: block; }
+
+.admin-tab-more-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 16px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--jet);
+  color: var(--light-gray);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-tab-more-item:last-child { border-bottom: none; }
+
+.admin-tab-more-item:hover {
+  background: var(--jet);
+  color: var(--white-2);
+}
+
+.admin-tab-more-item.is-active {
+  color: var(--orange-yellow-crayola);
+  background: rgba(206, 177, 90, 0.07);
+}
+
+.admin-tab-more-item ion-icon { font-size: 16px; flex-shrink: 0; }
+
+/* Mobile — hide overflow tabs, show More button */
+@media (max-width: 580px) {
+  .admin-tab-bar .admin-tab:not([data-mobile-primary]) {
+    display: none;
+  }
+  .admin-tab-more-wrap {
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* =============================================
+   ADMIN — DESKTOP VERTICAL SIDEBAR NAV (≥768px)
+   ============================================= */
+
+/* Base — full-width at every resolution */
+#admin-dashboard-content {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#admin-dashboard-content > .admin-tabs {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-tabs-body {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+  /* Override the column flex set by the ID rule */
+  #admin-dashboard-content > .admin-tabs {
+    flex-direction: row !important;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+  }
+
+  /* Sidebar */
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    flex-shrink: 0 !important;
+    width: 220px !important;
+    gap: 2px !important;
+    padding: 8px !important;
+    margin-bottom: 0 !important;
+    margin-right: 16px;
+    position: sticky;
+    top: 20px;
+    align-self: flex-start;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+  }
+
+  /* All tabs visible — override mobile-primary hiding */
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab {
+    display: inline-flex !important;
+    flex: none !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+    padding: 10px 12px !important;
+    min-width: 0 !important;
+    text-align: left;
+    white-space: nowrap !important;
+  }
+
+  /* Show full desktop label, hide mobile short label */
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab .admin-tab-label-desktop {
+    display: block !important;
+  }
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab .admin-tab-label-mobile {
+    display: none !important;
+  }
+
+  /* Active state — left accent bar */
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab.is-active {
+    box-shadow: inset 3px 0 0 var(--orange-yellow-crayola);
+  }
+
+  /* Hide More button on desktop */
+  .admin-tab-more-wrap {
+    display: none !important;
+  }
+
+  /* Content area fills all remaining space */
+  .admin-tabs-body {
+    flex: 1 1 0%;
+    min-width: 0;
+    width: 100%;
+  }
 }
