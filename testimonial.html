@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-brand-20260514">
+  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-no-topbar-20260514">
   <script>
     (function () {
       var saved = localStorage.getItem('portfolio-theme');
@@ -23,13 +23,6 @@
 <body class="testimonial-standalone-body">
 
   <div class="testimonial-standalone-shell">
-    <div class="testimonial-standalone-top">
-      <a class="testimonial-standalone-brand" href="./" id="testimonial-brand-link">
-        <img id="testimonial-brand-img" src="./assets/images/logo.svg" width="42" height="42" alt="Ruben Jimenez">
-        <span>Ruben Jimenez</span>
-      </a>
-      <a href="./" class="btn btn-secondary" style="min-height: 44px;">Portfolio home</a>
-    </div>
 
     <h1 class="h2 testimonial-standalone-page-title">Share your testimonial</h1>
     <p class="testimonial-standalone-lead" id="testimonial-lead">Loading…</p>
@@ -123,15 +116,6 @@
     const submitBtn = document.getElementById('t-submit');
     const ratingInput = document.getElementById('t-rating');
     const starsEl = document.getElementById('t-stars');
-    const brandImg = document.getElementById('testimonial-brand-img');
-
-    var logoSrc =
-      (typeof window.TESTIMONIAL_BRAND_LOGO === 'string' && window.TESTIMONIAL_BRAND_LOGO.trim()) ||
-      './assets/images/logo.svg';
-    if (brandImg) {
-      brandImg.src = logoSrc;
-      brandImg.alt = 'Ruben Jimenez';
-    }
 
     const params = new URLSearchParams(window.location.search);
     const tokenId = (params.get('token') || '').trim();

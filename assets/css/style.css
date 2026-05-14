@@ -15170,42 +15170,7 @@ body.admin-contact-detail-open #command-palette-hint {
   z-index: 1;
   max-width: min(520px, 100vw - 32px);
   margin: 0 auto;
-  padding: 32px 0 72px;
-}
-
-.testimonial-standalone-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-}
-
-.testimonial-standalone-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  color: var(--light-gray);
-  font-size: var(--fs-7);
-  font-weight: var(--fw-500);
-  transition: color 0.2s ease;
-}
-
-.testimonial-standalone-brand:hover {
-  color: var(--orange-yellow-crayola);
-}
-
-.testimonial-standalone-brand img {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  object-fit: contain;
-  border: 1px solid var(--jet);
-  background: var(--eerie-black-1);
-  padding: 6px;
-  box-sizing: border-box;
+  padding: 24px 0 72px;
 }
 
 .testimonial-standalone-card {

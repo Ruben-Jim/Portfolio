@@ -43,8 +43,8 @@ const DM_FEATURE_FLAGS = {
 const PORTFOLIO_PUBLIC_ORIGIN = "https://rubenjimenez.dev";
 
 /**
- * Logo shown for customer-submitted testimonials (Home dynamic cards + testimonial.html header).
- * Use a square-ish PNG/WebP/SVG under assets/images/ (e.g. your mark). Change this when you add your file.
+ * Logo shown for customer-submitted testimonials on the Home page (dynamic cards).
+ * Use a square-ish PNG/WebP/SVG under assets/images/. Change when you add your file.
  */
 const TESTIMONIAL_BRAND_LOGO = "./assets/images/logo.svg";
 
