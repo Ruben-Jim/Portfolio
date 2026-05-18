@@ -4115,28 +4115,34 @@ article {
 
 .portfolio-project-image-preview-wrap {
   margin: 4px 0 18px;
-  padding: 12px;
+  padding: 0;
   border-radius: 12px;
   border: 1px solid hsla(0, 0%, 100%, 0.1);
-  background: hsla(0, 0%, 100%, 0.03);
+  background: hsla(0, 0%, 0%, 0.28);
+  overflow: hidden;
 }
 
 .portfolio-project-image-preview {
   display: block;
   width: 100%;
-  max-width: 360px;
-  max-height: 200px;
-  object-fit: contain;
-  object-position: left center;
-  border-radius: 10px;
-  background: hsla(0, 0%, 0%, 0.25);
+  max-width: none;
+  min-height: 120px;
+  max-height: 220px;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: center center;
+  border-radius: 0;
+  background: hsla(0, 0%, 0%, 0.2);
 }
 
 .portfolio-project-image-preview-error {
-  margin: 10px 0 0;
+  margin: 0;
+  padding: 10px 12px;
   color: hsl(0, 72%, 68%);
   font-size: var(--fs-8);
   line-height: 1.45;
+  border-top: 1px solid hsla(0, 72%, 68%, 0.2);
 }
 
 .add-blog-form .form-hint {

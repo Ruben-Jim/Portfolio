@@ -2784,9 +2784,26 @@ function portfolioNormalizeAssetImageUrl(url) {
   return s;
 }
 
+/**
+ * Absolute URL for <img src> — relative ./assets/... breaks on /portfolio/ and other
+ * trailing-slash routes on the live site; origin + path always matches localhost behavior.
+ */
+function portfolioAbsoluteAssetUrl(url) {
+  var s = portfolioNormalizeAssetImageUrl(url);
+  if (!s) return '';
+  if (/^(https?:|data:|blob:)/i.test(s)) return s;
+  var rel = s.replace(/^\.\//, '').replace(/^\/+/, '');
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+    return window.location.origin.replace(/\/$/, '') + '/' + rel;
+  }
+  var origin = String(window.PORTFOLIO_PUBLIC_ORIGIN || '').trim().replace(/\/$/, '');
+  if (origin) return origin + '/' + rel;
+  return s;
+}
+
 function portfolioDisplayImageSrc(url) {
   var normalized = portfolioNormalizeAssetImageUrl(url);
-  return normalized || PORTFOLIO_PLACEHOLDER_IMAGE;
+  return portfolioAbsoluteAssetUrl(normalized || PORTFOLIO_PLACEHOLDER_IMAGE);
 }
 
 function portfolioImageUrlFromRecord(row) {
@@ -2843,7 +2860,7 @@ function syncPortfolioImageAssetSelectFromInput() {
 function portfolioHandleImageError(img) {
   if (!img || img.dataset.portfolioImgFailed === '1') return;
   img.dataset.portfolioImgFailed = '1';
-  img.src = PORTFOLIO_PLACEHOLDER_IMAGE;
+  img.src = portfolioDisplayImageSrc(PORTFOLIO_PLACEHOLDER_IMAGE);
 }
 
 window.portfolioHandleImageError = portfolioHandleImageError;
