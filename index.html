@@ -53,7 +53,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-img-absolute-20260518">
+  <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-preview-match-20260518">
 
   <!--
     - google font link
@@ -3967,7 +3967,10 @@
           </div>
         </div>
         <div class="portfolio-project-image-preview-wrap" id="portfolio-project-image-preview-wrap" hidden>
-          <img id="portfolio-project-image-preview" class="portfolio-project-image-preview" alt="">
+          <p class="portfolio-project-image-preview-label">Portfolio thumbnail preview</p>
+          <figure class="project-img portfolio-project-image-preview-frame">
+            <img id="portfolio-project-image-preview" alt="">
+          </figure>
           <p class="portfolio-project-image-preview-error" id="portfolio-project-image-preview-error" hidden>
             Could not load this image. Confirm the file exists under <code>assets/images/</code> and is deployed.
           </p>
@@ -4705,7 +4708,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - Firebase config
   -->
-  <script src="./assets/js/config.js"></script>
+  <script src="/assets/js/config.js"></script>
 
   <!--
     - Firebase SDKs
@@ -4809,9 +4812,9 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     </div>
   </div>
 
-  <script src="./assets/js/portfolio-built-in-data.js"></script>
-  <script src="./assets/js/script.js?v=portfolio-img-absolute-20260518"></script>
-  <script src="./assets/js/dm-migration.js"></script>
+  <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
+  <script src="/assets/js/script.js?v=portfolio-assets-20260518"></script>
+  <script src="/assets/js/dm-migration.js"></script>
 
   <!--
     - ionicons link

@@ -2761,6 +2761,61 @@ let portfolioProjectsRtdb = [];
 
 const PORTFOLIO_PLACEHOLDER_IMAGE = './assets/images/project-comingsoon.svg';
 
+/** Fallback if portfolio-built-in-data.js fails to load (e.g. /admin/ + relative script path). */
+const PORTFOLIO_ASSET_IMAGE_FALLBACK = [
+  './assets/images/project-procleaning.png',
+  './assets/images/project-grippysocks.png',
+  './assets/images/project-barbershop.png',
+  './assets/images/project-rizopizzeria.png',
+  './assets/images/project-sheltonsprings.png',
+  './assets/images/project-gadgetgarage.png',
+  './assets/images/project-rosasalon.png',
+  './assets/images/project-zoomrealty.png',
+  './assets/images/project-realestate.png',
+  './assets/images/project-homeverse.png',
+  './assets/images/project-lawncare.png',
+  './assets/images/project-procleaning1.png',
+  './assets/images/project-rizopizzeria1.png',
+  './assets/images/project-sheltonsprings1.png',
+  './assets/images/project-rosasalon1.png',
+  './assets/images/project-gadgetgarage2.png',
+  './assets/images/project-homeverse2.png'
+];
+
+function portfolioEscapeHtml(str) {
+  if (str == null || str === '') return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getPortfolioAssetImageOptions() {
+  var seen = {};
+  var list = [];
+  function add(url) {
+    var normalized = portfolioNormalizeAssetImageUrl(url);
+    if (!normalized || seen[normalized] || /^https?:\/\//i.test(normalized)) return;
+    seen[normalized] = true;
+    list.push(normalized);
+  }
+  if (Array.isArray(window.PORTFOLIO_ASSET_IMAGES)) {
+    window.PORTFOLIO_ASSET_IMAGES.forEach(add);
+  }
+  (window.DEFAULT_PORTFOLIO_PROJECTS || []).forEach(function (p) {
+    add(p.imageUrl);
+  });
+  if (Array.isArray(portfolioProjectsRtdb)) {
+    portfolioProjectsRtdb.forEach(function (p) {
+      add(p.imageUrl);
+    });
+  }
+  PORTFOLIO_ASSET_IMAGE_FALLBACK.forEach(add);
+  return list.sort();
+}
+
 function portfolioCleanImageUrlInput(url) {
   return String(url != null ? url : '')
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
@@ -2816,7 +2871,7 @@ function portfolioImageUrlFromRecord(row) {
 function populatePortfolioImageAssetSelect() {
   var select = document.getElementById('portfolio-project-image-asset');
   var datalist = document.getElementById('portfolio-project-image-options');
-  var options = Array.isArray(window.PORTFOLIO_ASSET_IMAGES) ? window.PORTFOLIO_ASSET_IMAGES : [];
+  var options = getPortfolioAssetImageOptions();
   if (select) {
     var current = select.value;
     select.innerHTML =
@@ -2849,7 +2904,7 @@ function syncPortfolioImageAssetSelectFromInput() {
   var input = document.getElementById('portfolio-project-image');
   if (!select || !input) return;
   var normalized = portfolioNormalizeAssetImageUrl(input.value);
-  var options = Array.isArray(window.PORTFOLIO_ASSET_IMAGES) ? window.PORTFOLIO_ASSET_IMAGES : [];
+  var options = getPortfolioAssetImageOptions();
   if (normalized && options.indexOf(normalized) >= 0) {
     select.value = normalized;
   } else {
@@ -2864,16 +2919,6 @@ function portfolioHandleImageError(img) {
 }
 
 window.portfolioHandleImageError = portfolioHandleImageError;
-
-function portfolioEscapeHtml(str) {
-  if (str == null || str === '') return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 /** Numeric sort key for `order` (RTDB may store strings; avoids lexicographic ordering). */
 function portfolioNumericOrder(p) {
@@ -2971,6 +3016,9 @@ async function loadPortfolioProjectsFromRtdb() {
     console.error('Portfolio RTDB load failed; falling back to built-in projects', err);
   }
   syncWindowPortfolioProjectsRef();
+  if (typeof populatePortfolioImageAssetSelect === 'function') {
+    populatePortfolioImageAssetSelect();
+  }
 }
 
 function portfolioCategoryLabel(slug) {
@@ -6520,6 +6568,9 @@ window.addEventListener('load', function() {
       } catch (e) {}
       if (tabId === 'testimonials' && typeof window.loadTestimonialAdminPanel === 'function') {
         window.loadTestimonialAdminPanel();
+      }
+      if (tabId === 'portfolio' && typeof populatePortfolioImageAssetSelect === 'function') {
+        populatePortfolioImageAssetSelect();
       }
     }
 
