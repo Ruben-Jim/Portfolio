@@ -53,7 +53,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=sidebar-info-fill-20260514">
+  <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-asset-images-20260517">
 
   <!--
     - google font link
@@ -3947,15 +3947,30 @@
           <label for="portfolio-project-url">Live project URL</label>
           <input type="url" id="portfolio-project-url" inputmode="url" placeholder="https:// or leave empty / #">
         </div>
+        <div class="form-group">
+          <label for="portfolio-project-image-asset">Project screenshot (assets/images)</label>
+          <select id="portfolio-project-image-asset">
+            <option value="">Custom path or external URL…</option>
+          </select>
+          <p class="form-hint">Pick a file already in the repo, same as built-in projects (e.g. <code>project-lawncare.png</code>).</p>
+        </div>
         <div class="form-row">
           <div class="form-group form-group-half">
             <label for="portfolio-project-image">Image URL</label>
-            <input type="text" id="portfolio-project-image" placeholder="./assets/images/... or https://">
+            <input type="text" id="portfolio-project-image" list="portfolio-project-image-options" placeholder="./assets/images/project-lawncare.png">
+            <datalist id="portfolio-project-image-options"></datalist>
+            <p class="form-hint">Use <code>./assets/images/your-file.png</code> — same format as Pro Cleaning and other projects.</p>
           </div>
           <div class="form-group form-group-half">
             <label for="portfolio-project-image-alt">Image alt text</label>
             <input type="text" id="portfolio-project-image-alt" maxlength="200" placeholder="Screen reader description">
           </div>
+        </div>
+        <div class="portfolio-project-image-preview-wrap" id="portfolio-project-image-preview-wrap" hidden>
+          <img id="portfolio-project-image-preview" class="portfolio-project-image-preview" alt="" width="320" height="180">
+          <p class="portfolio-project-image-preview-error" id="portfolio-project-image-preview-error" hidden>
+            Could not load this image. Confirm the file exists under <code>assets/images/</code> and is deployed.
+          </p>
         </div>
         <div class="form-group">
           <label for="portfolio-project-description">Description</label>
@@ -4795,7 +4810,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="./assets/js/portfolio-built-in-data.js"></script>
-  <script src="./assets/js/script.js?v=testimonial-confirm-modal-20260514"></script>
+  <script src="./assets/js/script.js?v=portfolio-asset-images-20260517"></script>
   <script src="./assets/js/dm-migration.js"></script>
 
   <!--

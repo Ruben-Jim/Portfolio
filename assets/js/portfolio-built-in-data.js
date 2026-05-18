@@ -143,5 +143,44 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
       'An elegant real estate website featuring property showcases, virtual tours, and seamless user experience.',
     techTags: ['HTML', 'CSS', 'JavaScript'],
     showQuoteButton: true
+  },
+  {
+    order: 110,
+    category: 'professional',
+    title: 'Lawn Care',
+    projectUrl: '#',
+    imageUrl: './assets/images/project-lawncare.png',
+    imageAlt: 'Lawn Care App',
+    description:
+      'A lawn care and landscaping business app with service booking, recurring routes, and seasonal add-ons—built for crews that want less back-and-forth over pricing in texts.',
+    techTags: ['React Native', 'Expo', 'Firebase'],
+    showQuoteButton: true
   }
 ];
+
+/** Local screenshots under assets/images/ (same paths as built-in projects use). */
+window.PORTFOLIO_ASSET_IMAGES = (function () {
+  var seen = {};
+  var list = [];
+  function add(url) {
+    var u = String(url || '').trim();
+    if (!u || seen[u]) return;
+    seen[u] = true;
+    list.push(u);
+  }
+  (window.DEFAULT_PORTFOLIO_PROJECTS || []).forEach(function (p) {
+    add(p.imageUrl);
+  });
+  [
+    './assets/images/project-lawncare.png',
+    './assets/images/project-realestate.png',
+    './assets/images/project-zoomrealty.png',
+    './assets/images/project-procleaning1.png',
+    './assets/images/project-rizopizzeria1.png',
+    './assets/images/project-sheltonsprings1.png',
+    './assets/images/project-rosasalon1.png',
+    './assets/images/project-gadgetgarage2.png',
+    './assets/images/project-homeverse2.png'
+  ].forEach(add);
+  return list.sort();
+})();

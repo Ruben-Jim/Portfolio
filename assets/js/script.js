@@ -2759,6 +2759,95 @@ const defaultBlogPosts = [
 
 let portfolioProjectsRtdb = [];
 
+const PORTFOLIO_PLACEHOLDER_IMAGE = './assets/images/project-comingsoon.svg';
+
+function portfolioCleanImageUrlInput(url) {
+  return String(url != null ? url : '')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .trim();
+}
+
+/** Normalize to the same ./assets/images/... format used by built-in portfolio projects. */
+function portfolioNormalizeAssetImageUrl(url) {
+  var s = portfolioCleanImageUrlInput(url);
+  if (!s) return '';
+  if (/^(https?:|data:|blob:)/i.test(s)) return s;
+  var match = s.match(/assets\/images\/[A-Za-z0-9._-]+/i);
+  if (match) return './' + match[0];
+  if (/^\.?\/?assets\//i.test(s)) {
+    if (s.indexOf('./') === 0) return s;
+    if (s.charAt(0) === '/') return '.' + s;
+    return './' + s;
+  }
+  return s;
+}
+
+function portfolioDisplayImageSrc(url) {
+  var normalized = portfolioNormalizeAssetImageUrl(url);
+  return normalized || PORTFOLIO_PLACEHOLDER_IMAGE;
+}
+
+function portfolioImageUrlFromRecord(row) {
+  if (!row || typeof row !== 'object') return '';
+  return portfolioNormalizeAssetImageUrl(
+    row.imageUrl || row.imageURL || row.image || row.thumbnailUrl || ''
+  );
+}
+
+function populatePortfolioImageAssetSelect() {
+  var select = document.getElementById('portfolio-project-image-asset');
+  var datalist = document.getElementById('portfolio-project-image-options');
+  var options = Array.isArray(window.PORTFOLIO_ASSET_IMAGES) ? window.PORTFOLIO_ASSET_IMAGES : [];
+  if (select) {
+    var current = select.value;
+    select.innerHTML =
+      '<option value="">Custom path or external URL…</option>' +
+      options
+        .map(function (path) {
+          var label = path.replace(/^\.\/assets\/images\//, '');
+          return (
+            '<option value="' +
+            portfolioEscapeHtml(path) +
+            '">' +
+            portfolioEscapeHtml(label) +
+            '</option>'
+          );
+        })
+        .join('');
+    if (current && options.indexOf(current) >= 0) select.value = current;
+  }
+  if (datalist) {
+    datalist.innerHTML = options
+      .map(function (path) {
+        return '<option value="' + portfolioEscapeHtml(path) + '"></option>';
+      })
+      .join('');
+  }
+}
+
+function syncPortfolioImageAssetSelectFromInput() {
+  var select = document.getElementById('portfolio-project-image-asset');
+  var input = document.getElementById('portfolio-project-image');
+  if (!select || !input) return;
+  var normalized = portfolioNormalizeAssetImageUrl(input.value);
+  var options = Array.isArray(window.PORTFOLIO_ASSET_IMAGES) ? window.PORTFOLIO_ASSET_IMAGES : [];
+  if (normalized && options.indexOf(normalized) >= 0) {
+    select.value = normalized;
+  } else {
+    select.value = '';
+  }
+}
+
+function portfolioHandleImageError(img) {
+  if (!img || img.dataset.portfolioImgFailed === '1') return;
+  img.dataset.portfolioImgFailed = '1';
+  img.src = PORTFOLIO_PLACEHOLDER_IMAGE;
+}
+
+window.portfolioHandleImageError = portfolioHandleImageError;
+
 function portfolioEscapeHtml(str) {
   if (str == null || str === '') return '';
   return String(str)
@@ -2817,6 +2906,8 @@ function syncWindowPortfolioProjectsRef() {
 function normalizePortfolioRtdbRow(row) {
   if (!row || typeof row !== 'object') return {};
   const out = Object.assign({}, row);
+  const normalizedImage = portfolioImageUrlFromRecord(row);
+  if (normalizedImage) out.imageUrl = normalizedImage;
   if (out.order != null && out.order !== '') {
     const n = Number(String(out.order).trim());
     out.order = Number.isFinite(n) ? n : 0;
@@ -2895,7 +2986,7 @@ function portfolioSanitizeDocumentPayload(data) {
     category: category,
     title: String(data.title || '').slice(0, 200),
     projectUrl: String(data.projectUrl != null ? data.projectUrl : '').trim().slice(0, 2000),
-    imageUrl: String(data.imageUrl != null ? data.imageUrl : '').trim().slice(0, 2000),
+    imageUrl: portfolioNormalizeAssetImageUrl(data.imageUrl != null ? data.imageUrl : '').slice(0, 2000),
     imageAlt: String(data.imageAlt != null ? data.imageAlt : '').slice(0, 200),
     description: String(data.description != null ? data.description : '').slice(0, 8000),
     techTags: portfolioParseTechTags(data.techTags),
@@ -2943,6 +3034,7 @@ function buildPortfolioProjectCardHtml(p) {
   const catSlug = String(p.category || 'professional').toLowerCase();
   const catLabel = portfolioCategoryLabel(catSlug);
   const liveHref = portfolioSafeProjectUrl(p.projectUrl);
+  const imgSrc = portfolioDisplayImageSrc(p.imageUrl);
   return (
     '<li class="project-item active" data-filter-item data-category="' +
     portfolioEscapeHtml(catSlug) +
@@ -2958,10 +3050,10 @@ function buildPortfolioProjectCardHtml(p) {
     '<ion-icon name="eye-outline"></ion-icon>' +
     '</div>' +
     '<img src="' +
-    portfolioEscapeHtml(p.imageUrl || './assets/images/project-comingsoon.svg') +
+    portfolioEscapeHtml(imgSrc) +
     '" alt="' +
     portfolioEscapeHtml(p.imageAlt || p.title || '') +
-    '" loading="lazy">' +
+    '" loading="lazy" onerror="portfolioHandleImageError(this)">' +
     '</figure>' +
     '<div class="project-content">' +
     '<h3 class="project-title">' +
@@ -3036,14 +3128,14 @@ function renderAdminPortfolioProjects() {
       catKey = 'professional';
     }
     row.className = 'admin-portfolio-row admin-portfolio-row--' + catKey;
-    const thumb = p.imageUrl || './assets/images/project-comingsoon.svg';
+    const thumb = portfolioDisplayImageSrc(p.imageUrl);
     const orderNum = p.order != null ? p.order : 0;
     row.innerHTML =
       '<div class="admin-portfolio-row-main">' +
       '<div class="admin-portfolio-thumb-wrap">' +
       '<img class="admin-portfolio-thumb" src="' +
       portfolioEscapeHtml(thumb) +
-      '" alt="" loading="lazy">' +
+      '" alt="" loading="lazy" onerror="portfolioHandleImageError(this)">' +
       '</div>' +
       '<div class="admin-portfolio-row-text">' +
       '<span class="admin-portfolio-title">' +
@@ -3082,6 +3174,37 @@ function renderAdminPortfolioProjects() {
 let portfolioModalHandlersBound = false;
 let pendingDeletePortfolioId = null;
 
+function syncPortfolioProjectImagePreview() {
+  const input = document.getElementById('portfolio-project-image');
+  const wrap = document.getElementById('portfolio-project-image-preview-wrap');
+  const preview = document.getElementById('portfolio-project-image-preview');
+  const err = document.getElementById('portfolio-project-image-preview-error');
+  if (!input || !wrap || !preview) return;
+
+  const raw = String(input.value || '').trim();
+  if (!raw) {
+    wrap.hidden = true;
+    preview.removeAttribute('src');
+    if (err) err.hidden = true;
+    return;
+  }
+
+  wrap.hidden = false;
+  if (err) err.hidden = true;
+  preview.dataset.portfolioImgFailed = '';
+  preview.alt =
+    String(document.getElementById('portfolio-project-image-alt')?.value || '').trim() ||
+    'Image preview';
+  preview.onerror = function () {
+    portfolioHandleImageError(preview);
+    if (err) err.hidden = false;
+  };
+  preview.onload = function () {
+    if (err) err.hidden = true;
+  };
+  preview.src = portfolioDisplayImageSrc(raw);
+}
+
 function openPortfolioProjectModal(isNew, project) {
   const modal = document.getElementById('portfolio-project-modal');
   const titleEl = document.getElementById('portfolio-project-modal-title');
@@ -3097,7 +3220,9 @@ function openPortfolioProjectModal(isNew, project) {
         ? String(project.category).toLowerCase()
         : 'professional';
     document.getElementById('portfolio-project-url').value = project.projectUrl || '';
-    document.getElementById('portfolio-project-image').value = project.imageUrl || '';
+    document.getElementById('portfolio-project-image').value = portfolioNormalizeAssetImageUrl(
+      project.imageUrl || ''
+    );
     document.getElementById('portfolio-project-image-alt').value = project.imageAlt || '';
     document.getElementById('portfolio-project-description').value = project.description || '';
     document.getElementById('portfolio-project-tech').value = portfolioParseTechTags(project.techTags).join(', ');
@@ -3112,6 +3237,9 @@ function openPortfolioProjectModal(isNew, project) {
   } else {
     document.getElementById('portfolio-project-show-quote').checked = true;
   }
+  populatePortfolioImageAssetSelect();
+  syncPortfolioImageAssetSelectFromInput();
+  syncPortfolioProjectImagePreview();
   modal.classList.add('active');
   modal.style.display = 'flex';
   modal.style.visibility = 'visible';
@@ -3174,6 +3302,36 @@ function setupPortfolioAdminControls() {
       openPortfolioProjectModal(true, null);
     });
   }
+  populatePortfolioImageAssetSelect();
+
+  const imageAssetSelect = document.getElementById('portfolio-project-image-asset');
+  const imageInput = document.getElementById('portfolio-project-image');
+  const imageAltInput = document.getElementById('portfolio-project-image-alt');
+  if (imageAssetSelect && !imageAssetSelect.dataset.bound) {
+    imageAssetSelect.dataset.bound = '1';
+    imageAssetSelect.addEventListener('change', function () {
+      if (imageAssetSelect.value && imageInput) {
+        imageInput.value = imageAssetSelect.value;
+      }
+      syncPortfolioProjectImagePreview();
+    });
+  }
+  if (imageInput && !imageInput.dataset.previewBound) {
+    imageInput.dataset.previewBound = '1';
+    imageInput.addEventListener('input', function () {
+      syncPortfolioImageAssetSelectFromInput();
+      syncPortfolioProjectImagePreview();
+    });
+    imageInput.addEventListener('change', function () {
+      syncPortfolioImageAssetSelectFromInput();
+      syncPortfolioProjectImagePreview();
+    });
+  }
+  if (imageAltInput && !imageAltInput.dataset.previewBound) {
+    imageAltInput.dataset.previewBound = '1';
+    imageAltInput.addEventListener('input', syncPortfolioProjectImagePreview);
+  }
+
   if (form && !form.dataset.bound) {
     form.dataset.bound = '1';
     form.addEventListener('submit', async function (e) {
@@ -3888,9 +4046,22 @@ function initPortfolioProjectModal() {
       if (d) descriptionText = d;
     }
 
-    if (cardImage && image) {
-      image.src = cardImage.getAttribute('src') || './assets/images/project-comingsoon.svg';
-      image.alt = cardImage.getAttribute('alt') || 'Project preview';
+    if (image) {
+      if (record && record.imageUrl) {
+        image.src = portfolioDisplayImageSrc(record.imageUrl);
+      } else if (cardImage && cardImage.getAttribute('src')) {
+        image.src = cardImage.getAttribute('src');
+      } else {
+        image.src = PORTFOLIO_PLACEHOLDER_IMAGE;
+      }
+      image.alt =
+        (record && record.imageAlt) ||
+        (cardImage && cardImage.getAttribute('alt')) ||
+        'Project preview';
+      image.dataset.portfolioImgFailed = '';
+      image.onerror = function () {
+        portfolioHandleImageError(image);
+      };
     }
     if (title) title.textContent = titleText;
     if (category) category.textContent = categoryText;

@@ -4113,6 +4113,44 @@ article {
   background: hsla(0, 0%, 100%, 0.05);
 }
 
+.portfolio-project-image-preview-wrap {
+  margin: 4px 0 18px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid hsla(0, 0%, 100%, 0.1);
+  background: hsla(0, 0%, 100%, 0.03);
+}
+
+.portfolio-project-image-preview {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  max-height: 200px;
+  object-fit: contain;
+  object-position: left center;
+  border-radius: 10px;
+  background: hsla(0, 0%, 0%, 0.25);
+}
+
+.portfolio-project-image-preview-error {
+  margin: 10px 0 0;
+  color: hsl(0, 72%, 68%);
+  font-size: var(--fs-8);
+  line-height: 1.45;
+}
+
+.add-blog-form .form-hint {
+  margin: 8px 0 0;
+  color: var(--light-gray-70);
+  font-size: var(--fs-8);
+  line-height: 1.45;
+}
+
+.add-blog-form .form-hint code {
+  color: var(--orange-yellow-crayola);
+  font-size: 0.95em;
+}
+
 .admin-portfolio-row-text {
   display: flex;
   flex-direction: column;
