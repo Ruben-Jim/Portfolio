@@ -2818,19 +2818,30 @@ function getPortfolioAssetImageOptions() {
 
 function portfolioCleanImageUrlInput(url) {
   return String(url != null ? url : '')
+    .replace(/^@+/, '')
     .replace(/[\u200B-\u200D\uFEFF]/g, '')
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"')
     .trim();
 }
 
+/** Extract ./assets/images/file.ext from any path or absolute URL (fixes /portfolio/assets/... in RTDB). */
+function portfolioExtractAssetImagePath(url) {
+  var s = portfolioCleanImageUrlInput(url);
+  if (!s) return '';
+  var match = s.match(/assets\/images\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp|svg|gif)/i);
+  if (!match) return '';
+  var file = match[0].slice('assets/images/'.length).toLowerCase();
+  return './assets/images/' + file;
+}
+
 /** Normalize to the same ./assets/images/... format used by built-in portfolio projects. */
 function portfolioNormalizeAssetImageUrl(url) {
   var s = portfolioCleanImageUrlInput(url);
   if (!s) return '';
+  var extracted = portfolioExtractAssetImagePath(s);
+  if (extracted) return extracted;
   if (/^(https?:|data:|blob:)/i.test(s)) return s;
-  var match = s.match(/assets\/images\/[A-Za-z0-9._-]+/i);
-  if (match) return './' + match[0];
   if (/^\.?\/?assets\//i.test(s)) {
     if (s.indexOf('./') === 0) return s;
     if (s.charAt(0) === '/') return '.' + s;
@@ -2839,26 +2850,52 @@ function portfolioNormalizeAssetImageUrl(url) {
   return s;
 }
 
+function portfolioAssetOrigin() {
+  var publicOrigin = String(window.PORTFOLIO_PUBLIC_ORIGIN || '').trim().replace(/\/$/, '');
+  var host = window.location.hostname || '';
+  var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(host) || window.location.protocol === 'file:';
+  if (publicOrigin && !isLocal) return publicOrigin;
+  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+    return window.location.origin.replace(/\/$/, '');
+  }
+  return publicOrigin || '';
+}
+
 /**
- * Absolute URL for <img src> — relative ./assets/... breaks on /portfolio/ and other
- * trailing-slash routes on the live site; origin + path always matches localhost behavior.
+ * Absolute URL for <img src> — always https://rubenjimenez.dev/assets/images/... on production.
  */
 function portfolioAbsoluteAssetUrl(url) {
   var s = portfolioNormalizeAssetImageUrl(url);
   if (!s) return '';
-  if (/^(https?:|data:|blob:)/i.test(s)) return s;
-  var rel = s.replace(/^\.\//, '').replace(/^\/+/, '');
-  if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
-    return window.location.origin.replace(/\/$/, '') + '/' + rel;
+  if (/^(https?:|data:|blob:)/i.test(s)) {
+    var fixed = portfolioExtractAssetImagePath(s);
+    if (fixed) s = fixed;
+    else return s;
   }
-  var origin = String(window.PORTFOLIO_PUBLIC_ORIGIN || '').trim().replace(/\/$/, '');
-  if (origin) return origin + '/' + rel;
-  return s;
+  var rel = s.replace(/^\.\//, '').replace(/^\/+/, '');
+  var origin = portfolioAssetOrigin();
+  if (!origin) return s;
+  return origin + '/' + rel;
 }
+
+var PORTFOLIO_IMAGE_CACHE_BUST = '20260518';
 
 function portfolioDisplayImageSrc(url) {
   var normalized = portfolioNormalizeAssetImageUrl(url);
-  return portfolioAbsoluteAssetUrl(normalized || PORTFOLIO_PLACEHOLDER_IMAGE);
+  var abs = portfolioAbsoluteAssetUrl(normalized || PORTFOLIO_PLACEHOLDER_IMAGE);
+  if (!abs || /^data:|^blob:/i.test(abs)) return abs;
+  return abs + (abs.indexOf('?') >= 0 ? '&' : '?') + 'v=' + PORTFOLIO_IMAGE_CACHE_BUST;
+}
+
+/** Relative path for admin form inputs (strip production origin if present). */
+function portfolioRelativeAssetPathForForm(url) {
+  var normalized = portfolioNormalizeAssetImageUrl(url);
+  if (!normalized) return '';
+  if (/^https?:\/\//i.test(normalized)) {
+    var extracted = portfolioExtractAssetImagePath(normalized);
+    return extracted || normalized;
+  }
+  return normalized;
 }
 
 function portfolioImageUrlFromRecord(row) {
@@ -3051,7 +3088,9 @@ function portfolioSanitizeDocumentPayload(data) {
     category: category,
     title: String(data.title || '').slice(0, 200),
     projectUrl: String(data.projectUrl != null ? data.projectUrl : '').trim().slice(0, 2000),
-    imageUrl: portfolioNormalizeAssetImageUrl(data.imageUrl != null ? data.imageUrl : '').slice(0, 2000),
+    imageUrl: portfolioRelativeAssetPathForForm(
+      data.imageUrl != null ? data.imageUrl : ''
+    ).slice(0, 2000),
     imageAlt: String(data.imageAlt != null ? data.imageAlt : '').slice(0, 200),
     description: String(data.description != null ? data.description : '').slice(0, 8000),
     techTags: portfolioParseTechTags(data.techTags),
@@ -3285,7 +3324,7 @@ function openPortfolioProjectModal(isNew, project) {
         ? String(project.category).toLowerCase()
         : 'professional';
     document.getElementById('portfolio-project-url').value = project.projectUrl || '';
-    document.getElementById('portfolio-project-image').value = portfolioNormalizeAssetImageUrl(
+    document.getElementById('portfolio-project-image').value = portfolioRelativeAssetPathForForm(
       project.imageUrl || ''
     );
     document.getElementById('portfolio-project-image-alt').value = project.imageAlt || '';
