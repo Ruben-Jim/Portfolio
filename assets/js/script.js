@@ -3113,14 +3113,362 @@ function portfolioSafeProjectUrl(u) {
   return '#';
 }
 
+function portfolioDetailBtnShortLabel(longLabel) {
+  const s = String(longLabel || '').trim();
+  if (!s) return '';
+  if (s.length <= 22) return s;
+  if (/buy now/i.test(s)) return 'Buy Now';
+  if (/premium/i.test(s)) return 'Premium';
+  const beforeColon = s.split(':')[0].trim();
+  if (beforeColon && beforeColon.length <= 22) return beforeColon;
+  return s.length > 24 ? s.slice(0, 22) + '\u2026' : s;
+}
+
+function portfolioDetailBtnHtml(iconName, longLabel, shortLabel) {
+  const short = shortLabel || portfolioDetailBtnShortLabel(longLabel);
+  return (
+    '<ion-icon name="' +
+    iconName +
+    '" aria-hidden="true"></ion-icon>' +
+    '<span class="project-detail-btn-text">' +
+    '<span class="project-detail-btn-label project-detail-btn-label--long">' +
+    portfolioEscapeHtml(longLabel) +
+    '</span>' +
+    '<span class="project-detail-btn-label project-detail-btn-label--short">' +
+    portfolioEscapeHtml(short) +
+    '</span></span>'
+  );
+}
+
+const PORTFOLIO_DETAIL_PRESETS = {
+  'Grippy Socks': {
+    admin:
+      'The admin page is the operations center: review and prioritize new orders, update fulfillment status, and keep customer handoff clean without leaving the dashboard.',
+    bestFor: ['Retail brands', 'E-commerce startups', 'Athletic apparel stores', 'Merchandise businesses']
+  },
+  'Barber Shop': {
+    admin:
+      'The admin page is critical for daily operations: owners can control availability, confirm bookings, manage services, and respond to messages in one secure workflow.',
+    bestFor: ['Barbershops', 'Salons', 'Studios with appointments', 'Service businesses with recurring clients']
+  },
+  'Pro Cleaning': {
+    admin:
+      'The admin page keeps crews organized by centralizing job scheduling, assignment visibility, and status updates to reduce missed work and callbacks.',
+    bestFor: ['Cleaning companies', 'Landscaping crews', 'Roof cleaning teams', 'Home service contractors']
+  },
+  'Rizo Pizzeria': {
+    bestFor: ['Restaurants', 'Pizzerias', 'Takeout kitchens', 'Food delivery operators']
+  },
+  "Rosa's Beauty Salon": {
+    bestFor: ['Beauty salons', 'Spas', 'Nail studios', 'Appointment-based personal care businesses']
+  },
+  'Central Valley Dealer': {
+    bestFor: ['Car dealerships', 'Used auto lots', 'Vehicle brokers', 'Auto retail businesses']
+  },
+  'Shelton Springs Home Owners Association App': {
+    bestFor: ['HOAs', 'Property management firms', 'Residential communities', 'Condo associations']
+  },
+  'HOA App Template': {
+    bestFor: ['HOAs', 'Community managers', 'Property managers', 'Resident communication teams']
+  },
+  'Gadget Garage': {
+    bestFor: ['Repair shops', 'Device resellers', 'Managed IT teams', 'Tech inventory-heavy businesses']
+  },
+  'Zoom Realty': {
+    bestFor: ['Real estate agencies', 'Property teams', 'Independent agents']
+  },
+  'Estate': {
+    bestFor: ['Real estate agencies', 'Property teams', 'Independent agents']
+  },
+  'Homeverse': {
+    bestFor: ['Real estate agencies', 'Property teams', 'Independent agents']
+  },
+  'Lawn Care': {
+    bestFor: ['Lawn care companies', 'Landscaping crews', 'Home service contractors', 'Seasonal outdoor services']
+  }
+};
+
+/** Curated industries aligned with portfolio projects (max 9 shown). */
+const PORTFOLIO_CURATED_NICHES = [
+  {
+    id: 'barber',
+    label: 'Barber & salon',
+    titleMatch: /\bbarber\b/i,
+    slugMatch: ['barbershops', 'salons']
+  },
+  {
+    id: 'beauty',
+    label: 'Beauty salon',
+    titleMatch: /beauty|rosa.*salon/i,
+    slugMatch: ['beauty-salons', 'spas', 'nail-studios']
+  },
+  {
+    id: 'real-estate',
+    label: 'Real estate',
+    titleMatch: /realty|real[\s-]?estate|estate|homeverse|zoom/i,
+    slugMatch: ['real-estate-agencies', 'property-teams', 'independent-agents']
+  },
+  {
+    id: 'lawn-care',
+    label: 'Lawn care',
+    titleMatch: /lawn|landscap|mow/i,
+    slugMatch: ['lawn-care-companies', 'landscaping-crews', 'seasonal-outdoor-services']
+  },
+  {
+    id: 'home-services',
+    label: 'Home services',
+    titleMatch: /cleaning|pro cleaning|roof/i,
+    slugMatch: ['cleaning-companies', 'roof-cleaning-teams', 'home-service-contractors']
+  },
+  {
+    id: 'restaurant',
+    label: 'Restaurant',
+    titleMatch: /pizza|pizzeria|rizo/i,
+    slugMatch: ['restaurants', 'pizzerias', 'takeout-kitchens']
+  },
+  {
+    id: 'retail',
+    label: 'E-commerce',
+    titleMatch: /grippy|socks|retail|e-?commerce/i,
+    slugMatch: ['retail-brands', 'e-commerce-startups', 'merchandise-businesses']
+  },
+  {
+    id: 'hoa',
+    label: 'HOA',
+    titleMatch: /hoa|home owners|shelton|community/i,
+    slugMatch: ['hoas', 'property-management-firms', 'condo-associations', 'community-managers']
+  },
+  {
+    id: 'repair',
+    label: 'Repair & tech',
+    titleMatch: /gadget|garage|repair/i,
+    slugMatch: ['repair-shops', 'device-resellers', 'managed-it-teams']
+  }
+];
+
+const PORTFOLIO_NICHE_MAX = 9;
+
+let portfolioFilterCategory = 'professional';
+let portfolioFilterNiche = 'all';
+let portfolioFilterControlsBound = false;
+
+function portfolioNicheSlug(label) {
+  return String(label || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function portfolioGetDefaultBestFor(projectTitle, projectCategory) {
+  const titleText = (projectTitle || '').toLowerCase();
+  const categoryText = (projectCategory || '').toLowerCase();
+  const combined = `${titleText} ${categoryText}`;
+  if (combined.includes('lawn') || combined.includes('landscap') || combined.includes('mow')) {
+    return [
+      'Lawn care companies',
+      'Landscaping crews',
+      'Home service contractors',
+      'Seasonal outdoor services'
+    ];
+  }
+  if (combined.includes('real estate') || combined.includes('realty') || combined.includes('realtor')) {
+    return ['Real estate agencies', 'Property teams', 'Independent agents'];
+  }
+  if (combined.includes('barber')) {
+    return ['Barbershops', 'Salons', 'Studios with appointments'];
+  }
+  if (combined.includes('beauty') || combined.includes('salon')) {
+    return ['Beauty salons', 'Spas', 'Nail studios'];
+  }
+  if (combined.includes('weather')) {
+    return ['Media projects', 'Travel-focused apps', 'Utility app audiences'];
+  }
+  if (combined.includes('blog')) {
+    return ['Developers', 'Content creators', 'Technical writing workflows'];
+  }
+  if (combined.includes('application') || combined.includes('app')) {
+    return ['Service businesses', 'Small-to-midsize businesses', 'Teams needing client-facing apps'];
+  }
+  return ['Small businesses', 'Growing businesses', 'Teams seeking digital operations workflows'];
+}
+
+function portfolioBestForTagsForProject(p) {
+  const titleText = String(p.title || '').trim();
+  const categoryText = portfolioCategoryLabel(p.category);
+  let tags = [];
+  if (Array.isArray(p.bestFor) && p.bestFor.length) {
+    tags = p.bestFor.slice();
+  } else {
+    const preset = PORTFOLIO_DETAIL_PRESETS[titleText];
+    if (preset && preset.bestFor) tags = preset.bestFor.slice();
+    else tags = portfolioGetDefaultBestFor(titleText, categoryText);
+  }
+  const seen = {};
+  const out = [];
+  tags.forEach(function (label) {
+    const slug = portfolioNicheSlug(label);
+    if (!slug || seen[slug]) return;
+    seen[slug] = true;
+    out.push({ slug: slug, label: String(label).trim() });
+  });
+  return out;
+}
+
+function portfolioCuratedNichesForProject(p) {
+  const title = String(p.title || '').toLowerCase();
+  const tagSlugs = portfolioBestForTagsForProject(p).map(function (t) {
+    return t.slug;
+  });
+  const keys = [];
+  PORTFOLIO_CURATED_NICHES.forEach(function (niche) {
+    let matched = false;
+    if (niche.titleMatch && niche.titleMatch.test(title)) matched = true;
+    if (!matched && niche.slugMatch) {
+      matched = niche.slugMatch.some(function (slug) {
+        return tagSlugs.indexOf(slug) !== -1;
+      });
+    }
+    if (matched && keys.indexOf(niche.id) === -1) keys.push(niche.id);
+  });
+  return keys;
+}
+
+function collectPortfolioNicheFilters() {
+  const used = new Set();
+  getEffectivePortfolioProjects().forEach(function (p) {
+    portfolioCuratedNichesForProject(p).forEach(function (id) {
+      used.add(id);
+    });
+  });
+  return PORTFOLIO_CURATED_NICHES.filter(function (niche) {
+    return used.has(niche.id);
+  })
+    .slice(0, PORTFOLIO_NICHE_MAX)
+    .map(function (niche) {
+      return { slug: niche.id, label: niche.label };
+    });
+}
+
+function updatePortfolioNicheScrollFades() {
+  const wrap = document.querySelector('.portfolio-niche-scroll-wrap');
+  const scroll = document.getElementById('portfolio-niche-filters');
+  if (!wrap || !scroll) return;
+  const maxScroll = scroll.scrollWidth - scroll.clientWidth;
+  if (maxScroll <= 4) {
+    wrap.classList.add('at-scroll-start', 'at-scroll-end');
+    return;
+  }
+  wrap.classList.toggle('at-scroll-start', scroll.scrollLeft <= 4);
+  wrap.classList.toggle('at-scroll-end', scroll.scrollLeft >= maxScroll - 4);
+}
+
+function initPortfolioNicheScrollFades() {
+  const scroll = document.getElementById('portfolio-niche-filters');
+  if (!scroll || scroll.dataset.nicheFadeBound === '1') return;
+  scroll.dataset.nicheFadeBound = '1';
+  scroll.addEventListener(
+    'scroll',
+    function () {
+      updatePortfolioNicheScrollFades();
+    },
+    { passive: true }
+  );
+  window.addEventListener('resize', updatePortfolioNicheScrollFades);
+  updatePortfolioNicheScrollFades();
+}
+
+function renderPortfolioNicheFilters() {
+  const container = document.getElementById('portfolio-niche-filters');
+  if (!container) return;
+  const niches = collectPortfolioNicheFilters();
+  const prevNiche = portfolioFilterNiche;
+  let html =
+    '<button type="button" class="portfolio-niche-text' +
+    (prevNiche === 'all' ? ' active' : '') +
+    '" data-portfolio-niche="all" role="tab" aria-selected="' +
+    (prevNiche === 'all' ? 'true' : 'false') +
+    '">All</button>';
+  niches.forEach(function (n) {
+    const active = prevNiche === n.slug;
+    html +=
+      '<button type="button" class="portfolio-niche-text' +
+      (active ? ' active' : '') +
+      '" data-portfolio-niche="' +
+      portfolioEscapeHtml(n.slug) +
+      '" role="tab" aria-selected="' +
+      (active ? 'true' : 'false') +
+      '">' +
+      portfolioEscapeHtml(n.label) +
+      '</button>';
+  });
+  container.innerHTML = html;
+  if (prevNiche !== 'all' && !niches.some(function (n) { return n.slug === prevNiche; })) {
+    portfolioFilterNiche = 'all';
+  }
+  container.scrollLeft = 0;
+  initPortfolioNicheScrollFades();
+  updatePortfolioNicheScrollFades();
+}
+
+function applyPortfolioFilters() {
+  const filterItems = document.querySelectorAll('[data-filter-item]');
+  filterItems.forEach(function (item) {
+    const itemCat = (item.dataset.category || '').toLowerCase();
+    const itemNiches = (item.dataset.niches || '').split(/\s+/).filter(Boolean);
+    const categoryMatch = itemCat === portfolioFilterCategory;
+    const nicheMatch =
+      portfolioFilterNiche === 'all' || itemNiches.indexOf(portfolioFilterNiche) !== -1;
+    if (categoryMatch && nicheMatch) item.classList.add('active');
+    else item.classList.remove('active');
+  });
+  document.querySelectorAll('.filter-list [data-filter-btn]').forEach(function (btn) {
+    const val = (btn.textContent || '').trim().toLowerCase();
+    btn.classList.toggle('active', val === portfolioFilterCategory);
+  });
+  const nicheChips = document.querySelectorAll('[data-portfolio-niche]');
+  nicheChips.forEach(function (btn) {
+    const nicheVal = btn.dataset.portfolioNiche || 'all';
+    const on = nicheVal === portfolioFilterNiche;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  const legacySelect = document.querySelector('[data-select-value]');
+  if (legacySelect) {
+    legacySelect.textContent =
+      portfolioFilterCategory.charAt(0).toUpperCase() + portfolioFilterCategory.slice(1);
+  }
+}
+
+function initPortfolioFilterControls() {
+  if (portfolioFilterControlsBound) return;
+  const root = document.getElementById('portfolio-filters');
+  if (!root) return;
+  portfolioFilterControlsBound = true;
+  initPortfolioNicheScrollFades();
+  root.addEventListener('click', function (e) {
+    const nicheBtn = e.target.closest('[data-portfolio-niche]');
+    if (nicheBtn) {
+      portfolioFilterNiche = nicheBtn.dataset.portfolioNiche || 'all';
+      applyPortfolioFilters();
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        nicheBtn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  });
+}
+
 function buildPortfolioProjectCardHtml(p) {
   const catSlug = String(p.category || 'professional').toLowerCase();
   const catLabel = portfolioCategoryLabel(catSlug);
   const liveHref = portfolioSafeProjectUrl(p.projectUrl);
   const imgSrc = portfolioDisplayImageSrc(p.imageUrl);
+  const nicheSlugs = portfolioCuratedNichesForProject(p).join(' ');
   return (
     '<li class="project-item active" data-filter-item data-category="' +
     portfolioEscapeHtml(catSlug) +
+    '" data-niches="' +
+    portfolioEscapeHtml(nicheSlugs) +
     '" data-portfolio-id="' +
     portfolioEscapeHtml(p.id) +
     '">' +
@@ -3170,16 +3518,16 @@ function renderPublicPortfolioProjects() {
     if (li) ul.appendChild(li);
   });
   syncWindowPortfolioProjectsRef();
+  renderPortfolioNicheFilters();
+  applyPortfolioFilters();
 }
 
 function getCurrentPortfolioFilterValue() {
-  const active = document.querySelector('.filter-item button.active');
-  if (active && active.innerText) return active.innerText.toLowerCase();
-  return 'professional';
+  return portfolioFilterCategory || 'professional';
 }
 
 function applyCurrentPortfolioFilter() {
-  filterFunc(getCurrentPortfolioFilterValue());
+  applyPortfolioFilters();
 }
 
 function syncAdminPortfolioLocalBanner() {
@@ -3622,57 +3970,50 @@ function setupDeletePortfolioConfirmModal() {
 }
 
 
-// custom select variables
-const select = document.querySelector("[data-select]");
-const selectItems = document.querySelectorAll("[data-select-item]");
-const selectValue = document.querySelector("[data-select-value]");
-const filterBtn = document.querySelectorAll("[data-filter-btn]");
+// Portfolio filters (category + industry niches)
+initPortfolioFilterControls();
 
-select.addEventListener("click", function () { elementToggleFunc(this); });
+// Legacy portfolio select (hidden; kept for older markup routes)
+const select = document.querySelector('[data-select]');
+const selectItems = document.querySelectorAll('[data-select-item]');
+const selectValue = document.querySelector('[data-select-value]');
+const filterBtn = document.querySelectorAll('[data-filter-btn]');
 
-// add event in all select items
-for (let i = 0; i < selectItems.length; i++) {
-  selectItems[i].addEventListener("click", function () {
-
-    let selectedValue = this.innerText.toLowerCase();
-    selectValue.innerText = this.innerText;
-    elementToggleFunc(select);
-    filterFunc(selectedValue);
-
+if (select) {
+  select.addEventListener('click', function () {
+    elementToggleFunc(this);
   });
 }
 
-// filter variables (re-query each time so dynamically injected portfolio items participate)
-const filterFunc = function (selectedValue) {
-  const filterItems = document.querySelectorAll("[data-filter-item]");
-  for (let i = 0; i < filterItems.length; i++) {
-    if (selectedValue === "all") {
-      filterItems[i].classList.add("active");
-    } else if (selectedValue === filterItems[i].dataset.category) {
-      filterItems[i].classList.add("active");
-    } else {
-      filterItems[i].classList.remove("active");
-    }
-  }
+for (let i = 0; i < selectItems.length; i++) {
+  selectItems[i].addEventListener('click', function () {
+    portfolioFilterCategory = this.innerText.toLowerCase();
+    portfolioFilterNiche = 'all';
+    if (selectValue) selectValue.innerText = this.innerText;
+    if (select) elementToggleFunc(select);
+    renderPortfolioNicheFilters();
+    applyPortfolioFilters();
+  });
 }
 
-// add event in all filter button items for large screen
+const filterFunc = function (selectedValue) {
+  portfolioFilterCategory = selectedValue === 'all' ? 'professional' : selectedValue;
+  applyPortfolioFilters();
+};
+
 let lastClickedBtn = filterBtn[0];
 
 for (let i = 0; i < filterBtn.length; i++) {
-
-  filterBtn[i].addEventListener("click", function () {
-
-    let selectedValue = this.innerText.toLowerCase();
-    selectValue.innerText = this.innerText;
-    filterFunc(selectedValue);
-
-    lastClickedBtn.classList.remove("active");
-    this.classList.add("active");
+  filterBtn[i].addEventListener('click', function () {
+    portfolioFilterCategory = this.innerText.toLowerCase();
+    portfolioFilterNiche = 'all';
+    if (selectValue) selectValue.innerText = this.innerText;
+    renderPortfolioNicheFilters();
+    applyPortfolioFilters();
+    if (lastClickedBtn) lastClickedBtn.classList.remove('active');
+    this.classList.add('active');
     lastClickedBtn = this;
-
   });
-
 }
 
 /**
@@ -3971,6 +4312,8 @@ function initPortfolioProjectModal() {
   const buyNowBtn = document.getElementById('project-detail-buy-now');
   const buyPremiumBtn = document.getElementById('project-detail-buy-premium');
   const quoteBtn = document.getElementById('project-detail-quote');
+  const bestForSection = document.getElementById('project-detail-bestfor-section');
+  const bestForList = document.getElementById('project-detail-bestfor-list');
 
   // Hard reset modal state on init so it never renders open by default.
   if (modal) {
@@ -3978,58 +4321,6 @@ function initPortfolioProjectModal() {
     modal.setAttribute('aria-hidden', 'true');
   }
   document.body.classList.remove('project-modal-open');
-
-  const PROJECT_DETAIL_CONTENT = {
-    'Grippy Socks': {
-      admin: 'The admin page is the operations center: review and prioritize new orders, update fulfillment status, and keep customer handoff clean without leaving the dashboard.',
-      bestFor: ['Retail brands', 'E-commerce startups', 'Athletic apparel stores', 'Merchandise businesses']
-    },
-    'Barber Shop': {
-      admin: 'The admin page is critical for daily operations: owners can control availability, confirm bookings, manage services, and respond to messages in one secure workflow.',
-      bestFor: ['Barbershops', 'Salons', 'Studios with appointments', 'Service businesses with recurring clients']
-    },
-    'Pro Cleaning': {
-      admin: 'The admin page keeps crews organized by centralizing job scheduling, assignment visibility, and status updates to reduce missed work and callbacks.',
-      bestFor: ['Cleaning companies', 'Landscaping crews', 'Roof cleaning teams', 'Home service contractors']
-    },
-    'Rizo Pizzeria': {
-      bestFor: ['Restaurants', 'Pizzerias', 'Takeout kitchens', 'Food delivery operators']
-    },
-    'Rosa\'s Beauty Salon': {
-      bestFor: ['Beauty salons', 'Spas', 'Nail studios', 'Appointment-based personal care businesses']
-    },
-    'Central Valley Dealer': {
-      bestFor: ['Car dealerships', 'Used auto lots', 'Vehicle brokers', 'Auto retail businesses']
-    },
-    'Shelton Springs Home Owners Association App': {
-      bestFor: ['HOAs', 'Property management firms', 'Residential communities', 'Condo associations']
-    },
-    'HOA App Template': {
-      bestFor: ['HOAs', 'Community managers', 'Property managers', 'Resident communication teams']
-    },
-    'Gadget Garage': {
-      bestFor: ['Repair shops', 'Device resellers', 'Managed IT teams', 'Tech inventory-heavy businesses']
-    }
-  };
-
-  function getDefaultBestFor(projectTitle, projectCategory) {
-    const titleText = (projectTitle || '').toLowerCase();
-    const categoryText = (projectCategory || '').toLowerCase();
-    const combined = `${titleText} ${categoryText}`;
-    if (combined.includes('real estate')) {
-      return ['Real estate agencies', 'Property teams', 'Independent agents'];
-    }
-    if (combined.includes('weather')) {
-      return ['Media projects', 'Travel-focused apps', 'Utility app audiences'];
-    }
-    if (combined.includes('blog')) {
-      return ['Developers', 'Content creators', 'Technical writing workflows'];
-    }
-    if (combined.includes('application') || combined.includes('app')) {
-      return ['Service businesses', 'Small-to-midsize businesses', 'Teams needing client-facing apps'];
-    }
-    return ['Small businesses', 'Growing businesses', 'Teams seeking digital operations workflows'];
-  }
 
   function renderPortfolioBestForSections() {
     const projectCards = document.querySelectorAll('.project-card');
@@ -4054,9 +4345,9 @@ function initPortfolioProjectModal() {
           customBest = rec.bestFor;
         }
       }
-      const preset = PROJECT_DETAIL_CONTENT[titleText];
+      const preset = PORTFOLIO_DETAIL_PRESETS[titleText];
       const bestForItems =
-        customBest || preset?.bestFor || getDefaultBestFor(titleText, categoryText);
+        customBest || preset?.bestFor || portfolioGetDefaultBestFor(titleText, categoryText);
 
       const section = document.createElement('section');
       section.className = 'project-fit-section';
@@ -4080,6 +4371,106 @@ function initPortfolioProjectModal() {
     });
   }
 
+  const PROJECT_SHEET_SNAPS = [0.44, 0.68, 0.9];
+  let projectSheetSnapIndex = 1;
+  let projectSheetDragBound = false;
+
+  function isProjectSheetViewport() {
+    return window.matchMedia('(max-width: 900px)').matches;
+  }
+
+  function getProjectDetailContent() {
+    return modal ? modal.querySelector('.project-detail-content') : null;
+  }
+
+  function applyProjectSheetSnap(index) {
+    const content = getProjectDetailContent();
+    if (!content || !isProjectSheetViewport()) return;
+    projectSheetSnapIndex = Math.max(0, Math.min(PROJECT_SHEET_SNAPS.length - 1, index));
+    content.style.setProperty(
+      '--project-sheet-height',
+      (PROJECT_SHEET_SNAPS[projectSheetSnapIndex] * 100).toFixed(1) + 'dvh'
+    );
+    content.dataset.sheetSnap = String(projectSheetSnapIndex);
+  }
+
+  function resetProjectSheetHeight() {
+    const content = getProjectDetailContent();
+    if (!content) return;
+    content.style.removeProperty('--project-sheet-height');
+    content.classList.remove('is-sheet-dragging');
+    delete content.dataset.sheetSnap;
+  }
+
+  function initProjectDetailSheetDrag() {
+    const content = getProjectDetailContent();
+    const grab = document.getElementById('project-detail-sheet-grab');
+    if (!content || !grab || projectSheetDragBound) return;
+    projectSheetDragBound = true;
+
+    let dragging = false;
+    let startY = 0;
+    let startHeightPx = 0;
+
+    function pointerStart(clientY) {
+      if (!isProjectSheetViewport()) return;
+      dragging = true;
+      startY = clientY;
+      startHeightPx = content.getBoundingClientRect().height;
+      content.classList.add('is-sheet-dragging');
+    }
+
+    function pointerMove(clientY) {
+      if (!dragging) return;
+      const delta = startY - clientY;
+      const minH = window.innerHeight * PROJECT_SHEET_SNAPS[0];
+      const maxH = window.innerHeight * PROJECT_SHEET_SNAPS[PROJECT_SHEET_SNAPS.length - 1];
+      const next = Math.max(minH, Math.min(maxH, startHeightPx + delta));
+      content.style.setProperty('--project-sheet-height', Math.round(next) + 'px');
+    }
+
+    function pointerEnd() {
+      if (!dragging) return;
+      dragging = false;
+      content.classList.remove('is-sheet-dragging');
+      const ratio = content.getBoundingClientRect().height / window.innerHeight;
+      let nearest = 0;
+      let best = Infinity;
+      PROJECT_SHEET_SNAPS.forEach(function (snap, i) {
+        const dist = Math.abs(ratio - snap);
+        if (dist < best) {
+          best = dist;
+          nearest = i;
+        }
+      });
+      applyProjectSheetSnap(nearest);
+    }
+
+    grab.addEventListener('pointerdown', function (e) {
+      if (!isProjectSheetViewport()) return;
+      grab.setPointerCapture(e.pointerId);
+      pointerStart(e.clientY);
+    });
+    grab.addEventListener('pointermove', function (e) {
+      if (dragging) pointerMove(e.clientY);
+    });
+    grab.addEventListener('pointerup', function (e) {
+      try {
+        grab.releasePointerCapture(e.pointerId);
+      } catch (err) {
+        // no-op
+      }
+      pointerEnd();
+    });
+    grab.addEventListener('pointercancel', pointerEnd);
+
+    window.addEventListener('resize', function () {
+      if (!modal || !modal.classList.contains('active')) return;
+      if (isProjectSheetViewport()) applyProjectSheetSnap(projectSheetSnapIndex);
+      else resetProjectSheetHeight();
+    });
+  }
+
   function closeProjectModal() {
     if (!modal) return;
     // Prevent aria-hidden warning when close button still holds focus.
@@ -4093,6 +4484,8 @@ function initPortfolioProjectModal() {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('project-modal-open');
+    projectSheetSnapIndex = 1;
+    resetProjectSheetHeight();
   }
 
   function openProjectModal() {
@@ -4100,6 +4493,9 @@ function initPortfolioProjectModal() {
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('project-modal-open');
+    initProjectDetailSheetDrag();
+    if (isProjectSheetViewport()) applyProjectSheetSnap(projectSheetSnapIndex);
+    else resetProjectSheetHeight();
   }
 
   function fillProjectModal(card, link) {
@@ -4113,7 +4509,7 @@ function initPortfolioProjectModal() {
     const titleText = cardTitle ? cardTitle.textContent.trim() : 'Project';
     const categoryText = cardCategory ? cardCategory.textContent.trim() : 'Project';
     let descriptionText = cardDescription ? cardDescription.textContent.trim() : '';
-    const projectPreset = PROJECT_DETAIL_CONTENT[titleText];
+    const projectPreset = PORTFOLIO_DETAIL_PRESETS[titleText];
     const rowItem = card.closest('.project-item');
     const pid = rowItem ? rowItem.getAttribute('data-portfolio-id') : null;
     let record = null;
@@ -4184,20 +4580,43 @@ function initPortfolioProjectModal() {
       }
     }
 
+    if (bestForList && bestForSection) {
+      var bestForItems = [];
+      if (record && Array.isArray(record.bestFor) && record.bestFor.length) {
+        bestForItems = record.bestFor;
+      } else if (projectPreset && Array.isArray(projectPreset.bestFor) && projectPreset.bestFor.length) {
+        bestForItems = projectPreset.bestFor;
+      } else {
+        bestForItems = portfolioGetDefaultBestFor(titleText, categoryText);
+      }
+      if (bestForItems.length) {
+        bestForList.innerHTML = bestForItems
+          .map(function (item) {
+            return (
+              '<li>' + portfolioEscapeHtml(String(item).trim()) + '</li>'
+            );
+          })
+          .join('');
+        bestForSection.hidden = false;
+      } else {
+        bestForList.innerHTML = '';
+        bestForSection.hidden = true;
+      }
+    }
+
     if (liveBtn) {
       if (hasLiveUrl) {
         liveBtn.href = liveUrl;
-        liveBtn.style.display = 'inline-flex';
+        liveBtn.hidden = false;
       } else {
         liveBtn.href = '#';
-        liveBtn.style.display = 'none';
+        liveBtn.hidden = true;
       }
     }
     if (buyNowBtn) {
       const buyNowLabel = record && record.buyNowLabel != null ? String(record.buyNowLabel).trim() : '';
       if (buyNowLabel) {
-        buyNowBtn.innerHTML =
-          '<ion-icon name="cart-outline"></ion-icon>' + portfolioEscapeHtml(buyNowLabel);
+        buyNowBtn.innerHTML = portfolioDetailBtnHtml('cart-outline', buyNowLabel);
         buyNowBtn.hidden = false;
       } else {
         buyNowBtn.hidden = true;
@@ -4207,8 +4626,7 @@ function initPortfolioProjectModal() {
       const buyPremiumLabel =
         record && record.buyPremiumLabel != null ? String(record.buyPremiumLabel).trim() : '';
       if (buyPremiumLabel) {
-        buyPremiumBtn.innerHTML =
-          '<ion-icon name="star-outline"></ion-icon>' + portfolioEscapeHtml(buyPremiumLabel);
+        buyPremiumBtn.innerHTML = portfolioDetailBtnHtml('star-outline', buyPremiumLabel);
         buyPremiumBtn.hidden = false;
       } else {
         buyPremiumBtn.hidden = true;
@@ -4239,6 +4657,7 @@ function initPortfolioProjectModal() {
   };
 
   renderPortfolioBestForSections();
+  initProjectDetailSheetDrag();
 
   if (closeBtn && !closeBtn.dataset.portfolioDetailBound) {
     closeBtn.dataset.portfolioDetailBound = '1';

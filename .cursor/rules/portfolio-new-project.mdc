@@ -1,0 +1,90 @@
+---
+description: Generate all fields for Admin → Portfolio → New project modal. Use when adding a portfolio project or screenshot to the site.
+globs:
+  - assets/images/project-*.png
+  - assets/js/portfolio-built-in-data.js
+alwaysApply: false
+---
+
+# Portfolio new project — fill modal prompt
+
+When the user adds a new portfolio project, produce **every field** below in a copy-paste block for **Admin → Portfolio → Add project**. Match tone and length of existing entries in `assets/js/portfolio-built-in-data.js` (Pro Cleaning, Grippy Socks, Lawn Care).
+
+## Ask the user for (if not provided)
+
+- Project / client name
+- Live demo URL (or `#` if none)
+- Screenshot filename (must live in `assets/images/` as `project-{slug}.png`)
+- App type: mobile (Expo/RN), web, or both
+- Optional: buy-now pricing, premium tier, target customers
+
+## Output format (use exactly these labels)
+
+```markdown
+## Portfolio project — {Title}
+
+**Title:**  
+**Filter category:** `professional` | `creative`  
+**Live project URL:**  
+**Project screenshot:** `/assets/images/project-{slug}.png`  
+**Image alt text:**  
+**Description:** (2–4 sentences; card + detail modal)  
+**Tech stack:** (comma-separated)  
+**Outcome:** (optional; 1–2 sentences, shown as “Outcome:” in modal)  
+**Buy now label:** (optional, e.g. `Buy Now: $500`)  
+**Premium label:** (optional, e.g. `Premium with Customizations: $750 - $1,000`)  
+**Show quote button:** yes | no  
+**Detail modal — admin focus:** (optional; operations/admin dashboard angle)  
+**Best for:** (optional; one audience per line)
+
+---
+
+### Checklist before save
+- [ ] Screenshot saved as `assets/images/project-{slug}.png` (16:9 or similar; ~1200px+ wide)
+- [ ] `firebase deploy --only hosting` after adding **new** image files
+- [ ] Image URL uses `/assets/images/...` (leading slash) or pick from dropdown after deploy
+- [ ] Preview in modal shows the screenshot (not coming-soon placeholder)
+- [ ] Category matches Portfolio filter (Professional vs Creative)
+```
+
+## Field rules
+
+| Field | Rules |
+|--------|--------|
+| **Title** | Client or product name; max 200 chars |
+| **Category** | `professional` = client apps / production work; `creative` = demos, experiments, template sites |
+| **Live URL** | Full `https://...` or `#` if private / not deployed |
+| **Image** | Path `/assets/images/project-{kebab-slug}.png` only for repo assets; external URLs allowed for hosted images |
+| **Image alt** | Short screen-reader label, e.g. `{Name} app homepage` |
+| **Description** | What it does, who it’s for, key features; no bullet lists unless user asks |
+| **Tech stack** | Real stack only: `React Native`, `Expo`, `Firebase`, `Node`, etc. |
+| **Outcome** | Measurable or concrete result; omit if none |
+| **Buy labels** | Only for template / white-label products you sell |
+| **Show quote** | Default **yes** unless user says otherwise |
+| **Admin note** | What the `/admin` (or owner) dashboard handles—bookings, orders, messages, etc. |
+| **Best for** | 3–5 short audience lines for detail modal chips |
+
+## Example (Lawn Care style)
+
+**Title:** Ruiz Lawn Care  
+**Filter category:** professional  
+**Live project URL:** https://example.expo.app  
+**Project screenshot:** `/assets/images/project-lawncare.png`  
+**Image alt text:** Ruiz Lawn Care app homepage  
+**Description:** A lawn care and landscaping app with quote requests, booking, and seasonal services—built for local crews who want less back-and-forth over pricing in texts.  
+**Tech stack:** React Native, Expo, Firebase  
+**Outcome:** Live demo ready for client review with mobile-first booking flow.  
+**Buy now label:** *(leave empty if not for sale)*  
+**Premium label:** *(leave empty)*  
+**Show quote button:** yes  
+**Detail modal — admin focus:** Owners manage quotes, routes, and seasonal add-ons from a single admin view.  
+**Best for:**  
+Lawn care companies  
+Landscaping crews  
+Home service contractors  
+
+## After generating
+
+1. Remind user to add PNG to `assets/images/` and deploy hosting if new file.  
+2. Do **not** edit RTDB directly—user saves via Admin UI.  
+3. Optional: offer to append entry to `assets/js/portfolio-built-in-data.js` only if user asks for built-in fallback list.

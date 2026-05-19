@@ -53,7 +53,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-preview-match-20260518">
+  <link rel="stylesheet" href="./assets/css/style.css?v=sidebar-collapse-20260518">
 
   <!--
     - google font link
@@ -1084,6 +1084,17 @@
 
           </div>
 
+          <div class="portfolio-filters" id="portfolio-filters" aria-label="Filter portfolio by industry">
+            <div class="portfolio-filter-group portfolio-filter-group--niche">
+              <span class="portfolio-filter-label">Industry</span>
+              <div class="portfolio-niche-scroll-wrap">
+                <div class="portfolio-niche-scroll" id="portfolio-niche-filters" role="tablist" aria-label="Industry">
+                  <button type="button" class="portfolio-niche-text active" data-portfolio-niche="all" role="tab" aria-selected="true">All</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
                 <ul class="project-list" id="portfolio-project-list">
           <li class="portfolio-projects-loading" aria-live="polite">
             <div class="project-card portfolio-projects-loading-card">
@@ -1098,15 +1109,21 @@
       <div class="project-detail-modal" id="project-detail-modal" aria-hidden="true">
         <div class="project-detail-overlay" id="project-detail-overlay"></div>
         <section class="project-detail-content" role="dialog" aria-modal="true" aria-labelledby="project-detail-title">
+          <div class="project-detail-sheet-grab" id="project-detail-sheet-grab" aria-hidden="true">
+            <span class="project-detail-sheet-handle" aria-hidden="true"></span>
+            <span class="project-detail-sheet-hint">Drag to adjust</span>
+          </div>
+
           <button class="project-detail-close" id="project-detail-close" aria-label="Close project details">
             <ion-icon name="close-outline"></ion-icon>
           </button>
 
           <figure class="project-detail-media">
-            <img src="./assets/images/project-comingsoon.svg" alt="Project preview" id="project-detail-image">
+            <img src="/assets/images/project-comingsoon.svg" alt="Project preview" id="project-detail-image">
           </figure>
 
-          <div class="project-detail-body has-scrollbar">
+          <div class="project-detail-body">
+            <div class="project-detail-scroll has-scrollbar">
             <div class="project-detail-meta">
               <span class="project-detail-category" id="project-detail-category">Application</span>
               <h3 class="h3 project-detail-title" id="project-detail-title">Project Title</h3>
@@ -1123,22 +1140,40 @@
               <p class="project-detail-admin-text" id="project-detail-admin"></p>
             </section>
 
+            <section class="project-detail-section project-detail-bestfor-section" id="project-detail-bestfor-section" hidden>
+              <h4 class="h4 project-detail-section-title">Best for</h4>
+              <ul class="project-fit-list project-detail-bestfor-list" id="project-detail-bestfor-list"></ul>
+            </section>
+            </div>
+
             <div class="project-detail-actions">
               <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-now" href="#contact" hidden>
-                <ion-icon name="cart-outline"></ion-icon>
-                Buy Now
+                <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
+                <span class="project-detail-btn-text">
+                  <span class="project-detail-btn-label project-detail-btn-label--long">Buy Now</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--short">Buy Now</span>
+                </span>
               </a>
               <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-premium" href="#contact" hidden>
-                <ion-icon name="star-outline"></ion-icon>
-                Premium with Customizations
+                <ion-icon name="star-outline" aria-hidden="true"></ion-icon>
+                <span class="project-detail-btn-text">
+                  <span class="project-detail-btn-label project-detail-btn-label--long">Premium with Customizations</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--short">Premium</span>
+                </span>
               </a>
               <a class="project-detail-btn project-detail-btn-primary" id="project-detail-live" href="#" target="_blank" rel="noopener noreferrer">
-                <ion-icon name="open-outline"></ion-icon>
-                Open Live Project
+                <ion-icon name="open-outline" aria-hidden="true"></ion-icon>
+                <span class="project-detail-btn-text">
+                  <span class="project-detail-btn-label project-detail-btn-label--long">Open Live Project</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--short">Live demo</span>
+                </span>
               </a>
               <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-quote" href="#contact">
-                <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                Similar Project? Get a Quote
+                <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+                <span class="project-detail-btn-text">
+                  <span class="project-detail-btn-label project-detail-btn-label--long">Similar Project? Get a Quote</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--short">Get a quote</span>
+                </span>
               </a>
             </div>
           </div>
@@ -4813,7 +4848,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=portfolio-root-images-20260518"></script>
+  <script src="/assets/js/script.js?v=sidebar-collapse-20260518"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
