@@ -31,7 +31,7 @@ const RESEND_EMAIL_CONFIG = {
  * Also add your site host (e.g. rubenjimenez.dev, localhost) under Firebase Console →
  * Authentication → Settings → Authorized domains (separate from authDomain above).
  * Must match firestore.rules (isPortfolioAdmin), database.rules.json, and functions/index.js ADMIN_ALLOWLIST_EMAILS.
- * Enable Google sign-in: Firebase Console → Authentication → Sign-in method → Google.
+ * Admin sign-in: Google only (Firebase Console → Authentication → Sign-in method → Google).
  */
 const ADMIN_ALLOWLIST_EMAILS = [
   "ruben.jim.co@gmail.com"

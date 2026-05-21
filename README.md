@@ -23,9 +23,10 @@ vCard is a fully responsive personal portfolio website, responsive for all devic
 
 ### Admin Access
 
-- **URL:** Navigate to `#admin` on the site (or open `/` and use the Admin tab).
-- **Sign-in:** **Sign in with Google** using an email listed in `ADMIN_ALLOWLIST_EMAILS` in `assets/js/config.js` (must match `firestore.rules`, `database.rules.json`, and `functions/index.js`).
-- **Firebase Console:** Authentication → Sign-in method → **Google** enabled; **Authorized domains** include your live host (e.g. `rubenjimenez.dev`) and `localhost` for local dev.
+- **URL:** Open `/admin` on the main site ([`index.html`](index.html)), not the 404 page.
+- **Sign-in:** **Sign in with Google** using an email listed in `ADMIN_ALLOWLIST_EMAILS` in [`assets/js/config.js`](assets/js/config.js) (must match `firestore.rules`, `database.rules.json`, and `functions/index.js`).
+- **Firebase Console (project `portfolio-2578e`):** Authentication → Sign-in method → **Google** enabled; **Authorized domains** include your live host (e.g. `rubenjimenez.dev`) and `localhost` for local dev.
+- **Auth module:** [`assets/js/admin-auth.js`](assets/js/admin-auth.js) handles popup sign-in with redirect fallback if the popup is blocked.
 - **Features:** Contact messages, blog/portfolio admin, pipeline CRM, testimonial invites, DM inbox (where enabled).
 
 Deploy rules, RTDB rules, functions, and hosting after changing allowlists:
@@ -39,7 +40,7 @@ Admin-only emails (`admin_reply`, `testimonial_request`) require a valid Firebas
 ### Troubleshooting
 
 - **Messages not showing:** Check browser console for Firebase errors; confirm you are signed in with an allowlisted Google account.
-- **Google sign-in blocked:** Add your site host under Firebase **Authorized domains**; disable ad blockers for Firebase/Google scripts; ensure API key HTTP referrers allow your domain.
+- **Google sign-in blocked:** Add your site host under Firebase **Authorized domains**; allow popups for your domain (or complete the redirect flow); disable ad blockers for Firebase/Google scripts; ensure API key HTTP referrers allow your domain.
 - **CORS issues:** Deploy to a web server instead of running locally with `file://`
 - **Permission errors:** Deploy `firestore.rules` and `database.rules.json` (`firebase deploy --only firestore:rules,database`)
 

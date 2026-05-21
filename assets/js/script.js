@@ -106,18 +106,17 @@ const PRIVATE_POST_PASSWORD = 'private123';
 /** Set from Firebase Auth when an allowlisted Google account signs in. */
 let currentUser = null;
 
-function getAdminAllowlistEmails() {
-  const list = window.ADMIN_ALLOWLIST_EMAILS;
-  if (!Array.isArray(list)) return [];
-  return list.map(function (e) {
-    return String(e).trim().toLowerCase();
-  }).filter(Boolean);
-}
-
 function isAdminEmail(email) {
+  if (window.AdminAuth && typeof window.AdminAuth.isAdminEmail === 'function') {
+    return window.AdminAuth.isAdminEmail(email);
+  }
   if (!email) return false;
+  const list = window.ADMIN_ALLOWLIST_EMAILS;
+  if (!Array.isArray(list)) return false;
   const normalized = String(email).trim().toLowerCase();
-  return getAdminAllowlistEmails().indexOf(normalized) >= 0;
+  return list.some(function (e) {
+    return String(e).trim().toLowerCase() === normalized;
+  });
 }
 
 window.isAdminEmail = isAdminEmail;
@@ -181,6 +180,9 @@ function updateAuthUI() {
 
 // Helper: signed in with Google and email is on ADMIN_ALLOWLIST_EMAILS
 function isAdmin() {
+  if (window.AdminAuth && typeof window.AdminAuth.isAdmin === 'function') {
+    return window.AdminAuth.isAdmin();
+  }
   const fbUser = window.firebaseAuth && window.firebaseAuth.currentUser;
   return !!(fbUser && isAdminEmail(fbUser.email));
 }
@@ -5154,12 +5156,7 @@ window.addEventListener('load', function() {
   let db = null;
 
   // DOM elements
-  const adminLoginModal = document.getElementById('admin-login-modal');
-  const adminLoginOverlay = document.getElementById('admin-login-overlay');
-  const adminLoginCloseBtn = document.getElementById('admin-login-close-btn');
-  const adminCancelLoginBtn = document.getElementById('admin-cancel-login-btn');
   const adminDashboardContent = document.getElementById('admin-dashboard-content');
-  const adminLoginError = document.getElementById('admin-login-error');
   const messagesList = document.getElementById('firestore-messages-list');
 
   /** Unsubscribe from prior Firestore snapshot when refresh re-runs fetchMessages */
@@ -5206,7 +5203,8 @@ window.addEventListener('load', function() {
         '| authDomain:',
         firebaseConfig.authDomain,
         '| page host:',
-        window.location.hostname
+        window.location.hostname,
+        '| admin auth: google'
       );
       console.log('Firestore database:', window.db);
       console.log('Realtime Database:', window.rtdb);
@@ -5294,7 +5292,7 @@ window.addEventListener('load', function() {
         console.error('Post-init blog refresh failed', blogErr);
       }
       await bootstrapPortfolioUi();
-      await setupAuthListeners();
+      await setupAdminAuth();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
       if (typeof window.loadDynamicTestimonials === 'function') {
@@ -5303,7 +5301,7 @@ window.addEventListener('load', function() {
     } else {
       console.error('Firebase initialization failed');
       await bootstrapPortfolioUi();
-      await setupAuthListeners();
+      await setupAdminAuth();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
     }
@@ -5641,11 +5639,10 @@ window.addEventListener('load', function() {
     });
   }
 
-  /** Syncs `data-admin-auth` on the admin article for guest vs signed-in styling. */
   function syncAdminArticleAuth() {
-    var el = document.querySelector('article.admin[data-page="admin"]');
-    if (!el) return;
-    el.setAttribute('data-admin-auth', isAdmin() ? 'signed-in' : 'guest');
+    if (window.AdminAuth && typeof window.AdminAuth.syncAdminArticleAuth === 'function') {
+      window.AdminAuth.syncAdminArticleAuth();
+    }
   }
 
   function syncAdminNavVisibility() {
@@ -5701,61 +5698,21 @@ window.addEventListener('load', function() {
     window.currentUser = currentUser;
   }
 
-  function handleFirebaseAuthStateChange(firebaseUser) {
-    if (!firebaseUser) {
-      syncCurrentUserFromFirebase(null);
+  async function setupAdminAuth() {
+    if (!window.AdminAuth || typeof window.AdminAuth.init !== 'function') {
+      console.warn('AdminAuth module not loaded');
       showLogin();
       return;
     }
-    if (!isAdminEmail(firebaseUser.email)) {
-      window.signOut(window.firebaseAuth).catch(function () {});
-      syncCurrentUserFromFirebase(null);
-      showAdminLoginError('Access denied. This Google account is not authorized for admin.');
-      showLogin();
-      return;
-    }
-    syncCurrentUserFromFirebase(firebaseUser);
-    afterAdminSessionReady();
-  }
-
-  // Firebase Auth (Google) — allowlisted emails only; resolves after first auth state is known
-  async function setupAuthListeners() {
-    if (!window.firebaseAuth || typeof window.onAuthStateChanged !== 'function') {
-      console.warn('Firebase Auth not initialized');
-      showLogin();
-      return;
-    }
-
-    if (typeof window.getRedirectResult === 'function') {
-      try {
-        const redirectResult = await window.getRedirectResult(window.firebaseAuth);
-        if (redirectResult && redirectResult.user && !isAdminEmail(redirectResult.user.email)) {
-          await window.signOut(window.firebaseAuth);
-          showAdminLoginError('Access denied. This Google account is not authorized for admin.');
-        }
-      } catch (redirectErr) {
-        console.warn('getRedirectResult:', redirectErr);
-        if (redirectErr && redirectErr.code === 'auth/invalid-continue-uri') {
-          showAdminLoginError(
-            'Google sign-in redirect failed: add ' +
-              window.location.hostname +
-              ' to Firebase Authorized domains and add https://' +
-              window.location.hostname +
-              '/__/auth/handler to Google OAuth redirect URIs.'
-          );
-        }
+    await window.AdminAuth.init({
+      onSignedIn: function (firebaseUser) {
+        syncCurrentUserFromFirebase(firebaseUser);
+        afterAdminSessionReady();
+      },
+      onSignedOut: function () {
+        syncCurrentUserFromFirebase(null);
+        showLogin();
       }
-    }
-
-    return new Promise(function (resolve) {
-      var initialAuthResolved = false;
-      window.onAuthStateChanged(window.firebaseAuth, function (firebaseUser) {
-        handleFirebaseAuthStateChange(firebaseUser);
-        if (!initialAuthResolved) {
-          initialAuthResolved = true;
-          resolve();
-        }
-      });
     });
   }
 
@@ -5763,32 +5720,11 @@ window.addEventListener('load', function() {
   function setupAdminEventListeners() {
     ensureGlobalNavbarLogoutButtons();
 
-    document.querySelectorAll('.admin-google-signin-btn').forEach(function (btn) {
-      if (btn.dataset.googleSigninBound) return;
-      btn.dataset.googleSigninBound = '1';
-      btn.addEventListener('click', function () {
-        handleGoogleSignIn();
-      });
-    });
-
     getAdminLogoutButtons().forEach(function (btn) {
       if (btn.dataset.logoutBound) return;
       btn.dataset.logoutBound = '1';
       btn.addEventListener('click', handleLogout);
     });
-
-    // Modal controls
-    if (adminLoginCloseBtn) {
-      adminLoginCloseBtn.addEventListener('click', closeAdminLoginModal);
-    }
-
-    if (adminCancelLoginBtn) {
-      adminCancelLoginBtn.addEventListener('click', closeAdminLoginModal);
-    }
-
-    if (adminLoginOverlay) {
-      adminLoginOverlay.addEventListener('click', closeAdminLoginModal);
-    }
 
     // Admin blog management
     const adminAddBlogBtn = document.getElementById('admin-add-blog-btn');
@@ -6058,7 +5994,6 @@ window.addEventListener('load', function() {
   }
 
   function showLogin() {
-    closeAdminLoginModal();
     if (adminDashboardContent) adminDashboardContent.style.display = 'none';
     setAdminLogoutButtonsVisible(false);
     syncAdminArticleAuth();
@@ -6069,7 +6004,6 @@ window.addEventListener('load', function() {
   }
 
   function showDashboard() {
-    closeAdminLoginModal();
     if (adminDashboardContent) adminDashboardContent.style.display = 'block';
     setAdminLogoutButtonsVisible(true);
     syncAdminArticleAuth();
@@ -6079,17 +6013,7 @@ window.addEventListener('load', function() {
     }
   }
 
-  function closeAdminLoginModal() {
-    if (adminLoginModal) {
-      adminLoginModal.classList.remove('active');
-      adminLoginModal.style.display = 'none';
-    }
-    if (adminLoginError) adminLoginError.style.display = 'none';
-    syncAdminArticleAuth();
-  }
-
   function afterAdminSessionReady() {
-    closeAdminLoginModal();
     showDashboard();
     if (typeof fetchMessages === 'function') fetchMessages();
     if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
@@ -6104,57 +6028,6 @@ window.addEventListener('load', function() {
     }
     if (typeof window.subscribePipelineLeads === 'function') {
       window.subscribePipelineLeads();
-    }
-  }
-
-  function adminGoogleSignInErrorMessage(err) {
-    if (!err || !err.code) {
-      return err && err.message ? err.message : 'Google Sign-In failed.';
-    }
-    const host = window.location.hostname;
-    if (err.code === 'auth/invalid-continue-uri' || err.code === 'auth/unauthorized-domain') {
-      const authHandlerHost =
-        (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain) || 'portfolio-2578e.firebaseapp.com';
-      return (
-        'auth/unauthorized-domain on "' +
-        host +
-        '": confirm it is listed under Firebase Console → Authentication → Authorized domains (project portfolio-2578e). ' +
-        'Check Google Cloud API key HTTP referrers include ' +
-        window.location.origin +
-        '/*. Disable ad blockers for this site (they block Firebase/Google). Redirect URI: https://' +
-        authHandlerHost +
-        '/__/auth/handler'
-      );
-    }
-    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
-      return '';
-    }
-    return err.message || 'Google Sign-In failed. Enable Google in Firebase Authentication.';
-  }
-
-  async function handleGoogleSignIn() {
-    if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) {
-      showAdminLoginError('Authentication service not initialized.');
-      return;
-    }
-
-    showAdminLoginError('');
-
-    const provider = new window.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-
-    try {
-      const userCredential = await window.signInWithPopup(window.firebaseAuth, provider);
-      const firebaseUser = userCredential.user;
-      if (!isAdminEmail(firebaseUser.email)) {
-        await window.signOut(window.firebaseAuth);
-        showAdminLoginError('Access denied. This Google account is not on the admin allowlist.');
-      }
-    } catch (popupError) {
-      const msg = adminGoogleSignInErrorMessage(popupError);
-      if (!msg) return;
-      console.error('Google Sign-In error:', popupError);
-      showAdminLoginError(msg);
     }
   }
 
@@ -6173,7 +6046,9 @@ window.addEventListener('load', function() {
       window.unsubscribePipelineLeads();
     }
 
-    if (window.firebaseAuth && typeof window.signOut === 'function') {
+    if (window.AdminAuth && typeof window.AdminAuth.signOut === 'function') {
+      await window.AdminAuth.signOut();
+    } else if (window.firebaseAuth && typeof window.signOut === 'function') {
       try {
         await window.signOut(window.firebaseAuth);
       } catch (signOutErr) {
@@ -6192,16 +6067,6 @@ window.addEventListener('load', function() {
     if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
     
     console.log('Admin logged out successfully');
-  }
-
-  // Show login error
-  function showAdminLoginError(message) {
-    const text = message || '';
-    [adminLoginError, document.getElementById('admin-login-error-gate')].forEach(function (el) {
-      if (!el) return;
-      el.textContent = text;
-      el.style.display = text ? 'block' : 'none';
-    });
   }
 
   // Handle filter button clicks (Firestore contact list only — DM filters live in the inbox sheet)

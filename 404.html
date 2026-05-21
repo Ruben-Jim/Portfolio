@@ -1900,15 +1900,13 @@
           <div class="admin-guest-gate">
             <p class="admin-guest-gate__kicker">Private dashboard</p>
             <h2 class="h2 article-title admin-guest-gate__title">Portfolio admin</h2>
-            <p class="admin-guest-gate__lead">Sign in to manage contact messages, blog posts, snippets, and business documents.</p>
+            <p class="admin-guest-gate__lead">Admin sign-in runs on the main portfolio site.</p>
+            <p class="admin-guest-gate__redirect">
+              <a class="btn btn-primary" id="admin-open-main-site" href="https://rubenjimenez.dev/admin">Open admin dashboard</a>
+            </p>
             <div class="admin-guest-gate__actions">
-              <button type="button" class="btn btn-primary admin-google-signin-btn" id="admin-google-signin-gate">
-                <ion-icon name="logo-google" aria-hidden="true"></ion-icon>
-                <span>Sign in with Google</span>
-              </button>
               <button type="button" class="admin-guest-gate__back" data-nav-link>About</button>
             </div>
-            <div class="login-error admin-guest-gate__error" id="admin-login-error-gate" style="display: none;" role="alert"></div>
           </div>
         </section>
 
@@ -2076,31 +2074,6 @@
         </div>
 
         </div> <!-- End admin-dashboard-content -->
-
-
-        <!-- Admin Login Modal (moved inside admin tab) -->
-        <div class="login-modal" id="admin-login-modal">
-          <div class="login-overlay" id="admin-login-overlay"></div>
-          <div class="login-content">
-            <div class="login-header">
-              <h3 class="h3">Admin Login</h3>
-              <button class="login-close-btn" id="admin-login-close-btn">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-
-            <p class="admin-login-lead">Only allowlisted Google accounts can access this dashboard.</p>
-            <div class="form-actions admin-login-google-actions">
-              <button type="button" class="btn btn-primary admin-google-signin-btn" id="admin-google-signin-modal">
-                <ion-icon name="logo-google" aria-hidden="true"></ion-icon>
-                <span>Sign in with Google</span>
-              </button>
-              <button type="button" class="btn btn-secondary" id="admin-cancel-login-btn">Cancel</button>
-            </div>
-
-            <div class="login-error" id="admin-login-error" style="display: none;"></div>
-          </div>
-        </div>
 
         <!-- Reply Modal -->
         <div class="modal-container" id="reply-modal" style="display: none;">
@@ -3515,12 +3488,22 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - Firebase config
   -->
-  <script src="./assets/js/config.js?v=google-auth-20260522"></script>
+  <script src="./assets/js/config.js?v=admin-google-auth-20260521"></script>
+  <script>
+    (function () {
+      var el = document.getElementById('admin-open-main-site');
+      if (!el) return;
+      var origin =
+        (window.PORTFOLIO_PUBLIC_ORIGIN && String(window.PORTFOLIO_PUBLIC_ORIGIN).trim()) ||
+        'https://rubenjimenez.dev';
+      el.href = origin.replace(/\/$/, '') + '/admin';
+    })();
+  </script>
 
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
@@ -3530,6 +3513,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     window.onAuthStateChanged = onAuthStateChanged;
     window.GoogleAuthProvider = GoogleAuthProvider;
     window.signInWithPopup = signInWithPopup;
+    window.signInWithRedirect = signInWithRedirect;
     window.getRedirectResult = getRedirectResult;
     window.getFirestore = getFirestore;
     window.collection = collection;
@@ -3575,7 +3559,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     - custom js link
   -->
   <script src="./assets/js/portfolio-built-in-data.js"></script>
-  <script src="./assets/js/script.js?v=google-auth-20260522"></script>
+  <script src="./assets/js/script.js?v=admin-google-auth-20260521"></script>
   <script src="./assets/js/dm-migration.js"></script>
 
   <!--

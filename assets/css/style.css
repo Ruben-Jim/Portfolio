@@ -2781,6 +2781,80 @@ article {
   margin-bottom: 16px;
 }
 
+.maintenance-billing-lead {
+  margin: -6px 0 18px;
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+  line-height: 1.65;
+  max-width: 42em;
+}
+
+.maintenance-billing-lead strong {
+  color: var(--orange-yellow-crayola);
+}
+
+.maintenance-billing-block {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid hsla(45, 100%, 72%, 0.1);
+}
+
+.maintenance-billing-block--annual {
+  padding: 14px 14px 12px;
+  margin-bottom: 18px;
+  border-bottom: none;
+  border-radius: 12px;
+  background: hsla(45, 100%, 72%, 0.06);
+  border: 1px solid hsla(45, 100%, 72%, 0.18);
+}
+
+.maintenance-billing-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--light-gray-70);
+}
+
+.maintenance-save-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.04em;
+  color: var(--smoky-black);
+  background: var(--orange-yellow-crayola);
+  vertical-align: middle;
+}
+
+.maintenance-price-compare {
+  margin: 0 0 6px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.maintenance-price-compare s {
+  color: hsla(0, 0%, 100%, 0.45);
+  text-decoration: line-through;
+}
+
+.enterprise-price-period {
+  font-size: 1rem;
+  font-weight: var(--fw-500);
+}
+
+.maintenance-billing-note {
+  margin-bottom: 0;
+}
+
+.maintenance-billing-block .enterprise-price {
+  margin-bottom: 6px;
+}
+
 .services-pricing #panel-standard .standard-addon-cta-wrap {
   display: flex;
   justify-content: center;
@@ -12965,6 +13039,35 @@ article.admin[data-page="admin"][data-admin-auth="guest"] #admin-login-btn:focus
 article.admin[data-page="admin"][data-admin-auth="guest"] .admin-guest-gate__error {
   margin-top: 12px;
   text-align: center;
+}
+
+.admin-guest-gate__auth {
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+.admin-guest-gate__redirect {
+  margin: 0 0 18px;
+  text-align: center;
+}
+
+.admin-guest-gate__redirect .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-guest-gate__error:not([style*="display: none"]) {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: hsla(0, 60%, 40%, 0.2);
+  border: 1px solid hsla(0, 70%, 55%, 0.45);
+  color: #ffb4b4;
+  font-size: var(--fs-8);
+  line-height: 1.5;
 }
 
 .admin-login-lead {
