@@ -478,12 +478,24 @@ article.active {
   max-width: 34em;
 }
 
+.home-hero-tools {
+  margin: 0 0 26px;
+}
+
+.home-hero-pills-label {
+  margin: 0 0 10px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  color: var(--light-gray-70);
+  letter-spacing: 0.02em;
+}
+
 .home-hero-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   list-style: none;
-  margin: 0 0 26px;
+  margin: 0;
   padding: 0;
 }
 
@@ -2596,11 +2608,7 @@ article {
   vertical-align: middle;
 }
 
-.pricing-tab-panel {
-  display: none;
-}
-
-.pricing-tab-panel.active {
+.pricing-content {
   display: block;
 }
 

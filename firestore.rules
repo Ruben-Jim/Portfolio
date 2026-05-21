@@ -5,7 +5,7 @@ service cloud.firestore {
       return field is string && field.size() > 0 && field.size() <= maxLen;
     }
 
-    /** Keep in sync with ADMIN_ALLOWLIST_EMAILS in assets/js/config.js */
+    /** Keep in sync with ADMIN_ALLOWLIST_EMAILS (config.js), database.rules.json, functions/index.js */
     function isPortfolioAdmin() {
       return request.auth != null &&
         request.auth.token.email != null &&

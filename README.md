@@ -23,15 +23,25 @@ vCard is a fully responsive personal portfolio website, responsive for all devic
 
 ### Admin Access
 
-- **URL:** Navigate to `#admin` in your browser
-- **Login:** `admin` / `admin123`
-- **Features:** View contact form submissions, reply to messages, manage inquiries
+- **URL:** Navigate to `#admin` on the site (or open `/` and use the Admin tab).
+- **Sign-in:** **Sign in with Google** using an email listed in `ADMIN_ALLOWLIST_EMAILS` in `assets/js/config.js` (must match `firestore.rules`, `database.rules.json`, and `functions/index.js`).
+- **Firebase Console:** Authentication → Sign-in method → **Google** enabled; **Authorized domains** include your live host (e.g. `rubenjimenez.dev`) and `localhost` for local dev.
+- **Features:** Contact messages, blog/portfolio admin, pipeline CRM, testimonial invites, DM inbox (where enabled).
+
+Deploy rules, RTDB rules, functions, and hosting after changing allowlists:
+
+```bash
+firebase deploy --only firestore:rules,database,functions,hosting
+```
+
+Admin-only emails (`admin_reply`, `testimonial_request`) require a valid Firebase ID token; public contact/hire-me forms stay unauthenticated.
 
 ### Troubleshooting
 
-- **Messages not showing:** Check browser console for Firebase errors
-- **CORS issues:** Deploy to web server instead of running locally with `file://`
-- **Permission errors:** Ensure `firestore.rules` is deployed in Firebase Console
+- **Messages not showing:** Check browser console for Firebase errors; confirm you are signed in with an allowlisted Google account.
+- **Google sign-in blocked:** Add your site host under Firebase **Authorized domains**; disable ad blockers for Firebase/Google scripts; ensure API key HTTP referrers allow your domain.
+- **CORS issues:** Deploy to a web server instead of running locally with `file://`
+- **Permission errors:** Deploy `firestore.rules` and `database.rules.json` (`firebase deploy --only firestore:rules,database`)
 
 ## Demo
 

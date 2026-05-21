@@ -1,8 +1,33 @@
 "use strict";
 
+const admin = require("firebase-admin");
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret, defineString } = require("firebase-functions/params");
 const { Resend } = require("resend");
+
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
+/** Must match ADMIN_ALLOWLIST_EMAILS (config.js), isPortfolioAdmin() (firestore.rules), RTDB rules. */
+const ADMIN_ALLOWLIST_EMAILS = ["ruben.jim.co@gmail.com"];
+
+async function verifyAdminBearer(req) {
+  const authHeader = String(req.headers.authorization || "");
+  const match = /^Bearer\s+(.+)$/i.exec(authHeader);
+  if (!match) return null;
+  try {
+    const decoded = await admin.auth().verifyIdToken(match[1]);
+    const email = String(decoded.email || "")
+      .trim()
+      .toLowerCase();
+    if (!email || !ADMIN_ALLOWLIST_EMAILS.includes(email)) return null;
+    return decoded;
+  } catch (err) {
+    console.warn("verifyAdminBearer:", err.message || err);
+    return null;
+  }
+}
 const {
   buildContactNotificationHtml,
   buildHireMeNotificationHtml,
@@ -173,6 +198,11 @@ exports.sendPortfolioEmail = onRequest(
       }
 
       if (type === "testimonial_request") {
+        const adminUser = await verifyAdminBearer(req);
+        if (!adminUser) {
+          res.status(401).json({ ok: false, error: "Unauthorized" });
+          return;
+        }
         const toEmail = String(payload.to_email || "").trim();
         const toName = String(payload.to_name || "Customer").trim();
         const product = String(payload.product || "my software").trim();
@@ -212,6 +242,11 @@ exports.sendPortfolioEmail = onRequest(
       }
 
       if (type === "admin_reply") {
+        const adminUser = await verifyAdminBearer(req);
+        if (!adminUser) {
+          res.status(401).json({ ok: false, error: "Unauthorized" });
+          return;
+        }
         const toEmail = String(payload.to_email || "").trim();
         const subject = String(payload.subject || "").trim();
         const message = String(payload.message || "");

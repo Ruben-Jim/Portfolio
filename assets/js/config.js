@@ -2,7 +2,7 @@
 // Replace with your actual Firebase API key
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCaklIEadgb9ZckNGOyr6SDiaZvbOYZqBY",
-  // Default authDomain (localhost / firebaseapp.com hosting). Overridden on custom hosts below.
+  // authDomain from Firebase project (Console → Project settings). Do not change per-page.
   authDomain: "portfolio-2578e.firebaseapp.com",
   databaseURL: "https://portfolio-2578e-default-rtdb.firebaseio.com",
   projectId: "portfolio-2578e",
@@ -27,18 +27,10 @@ const RESEND_EMAIL_CONFIG = {
 };
 
 /**
- * Hostnames where the app is served on your custom domain — authDomain must match the page host.
- * Also add each host under Firebase Console → Authentication → Settings → Authorized domains,
- * and add https://<host>/__/auth/handler to Google Cloud → Credentials → OAuth redirect URIs.
- */
-const FIREBASE_CUSTOM_AUTH_HOSTS = [
-  "rubenjimenez.dev",
-  "www.rubenjimenez.dev"
-];
-
-/**
  * Google accounts allowed to open the Admin dashboard and pass Firestore/RTDB admin rules.
- * Must match emails in firestore.rules + database.rules.json (keep all three in sync).
+ * Also add your site host (e.g. rubenjimenez.dev, localhost) under Firebase Console →
+ * Authentication → Settings → Authorized domains (separate from authDomain above).
+ * Must match firestore.rules (isPortfolioAdmin), database.rules.json, and functions/index.js ADMIN_ALLOWLIST_EMAILS.
  * Enable Google sign-in: Firebase Console → Authentication → Sign-in method → Google.
  */
 const ADMIN_ALLOWLIST_EMAILS = [
@@ -61,6 +53,12 @@ const DM_FEATURE_FLAGS = {
 const PORTFOLIO_PUBLIC_ORIGIN = "https://rubenjimenez.dev";
 
 /**
+ * When false, portfolio detail hides Buy Now / Premium CTAs (agency-style: quote on contact only).
+ * Labels remain editable in Admin for when you re-enable public pricing.
+ */
+const PORTFOLIO_SHOW_BUY_BUTTONS = false;
+
+/**
  * Logo shown for customer-submitted testimonials on the Home page (dynamic cards).
  * Use a square-ish PNG/WebP/SVG under assets/images/. Change when you add your file.
  */
@@ -68,9 +66,9 @@ const TESTIMONIAL_BRAND_LOGO = "./assets/images/logo.svg";
 
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
-window.FIREBASE_CUSTOM_AUTH_HOSTS = FIREBASE_CUSTOM_AUTH_HOSTS;
 window.ADMIN_ALLOWLIST_EMAILS = ADMIN_ALLOWLIST_EMAILS;
 window.RESEND_EMAIL_CONFIG = RESEND_EMAIL_CONFIG;
 window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;
 window.PORTFOLIO_PUBLIC_ORIGIN = PORTFOLIO_PUBLIC_ORIGIN;
+window.PORTFOLIO_SHOW_BUY_BUTTONS = PORTFOLIO_SHOW_BUY_BUTTONS;
 window.TESTIMONIAL_BRAND_LOGO = TESTIMONIAL_BRAND_LOGO;

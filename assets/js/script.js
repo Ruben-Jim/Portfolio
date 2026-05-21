@@ -122,6 +122,42 @@ function isAdminEmail(email) {
 
 window.isAdminEmail = isAdminEmail;
 
+/** Firebase ID token for admin-only Cloud Function calls. */
+async function getAdminIdToken() {
+  if (!window.firebaseAuth || !window.firebaseAuth.currentUser || !isAdmin()) {
+    throw new Error('Admin sign-in required.');
+  }
+  return window.firebaseAuth.currentUser.getIdToken();
+}
+
+window.getAdminIdToken = getAdminIdToken;
+
+/** Resolves when an allowlisted admin is signed in (optional timeout ms). */
+function waitForAdminAuth(timeoutMs) {
+  if (isAdmin()) {
+    return Promise.resolve(window.firebaseAuth.currentUser);
+  }
+  if (!window.firebaseAuth || typeof window.onAuthStateChanged !== 'function') {
+    return Promise.reject(new Error('Firebase Auth not initialized'));
+  }
+  return new Promise(function (resolve, reject) {
+    const ms = typeof timeoutMs === 'number' ? timeoutMs : 15000;
+    const timer = window.setTimeout(function () {
+      unsubscribe();
+      reject(new Error('Admin sign-in timed out'));
+    }, ms);
+    const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, function (user) {
+      if (user && isAdminEmail(user.email)) {
+        window.clearTimeout(timer);
+        unsubscribe();
+        resolve(user);
+      }
+    });
+  });
+}
+
+window.waitForAdminAuth = waitForAdminAuth;
+
 // Authentication state management
 function updateAuthUI() {
   // Re-render blog posts to show/hide edit/delete buttons
@@ -3258,7 +3294,6 @@ const PORTFOLIO_CURATED_NICHES = [
 
 const PORTFOLIO_NICHE_MAX = 9;
 
-let portfolioFilterCategory = 'professional';
 let portfolioFilterNiche = 'all';
 let portfolioFilterControlsBound = false;
 
@@ -3424,17 +3459,11 @@ function renderPortfolioNicheFilters() {
 function applyPortfolioFilters() {
   const filterItems = document.querySelectorAll('[data-filter-item]');
   filterItems.forEach(function (item) {
-    const itemCat = (item.dataset.category || '').toLowerCase();
     const itemNiches = (item.dataset.niches || '').split(/\s+/).filter(Boolean);
-    const categoryMatch = itemCat === portfolioFilterCategory;
     const nicheMatch =
       portfolioFilterNiche === 'all' || itemNiches.indexOf(portfolioFilterNiche) !== -1;
-    if (categoryMatch && nicheMatch) item.classList.add('active');
+    if (nicheMatch) item.classList.add('active');
     else item.classList.remove('active');
-  });
-  document.querySelectorAll('.filter-list [data-filter-btn]').forEach(function (btn) {
-    const val = (btn.textContent || '').trim().toLowerCase();
-    btn.classList.toggle('active', val === portfolioFilterCategory);
   });
   const nicheChips = document.querySelectorAll('[data-portfolio-niche]');
   nicheChips.forEach(function (btn) {
@@ -3443,11 +3472,6 @@ function applyPortfolioFilters() {
     btn.classList.toggle('active', on);
     btn.setAttribute('aria-selected', on ? 'true' : 'false');
   });
-  const legacySelect = document.querySelector('[data-select-value]');
-  if (legacySelect) {
-    legacySelect.textContent =
-      portfolioFilterCategory.charAt(0).toUpperCase() + portfolioFilterCategory.slice(1);
-  }
 }
 
 function initPortfolioFilterControls() {
@@ -3530,10 +3554,6 @@ function renderPublicPortfolioProjects() {
   syncWindowPortfolioProjectsRef();
   renderPortfolioNicheFilters();
   applyPortfolioFilters();
-}
-
-function getCurrentPortfolioFilterValue() {
-  return portfolioFilterCategory || 'professional';
 }
 
 function applyCurrentPortfolioFilter() {
@@ -3980,58 +4000,16 @@ function setupDeletePortfolioConfirmModal() {
 }
 
 
-// Portfolio filters (category + industry niches)
+// Portfolio filters (industry niches only; all projects visible by default)
 initPortfolioFilterControls();
-
-// Legacy portfolio select (hidden; kept for older markup routes)
-const select = document.querySelector('[data-select]');
-const selectItems = document.querySelectorAll('[data-select-item]');
-const selectValue = document.querySelector('[data-select-value]');
-const filterBtn = document.querySelectorAll('[data-filter-btn]');
-
-if (select) {
-  select.addEventListener('click', function () {
-    elementToggleFunc(this);
-  });
-}
-
-for (let i = 0; i < selectItems.length; i++) {
-  selectItems[i].addEventListener('click', function () {
-    portfolioFilterCategory = this.innerText.toLowerCase();
-    portfolioFilterNiche = 'all';
-    if (selectValue) selectValue.innerText = this.innerText;
-    if (select) elementToggleFunc(select);
-    renderPortfolioNicheFilters();
-    applyPortfolioFilters();
-  });
-}
-
-const filterFunc = function (selectedValue) {
-  portfolioFilterCategory = selectedValue === 'all' ? 'professional' : selectedValue;
-  applyPortfolioFilters();
-};
-
-let lastClickedBtn = filterBtn[0];
-
-for (let i = 0; i < filterBtn.length; i++) {
-  filterBtn[i].addEventListener('click', function () {
-    portfolioFilterCategory = this.innerText.toLowerCase();
-    portfolioFilterNiche = 'all';
-    if (selectValue) selectValue.innerText = this.innerText;
-    renderPortfolioNicheFilters();
-    applyPortfolioFilters();
-    if (lastClickedBtn) lastClickedBtn.classList.remove('active');
-    this.classList.add('active');
-    lastClickedBtn = this;
-  });
-}
 
 /**
  * POST to Firebase sendPortfolioEmail (Resend). apiUrl from window.RESEND_EMAIL_CONFIG.
  * @param {{ type: string, payload: Record<string, string> }} body
+ * @param {{ requireAdmin?: boolean }} [options]
  * @returns {Promise<Record<string, unknown>>}
  */
-async function sendPortfolioEmailRequest(body) {
+async function sendPortfolioEmailRequest(body, options) {
   const apiUrl =
     window.RESEND_EMAIL_CONFIG && String(window.RESEND_EMAIL_CONFIG.apiUrl || "").trim();
   if (!apiUrl) {
@@ -4039,9 +4017,14 @@ async function sendPortfolioEmailRequest(body) {
       "Email API URL is not configured. Set RESEND_EMAIL_CONFIG.apiUrl in assets/js/config.js after deploying sendPortfolioEmail (see RESEND_SETUP.md)."
     );
   }
+  const headers = { "Content-Type": "application/json", Accept: "application/json" };
+  if (options && options.requireAdmin) {
+    const token = await getAdminIdToken();
+    headers.Authorization = "Bearer " + token;
+  }
   const res = await fetch(apiUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: headers,
     body: JSON.stringify(body),
   });
   let data = {};
@@ -4623,9 +4606,10 @@ function initPortfolioProjectModal() {
         liveBtn.hidden = true;
       }
     }
+    const showBuyButtons = window.PORTFOLIO_SHOW_BUY_BUTTONS === true;
     if (buyNowBtn) {
       const buyNowLabel = record && record.buyNowLabel != null ? String(record.buyNowLabel).trim() : '';
-      if (buyNowLabel) {
+      if (showBuyButtons && buyNowLabel) {
         buyNowBtn.innerHTML = portfolioDetailBtnHtml('cart-outline', buyNowLabel);
         buyNowBtn.hidden = false;
       } else {
@@ -4635,7 +4619,7 @@ function initPortfolioProjectModal() {
     if (buyPremiumBtn) {
       const buyPremiumLabel =
         record && record.buyPremiumLabel != null ? String(record.buyPremiumLabel).trim() : '';
-      if (buyPremiumLabel) {
+      if (showBuyButtons && buyPremiumLabel) {
         buyPremiumBtn.innerHTML = portfolioDetailBtnHtml('star-outline', buyPremiumLabel);
         buyPremiumBtn.hidden = false;
       } else {
@@ -5175,8 +5159,6 @@ window.addEventListener('load', function() {
   const adminLoginCloseBtn = document.getElementById('admin-login-close-btn');
   const adminCancelLoginBtn = document.getElementById('admin-cancel-login-btn');
   const adminDashboardContent = document.getElementById('admin-dashboard-content');
-  const adminLoginBtn = document.getElementById('admin-login-btn');
-  const adminLoginForm = document.getElementById('admin-login-form');
   const adminLoginError = document.getElementById('admin-login-error');
   const messagesList = document.getElementById('firestore-messages-list');
 
@@ -5193,49 +5175,10 @@ window.addEventListener('load', function() {
   const newMessagesEl = document.getElementById('new-messages');
   const repliedMessagesEl = document.getElementById('replied-messages');
 
-  function normalizeAuthHost(host) {
-    return String(host || '').trim().toLowerCase().replace(/\.$/, '');
-  }
-
-  function isLocalDevAuthHost(host) {
-    const h = normalizeAuthHost(host);
-    return h === 'localhost' || h === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(h);
-  }
-
-  function shouldUsePageHostAsAuthDomain(host) {
-    const h = normalizeAuthHost(host);
-    if (!h || isLocalDevAuthHost(h)) return false;
-    if (h.indexOf('firebaseapp.com') >= 0 || h.indexOf('web.app') >= 0) return false;
-    const customHosts = window.FIREBASE_CUSTOM_AUTH_HOSTS;
-    if (Array.isArray(customHosts)) {
-      for (let i = 0; i < customHosts.length; i++) {
-        if (normalizeAuthHost(customHosts[i]) === h) return true;
-      }
-    }
-    // Fallback when config.js cache omitted FIREBASE_CUSTOM_AUTH_HOSTS
-    return true;
-  }
-
-  function resolveFirebaseConfigForHost() {
-    const base = window.FIREBASE_CONFIG;
-    if (!base) return null;
-    const cfg = Object.assign({}, base);
-    const host = normalizeAuthHost(window.location.hostname);
-    if (shouldUsePageHostAsAuthDomain(host)) {
-      cfg.authDomain = host;
-    }
-    return cfg;
-  }
-
-  function usesCustomAuthDomain() {
-    const cfg = resolveFirebaseConfigForHost();
-    return !!(cfg && cfg.authDomain && cfg.authDomain.indexOf('firebaseapp.com') < 0);
-  }
-
   // Initialize Firebase
   function initializeFirebase() {
     try {
-      const firebaseConfig = resolveFirebaseConfigForHost();
+      const firebaseConfig = window.FIREBASE_CONFIG;
       if (!firebaseConfig) {
         console.error('Firebase config not found');
         return false;
@@ -5252,16 +5195,7 @@ window.addEventListener('load', function() {
         console.warn('Realtime Database not initialized (missing getDatabase or databaseURL).');
       }
 
-      const usePopupResolver =
-        !isLocalDevAuthHost(window.location.hostname) &&
-        typeof window.initializeAuth === 'function' &&
-        typeof window.browserPopupRedirectResolver === 'function';
-
-      if (usePopupResolver) {
-        window.firebaseAuth = window.initializeAuth(app, {
-          popupRedirectResolver: window.browserPopupRedirectResolver
-        });
-      } else if (typeof window.getAuth === 'function') {
+      if (typeof window.getAuth === 'function') {
         window.firebaseAuth = window.getAuth(app);
       }
 
@@ -5272,20 +5206,8 @@ window.addEventListener('load', function() {
         '| authDomain:',
         firebaseConfig.authDomain,
         '| page host:',
-        window.location.hostname,
-        '| customAuthHosts:',
-        window.FIREBASE_CUSTOM_AUTH_HOSTS
+        window.location.hostname
       );
-      if (
-        normalizeAuthHost(window.location.hostname) === normalizeAuthHost(firebaseConfig.authDomain) &&
-        firebaseConfig.authDomain.indexOf('firebaseapp.com') < 0
-      ) {
-        console.log(
-          'Custom authDomain active. Ensure https://' +
-            firebaseConfig.authDomain +
-            '/__/auth/handler is reachable (Firebase Hosting custom domain) and listed in Google OAuth redirect URIs.'
-        );
-      }
       console.log('Firestore database:', window.db);
       console.log('Realtime Database:', window.rtdb);
       console.log('Note: Make sure firestore.rules is deployed to Firebase Console for proper permissions');
@@ -5372,7 +5294,7 @@ window.addEventListener('load', function() {
         console.error('Post-init blog refresh failed', blogErr);
       }
       await bootstrapPortfolioUi();
-      setupAuthListeners();
+      await setupAuthListeners();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
       if (typeof window.loadDynamicTestimonials === 'function') {
@@ -5381,7 +5303,7 @@ window.addEventListener('load', function() {
     } else {
       console.error('Firebase initialization failed');
       await bootstrapPortfolioUi();
-      setupAuthListeners();
+      await setupAuthListeners();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
     }
@@ -5779,7 +5701,24 @@ window.addEventListener('load', function() {
     window.currentUser = currentUser;
   }
 
-  // Firebase Auth (Google) — allowlisted emails only
+  function handleFirebaseAuthStateChange(firebaseUser) {
+    if (!firebaseUser) {
+      syncCurrentUserFromFirebase(null);
+      showLogin();
+      return;
+    }
+    if (!isAdminEmail(firebaseUser.email)) {
+      window.signOut(window.firebaseAuth).catch(function () {});
+      syncCurrentUserFromFirebase(null);
+      showAdminLoginError('Access denied. This Google account is not authorized for admin.');
+      showLogin();
+      return;
+    }
+    syncCurrentUserFromFirebase(firebaseUser);
+    afterAdminSessionReady();
+  }
+
+  // Firebase Auth (Google) — allowlisted emails only; resolves after first auth state is known
   async function setupAuthListeners() {
     if (!window.firebaseAuth || typeof window.onAuthStateChanged !== 'function') {
       console.warn('Firebase Auth not initialized');
@@ -5808,21 +5747,15 @@ window.addEventListener('load', function() {
       }
     }
 
-    window.onAuthStateChanged(window.firebaseAuth, function (firebaseUser) {
-      if (!firebaseUser) {
-        syncCurrentUserFromFirebase(null);
-        showLogin();
-        return;
-      }
-      if (!isAdminEmail(firebaseUser.email)) {
-        window.signOut(window.firebaseAuth).catch(function () {});
-        syncCurrentUserFromFirebase(null);
-        showAdminLoginError('Access denied. This Google account is not authorized for admin.');
-        showLogin();
-        return;
-      }
-      syncCurrentUserFromFirebase(firebaseUser);
-      afterAdminSessionReady();
+    return new Promise(function (resolve) {
+      var initialAuthResolved = false;
+      window.onAuthStateChanged(window.firebaseAuth, function (firebaseUser) {
+        handleFirebaseAuthStateChange(firebaseUser);
+        if (!initialAuthResolved) {
+          initialAuthResolved = true;
+          resolve();
+        }
+      });
     });
   }
 
@@ -6076,16 +6009,19 @@ window.addEventListener('load', function() {
           if (typeof sendPortfolioEmailRequest !== 'function') {
             throw new Error('Email helper missing');
           }
-          await sendPortfolioEmailRequest({
-            type: 'testimonial_request',
-            payload: {
-              to_email: email,
-              to_name: name,
-              product: product,
-              testimonial_url: url,
-              subject: 'Quick testimonial request from Ruben Jimenez'
-            }
-          });
+          await sendPortfolioEmailRequest(
+            {
+              type: 'testimonial_request',
+              payload: {
+                to_email: email,
+                to_name: name,
+                product: product,
+                testimonial_url: url,
+                subject: 'Quick testimonial request from Ruben Jimenez'
+              }
+            },
+            { requireAdmin: true }
+          );
           inviteForm.reset();
           if (inviteStatus) inviteStatus.textContent = 'Invite sent to ' + email + '.';
           if (typeof window.loadTestimonialAdminPanel === 'function') {
@@ -6177,16 +6113,17 @@ window.addEventListener('load', function() {
     }
     const host = window.location.hostname;
     if (err.code === 'auth/invalid-continue-uri' || err.code === 'auth/unauthorized-domain') {
-      const cfg = resolveFirebaseConfigForHost();
-      const authHandlerHost = (cfg && cfg.authDomain) || host;
+      const authHandlerHost =
+        (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain) || 'portfolio-2578e.firebaseapp.com';
       return (
-        'auth/unauthorized-domain: (1) Firebase Console → Authentication → Authorized domains must include "' +
+        'auth/unauthorized-domain on "' +
         host +
-        '" for project portfolio-2578e. (2) Google Cloud → Credentials → API key → HTTP referrers must include ' +
+        '": confirm it is listed under Firebase Console → Authentication → Authorized domains (project portfolio-2578e). ' +
+        'Check Google Cloud API key HTTP referrers include ' +
         window.location.origin +
-        '/* (not "None" only). (3) OAuth redirect URI: https://' +
+        '/*. Disable ad blockers for this site (they block Firebase/Google). Redirect URI: https://' +
         authHandlerHost +
-        '/__/auth/handler. Hard-refresh after changes.'
+        '/__/auth/handler'
       );
     }
     if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
@@ -8993,17 +8930,20 @@ window.addEventListener('load', function() {
     if (!messageData || !messageData.email) {
       throw new Error('Missing customer email');
     }
-    await sendPortfolioEmailRequest({
-      type: 'admin_reply',
-      payload: {
-        to_email: String(messageData.email),
-        to_name: String(messageData.name || 'Customer'),
-        from_name: 'Ruben Jimenez',
-        subject: String(subject),
-        message: String(message),
-        timestamp: new Date().toISOString()
-      }
-    });
+    await sendPortfolioEmailRequest(
+      {
+        type: 'admin_reply',
+        payload: {
+          to_email: String(messageData.email),
+          to_name: String(messageData.name || 'Customer'),
+          from_name: 'Ruben Jimenez',
+          subject: String(subject),
+          message: String(message),
+          timestamp: new Date().toISOString()
+        }
+      },
+      { requireAdmin: true }
+    );
     return { ok: true };
   }
 
@@ -9147,9 +9087,7 @@ function toggleTheme() {
 
   const COMMANDS = [
     { id: 'nav-home', label: 'Go to Home', icon: 'home-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('about'); } },
-    { id: 'nav-resume', label: 'Go to Resume', icon: 'document-text-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('resume'); } },
     { id: 'nav-portfolio', label: 'Go to Portfolio', icon: 'grid-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('portfolio'); } },
-    { id: 'nav-blog', label: 'Go to Blog', icon: 'newspaper-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('blog'); } },
     { id: 'nav-services', label: 'Go to Services & Pricing', icon: 'pricetag-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('services-pricing'); } },
     { id: 'nav-contact', label: 'Go to Contact', icon: 'mail-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('contact'); } },
     { id: 'copy-email', label: 'Copy email', icon: 'copy-outline', action: copyEmail },
@@ -9538,12 +9476,6 @@ document.addEventListener('DOMContentLoaded', function() {
     return true;
   }
 
-  function isAdminSession() {
-    const fbUser = window.firebaseAuth && window.firebaseAuth.currentUser;
-    if (!fbUser || typeof window.isAdminEmail !== 'function') return false;
-    return window.isAdminEmail(fbUser.email);
-  }
-
   function getAdminIdentity() {
     const fbUser = window.firebaseAuth && window.firebaseAuth.currentUser;
     if (fbUser) {
@@ -9789,7 +9721,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '</div>',
         '<div class="message-card-actions dm-conversation-card-actions">',
         '<button class="reply-btn dm-open-conversation" data-id="' + conv.id + '"><ion-icon name="chatbox-ellipses-outline"></ion-icon><span>Open</span></button>',
-        (isAdminSession()
+        (isAdmin()
           ? '<button type="button" class="btn-icon dm-conversation-delete" data-id="' + conv.id + '" aria-label="Delete conversation" title="Delete conversation">'
             + '<ion-icon name="trash-outline" aria-hidden="true"></ion-icon></button>'
           : ''),
@@ -9812,7 +9744,7 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         e.preventDefault();
-        if (!isAdminSession()) {
+        if (!isAdmin()) {
           alert('Sign in as admin to delete conversations.');
           return;
         }
@@ -10954,7 +10886,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initAdminDmSheet();
 
     window.fetchMessages = function () {
-      if (!isAdminSession()) return;
+      if (!isAdmin()) return;
       if (typeof previousFetchMessages === 'function') {
         previousFetchMessages();
       }
@@ -10970,7 +10902,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
 
-    if (isAdminSession()) {
+    if (isAdmin()) {
       subscribeConversations();
     }
   }
@@ -10998,35 +10930,4 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!root || !root.classList.contains('is-open')) return;
     setCustomerPortalAuthVisible(true);
   };
-})();
-
-/* ============================================
-   PRICING TAB SWITCHER
-   ============================================ */
-(function () {
-  function initPricingTabs() {
-    var tabs = document.querySelectorAll('[data-pricing-tab]');
-    if (!tabs.length) return;
-
-    tabs.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var target = btn.dataset.pricingTab;
-
-        tabs.forEach(function (b) {
-          b.classList.toggle('active', b === btn);
-          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
-        });
-
-        document.querySelectorAll('.pricing-tab-panel').forEach(function (panel) {
-          panel.classList.toggle('active', panel.id === 'panel-' + target);
-        });
-      });
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPricingTabs);
-  } else {
-    initPricingTabs();
-  }
 })();

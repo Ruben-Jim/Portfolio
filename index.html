@@ -23,7 +23,7 @@
   <meta property="og:title" content="CodeWithRuben — Web & Mobile Dev Studio | Fresno, California">
   <meta property="og:description" content="Fresno-based dev studio building production-grade web and mobile apps for local businesses. React Native, Firebase, Node.js.">
   <meta property="og:image" content="https://rubenjimenez.dev/assets/images/logo.svg">
-  <meta property="og:site_name" content="Ruben Jimenez Portfolio">
+  <meta property="og:site_name" content="CodeWithRuben">
   <meta property="og:locale" content="en_US">
   
   <!-- Twitter -->
@@ -240,13 +240,7 @@
                 <button class="navbar-link active" data-nav-link>Home</button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Resume</button>
-              </li>
-              <li class="navbar-item">
                 <button class="navbar-link" data-nav-link>Portfolio</button>
-              </li>
-              <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Blog</button>
               </li>
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link>Services & Pricing</button>
@@ -276,18 +270,23 @@
                 <span class="home-hero-kicker-line" aria-hidden="true"></span>
                 <p class="home-hero-eyebrow">CodeWithRuben — Web & Mobile Dev Studio</p>
               </div>
-              <h2 class="home-hero-title" id="home-hero-title">Ship-ready apps, front to back</h2>
-              <p class="home-hero-lead">Fresno's dev studio for local business — clear interfaces, solid backends, and production-grade apps built with React Native, Node, and Firebase.</p>
-              <ul class="home-hero-pills" aria-label="Core stack">
-                <li>React Native</li>
-                <li>TypeScript</li>
-                <li>Node.js</li>
-                <li>Firebase</li>
-              </ul>
+              <h2 class="home-hero-title" id="home-hero-title">More customers. Less busywork. Built for how you run your business.</h2>
+              <p class="home-hero-lead">Stop juggling generic websites, booking apps, and spreadsheets. We design and build custom software that brings in jobs, keeps clients on track, and saves your team hours every week.</p>
+              <div class="home-hero-tools">
+                <p class="home-hero-pills-label">Ready to replace the tools you use today?</p>
+                <ul class="home-hero-pills" aria-label="Tools and platforms businesses often outgrow">
+                  <li>House Pro Call</li>
+                  <li>GoDaddy</li>
+                  <li>Wix</li>
+                  <li>Thumbtack</li>
+                  <li>Jobber</li>
+                  <li>Yelp</li>
+                </ul>
+              </div>
               <div class="home-hero-actions">
                 <button type="button" class="btn btn-primary home-hero-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View portfolio</button>
                 <button type="button" class="btn home-hero-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Contact</button>
-                <button type="button" class="btn home-hero-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Hire me</button>
+                <button type="button" class="btn home-hero-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services & pricing</button>
               </div>
             </div>
             <div class="home-hero-visual" aria-hidden="true">
@@ -361,13 +360,12 @@
 
         <section class="home-who-i-am" aria-labelledby="who-i-am-title">
           <div class="bento-card home-who-i-am-card" data-bento-cell>
-            <h3 class="h3 bento-card-title" id="who-i-am-title">Who I Am</h3>
-            <p class="bento-intro-text"><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based dev studio</span> building <span class="highlight-accent">web and mobile apps</span> for local businesses. We focus on clear, modern interfaces and reliable backends — <span class="highlight-accent">React Native, Node, Firebase</span>, and more.</p>
+            <h3 class="h3 bento-card-title" id="who-i-am-title">About the studio</h3>
+            <p class="bento-intro-text"><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based product studio</span> for local businesses — we design, build, and ship <span class="highlight-accent">web and mobile apps</span> with clear UX and dependable backends. Stack: <span class="highlight-accent">React Native, Node, Firebase</span>, and more.</p>
             <div class="bento-intro-links">
-              <a href="#portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Portfolio</a>
-              <a href="#resume" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('resume'); } return false;">Resume</a>
-              <a href="#contact" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Contact</a>
-              <a href="#blog" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('blog'); } return false;">Blog</a>
+              <a href="/portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Work</a>
+              <a href="/services-pricing" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services</a>
+              <a href="/contact" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Start a project</a>
             </div>
           </div>
         </section>
@@ -537,9 +535,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
@@ -549,7 +545,7 @@
           </div>
         </nav>
         <header>
-          <h2 class="h2 article-title">Resume</h2>
+          <h2 class="h2 article-title">Experience</h2>
         </header>
 
         
@@ -1023,9 +1019,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
@@ -1045,44 +1039,6 @@
         </header>
 
         <section class="projects">
-
-          <ul class="filter-list">
-
-            <li class="filter-item">
-              <button class="active" data-filter-btn>Professional</button>
-            </li>
-
-            <li class="filter-item">
-              <button data-filter-btn>Creative</button>
-            </li>
-
-          </ul>
-
-          <div class="filter-select-box">
-
-            <button class="filter-select" data-select>
-
-              <div class="select-value" data-select-value>Professional</div>
-
-              <div class="select-icon">
-                <ion-icon name="chevron-down"></ion-icon>
-              </div>
-
-            </button>
-
-            <ul class="select-list">
-
-              <li class="select-item">
-                <button data-select-item>Professional</button>
-              </li>
-
-              <li class="select-item">
-                <button data-select-item>Creative</button>
-              </li>
-
-            </ul>
-
-          </div>
 
           <div class="portfolio-filters" id="portfolio-filters" aria-label="Filter portfolio by industry">
             <div class="portfolio-filter-group portfolio-filter-group--niche">
@@ -1192,9 +1148,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
@@ -1467,9 +1421,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
@@ -1479,7 +1431,7 @@
           </div>
         </nav>
         <header>
-          <h2 class="h2 article-title">Services<br>& Pricing</h2>
+          <h2 class="h2 article-title">Services & Pricing</h2>
         </header>
 
         <section class="about-text">
@@ -1490,26 +1442,7 @@
 
         <section class="service">
 
-          <div class="pricing-tab-bar" role="tablist" aria-label="Pricing tiers">
-            <button
-              class="pricing-tab-btn active"
-              role="tab"
-              aria-selected="true"
-              aria-controls="panel-standard"
-              data-pricing-tab="standard"
-            >Solo &amp; local</button>
-            <button
-              class="pricing-tab-btn"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panel-enterprise"
-              data-pricing-tab="enterprise"
-            >Enterprise <span class="tab-badge">Custom</span></button>
-          </div>
-
-          <div id="panel-standard" class="pricing-tab-panel active" role="tabpanel">
-            <h3 class="h3 service-title">Services & Pricing</h3>
-
+          <div class="pricing-content">
             <div class="enterprise-grid standard-bundles-grid">
 
               <div class="enterprise-card">
@@ -1675,79 +1608,6 @@
                 <strong>Note:</strong> Final scope is confirmed after discovery; package pricing above includes maintenance for the first year only. Managed Turn-Key and Asset Buyout policies still apply where relevant.
               </p>
             </section>
-          </div>
-
-          <div id="panel-enterprise" class="pricing-tab-panel" role="tabpanel">
-            <div class="enterprise-grid">
-              <div class="enterprise-card">
-                <span class="enterprise-card-badge">Ongoing</span>
-                <div class="enterprise-card-title">Platform Retainer</div>
-                <div class="enterprise-card-sub">Dedicated monthly engineering hours</div>
-                <div class="enterprise-price">$2,000–$5,000<span style="font-size:1rem">/mo</span></div>
-                <div class="enterprise-price-note">Monthly · Minimum 3-month commitment</div>
-                <ul class="enterprise-feature-list">
-                  <li>40–100 dedicated engineering hours per month</li>
-                  <li>Priority response — 4-hour SLA during business hours</li>
-                  <li>New feature development + ongoing iterations</li>
-                  <li>Bug fixes, security patches, dependency updates</li>
-                  <li>Monthly strategy call + progress report</li>
-                  <li>All work tracked and reported transparently</li>
-                </ul>
-                <a href="#contact" class="enterprise-cta">
-                  <ion-icon name="calendar-outline"></ion-icon>
-                  Book a call
-                </a>
-              </div>
-
-              <div class="enterprise-card featured-card">
-                <span class="enterprise-card-badge">Most value</span>
-                <div class="enterprise-card-title">Multi-App Studio Deal</div>
-                <div class="enterprise-card-sub">Multiple platforms built under one engagement</div>
-                <div class="enterprise-price">Custom</div>
-                <div class="enterprise-price-note">Scope-based · Contact for quote</div>
-                <ul class="enterprise-feature-list">
-                  <li>Web platform + iOS + Android — one unified build</li>
-                  <li>Admin portal + client-facing portal + staff app</li>
-                  <li>Single Expo codebase across all surfaces</li>
-                  <li>Firebase backend, Stripe payments, push notifications</li>
-                  <li>Full bilingual support — English + Spanish</li>
-                  <li>Dedicated project manager + weekly syncs</li>
-                  <li>Full source handoff + documentation on completion</li>
-                </ul>
-                <a href="#contact" class="enterprise-cta">
-                  <ion-icon name="chatbubble-outline"></ion-icon>
-                  Let's talk scope
-                </a>
-              </div>
-
-              <div class="enterprise-card full-width">
-                <span class="enterprise-card-badge">Agency</span>
-                <div class="enterprise-card-title">White-Label Partner</div>
-                <div class="enterprise-card-sub">CWR builds under your agency's brand</div>
-                <div class="enterprise-price">$3,000–$8,000</div>
-                <div class="enterprise-price-note">Per project · Volume discounts available</div>
-                <ul class="enterprise-feature-list">
-                  <li>Full production builds delivered under your brand — no CWR attribution</li>
-                  <li>Your clients never know we exist — full NDA available on request</li>
-                  <li>Same CWR standards: TypeScript, Firebase, Expo, NativeWind</li>
-                  <li>Clean repo handoff — you own all the code</li>
-                  <li>Volume pricing for agencies with recurring project flow</li>
-                  <li>Dedicated Slack channel for agency partners</li>
-                </ul>
-                <a href="#contact" class="enterprise-cta">
-                  <ion-icon name="business-outline"></ion-icon>
-                  Partner inquiry
-                </a>
-              </div>
-            </div>
-
-            <div class="enterprise-note-box">
-              <p>
-                <strong>All enterprise engagements start with a free 30-minute discovery call.</strong>
-                Every project is scoped before any commitment. No retainer starts without a signed
-                agreement and 50% deposit. Existing clients get priority scheduling.
-              </p>
-            </div>
           </div>
 
         </section>
@@ -2146,9 +2006,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
@@ -2371,9 +2229,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
@@ -2433,9 +2289,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
@@ -2464,9 +2318,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Resume</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Blog</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
@@ -4852,22 +4704,19 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - Firebase config
   -->
-  <script src="/assets/js/config.js?v=google-auth-20260521"></script>
+  <script src="/assets/js/config.js?v=google-auth-20260522"></script>
 
   <!--
     - Firebase SDKs
   -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, initializeAuth, browserPopupRedirectResolver, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
-    window.initializeAuth = initializeAuth;
-    window.browserPopupRedirectResolver = browserPopupRedirectResolver;
-    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
     window.signOut = signOut;
     window.onAuthStateChanged = onAuthStateChanged;
     window.GoogleAuthProvider = GoogleAuthProvider;
@@ -4958,7 +4807,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=google-auth-20260521"></script>
+  <script src="/assets/js/script.js?v=google-auth-20260522"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
