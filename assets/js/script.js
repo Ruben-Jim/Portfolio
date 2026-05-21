@@ -5230,24 +5230,23 @@ window.addEventListener('load', function() {
         console.warn('Realtime Database not initialized (missing getDatabase or databaseURL).');
       }
 
-      if (typeof window.initializeAuth === 'function' &&
+      if (usesCustomAuthDomain() &&
+          typeof window.initializeAuth === 'function' &&
           typeof window.browserPopupRedirectResolver === 'function') {
-        try {
-          window.firebaseAuth = window.initializeAuth(app, {
-            popupRedirectResolver: window.browserPopupRedirectResolver
-          });
-        } catch (authInitErr) {
-          console.warn('initializeAuth fallback to getAuth:', authInitErr);
-          if (typeof window.getAuth === 'function') {
-            window.firebaseAuth = window.getAuth(app);
-          }
-        }
+        window.firebaseAuth = window.initializeAuth(app, {
+          popupRedirectResolver: window.browserPopupRedirectResolver
+        });
       } else if (typeof window.getAuth === 'function') {
         window.firebaseAuth = window.getAuth(app);
       }
 
       console.log('Firebase initialized successfully');
-      console.log('Firebase authDomain:', firebaseConfig.authDomain);
+      console.log('Firebase authDomain:', firebaseConfig.authDomain, '| page host:', window.location.hostname);
+      if (window.location.hostname && window.location.protocol.indexOf('http') === 0) {
+        console.log(
+          'Google sign-in: add "' + window.location.hostname + '" to Firebase Console → Authentication → Settings → Authorized domains'
+        );
+      }
       console.log('Firestore database:', window.db);
       console.log('Realtime Database:', window.rtdb);
       console.log('Note: Make sure firestore.rules is deployed to Firebase Console for proper permissions');
@@ -6139,14 +6138,18 @@ window.addEventListener('load', function() {
     }
     const host = window.location.hostname;
     if (err.code === 'auth/invalid-continue-uri' || err.code === 'auth/unauthorized-domain') {
+      const authHandlerHost = usesCustomAuthDomain()
+        ? host
+        : (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain) || host;
       return (
-        'Auth domain mismatch. In Firebase Console → Authentication → Settings, add "' +
+        'Add "' +
         host +
-        '" to Authorized domains. In Google Cloud → Credentials → OAuth client, add JavaScript origin "' +
+        '" to Firebase Console → Authentication → Settings → Authorized domains (project portfolio-2578e), then hard-refresh. ' +
+        'In Google Cloud OAuth client, add origin "' +
         window.location.origin +
-        '" and redirect URI "https://' +
-        (usesCustomAuthDomain() ? host : (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain) || host) +
-        '/__/auth/handler".'
+        '" and redirect URI https://' +
+        authHandlerHost +
+        '/__/auth/handler'
       );
     }
     if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
