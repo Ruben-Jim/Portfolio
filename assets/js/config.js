@@ -2,8 +2,7 @@
 // Replace with your actual Firebase API key
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCaklIEadgb9ZckNGOyr6SDiaZvbOYZqBY",
-  // Use Firebase hosting domain for authDomain (always authorized)
-  // Your custom domain (rubenjimenez.dev) should be in Authorized domains list
+  // Default authDomain (localhost / firebaseapp.com hosting). Overridden on custom hosts below.
   authDomain: "portfolio-2578e.firebaseapp.com",
   databaseURL: "https://portfolio-2578e-default-rtdb.firebaseio.com",
   projectId: "portfolio-2578e",
@@ -26,6 +25,16 @@ const RESEND_EMAIL_CONFIG = {
   /** Full URL to sendPortfolioEmail, e.g. https://us-central1-portfolio-2578e.cloudfunctions.net/sendPortfolioEmail */
   apiUrl: "https://us-central1-portfolio-2578e.cloudfunctions.net/sendPortfolioEmail"
 };
+
+/**
+ * Hostnames where the app is served on your custom domain — authDomain must match the page host.
+ * Also add each host under Firebase Console → Authentication → Settings → Authorized domains,
+ * and add https://<host>/__/auth/handler to Google Cloud → Credentials → OAuth redirect URIs.
+ */
+const FIREBASE_CUSTOM_AUTH_HOSTS = [
+  "rubenjimenez.dev",
+  "www.rubenjimenez.dev"
+];
 
 /**
  * Google accounts allowed to open the Admin dashboard and pass Firestore/RTDB admin rules.
@@ -59,6 +68,7 @@ const TESTIMONIAL_BRAND_LOGO = "./assets/images/logo.svg";
 
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
+window.FIREBASE_CUSTOM_AUTH_HOSTS = FIREBASE_CUSTOM_AUTH_HOSTS;
 window.ADMIN_ALLOWLIST_EMAILS = ADMIN_ALLOWLIST_EMAILS;
 window.RESEND_EMAIL_CONFIG = RESEND_EMAIL_CONFIG;
 window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;

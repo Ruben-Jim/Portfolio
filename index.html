@@ -4859,18 +4859,19 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, initializeAuth, browserPopupRedirectResolver, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
+    window.initializeAuth = initializeAuth;
+    window.browserPopupRedirectResolver = browserPopupRedirectResolver;
     window.signInWithEmailAndPassword = signInWithEmailAndPassword;
     window.signOut = signOut;
     window.onAuthStateChanged = onAuthStateChanged;
     window.GoogleAuthProvider = GoogleAuthProvider;
     window.signInWithPopup = signInWithPopup;
-    window.signInWithRedirect = signInWithRedirect;
     window.getRedirectResult = getRedirectResult;
     window.getFirestore = getFirestore;
     window.collection = collection;

@@ -5193,10 +5193,27 @@ window.addEventListener('load', function() {
   const newMessagesEl = document.getElementById('new-messages');
   const repliedMessagesEl = document.getElementById('replied-messages');
 
+  function resolveFirebaseConfigForHost() {
+    const base = window.FIREBASE_CONFIG;
+    if (!base) return null;
+    const cfg = Object.assign({}, base);
+    const host = window.location.hostname;
+    const customHosts = window.FIREBASE_CUSTOM_AUTH_HOSTS;
+    if (Array.isArray(customHosts) && customHosts.indexOf(host) >= 0) {
+      cfg.authDomain = host;
+    }
+    return cfg;
+  }
+
+  function usesCustomAuthDomain() {
+    const cfg = resolveFirebaseConfigForHost();
+    return !!(cfg && cfg.authDomain && cfg.authDomain.indexOf('firebaseapp.com') < 0);
+  }
+
   // Initialize Firebase
   function initializeFirebase() {
     try {
-      const firebaseConfig = window.FIREBASE_CONFIG;
+      const firebaseConfig = resolveFirebaseConfigForHost();
       if (!firebaseConfig) {
         console.error('Firebase config not found');
         return false;
@@ -5213,11 +5230,24 @@ window.addEventListener('load', function() {
         console.warn('Realtime Database not initialized (missing getDatabase or databaseURL).');
       }
 
-      if (typeof window.getAuth === 'function') {
+      if (typeof window.initializeAuth === 'function' &&
+          typeof window.browserPopupRedirectResolver === 'function') {
+        try {
+          window.firebaseAuth = window.initializeAuth(app, {
+            popupRedirectResolver: window.browserPopupRedirectResolver
+          });
+        } catch (authInitErr) {
+          console.warn('initializeAuth fallback to getAuth:', authInitErr);
+          if (typeof window.getAuth === 'function') {
+            window.firebaseAuth = window.getAuth(app);
+          }
+        }
+      } else if (typeof window.getAuth === 'function') {
         window.firebaseAuth = window.getAuth(app);
       }
 
       console.log('Firebase initialized successfully');
+      console.log('Firebase authDomain:', firebaseConfig.authDomain);
       console.log('Firestore database:', window.db);
       console.log('Realtime Database:', window.rtdb);
       console.log('Note: Make sure firestore.rules is deployed to Firebase Console for proper permissions');
@@ -5728,6 +5758,15 @@ window.addEventListener('load', function() {
         }
       } catch (redirectErr) {
         console.warn('getRedirectResult:', redirectErr);
+        if (redirectErr && redirectErr.code === 'auth/invalid-continue-uri') {
+          showAdminLoginError(
+            'Google sign-in redirect failed: add ' +
+              window.location.hostname +
+              ' to Firebase Authorized domains and add https://' +
+              window.location.hostname +
+              '/__/auth/handler to Google OAuth redirect URIs.'
+          );
+        }
       }
     }
 
@@ -6094,6 +6133,28 @@ window.addEventListener('load', function() {
     }
   }
 
+  function adminGoogleSignInErrorMessage(err) {
+    if (!err || !err.code) {
+      return err && err.message ? err.message : 'Google Sign-In failed.';
+    }
+    const host = window.location.hostname;
+    if (err.code === 'auth/invalid-continue-uri' || err.code === 'auth/unauthorized-domain') {
+      return (
+        'Auth domain mismatch. In Firebase Console → Authentication → Settings, add "' +
+        host +
+        '" to Authorized domains. In Google Cloud → Credentials → OAuth client, add JavaScript origin "' +
+        window.location.origin +
+        '" and redirect URI "https://' +
+        (usesCustomAuthDomain() ? host : (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain) || host) +
+        '/__/auth/handler".'
+      );
+    }
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      return '';
+    }
+    return err.message || 'Google Sign-In failed. Enable Google in Firebase Authentication.';
+  }
+
   async function handleGoogleSignIn() {
     if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) {
       showAdminLoginError('Authentication service not initialized.');
@@ -6113,24 +6174,10 @@ window.addEventListener('load', function() {
         showAdminLoginError('Access denied. This Google account is not on the admin allowlist.');
       }
     } catch (popupError) {
-      if (popupError.code === 'auth/unauthorized-domain') {
-        try {
-          await window.signInWithRedirect(window.firebaseAuth, provider);
-          return;
-        } catch (redirectError) {
-          console.error('Google redirect sign-in failed:', redirectError);
-        }
-      }
-      if (popupError.code === 'auth/popup-closed-by-user') {
-        return;
-      }
-      if (popupError.code === 'auth/cancelled-popup-request') {
-        return;
-      }
+      const msg = adminGoogleSignInErrorMessage(popupError);
+      if (!msg) return;
       console.error('Google Sign-In error:', popupError);
-      showAdminLoginError(
-        popupError.message || 'Google Sign-In failed. Enable Google in Firebase Authentication.'
-      );
+      showAdminLoginError(msg);
     }
   }
 
