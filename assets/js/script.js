@@ -5193,13 +5193,35 @@ window.addEventListener('load', function() {
   const newMessagesEl = document.getElementById('new-messages');
   const repliedMessagesEl = document.getElementById('replied-messages');
 
+  function normalizeAuthHost(host) {
+    return String(host || '').trim().toLowerCase().replace(/\.$/, '');
+  }
+
+  function isLocalDevAuthHost(host) {
+    const h = normalizeAuthHost(host);
+    return h === 'localhost' || h === '127.0.0.1' || /^\d+\.\d+\.\d+\.\d+$/.test(h);
+  }
+
+  function shouldUsePageHostAsAuthDomain(host) {
+    const h = normalizeAuthHost(host);
+    if (!h || isLocalDevAuthHost(h)) return false;
+    if (h.indexOf('firebaseapp.com') >= 0 || h.indexOf('web.app') >= 0) return false;
+    const customHosts = window.FIREBASE_CUSTOM_AUTH_HOSTS;
+    if (Array.isArray(customHosts)) {
+      for (let i = 0; i < customHosts.length; i++) {
+        if (normalizeAuthHost(customHosts[i]) === h) return true;
+      }
+    }
+    // Fallback when config.js cache omitted FIREBASE_CUSTOM_AUTH_HOSTS
+    return true;
+  }
+
   function resolveFirebaseConfigForHost() {
     const base = window.FIREBASE_CONFIG;
     if (!base) return null;
     const cfg = Object.assign({}, base);
-    const host = window.location.hostname;
-    const customHosts = window.FIREBASE_CUSTOM_AUTH_HOSTS;
-    if (Array.isArray(customHosts) && customHosts.indexOf(host) >= 0) {
+    const host = normalizeAuthHost(window.location.hostname);
+    if (shouldUsePageHostAsAuthDomain(host)) {
       cfg.authDomain = host;
     }
     return cfg;
@@ -5230,9 +5252,12 @@ window.addEventListener('load', function() {
         console.warn('Realtime Database not initialized (missing getDatabase or databaseURL).');
       }
 
-      if (usesCustomAuthDomain() &&
-          typeof window.initializeAuth === 'function' &&
-          typeof window.browserPopupRedirectResolver === 'function') {
+      const usePopupResolver =
+        !isLocalDevAuthHost(window.location.hostname) &&
+        typeof window.initializeAuth === 'function' &&
+        typeof window.browserPopupRedirectResolver === 'function';
+
+      if (usePopupResolver) {
         window.firebaseAuth = window.initializeAuth(app, {
           popupRedirectResolver: window.browserPopupRedirectResolver
         });
@@ -5241,10 +5266,24 @@ window.addEventListener('load', function() {
       }
 
       console.log('Firebase initialized successfully');
-      console.log('Firebase authDomain:', firebaseConfig.authDomain, '| page host:', window.location.hostname);
-      if (window.location.hostname && window.location.protocol.indexOf('http') === 0) {
+      console.log(
+        'Firebase project:',
+        firebaseConfig.projectId,
+        '| authDomain:',
+        firebaseConfig.authDomain,
+        '| page host:',
+        window.location.hostname,
+        '| customAuthHosts:',
+        window.FIREBASE_CUSTOM_AUTH_HOSTS
+      );
+      if (
+        normalizeAuthHost(window.location.hostname) === normalizeAuthHost(firebaseConfig.authDomain) &&
+        firebaseConfig.authDomain.indexOf('firebaseapp.com') < 0
+      ) {
         console.log(
-          'Google sign-in: add "' + window.location.hostname + '" to Firebase Console → Authentication → Settings → Authorized domains'
+          'Custom authDomain active. Ensure https://' +
+            firebaseConfig.authDomain +
+            '/__/auth/handler is reachable (Firebase Hosting custom domain) and listed in Google OAuth redirect URIs.'
         );
       }
       console.log('Firestore database:', window.db);
@@ -6138,18 +6177,16 @@ window.addEventListener('load', function() {
     }
     const host = window.location.hostname;
     if (err.code === 'auth/invalid-continue-uri' || err.code === 'auth/unauthorized-domain') {
-      const authHandlerHost = usesCustomAuthDomain()
-        ? host
-        : (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain) || host;
+      const cfg = resolveFirebaseConfigForHost();
+      const authHandlerHost = (cfg && cfg.authDomain) || host;
       return (
-        'Add "' +
+        'auth/unauthorized-domain: (1) Firebase Console → Authentication → Authorized domains must include "' +
         host +
-        '" to Firebase Console → Authentication → Settings → Authorized domains (project portfolio-2578e), then hard-refresh. ' +
-        'In Google Cloud OAuth client, add origin "' +
+        '" for project portfolio-2578e. (2) Google Cloud → Credentials → API key → HTTP referrers must include ' +
         window.location.origin +
-        '" and redirect URI https://' +
+        '/* (not "None" only). (3) OAuth redirect URI: https://' +
         authHandlerHost +
-        '/__/auth/handler'
+        '/__/auth/handler. Hard-refresh after changes.'
       );
     }
     if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
