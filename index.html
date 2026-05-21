@@ -2482,12 +2482,13 @@
             <h2 class="h2 article-title admin-guest-gate__title">Portfolio admin</h2>
             <p class="admin-guest-gate__lead">Sign in to manage contact messages, blog posts, snippets, and business documents.</p>
             <div class="admin-guest-gate__actions">
-              <button type="button" class="btn btn-primary" id="admin-login-btn" style="display: none;">
-                <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
-                <span>Admin sign in</span>
+              <button type="button" class="btn btn-primary admin-google-signin-btn" id="admin-google-signin-gate">
+                <ion-icon name="logo-google" aria-hidden="true"></ion-icon>
+                <span>Sign in with Google</span>
               </button>
               <button type="button" class="admin-guest-gate__back" data-nav-link>Home</button>
             </div>
+            <div class="login-error admin-guest-gate__error" id="admin-login-error-gate" style="display: none;" role="alert"></div>
           </div>
         </section>
 
@@ -3086,22 +3087,14 @@
               </button>
             </div>
 
-            <form class="login-form" id="admin-login-form" novalidate>
-              <div class="form-group">
-                <label for="admin-username">Username</label>
-                <input type="text" id="admin-username" name="username" placeholder="admin" autocomplete="username" required>
-              </div>
-
-              <div class="form-group">
-                <label for="admin-password">Password</label>
-                <input type="password" id="admin-password" name="password" autocomplete="current-password" required>
-              </div>
-
-              <div class="form-actions">
-                <button type="button" class="btn btn-secondary" id="admin-cancel-login-btn">Cancel</button>
-                <button type="submit" class="btn btn-primary">Login</button>
-              </div>
-            </form>
+            <p class="admin-login-lead">Only allowlisted Google accounts can access this dashboard.</p>
+            <div class="form-actions admin-login-google-actions">
+              <button type="button" class="btn btn-primary admin-google-signin-btn" id="admin-google-signin-modal">
+                <ion-icon name="logo-google" aria-hidden="true"></ion-icon>
+                <span>Sign in with Google</span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="admin-cancel-login-btn">Cancel</button>
+            </div>
 
             <div class="login-error" id="admin-login-error" style="display: none;"></div>
           </div>
@@ -3247,6 +3240,122 @@
             </div>
           </section>
         </div>
+
+        <!-- Lead add/edit modal (Client Pipeline) -->
+        <div class="business-doc-modal lead-modal" id="lead-modal" style="display: none;" aria-hidden="true">
+          <div class="business-doc-modal-overlay" id="lead-modal-overlay"></div>
+          <div class="business-doc-modal-content">
+            <div class="business-doc-modal-header">
+              <h3 class="h3" id="lead-modal-title">Add Lead</h3>
+              <button type="button" class="business-doc-modal-close" id="lead-modal-close" aria-label="Close">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="business-doc-modal-body has-scrollbar">
+              <form id="lead-form">
+                <input type="hidden" id="lead-id">
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="lead-name">Name</label>
+                    <input type="text" id="lead-name" required placeholder="Client or business name">
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="lead-email">Email</label>
+                    <input type="email" id="lead-email" placeholder="name@example.com">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="lead-phone">Phone (optional)</label>
+                    <input type="tel" id="lead-phone" placeholder="(555) 555-5555">
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="lead-company">Company (optional)</label>
+                    <input type="text" id="lead-company" placeholder="Business name">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="lead-project-type">Project type</label>
+                    <select id="lead-project-type">
+                      <option value="web">Website</option>
+                      <option value="app">Mobile app</option>
+                      <option value="both">Web + app</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="lead-value">Estimated value ($)</label>
+                    <input type="number" id="lead-value" min="0" step="1" placeholder="3500">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="lead-stage">Stage</label>
+                    <select id="lead-stage" required>
+                      <option value="lead">Lead</option>
+                      <option value="discovery">Discovery</option>
+                      <option value="proposal">Proposal Sent</option>
+                      <option value="deposit">Deposit Paid</option>
+                      <option value="building">Building</option>
+                      <option value="launched">Launched</option>
+                      <option value="maintenance">Maintenance</option>
+                    </select>
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="lead-source">Source</label>
+                    <select id="lead-source">
+                      <option value="dm">DM / Messages</option>
+                      <option value="email">Email</option>
+                      <option value="referral">Referral</option>
+                      <option value="social">Social</option>
+                      <option value="cold">Cold outreach</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="lead-notes">Notes</label>
+                  <textarea id="lead-notes" rows="5" placeholder="Discovery notes, next steps, package interest…"></textarea>
+                </div>
+                <div class="form-actions">
+                  <button type="button" class="btn btn-secondary" id="lead-form-reset-btn">
+                    <ion-icon name="refresh-outline"></ion-icon>
+                    Reset
+                  </button>
+                  <div style="display: flex; gap: 12px; margin-left: auto;">
+                    <button type="submit" class="btn btn-primary" id="lead-form-save-btn">
+                      <ion-icon name="save-outline"></ion-icon>
+                      Save Lead
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lead detail drawer -->
+        <div class="lead-drawer-overlay" id="lead-drawer-overlay" hidden aria-hidden="true"></div>
+        <aside class="lead-drawer" id="lead-detail-drawer" hidden aria-hidden="true" aria-labelledby="lead-drawer-title">
+          <div class="lead-drawer-header">
+            <h3 class="h3" id="lead-drawer-title">Lead details</h3>
+            <button type="button" class="lead-drawer-close" id="lead-drawer-close" aria-label="Close">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+          <div class="lead-drawer-body has-scrollbar" id="lead-drawer-body"></div>
+          <div class="lead-drawer-footer">
+            <button type="button" class="btn btn-secondary" id="lead-drawer-edit-btn">
+              <ion-icon name="create-outline"></ion-icon>
+              Edit
+            </button>
+            <button type="button" class="btn btn-secondary lead-drawer-delete-btn" id="lead-drawer-delete-btn">
+              <ion-icon name="trash-outline"></ion-icon>
+              Delete
+            </button>
+          </div>
+        </aside>
 
         <!-- Create/Edit Document Modal -->
         <div class="business-doc-modal" id="business-doc-modal" style="display: none;">

@@ -100,17 +100,27 @@ const blogModalCloseBtn = document.querySelector("[data-blog-modal-close-btn]");
 const blogOverlay = document.querySelector("[data-blog-overlay]");
 
 
-// Simple authentication system - Admin credentials
-const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123'
-};
-
 // Global password gate for private blog posts (UI-only, casual security)
 const PRIVATE_POST_PASSWORD = 'private123';
 
-// Global currentUser - simple session management
+/** Set from Firebase Auth when an allowlisted Google account signs in. */
 let currentUser = null;
+
+function getAdminAllowlistEmails() {
+  const list = window.ADMIN_ALLOWLIST_EMAILS;
+  if (!Array.isArray(list)) return [];
+  return list.map(function (e) {
+    return String(e).trim().toLowerCase();
+  }).filter(Boolean);
+}
+
+function isAdminEmail(email) {
+  if (!email) return false;
+  const normalized = String(email).trim().toLowerCase();
+  return getAdminAllowlistEmails().indexOf(normalized) >= 0;
+}
+
+window.isAdminEmail = isAdminEmail;
 
 // Authentication state management
 function updateAuthUI() {
@@ -119,7 +129,7 @@ function updateAuthUI() {
     renderBlogPosts();
   }
   // Also update admin dashboard if user is admin
-  if (currentUser && currentUser.role === 'admin') {
+  if (isAdmin()) {
     renderAdminBlogPosts();
     if (typeof renderAdminPortfolioProjects === 'function') {
       renderAdminPortfolioProjects();
@@ -133,9 +143,10 @@ function updateAuthUI() {
   }
 }
 
-// Helper function to check if user is logged in as admin
+// Helper: signed in with Google and email is on ADMIN_ALLOWLIST_EMAILS
 function isAdmin() {
-  return currentUser && currentUser.role === 'admin';
+  const fbUser = window.firebaseAuth && window.firebaseAuth.currentUser;
+  return !!(fbUser && isAdminEmail(fbUser.email));
 }
 
 // Blog management moved to admin tab only - authentication required for editing
@@ -746,8 +757,7 @@ function renderPublicSnippets() {
 function renderAdminSnippets() {
   const list = document.getElementById('admin-snippets-list');
   if (!list) return;
-  const isAdmin = currentUser && currentUser.role === 'admin';
-  if (!isAdmin) {
+  if (!isAdmin()) {
     list.innerHTML = '<div class="empty-item"><p>Log in to manage snippets.</p></div>';
     return;
   }
@@ -884,7 +894,7 @@ function initSnippetManagementUI() {
   const addBtn = document.getElementById('admin-add-snippet-btn');
   if (addBtn) {
     addBtn.addEventListener('click', function () {
-      if (!currentUser || currentUser.role !== 'admin') return;
+      if (!isAdmin()) return;
       openSnippetEditModal('add');
     });
   }
@@ -2163,7 +2173,7 @@ if (editBlogForm) {
     e.preventDefault();
     
     // Security check: Only allow admin users to update blog posts
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!isAdmin()) {
       showErrorMessage('Access denied. Admin privileges required to update blog posts.');
       return;
     }
@@ -2194,7 +2204,7 @@ if (editBlogForm) {
       
       // Re-render blog posts (both regular view and admin dashboard)
       renderBlogPosts();
-      if (currentUser && currentUser.role === 'admin') {
+      if (isAdmin()) {
         renderAdminBlogPosts();
       }
       
@@ -2244,7 +2254,7 @@ async function handleDeleteBlogConfirmClick() {
     closeDeleteBlogConfirmModal();
     return;
   }
-  if (!currentUser || currentUser.role !== 'admin') {
+  if (!isAdmin()) {
     showErrorMessage('Access denied. Admin privileges required to delete blog posts.');
     closeDeleteBlogConfirmModal();
     return;
@@ -2255,7 +2265,7 @@ async function handleDeleteBlogConfirmClick() {
       return p.id !== postId;
     });
     renderBlogPosts();
-    if (currentUser && currentUser.role === 'admin') {
+    if (isAdmin()) {
       renderAdminBlogPosts();
     }
     closeDeleteBlogConfirmModal();
@@ -2304,7 +2314,7 @@ if (deleteBlogBtn) {
   deleteBlogBtn.addEventListener('click', function (e) {
     e.preventDefault();
 
-    if (!currentUser || currentUser.role !== 'admin') {
+    if (!isAdmin()) {
       showErrorMessage('Access denied. Admin privileges required to delete blog posts.');
       return;
     }
@@ -4824,7 +4834,7 @@ function switchToPage(pageName, skipSave = false) {
       // Handle admin page authentication
       if (pages[i].dataset.page === "admin") {
         setTimeout(function() {
-          if (currentUser && currentUser.role === 'admin') {
+          if (isAdmin()) {
             if (typeof window.showDashboard === 'function') window.showDashboard();
             if (typeof window.fetchMessages === 'function') window.fetchMessages();
             if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
@@ -5203,6 +5213,10 @@ window.addEventListener('load', function() {
         console.warn('Realtime Database not initialized (missing getDatabase or databaseURL).');
       }
 
+      if (typeof window.getAuth === 'function') {
+        window.firebaseAuth = window.getAuth(app);
+      }
+
       console.log('Firebase initialized successfully');
       console.log('Firestore database:', window.db);
       console.log('Realtime Database:', window.rtdb);
@@ -5481,7 +5495,7 @@ window.addEventListener('load', function() {
         '<div class="empty-item"><p>Firestore is not ready yet. Refresh in a moment.</p></div>';
       return;
     }
-    if (!currentUser || currentUser.role !== "admin") {
+    if (!isAdmin()) {
       combined.innerHTML =
         '<div class="empty-item"><p>Open this tab while signed in to load invites and submissions.</p></div>';
       return;
@@ -5641,14 +5655,11 @@ window.addEventListener('load', function() {
   function syncAdminArticleAuth() {
     var el = document.querySelector('article.admin[data-page="admin"]');
     if (!el) return;
-    el.setAttribute(
-      'data-admin-auth',
-      currentUser && currentUser.role === 'admin' ? 'signed-in' : 'guest'
-    );
+    el.setAttribute('data-admin-auth', isAdmin() ? 'signed-in' : 'guest');
   }
 
   function syncAdminNavVisibility() {
-    var isSignedInAdmin = !!(currentUser && currentUser.role === 'admin');
+    var isSignedInAdmin = isAdmin();
 
     document.querySelectorAll('[data-nav-link]').forEach(function (link) {
       if ((link.textContent || '').trim() !== 'Admin') return;
@@ -5685,57 +5696,70 @@ window.addEventListener('load', function() {
     });
   }
 
-  // Setup authentication - check for existing session
-  function setupAuthListeners() {
-    // Check if user is already logged in (from sessionStorage)
-    const savedUser = sessionStorage.getItem('adminUser');
-    if (savedUser) {
+  function syncCurrentUserFromFirebase(firebaseUser) {
+    if (!firebaseUser || !isAdminEmail(firebaseUser.email)) {
+      currentUser = null;
+      window.currentUser = null;
+      return;
+    }
+    currentUser = {
+      role: 'admin',
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName || firebaseUser.email,
+      uid: firebaseUser.uid
+    };
+    window.currentUser = currentUser;
+  }
+
+  // Firebase Auth (Google) — allowlisted emails only
+  async function setupAuthListeners() {
+    if (!window.firebaseAuth || typeof window.onAuthStateChanged !== 'function') {
+      console.warn('Firebase Auth not initialized');
+      showLogin();
+      return;
+    }
+
+    if (typeof window.getRedirectResult === 'function') {
       try {
-        currentUser = JSON.parse(savedUser);
-        window.currentUser = currentUser;
-        if (currentUser.role === 'admin') {
-          showDashboard();
-          if (typeof fetchMessages === 'function') fetchMessages();
-          if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
-          if (typeof renderAdminPortfolioProjects === 'function') renderAdminPortfolioProjects();
-          if (typeof setupPortfolioAdminControls === 'function') setupPortfolioAdminControls();
-          if (typeof syncAdminPortfolioLocalBanner === 'function') syncAdminPortfolioLocalBanner();
-          if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
-          updateAuthUI();
-          syncAdminArticleAuth();
-          if (typeof window.loadTestimonialAdminPanel === 'function') {
-            window.loadTestimonialAdminPanel();
-          }
-          return;
+        const redirectResult = await window.getRedirectResult(window.firebaseAuth);
+        if (redirectResult && redirectResult.user && !isAdminEmail(redirectResult.user.email)) {
+          await window.signOut(window.firebaseAuth);
+          showAdminLoginError('Access denied. This Google account is not authorized for admin.');
         }
-      } catch (e) {
-        console.error('Error parsing saved user:', e);
-        sessionStorage.removeItem('adminUser');
+      } catch (redirectErr) {
+        console.warn('getRedirectResult:', redirectErr);
       }
     }
-    
-    // No valid session, show login
-    showLogin();
+
+    window.onAuthStateChanged(window.firebaseAuth, function (firebaseUser) {
+      if (!firebaseUser) {
+        syncCurrentUserFromFirebase(null);
+        showLogin();
+        return;
+      }
+      if (!isAdminEmail(firebaseUser.email)) {
+        window.signOut(window.firebaseAuth).catch(function () {});
+        syncCurrentUserFromFirebase(null);
+        showAdminLoginError('Access denied. This Google account is not authorized for admin.');
+        showLogin();
+        return;
+      }
+      syncCurrentUserFromFirebase(firebaseUser);
+      afterAdminSessionReady();
+    });
   }
 
   // Setup admin event listeners
   function setupAdminEventListeners() {
     ensureGlobalNavbarLogoutButtons();
 
-    // Login button click
-    if (adminLoginBtn) {
-      adminLoginBtn.addEventListener('click', function() {
-        if (adminLoginModal) {
-          adminLoginModal.classList.add('active');
-          adminLoginModal.style.display = 'flex';
-        }
+    document.querySelectorAll('.admin-google-signin-btn').forEach(function (btn) {
+      if (btn.dataset.googleSigninBound) return;
+      btn.dataset.googleSigninBound = '1';
+      btn.addEventListener('click', function () {
+        handleGoogleSignIn();
       });
-    }
-
-    if (adminLoginForm) {
-      adminLoginForm.addEventListener('submit', handleAdminLogin);
-    }
-
+    });
 
     getAdminLogoutButtons().forEach(function (btn) {
       if (btn.dataset.logoutBound) return;
@@ -5936,7 +5960,7 @@ window.addEventListener('load', function() {
       inviteForm.dataset.boundTestimonial = '1';
       inviteForm.addEventListener('submit', async function (ev) {
         ev.preventDefault();
-        if (!currentUser || currentUser.role !== 'admin') return;
+        if (!isAdmin()) return;
         if (!window.db || !window.setDoc || !window.doc || !window.serverTimestamp) {
           if (inviteStatus) inviteStatus.textContent = 'Firestore is not ready.';
           return;
@@ -6020,238 +6044,122 @@ window.addEventListener('load', function() {
     }
   }
 
-  // Show login modal
   function showLogin() {
-    if (adminLoginModal) {
-      adminLoginModal.classList.add('active');
-      adminLoginModal.style.display = 'flex';
-    }
+    closeAdminLoginModal();
     if (adminDashboardContent) adminDashboardContent.style.display = 'none';
-    // Show login button, hide logout button
-    if (adminLoginBtn) adminLoginBtn.style.display = 'inline-flex';
     setAdminLogoutButtonsVisible(false);
     syncAdminArticleAuth();
     syncAdminNavVisibility();
+    if (typeof window.unsubscribePipelineLeads === 'function') {
+      window.unsubscribePipelineLeads();
+    }
   }
 
-  // Show dashboard
   function showDashboard() {
-    if (adminLoginModal) {
-      adminLoginModal.classList.remove('active');
-      adminLoginModal.style.display = 'none'; // Completely hide login modal
-    }
+    closeAdminLoginModal();
     if (adminDashboardContent) adminDashboardContent.style.display = 'block';
-    // Hide login button, show logout button
-    if (adminLoginBtn) adminLoginBtn.style.display = 'none';
     setAdminLogoutButtonsVisible(true);
     syncAdminArticleAuth();
     syncAdminNavVisibility();
+    if (typeof window.subscribePipelineLeads === 'function') {
+      window.subscribePipelineLeads();
+    }
   }
 
-  // Close login modal
   function closeAdminLoginModal() {
     if (adminLoginModal) {
       adminLoginModal.classList.remove('active');
       adminLoginModal.style.display = 'none';
     }
-    if (adminLoginForm) adminLoginForm.reset();
     if (adminLoginError) adminLoginError.style.display = 'none';
     syncAdminArticleAuth();
   }
 
-  // Handle admin login with username/password
-  function handleAdminLogin(e) {
-    e.preventDefault();
-
-    const username = document.getElementById('admin-username').value.trim();
-    const password = document.getElementById('admin-password').value;
-
-    showAdminLoginError(''); // Clear previous errors
-
-    if (!username || !password) {
-      showAdminLoginError('Please enter both username and password.');
-      return;
+  function afterAdminSessionReady() {
+    closeAdminLoginModal();
+    showDashboard();
+    if (typeof fetchMessages === 'function') fetchMessages();
+    if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
+    if (typeof renderAdminPortfolioProjects === 'function') renderAdminPortfolioProjects();
+    if (typeof setupPortfolioAdminControls === 'function') setupPortfolioAdminControls();
+    if (typeof syncAdminPortfolioLocalBanner === 'function') syncAdminPortfolioLocalBanner();
+    if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
+    updateAuthUI();
+    syncAdminArticleAuth();
+    if (typeof window.loadTestimonialAdminPanel === 'function') {
+      window.loadTestimonialAdminPanel();
     }
-
-    // Simple credential check
-    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-      // Login successful
-      currentUser = {
-        username: username,
-        role: 'admin'
-      };
-      window.currentUser = currentUser;
-      
-      // Save to sessionStorage
-      sessionStorage.setItem('adminUser', JSON.stringify(currentUser));
-      
-      // Update UI
-      closeAdminLoginModal();
-      showDashboard();
-      if (typeof fetchMessages === 'function') fetchMessages();
-      if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
-      if (typeof renderAdminPortfolioProjects === 'function') renderAdminPortfolioProjects();
-      if (typeof setupPortfolioAdminControls === 'function') setupPortfolioAdminControls();
-      if (typeof syncAdminPortfolioLocalBanner === 'function') syncAdminPortfolioLocalBanner();
-      if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
-      updateAuthUI();
-      if (typeof window.loadTestimonialAdminPanel === 'function') {
-        window.loadTestimonialAdminPanel();
-      }
-    } else {
-      // Invalid credentials
-      showAdminLoginError('Invalid username or password.');
+    if (typeof window.subscribePipelineLeads === 'function') {
+      window.subscribePipelineLeads();
     }
   }
 
-  // Removed Google Sign-In - using simple username/password auth instead
-  // This function is no longer needed
-  /*
   async function handleGoogleSignIn() {
-    if (!auth) {
-      showAdminLoginError('Authentication service not initialized');
+    if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) {
+      showAdminLoginError('Authentication service not initialized.');
       return;
     }
+
+    showAdminLoginError('');
+
+    const provider = new window.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
 
     try {
-      showAdminLoginError(''); // Clear previous errors
-      
-      // Log origin for debugging
-      const currentOrigin = window.location.origin;
-      const currentHostname = window.location.hostname;
-      console.log('=== Google Sign-In Attempt ===');
-      console.log('Origin:', currentOrigin);
-      console.log('Hostname:', currentHostname);
-      console.log('Protocol:', window.location.protocol);
-      console.log('Full URL:', window.location.href);
-      console.log('============================');
-      
-      const provider = new window.GoogleAuthProvider();
-      // Add custom parameters for better OAuth handling
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      
-      // Try popup first, fallback to redirect if unauthorized-domain error
-      try {
-        const userCredential = await window.signInWithPopup(auth, provider);
-        const firebaseUser = userCredential.user;
-        
-        // Check if user is admin
-        if (!isAdminEmail(firebaseUser.email)) {
-          // User is not admin, sign them out
-          await window.signOut(auth);
-          showAdminLoginError('Access denied. Admin privileges required.');
-        } else {
-          // Login successful - onAuthStateChanged will handle UI update
-          closeAdminLoginModal();
-        }
-      } catch (popupError) {
-        // If popup fails with unauthorized-domain, try redirect instead
-        if (popupError.code === 'auth/unauthorized-domain') {
-          console.warn('⚠️ Popup failed with unauthorized-domain');
-          console.warn('Domain being checked:', window.location.hostname);
-          console.warn('Full origin:', window.location.origin);
-          console.warn('Attempting redirect method as fallback...');
-          
-          // Use redirect method as fallback
-          try {
-            await window.signInWithRedirect(auth, provider);
-            // Note: User will be redirected away, so we don't need to handle the result here
-            // The redirect result will be handled in setupAuthListeners()
-            console.log('Redirect initiated - user will be redirected to Google');
-            return;
-          } catch (redirectError) {
-            console.error('❌ Redirect also failed:', redirectError);
-            // If redirect also fails, show detailed error
-            throw redirectError;
-          }
-        }
-        // Re-throw other errors
-        throw popupError;
+      const userCredential = await window.signInWithPopup(window.firebaseAuth, provider);
+      const firebaseUser = userCredential.user;
+      if (!isAdminEmail(firebaseUser.email)) {
+        await window.signOut(window.firebaseAuth);
+        showAdminLoginError('Access denied. This Google account is not on the admin allowlist.');
       }
-    } catch (error) {
-      console.error('=== Google Sign-In Error ===');
-      console.error('Error code:', error.code);
-      console.error('Error message:', error.message);
-      console.error('Full error:', error);
-      console.error('Current origin:', window.location.origin);
-      console.error('Current hostname:', window.location.hostname);
-      console.error('Current protocol:', window.location.protocol);
-      console.error('===========================');
-      
-      let errorMessage = 'Google Sign-In failed. Please try again.';
-      
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'Sign-in popup was closed. Please try again.';
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        errorMessage = 'Sign-in popup was cancelled.';
-      } else if (error.code === 'auth/unauthorized-domain') {
-        const hostname = window.location.hostname;
-        errorMessage = `Domain "${hostname}" not authorized. Using redirect method...`;
-        
-        console.error('🚨 UNAUTHORIZED DOMAIN ERROR');
-        console.error('===========================');
-        console.error('The domain being checked:', hostname);
-        console.error('Full origin:', window.location.origin);
-        console.error('');
-        console.error('📋 STEPS TO FIX IN FIREBASE CONSOLE:');
-        console.error('1. Go to: https://console.firebase.google.com/project/portfolio-2578e/authentication/settings');
-        console.error('2. Scroll to "Authorized domains" section');
-        console.error('3. Click "Add domain"');
-        console.error('4. Add EXACTLY this (without quotes, without protocol):');
-        console.error('   →', hostname);
-        console.error('5. If you use www, also add:');
-        console.error('   → www.' + hostname);
-        console.error('6. Click "Add"');
-        console.error('7. Wait 5-10 minutes for changes to propagate');
-        console.error('8. Clear browser cache (Ctrl+Shift+Delete) and try again');
-        console.error('');
-        console.error('⚠️ CRITICAL: Domain format must be EXACT:');
-        console.error('   ✅ Correct: rubenjimenez.dev');
-        console.error('   ❌ Wrong: https://rubenjimenez.dev');
-        console.error('   ❌ Wrong: rubenjimenez.dev/');
-        console.error('   ❌ Wrong: www.rubenjimenez.dev (unless you actually use www)');
-        console.error('');
-        console.error('🔍 TROUBLESHOOTING STEPS:');
-        console.error('1. Double-check Firebase Console → Authentication → Settings → Authorized domains');
-        console.error('2. Make sure "rubenjimenez.dev" is listed (exact match, no spaces)');
-        console.error('3. Wait 10-15 minutes after adding (propagation can be slow)');
-        console.error('4. Try clearing browser cache completely');
-        console.error('5. Try in an incognito/private window');
-        console.error('6. Check if you have multiple Firebase projects - ensure you added it to the correct one');
-        console.error('');
-        console.error('🔄 Attempting redirect method as fallback...');
-        
-        // Try redirect as fallback
+    } catch (popupError) {
+      if (popupError.code === 'auth/unauthorized-domain') {
         try {
-          const redirectProvider = new window.GoogleAuthProvider();
-          redirectProvider.setCustomParameters({
-            prompt: 'select_account'
-          });
-          await window.signInWithRedirect(auth, redirectProvider);
-          // User will be redirected, so we don't show error message
-          console.log('✅ Redirect initiated successfully');
+          await window.signInWithRedirect(window.firebaseAuth, provider);
           return;
         } catch (redirectError) {
-          console.error('❌ Redirect also failed:', redirectError);
-          errorMessage = `Domain authorization required. Please verify "${hostname}" is correctly added to Firebase authorized domains and wait 10-15 minutes for changes to propagate.`;
+          console.error('Google redirect sign-in failed:', redirectError);
         }
       }
-      
-      showAdminLoginError(errorMessage);
+      if (popupError.code === 'auth/popup-closed-by-user') {
+        return;
+      }
+      if (popupError.code === 'auth/cancelled-popup-request') {
+        return;
+      }
+      console.error('Google Sign-In error:', popupError);
+      showAdminLoginError(
+        popupError.message || 'Google Sign-In failed. Enable Google in Firebase Authentication.'
+      );
     }
   }
-  */
 
   // Handle logout
-  function handleLogout() {
-    // Clear session
+  async function handleLogout() {
+    if (typeof firestoreMessagesUnsubscribe === 'function') {
+      try {
+        firestoreMessagesUnsubscribe();
+      } catch (unsubErr) {
+        console.warn('Firestore listener cleanup on logout:', unsubErr);
+      }
+      firestoreMessagesUnsubscribe = null;
+    }
+
+    if (typeof window.unsubscribePipelineLeads === 'function') {
+      window.unsubscribePipelineLeads();
+    }
+
+    if (window.firebaseAuth && typeof window.signOut === 'function') {
+      try {
+        await window.signOut(window.firebaseAuth);
+      } catch (signOutErr) {
+        console.warn('Firebase sign-out:', signOutErr);
+      }
+    }
+
     currentUser = null;
     window.currentUser = null;
-    sessionStorage.removeItem('adminUser');
-    
-    // Update UI
+
     showLogin();
     updateAuthUI();
     if (typeof window.loadTestimonialAdminPanel === 'function') {
@@ -6264,10 +6172,12 @@ window.addEventListener('load', function() {
 
   // Show login error
   function showAdminLoginError(message) {
-    if (adminLoginError) {
-      adminLoginError.textContent = message;
-      adminLoginError.style.display = message ? 'block' : 'none';
-    }
+    const text = message || '';
+    [adminLoginError, document.getElementById('admin-login-error-gate')].forEach(function (el) {
+      if (!el) return;
+      el.textContent = text;
+      el.style.display = text ? 'block' : 'none';
+    });
   }
 
   // Handle filter button clicks (Firestore contact list only — DM filters live in the inbox sheet)
@@ -7050,8 +6960,6 @@ window.addEventListener('load', function() {
     window.adminActivateTab = activate;
   }
 
-  initAdminTabs();
-
   // KPI cards and Quick Action buttons — switch to the target tab
   document.querySelectorAll('[data-admin-kpi-tab], [data-admin-qa-tab]').forEach(function(el) {
     el.addEventListener('click', function() {
@@ -7076,10 +6984,593 @@ window.addEventListener('load', function() {
         setTimeout(function() {
           var addLeadBtn = document.getElementById('admin-add-lead-btn');
           if (addLeadBtn) addLeadBtn.focus();
+          if (typeof window.openLeadModal === 'function') window.openLeadModal();
         }, 80);
       }
     });
   });
+
+  // ----------------------------
+  // Client Pipeline (Realtime Database: pipelineLeads)
+  // ----------------------------
+
+  var PIPELINE_RTD_PATH = 'pipelineLeads';
+  var PIPELINE_STAGES = ['lead', 'discovery', 'proposal', 'deposit', 'building', 'launched', 'maintenance'];
+  var PIPELINE_OPEN_STAGES = ['lead', 'discovery', 'proposal'];
+  var PIPELINE_WON_STAGES = ['deposit', 'building', 'launched', 'maintenance'];
+  var PIPELINE_ACTIVE_STAGES = ['lead', 'discovery', 'proposal', 'deposit', 'building'];
+  var pipelineLeads = [];
+  var pipelineUnsubscribe = null;
+  var pipelineDetailLeadId = null;
+  var pipelineDragLeadId = null;
+
+  var leadModal = document.getElementById('lead-modal');
+  var leadModalOverlay = document.getElementById('lead-modal-overlay');
+  var leadModalClose = document.getElementById('lead-modal-close');
+  var leadForm = document.getElementById('lead-form');
+  var leadIdInput = document.getElementById('lead-id');
+  var leadModalTitle = document.getElementById('lead-modal-title');
+  var leadDrawer = document.getElementById('lead-detail-drawer');
+  var leadDrawerOverlay = document.getElementById('lead-drawer-overlay');
+  var leadDrawerClose = document.getElementById('lead-drawer-close');
+  var leadDrawerBody = document.getElementById('lead-drawer-body');
+  var leadDrawerEditBtn = document.getElementById('lead-drawer-edit-btn');
+  var leadDrawerDeleteBtn = document.getElementById('lead-drawer-delete-btn');
+  var adminAddLeadBtn = document.getElementById('admin-add-lead-btn');
+
+  function formatPipelineMoney(amount) {
+    var n = Number(amount);
+    if (isNaN(n) || n < 0) return '$0';
+    return '$' + Math.round(n).toLocaleString();
+  }
+
+  function pipelineStageLabel(stage) {
+    var map = {
+      lead: 'Lead',
+      discovery: 'Discovery',
+      proposal: 'Proposal Sent',
+      deposit: 'Deposit Paid',
+      building: 'Building',
+      launched: 'Launched',
+      maintenance: 'Maintenance'
+    };
+    return map[stage] || stage;
+  }
+
+  function pipelineProjectTypeLabel(type) {
+    var map = { web: 'Website', app: 'Mobile app', both: 'Web + app', other: 'Other' };
+    return map[type] || type;
+  }
+
+  function pipelineSourceLabel(source) {
+    var map = {
+      dm: 'DM / Messages',
+      email: 'Email',
+      referral: 'Referral',
+      social: 'Social',
+      cold: 'Cold outreach',
+      other: 'Other'
+    };
+    return map[source] || source;
+  }
+
+  function normalizePipelineLead(id, row) {
+    if (!row || typeof row !== 'object') row = {};
+    var stage = String(row.stage || 'lead').toLowerCase();
+    if (PIPELINE_STAGES.indexOf(stage) < 0) stage = 'lead';
+    var projectType = String(row.projectType || 'web').toLowerCase();
+    if (['web', 'app', 'both', 'other'].indexOf(projectType) < 0) projectType = 'web';
+    var source = String(row.source || 'other').toLowerCase();
+    if (['dm', 'email', 'referral', 'social', 'cold', 'other'].indexOf(source) < 0) source = 'other';
+    return {
+      id: id,
+      name: String(row.name || '').trim().slice(0, 120),
+      email: String(row.email || '').trim().slice(0, 160),
+      phone: String(row.phone || '').trim().slice(0, 40),
+      company: String(row.company || '').trim().slice(0, 160),
+      projectType: projectType,
+      value: Math.max(0, Number(row.value) || 0),
+      stage: stage,
+      source: source,
+      notes: String(row.notes || '').slice(0, 8000),
+      createdAt: row.createdAt || null,
+      updatedAt: row.updatedAt || null
+    };
+  }
+
+  function sanitizePipelinePayload(data) {
+    var norm = normalizePipelineLead('tmp', data);
+    return {
+      name: norm.name,
+      email: norm.email,
+      phone: norm.phone,
+      company: norm.company,
+      projectType: norm.projectType,
+      value: norm.value,
+      stage: norm.stage,
+      source: norm.source,
+      notes: norm.notes
+    };
+  }
+
+  function pipelineTimestampMs(ts) {
+    if (ts == null) return 0;
+    if (typeof ts === 'number') return ts;
+    if (typeof ts === 'object' && typeof ts.seconds === 'number') return ts.seconds * 1000;
+    var d = new Date(ts);
+    return isNaN(d.getTime()) ? 0 : d.getTime();
+  }
+
+  function unsubscribePipelineLeads() {
+    if (typeof pipelineUnsubscribe === 'function') {
+      pipelineUnsubscribe();
+      pipelineUnsubscribe = null;
+    }
+    pipelineLeads = [];
+  }
+
+  async function subscribePipelineLeads() {
+    if (!isAdmin()) return;
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
+    if (!window.firebaseAuth || !window.firebaseAuth.currentUser) return;
+
+    if (typeof pipelineUnsubscribe === 'function') pipelineUnsubscribe();
+
+    var ref = window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH);
+    pipelineUnsubscribe = window.rtdbOnValue(
+      ref,
+      function (snap) {
+        var val = snap.val();
+        var leads = [];
+        if (val && typeof val === 'object') {
+          Object.keys(val).forEach(function (key) {
+            leads.push(normalizePipelineLead(key, val[key]));
+          });
+        }
+        leads.sort(function (a, b) {
+          return pipelineTimestampMs(b.updatedAt || b.createdAt) - pipelineTimestampMs(a.updatedAt || a.createdAt);
+        });
+        pipelineLeads = leads;
+        renderPipelineBoard(leads);
+        renderPipelineSummary(leads);
+      },
+      function (err) {
+        console.error('Pipeline RTDB listener error', err);
+      }
+    );
+  }
+
+  function renderPipelineSummary(leads) {
+    var total = leads.length;
+    var active = 0;
+    var openValue = 0;
+    var wonValue = 0;
+
+    leads.forEach(function (lead) {
+      if (PIPELINE_ACTIVE_STAGES.indexOf(lead.stage) >= 0) active += 1;
+      if (PIPELINE_OPEN_STAGES.indexOf(lead.stage) >= 0) openValue += lead.value;
+      if (PIPELINE_WON_STAGES.indexOf(lead.stage) >= 0) wonValue += lead.value;
+    });
+
+    var elTotal = document.getElementById('pipeline-total-leads');
+    var elActive = document.getElementById('pipeline-active-count');
+    var elValue = document.getElementById('pipeline-total-value');
+    var elWon = document.getElementById('pipeline-won-value');
+    var kpiValue = document.getElementById('kpi-pipeline-value');
+
+    if (elTotal) elTotal.textContent = String(total);
+    if (elActive) elActive.textContent = String(active);
+    if (elValue) elValue.textContent = formatPipelineMoney(openValue);
+    if (elWon) elWon.textContent = formatPipelineMoney(wonValue);
+    if (kpiValue) kpiValue.textContent = formatPipelineMoney(openValue);
+  }
+
+  function buildPipelineStageSelect(leadId, currentStage) {
+    var html = '<select class="pipeline-card-stage-select" data-lead-id="' + escapeHtml(leadId) + '" aria-label="Change stage">';
+    PIPELINE_STAGES.forEach(function (st) {
+      html +=
+        '<option value="' +
+        st +
+        '"' +
+        (st === currentStage ? ' selected' : '') +
+        '>' +
+        pipelineStageLabel(st) +
+        '</option>';
+    });
+    html += '</select>';
+    return html;
+  }
+
+  function renderPipelineBoard(leads) {
+    var counts = {};
+    PIPELINE_STAGES.forEach(function (st) {
+      counts[st] = 0;
+      var container = document.getElementById('pipeline-cards-' + st);
+      if (container) container.innerHTML = '';
+    });
+
+    leads.forEach(function (lead) {
+      counts[lead.stage] = (counts[lead.stage] || 0) + 1;
+      var container = document.getElementById('pipeline-cards-' + lead.stage);
+      if (!container) return;
+
+      var card = document.createElement('article');
+      card.className = 'pipeline-card';
+      card.setAttribute('draggable', 'true');
+      card.setAttribute('data-lead-id', lead.id);
+      card.setAttribute('tabindex', '0');
+
+      var dateMs = pipelineTimestampMs(lead.updatedAt || lead.createdAt);
+      var dateLabel = dateMs ? formatDateDisplay(new Date(dateMs).toISOString()) : '—';
+
+      card.innerHTML =
+        '<div class="pipeline-card-name">' +
+        escapeHtml(lead.name || 'Untitled lead') +
+        '</div>' +
+        '<div class="pipeline-card-value">' +
+        formatPipelineMoney(lead.value) +
+        '</div>' +
+        '<div class="pipeline-card-meta">' +
+        '<span class="pipeline-card-type">' +
+        escapeHtml(pipelineProjectTypeLabel(lead.projectType).toUpperCase()) +
+        '</span>' +
+        '<span class="pipeline-card-date">' +
+        escapeHtml(dateLabel) +
+        '</span>' +
+        '</div>' +
+        '<div class="pipeline-card-footer">' +
+        buildPipelineStageSelect(lead.id, lead.stage) +
+        '</div>';
+
+      container.appendChild(card);
+    });
+
+    PIPELINE_STAGES.forEach(function (st) {
+      var countEl = document.getElementById('pipeline-count-' + st);
+      if (countEl) countEl.textContent = String(counts[st] || 0);
+      var container = document.getElementById('pipeline-cards-' + st);
+      if (!container) return;
+      if (!counts[st]) {
+        container.innerHTML = '<p class="pipeline-empty">No leads yet.</p>';
+      }
+    });
+  }
+
+  function findPipelineLead(id) {
+    return pipelineLeads.find(function (l) {
+      return l.id === id;
+    });
+  }
+
+  function openLeadModal(lead) {
+    if (!leadModal) return;
+    var isEdit = !!(lead && lead.id);
+    if (leadModalTitle) leadModalTitle.textContent = isEdit ? 'Edit Lead' : 'Add Lead';
+    if (leadIdInput) leadIdInput.value = isEdit ? lead.id : '';
+    var nameEl = document.getElementById('lead-name');
+    var emailEl = document.getElementById('lead-email');
+    var phoneEl = document.getElementById('lead-phone');
+    var companyEl = document.getElementById('lead-company');
+    var typeEl = document.getElementById('lead-project-type');
+    var valueEl = document.getElementById('lead-value');
+    var stageEl = document.getElementById('lead-stage');
+    var sourceEl = document.getElementById('lead-source');
+    var notesEl = document.getElementById('lead-notes');
+
+    if (isEdit) {
+      if (nameEl) nameEl.value = lead.name || '';
+      if (emailEl) emailEl.value = lead.email || '';
+      if (phoneEl) phoneEl.value = lead.phone || '';
+      if (companyEl) companyEl.value = lead.company || '';
+      if (typeEl) typeEl.value = lead.projectType || 'web';
+      if (valueEl) valueEl.value = lead.value ? String(lead.value) : '';
+      if (stageEl) stageEl.value = lead.stage || 'lead';
+      if (sourceEl) sourceEl.value = lead.source || 'other';
+      if (notesEl) notesEl.value = lead.notes || '';
+    } else {
+      if (leadForm) leadForm.reset();
+      if (leadIdInput) leadIdInput.value = '';
+      if (stageEl) stageEl.value = 'lead';
+      if (typeEl) typeEl.value = 'web';
+      if (sourceEl) sourceEl.value = 'other';
+    }
+
+    leadModal.style.display = '';
+    leadModal.classList.add('active');
+    leadModal.setAttribute('aria-hidden', 'false');
+    if (nameEl) nameEl.focus();
+  }
+
+  function closeLeadModal() {
+    if (!leadModal) return;
+    leadModal.classList.remove('active');
+    leadModal.style.display = 'none';
+    leadModal.setAttribute('aria-hidden', 'true');
+    if (leadForm) leadForm.reset();
+    if (leadIdInput) leadIdInput.value = '';
+  }
+
+  function openLeadDetail(lead) {
+    if (!leadDrawer || !leadDrawerBody || !lead) return;
+    pipelineDetailLeadId = lead.id;
+    var dateMs = pipelineTimestampMs(lead.updatedAt || lead.createdAt);
+    var dateLabel = dateMs ? formatDateDisplay(new Date(dateMs).toISOString()) : '—';
+
+    leadDrawerBody.innerHTML =
+      '<dl class="lead-drawer-fields">' +
+      '<div><dt>Name</dt><dd>' +
+      escapeHtml(lead.name || '—') +
+      '</dd></div>' +
+      '<div><dt>Email</dt><dd>' +
+      (lead.email
+        ? '<a href="mailto:' + escapeHtml(lead.email) + '">' + escapeHtml(lead.email) + '</a>'
+        : '—') +
+      '</dd></div>' +
+      '<div><dt>Phone</dt><dd>' +
+      escapeHtml(lead.phone || '—') +
+      '</dd></div>' +
+      '<div><dt>Company</dt><dd>' +
+      escapeHtml(lead.company || '—') +
+      '</dd></div>' +
+      '<div><dt>Project type</dt><dd>' +
+      escapeHtml(pipelineProjectTypeLabel(lead.projectType)) +
+      '</dd></div>' +
+      '<div><dt>Estimated value</dt><dd>' +
+      escapeHtml(formatPipelineMoney(lead.value)) +
+      '</dd></div>' +
+      '<div><dt>Stage</dt><dd><span class="lead-drawer-stage">' +
+      escapeHtml(pipelineStageLabel(lead.stage)) +
+      '</span></dd></div>' +
+      '<div><dt>Source</dt><dd>' +
+      escapeHtml(pipelineSourceLabel(lead.source)) +
+      '</dd></div>' +
+      '<div><dt>Last updated</dt><dd>' +
+      escapeHtml(dateLabel) +
+      '</dd></div>' +
+      '</dl>' +
+      '<div class="lead-drawer-notes">' +
+      '<h4 class="h4">Notes</h4>' +
+      '<p class="lead-drawer-notes-text">' +
+      (lead.notes ? escapeHtml(lead.notes).replace(/\n/g, '<br>') : '<span class="text-muted">No notes yet.</span>') +
+      '</p></div>';
+
+    var titleEl = document.getElementById('lead-drawer-title');
+    if (titleEl) titleEl.textContent = lead.name || 'Lead details';
+
+    leadDrawer.hidden = false;
+    leadDrawer.setAttribute('aria-hidden', 'false');
+    if (leadDrawerOverlay) {
+      leadDrawerOverlay.hidden = false;
+      leadDrawerOverlay.setAttribute('aria-hidden', 'false');
+    }
+    document.body.classList.add('lead-drawer-open');
+  }
+
+  function closeLeadDetail() {
+    pipelineDetailLeadId = null;
+    if (leadDrawer) {
+      leadDrawer.hidden = true;
+      leadDrawer.setAttribute('aria-hidden', 'true');
+    }
+    if (leadDrawerOverlay) {
+      leadDrawerOverlay.hidden = true;
+      leadDrawerOverlay.setAttribute('aria-hidden', 'true');
+    }
+    document.body.classList.remove('lead-drawer-open');
+  }
+
+  async function saveLeadFromForm(e) {
+    if (e) e.preventDefault();
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbSet || !window.rtdbPush) {
+      alert('Realtime Database is not available.');
+      return;
+    }
+    if (!isAdmin()) {
+      alert('Sign in with an allowlisted Google account to save leads.');
+      return;
+    }
+
+    var id = leadIdInput ? leadIdInput.value.trim() : '';
+    var payload = sanitizePipelinePayload({
+      name: document.getElementById('lead-name') && document.getElementById('lead-name').value,
+      email: document.getElementById('lead-email') && document.getElementById('lead-email').value,
+      phone: document.getElementById('lead-phone') && document.getElementById('lead-phone').value,
+      company: document.getElementById('lead-company') && document.getElementById('lead-company').value,
+      projectType: document.getElementById('lead-project-type') && document.getElementById('lead-project-type').value,
+      value: document.getElementById('lead-value') && document.getElementById('lead-value').value,
+      stage: document.getElementById('lead-stage') && document.getElementById('lead-stage').value,
+      source: document.getElementById('lead-source') && document.getElementById('lead-source').value,
+      notes: document.getElementById('lead-notes') && document.getElementById('lead-notes').value
+    });
+
+    if (!payload.name) {
+      alert('Lead name is required.');
+      return;
+    }
+
+    try {
+      if (id) {
+        var existing = findPipelineLead(id);
+        payload.updatedAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
+        if (existing && existing.createdAt) payload.createdAt = existing.createdAt;
+        await window.rtdbSet(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + id), payload);
+      } else {
+        payload.createdAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
+        payload.updatedAt = payload.createdAt;
+        var newRef = window.rtdbPush(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH));
+        await window.rtdbSet(newRef, payload);
+      }
+      closeLeadModal();
+      closeLeadDetail();
+    } catch (err) {
+      console.error('saveLeadFromForm', err);
+      alert('Could not save lead. Check console and RTDB rules.');
+    }
+  }
+
+  async function moveLeadStage(leadId, stage) {
+    if (!leadId || PIPELINE_STAGES.indexOf(stage) < 0) return;
+    if (!window.rtdb || !window.rtdbUpdate) return;
+    if (!isAdmin()) return;
+    try {
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + leadId), {
+        stage: stage,
+        updatedAt: window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now()
+      });
+    } catch (err) {
+      console.error('moveLeadStage', err);
+      alert('Could not update stage.');
+    }
+  }
+
+  async function deletePipelineLead(leadId) {
+    if (!leadId) return;
+    var lead = findPipelineLead(leadId);
+    var label = lead && lead.name ? lead.name : 'this lead';
+    if (!window.confirm('Delete ' + label + '? This cannot be undone.')) return;
+    if (!window.rtdb || !window.rtdbRemove) return;
+    if (!isAdmin()) return;
+    try {
+      await window.rtdbRemove(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + leadId));
+      closeLeadDetail();
+    } catch (err) {
+      console.error('deletePipelineLead', err);
+      alert('Could not delete lead.');
+    }
+  }
+
+  function initPipelineDragDrop() {
+    var board = document.getElementById('pipeline-board');
+    if (!board || board.dataset.pipelineDndInit === '1') return;
+    board.dataset.pipelineDndInit = '1';
+
+    board.addEventListener('dragstart', function (e) {
+      var card = e.target.closest('.pipeline-card');
+      if (!card) return;
+      pipelineDragLeadId = card.getAttribute('data-lead-id');
+      card.classList.add('is-dragging');
+      if (e.dataTransfer) {
+        e.dataTransfer.setData('text/plain', pipelineDragLeadId || '');
+        e.dataTransfer.effectAllowed = 'move';
+      }
+    });
+
+    board.addEventListener('dragend', function (e) {
+      var card = e.target.closest('.pipeline-card');
+      if (card) card.classList.remove('is-dragging');
+      pipelineDragLeadId = null;
+      board.querySelectorAll('.pipeline-cards.drag-over').forEach(function (el) {
+        el.classList.remove('drag-over');
+      });
+    });
+
+    board.addEventListener('dragover', function (e) {
+      var zone = e.target.closest('.pipeline-cards');
+      if (!zone) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      board.querySelectorAll('.pipeline-cards.drag-over').forEach(function (el) {
+        el.classList.remove('drag-over');
+      });
+      zone.classList.add('drag-over');
+    });
+
+    board.addEventListener('dragleave', function (e) {
+      var zone = e.target.closest('.pipeline-cards');
+      if (zone && !zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+    });
+
+    board.addEventListener('drop', function (e) {
+      var zone = e.target.closest('.pipeline-cards');
+      if (!zone) return;
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      var col = zone.closest('.pipeline-col');
+      if (!col) return;
+      var stage = col.getAttribute('data-stage');
+      var leadId = pipelineDragLeadId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+      if (!leadId || !stage) return;
+      var lead = findPipelineLead(leadId);
+      if (lead && lead.stage === stage) return;
+      moveLeadStage(leadId, stage);
+    });
+  }
+
+  function initPipelineBoardInteractions() {
+    var board = document.getElementById('pipeline-board');
+    if (!board || board.dataset.pipelineClickInit === '1') return;
+    board.dataset.pipelineClickInit = '1';
+
+    board.addEventListener('click', function (e) {
+      if (e.target.closest('.pipeline-card-stage-select')) return;
+      var card = e.target.closest('.pipeline-card');
+      if (!card) return;
+      var lead = findPipelineLead(card.getAttribute('data-lead-id'));
+      if (lead) openLeadDetail(lead);
+    });
+
+    board.addEventListener('change', function (e) {
+      var sel = e.target.closest('.pipeline-card-stage-select');
+      if (!sel) return;
+      e.stopPropagation();
+      var leadId = sel.getAttribute('data-lead-id');
+      var stage = sel.value;
+      if (leadId && stage) moveLeadStage(leadId, stage);
+    });
+
+    board.addEventListener('mousedown', function (e) {
+      if (e.target.closest('.pipeline-card-stage-select')) e.stopPropagation();
+    });
+  }
+
+  function initPipelineControls() {
+    if (adminAddLeadBtn) {
+      adminAddLeadBtn.addEventListener('click', function () {
+        openLeadModal();
+      });
+    }
+    if (leadForm) leadForm.addEventListener('submit', saveLeadFromForm);
+    if (leadModalClose) leadModalClose.addEventListener('click', closeLeadModal);
+    if (leadModalOverlay) leadModalOverlay.addEventListener('click', closeLeadModal);
+    if (leadDrawerClose) leadDrawerClose.addEventListener('click', closeLeadDetail);
+    if (leadDrawerOverlay) leadDrawerOverlay.addEventListener('click', closeLeadDetail);
+    if (leadDrawerEditBtn) {
+      leadDrawerEditBtn.addEventListener('click', function () {
+        var lead = findPipelineLead(pipelineDetailLeadId);
+        if (lead) {
+          closeLeadDetail();
+          openLeadModal(lead);
+        }
+      });
+    }
+    if (leadDrawerDeleteBtn) {
+      leadDrawerDeleteBtn.addEventListener('click', function () {
+        deletePipelineLead(pipelineDetailLeadId);
+      });
+    }
+    var resetBtn = document.getElementById('lead-form-reset-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        if (leadForm) leadForm.reset();
+        if (leadIdInput) leadIdInput.value = '';
+      });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (leadModal && leadModal.classList.contains('active')) closeLeadModal();
+      else if (leadDrawer && !leadDrawer.hidden) closeLeadDetail();
+    });
+    initPipelineDragDrop();
+    initPipelineBoardInteractions();
+  }
+
+  initPipelineControls();
+  closeLeadDetail();
+  window.openLeadModal = openLeadModal;
+  window.subscribePipelineLeads = subscribePipelineLeads;
+  window.unsubscribePipelineLeads = unsubscribePipelineLeads;
+
+  initAdminTabs();
 
   // Sync kpi-new-messages from existing messages stats
   var kpiNewMsgs = document.getElementById('kpi-new-messages');
@@ -7719,6 +8210,25 @@ window.addEventListener('load', function() {
   // Fetch messages from Firestore
   function fetchMessages() {
     console.log('fetchMessages called, db available:', !!window.db);
+    if (!isAdmin()) {
+      return;
+    }
+    if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+      console.warn('fetchMessages skipped: Firebase Auth required for Firestore messages');
+      lastContactFormMessages = [];
+      contactDetailOpenId = null;
+      closeContactDetailDrawer();
+      if (messagesList) {
+        messagesList.innerHTML = `
+          <div class="no-messages">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <p>Firebase sign-in required to load contact messages.</p>
+            <p>Sign in with Google using an email on <code>ADMIN_ALLOWLIST_EMAILS</code> in config.js.</p>
+          </div>
+        `;
+      }
+      return;
+    }
     if (!window.db) {
       console.warn('Firestore not initialized, cannot fetch messages');
       lastContactFormMessages = [];
@@ -7763,16 +8273,19 @@ window.addEventListener('load', function() {
         updateStats(messages);
       }, (error) => {
         console.error('Error fetching messages:', error);
-        // Show error in UI
         lastContactFormMessages = [];
         contactDetailOpenId = null;
         closeContactDetailDrawer();
+        const permissionHint =
+          error && error.code === 'permission-denied'
+            ? '<p>Sign in with an allowlisted Google account. Deploy rules: <code>firebase deploy --only firestore:rules,database</code>.</p>'
+            : '<p>Make sure firestore.rules is deployed to Firebase.</p>';
         if (messagesList) {
           messagesList.innerHTML = `
             <div class="no-messages">
               <ion-icon name="alert-circle-outline"></ion-icon>
               <p>Error loading messages: ${error.message}</p>
-              <p>Make sure firestore.rules is deployed to Firebase.</p>
+              ${permissionHint}
             </div>
           `;
         }
@@ -8939,28 +9452,20 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function isAdminSession() {
-    try {
-      const saved = sessionStorage.getItem('adminUser');
-      if (!saved) return false;
-      const user = JSON.parse(saved);
-      return !!(user && user.role === 'admin');
-    } catch (error) {
-      return false;
-    }
+    const fbUser = window.firebaseAuth && window.firebaseAuth.currentUser;
+    if (!fbUser || typeof window.isAdminEmail !== 'function') return false;
+    return window.isAdminEmail(fbUser.email);
   }
 
   function getAdminIdentity() {
-    try {
-      const saved = sessionStorage.getItem('adminUser');
-      if (!saved) return { id: 'admin', name: 'Admin' };
-      const user = JSON.parse(saved);
+    const fbUser = window.firebaseAuth && window.firebaseAuth.currentUser;
+    if (fbUser) {
       return {
-        id: 'admin-' + (user.username || 'default'),
-        name: user.username || 'Admin'
+        id: 'admin-' + fbUser.uid,
+        name: fbUser.displayName || fbUser.email || 'Admin'
       };
-    } catch (error) {
-      return { id: 'admin', name: 'Admin' };
     }
+    return { id: 'admin', name: 'Admin' };
   }
 
   function upgradeDmInboxFilterStrip() {
@@ -10362,10 +10867,10 @@ document.addEventListener('DOMContentLoaded', function() {
     initAdminDmSheet();
 
     window.fetchMessages = function () {
+      if (!isAdminSession()) return;
       if (typeof previousFetchMessages === 'function') {
         previousFetchMessages();
       }
-      if (!isAdminSession()) return;
       if (hasDMDeps()) {
         subscribeConversations();
       }

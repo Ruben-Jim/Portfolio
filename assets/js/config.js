@@ -27,6 +27,15 @@ const RESEND_EMAIL_CONFIG = {
   apiUrl: "https://us-central1-portfolio-2578e.cloudfunctions.net/sendPortfolioEmail"
 };
 
+/**
+ * Google accounts allowed to open the Admin dashboard and pass Firestore/RTDB admin rules.
+ * Must match emails in firestore.rules + database.rules.json (keep all three in sync).
+ * Enable Google sign-in: Firebase Console → Authentication → Sign-in method → Google.
+ */
+const ADMIN_ALLOWLIST_EMAILS = [
+  "ruben.jim.co@gmail.com"
+];
+
 const DM_FEATURE_FLAGS = {
   enableProfessionalInbox: true,
   /** Customer Messages page: name + email opens RTDB thread (no email sent). */
@@ -50,6 +59,7 @@ const TESTIMONIAL_BRAND_LOGO = "./assets/images/logo.svg";
 
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
+window.ADMIN_ALLOWLIST_EMAILS = ADMIN_ALLOWLIST_EMAILS;
 window.RESEND_EMAIL_CONFIG = RESEND_EMAIL_CONFIG;
 window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;
 window.PORTFOLIO_PUBLIC_ORIGIN = PORTFOLIO_PUBLIC_ORIGIN;

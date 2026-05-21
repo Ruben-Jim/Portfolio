@@ -34,7 +34,12 @@
     },
     "portfolioProjects": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+    },
+    "pipelineLeads": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".indexOn": ["stage", "updatedAt", "createdAt"]
     }
   }
 }
