@@ -2357,14 +2357,12 @@
           <div class="admin-guest-gate">
             <p class="admin-guest-gate__kicker">Private dashboard</p>
             <h2 class="h2 article-title admin-guest-gate__title" id="admin-auth-title">Portfolio admin</h2>
-            <p class="admin-guest-gate__lead">Sign in with your allowlisted Google account to manage messages, blog, portfolio, and documents.</p>
-            <div class="admin-guest-gate__auth" role="region" aria-labelledby="admin-auth-title">
-              <button type="button" class="btn btn-primary admin-google-signin-btn" id="admin-google-signin" aria-busy="false">
-                <ion-icon name="logo-google" aria-hidden="true"></ion-icon>
-                <span>Sign in with Google</span>
-              </button>
-            </div>
+            <p class="admin-guest-gate__lead">Sign in with admin credentials to manage messages, blog, portfolio, and documents.</p>
             <div class="admin-guest-gate__actions">
+              <button type="button" class="btn btn-primary" id="admin-login-btn">
+                <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
+                <span>Admin sign in</span>
+              </button>
               <button type="button" class="admin-guest-gate__back" data-nav-link>Home</button>
             </div>
             <div class="login-error admin-guest-gate__error" id="admin-login-error-gate" style="display: none;" role="alert" aria-live="polite"></div>
@@ -2953,6 +2951,36 @@
         </div>
 
         </div> <!-- End admin-dashboard-content -->
+
+        <!-- Admin Login Modal -->
+        <div class="login-modal" id="admin-login-modal">
+          <div class="login-overlay" id="admin-login-overlay"></div>
+          <div class="login-content">
+            <div class="login-header">
+              <h3 class="h3">Admin Login</h3>
+              <button type="button" class="login-close-btn" id="admin-login-close-btn" aria-label="Close">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+
+            <form class="login-form admin-login-form" id="admin-login-form" novalidate>
+              <div class="form-group">
+                <label for="admin-username">Username</label>
+                <input type="text" id="admin-username" name="username" placeholder="admin" autocomplete="username" required>
+              </div>
+              <div class="form-group">
+                <label for="admin-password">Password</label>
+                <input type="password" id="admin-password" name="password" autocomplete="current-password" required>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-secondary" id="admin-cancel-login-btn">Cancel</button>
+                <button type="submit" class="btn btn-primary">Sign in</button>
+              </div>
+            </form>
+
+            <div class="login-error" id="admin-login-error" style="display: none;" role="alert" aria-live="polite"></div>
+          </div>
+        </div>
 
         <!-- Reply Modal -->
         <div class="modal-container" id="reply-modal">
@@ -4706,25 +4734,20 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - Firebase config
   -->
-  <script src="/assets/js/config.js?v=admin-google-auth-20260521"></script>
+  <script src="/assets/js/config.js?v=admin-open-rules-20260522"></script>
 
   <!--
     - Firebase SDKs
   -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
     window.signOut = signOut;
-    window.onAuthStateChanged = onAuthStateChanged;
-    window.GoogleAuthProvider = GoogleAuthProvider;
-    window.signInWithPopup = signInWithPopup;
-    window.signInWithRedirect = signInWithRedirect;
-    window.getRedirectResult = getRedirectResult;
     window.getFirestore = getFirestore;
     window.collection = collection;
     window.addDoc = addDoc;
@@ -4810,8 +4833,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/admin-auth.js?v=admin-google-auth-20260521"></script>
-  <script src="/assets/js/script.js?v=admin-google-auth-20260521"></script>
+  <script src="/assets/js/script.js?v=admin-open-rules-20260522"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

@@ -27,11 +27,16 @@ const RESEND_EMAIL_CONFIG = {
 };
 
 /**
- * Google accounts allowed to open the Admin dashboard and pass Firestore/RTDB admin rules.
- * Also add your site host (e.g. rubenjimenez.dev, localhost) under Firebase Console →
- * Authentication → Settings → Authorized domains (separate from authDomain above).
- * Must match firestore.rules (isPortfolioAdmin), database.rules.json, and functions/index.js ADMIN_ALLOWLIST_EMAILS.
- * Admin sign-in: Google only (Firebase Console → Authentication → Sign-in method → Google).
+ * Local admin gate (username/password shown on the login form).
+ */
+const ADMIN_CREDENTIALS = {
+  username: "admin",
+  password: "admin123"
+};
+
+/**
+ * Emails for Cloud Functions Bearer verification (admin_reply, testimonial_request).
+ * Firestore/RTDB admin paths use open rules while sign-in is local ADMIN_CREDENTIALS only.
  */
 const ADMIN_ALLOWLIST_EMAILS = [
   "ruben.jim.co@gmail.com"
@@ -66,6 +71,7 @@ const TESTIMONIAL_BRAND_LOGO = "./assets/images/logo.svg";
 
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
+window.ADMIN_CREDENTIALS = ADMIN_CREDENTIALS;
 window.ADMIN_ALLOWLIST_EMAILS = ADMIN_ALLOWLIST_EMAILS;
 window.RESEND_EMAIL_CONFIG = RESEND_EMAIL_CONFIG;
 window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;

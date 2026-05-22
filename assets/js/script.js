@@ -103,13 +103,12 @@ const blogOverlay = document.querySelector("[data-blog-overlay]");
 // Global password gate for private blog posts (UI-only, casual security)
 const PRIVATE_POST_PASSWORD = 'private123';
 
-/** Set from Firebase Auth when an allowlisted Google account signs in. */
+/** Set after local admin login and/or Firebase silent sign-in. */
 let currentUser = null;
 
+const ADMIN_SESSION_KEY = 'adminUser';
+
 function isAdminEmail(email) {
-  if (window.AdminAuth && typeof window.AdminAuth.isAdminEmail === 'function') {
-    return window.AdminAuth.isAdminEmail(email);
-  }
   if (!email) return false;
   const list = window.ADMIN_ALLOWLIST_EMAILS;
   if (!Array.isArray(list)) return false;
@@ -121,37 +120,52 @@ function isAdminEmail(email) {
 
 window.isAdminEmail = isAdminEmail;
 
-/** Firebase ID token for admin-only Cloud Function calls. */
+function isAdminSession() {
+  try {
+    const saved = sessionStorage.getItem(ADMIN_SESSION_KEY);
+    if (!saved) return false;
+    const user = JSON.parse(saved);
+    return !!(user && user.role === 'admin');
+  } catch (err) {
+    return false;
+  }
+}
+
+/** Firebase ID token for admin-only Cloud Function calls (requires Firebase admin sign-in). */
 async function getAdminIdToken() {
-  if (!window.firebaseAuth || !window.firebaseAuth.currentUser || !isAdmin()) {
+  if (!isAdminSession()) {
     throw new Error('Admin sign-in required.');
+  }
+  if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
+    throw new Error(
+      'Firebase admin sign-in is disabled. Admin API calls (e.g. testimonial invite, reply email) are unavailable.'
+    );
+  }
+  if (!isAdminEmail(window.firebaseAuth.currentUser.email)) {
+    throw new Error('Firebase admin session not allowlisted.');
   }
   return window.firebaseAuth.currentUser.getIdToken();
 }
 
 window.getAdminIdToken = getAdminIdToken;
 
-/** Resolves when an allowlisted admin is signed in (optional timeout ms). */
+/** Resolves when local admin session exists (optional timeout ms). */
 function waitForAdminAuth(timeoutMs) {
-  if (isAdmin()) {
-    return Promise.resolve(window.firebaseAuth.currentUser);
+  if (isAdminSession()) {
+    return Promise.resolve(currentUser || { role: 'admin' });
   }
-  if (!window.firebaseAuth || typeof window.onAuthStateChanged !== 'function') {
-    return Promise.reject(new Error('Firebase Auth not initialized'));
-  }
+  const ms = typeof timeoutMs === 'number' ? timeoutMs : 15000;
   return new Promise(function (resolve, reject) {
-    const ms = typeof timeoutMs === 'number' ? timeoutMs : 15000;
     const timer = window.setTimeout(function () {
-      unsubscribe();
       reject(new Error('Admin sign-in timed out'));
     }, ms);
-    const unsubscribe = window.onAuthStateChanged(window.firebaseAuth, function (user) {
-      if (user && isAdminEmail(user.email)) {
+    const check = window.setInterval(function () {
+      if (isAdminSession()) {
         window.clearTimeout(timer);
-        unsubscribe();
-        resolve(user);
+        window.clearInterval(check);
+        resolve(currentUser || { role: 'admin' });
       }
-    });
+    }, 200);
   });
 }
 
@@ -178,13 +192,9 @@ function updateAuthUI() {
   }
 }
 
-// Helper: signed in with Google and email is on ADMIN_ALLOWLIST_EMAILS
+// Helper: local admin session (admin / admin123 gate)
 function isAdmin() {
-  if (window.AdminAuth && typeof window.AdminAuth.isAdmin === 'function') {
-    return window.AdminAuth.isAdmin();
-  }
-  const fbUser = window.firebaseAuth && window.firebaseAuth.currentUser;
-  return !!(fbUser && isAdminEmail(fbUser.email));
+  return isAdminSession();
 }
 
 // Blog management moved to admin tab only - authentication required for editing
@@ -5156,7 +5166,14 @@ window.addEventListener('load', function() {
   let db = null;
 
   // DOM elements
+  const adminLoginModal = document.getElementById('admin-login-modal');
+  const adminLoginOverlay = document.getElementById('admin-login-overlay');
+  const adminLoginCloseBtn = document.getElementById('admin-login-close-btn');
+  const adminCancelLoginBtn = document.getElementById('admin-cancel-login-btn');
+  const adminLoginBtn = document.getElementById('admin-login-btn');
+  const adminLoginForm = document.getElementById('admin-login-form');
   const adminDashboardContent = document.getElementById('admin-dashboard-content');
+  const adminLoginError = document.getElementById('admin-login-error');
   const messagesList = document.getElementById('firestore-messages-list');
 
   /** Unsubscribe from prior Firestore snapshot when refresh re-runs fetchMessages */
@@ -5204,7 +5221,7 @@ window.addEventListener('load', function() {
         firebaseConfig.authDomain,
         '| page host:',
         window.location.hostname,
-        '| admin auth: google'
+        '| admin auth: local (admin / admin123)'
       );
       console.log('Firestore database:', window.db);
       console.log('Realtime Database:', window.rtdb);
@@ -5292,7 +5309,7 @@ window.addEventListener('load', function() {
         console.error('Post-init blog refresh failed', blogErr);
       }
       await bootstrapPortfolioUi();
-      await setupAdminAuth();
+      await initAdminSession();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
       if (typeof window.loadDynamicTestimonials === 'function') {
@@ -5301,7 +5318,7 @@ window.addEventListener('load', function() {
     } else {
       console.error('Firebase initialization failed');
       await bootstrapPortfolioUi();
-      await setupAdminAuth();
+      await initAdminSession();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
     }
@@ -5640,9 +5657,88 @@ window.addEventListener('load', function() {
   }
 
   function syncAdminArticleAuth() {
-    if (window.AdminAuth && typeof window.AdminAuth.syncAdminArticleAuth === 'function') {
-      window.AdminAuth.syncAdminArticleAuth();
+    var el = document.querySelector('article.admin[data-page="admin"]');
+    if (!el) return;
+    el.setAttribute('data-admin-auth', isAdminSession() ? 'signed-in' : 'guest');
+  }
+
+  function restoreAdminSessionFromStorage() {
+    try {
+      var saved = sessionStorage.getItem(ADMIN_SESSION_KEY);
+      if (!saved) return null;
+      var user = JSON.parse(saved);
+      if (!user || user.role !== 'admin') return null;
+      currentUser = user;
+      window.currentUser = currentUser;
+      return user;
+    } catch (err) {
+      return null;
     }
+  }
+
+  function openAdminLoginModal() {
+    if (adminLoginModal) {
+      adminLoginModal.classList.add('active');
+      adminLoginModal.style.display = '';
+    }
+    showAdminLoginError('');
+  }
+
+  function closeAdminLoginModal() {
+    if (adminLoginModal) {
+      adminLoginModal.classList.remove('active');
+      adminLoginModal.style.display = 'none';
+    }
+    if (adminLoginForm) adminLoginForm.reset();
+    showAdminLoginError('');
+    syncAdminArticleAuth();
+  }
+
+  function showAdminLoginError(message) {
+    var text = message || '';
+    [adminLoginError, document.getElementById('admin-login-error-gate')].forEach(function (el) {
+      if (!el) return;
+      el.textContent = text;
+      el.style.display = text ? 'block' : 'none';
+    });
+  }
+
+  async function handleAdminLogin(e) {
+    e.preventDefault();
+    var creds = window.ADMIN_CREDENTIALS || {};
+    var username = document.getElementById('admin-username');
+    var password = document.getElementById('admin-password');
+    var userVal = username ? String(username.value || '').trim() : '';
+    var passVal = password ? String(password.value || '') : '';
+
+    showAdminLoginError('');
+
+    if (!userVal || !passVal) {
+      showAdminLoginError('Please enter both username and password.');
+      return;
+    }
+
+    if (userVal !== creds.username || passVal !== creds.password) {
+      showAdminLoginError('Invalid username or password.');
+      return;
+    }
+
+    currentUser = { username: userVal, role: 'admin' };
+    window.currentUser = currentUser;
+    sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentUser));
+    closeAdminLoginModal();
+    afterAdminSessionReady();
+  }
+
+  async function initAdminSession() {
+    restoreAdminSessionFromStorage();
+    if (isAdminSession()) {
+      afterAdminSessionReady();
+      return;
+    }
+    currentUser = null;
+    window.currentUser = null;
+    showLogin();
   }
 
   function syncAdminNavVisibility() {
@@ -5698,27 +5794,26 @@ window.addEventListener('load', function() {
     window.currentUser = currentUser;
   }
 
-  async function setupAdminAuth() {
-    if (!window.AdminAuth || typeof window.AdminAuth.init !== 'function') {
-      console.warn('AdminAuth module not loaded');
-      showLogin();
-      return;
-    }
-    await window.AdminAuth.init({
-      onSignedIn: function (firebaseUser) {
-        syncCurrentUserFromFirebase(firebaseUser);
-        afterAdminSessionReady();
-      },
-      onSignedOut: function () {
-        syncCurrentUserFromFirebase(null);
-        showLogin();
-      }
-    });
-  }
-
   // Setup admin event listeners
   function setupAdminEventListeners() {
     ensureGlobalNavbarLogoutButtons();
+    restoreAdminSessionFromStorage();
+
+    if (adminLoginBtn) {
+      adminLoginBtn.addEventListener('click', openAdminLoginModal);
+    }
+    if (adminLoginForm) {
+      adminLoginForm.addEventListener('submit', handleAdminLogin);
+    }
+    if (adminLoginCloseBtn) {
+      adminLoginCloseBtn.addEventListener('click', closeAdminLoginModal);
+    }
+    if (adminCancelLoginBtn) {
+      adminCancelLoginBtn.addEventListener('click', closeAdminLoginModal);
+    }
+    if (adminLoginOverlay) {
+      adminLoginOverlay.addEventListener('click', closeAdminLoginModal);
+    }
 
     getAdminLogoutButtons().forEach(function (btn) {
       if (btn.dataset.logoutBound) return;
@@ -5994,6 +6089,7 @@ window.addEventListener('load', function() {
   }
 
   function showLogin() {
+    closeAdminLoginModal();
     if (adminDashboardContent) adminDashboardContent.style.display = 'none';
     setAdminLogoutButtonsVisible(false);
     syncAdminArticleAuth();
@@ -6046,9 +6142,9 @@ window.addEventListener('load', function() {
       window.unsubscribePipelineLeads();
     }
 
-    if (window.AdminAuth && typeof window.AdminAuth.signOut === 'function') {
-      await window.AdminAuth.signOut();
-    } else if (window.firebaseAuth && typeof window.signOut === 'function') {
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+
+    if (window.firebaseAuth && typeof window.signOut === 'function') {
       try {
         await window.signOut(window.firebaseAuth);
       } catch (signOutErr) {
@@ -7001,7 +7097,6 @@ window.addEventListener('load', function() {
   async function subscribePipelineLeads() {
     if (!isAdmin()) return;
     if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
-    if (!window.firebaseAuth || !window.firebaseAuth.currentUser) return;
 
     if (typeof pipelineUnsubscribe === 'function') pipelineUnsubscribe();
 
@@ -8100,22 +8195,6 @@ window.addEventListener('load', function() {
   function fetchMessages() {
     console.log('fetchMessages called, db available:', !!window.db);
     if (!isAdmin()) {
-      return;
-    }
-    if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
-      console.warn('fetchMessages skipped: Firebase Auth required for Firestore messages');
-      lastContactFormMessages = [];
-      contactDetailOpenId = null;
-      closeContactDetailDrawer();
-      if (messagesList) {
-        messagesList.innerHTML = `
-          <div class="no-messages">
-            <ion-icon name="alert-circle-outline"></ion-icon>
-            <p>Firebase sign-in required to load contact messages.</p>
-            <p>Sign in with Google using an email on <code>ADMIN_ALLOWLIST_EMAILS</code> in config.js.</p>
-          </div>
-        `;
-      }
       return;
     }
     if (!window.db) {
@@ -9342,12 +9421,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function getAdminIdentity() {
-    const fbUser = window.firebaseAuth && window.firebaseAuth.currentUser;
-    if (fbUser) {
-      return {
-        id: 'admin-' + fbUser.uid,
-        name: fbUser.displayName || fbUser.email || 'Admin'
-      };
+    if (currentUser && currentUser.username) {
+      return { id: 'admin-' + currentUser.username, name: currentUser.username };
     }
     return { id: 'admin', name: 'Admin' };
   }

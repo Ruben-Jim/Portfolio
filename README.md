@@ -24,9 +24,10 @@ vCard is a fully responsive personal portfolio website, responsive for all devic
 ### Admin Access
 
 - **URL:** Open `/admin` on the main site ([`index.html`](index.html)), not the 404 page.
-- **Sign-in:** **Sign in with Google** using an email listed in `ADMIN_ALLOWLIST_EMAILS` in [`assets/js/config.js`](assets/js/config.js) (must match `firestore.rules`, `database.rules.json`, and `functions/index.js`).
-- **Firebase Console (project `portfolio-2578e`):** Authentication → Sign-in method → **Google** enabled; **Authorized domains** include your live host (e.g. `rubenjimenez.dev`) and `localhost` for local dev.
-- **Auth module:** [`assets/js/admin-auth.js`](assets/js/admin-auth.js) handles popup sign-in with redirect fallback if the popup is blocked.
+- **Sign-in:** Username **`admin`** / password **`admin123`** (configured in `ADMIN_CREDENTIALS` in [`assets/js/config.js`](assets/js/config.js)). Session is stored in the browser (`sessionStorage`).
+- **Firebase data:** Contact messages (Firestore), DM inbox (RTDB `dm/*`), pipeline, and portfolio admin writes use **open rules** while auth is local-only. The admin UI is still gated by `ADMIN_CREDENTIALS`. Deploy rules after changes: `firebase deploy --only firestore:rules,database`.
+- **Security:** Anyone with your Firebase web API key could read/write admin collections until you re-enable Firebase Auth and tighten `firestore.rules` / `database.rules.json`.
+- **Cloud Functions:** Testimonial invites and admin reply email still require a Firebase ID token (`getAdminIdToken`) — those stay unavailable until Firebase admin sign-in is added back.
 - **Features:** Contact messages, blog/portfolio admin, pipeline CRM, testimonial invites, DM inbox (where enabled).
 
 Deploy rules, RTDB rules, functions, and hosting after changing allowlists:
@@ -39,8 +40,9 @@ Admin-only emails (`admin_reply`, `testimonial_request`) require a valid Firebas
 
 ### Troubleshooting
 
-- **Messages not showing:** Check browser console for Firebase errors; confirm you are signed in with an allowlisted Google account.
-- **Google sign-in blocked:** Add your site host under Firebase **Authorized domains**; allow popups for your domain (or complete the redirect flow); disable ad blockers for Firebase/Google scripts; ensure API key HTTP referrers allow your domain.
+- **Messages not showing:** Sign in with `ADMIN_CREDENTIALS`, run `firebase deploy --only firestore:rules,database`, then hard refresh.
+- **DM inbox empty:** Deploy database rules; confirm `databaseURL` in config.js; use **Open DM inbox** after admin sign-in.
+- **Invalid username/password:** Uses `ADMIN_CREDENTIALS` (default `admin` / `admin123`).
 - **CORS issues:** Deploy to a web server instead of running locally with `file://`
 - **Permission errors:** Deploy `firestore.rules` and `database.rules.json` (`firebase deploy --only firestore:rules,database`)
 
