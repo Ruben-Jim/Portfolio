@@ -104,15 +104,15 @@
           <p class="title">Web developer</p>
         </div>
 
-        <button class="info_more-btn" data-sidebar-btn>
+        <button type="button" class="info_more-btn" data-sidebar-btn aria-expanded="false" aria-controls="sidebar-contacts-panel">
           <span>Show Contacts</span>
 
-          <ion-icon name="chevron-down"></ion-icon>
+          <ion-icon name="chevron-down" aria-hidden="true"></ion-icon>
         </button>
 
       </div>
 
-      <div class="sidebar-info_more">
+      <div class="sidebar-info_more" id="sidebar-contacts-panel">
 
         <div class="separator"></div>
 

@@ -54,7 +54,7 @@
     - custom css link
   -->
   <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-textarea-resizer-match-20260521">
-  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=agency-tools-20260521">
+  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=template-matcher-fix-20260522">
 
   <!--
     - google font link
@@ -119,15 +119,15 @@
           <p class="title">Web & Mobile Dev Studio</p>
         </div>
 
-        <button class="info_more-btn" data-sidebar-btn>
+        <button type="button" class="info_more-btn" data-sidebar-btn aria-expanded="false" aria-controls="sidebar-contacts-panel">
           <span>Show Contacts</span>
 
-          <ion-icon name="chevron-down"></ion-icon>
+          <ion-icon name="chevron-down" aria-hidden="true"></ion-icon>
         </button>
 
       </div>
 
-      <div class="sidebar-info_more">
+      <div class="sidebar-info_more" id="sidebar-contacts-panel">
 
         <div class="separator"></div>
 
@@ -1041,14 +1041,6 @@
         </header>
 
         <section class="projects">
-
-          <div class="template-matcher-cta-wrap">
-            <button type="button" class="btn btn-secondary btn-template-matcher" id="open-template-matcher-btn">
-              <ion-icon name="compass-outline" aria-hidden="true"></ion-icon>
-              Find your template
-            </button>
-            <span class="form-hint">Short quiz — see which demo and price band fits your business.</span>
-          </div>
 
           <div class="portfolio-filters" id="portfolio-filters" aria-label="Filter portfolio by industry">
             <div class="portfolio-filter-group portfolio-filter-group--niche">
@@ -5041,35 +5033,41 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
         <div class="matcher-step active" data-step="0">
           <p class="matcher-step-title">What industry are you in?</p>
           <div class="matcher-options">
-            <label class="matcher-option"><input type="radio" name="matcher-industry" value="lawn"> Lawn / landscaping</label>
-            <label class="matcher-option"><input type="radio" name="matcher-industry" value="barber"> Barber / salon / beauty</label>
-            <label class="matcher-option"><input type="radio" name="matcher-industry" value="food"> Restaurant / food</label>
-            <label class="matcher-option"><input type="radio" name="matcher-industry" value="hoa"> HOA / community</label>
-            <label class="matcher-option"><input type="radio" name="matcher-industry" value="shop"> Shop / e-commerce</label>
-            <label class="matcher-option"><input type="radio" name="matcher-industry" value="repair"> Repair / tech services</label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="lawn"><span class="matcher-option-text">Lawn / landscaping</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="barber"><span class="matcher-option-text">Barber / salon / beauty</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="food"><span class="matcher-option-text">Restaurant / food</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="hoa"><span class="matcher-option-text">HOA / community</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="shop"><span class="matcher-option-text">Shop / e-commerce</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="repair"><span class="matcher-option-text">Repair / tech services</span></label>
           </div>
-          <button type="button" class="btn btn-primary" id="matcher-next-1">Next</button>
+          <div class="matcher-step-actions">
+            <button type="button" class="btn btn-primary" id="matcher-next-1">Next</button>
+          </div>
         </div>
         <div class="matcher-step" data-step="1">
           <p class="matcher-step-title">What do you need most?</p>
           <div class="matcher-options">
-            <label class="matcher-option"><input type="radio" name="matcher-need" value="booking"> Booking & quotes</label>
-            <label class="matcher-option"><input type="radio" name="matcher-need" value="shop"> Online shop & orders</label>
-            <label class="matcher-option"><input type="radio" name="matcher-need" value="admin"> Admin / operations hub</label>
-            <label class="matcher-option"><input type="radio" name="matcher-need" value="community"> Community portal</label>
+            <label class="matcher-option"><input type="radio" name="matcher-need" value="booking"><span class="matcher-option-text">Booking &amp; quotes</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-need" value="shop"><span class="matcher-option-text">Online shop &amp; orders</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-need" value="admin"><span class="matcher-option-text">Admin / operations hub</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-need" value="community"><span class="matcher-option-text">Community portal</span></label>
           </div>
-          <button type="button" class="btn btn-secondary" id="matcher-back-2">Back</button>
-          <button type="button" class="btn btn-primary" id="matcher-next-2">Next</button>
+          <div class="matcher-step-actions">
+            <button type="button" class="btn btn-secondary" id="matcher-back-2">Back</button>
+            <button type="button" class="btn btn-primary" id="matcher-next-2">Next</button>
+          </div>
         </div>
         <div class="matcher-step" data-step="2">
           <p class="matcher-step-title">Budget range</p>
           <div class="matcher-options">
-            <label class="matcher-option"><input type="radio" name="matcher-budget" value="low"> Under ~$1,500</label>
-            <label class="matcher-option"><input type="radio" name="matcher-budget" value="mid"> ~$1,500 – $2,750</label>
-            <label class="matcher-option"><input type="radio" name="matcher-budget" value="high"> $2,500+</label>
+            <label class="matcher-option"><input type="radio" name="matcher-budget" value="low"><span class="matcher-option-text">Under ~$1,500</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-budget" value="mid"><span class="matcher-option-text">~$1,500 – $2,750</span></label>
+            <label class="matcher-option"><input type="radio" name="matcher-budget" value="high"><span class="matcher-option-text">$2,500+</span></label>
           </div>
-          <button type="button" class="btn btn-secondary" id="matcher-back-3">Back</button>
-          <button type="button" class="btn btn-primary" id="matcher-next-3">See matches</button>
+          <div class="matcher-step-actions">
+            <button type="button" class="btn btn-secondary" id="matcher-back-3">Back</button>
+            <button type="button" class="btn btn-primary" id="matcher-next-3">See matches</button>
+          </div>
         </div>
         <div class="matcher-step" data-step="3">
           <p class="matcher-step-title">Recommended for you</p>
@@ -5078,7 +5076,9 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
             <label for="matcher-email">Email (optional)</label>
             <input type="email" id="matcher-email" placeholder="you@business.com">
           </div>
-          <button type="button" class="btn btn-primary" id="matcher-finish">Get a quote</button>
+          <div class="matcher-step-actions">
+            <button type="button" class="btn btn-primary" id="matcher-finish">Get a quote</button>
+          </div>
         </div>
       </div>
     </div>
@@ -5194,7 +5194,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=admin-nav-groups-20260521"></script>
+  <script src="/assets/js/script.js?v=portfolio-home-trade-niches-20260522"></script>
   <script src="/assets/js/agency-tools.js?v=agency-tools-20260521"></script>
   <script src="/assets/js/dm-migration.js"></script>
 

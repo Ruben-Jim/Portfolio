@@ -9,9 +9,81 @@ const elementToggleFunc = function (elem) { elem.classList.toggle("active"); }
 // sidebar variables
 const sidebar = document.querySelector("[data-sidebar]");
 const sidebarBtn = document.querySelector("[data-sidebar-btn]");
+const sidebarInfo = document.querySelector(".sidebar-info");
+const sidebarBtnLabel = sidebarBtn ? sidebarBtn.querySelector("span") : null;
 
-// sidebar toggle functionality for mobile
-sidebarBtn.addEventListener("click", function () { elementToggleFunc(sidebar); });
+function isSidebarCollapsibleViewport() {
+  return window.matchMedia("(max-width: 1249px)").matches;
+}
+
+function setSidebarContactsExpanded(expanded) {
+  if (!sidebar) return;
+  sidebar.classList.toggle("active", expanded);
+  if (sidebarBtnLabel) {
+    sidebarBtnLabel.textContent = expanded ? "Hide Contacts" : "Show Contacts";
+  }
+  if (sidebarBtn) {
+    sidebarBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+  }
+  if (sidebarInfo && isSidebarCollapsibleViewport()) {
+    sidebarInfo.setAttribute("aria-expanded", expanded ? "true" : "false");
+  }
+}
+
+function toggleSidebarContacts() {
+  if (!sidebar || !isSidebarCollapsibleViewport()) return;
+  setSidebarContactsExpanded(!sidebar.classList.contains("active"));
+}
+
+function syncSidebarContactsUiForViewport() {
+  if (!sidebar) return;
+  if (!isSidebarCollapsibleViewport()) {
+    sidebar.classList.remove("active");
+    if (sidebarBtnLabel) sidebarBtnLabel.textContent = "Show Contacts";
+    if (sidebarBtn) sidebarBtn.setAttribute("aria-expanded", "false");
+    if (sidebarInfo) {
+      sidebarInfo.removeAttribute("role");
+      sidebarInfo.removeAttribute("tabindex");
+      sidebarInfo.removeAttribute("aria-expanded");
+    }
+    return;
+  }
+  const expanded = sidebar.classList.contains("active");
+  if (sidebarBtnLabel) {
+    sidebarBtnLabel.textContent = expanded ? "Hide Contacts" : "Show Contacts";
+  }
+  if (sidebarBtn) sidebarBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+  if (sidebarInfo) {
+    sidebarInfo.setAttribute("role", "button");
+    sidebarInfo.setAttribute("tabindex", "0");
+    sidebarInfo.setAttribute("aria-expanded", expanded ? "true" : "false");
+  }
+}
+
+if (sidebarBtn) {
+  sidebarBtn.setAttribute("aria-expanded", "false");
+  sidebarBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    toggleSidebarContacts();
+  });
+}
+
+if (sidebarInfo) {
+  sidebarInfo.addEventListener("click", function () {
+    if (!isSidebarCollapsibleViewport()) return;
+    toggleSidebarContacts();
+  });
+  sidebarInfo.addEventListener("keydown", function (e) {
+    if (!isSidebarCollapsibleViewport()) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleSidebarContacts();
+    }
+  });
+}
+
+window.addEventListener("resize", syncSidebarContactsUiForViewport);
+syncSidebarContactsUiForViewport();
 
 // navbar (hamburger) – one per article; each toggle opens its own menu
 document.querySelectorAll("[data-navbar-btn]").forEach(function (btn) {
@@ -2850,6 +2922,18 @@ function portfolioEscapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+/** Preserve line breaks from admin textarea / RTDB (pair with .portfolio-preserve-breaks CSS). */
+function portfolioNormalizeMultilineText(value) {
+  return String(value == null ? '' : value)
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n');
+}
+
+function portfolioSetMultilineElement(el, value) {
+  if (!el) return;
+  el.textContent = portfolioNormalizeMultilineText(value).trim();
+}
+
 function getPortfolioAssetImageOptions() {
   var seen = {};
   var list = [];
@@ -3345,7 +3429,14 @@ const PORTFOLIO_DETAIL_PRESETS = {
   'Pro Cleaning': {
     admin:
       'The admin page keeps crews organized by centralizing job scheduling, assignment visibility, and status updates to reduce missed work and callbacks.',
-    bestFor: ['Cleaning companies', 'Landscaping crews', 'Roof cleaning teams', 'Home service contractors']
+    bestFor: [
+      'Cleaning companies',
+      'Landscaping crews',
+      'Roof cleaning teams',
+      'Home service contractors',
+      'Trade services',
+      'Field trades'
+    ]
   },
   'Rizo Pizzeria': {
     bestFor: ['Restaurants', 'Pizzerias', 'Takeout kitchens', 'Food delivery operators']
@@ -3379,37 +3470,60 @@ const PORTFOLIO_DETAIL_PRESETS = {
   }
 };
 
-/** Curated industries aligned with portfolio projects (max 9 shown). */
+/** Curated industries aligned with portfolio projects (chip order = array order; max 9 shown). */
 const PORTFOLIO_CURATED_NICHES = [
-  {
-    id: 'barber',
-    label: 'Barber & salon',
-    titleMatch: /\bbarber\b/i,
-    slugMatch: ['barbershops', 'salons']
-  },
-  {
-    id: 'beauty',
-    label: 'Beauty salon',
-    titleMatch: /beauty|rosa.*salon/i,
-    slugMatch: ['beauty-salons', 'spas', 'nail-studios']
-  },
-  {
-    id: 'real-estate',
-    label: 'Real estate',
-    titleMatch: /realty|real[\s-]?estate|estate|homeverse|zoom/i,
-    slugMatch: ['real-estate-agencies', 'property-teams', 'independent-agents']
-  },
-  {
-    id: 'lawn-care',
-    label: 'Lawn care',
-    titleMatch: /lawn|landscap|mow/i,
-    slugMatch: ['lawn-care-companies', 'landscaping-crews', 'seasonal-outdoor-services']
-  },
   {
     id: 'home-services',
     label: 'Home services',
-    titleMatch: /cleaning|pro cleaning|roof/i,
-    slugMatch: ['cleaning-companies', 'roof-cleaning-teams', 'home-service-contractors']
+    titleMatch: /cleaning|pro cleaning|roof|field trade|trade service|handyman|pressure wash/i,
+    slugMatch: [
+      'cleaning-companies',
+      'roof-cleaning-teams',
+      'home-service-contractors',
+      'trade-services',
+      'field-trades',
+      'trade-contractors',
+      'field-trade-contractors'
+    ]
+  },
+  {
+    id: 'realtor-broker',
+    label: 'Realtor & broker agent',
+    titleMatch: /realtor|broker|realty|real[\s-]?estate|homeverse|zoom|insurance/i,
+    slugMatch: [
+      'real-estate-agencies',
+      'property-teams',
+      'independent-agents',
+      'realtor-broker-agents',
+      'insurance-brokers'
+    ]
+  },
+  {
+    id: 'barber',
+    label: 'Barber & salon',
+    titleMatch: /\bbarber\b|beauty|rosa.*salon/i,
+    slugMatch: [
+      'barbershops',
+      'salons',
+      'beauty-salons',
+      'spas',
+      'nail-studios',
+      'studios-with-appointments',
+      'appointment-based-personal-care-businesses',
+      'service-businesses-with-recurring-clients'
+    ]
+  },
+  {
+    id: 'trade-services',
+    label: 'Trade services',
+    titleMatch: /field trade|trade service|roof clean|pressure wash|window clean|pest control|hvac|plumb|electric|handyman/i,
+    slugMatch: [
+      'trade-services',
+      'field-trades',
+      'trade-contractors',
+      'field-trade-contractors',
+      'roof-cleaning-teams'
+    ]
   },
   {
     id: 'restaurant',
@@ -3438,6 +3552,11 @@ const PORTFOLIO_CURATED_NICHES = [
 ];
 
 const PORTFOLIO_NICHE_MAX = 9;
+
+/** Matched for tagging/filter logic but not shown as its own industry chip (rolls into Home services). */
+const PORTFOLIO_NICHE_FILTER_ALIASES = {
+  'trade-services': 'home-services'
+};
 
 let portfolioFilterNiche = 'all';
 let portfolioFilterControlsBound = false;
@@ -3520,7 +3639,29 @@ function portfolioCuratedNichesForProject(p) {
     }
     if (matched && keys.indexOf(niche.id) === -1) keys.push(niche.id);
   });
+  Object.keys(PORTFOLIO_NICHE_FILTER_ALIASES).forEach(function (sourceId) {
+    if (keys.indexOf(sourceId) !== -1) {
+      var rollInto = PORTFOLIO_NICHE_FILTER_ALIASES[sourceId];
+      if (rollInto && keys.indexOf(rollInto) === -1) keys.push(rollInto);
+    }
+  });
   return keys;
+}
+
+function portfolioItemMatchesNicheFilter(itemNiches, filterNiche) {
+  if (filterNiche === 'all') return true;
+  if (itemNiches.indexOf(filterNiche) !== -1) return true;
+  var aliasKeys = Object.keys(PORTFOLIO_NICHE_FILTER_ALIASES);
+  for (var ai = 0; ai < aliasKeys.length; ai++) {
+    var sourceId = aliasKeys[ai];
+    if (
+      PORTFOLIO_NICHE_FILTER_ALIASES[sourceId] === filterNiche &&
+      itemNiches.indexOf(sourceId) !== -1
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function collectPortfolioNicheFilters() {
@@ -3531,7 +3672,7 @@ function collectPortfolioNicheFilters() {
     });
   });
   return PORTFOLIO_CURATED_NICHES.filter(function (niche) {
-    return used.has(niche.id);
+    return used.has(niche.id) && !PORTFOLIO_NICHE_FILTER_ALIASES[niche.id];
   })
     .slice(0, PORTFOLIO_NICHE_MAX)
     .map(function (niche) {
@@ -3604,8 +3745,7 @@ function applyPortfolioFilters() {
   const filterItems = document.querySelectorAll('[data-filter-item]');
   filterItems.forEach(function (item) {
     const itemNiches = (item.dataset.niches || '').split(/\s+/).filter(Boolean);
-    const nicheMatch =
-      portfolioFilterNiche === 'all' || itemNiches.indexOf(portfolioFilterNiche) !== -1;
+    const nicheMatch = portfolioItemMatchesNicheFilter(itemNiches, portfolioFilterNiche);
     if (nicheMatch) item.classList.add('active');
     else item.classList.remove('active');
   });
@@ -4905,7 +5045,7 @@ function initPortfolioProjectModal() {
       });
     }
     if (title) title.textContent = titleText;
-    if (description) description.textContent = descriptionText;
+    if (description) portfolioSetMultilineElement(description, descriptionText);
     if (tech) {
       const tags = record ? portfolioTechTagsFromRecord(record) : [];
       if (tags.length) {
@@ -4923,7 +5063,7 @@ function initPortfolioProjectModal() {
     if (outcome) {
       const outcomeText = record && record.outcome != null ? String(record.outcome).trim() : '';
       if (outcomeText) {
-        outcome.textContent = outcomeText;
+        portfolioSetMultilineElement(outcome, outcomeText);
         outcome.hidden = false;
         if (outcomeSection) outcomeSection.hidden = false;
       } else {
@@ -4935,11 +5075,12 @@ function initPortfolioProjectModal() {
 
     if (admin) {
       if (record && record.adminModalNote && String(record.adminModalNote).trim()) {
-        admin.textContent = String(record.adminModalNote).trim();
+        portfolioSetMultilineElement(admin, record.adminModalNote);
       } else if (projectPreset?.admin) {
-        admin.textContent = projectPreset.admin;
+        portfolioSetMultilineElement(admin, projectPreset.admin);
       } else {
-        admin.textContent = 'Admin page focus: central management panel for operations, user actions, and business updates.';
+        admin.textContent =
+          'Admin page focus: central management panel for operations, user actions, and business updates.';
       }
     }
 
@@ -5132,11 +5273,15 @@ function switchToPage(pageName, skipSave = false) {
   for (let i = 0; i < navigationLinks.length; i++) {
     navigationLinks[i].classList.remove("active");
   }
+  document.body.classList.remove("admin-page-active");
   
   // Find and activate the matching page
   for (let i = 0; i < pages.length; i++) {
     if (pageName === pages[i].dataset.page) {
       pages[i].classList.add("active");
+      if (pageName === "admin") {
+        document.body.classList.add("admin-page-active");
+      }
       window.scrollTo(0, 0);
       
       // Find the matching navigation link by comparing text content
@@ -8785,7 +8930,22 @@ window.addEventListener('load', function() {
     try {
       const d = ts.toDate ? ts.toDate() : new Date(ts);
       if (isNaN(d.getTime())) return '—';
-      return d.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const compact = window.matchMedia('(max-width: 767px)').matches;
+      if (compact) {
+        return d.toLocaleString([], {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      return d.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     } catch (e) {
       return '—';
     }
@@ -8968,6 +9128,14 @@ window.addEventListener('load', function() {
     adminContactTableScrollSyncTimer = setTimeout(syncAdminContactTableScrollState, 60);
   }
 
+  let adminContactTableDateFmtMq =
+    typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 767px)') : null;
+  if (adminContactTableDateFmtMq && typeof adminContactTableDateFmtMq.addEventListener === 'function') {
+    adminContactTableDateFmtMq.addEventListener('change', function () {
+      if (lastContactFormMessages.length) renderMessages(lastContactFormMessages);
+    });
+  }
+
   // Render messages in the dashboard (datasheet all sizes; row opens detail drawer)
   function renderMessages(messages) {
     if (!messagesList) return;
@@ -9000,17 +9168,21 @@ window.addEventListener('load', function() {
           '" data-id="',
           escapeHtml(message.id),
           '">',
-          '<td class="admin-contact-table__td admin-contact-table__td--muted">',
+          '<td class="admin-contact-table__td admin-contact-table__td--muted" data-label="Date">',
           escapeHtml(formatContactTableDate(message.timestamp)),
           '</td>',
-          '<td class="admin-contact-table__td"><span class="status-badge status-' + safeSt + '">' + safeSt + '</span></td>',
-          '<td class="admin-contact-table__td">',
+          '<td class="admin-contact-table__td admin-contact-table__td--status" data-label="Status"><span class="status-badge status-' +
+          safeSt +
+          '">' +
+          safeSt +
+          '</span></td>',
+          '<td class="admin-contact-table__td" data-label="From">',
           escapeHtml(message.name || 'Anonymous'),
           '</td>',
-          '<td class="admin-contact-table__td admin-contact-table__td--ellipsis">',
+          '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" data-label="Email">',
           em ? '<a href="mailto:' + em + '">' + em + '</a>' : '—',
           '</td>',
-          '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" title="',
+          '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" data-label="Source" title="',
           src,
           '">',
           src,

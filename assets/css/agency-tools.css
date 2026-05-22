@@ -4,14 +4,28 @@
   margin: 0 0 20px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px 16px;
   align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.18);
+  background: hsla(240, 2%, 14%, 0.65);
+}
+
+.template-matcher-cta-hint {
+  margin: 0;
+  flex: 1 1 200px;
+  min-width: 0;
+  font-size: var(--fs-6);
+  line-height: 1.55;
+  color: var(--light-gray);
 }
 
 .btn-template-matcher {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .agency-modal {
@@ -130,25 +144,70 @@
 
 .matcher-option {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid hsla(45, 100%, 72%, 0.18);
   background: hsla(240, 2%, 16%, 0.85);
   cursor: pointer;
   transition: var(--transition-1);
+  color: var(--light-gray);
+  font-size: var(--fs-6);
+  line-height: 1.4;
+  text-align: left;
 }
 
 .matcher-option:hover,
 .matcher-option:has(input:checked) {
   border-color: hsla(45, 100%, 72%, 0.45);
   background: hsla(45, 100%, 72%, 0.08);
+  color: var(--white-2);
 }
 
-.matcher-option input {
-  margin-top: 3px;
+/* Override global input { width: 100%; display: block } */
+.matcher-option input[type="radio"],
+.matcher-option input[type="checkbox"] {
+  display: inline-block;
+  width: 1.125rem;
+  height: 1.125rem;
+  min-width: 1.125rem;
+  max-width: none;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
   accent-color: var(--orange-yellow-crayola);
+  cursor: pointer;
+}
+
+.matcher-option-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.matcher-step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 18px;
+}
+
+#template-matcher-modal .form-group {
+  margin-top: 16px;
+}
+
+#template-matcher-modal .form-group label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--fs-7);
+  margin-bottom: 8px;
+}
+
+#template-matcher-modal .form-group input[type="email"] {
+  width: 100%;
+  display: block;
 }
 
 .matcher-result-card {

@@ -1872,6 +1872,32 @@ main::-webkit-scrollbar { display: none; }
 
   .info_more-btn ion-icon {
     font-size: 20px;
+    display: block;
+    transition: transform var(--transition-1);
+  }
+
+  .info_more-btn span {
+    display: block;
+    font-size: 10px;
+    line-height: 1.2;
+    max-width: 72px;
+    text-align: center;
+  }
+
+  .sidebar.active .info_more-btn ion-icon {
+    transform: rotate(180deg);
+  }
+}
+
+/* Collapsible sidebar — tablet + mobile (desktop keeps contacts always visible) */
+@media (max-width: 1249px) {
+  .sidebar-info {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .sidebar.active .info_more-btn ion-icon {
+    transform: rotate(180deg);
   }
 }
 
@@ -6427,9 +6453,54 @@ textarea.form-input::-webkit-resizer { display: none; }
 
 .project-detail-media .project-detail-carousel,
 .project-detail-media .portfolio-carousel {
+  position: relative;
   width: 100%;
   max-width: 100%;
+  height: 100%;
+  max-height: 100%;
   min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* Keep slide image inside the frame; dots sit above the bottom edge at all resolutions */
+.project-detail-media .portfolio-carousel-track {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  aspect-ratio: unset;
+  max-height: 100%;
+  overflow: hidden;
+  padding-bottom: 28px;
+  box-sizing: border-box;
+}
+
+.project-detail-media .portfolio-carousel-slide {
+  align-items: center;
+  justify-content: center;
+}
+
+.project-detail-media .portfolio-carousel-slide img {
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+}
+
+.project-detail-media .portfolio-carousel-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  margin-top: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.project-detail-media .portfolio-carousel-dot {
+  pointer-events: auto;
 }
 
 .project-detail-body {
@@ -6472,6 +6543,13 @@ textarea.form-input::-webkit-resizer { display: none; }
   margin: 0;
   font-size: clamp(26px, 2.4vw, 34px);
   line-height: 1.15;
+}
+
+.project-detail-description,
+.project-detail-outcome,
+.project-detail-admin-text,
+.portfolio-preserve-breaks {
+  white-space: pre-line;
 }
 
 .project-detail-description {
@@ -7079,12 +7157,29 @@ body.project-modal-open {
     padding: 10px 16px 12px;
     flex-shrink: 0;
     height: auto;
-    max-height: 28vh;
+    max-height: min(32vh, 280px);
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .project-detail-media .project-detail-carousel,
+  .project-detail-media .portfolio-carousel {
+    min-height: 0;
+    max-height: min(30vh, 260px);
+  }
+
+  .project-detail-media .portfolio-carousel-track {
+    padding-bottom: 26px;
+  }
+
+  .project-detail-media .portfolio-carousel-dots {
+    bottom: 6px;
+    gap: 6px;
   }
 
   .project-detail-media img,
   .project-detail-media .portfolio-carousel-slide img {
-    max-height: min(24vh, 200px);
+    max-height: 100%;
     min-height: 0;
   }
 
@@ -13870,6 +13965,44 @@ article.contact[data-page="contact"] {
   }
 }
 
+/* Admin tab — hide profile/contact sidebar so dashboard uses full width */
+body.admin-page-active .sidebar {
+  display: none !important;
+}
+
+body.admin-page-active main {
+  gap: 0;
+}
+
+body.admin-page-active .main-content {
+  flex: 1 1 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+@supports selector(:has(*)) {
+  main:has(article.admin[data-page="admin"].active) .sidebar {
+    display: none !important;
+  }
+
+  main:has(article.admin[data-page="admin"].active) {
+    gap: 0;
+  }
+
+  main:has(article.admin[data-page="admin"].active) .main-content {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 1250px) {
+  body.admin-page-active main,
+  main:has(article.admin[data-page="admin"].active) {
+    max-width: min(1400px, calc(100vw - 40px));
+  }
+}
+
 /* Admin Grid Layout - Override global resets */
 #admin-dashboard-content .message-grid,
 .messages-list .message-grid {
@@ -15530,7 +15663,7 @@ body.modal-open {
 
 .admin-contact-table {
   width: 100%;
-  min-width: 560px;
+  min-width: 640px;
   table-layout: fixed;
   border-collapse: collapse;
   font-size: var(--fs-7);
@@ -15559,30 +15692,35 @@ body.modal-open {
   box-shadow: 0 1px 0 hsla(0, 0%, 100%, 0.06);
 }
 
-/* Fixed column share so header cells line up with body cells (no “headers right / data left” gap). */
+/* Fixed column share — date/status get enough room so badges do not overlap timestamps */
 .admin-contact-table th:nth-child(1),
 .admin-contact-table td:nth-child(1) {
-  width: 19%;
+  width: 24%;
+  min-width: 118px;
 }
 
 .admin-contact-table th:nth-child(2),
 .admin-contact-table td:nth-child(2) {
-  width: 10%;
+  width: 13%;
+  min-width: 78px;
 }
 
 .admin-contact-table th:nth-child(3),
 .admin-contact-table td:nth-child(3) {
-  width: 17%;
+  width: 16%;
+  min-width: 72px;
 }
 
 .admin-contact-table th:nth-child(4),
 .admin-contact-table td:nth-child(4) {
-  width: 36%;
+  width: 30%;
+  min-width: 120px;
 }
 
 .admin-contact-table th:nth-child(5),
 .admin-contact-table td:nth-child(5) {
-  width: 18%;
+  width: 17%;
+  min-width: 64px;
 }
 
 .admin-contact-table__th--sortable {
@@ -15611,7 +15749,24 @@ body.modal-open {
 .admin-contact-table__td--muted {
   color: var(--light-gray-70);
   white-space: nowrap;
-  max-width: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-contact-table__td--status {
+  overflow: hidden;
+  vertical-align: middle;
+  text-align: left;
+}
+
+.admin-contact-table__td--status .status-badge {
+  display: inline-block;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
 
 .admin-contact-table__td--ellipsis {
@@ -15677,7 +15832,7 @@ body.modal-open {
   }
 
   .admin-contact-table {
-    min-width: 720px;
+    min-width: 600px;
     font-size: var(--fs-8);
   }
 
@@ -15696,49 +15851,117 @@ body.modal-open {
 
   .admin-contact-table th:nth-child(1),
   .admin-contact-table td:nth-child(1) {
-    width: 26%;
+    width: 28%;
+    min-width: 108px;
   }
 
   .admin-contact-table th:nth-child(2),
   .admin-contact-table td:nth-child(2) {
-    width: 14%;
+    width: 15%;
+    min-width: 76px;
   }
 
   .admin-contact-table th:nth-child(3),
   .admin-contact-table td:nth-child(3) {
-    width: 18%;
+    width: 17%;
+    min-width: 68px;
   }
 
   .admin-contact-table th:nth-child(4),
   .admin-contact-table td:nth-child(4) {
-    width: 28%;
+    width: 26%;
+    min-width: 100px;
   }
 
   .admin-contact-table th:nth-child(5),
   .admin-contact-table td:nth-child(5) {
     width: 14%;
+    min-width: 56px;
   }
 
-  .admin-contact-table tbody .admin-contact-table__td:nth-child(1),
   .admin-contact-table tbody .admin-contact-table__td:nth-child(3) {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     vertical-align: middle;
   }
+}
 
-  .admin-contact-table tbody .admin-contact-table__td:nth-child(2) {
-    white-space: nowrap;
-    overflow: hidden;
-    vertical-align: middle;
-    text-align: center;
+/* Narrow admin panes: stack each submission as a labeled card (no column overlap) */
+@media (max-width: 540px) {
+  .admin-contact-messages__table-wrap {
+    overflow-x: visible;
+    border: none;
+    background: transparent;
   }
 
-  #admin-dashboard-content .admin-contact-table .status-badge,
-  .messages-list .admin-contact-table .status-badge {
-    max-width: 100%;
-    box-sizing: border-box;
-    vertical-align: middle;
+  .admin-contact-table {
+    min-width: 0;
+    width: 100%;
+    table-layout: auto;
+  }
+
+  .admin-contact-table thead {
+    display: none;
+  }
+
+  .admin-contact-table tbody tr.message-item.admin-contact-table__row {
+    display: block !important;
+    margin-bottom: 12px;
+    border: 1px solid hsla(0, 0%, 100%, 0.08);
+    border-radius: 12px;
+    background: hsla(240, 4%, 10%, 0.55);
+    overflow: hidden;
+  }
+
+  .admin-contact-table tbody tr.message-item.admin-contact-table__row > td {
+    display: grid !important;
+  }
+
+  .admin-contact-table tbody tr.admin-contact-table__row:hover .admin-contact-table__td {
+    background-color: hsla(0, 0%, 100%, 0.04);
+  }
+
+  .admin-contact-table tbody .admin-contact-table__td {
+    display: grid;
+    grid-template-columns: minmax(72px, 34%) minmax(0, 1fr);
+    align-items: center;
+    gap: 8px 12px;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 10px 14px;
+    border-bottom: 1px solid hsla(0, 0%, 100%, 0.05);
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .admin-contact-table tbody .admin-contact-table__td:last-child {
+    border-bottom: none;
+  }
+
+  .admin-contact-table tbody .admin-contact-table__td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: var(--fw-600);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--orange-yellow-crayola);
+  }
+
+  .admin-contact-table tbody .admin-contact-table__td--status {
+    text-align: left;
+  }
+
+  .admin-contact-table tbody .admin-contact-table__td--ellipsis {
+    white-space: normal;
+    overflow: visible;
+    word-break: break-word;
+  }
+
+  .admin-contact-table tbody .admin-contact-table__td--ellipsis a {
+    word-break: break-all;
   }
 }
 

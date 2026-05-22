@@ -1,0 +1,62 @@
+---
+description: Scan any codebase and output portfolio Admin modal fields in plain, business-friendly jot dots (non-technical readers).
+alwaysApply: false
+---
+
+# Portfolio project scan
+
+**Audience for your written output:** business owners, operators, and buyers—not developers. They care about problems solved, time saved, money made, and day-to-day control—not frameworks, repos, or architecture.
+
+**Your job (internal):** Still explore the full codebase (README, routes, admin/dashboard, payments, messaging, config, rules). Understand what is really built. Then **translate** into plain language. Never expose file paths, function names, or stack jargon in the copy fields unless the portfolio **Tech stack** line requires a short label.
+
+**Style:** jot dots only. Short fragments. No paragraphs. No word cap on bullets. Skip empty sections. Write like a product brochure, not a README.
+
+**Voice**
+- Benefits and outcomes, not implementation (“Customers book online” not “Expo Router + RTDB listener”)
+- Everyday words: bookings, orders, quotes, inbox, payments, reminders, dashboard, staff, customers
+- Avoid: API, SDK, CRUD, schema, deploy pipeline, middleware, auth provider names (unless unavoidable in **Tech stack**)
+- Admin section = what the **owner** can do without calling you
+
+**Output** — use these labels exactly (copy-paste into portfolio Admin modal):
+
+---
+
+**Title:**  
+**Filter category:** `professional` | `creative`  
+**Live project URL:** *(from README/deploy config, or `ASK_USER`)*  
+**Image alt:** *(short, plain, e.g. “Lawn care app booking screen”)*  
+
+**Description:** *(one-line hook a non-tech owner gets, then bullets)*
+- · who it’s for (type of business)
+- · what customers can do on their own
+- · what the business gains (less phone tag, fewer missed jobs, faster checkout, etc.)
+- · standout features in plain English (as many dots as needed)
+
+**Tech stack:** *(comma-separated; keep short—product words OK: “Mobile app”, “Web app”, “Online payments ready”, “Cloud database”. Add framework names only if clearly central, max 3–5 items)*  
+
+**Outcome:** *(jot dots—business results)*
+- · live / demo / in use with a client
+- · real-world impact if known (more orders, less admin time, happier customers)
+- · what’s ready today vs “coming soon” (say it simply)
+
+**Detail modal — admin focus:** *(jot dots—owner/back-office wins only)*
+- · what they see on login (orders, calendar, messages, settings, etc.)
+- · what they can change without a developer
+- · notifications, reports, or staff-friendly workflows
+- · payments/invoicing in buyer terms (“take card payments”, “cash on delivery”, “send payment link”)
+
+**Best for:** *(one type of business per line, 3–12—how they’d search for themselves)*
+- · Lawn care companies
+- · …
+
+**Internal notes (optional, for you only—omit from modal paste):**
+- · technical gaps / TODOs found in repo
+- · entry files if you need a reminder
+
+---
+
+**Rules**
+- `professional` = real client or production-ready business app; `creative` = demo, experiment, template
+- If URL or screenshot unknown, write `ASK_USER`—don’t invent
+- Don’t edit portfolio database from this task—output fields only
+- When unsure, prefer “ASK_USER” over guessing metrics or pricing
