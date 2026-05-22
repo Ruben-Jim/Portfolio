@@ -53,7 +53,8 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=sidebar-collapse-20260518">
+  <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-textarea-resizer-match-20260521">
+  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=agency-tools-20260521">
 
   <!--
     - google font link
@@ -370,9 +371,10 @@
           </div>
         </section>
 
-        <!-- Work Marquee -->
-        <section class="work-marquee" aria-label="Technologies and clients">
+        <!-- Technologies & Clients ↔ What Clients Say (marquee centered between headings) -->
+        <div class="home-tech-clients-zone">
           <h3 class="h3 work-marquee-title">Technologies & Clients</h3>
+          <section class="work-marquee" aria-label="Technologies and clients">
           <div class="marquee-track">
             <div class="marquee-content">
               <span class="marquee-item"><ion-icon name="logo-react"></ion-icon> React</span>
@@ -394,15 +396,15 @@
               <img src="./assets/images/logo-3-color.png" alt="" class="marquee-logo">
             </div>
           </div>
-        </section>
+          </section>
+          <h3 class="h3 testimonials-title" id="testimonials-heading">What Clients Say</h3>
+        </div>
         
         <!--
           - testimonials
         -->
         
-        <section class="testimonials">
-
-          <h3 class="h3 testimonials-title">What Clients Say</h3>
+        <section class="testimonials" aria-labelledby="testimonials-heading">
 
           <ul class="testimonials-list has-scrollbar">
 
@@ -1040,6 +1042,14 @@
 
         <section class="projects">
 
+          <div class="template-matcher-cta-wrap">
+            <button type="button" class="btn btn-secondary btn-template-matcher" id="open-template-matcher-btn">
+              <ion-icon name="compass-outline" aria-hidden="true"></ion-icon>
+              Find your template
+            </button>
+            <span class="form-hint">Short quiz — see which demo and price band fits your business.</span>
+          </div>
+
           <div class="portfolio-filters" id="portfolio-filters" aria-label="Filter portfolio by industry">
             <div class="portfolio-filter-group portfolio-filter-group--niche">
               <span class="portfolio-filter-label">Industry</span>
@@ -1067,7 +1077,6 @@
         <section class="project-detail-content" role="dialog" aria-modal="true" aria-labelledby="project-detail-title">
           <div class="project-detail-sheet-grab" id="project-detail-sheet-grab" aria-hidden="true">
             <span class="project-detail-sheet-handle" aria-hidden="true"></span>
-            <span class="project-detail-sheet-hint">Drag to adjust</span>
           </div>
 
           <button class="project-detail-close" id="project-detail-close" aria-label="Close project details">
@@ -1075,13 +1084,21 @@
           </button>
 
           <figure class="project-detail-media">
-            <img src="/assets/images/project-comingsoon.svg" alt="Project preview" id="project-detail-image">
+            <div class="portfolio-carousel project-detail-carousel" id="project-detail-carousel" aria-roledescription="carousel">
+              <div class="portfolio-carousel-track" id="project-detail-carousel-track" aria-live="polite"></div>
+              <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="project-detail-carousel-prev" aria-label="Previous screenshot" hidden>
+                <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="project-detail-carousel-next" aria-label="Next screenshot" hidden>
+                <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <div class="portfolio-carousel-dots" id="project-detail-carousel-dots" role="tablist" aria-label="Screenshot slides"></div>
+            </div>
           </figure>
 
           <div class="project-detail-body">
             <div class="project-detail-scroll has-scrollbar">
             <div class="project-detail-meta">
-              <span class="project-detail-category" id="project-detail-category">Application</span>
               <h3 class="h3 project-detail-title" id="project-detail-title">Project Title</h3>
             </div>
 
@@ -1089,7 +1106,10 @@
 
             <div class="project-detail-tech" id="project-detail-tech"></div>
 
-            <p class="project-detail-outcome" id="project-detail-outcome" hidden></p>
+            <section class="project-detail-section project-detail-outcome-section" id="project-detail-outcome-section" hidden>
+              <h4 class="h4 project-detail-section-title">Outcome</h4>
+              <p class="project-detail-outcome" id="project-detail-outcome"></p>
+            </section>
 
             <section class="project-detail-section project-detail-admin-section">
               <h4 class="h4 project-detail-section-title">Admin Page</h4>
@@ -2375,65 +2395,17 @@
             <h2 class="h2 article-title">Admin<br> Dashboard</h2>
           </header>
 
-          <!-- KPI Stats Bar -->
-          <div class="admin-kpi-bar">
-            <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="messages" title="Go to messages">
-              <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
-              <div>
-                <span class="admin-kpi-value" id="kpi-new-messages">—</span>
-                <span class="admin-kpi-label">New Messages</span>
-              </div>
-            </div>
-            <div class="admin-kpi-card">
-              <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
-              <div>
-                <span class="admin-kpi-value" id="kpi-active-projects">3</span>
-                <span class="admin-kpi-label">Active Projects</span>
-              </div>
-            </div>
-            <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="pipeline" title="Go to pipeline">
-              <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
-              <div>
-                <span class="admin-kpi-value" id="kpi-pipeline-value">$0</span>
-                <span class="admin-kpi-label">Pipeline Value</span>
-              </div>
-            </div>
-            <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="testimonials" title="Go to testimonials">
-              <ion-icon name="star-outline" aria-hidden="true"></ion-icon>
-              <div>
-                <span class="admin-kpi-value" id="kpi-pending-reviews">—</span>
-                <span class="admin-kpi-label">Pending Reviews</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Actions -->
-          <div class="admin-quick-actions">
-            <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="docs" data-admin-qa-action="create-doc" title="New Proposal">
-              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
-              <span>New Proposal</span>
-            </button>
-            <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="docs" data-admin-qa-action="create-invoice" title="New Invoice">
-              <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
-              <span>New Invoice</span>
-            </button>
-            <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="pipeline" title="Add Lead">
-              <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
-              <span>Add Lead</span>
-            </button>
-            <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="testimonials" title="Send Review Request">
-              <ion-icon name="star-half-outline" aria-hidden="true"></ion-icon>
-              <span>Review Request</span>
-            </button>
-          </div>
-
         <div class="admin-tabs" id="admin-tabs">
           <div class="admin-tab-bar" role="tablist" aria-label="Admin dashboard sections">
+            <button type="button" class="admin-tab is-active" role="tab" id="admin-tab-overview" data-admin-tab="overview" data-mobile-primary aria-selected="true" aria-controls="admin-panel-overview" tabindex="0" aria-label="Overview">
+              <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Overview</span><span class="admin-tab-label-mobile">Overview</span></span>
+            </button>
             <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" data-mobile-primary aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1" aria-label="Business Documents">
               <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Documents</span><span class="admin-tab-label-mobile">Docs</span></span>
             </button>
-            <button type="button" class="admin-tab is-active" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-mobile-primary aria-selected="true" aria-controls="admin-panel-messages" tabindex="0" aria-label="Contact Messages">
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-mobile-primary aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
               <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
             </button>
@@ -2453,6 +2425,22 @@
               <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
             </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub">
+              <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Project Hub</span><span class="admin-tab-label-mobile">Hub</span></span>
+            </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-maintenance" data-admin-tab="maintenance" aria-selected="false" aria-controls="admin-panel-maintenance" tabindex="-1" aria-label="Maintenance and SLA">
+              <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Maintenance</span><span class="admin-tab-label-mobile">Maint</span></span>
+            </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-referrals" data-admin-tab="referrals" aria-selected="false" aria-controls="admin-panel-referrals" tabindex="-1" aria-label="Referral partners">
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Referrals</span><span class="admin-tab-label-mobile">Referrals</span></span>
+            </button>
+            <button type="button" class="admin-tab" role="tab" id="admin-tab-health" data-admin-tab="health" aria-selected="false" aria-controls="admin-panel-health" tabindex="-1" aria-label="Firebase Health">
+              <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Firebase Health</span><span class="admin-tab-label-mobile">Health</span></span>
+            </button>
             <button type="button" class="admin-tab" role="tab" id="admin-tab-ops" data-admin-tab="ops" aria-selected="false" aria-controls="admin-panel-ops" tabindex="-1" aria-label="Business Ops Manual">
               <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Ops Manual</span><span class="admin-tab-label-mobile">Ops</span></span>
@@ -2470,6 +2458,58 @@
 
           <div class="admin-tabs-body">
           <div class="admin-tab-panels">
+          <!-- Overview (KPI stats + quick actions) -->
+          <div id="admin-panel-overview" class="admin-tab-panel is-active" role="tabpanel" aria-labelledby="admin-tab-overview" data-admin-tab="overview">
+            <div class="admin-kpi-bar">
+              <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="messages" title="Go to messages">
+                <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
+                <div>
+                  <span class="admin-kpi-value" id="kpi-new-messages">—</span>
+                  <span class="admin-kpi-label">New Messages</span>
+                </div>
+              </div>
+              <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="pipeline" title="Go to pipeline">
+                <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
+                <div>
+                  <span class="admin-kpi-value" id="kpi-active-projects">3</span>
+                  <span class="admin-kpi-label">Active Projects</span>
+                </div>
+              </div>
+              <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="pipeline" title="Go to pipeline">
+                <ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon>
+                <div>
+                  <span class="admin-kpi-value" id="kpi-pipeline-value">$0</span>
+                  <span class="admin-kpi-label">Pipeline Value</span>
+                </div>
+              </div>
+              <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="testimonials" title="Go to testimonials">
+                <ion-icon name="star-outline" aria-hidden="true"></ion-icon>
+                <div>
+                  <span class="admin-kpi-value" id="kpi-pending-reviews">—</span>
+                  <span class="admin-kpi-label">Pending Reviews</span>
+                </div>
+              </div>
+            </div>
+            <div class="admin-quick-actions">
+              <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="docs" data-admin-qa-action="create-doc" title="New Proposal">
+                <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+                <span>New Proposal</span>
+              </button>
+              <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="docs" data-admin-qa-action="create-invoice" title="New Invoice">
+                <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
+                <span>New Invoice</span>
+              </button>
+              <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="pipeline" data-admin-qa-action="add-lead" title="Add Lead">
+                <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+                <span>Add Lead</span>
+              </button>
+              <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="testimonials" title="Send Review Request">
+                <ion-icon name="star-half-outline" aria-hidden="true"></ion-icon>
+                <span>Review Request</span>
+              </button>
+            </div>
+          </div><!-- /admin-panel-overview -->
+
           <!-- —— Business Documents —— -->
           <div id="admin-panel-docs" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-docs" data-admin-tab="docs" hidden>
           <section class="service business-docs-section business-docs-open" id="business-docs-section">
@@ -2530,7 +2570,7 @@
           </div><!-- /admin-panel-docs -->
 
           <!-- Contact Messages (Firestore form submissions) + entry to DM inbox -->
-          <div id="admin-panel-messages" class="admin-tab-panel is-active" role="tabpanel" aria-labelledby="admin-tab-messages" data-admin-tab="messages">
+          <div id="admin-panel-messages" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-messages" data-admin-tab="messages" hidden>
           <section class="service admin-collapsible-section admin-messages-section admin-collapsible-open" id="messages-section">
           <div class="admin-panel-heading admin-panel-heading--with-action">
             <div class="admin-panel-heading-main">
@@ -2689,6 +2729,11 @@
                   <ion-icon name="add-outline"></ion-icon>
                   Add New Post
                 </button>
+                <select id="content-repurpose-select" class="admin-inline-select" aria-label="Blog post to repurpose"></select>
+                <button type="button" class="btn btn-secondary" id="content-repurpose-btn">
+                  <ion-icon name="share-social-outline"></ion-icon>
+                  Repurpose content
+                </button>
               </div>
             </div>
             </div>
@@ -2716,6 +2761,11 @@
                     <ion-icon name="add-outline"></ion-icon>
                     Add project
                   </button>
+                  <button type="button" class="btn btn-secondary" id="case-study-generate-btn">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    Case study
+                  </button>
+                  <select id="case-study-project-select" class="admin-inline-select" aria-label="Project for case study"></select>
                 </div>
               </div>
               <div class="blog-posts-list admin-portfolio-list-panel" id="admin-portfolio-projects-list">
@@ -2763,7 +2813,7 @@
                 </div>
 
                 <!-- Kanban board -->
-                <div class="pipeline-board has-scrollbar" id="pipeline-board">
+                <div class="pipeline-board" id="pipeline-board">
 
                   <div class="pipeline-col" data-stage="lead">
                     <div class="pipeline-col-header">
@@ -2847,6 +2897,104 @@
             </div>
           </section>
           </div><!-- /admin-panel-pipeline -->
+
+          <!-- Project Hub -->
+          <div id="admin-panel-hub" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-hub" data-admin-tab="hub" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Project Hub</h3>
+                <p class="admin-panel-lead">One place per client: links, milestones, modules, and client portal.</p>
+              </div>
+              <button type="button" class="btn btn-primary" id="project-hub-add-btn">
+                <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                New project hub
+              </button>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <ul class="hub-list" id="project-hub-list"></ul>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-hub -->
+
+          <!-- Maintenance & SLA -->
+          <div id="admin-panel-maintenance" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-maintenance" data-admin-tab="maintenance" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Maintenance &amp; SLA</h3>
+                <p class="admin-panel-lead">Track Year 2+ retainers, hours, and renewal dates.</p>
+              </div>
+              <button type="button" class="btn btn-primary" id="maintenance-add-btn">
+                <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                Add client
+              </button>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <ul class="hub-list" id="maintenance-list"></ul>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-maintenance -->
+
+          <!-- Referral partners -->
+          <div id="admin-panel-referrals" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-referrals" data-admin-tab="referrals" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Referral partners</h3>
+                <p class="admin-panel-lead">Track partners and commission rates.</p>
+              </div>
+              <button type="button" class="btn btn-primary" id="referral-add-btn">
+                <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                Add partner
+              </button>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <div class="referral-table-wrap has-scrollbar">
+                  <table class="referral-table">
+                    <thead><tr><th>Name</th><th>Email</th><th>%</th><th>Leads</th><th></th></tr></thead>
+                    <tbody id="referral-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-referrals -->
+
+          <!-- Firebase Health -->
+          <div id="admin-panel-health" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-health" data-admin-tab="health" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading">
+              <h3 class="h3 admin-panel-title">Firebase Health</h3>
+              <p class="admin-panel-lead">Pre-renewal checklist per project hub.</p>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content agency-health-panel">
+                <div class="form-group">
+                  <label for="health-project-select">Project</label>
+                  <select id="health-project-select"></select>
+                </div>
+                <div class="health-checklist">
+                  <label class="health-check-item"><input type="checkbox" id="health-rulesOk"> Rules deployed</label>
+                  <label class="health-check-item"><input type="checkbox" id="health-authOk"> Auth configured</label>
+                  <label class="health-check-item"><input type="checkbox" id="health-functionsOk"> Functions healthy</label>
+                  <label class="health-check-item"><input type="checkbox" id="health-rtdbOk"> RTDB within limits</label>
+                  <label class="health-check-item"><input type="checkbox" id="health-hostingOk"> Hosting live</label>
+                </div>
+                <div class="form-group">
+                  <label for="health-notes">Notes</label>
+                  <textarea id="health-notes" class="has-scrollbar" rows="3"></textarea>
+                </div>
+                <button type="button" class="btn btn-primary" id="health-save-btn">Save health check</button>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-health -->
 
           <!-- Business Ops Manual -->
           <div id="admin-panel-ops" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-ops" data-admin-tab="ops" hidden>
@@ -3228,6 +3376,10 @@
           </div>
           <div class="lead-drawer-body has-scrollbar" id="lead-drawer-body"></div>
           <div class="lead-drawer-footer">
+            <button type="button" class="btn btn-primary" id="lead-drawer-hub-btn">
+              <ion-icon name="briefcase-outline"></ion-icon>
+              Project hub
+            </button>
             <button type="button" class="btn btn-secondary" id="lead-drawer-edit-btn">
               <ion-icon name="create-outline"></ion-icon>
               Edit
@@ -3956,62 +4108,80 @@
       </div>
       <form class="add-blog-form has-scrollbar" id="portfolio-project-form" onsubmit="event.preventDefault(); return false;">
         <input type="hidden" id="portfolio-project-edit-id" value="">
-        <div class="form-row">
-          <div class="form-group form-group-half">
-            <label for="portfolio-project-title">Title</label>
-            <input type="text" id="portfolio-project-title" required maxlength="200" placeholder="Project name">
-          </div>
-          <div class="form-group form-group-half">
-            <label for="portfolio-project-category">Filter category</label>
-            <select id="portfolio-project-category" required>
-              <option value="professional">Professional</option>
-              <option value="creative">Creative</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label for="portfolio-project-title">Title</label>
+          <input type="text" id="portfolio-project-title" required maxlength="200" placeholder="Project name">
         </div>
         <div class="form-group">
           <label for="portfolio-project-url">Live project URL</label>
           <input type="url" id="portfolio-project-url" inputmode="url" placeholder="https:// or leave empty / #">
         </div>
-        <div class="form-group">
-          <label for="portfolio-project-image-asset">Project screenshot (assets/images)</label>
-          <select id="portfolio-project-image-asset">
-            <option value="">Custom path or external URL…</option>
-          </select>
-          <p class="form-hint">Pick a file already in the repo, same as built-in projects (e.g. <code>project-lawncare.png</code>).</p>
-        </div>
-        <div class="form-row">
-          <div class="form-group form-group-half">
-            <label for="portfolio-project-image">Image URL</label>
-            <input type="text" id="portfolio-project-image" list="portfolio-project-image-options" placeholder="./assets/images/project-lawncare.png">
-            <datalist id="portfolio-project-image-options"></datalist>
-            <p class="form-hint">Use <code>./assets/images/your-file.png</code> — same format as Pro Cleaning and other projects.</p>
+        <div class="form-group portfolio-project-images-group">
+          <div class="portfolio-slides-header">
+            <label>Project screenshots (slideshow)</label>
+            <span class="portfolio-slides-count" id="portfolio-slides-count" hidden></span>
           </div>
-          <div class="form-group form-group-half">
-            <label for="portfolio-project-image-alt">Image alt text</label>
-            <input type="text" id="portfolio-project-image-alt" maxlength="200" placeholder="Screen reader description">
+          <p class="form-hint">First slide is the portfolio card thumbnail. Pick from <code>assets/images</code> or paste a URL — drag slides to reorder.</p>
+          <div class="portfolio-slides-add-bar">
+            <div class="portfolio-slides-add-field">
+              <label for="portfolio-project-image-asset">From repo</label>
+              <div class="portfolio-slides-add-row">
+                <select id="portfolio-project-image-asset">
+                  <option value="">Choose a screenshot…</option>
+                </select>
+                <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-from-asset" title="Add selected file">Add</button>
+              </div>
+            </div>
+            <div class="portfolio-slides-add-field">
+              <label for="portfolio-project-image">Custom URL</label>
+              <div class="portfolio-slides-add-row">
+                <input type="text" id="portfolio-project-image" list="portfolio-project-image-options" placeholder="./assets/images/project-lawncare.png">
+                <datalist id="portfolio-project-image-options"></datalist>
+                <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-image-btn" title="Add URL (Enter)">Add</button>
+              </div>
+            </div>
           </div>
+          <div class="form-group portfolio-slides-alt-row">
+            <label for="portfolio-project-image-alt">Alt text (all slides)</label>
+            <input type="text" id="portfolio-project-image-alt" maxlength="200" placeholder="e.g. Lawn care app homepage and admin dashboard">
+          </div>
+          <ul class="portfolio-project-images-list" id="portfolio-project-images-list" aria-label="Slideshow images"></ul>
+          <p class="portfolio-project-images-empty" id="portfolio-project-images-empty">No slides yet — choose a file from the repo or add a custom URL.</p>
         </div>
         <div class="portfolio-project-image-preview-wrap" id="portfolio-project-image-preview-wrap" hidden>
-          <p class="portfolio-project-image-preview-label">Portfolio thumbnail preview</p>
-          <figure class="project-img portfolio-project-image-preview-frame">
-            <img id="portfolio-project-image-preview" alt="">
-          </figure>
-          <p class="portfolio-project-image-preview-error" id="portfolio-project-image-preview-error" hidden>
-            Could not load this image. Confirm the file exists under <code>assets/images/</code> and is deployed.
-          </p>
+          <details class="portfolio-slides-preview-details" id="portfolio-slides-preview-details">
+            <summary class="portfolio-slides-preview-summary">
+              <span class="portfolio-slides-preview-summary-text">Slideshow preview</span>
+              <span class="portfolio-slides-preview-summary-hint" id="portfolio-slides-preview-hint">Expand to preview carousel</span>
+            </summary>
+            <div class="portfolio-slides-preview-panel">
+              <div class="portfolio-carousel portfolio-project-admin-carousel" id="portfolio-project-admin-carousel" aria-roledescription="carousel">
+                <div class="portfolio-carousel-track" id="portfolio-project-admin-carousel-track" aria-live="polite"></div>
+                <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="portfolio-project-admin-carousel-prev" aria-label="Previous screenshot" hidden>
+                  <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                </button>
+                <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="portfolio-project-admin-carousel-next" aria-label="Next screenshot" hidden>
+                  <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                </button>
+                <div class="portfolio-carousel-dots" id="portfolio-project-admin-carousel-dots" role="tablist" aria-label="Screenshot slides"></div>
+              </div>
+              <p class="portfolio-project-image-preview-error" id="portfolio-project-image-preview-error" hidden>
+                Could not load one or more images. Confirm files exist under <code>assets/images/</code> and are deployed.
+              </p>
+            </div>
+          </details>
         </div>
         <div class="form-group">
           <label for="portfolio-project-description">Description</label>
-          <textarea id="portfolio-project-description" rows="4" required placeholder="Short summary for the card and detail modal."></textarea>
+          <textarea id="portfolio-project-description" class="has-scrollbar" rows="4" required placeholder="Short summary for the card and detail modal."></textarea>
         </div>
         <div class="form-group">
           <label for="portfolio-project-tech">Tech stack (comma or line separated)</label>
-          <textarea id="portfolio-project-tech" rows="2" placeholder="React Native, Expo, Firebase"></textarea>
+          <textarea id="portfolio-project-tech" class="has-scrollbar" rows="2" placeholder="React Native, Expo, Firebase"></textarea>
         </div>
         <div class="form-group">
           <label for="portfolio-project-outcome">Outcome (optional)</label>
-          <textarea id="portfolio-project-outcome" rows="2" placeholder="Result or impact (shown under Outcome:)."></textarea>
+          <textarea id="portfolio-project-outcome" class="has-scrollbar" rows="2" placeholder="Result or impact (shown under Outcome:)."></textarea>
         </div>
         <div class="form-row">
           <div class="form-group form-group-half">
@@ -4031,11 +4201,11 @@
         </div>
         <div class="form-group">
           <label for="portfolio-project-admin-note">Detail modal — admin focus (optional)</label>
-          <textarea id="portfolio-project-admin-note" rows="2" placeholder="Custom text for the admin section in the project detail modal."></textarea>
+          <textarea id="portfolio-project-admin-note" class="has-scrollbar" rows="2" placeholder="Custom text for the admin section in the project detail modal."></textarea>
         </div>
         <div class="form-group">
           <label for="portfolio-project-bestfor">“Best for” lines (optional, one per line)</label>
-          <textarea id="portfolio-project-bestfor" rows="3" placeholder="Barbershops&#10;Studios with appointments"></textarea>
+          <textarea id="portfolio-project-bestfor" class="has-scrollbar" rows="3" placeholder="Barbershops&#10;Studios with appointments"></textarea>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="portfolio-project-form-cancel">Cancel</button>
@@ -4832,8 +5002,173 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     </div>
   </div>
 
+  <!-- CodeWithRuben Agency Tools modals -->
+  <div class="agency-modal" id="template-matcher-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content">
+      <div class="agency-modal-header">
+        <h3>Find your template</h3>
+        <button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <div class="agency-modal-body has-scrollbar">
+        <div class="matcher-step active" data-step="0">
+          <p class="matcher-step-title">What industry are you in?</p>
+          <div class="matcher-options">
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="lawn"> Lawn / landscaping</label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="barber"> Barber / salon / beauty</label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="food"> Restaurant / food</label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="hoa"> HOA / community</label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="shop"> Shop / e-commerce</label>
+            <label class="matcher-option"><input type="radio" name="matcher-industry" value="repair"> Repair / tech services</label>
+          </div>
+          <button type="button" class="btn btn-primary" id="matcher-next-1">Next</button>
+        </div>
+        <div class="matcher-step" data-step="1">
+          <p class="matcher-step-title">What do you need most?</p>
+          <div class="matcher-options">
+            <label class="matcher-option"><input type="radio" name="matcher-need" value="booking"> Booking & quotes</label>
+            <label class="matcher-option"><input type="radio" name="matcher-need" value="shop"> Online shop & orders</label>
+            <label class="matcher-option"><input type="radio" name="matcher-need" value="admin"> Admin / operations hub</label>
+            <label class="matcher-option"><input type="radio" name="matcher-need" value="community"> Community portal</label>
+          </div>
+          <button type="button" class="btn btn-secondary" id="matcher-back-2">Back</button>
+          <button type="button" class="btn btn-primary" id="matcher-next-2">Next</button>
+        </div>
+        <div class="matcher-step" data-step="2">
+          <p class="matcher-step-title">Budget range</p>
+          <div class="matcher-options">
+            <label class="matcher-option"><input type="radio" name="matcher-budget" value="low"> Under ~$1,500</label>
+            <label class="matcher-option"><input type="radio" name="matcher-budget" value="mid"> ~$1,500 – $2,750</label>
+            <label class="matcher-option"><input type="radio" name="matcher-budget" value="high"> $2,500+</label>
+          </div>
+          <button type="button" class="btn btn-secondary" id="matcher-back-3">Back</button>
+          <button type="button" class="btn btn-primary" id="matcher-next-3">See matches</button>
+        </div>
+        <div class="matcher-step" data-step="3">
+          <p class="matcher-step-title">Recommended for you</p>
+          <div id="matcher-results"></div>
+          <div class="form-group">
+            <label for="matcher-email">Email (optional)</label>
+            <input type="email" id="matcher-email" placeholder="you@business.com">
+          </div>
+          <button type="button" class="btn btn-primary" id="matcher-finish">Get a quote</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="agency-modal" id="project-hub-editor-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content agency-modal-content--wide">
+      <div class="agency-modal-header">
+        <h3>Project hub</h3>
+        <button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <div class="agency-modal-body has-scrollbar">
+        <input type="hidden" id="hub-edit-id">
+        <div class="form-row">
+          <div class="form-group form-group-half"><label for="hub-client-name">Client name</label><input type="text" id="hub-client-name"></div>
+          <div class="form-group form-group-half"><label for="hub-title">Project title</label><input type="text" id="hub-title"></div>
+        </div>
+        <div class="form-group"><label for="hub-lead-id">Pipeline lead ID</label><input type="text" id="hub-lead-id" placeholder="Optional link to CRM lead"></div>
+        <div class="form-row">
+          <div class="form-group form-group-half"><label for="hub-expo-url">Expo / live URL</label><input type="url" id="hub-expo-url"></div>
+          <div class="form-group form-group-half"><label for="hub-repo-url">Repo URL</label><input type="url" id="hub-repo-url"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-half"><label for="hub-firebase-id">Firebase project ID</label><input type="text" id="hub-firebase-id"></div>
+          <div class="form-group form-group-half"><label for="hub-business-doc-id">Business doc ID</label><input type="text" id="hub-business-doc-id"></div>
+        </div>
+        <div class="form-group"><label>Milestones</label><ul class="hub-milestone-list" id="hub-milestones-list"></ul></div>
+        <div class="form-group"><label>Enabled add-on modules</label><div id="hub-modules-checks"></div></div>
+        <div class="form-group"><label for="hub-notes">Notes</label><textarea id="hub-notes" class="has-scrollbar" rows="3"></textarea></div>
+        <p class="form-hint" id="hub-portal-link-out" hidden></p>
+      </div>
+      <div class="agency-modal-footer">
+        <button type="button" class="btn btn-secondary" id="hub-generate-portal-btn">Generate client link</button>
+        <button type="button" class="btn btn-primary" id="hub-save-btn">Save hub</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="agency-modal" id="case-study-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content agency-modal-content--wide">
+      <div class="agency-modal-header"><h3>Case study output</h3><button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button></div>
+      <div class="agency-modal-body has-scrollbar">
+        <div class="agency-output-tabs">
+          <button type="button" class="agency-output-tab active" data-output="md">Markdown</button>
+          <button type="button" class="agency-output-tab" data-output="social">Social</button>
+        </div>
+        <textarea id="case-study-output-md" class="agency-output-box has-scrollbar" readonly></textarea>
+        <textarea id="case-study-output-social" class="agency-output-box has-scrollbar" hidden readonly></textarea>
+      </div>
+      <div class="agency-modal-footer">
+        <button type="button" class="btn btn-secondary" id="case-study-copy-md">Copy markdown</button>
+        <button type="button" class="btn btn-secondary" id="case-study-copy-social">Copy social</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="agency-modal" id="maintenance-editor-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content">
+      <div class="agency-modal-header"><h3>Maintenance client</h3><button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button></div>
+      <div class="agency-modal-body has-scrollbar">
+        <input type="hidden" id="maint-edit-id">
+        <div class="form-group"><label for="maint-client-name">Client name</label><input type="text" id="maint-client-name"></div>
+        <div class="form-row">
+          <div class="form-group form-group-half"><label for="maint-hours-included">Hours included</label><input type="number" id="maint-hours-included" min="0" value="4"></div>
+          <div class="form-group form-group-half"><label for="maint-hours-used">Hours used</label><input type="number" id="maint-hours-used" min="0" value="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-half"><label for="maint-renewal">Renewal date</label><input type="date" id="maint-renewal"></div>
+          <div class="form-group form-group-half"><label for="maint-sla">SLA (hours)</label><input type="number" id="maint-sla" min="1" value="48"></div>
+        </div>
+        <div class="form-group"><label for="maint-notes">Notes</label><textarea id="maint-notes" class="has-scrollbar" rows="3"></textarea></div>
+      </div>
+      <div class="agency-modal-footer"><button type="button" class="btn btn-primary" id="maint-save-btn">Save</button></div>
+    </div>
+  </div>
+
+  <div class="agency-modal" id="content-repurpose-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content agency-modal-content--wide">
+      <div class="agency-modal-header"><h3>Repurposed content</h3><button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button></div>
+      <div class="agency-modal-body has-scrollbar">
+        <div class="agency-output-tabs">
+          <button type="button" class="agency-output-tab active" data-content-tab="linkedin">LinkedIn</button>
+          <button type="button" class="agency-output-tab" data-content-tab="script">Video script</button>
+        </div>
+        <textarea id="content-output-linkedin" class="agency-output-box has-scrollbar" readonly></textarea>
+        <textarea id="content-output-script" class="agency-output-box has-scrollbar" hidden readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="agency-modal" id="referral-editor-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content">
+      <div class="agency-modal-header"><h3>Referral partner</h3><button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button></div>
+      <div class="agency-modal-body has-scrollbar">
+        <input type="hidden" id="ref-edit-id">
+        <div class="form-group"><label for="ref-name">Name</label><input type="text" id="ref-name"></div>
+        <div class="form-group"><label for="ref-email">Email</label><input type="email" id="ref-email"></div>
+        <div class="form-group"><label for="ref-commission">Commission %</label><input type="number" id="ref-commission" min="0" max="100" value="10"></div>
+        <div class="form-group"><label for="ref-notes">Notes</label><textarea id="ref-notes" class="has-scrollbar" rows="2"></textarea></div>
+      </div>
+      <div class="agency-modal-footer"><button type="button" class="btn btn-primary" id="ref-save-btn">Save</button></div>
+    </div>
+  </div>
+
+  <div class="client-portal-view" id="client-portal-view" aria-hidden="true">
+    <button type="button" class="btn btn-secondary" id="client-portal-close" style="position:fixed;top:16px;right:16px;z-index:2;">Close</button>
+    <div class="client-portal-inner" id="client-portal-inner"></div>
+  </div>
+
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=admin-open-rules-20260522"></script>
+  <script src="/assets/js/script.js?v=admin-agency-subtabs-20260521"></script>
+  <script src="/assets/js/agency-tools.js?v=agency-tools-20260521"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

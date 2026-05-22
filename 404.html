@@ -68,7 +68,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=sidebar-info-fill-20260514">
+  <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-slideshow-20260521">
 
   <!--
     - google font link
@@ -1083,13 +1083,21 @@
           </button>
 
           <figure class="project-detail-media">
-            <img src="./assets/images/project-comingsoon.svg" alt="Project preview" id="project-detail-image">
+            <div class="portfolio-carousel project-detail-carousel" id="project-detail-carousel" aria-roledescription="carousel">
+              <div class="portfolio-carousel-track" id="project-detail-carousel-track" aria-live="polite"></div>
+              <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="project-detail-carousel-prev" aria-label="Previous screenshot" hidden>
+                <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="project-detail-carousel-next" aria-label="Next screenshot" hidden>
+                <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+              </button>
+              <div class="portfolio-carousel-dots" id="project-detail-carousel-dots" role="tablist" aria-label="Screenshot slides"></div>
+            </div>
           </figure>
 
           <div class="project-detail-body">
             <div class="project-detail-scroll has-scrollbar">
             <div class="project-detail-meta">
-              <span class="project-detail-category" id="project-detail-category">Application</span>
               <h3 class="h3 project-detail-title" id="project-detail-title">Project Title</h3>
             </div>
 
@@ -3554,7 +3562,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     - custom js link
   -->
   <script src="./assets/js/portfolio-built-in-data.js"></script>
-  <script src="./assets/js/script.js?v=admin-open-rules-20260522"></script>
+  <script src="./assets/js/script.js?v=portfolio-no-category-20260521"></script>
   <script src="./assets/js/dm-migration.js"></script>
 
   <!--

@@ -40,6 +40,31 @@
       ".read": true,
       ".write": true,
       ".indexOn": ["stage", "updatedAt", "createdAt"]
+    },
+    "agencyProjects": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["leadId", "updatedAt"]
+    },
+    "agencyMatcherSubmissions": {
+      ".read": true,
+      ".write": true
+    },
+    "agencyMaintenance": {
+      ".read": true,
+      ".write": true
+    },
+    "agencyReferrals": {
+      ".read": true,
+      ".write": true
+    },
+    "agencyClientPortals": {
+      ".read": true,
+      ".write": true
+    },
+    "agencyFirebaseHealth": {
+      ".read": true,
+      ".write": true
     }
   }
 }

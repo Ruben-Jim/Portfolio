@@ -2864,11 +2864,11 @@ function getPortfolioAssetImageOptions() {
     window.PORTFOLIO_ASSET_IMAGES.forEach(add);
   }
   (window.DEFAULT_PORTFOLIO_PROJECTS || []).forEach(function (p) {
-    add(p.imageUrl);
+    portfolioImageUrlsFromRecord(p).forEach(add);
   });
   if (Array.isArray(portfolioProjectsRtdb)) {
     portfolioProjectsRtdb.forEach(function (p) {
-      add(p.imageUrl);
+      portfolioImageUrlsFromRecord(p).forEach(add);
     });
   }
   PORTFOLIO_ASSET_IMAGE_FALLBACK.forEach(add);
@@ -2935,11 +2935,139 @@ function portfolioRelativeAssetPathForForm(url) {
   return normalized;
 }
 
+const PORTFOLIO_MAX_SLIDES = 12;
+
 function portfolioImageUrlFromRecord(row) {
   if (!row || typeof row !== 'object') return '';
   return portfolioNormalizeAssetImageUrl(
     row.imageUrl || row.imageURL || row.image || row.thumbnailUrl || ''
   );
+}
+
+function portfolioParseImageUrls(raw, legacyUrl) {
+  var list = [];
+  var seen = {};
+  function pushUrl(url) {
+    var normalized = portfolioNormalizeAssetImageUrl(url);
+    if (!normalized || seen[normalized]) return;
+    seen[normalized] = true;
+    list.push(normalized);
+  }
+  if (Array.isArray(raw)) {
+    raw.forEach(function (u) {
+      if (list.length >= PORTFOLIO_MAX_SLIDES) return;
+      pushUrl(u);
+    });
+  }
+  if (!list.length && legacyUrl) pushUrl(legacyUrl);
+  return list.slice(0, PORTFOLIO_MAX_SLIDES);
+}
+
+function portfolioImageUrlsFromRecord(row) {
+  if (!row || typeof row !== 'object') return [];
+  if (Array.isArray(row.imageUrls) && row.imageUrls.length) {
+    return portfolioParseImageUrls(row.imageUrls, portfolioImageUrlFromRecord(row));
+  }
+  return portfolioParseImageUrls(null, portfolioImageUrlFromRecord(row));
+}
+
+function portfolioPrimaryImageUrl(row) {
+  var urls = portfolioImageUrlsFromRecord(row);
+  return urls.length ? urls[0] : '';
+}
+
+function portfolioRenderCarousel(rootEl, options) {
+  if (!rootEl) return;
+  var track = rootEl.querySelector('.portfolio-carousel-track');
+  var prevBtn = rootEl.querySelector('.portfolio-carousel-prev');
+  var nextBtn = rootEl.querySelector('.portfolio-carousel-next');
+  var dotsEl = rootEl.querySelector('.portfolio-carousel-dots');
+  if (!track) return;
+
+  var urls = (options && options.urls) || [];
+  var altBase = (options && options.altBase) || 'Project screenshot';
+  var index = (options && options.startIndex) || 0;
+
+  if (!urls.length) {
+    urls = [PORTFOLIO_PLACEHOLDER_IMAGE];
+  }
+
+  track.innerHTML = urls
+    .map(function (url, i) {
+      var alt =
+        altBase +
+        (urls.length > 1 ? ' (' + (i + 1) + ' of ' + urls.length + ')' : '');
+      return (
+        '<div class="portfolio-carousel-slide' +
+        (i === index ? ' is-active' : '') +
+        '" data-index="' +
+        i +
+        '">' +
+        '<img src="' +
+        portfolioEscapeHtml(portfolioDisplayImageSrc(url)) +
+        '" alt="' +
+        portfolioEscapeHtml(alt) +
+        '" loading="lazy" onerror="portfolioHandleImageError(this)">' +
+        '</div>'
+      );
+    })
+    .join('');
+
+  function goTo(i) {
+    index = ((i % urls.length) + urls.length) % urls.length;
+    track.querySelectorAll('.portfolio-carousel-slide').forEach(function (slide, j) {
+      slide.classList.toggle('is-active', j === index);
+    });
+    if (dotsEl) {
+      dotsEl.querySelectorAll('.portfolio-carousel-dot').forEach(function (dot, j) {
+        dot.classList.toggle('is-active', j === index);
+        dot.setAttribute('aria-selected', j === index ? 'true' : 'false');
+      });
+    }
+  }
+
+  var multi = urls.length > 1;
+  if (prevBtn) {
+    prevBtn.hidden = !multi;
+    prevBtn.onclick = function () {
+      goTo(index - 1);
+    };
+  }
+  if (nextBtn) {
+    nextBtn.hidden = !multi;
+    nextBtn.onclick = function () {
+      goTo(index + 1);
+    };
+  }
+  if (dotsEl) {
+    if (multi) {
+      dotsEl.innerHTML = urls
+        .map(function (_, i) {
+          return (
+            '<button type="button" class="portfolio-carousel-dot' +
+            (i === index ? ' is-active' : '') +
+            '" role="tab" aria-label="Screenshot ' +
+            (i + 1) +
+            '" aria-selected="' +
+            (i === index ? 'true' : 'false') +
+            '" data-index="' +
+            i +
+            '"></button>'
+          );
+        })
+        .join('');
+      dotsEl.hidden = false;
+      dotsEl.querySelectorAll('.portfolio-carousel-dot').forEach(function (dot) {
+        dot.addEventListener('click', function () {
+          goTo(parseInt(dot.getAttribute('data-index'), 10));
+        });
+      });
+    } else {
+      dotsEl.innerHTML = '';
+      dotsEl.hidden = true;
+    }
+  }
+  goTo(index);
 }
 
 function populatePortfolioImageAssetSelect() {
@@ -2949,7 +3077,7 @@ function populatePortfolioImageAssetSelect() {
   if (select) {
     var current = select.value;
     select.innerHTML =
-      '<option value="">Custom path or external URL…</option>' +
+      '<option value="">Choose a screenshot…</option>' +
       options
         .map(function (path) {
           var label = path.replace(/^\/?assets\/images\//, '');
@@ -3037,13 +3165,23 @@ function getEffectivePortfolioProjects() {
 
 function syncWindowPortfolioProjectsRef() {
   window.portfolioProjects = getEffectivePortfolioProjects();
+  try {
+    document.dispatchEvent(new CustomEvent('portfolioProjectsLoaded'));
+  } catch (e) {
+    // no-op
+  }
 }
 
 function normalizePortfolioRtdbRow(row) {
   if (!row || typeof row !== 'object') return {};
   const out = Object.assign({}, row);
-  const normalizedImage = portfolioImageUrlFromRecord(row);
-  if (normalizedImage) out.imageUrl = normalizedImage;
+  const imageUrls = portfolioImageUrlsFromRecord(row);
+  if (imageUrls.length) {
+    out.imageUrls = imageUrls;
+    out.imageUrl = imageUrls[0];
+  } else {
+    delete out.imageUrls;
+  }
   if (out.order != null && out.order !== '') {
     const n = Number(String(out.order).trim());
     out.order = Number.isFinite(n) ? n : 0;
@@ -3095,12 +3233,6 @@ async function loadPortfolioProjectsFromRtdb() {
   }
 }
 
-function portfolioCategoryLabel(slug) {
-  const s = String(slug || '').toLowerCase();
-  if (s === 'creative') return 'Creative';
-  return 'Professional';
-}
-
 function portfolioParseTechTags(raw) {
   if (raw == null || raw === '') return [];
   if (Array.isArray(raw)) {
@@ -3118,16 +3250,17 @@ function portfolioTechTagsFromRecord(data) {
 }
 
 function portfolioSanitizeDocumentPayload(data) {
-  const cat = String(data.category || 'professional').toLowerCase();
-  const category = ['professional', 'creative'].indexOf(cat) >= 0 ? cat : 'professional';
+  const imageUrls = portfolioParseImageUrls(
+    data.imageUrls,
+    data.imageUrl != null ? data.imageUrl : ''
+  );
   const out = {
     order: Number(data.order) || 0,
-    category: category,
+    category: 'professional',
     title: String(data.title || '').slice(0, 200),
     projectUrl: String(data.projectUrl != null ? data.projectUrl : '').trim().slice(0, 2000),
-    imageUrl: portfolioNormalizeAssetImageUrl(
-      data.imageUrl != null ? data.imageUrl : ''
-    ).slice(0, 2000),
+    imageUrls: imageUrls,
+    imageUrl: imageUrls.length ? imageUrls[0] : '',
     imageAlt: String(data.imageAlt != null ? data.imageAlt : '').slice(0, 200),
     description: String(data.description != null ? data.description : '').slice(0, 8000),
     techTags: portfolioParseTechTags(data.techTags),
@@ -3352,14 +3485,13 @@ function portfolioGetDefaultBestFor(projectTitle, projectCategory) {
 
 function portfolioBestForTagsForProject(p) {
   const titleText = String(p.title || '').trim();
-  const categoryText = portfolioCategoryLabel(p.category);
   let tags = [];
   if (Array.isArray(p.bestFor) && p.bestFor.length) {
     tags = p.bestFor.slice();
   } else {
     const preset = PORTFOLIO_DETAIL_PRESETS[titleText];
     if (preset && preset.bestFor) tags = preset.bestFor.slice();
-    else tags = portfolioGetDefaultBestFor(titleText, categoryText);
+    else tags = portfolioGetDefaultBestFor(titleText, '');
   }
   const seen = {};
   const out = [];
@@ -3505,15 +3637,11 @@ function initPortfolioFilterControls() {
 }
 
 function buildPortfolioProjectCardHtml(p) {
-  const catSlug = String(p.category || 'professional').toLowerCase();
-  const catLabel = portfolioCategoryLabel(catSlug);
   const liveHref = portfolioSafeProjectUrl(p.projectUrl);
-  const imgSrc = portfolioDisplayImageSrc(p.imageUrl);
+  const imgSrc = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(p) || p.imageUrl);
   const nicheSlugs = portfolioCuratedNichesForProject(p).join(' ');
   return (
-    '<li class="project-item active" data-filter-item data-category="' +
-    portfolioEscapeHtml(catSlug) +
-    '" data-niches="' +
+    '<li class="project-item active" data-filter-item data-niches="' +
     portfolioEscapeHtml(nicheSlugs) +
     '" data-portfolio-id="' +
     portfolioEscapeHtml(p.id) +
@@ -3536,9 +3664,6 @@ function buildPortfolioProjectCardHtml(p) {
     '<h3 class="project-title">' +
     portfolioEscapeHtml(p.title || '') +
     '</h3>' +
-    '<p class="project-category">' +
-    portfolioEscapeHtml(catLabel) +
-    '</p>' +
     '<div class="project-bestfor-card" aria-label="Best for"></div>' +
     '</div>' +
     '</a>' +
@@ -3553,7 +3678,7 @@ function renderPublicPortfolioProjects() {
   ul.innerHTML = '';
   if (!list.length) {
     ul.innerHTML =
-      '<li class="project-item active" data-filter-item data-category="professional"><div class="project-card"><p class="portfolio-projects-loading-text">No projects configured.</p></div></li>';
+      '<li class="project-item active" data-filter-item><div class="project-card"><p class="portfolio-projects-loading-text">No projects configured.</p></div></li>';
     syncWindowPortfolioProjectsRef();
     return;
   }
@@ -3596,12 +3721,8 @@ function renderAdminPortfolioProjects() {
   listEl.innerHTML = '';
   portfolioProjectsRtdb.forEach(function (p) {
     const row = document.createElement('div');
-    var catKey = String(p.category || 'professional').toLowerCase();
-    if (['professional', 'creative'].indexOf(catKey) < 0) {
-      catKey = 'professional';
-    }
-    row.className = 'admin-portfolio-row admin-portfolio-row--' + catKey;
-    const thumb = portfolioDisplayImageSrc(p.imageUrl);
+    row.className = 'admin-portfolio-row';
+    const thumb = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(p) || p.imageUrl);
     const orderNum = p.order != null ? p.order : 0;
     row.innerHTML =
       '<div class="admin-portfolio-row-main">' +
@@ -3615,11 +3736,6 @@ function renderAdminPortfolioProjects() {
       portfolioEscapeHtml(p.title || 'Untitled') +
       '</span>' +
       '<div class="admin-portfolio-meta-row">' +
-      '<span class="admin-portfolio-badge admin-portfolio-badge--' +
-      catKey +
-      '">' +
-      portfolioEscapeHtml(portfolioCategoryLabel(p.category)) +
-      '</span>' +
       '<span class="admin-portfolio-order" title="Sort order">#' +
       String(orderNum) +
       '</span>' +
@@ -3647,35 +3763,242 @@ function renderAdminPortfolioProjects() {
 let portfolioModalHandlersBound = false;
 let pendingDeletePortfolioId = null;
 
-function syncPortfolioProjectImagePreview() {
-  const input = document.getElementById('portfolio-project-image');
-  const wrap = document.getElementById('portfolio-project-image-preview-wrap');
-  const preview = document.getElementById('portfolio-project-image-preview');
-  const err = document.getElementById('portfolio-project-image-preview-error');
-  if (!input || !wrap || !preview) return;
+function getPortfolioFormImageUrlsFromDom() {
+  const list = document.getElementById('portfolio-project-images-list');
+  if (!list) return [];
+  const raw = [];
+  list.querySelectorAll('[data-portfolio-image-url]').forEach(function (inp) {
+    raw.push(inp.value);
+  });
+  return portfolioParseImageUrls(raw);
+}
 
-  const raw = String(input.value || '').trim();
+function portfolioUpdateSlidesCount(count) {
+  const el = document.getElementById('portfolio-slides-count');
+  if (!el) return;
+  if (!count) {
+    el.hidden = true;
+    el.textContent = '';
+    return;
+  }
+  el.hidden = false;
+  el.textContent = count + ' / ' + PORTFOLIO_MAX_SLIDES + ' slides';
+}
+
+function portfolioTryAddFormImage(rawUrl, options) {
+  options = options || {};
+  const raw = String(rawUrl != null ? rawUrl : '').trim();
   if (!raw) {
+    if (!options.silent) showErrorMessage('Choose a file or enter a URL.');
+    return false;
+  }
+  const normalized = portfolioNormalizeAssetImageUrl(raw);
+  if (!normalized) {
+    if (!options.silent) showErrorMessage('Enter a valid image path or URL.');
+    return false;
+  }
+  const current = getPortfolioFormImageUrlsFromDom();
+  if (current.indexOf(normalized) >= 0) {
+    if (!options.silent) showErrorMessage('That image is already in the slideshow.');
+    return false;
+  }
+  if (current.length >= PORTFOLIO_MAX_SLIDES) {
+    if (!options.silent) showErrorMessage('Maximum ' + PORTFOLIO_MAX_SLIDES + ' images per project.');
+    return false;
+  }
+  current.push(normalized);
+  renderPortfolioFormImagesList(current);
+  const input = document.getElementById('portfolio-project-image');
+  const select = document.getElementById('portfolio-project-image-asset');
+  if (options.clearInput !== false && input) input.value = '';
+  if (select) select.value = '';
+  syncPortfolioImageAssetSelectFromInput();
+  return true;
+}
+
+function portfolioReorderFormImages(fromIndex, toIndex) {
+  const current = getPortfolioFormImageUrlsFromDom();
+  if (
+    fromIndex < 0 ||
+    toIndex < 0 ||
+    fromIndex >= current.length ||
+    toIndex >= current.length ||
+    fromIndex === toIndex
+  ) {
+    return;
+  }
+  const item = current.splice(fromIndex, 1)[0];
+  current.splice(toIndex, 0, item);
+  renderPortfolioFormImagesList(current);
+}
+
+let portfolioSlidesDragFromIndex = null;
+
+function initPortfolioSlidesListDrag() {
+  const list = document.getElementById('portfolio-project-images-list');
+  if (!list || list.dataset.dragBound === '1') return;
+  list.dataset.dragBound = '1';
+
+  list.addEventListener('dragstart', function (e) {
+    if (
+      e.target.closest(
+        '[data-portfolio-image-url], .portfolio-slides-remove, .portfolio-slides-thumb, .portfolio-project-images-url-input'
+      )
+    ) {
+      e.preventDefault();
+      return;
+    }
+    const item = e.target.closest('.portfolio-project-images-list-item');
+    if (!item || !list.contains(item)) return;
+    portfolioSlidesDragFromIndex = parseInt(item.getAttribute('data-portfolio-image-index'), 10);
+    if (!Number.isFinite(portfolioSlidesDragFromIndex)) return;
+    item.classList.add('is-dragging');
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(portfolioSlidesDragFromIndex));
+    }
+  });
+
+  list.addEventListener('dragover', function (e) {
+    const item = e.target.closest('.portfolio-project-images-list-item');
+    if (!item || !list.contains(item)) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    list.querySelectorAll('.portfolio-project-images-list-item.is-drag-over').forEach(function (el) {
+      el.classList.remove('is-drag-over');
+    });
+    item.classList.add('is-drag-over');
+  });
+
+  list.addEventListener('dragleave', function (e) {
+    const item = e.target.closest('.portfolio-project-images-list-item');
+    if (item) item.classList.remove('is-drag-over');
+  });
+
+  list.addEventListener('drop', function (e) {
+    e.preventDefault();
+    const item = e.target.closest('.portfolio-project-images-list-item');
+    list.querySelectorAll('.portfolio-project-images-list-item.is-drag-over').forEach(function (el) {
+      el.classList.remove('is-drag-over');
+    });
+    if (!item || portfolioSlidesDragFromIndex == null) return;
+    const toIndex = parseInt(item.getAttribute('data-portfolio-image-index'), 10);
+    if (Number.isFinite(toIndex)) portfolioReorderFormImages(portfolioSlidesDragFromIndex, toIndex);
+  });
+
+  list.addEventListener('dragend', function () {
+    portfolioSlidesDragFromIndex = null;
+    list.querySelectorAll('.portfolio-project-images-list-item.is-dragging').forEach(function (el) {
+      el.classList.remove('is-dragging');
+    });
+    list.querySelectorAll('.portfolio-project-images-list-item.is-drag-over').forEach(function (el) {
+      el.classList.remove('is-drag-over');
+    });
+  });
+}
+
+function renderPortfolioFormImagesList(urls) {
+  const list = document.getElementById('portfolio-project-images-list');
+  const empty = document.getElementById('portfolio-project-images-empty');
+  const parsed = portfolioParseImageUrls(urls);
+  if (!list) return;
+
+  list.innerHTML = parsed
+    .map(function (url, i) {
+      const displayPath = portfolioRelativeAssetPathForForm(url);
+      const coverBadge =
+        i === 0
+          ? '<span class="portfolio-slides-cover-badge">Card cover</span>'
+          : '';
+      return (
+        '<li class="portfolio-project-images-list-item" draggable="true" data-portfolio-image-index="' +
+        i +
+        '">' +
+        '<button type="button" class="portfolio-slides-drag" tabindex="-1" aria-hidden="true">' +
+        '<ion-icon name="reorder-three-outline"></ion-icon>' +
+        '</button>' +
+        '<div class="portfolio-slides-thumb">' +
+        '<img src="' +
+        portfolioEscapeHtml(portfolioDisplayImageSrc(url)) +
+        '" alt="" loading="lazy" onerror="portfolioHandleImageError(this)">' +
+        '</div>' +
+        '<div class="portfolio-slides-item-body">' +
+        '<div class="portfolio-slides-item-meta">' +
+        '<span class="portfolio-slides-item-index">Slide ' +
+        String(i + 1) +
+        '</span>' +
+        coverBadge +
+        '</div>' +
+        '<input type="text" class="portfolio-project-images-url-input" data-portfolio-image-url value="' +
+        portfolioEscapeHtml(displayPath) +
+        '" aria-label="Image path for slide ' +
+        String(i + 1) +
+        '">' +
+        '</div>' +
+        '<button type="button" class="portfolio-slides-remove" data-portfolio-image-remove="' +
+        i +
+        '" title="Remove slide" aria-label="Remove slide ' +
+        String(i + 1) +
+        '">' +
+        '<ion-icon name="trash-outline"></ion-icon>' +
+        '</button>' +
+        '</li>'
+      );
+    })
+    .join('');
+
+  list.hidden = parsed.length === 0;
+  if (empty) empty.hidden = parsed.length > 0;
+  portfolioUpdateSlidesCount(parsed.length);
+  syncPortfolioProjectImagePreview();
+}
+
+function portfolioAddFormImageFromInputs() {
+  const input = document.getElementById('portfolio-project-image');
+  return portfolioTryAddFormImage(input && input.value);
+}
+
+function resetPortfolioSlidesPreviewDetails() {
+  const details = document.getElementById('portfolio-slides-preview-details');
+  if (details) details.open = false;
+}
+
+function initPortfolioSlidesPreviewCollapse() {
+  const details = document.getElementById('portfolio-slides-preview-details');
+  if (!details || details.dataset.collapseBound === '1') return;
+  details.dataset.collapseBound = '1';
+  details.addEventListener('toggle', function () {
+    if (details.open) syncPortfolioProjectImagePreview();
+  });
+}
+
+function syncPortfolioProjectImagePreview() {
+  const wrap = document.getElementById('portfolio-project-image-preview-wrap');
+  const carousel = document.getElementById('portfolio-project-admin-carousel');
+  const err = document.getElementById('portfolio-project-image-preview-error');
+  const hint = document.getElementById('portfolio-slides-preview-hint');
+  if (!wrap || !carousel) return;
+
+  const urls = getPortfolioFormImageUrlsFromDom();
+  if (!urls.length) {
     wrap.hidden = true;
-    preview.removeAttribute('src');
     if (err) err.hidden = true;
+    resetPortfolioSlidesPreviewDetails();
     return;
   }
 
   wrap.hidden = false;
   if (err) err.hidden = true;
-  preview.dataset.portfolioImgFailed = '';
-  preview.alt =
+  if (hint) {
+    hint.textContent =
+      urls.length +
+      (urls.length === 1 ? ' slide' : ' slides') +
+      ' — expand to preview';
+  }
+  const alt =
     String(document.getElementById('portfolio-project-image-alt')?.value || '').trim() ||
-    'Image preview';
-  preview.onerror = function () {
-    portfolioHandleImageError(preview);
-    if (err) err.hidden = false;
-  };
-  preview.onload = function () {
-    if (err) err.hidden = true;
-  };
-  preview.src = portfolioDisplayImageSrc(raw);
+    'Slideshow preview';
+  portfolioRenderCarousel(carousel, { urls: urls, altBase: alt });
 }
 
 function openPortfolioProjectModal(isNew, project) {
@@ -3688,15 +4011,10 @@ function openPortfolioProjectModal(isNew, project) {
   if (titleEl) titleEl.textContent = isNew ? 'New portfolio project' : 'Edit portfolio project';
   if (!isNew && project) {
     document.getElementById('portfolio-project-title').value = project.title || '';
-    document.getElementById('portfolio-project-category').value =
-      ['professional', 'creative'].indexOf(String(project.category || '').toLowerCase()) >= 0
-        ? String(project.category).toLowerCase()
-        : 'professional';
     document.getElementById('portfolio-project-url').value = project.projectUrl || '';
-    document.getElementById('portfolio-project-image').value = portfolioRelativeAssetPathForForm(
-      project.imageUrl || ''
-    );
+    document.getElementById('portfolio-project-image').value = '';
     document.getElementById('portfolio-project-image-alt').value = project.imageAlt || '';
+    renderPortfolioFormImagesList(portfolioImageUrlsFromRecord(project));
     document.getElementById('portfolio-project-description').value = project.description || '';
     document.getElementById('portfolio-project-tech').value = portfolioParseTechTags(project.techTags).join(', ');
     document.getElementById('portfolio-project-outcome').value = project.outcome || '';
@@ -3709,9 +4027,11 @@ function openPortfolioProjectModal(isNew, project) {
       : '';
   } else {
     document.getElementById('portfolio-project-show-quote').checked = true;
+    renderPortfolioFormImagesList([]);
   }
   populatePortfolioImageAssetSelect();
   syncPortfolioImageAssetSelectFromInput();
+  resetPortfolioSlidesPreviewDetails();
   syncPortfolioProjectImagePreview();
   modal.classList.add('active');
   modal.style.display = 'flex';
@@ -3780,29 +4100,62 @@ function setupPortfolioAdminControls() {
   const imageAssetSelect = document.getElementById('portfolio-project-image-asset');
   const imageInput = document.getElementById('portfolio-project-image');
   const imageAltInput = document.getElementById('portfolio-project-image-alt');
+  const addFromAssetBtn = document.getElementById('portfolio-project-add-from-asset');
+
   if (imageAssetSelect && !imageAssetSelect.dataset.bound) {
     imageAssetSelect.dataset.bound = '1';
     imageAssetSelect.addEventListener('change', function () {
-      if (imageAssetSelect.value && imageInput) {
-        imageInput.value = imageAssetSelect.value;
-      }
-      syncPortfolioProjectImagePreview();
+      if (!imageAssetSelect.value) return;
+      portfolioTryAddFormImage(imageAssetSelect.value);
+    });
+  }
+  if (addFromAssetBtn && !addFromAssetBtn.dataset.bound) {
+    addFromAssetBtn.dataset.bound = '1';
+    addFromAssetBtn.addEventListener('click', function () {
+      portfolioTryAddFormImage(imageAssetSelect && imageAssetSelect.value);
     });
   }
   if (imageInput && !imageInput.dataset.previewBound) {
     imageInput.dataset.previewBound = '1';
-    imageInput.addEventListener('input', function () {
-      syncPortfolioImageAssetSelectFromInput();
-      syncPortfolioProjectImagePreview();
-    });
-    imageInput.addEventListener('change', function () {
-      syncPortfolioImageAssetSelectFromInput();
-      syncPortfolioProjectImagePreview();
+    imageInput.addEventListener('input', syncPortfolioImageAssetSelectFromInput);
+    imageInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        portfolioAddFormImageFromInputs();
+      }
     });
   }
   if (imageAltInput && !imageAltInput.dataset.previewBound) {
     imageAltInput.dataset.previewBound = '1';
     imageAltInput.addEventListener('input', syncPortfolioProjectImagePreview);
+  }
+
+  const addImageBtn = document.getElementById('portfolio-project-add-image-btn');
+  if (addImageBtn && !addImageBtn.dataset.bound) {
+    addImageBtn.dataset.bound = '1';
+    addImageBtn.addEventListener('click', portfolioAddFormImageFromInputs);
+  }
+
+  initPortfolioSlidesListDrag();
+  initPortfolioSlidesPreviewCollapse();
+
+  const imagesList = document.getElementById('portfolio-project-images-list');
+  if (imagesList && !imagesList.dataset.bound) {
+    imagesList.dataset.bound = '1';
+    imagesList.addEventListener('click', function (e) {
+      const remove = e.target.closest('[data-portfolio-image-remove]');
+      if (!remove) return;
+      e.preventDefault();
+      const idx = parseInt(remove.getAttribute('data-portfolio-image-remove'), 10);
+      const current = getPortfolioFormImageUrlsFromDom();
+      current.splice(idx, 1);
+      renderPortfolioFormImagesList(current);
+    });
+    imagesList.addEventListener('input', function (e) {
+      if (e.target.matches('[data-portfolio-image-url]')) {
+        syncPortfolioProjectImagePreview();
+      }
+    });
   }
 
   if (form && !form.dataset.bound) {
@@ -3818,11 +4171,18 @@ function setupPortfolioAdminControls() {
         return;
       }
       const editId = document.getElementById('portfolio-project-edit-id').value.trim();
+      const formImageUrls = getPortfolioFormImageUrlsFromDom();
+      const pendingUrl = portfolioNormalizeAssetImageUrl(
+        document.getElementById('portfolio-project-image').value
+      );
+      if (pendingUrl && formImageUrls.indexOf(pendingUrl) < 0) {
+        formImageUrls.push(pendingUrl);
+      }
       const payload = {
         title: document.getElementById('portfolio-project-title').value,
-        category: document.getElementById('portfolio-project-category').value,
         projectUrl: document.getElementById('portfolio-project-url').value,
-        imageUrl: document.getElementById('portfolio-project-image').value,
+        imageUrls: formImageUrls,
+        imageUrl: formImageUrls.length ? formImageUrls[0] : '',
         imageAlt: document.getElementById('portfolio-project-image-alt').value,
         description: document.getElementById('portfolio-project-description').value,
         techTags: document.getElementById('portfolio-project-tech').value,
@@ -4306,8 +4666,8 @@ function initPortfolioProjectModal() {
   const modal = document.getElementById('project-detail-modal');
   const overlay = document.getElementById('project-detail-overlay');
   const closeBtn = document.getElementById('project-detail-close');
-  const image = document.getElementById('project-detail-image');
-  const category = document.getElementById('project-detail-category');
+  const detailCarousel = document.getElementById('project-detail-carousel');
+  const outcomeSection = document.getElementById('project-detail-outcome-section');
   const title = document.getElementById('project-detail-title');
   const description = document.getElementById('project-detail-description');
   const tech = document.getElementById('project-detail-tech');
@@ -4331,14 +4691,12 @@ function initPortfolioProjectModal() {
     const projectCards = document.querySelectorAll('.project-card');
     projectCards.forEach((card) => {
       const titleNode = card.querySelector('.project-title');
-      const categoryNode = card.querySelector('.project-category');
     const bestForContainer =
       card.querySelector('.project-bestfor-card') || card.querySelector('.project-details-card');
     const existingSection = card.querySelector('.project-fit-section');
     if (!titleNode || !bestForContainer || existingSection) return;
 
       const titleText = titleNode.textContent.trim();
-      const categoryText = categoryNode ? categoryNode.textContent.trim() : 'Project';
       const rowItem = card.closest('.project-item');
       const pid = rowItem ? rowItem.getAttribute('data-portfolio-id') : null;
       let customBest = null;
@@ -4352,7 +4710,7 @@ function initPortfolioProjectModal() {
       }
       const preset = PORTFOLIO_DETAIL_PRESETS[titleText];
       const bestForItems =
-        customBest || preset?.bestFor || portfolioGetDefaultBestFor(titleText, categoryText);
+        customBest || preset?.bestFor || portfolioGetDefaultBestFor(titleText, '');
 
       const section = document.createElement('section');
       section.className = 'project-fit-section';
@@ -4506,13 +4864,11 @@ function initPortfolioProjectModal() {
   function fillProjectModal(card, link) {
     const cardImage = card.querySelector('.project-img img');
     const cardTitle = card.querySelector('.project-title');
-    const cardCategory = card.querySelector('.project-category');
     const cardDescription = card.querySelector('.project-description');
     const liveUrl = (link.getAttribute('href') || '').trim();
     const hasLiveUrl = liveUrl && liveUrl !== '#' && !liveUrl.startsWith('#');
 
     const titleText = cardTitle ? cardTitle.textContent.trim() : 'Project';
-    const categoryText = cardCategory ? cardCategory.textContent.trim() : 'Project';
     let descriptionText = cardDescription ? cardDescription.textContent.trim() : '';
     const projectPreset = PORTFOLIO_DETAIL_PRESETS[titleText];
     const rowItem = card.closest('.project-item');
@@ -4530,25 +4886,25 @@ function initPortfolioProjectModal() {
       if (d) descriptionText = d;
     }
 
-    if (image) {
-      if (record && record.imageUrl) {
-        image.src = portfolioDisplayImageSrc(record.imageUrl);
-      } else if (cardImage && cardImage.getAttribute('src')) {
-        image.src = cardImage.getAttribute('src');
-      } else {
-        image.src = portfolioDisplayImageSrc(PORTFOLIO_PLACEHOLDER_IMAGE);
-      }
-      image.alt =
-        (record && record.imageAlt) ||
-        (cardImage && cardImage.getAttribute('alt')) ||
-        'Project preview';
-      image.dataset.portfolioImgFailed = '';
-      image.onerror = function () {
-        portfolioHandleImageError(image);
-      };
+    var slideUrls = record ? portfolioImageUrlsFromRecord(record) : [];
+    if (!slideUrls.length && cardImage && cardImage.getAttribute('src')) {
+      var cardSrc = cardImage.getAttribute('src') || '';
+      var fromCard = portfolioNormalizeAssetImageUrl(
+        cardSrc.replace(/\?v=[^&]+/, '').replace(/^https?:\/\/[^/]+/, '')
+      );
+      if (fromCard) slideUrls = [fromCard];
+    }
+    if (detailCarousel) {
+      portfolioRenderCarousel(detailCarousel, {
+        urls: slideUrls,
+        altBase:
+          (record && record.imageAlt) ||
+          (cardImage && cardImage.getAttribute('alt')) ||
+          titleText ||
+          'Project preview'
+      });
     }
     if (title) title.textContent = titleText;
-    if (category) category.textContent = categoryText;
     if (description) description.textContent = descriptionText;
     if (tech) {
       const tags = record ? portfolioTechTagsFromRecord(record) : [];
@@ -4567,11 +4923,13 @@ function initPortfolioProjectModal() {
     if (outcome) {
       const outcomeText = record && record.outcome != null ? String(record.outcome).trim() : '';
       if (outcomeText) {
-        outcome.innerHTML = '<strong>Outcome:</strong> ' + portfolioEscapeHtml(outcomeText);
+        outcome.textContent = outcomeText;
         outcome.hidden = false;
+        if (outcomeSection) outcomeSection.hidden = false;
       } else {
         outcome.textContent = '';
         outcome.hidden = true;
+        if (outcomeSection) outcomeSection.hidden = true;
       }
     }
 
@@ -4592,7 +4950,7 @@ function initPortfolioProjectModal() {
       } else if (projectPreset && Array.isArray(projectPreset.bestFor) && projectPreset.bestFor.length) {
         bestForItems = projectPreset.bestFor;
       } else {
-        bestForItems = portfolioGetDefaultBestFor(titleText, categoryText);
+        bestForItems = portfolioGetDefaultBestFor(titleText, '');
       }
       if (bestForItems.length) {
         bestForList.innerHTML = bestForItems
@@ -6125,6 +6483,12 @@ window.addEventListener('load', function() {
     if (typeof window.subscribePipelineLeads === 'function') {
       window.subscribePipelineLeads();
     }
+    document.dispatchEvent(
+      new CustomEvent('adminSessionReady', { detail: { isAdmin: true } })
+    );
+    if (window.AgencyTools && typeof window.AgencyTools.subscribe === 'function') {
+      window.AgencyTools.subscribe();
+    }
   }
 
   // Handle logout
@@ -6141,6 +6505,12 @@ window.addEventListener('load', function() {
     if (typeof window.unsubscribePipelineLeads === 'function') {
       window.unsubscribePipelineLeads();
     }
+    if (window.AgencyTools && typeof window.AgencyTools.unsubscribe === 'function') {
+      window.AgencyTools.unsubscribe();
+    }
+    document.dispatchEvent(
+      new CustomEvent('adminSessionReady', { detail: { isAdmin: false } })
+    );
 
     sessionStorage.removeItem(ADMIN_SESSION_KEY);
 
@@ -6878,7 +7248,11 @@ window.addEventListener('load', function() {
       panels = Array.prototype.slice.call(root.querySelectorAll('.admin-tab-panel'));
     }
     var STORAGE_KEY = 'adminActiveTab';
-    var VALID = { docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1, ops: 1 };
+    var VALID = {
+      overview: 1, docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      hub: 1, maintenance: 1, referrals: 1, health: 1, ops: 1
+    };
+    var AGENCY_TABS = { hub: 1, maintenance: 1, referrals: 1, health: 1 };
 
     function activate(tabId) {
       if (!VALID[tabId]) return;
@@ -6904,13 +7278,17 @@ window.addEventListener('load', function() {
       if (tabId === 'portfolio' && typeof populatePortfolioImageAssetSelect === 'function') {
         populatePortfolioImageAssetSelect();
       }
+      if (AGENCY_TABS[tabId] && window.AgencyTools && typeof window.AgencyTools.subscribe === 'function') {
+        window.AgencyTools.subscribe();
+      }
     }
 
     var saved = null;
     try {
       saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved === 'agency') saved = 'hub';
     } catch (e) {}
-    var initial = saved && VALID[saved] ? saved : 'messages';
+    var initial = saved && VALID[saved] ? saved : 'overview';
 
     tabs.forEach(function(tab) {
       tab.addEventListener('click', function() {
@@ -6964,8 +7342,8 @@ window.addEventListener('load', function() {
           }
         }, 80);
       }
-      // For add-lead quick action, focus the Add Lead button
-      if (el.getAttribute('data-admin-qa-tab') === 'pipeline') {
+      // For add-lead quick action, open lead modal on pipeline tab
+      if (el.getAttribute('data-admin-qa-tab') === 'pipeline' && el.getAttribute('data-admin-qa-action') === 'add-lead') {
         setTimeout(function() {
           var addLeadBtn = document.getElementById('admin-add-lead-btn');
           if (addLeadBtn) addLeadBtn.focus();
@@ -7141,12 +7519,14 @@ window.addEventListener('load', function() {
     var elValue = document.getElementById('pipeline-total-value');
     var elWon = document.getElementById('pipeline-won-value');
     var kpiValue = document.getElementById('kpi-pipeline-value');
+    var kpiActive = document.getElementById('kpi-active-projects');
 
     if (elTotal) elTotal.textContent = String(total);
     if (elActive) elActive.textContent = String(active);
     if (elValue) elValue.textContent = formatPipelineMoney(openValue);
     if (elWon) elWon.textContent = formatPipelineMoney(wonValue);
     if (kpiValue) kpiValue.textContent = formatPipelineMoney(openValue);
+    if (kpiActive) kpiActive.textContent = String(active);
   }
 
   function buildPipelineStageSelect(leadId, currentStage) {
@@ -7178,8 +7558,9 @@ window.addEventListener('load', function() {
       var container = document.getElementById('pipeline-cards-' + lead.stage);
       if (!container) return;
 
-      var card = document.createElement('article');
+      var card = document.createElement('div');
       card.className = 'pipeline-card';
+      card.setAttribute('role', 'article');
       card.setAttribute('draggable', 'true');
       card.setAttribute('data-lead-id', lead.id);
       card.setAttribute('tabindex', '0');
@@ -7225,6 +7606,8 @@ window.addEventListener('load', function() {
       return l.id === id;
     });
   }
+
+  window.findPipelineLead = findPipelineLead;
 
   function openLeadModal(lead) {
     if (!leadModal) return;
@@ -7328,6 +7711,23 @@ window.addEventListener('load', function() {
       leadDrawerOverlay.setAttribute('aria-hidden', 'false');
     }
     document.body.classList.add('lead-drawer-open');
+  }
+
+  var leadDrawerHubBtn = document.getElementById('lead-drawer-hub-btn');
+  if (leadDrawerHubBtn && !leadDrawerHubBtn.dataset.bound) {
+    leadDrawerHubBtn.dataset.bound = '1';
+    leadDrawerHubBtn.addEventListener('click', function () {
+      if (!pipelineDetailLeadId) return;
+      closeLeadDetail();
+      if (typeof window.switchToPage === 'function') window.switchToPage('admin');
+      window.setTimeout(function () {
+        var hubTab = document.querySelector('[data-admin-tab="hub"]');
+        if (hubTab) hubTab.click();
+        if (window.AgencyTools && typeof window.AgencyTools.openProjectHub === 'function') {
+          window.AgencyTools.openProjectHub(pipelineDetailLeadId);
+        }
+      }, 120);
+    });
   }
 
   function closeLeadDetail() {
