@@ -7253,6 +7253,33 @@ window.addEventListener('load', function() {
       hub: 1, maintenance: 1, referrals: 1, health: 1, ops: 1
     };
     var AGENCY_TABS = { hub: 1, maintenance: 1, referrals: 1, health: 1 };
+    var navGroups = tabBar.querySelectorAll('.admin-nav-group');
+
+    function syncNavGroups(activeTabId) {
+      navGroups.forEach(function(group) {
+        var hasActive = !!group.querySelector('.admin-tab.is-active');
+        group.classList.toggle('has-active', hasActive);
+        if (hasActive) {
+          group.classList.add('is-expanded');
+          var toggle = group.querySelector('.admin-nav-group-toggle');
+          if (toggle) toggle.setAttribute('aria-expanded', 'true');
+        }
+      });
+    }
+
+    function initNavGroupToggles() {
+      navGroups.forEach(function(group) {
+        var toggle = group.querySelector('.admin-nav-group-toggle');
+        if (!toggle || toggle.dataset.bound === '1') return;
+        toggle.dataset.bound = '1';
+        toggle.addEventListener('click', function(e) {
+          if (window.matchMedia('(max-width: 767px)').matches) return;
+          e.preventDefault();
+          var expanded = group.classList.toggle('is-expanded');
+          toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+      });
+    }
 
     function activate(tabId) {
       if (!VALID[tabId]) return;
@@ -7269,6 +7296,7 @@ window.addEventListener('load', function() {
         p.classList.toggle('is-active', on);
         p.hidden = !on;
       });
+      syncNavGroups(tabId);
       try {
         sessionStorage.setItem(STORAGE_KEY, tabId);
       } catch (e) {}
@@ -7317,6 +7345,7 @@ window.addEventListener('load', function() {
       }
     });
 
+    initNavGroupToggles();
     activate(initial);
 
     // Expose for KPI cards and Quick Action buttons

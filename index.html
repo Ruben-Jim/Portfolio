@@ -2396,55 +2396,82 @@
           </header>
 
         <div class="admin-tabs" id="admin-tabs">
-          <div class="admin-tab-bar" role="tablist" aria-label="Admin dashboard sections">
+          <nav class="admin-tab-bar" aria-label="Admin dashboard sections">
             <button type="button" class="admin-tab is-active" role="tab" id="admin-tab-overview" data-admin-tab="overview" data-mobile-primary aria-selected="true" aria-controls="admin-panel-overview" tabindex="0" aria-label="Overview">
               <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Overview</span><span class="admin-tab-label-mobile">Overview</span></span>
             </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" data-mobile-primary aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1" aria-label="Business Documents">
-              <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Documents</span><span class="admin-tab-label-mobile">Docs</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-mobile-primary aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
-              <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-testimonials" data-admin-tab="testimonials" aria-selected="false" aria-controls="admin-panel-testimonials" tabindex="-1" aria-label="Testimonial requests">
-              <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Testimonials</span><span class="admin-tab-label-mobile">Reviews</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-blog" data-admin-tab="blog" aria-selected="false" aria-controls="admin-panel-blog" tabindex="-1" aria-label="Blog Management">
-              <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Blog Management</span><span class="admin-tab-label-mobile">Blog</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-portfolio" data-admin-tab="portfolio" aria-selected="false" aria-controls="admin-panel-portfolio" tabindex="-1" aria-label="Portfolio Projects">
-              <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Portfolio Projects</span><span class="admin-tab-label-mobile">Portfolio</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-pipeline" data-admin-tab="pipeline" data-mobile-primary aria-selected="false" aria-controls="admin-panel-pipeline" tabindex="-1" aria-label="Client Pipeline">
-              <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub">
-              <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Project Hub</span><span class="admin-tab-label-mobile">Hub</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-maintenance" data-admin-tab="maintenance" aria-selected="false" aria-controls="admin-panel-maintenance" tabindex="-1" aria-label="Maintenance and SLA">
-              <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Maintenance</span><span class="admin-tab-label-mobile">Maint</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-referrals" data-admin-tab="referrals" aria-selected="false" aria-controls="admin-panel-referrals" tabindex="-1" aria-label="Referral partners">
-              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Referrals</span><span class="admin-tab-label-mobile">Referrals</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-health" data-admin-tab="health" aria-selected="false" aria-controls="admin-panel-health" tabindex="-1" aria-label="Firebase Health">
-              <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Firebase Health</span><span class="admin-tab-label-mobile">Health</span></span>
-            </button>
-            <button type="button" class="admin-tab" role="tab" id="admin-tab-ops" data-admin-tab="ops" aria-selected="false" aria-controls="admin-panel-ops" tabindex="-1" aria-label="Business Ops Manual">
-              <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
-              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Ops Manual</span><span class="admin-tab-label-mobile">Ops</span></span>
-            </button>
+
+            <div class="admin-nav-group is-expanded" data-nav-group="clients">
+              <button type="button" class="admin-nav-group-toggle" id="admin-nav-toggle-clients" aria-expanded="true" aria-controls="admin-nav-items-clients">
+                <span class="admin-nav-group-label">Clients</span>
+                <ion-icon name="chevron-down-outline" class="admin-nav-group-chevron" aria-hidden="true"></ion-icon>
+              </button>
+              <div class="admin-nav-group-items" id="admin-nav-items-clients" role="group" aria-labelledby="admin-nav-toggle-clients">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-mobile-primary aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
+                  <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-pipeline" data-admin-tab="pipeline" data-mobile-primary aria-selected="false" aria-controls="admin-panel-pipeline" tabindex="-1" aria-label="Client Pipeline">
+                  <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub">
+                  <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Project Hub</span><span class="admin-tab-label-mobile">Hub</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-maintenance" data-admin-tab="maintenance" aria-selected="false" aria-controls="admin-panel-maintenance" tabindex="-1" aria-label="Maintenance and SLA">
+                  <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Maintenance</span><span class="admin-tab-label-mobile">Maint</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-referrals" data-admin-tab="referrals" aria-selected="false" aria-controls="admin-panel-referrals" tabindex="-1" aria-label="Referral partners">
+                  <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Referrals</span><span class="admin-tab-label-mobile">Referrals</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-health" data-admin-tab="health" aria-selected="false" aria-controls="admin-panel-health" tabindex="-1" aria-label="Firebase Health">
+                  <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Firebase Health</span><span class="admin-tab-label-mobile">Health</span></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="admin-nav-group is-expanded" data-nav-group="content">
+              <button type="button" class="admin-nav-group-toggle" id="admin-nav-toggle-content" aria-expanded="true" aria-controls="admin-nav-items-content">
+                <span class="admin-nav-group-label">Content</span>
+                <ion-icon name="chevron-down-outline" class="admin-nav-group-chevron" aria-hidden="true"></ion-icon>
+              </button>
+              <div class="admin-nav-group-items" id="admin-nav-items-content" role="group" aria-labelledby="admin-nav-toggle-content">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-portfolio" data-admin-tab="portfolio" aria-selected="false" aria-controls="admin-panel-portfolio" tabindex="-1" aria-label="Portfolio Projects">
+                  <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Portfolio Projects</span><span class="admin-tab-label-mobile">Portfolio</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-blog" data-admin-tab="blog" aria-selected="false" aria-controls="admin-panel-blog" tabindex="-1" aria-label="Blog Management">
+                  <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Blog Management</span><span class="admin-tab-label-mobile">Blog</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-testimonials" data-admin-tab="testimonials" aria-selected="false" aria-controls="admin-panel-testimonials" tabindex="-1" aria-label="Testimonial requests">
+                  <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Testimonials</span><span class="admin-tab-label-mobile">Reviews</span></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="admin-nav-group is-expanded" data-nav-group="business">
+              <button type="button" class="admin-nav-group-toggle" id="admin-nav-toggle-business" aria-expanded="true" aria-controls="admin-nav-items-business">
+                <span class="admin-nav-group-label">Business</span>
+                <ion-icon name="chevron-down-outline" class="admin-nav-group-chevron" aria-hidden="true"></ion-icon>
+              </button>
+              <div class="admin-nav-group-items" id="admin-nav-items-business" role="group" aria-labelledby="admin-nav-toggle-business">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" data-mobile-primary aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1" aria-label="Business Documents">
+                  <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Documents</span><span class="admin-tab-label-mobile">Docs</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-ops" data-admin-tab="ops" aria-selected="false" aria-controls="admin-panel-ops" tabindex="-1" aria-label="Business Ops Manual">
+                  <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Ops Manual</span><span class="admin-tab-label-mobile">Ops</span></span>
+                </button>
+              </div>
+            </div>
             <!-- More overflow button — mobile only -->
             <div class="admin-tab-more-wrap" id="admin-tab-more-wrap">
               <button type="button" class="admin-tab-more-btn" id="admin-tab-more-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="More tabs">
@@ -2454,7 +2481,7 @@
               </button>
               <div class="admin-tab-more-dropdown" id="admin-tab-more-dropdown" role="listbox" aria-hidden="true"></div>
             </div>
-          </div>
+          </nav>
 
           <div class="admin-tabs-body">
           <div class="admin-tab-panels">
@@ -5167,7 +5194,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=admin-agency-subtabs-20260521"></script>
+  <script src="/assets/js/script.js?v=admin-nav-groups-20260521"></script>
   <script src="/assets/js/agency-tools.js?v=agency-tools-20260521"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
