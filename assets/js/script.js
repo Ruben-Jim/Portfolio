@@ -7400,6 +7400,11 @@ window.addEventListener('load', function() {
     var reorderStrip = null;
     var tabHomes = null;
     var stripEventsBound = false;
+    var stripDragReady = false;
+    var stripDragTimer = null;
+    var stripPointerStartX = 0;
+    var stripPointerStartY = 0;
+    var stripScrollIntent = false;
 
     function isMobileBar() {
       return window.matchMedia('(max-width: 767px)').matches;
@@ -7574,9 +7579,9 @@ window.addEventListener('load', function() {
       ensureReorderDock();
       reorderDock.hidden = false;
       setReorderStep(
-        'Step 1: Drag a tab left or right. Step 2: First ' +
+        'Swipe sideways to see more tabs · hold a tab to drag it · first ' +
           PRIMARY_SLOT_COUNT +
-          ' tabs stay on the bottom bar. Tap Done when finished.'
+          ' stay on the bar · tap Done'
       );
       if (navigator.vibrate) {
         try { navigator.vibrate(12); } catch (e) {}
@@ -7664,8 +7669,39 @@ window.addEventListener('load', function() {
       return hit && hit.closest('.admin-tab[data-admin-tab]');
     }
 
+    function clearStripDragTimer() {
+      if (stripDragTimer) {
+        clearTimeout(stripDragTimer);
+        stripDragTimer = null;
+      }
+    }
+
+    function resetStripDragState() {
+      clearStripDragTimer();
+      stripDragReady = false;
+      stripScrollIntent = false;
+      dragTabId = null;
+      allTabButtons().forEach(function (btn) {
+        btn.classList.remove('is-dragging');
+      });
+    }
+
     function onReorderPointerMove(e) {
-      if (!reorderActive || !dragTabId || !reorderStrip) return;
+      if (!reorderActive || !reorderStrip) return;
+      var dx = e.clientX - stripPointerStartX;
+      var dy = e.clientY - stripPointerStartY;
+
+      if (!stripDragReady) {
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          clearStripDragTimer();
+          if (Math.abs(dx) > Math.abs(dy) + 4) {
+            stripScrollIntent = true;
+          }
+        }
+        return;
+      }
+
+      if (!dragTabId || stripScrollIntent) return;
       var target = tabUnderPointer(e.clientX, e.clientY);
       if (target && reorderStrip.contains(target)) {
         swapToward(dragTabId, target.getAttribute('data-admin-tab'));
@@ -7673,16 +7709,17 @@ window.addEventListener('load', function() {
       }
     }
 
-    function onReorderPointerUp() {
+    function onReorderPointerUp(e) {
       if (!reorderActive) return;
-      allTabButtons().forEach(function (btn) {
-        btn.classList.remove('is-dragging');
-      });
-      dragTabId = null;
+      clearStripDragTimer();
+      if (stripDragReady && e && e.target && e.target.releasePointerCapture) {
+        try { e.target.releasePointerCapture(e.pointerId); } catch (err) {}
+      }
+      resetStripDragState();
       setReorderStep(
-        'Step 1: Drag a tab left or right. Step 2: First ' +
+        'Swipe sideways to see more tabs · hold a tab to drag it · first ' +
           PRIMARY_SLOT_COUNT +
-          ' tabs stay on the bottom bar. Tap Done when finished.'
+          ' stay on the bar · tap Done'
       );
     }
 
@@ -7690,19 +7727,35 @@ window.addEventListener('load', function() {
       if (!reorderActive) return;
       var tab = e.target.closest('.admin-tab[data-admin-tab]');
       if (!tab || !reorderStrip.contains(tab)) return;
-      dragTabId = tab.getAttribute('data-admin-tab');
-      tab.classList.add('is-dragging');
-      setReorderStep('Drag over another tab, then release to swap positions');
-      if (tab.setPointerCapture && e.pointerId != null) {
-        try { tab.setPointerCapture(e.pointerId); } catch (err) {}
-      }
+
+      stripPointerStartX = e.clientX;
+      stripPointerStartY = e.clientY;
+      stripScrollIntent = false;
+      stripDragReady = false;
+      clearStripDragTimer();
+
+      var tabId = tab.getAttribute('data-admin-tab');
+      stripDragTimer = setTimeout(function () {
+        stripDragTimer = null;
+        if (stripScrollIntent) return;
+        stripDragReady = true;
+        dragTabId = tabId;
+        tab.classList.add('is-dragging');
+        setReorderStep('Drag over another tab, then release to swap positions');
+        if (tab.setPointerCapture && e.pointerId != null) {
+          try { tab.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+        if (navigator.vibrate) {
+          try { navigator.vibrate(8); } catch (err) {}
+        }
+      }, 380);
     }
 
     function bindReorderStripEvents() {
       if (!reorderStrip || stripEventsBound) return;
       stripEventsBound = true;
       reorderStrip.addEventListener('pointerdown', onStripPointerDown);
-      reorderStrip.addEventListener('pointermove', onReorderPointerMove);
+      reorderStrip.addEventListener('pointermove', onReorderPointerMove, { passive: true });
       reorderStrip.addEventListener('pointerup', onReorderPointerUp);
       reorderStrip.addEventListener('pointercancel', onReorderPointerUp);
     }

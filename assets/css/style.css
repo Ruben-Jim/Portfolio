@@ -4878,6 +4878,16 @@ article {
 
 .portfolio-project-modal-content .add-blog-form {
   max-height: min(78vh, 900px);
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.portfolio-project-images-group,
+.portfolio-slides-add-bar,
+.portfolio-slides-add-field,
+.portfolio-slides-add-row {
+  min-width: 0;
+  max-width: 100%;
 }
 
 #portfolio-project-form textarea.has-scrollbar {
@@ -6890,13 +6900,18 @@ textarea.form-input::-webkit-resizer { display: none; }
 
 .portfolio-slides-add-row select,
 .portfolio-slides-add-row input[type="text"] {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
+  width: auto;
+  max-width: 100%;
 }
 
 .portfolio-slides-add-row .btn {
+  flex: 0 0 auto;
   flex-shrink: 0;
   align-self: stretch;
+  min-width: 4.5rem;
+  max-width: 100%;
   padding-left: 14px;
   padding-right: 14px;
 }
@@ -6923,9 +6938,11 @@ textarea.form-input::-webkit-resizer { display: none; }
 
 .portfolio-project-images-list-item {
   display: grid;
-  grid-template-columns: auto 64px 1fr auto;
+  grid-template-columns: auto 64px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
+  max-width: 100%;
+  min-width: 0;
   padding: 8px 10px;
   border-radius: 12px;
   border: 1px solid hsla(45, 100%, 72%, 0.18);
@@ -8828,14 +8845,57 @@ body.project-modal-open {
     flex-direction: column;
     align-items: stretch;
   }
+
+  .add-blog-modal {
+    overflow-x: hidden;
+  }
   
   .add-blog-content {
     margin: 10px;
     max-height: 95vh;
+    width: calc(100% - 20px);
+    max-width: calc(100vw - 20px);
+    overflow-x: hidden;
   }
   
   .add-blog-form {
     padding: 20px;
+    overflow-x: hidden;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  #portfolio-project-modal .portfolio-project-modal-content {
+    width: calc(100% - 20px);
+    max-width: calc(100vw - 20px);
+  }
+
+  .portfolio-slides-add-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .portfolio-slides-add-row select,
+  .portfolio-slides-add-row input[type="text"] {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .portfolio-slides-add-row .btn {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .portfolio-project-images-list-item {
+    grid-template-columns: 28px 52px minmax(0, 1fr) 34px;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .portfolio-slides-thumb {
+    width: 52px;
+    height: 36px;
   }
   
   .add-blog-header {
@@ -17374,11 +17434,15 @@ body.lead-drawer-open {
   flex-wrap: nowrap;
   align-items: stretch;
   gap: 8px;
+  width: 100%;
+  max-width: 100%;
   padding: 10px 12px;
   overflow-x: auto;
   overflow-y: hidden;
+  overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
+  scroll-snap-type: x proximity;
   border-radius: 14px;
   background: hsla(240, 5%, 12%, 0.98);
   border: 1px solid hsla(45, 100%, 72%, 0.28);
@@ -17386,6 +17450,8 @@ body.lead-drawer-open {
     0 12px 36px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   scrollbar-width: none;
+  mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 20px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 20px), transparent 100%);
 }
 
 .admin-tab-reorder-strip::-webkit-scrollbar {
@@ -17395,20 +17461,23 @@ body.lead-drawer-open {
 .admin-tab-reorder-strip .admin-tab {
   display: inline-flex !important;
   flex: 0 0 auto;
+  flex-shrink: 0;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  min-width: 62px;
-  max-width: 72px;
+  width: 64px;
+  min-width: 64px;
+  max-width: 64px;
   min-height: 54px;
-  padding: 8px 8px;
+  padding: 8px 6px;
   border-radius: 12px;
   border: 1px solid hsla(0, 0%, 100%, 0.08);
   background: hsla(240, 5%, 20%, 0.98);
   color: var(--light-gray);
   cursor: grab;
-  touch-action: none;
+  touch-action: pan-x;
+  scroll-snap-align: start;
   -webkit-tap-highlight-color: transparent;
   position: relative;
 }
