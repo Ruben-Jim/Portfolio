@@ -8958,26 +8958,10 @@ body.project-modal-open {
 
   .add-blog-modal,
   .business-doc-modal {
-    z-index: 10050;
     align-items: flex-end;
     justify-content: flex-end;
     overflow: hidden;
     padding: 0;
-  }
-
-  /* Bottom tab bar sits above legacy z-index:20 modals — hide while sheets are open */
-  body.admin-page-active:has(.add-blog-modal.active) .admin.active .admin-tab-bar,
-  body.admin-page-active:has(.business-doc-modal.active) .admin.active .admin-tab-bar,
-  body.admin-page-active:has(.agency-modal.active) .admin.active .admin-tab-bar,
-  body.admin-page-active.lead-drawer-open .admin.active .admin-tab-bar,
-  body.admin-page-active:has(.lead-drawer:not([hidden])) .admin.active .admin-tab-bar,
-  body.admin-page-active.admin-contact-detail-open .admin.active .admin-tab-bar,
-  body.admin-page-active.admin-dm-sheet-open .admin.active .admin-tab-bar,
-  body.admin-page-active:has(#admin-dm-sheet-root.is-open) .admin.active .admin-tab-bar,
-  body.admin-page-active:has(.modal-container.active) .admin.active .admin-tab-bar {
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
   }
 
   .add-blog-modal .add-blog-content,
@@ -10005,6 +9989,33 @@ body.project-modal-open {
   /* Avoid collision between admin bottom tabs and global Search (Cmd/Ctrl+K) hint */
   body:has(.admin.active) #command-palette-hint {
     display: none !important;
+  }
+
+  /* Hide bottom tab bar while admin sheets / overlays are open */
+  body:has(.add-blog-modal.active) .admin.active .admin-tab-bar,
+  body:has(.business-doc-modal.active) .admin.active .admin-tab-bar,
+  body:has(.agency-modal.active) .admin.active .admin-tab-bar,
+  body:has(.project-detail-modal.active) .admin.active .admin-tab-bar,
+  body:has(.modal-container.active) .admin.active .admin-tab-bar,
+  body.project-modal-open .admin.active .admin-tab-bar,
+  body.lead-drawer-open .admin.active .admin-tab-bar,
+  body.admin-contact-detail-open .admin.active .admin-tab-bar,
+  body.admin-dm-sheet-open .admin.active .admin-tab-bar,
+  body:has(#admin-dm-sheet-root.is-open) .admin.active .admin-tab-bar {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  body:has(.add-blog-modal.active) #admin-tab-more-wrap,
+  body:has(.business-doc-modal.active) #admin-tab-more-wrap,
+  body:has(.agency-modal.active) #admin-tab-more-wrap,
+  body:has(.add-blog-modal.active) .admin-tab-more-dropdown,
+  body:has(.business-doc-modal.active) .admin-tab-more-dropdown,
+  body:has(.agency-modal.active) .admin-tab-more-dropdown {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 
   .admin-tab-label-desktop {
