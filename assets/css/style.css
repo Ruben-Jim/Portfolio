@@ -9895,6 +9895,7 @@ body.project-modal-open {
     margin-bottom: 0;
   }
 
+  body.admin-page-active .admin.active .admin-tab-bar,
   .admin.active .admin-tab-bar {
     flex-direction: row;
     flex-wrap: nowrap;
@@ -9902,11 +9903,12 @@ body.project-modal-open {
     justify-content: stretch;
     gap: 4px;
     padding: 4px;
+    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
     margin-bottom: 0;
     position: fixed;
-    left: 10px;
-    right: 10px;
-    bottom: max(10px, env(safe-area-inset-bottom));
+    left: 8px;
+    right: 8px;
+    bottom: 0;
     z-index: 40;
     padding-left: max(4px, env(safe-area-inset-left));
     padding-right: max(4px, env(safe-area-inset-right));
@@ -9925,8 +9927,9 @@ body.project-modal-open {
     display: none;
   }
 
+  body.admin-page-active .admin.active .admin-tab-panels,
   .admin.active .admin-tab-panels {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 
   /* Avoid collision between admin bottom tabs and global Search (Cmd/Ctrl+K) hint */
@@ -9988,10 +9991,11 @@ body.project-modal-open {
 @media (max-width: 379px) {
   .admin.active .admin-tab-bar {
     padding: 3px;
+    padding-bottom: max(3px, env(safe-area-inset-bottom, 0px));
     gap: 2px;
-    left: 8px;
-    right: 8px;
-    bottom: max(8px, env(safe-area-inset-bottom));
+    left: 6px;
+    right: 6px;
+    bottom: 0;
   }
 
   .admin-tab {
@@ -17401,7 +17405,7 @@ body.lead-drawer-open {
 
   body.admin-tab-reorder-active .admin-tab-panels,
   body.admin-page-active.admin-tab-reorder-active .admin-tab-panels {
-    padding-bottom: calc(168px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(196px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   body.admin-tab-reorder-active .admin-tab-bar.is-reorder-source-hidden {
@@ -17418,8 +17422,8 @@ body.lead-drawer-open {
   z-index: 50;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0 10px max(10px, env(safe-area-inset-bottom, 0px));
+  gap: 10px;
+  padding: 0 12px max(12px, env(safe-area-inset-bottom, 0px));
   pointer-events: none;
 }
 
@@ -17433,16 +17437,17 @@ body.lead-drawer-open {
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: stretch;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
   max-width: 100%;
-  padding: 10px 12px;
+  padding: 14px 8px;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
   scroll-snap-type: x proximity;
+  scroll-padding-inline: 20px;
   border-radius: 14px;
   background: hsla(240, 5%, 12%, 0.98);
   border: 1px solid hsla(45, 100%, 72%, 0.28);
@@ -17450,8 +17455,19 @@ body.lead-drawer-open {
     0 12px 36px rgba(0, 0, 0, 0.45),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
   scrollbar-width: none;
-  mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 20px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+}
+
+.admin-tab-reorder-strip::before,
+.admin-tab-reorder-strip::after {
+  content: "";
+  display: block;
+  flex: 0 0 16px;
+  width: 16px;
+  min-width: 16px;
+  height: 1px;
+  scroll-snap-align: none;
 }
 
 .admin-tab-reorder-strip::-webkit-scrollbar {
@@ -17465,12 +17481,13 @@ body.lead-drawer-open {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  width: 64px;
-  min-width: 64px;
-  max-width: 64px;
-  min-height: 54px;
-  padding: 8px 6px;
+  gap: 5px;
+  width: 68px;
+  min-width: 68px;
+  max-width: 68px;
+  min-height: 58px;
+  padding: 10px 8px;
+  scroll-snap-align: center;
   border-radius: 12px;
   border: 1px solid hsla(0, 0%, 100%, 0.08);
   background: hsla(240, 5%, 20%, 0.98);
@@ -17548,7 +17565,7 @@ body.lead-drawer-open {
   align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid hsla(45, 100%, 72%, 0.35);
   background: hsla(240, 5%, 12%, 0.96);
