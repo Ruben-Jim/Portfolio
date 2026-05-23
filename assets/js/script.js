@@ -4874,7 +4874,7 @@ function initPortfolioProjectModal() {
     });
   }
 
-  const PROJECT_SHEET_SNAPS = [0.44, 0.68, 0.9];
+  const PROJECT_SHEET_SNAPS = [0.44, 0.72, 0.92];
   let projectSheetSnapIndex = 1;
   let projectSheetDragBound = false;
 
@@ -7398,7 +7398,7 @@ window.addEventListener('load', function() {
     var currentOrder = loadOrder();
 
     function isMobileBar() {
-      return window.matchMedia('(max-width: 580px)').matches;
+      return window.matchMedia('(max-width: 767px)').matches;
     }
 
     function isSignedInAdmin() {
@@ -7482,7 +7482,7 @@ window.addEventListener('load', function() {
       el.className = 'admin-tab-reorder-banner';
       el.setAttribute('hidden', '');
       el.innerHTML =
-        '<span class="admin-tab-reorder-banner-text">Drag tabs to rearrange · first ' + PRIMARY_SLOT_COUNT + ' show on the bar</span>' +
+        '<span class="admin-tab-reorder-banner-text">Hold &amp; drag tabs · first ' + PRIMARY_SLOT_COUNT + ' show on the bar</span>' +
         '<button type="button" class="admin-tab-reorder-done" id="admin-tab-reorder-done">Done</button>';
       document.body.appendChild(el);
       el.querySelector('#admin-tab-reorder-done').addEventListener('click', function () {
@@ -7491,10 +7491,21 @@ window.addEventListener('load', function() {
       return el;
     }
 
+    function closeMoreDropdownIfOpen() {
+      var dropdown = document.getElementById('admin-tab-more-dropdown');
+      var moreBtn = document.getElementById('admin-tab-more-btn');
+      if (dropdown) {
+        dropdown.classList.remove('is-open');
+        dropdown.setAttribute('aria-hidden', 'true');
+      }
+      if (moreBtn) moreBtn.setAttribute('aria-expanded', 'false');
+    }
+
     function enterReorderMode() {
       if (!isMobileBar() || !isSignedInAdmin()) return;
       reorderActive = true;
       reorderEnteredAt = Date.now();
+      closeMoreDropdownIfOpen();
       tabBar.classList.add('is-reorder-mode');
       document.body.classList.add('admin-tab-reorder-active');
       var banner = ensureReorderBanner();
@@ -7553,6 +7564,7 @@ window.addEventListener('load', function() {
         enterReorderMode();
         dragTabId = tabId;
         tab.classList.add('is-dragging');
+        if (e.cancelable) e.preventDefault();
         if (tab.setPointerCapture && e.pointerId != null) {
           try { tab.setPointerCapture(e.pointerId); } catch (err) {}
         }
@@ -7614,6 +7626,10 @@ window.addEventListener('load', function() {
     tabBar.addEventListener('contextmenu', function (e) {
       if (isMobileBar() && isSignedInAdmin()) e.preventDefault();
     });
+
+    document.addEventListener('selectstart', function (e) {
+      if (reorderActive || longPressTimer) e.preventDefault();
+    }, true);
 
     window.addEventListener('resize', function () {
       if (!isMobileBar() && reorderActive) exitReorderMode(true);
@@ -10041,6 +10057,9 @@ function toggleTheme() {
     if (document.querySelector('.business-doc-modal.active')) return true;
     if (document.querySelector('.add-blog-modal.active')) return true;
     if (document.querySelector('.modal-container.active')) return true;
+    if (document.body.classList.contains('project-modal-open')) return true;
+    if (document.body.classList.contains('admin-tab-reorder-active')) return true;
+    if (document.querySelector('.project-detail-modal.active')) return true;
     return false;
   }
 
