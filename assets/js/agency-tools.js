@@ -333,6 +333,8 @@
       portfolioProjectId: String(row.portfolioProjectId || '').slice(0, 80),
       notes: String(row.notes || '').slice(0, 4000),
       enabledModules: Array.isArray(row.enabledModules) ? row.enabledModules.slice(0, 12) : [],
+      portalToken: String(row.portalToken || '').replace(/[^a-f0-9]/gi, '').slice(0, 64),
+      portalExpiresAt: Number(row.portalExpiresAt) || 0,
       milestones: milestones.map(function (m, i) {
         return {
           id: m.id || 'm' + i,
@@ -443,6 +445,10 @@
     document.getElementById('hub-notes').value = p.notes || '';
     renderHubMilestones(p.milestones);
     renderHubModuleChecks(p.enabledModules);
+    renderHubPortalLink(p);
+    if (p.id && !p.portalToken) {
+      backfillHubPortalLink(p);
+    }
     openModal('project-hub-editor-modal');
   }
 
@@ -489,6 +495,7 @@
   async function saveProjectHub() {
     if (!rtdbReady()) return;
     var id = document.getElementById('hub-edit-id').value.trim();
+    var existing = id ? agencyProjects.find(function (x) { return x.id === id; }) : null;
     var payload = {
       leadId: document.getElementById('hub-lead-id').value.trim(),
       clientName: document.getElementById('hub-client-name').value.trim(),
@@ -504,6 +511,10 @@
       }),
       updatedAt: ts()
     };
+    if (existing && existing.portalToken) {
+      payload.portalToken = existing.portalToken;
+      payload.portalExpiresAt = existing.portalExpiresAt || 0;
+    }
     if (id) {
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.projects + '/' + id), payload);
     } else {
@@ -611,78 +622,113 @@
     return Array.from(a, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
   }
 
+  function clientPortalUrl(token) {
+    var base = String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '');
+    return base + '/portal/' + token;
+  }
+
+  function formatPortalExpiry(expiresAt) {
+    if (!expiresAt) return '';
+    try {
+      return new Date(expiresAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) {
+      return '';
+    }
+  }
+
+  async function backfillHubPortalLink(project) {
+    if (!project || !project.id || !rtdbReady()) return;
+    try {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.clientPortals));
+      var val = snap.val();
+      if (!val || typeof val !== 'object') return;
+      var now = Date.now();
+      var bestToken = '';
+      var bestExpires = 0;
+      Object.keys(val).forEach(function (tok) {
+        var row = val[tok];
+        if (!row || row.projectId !== project.id) return;
+        if (row.expiresAt && row.expiresAt < now) return;
+        if (!bestToken || (row.expiresAt || 0) > bestExpires) {
+          bestToken = tok;
+          bestExpires = row.expiresAt || 0;
+        }
+      });
+      if (!bestToken) return;
+      project.portalToken = bestToken;
+      project.portalExpiresAt = bestExpires;
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, PATHS.projects + '/' + project.id), {
+        portalToken: bestToken,
+        portalExpiresAt: bestExpires,
+        updatedAt: ts()
+      });
+      renderHubPortalLink(project);
+    } catch (e) {
+      console.warn('Portal link backfill failed', e);
+    }
+  }
+
+  function renderHubPortalLink(project) {
+    var out = document.getElementById('hub-portal-link-out');
+    if (!out) return;
+
+    var token = project && project.portalToken;
+    var expires = project && project.portalExpiresAt;
+    if (!token || (expires && expires < Date.now())) {
+      out.hidden = true;
+      out.innerHTML = '';
+      return;
+    }
+
+    var url = clientPortalUrl(token);
+    var expiryLabel = formatPortalExpiry(expires);
+    out.hidden = false;
+    out.className = 'hub-portal-link-box';
+    out.innerHTML =
+      '<span class="hub-portal-link-label">Client link' + (expiryLabel ? ' · expires ' + esc(expiryLabel) : ' (90 days)') + '</span>' +
+      '<a class="hub-portal-link-url" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>' +
+      '<button type="button" class="btn btn-secondary btn-sm" id="hub-portal-copy-btn">Copy link</button>';
+    var copyBtn = document.getElementById('hub-portal-copy-btn');
+    if (copyBtn) {
+      copyBtn.onclick = function () {
+        navigator.clipboard.writeText(url).catch(function () {});
+      };
+    }
+  }
+
   async function generateClientPortalLink(projectId) {
     if (!projectId || !rtdbReady()) {
       alert('Save the project hub first.');
       return;
     }
+    var existing = agencyProjects.find(function (x) { return x.id === projectId; });
     var token = randomToken();
     var expires = Date.now() + 90 * 24 * 60 * 60 * 1000;
+
+    if (existing && existing.portalToken && typeof window.rtdbRemove === 'function') {
+      try {
+        await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.clientPortals + '/' + existing.portalToken));
+      } catch (e) {
+        console.warn('Could not remove previous portal token', e);
+      }
+    }
+
     await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.clientPortals + '/' + token), {
       projectId: projectId,
       expiresAt: expires,
       createdAt: ts()
     });
-    var url = location.origin + location.pathname + '?portal=' + token;
-    var out = document.getElementById('hub-portal-link-out');
-    if (out) {
-      out.hidden = false;
-      out.innerHTML = 'Client link (90 days): <a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>';
-    }
-    navigator.clipboard.writeText(url).catch(function () {});
-  }
 
-  async function loadClientPortal(token) {
-    var view = document.getElementById('client-portal-view');
-    var inner = document.getElementById('client-portal-inner');
-    if (!view || !inner || !token || !rtdbReady()) return;
+    var portalFields = { portalToken: token, portalExpiresAt: expires, updatedAt: ts() };
+    await window.rtdbUpdate(window.rtdbRef(window.rtdb, PATHS.projects + '/' + projectId), portalFields);
 
-    var linkSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.clientPortals + '/' + token));
-    var link = linkSnap.val();
-    if (!link || !link.projectId || (link.expiresAt && link.expiresAt < Date.now())) {
-      inner.innerHTML = '<p class="client-portal-error">This client link is invalid or expired.</p>';
-      view.classList.add('active');
-      document.body.style.overflow = 'hidden';
-      return;
+    if (existing) {
+      existing.portalToken = token;
+      existing.portalExpiresAt = expires;
     }
 
-    var projSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.projects + '/' + link.projectId));
-    var p = normalizeProject(link.projectId, projSnap.val());
-    var done = p.milestones.filter(function (m) { return m.done; }).length;
-    var total = p.milestones.length;
-
-    inner.innerHTML =
-      '<div class="client-portal-brand"><h1>' + esc(p.clientName || p.title || 'Your project') + '</h1>' +
-      '<p class="form-hint">CodeWithRuben client portal</p></div>' +
-      '<section class="client-portal-section"><h2>Progress</h2>' +
-      '<p>' + done + ' of ' + total + ' milestones complete</p>' +
-      p.milestones.map(function (m) {
-        return '<div class="client-portal-milestone' + (m.done ? ' done' : '') + '">' +
-          '<ion-icon name="' + (m.done ? 'checkmark-circle' : 'ellipse-outline') + '"></ion-icon> ' +
-          esc(m.label) + '</div>';
-      }).join('') +
-      '</section>' +
-      (p.expoUrl ? '<section class="client-portal-section"><h2>Preview</h2><a class="btn btn-primary" href="' + esc(p.expoUrl) + '" target="_blank" rel="noopener">Open preview</a></section>' : '') +
-      '<section class="client-portal-section"><h2>Share files</h2>' +
-      '<p class="form-hint">Email assets to your project contact, or use the message below.</p>' +
-      '<textarea class="form-input has-scrollbar" rows="3" readonly>Project: ' + esc(p.title) + ' — assets shared via client portal.</textarea></section>';
-
-    view.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    var closeCp = document.getElementById('client-portal-close');
-    if (closeCp) {
-      closeCp.onclick = function () {
-        view.classList.remove('active');
-        document.body.style.overflow = '';
-        history.replaceState(null, '', location.pathname + location.hash);
-      };
-    }
-  }
-
-  function initClientPortal() {
-    var params = new URLSearchParams(location.search);
-    var token = params.get('portal');
-    if (token) loadClientPortal(token);
+    renderHubPortalLink({ portalToken: token, portalExpiresAt: expires });
+    navigator.clipboard.writeText(clientPortalUrl(token)).catch(function () {});
   }
 
   // ——— Maintenance ———
@@ -973,7 +1019,6 @@
     initTemplateMatcher();
     initProjectHub();
     initCaseStudyGenerator();
-    initClientPortal();
     initMaintenance();
     initContentRepurposing();
     initReferrals();

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="portal-page" content="1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Project portal — CodeWithRuben</title>
+  <link rel="shortcut icon" href="/assets/images/logo.jpg" type="image/x-icon">
+  <link rel="stylesheet" href="/assets/css/client-portal.css?v=portal-standalone-20260523">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="client-portal-page">
+
+  <main class="client-portal-inner" id="client-portal-inner" role="main">
+    <p class="client-portal-loading">Loading your project…</p>
+  </main>
+
+  <script src="/assets/js/config.js?v=portal-standalone-20260523"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, get, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+    window.initializeApp = initializeApp;
+    window.getDatabase = getDatabase;
+    window.rtdbRef = ref;
+    window.rtdbGet = get;
+    window.rtdbServerTimestamp = serverTimestamp;
+  </script>
+  <script src="/assets/js/client-portal.js?v=portal-standalone-20260523"></script>
+
+</body>
+
+</html>

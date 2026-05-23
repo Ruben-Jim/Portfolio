@@ -7532,10 +7532,16 @@ window.addEventListener('load', function() {
   // ----------------------------
 
   var PIPELINE_RTD_PATH = 'pipelineLeads';
-  var PIPELINE_STAGES = ['lead', 'discovery', 'proposal', 'deposit', 'building', 'launched', 'maintenance'];
-  var PIPELINE_OPEN_STAGES = ['lead', 'discovery', 'proposal'];
-  var PIPELINE_WON_STAGES = ['deposit', 'building', 'launched', 'maintenance'];
-  var PIPELINE_ACTIVE_STAGES = ['lead', 'discovery', 'proposal', 'deposit', 'building'];
+  var PIPELINE_STAGES = ['lead', 'proposal', 'deposit'];
+  var PIPELINE_OPEN_STAGES = ['lead', 'proposal'];
+  var PIPELINE_WON_STAGES = ['deposit'];
+  var PIPELINE_ACTIVE_STAGES = ['lead', 'proposal', 'deposit'];
+  var PIPELINE_LEGACY_STAGE_MAP = {
+    discovery: 'proposal',
+    building: 'deposit',
+    launched: 'deposit',
+    maintenance: 'deposit'
+  };
   var pipelineLeads = [];
   var pipelineUnsubscribe = null;
   var pipelineDetailLeadId = null;
@@ -7564,12 +7570,8 @@ window.addEventListener('load', function() {
   function pipelineStageLabel(stage) {
     var map = {
       lead: 'Lead',
-      discovery: 'Discovery',
       proposal: 'Proposal Sent',
-      deposit: 'Deposit Paid',
-      building: 'Building',
-      launched: 'Launched',
-      maintenance: 'Maintenance'
+      deposit: 'Deposit Paid'
     };
     return map[stage] || stage;
   }
@@ -7594,6 +7596,7 @@ window.addEventListener('load', function() {
   function normalizePipelineLead(id, row) {
     if (!row || typeof row !== 'object') row = {};
     var stage = String(row.stage || 'lead').toLowerCase();
+    if (PIPELINE_LEGACY_STAGE_MAP[stage]) stage = PIPELINE_LEGACY_STAGE_MAP[stage];
     if (PIPELINE_STAGES.indexOf(stage) < 0) stage = 'lead';
     var projectType = String(row.projectType || 'web').toLowerCase();
     if (['web', 'app', 'both', 'other'].indexOf(projectType) < 0) projectType = 'web';

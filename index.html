@@ -5,6 +5,14 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- SPA routes (/portfolio, /admin, …): relative ./assets/* must resolve from site root -->
+  <base href="/">
+  <script>
+    (function () {
+      var m = location.pathname.match(/^\/portal\/([a-f0-9]{16,64})/i);
+      if (m) location.replace('/portal.html?token=' + encodeURIComponent(m[1]));
+    })();
+  </script>
   
   <!-- Primary Meta Tags -->
   <title>CodeWithRuben</title>
@@ -54,7 +62,7 @@
     - custom css link
   -->
   <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-textarea-resizer-match-20260521">
-  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=template-matcher-fix-20260522">
+  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=hub-portal-link-box-20260523">
 
   <!--
     - google font link
@@ -2801,7 +2809,7 @@
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Client Pipeline</h3>
-                <p class="admin-panel-lead">Track every lead from first contact to ongoing maintenance.</p>
+                <p class="admin-panel-lead">Track leads from first contact through proposal and deposit.</p>
               </div>
               <button type="button" class="btn btn-primary" id="admin-add-lead-btn">
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
@@ -2827,7 +2835,7 @@
                   </div>
                   <div class="pipeline-summary-stat">
                     <span class="pipeline-summary-value pipeline-summary-value--won" id="pipeline-won-value">$0</span>
-                    <span class="pipeline-summary-label">Won (Deposited+)</span>
+                    <span class="pipeline-summary-label">Won (Deposit)</span>
                   </div>
                 </div>
 
@@ -2841,17 +2849,6 @@
                       <span class="pipeline-col-count" id="pipeline-count-lead">0</span>
                     </div>
                     <div class="pipeline-cards" id="pipeline-cards-lead">
-                      <p class="pipeline-empty">No leads yet.</p>
-                    </div>
-                  </div>
-
-                  <div class="pipeline-col" data-stage="discovery">
-                    <div class="pipeline-col-header">
-                      <span class="pipeline-stage-dot pipeline-dot--discovery"></span>
-                      <h4 class="pipeline-col-title">Discovery</h4>
-                      <span class="pipeline-col-count" id="pipeline-count-discovery">0</span>
-                    </div>
-                    <div class="pipeline-cards" id="pipeline-cards-discovery">
                       <p class="pipeline-empty">No leads yet.</p>
                     </div>
                   </div>
@@ -2874,39 +2871,6 @@
                       <span class="pipeline-col-count" id="pipeline-count-deposit">0</span>
                     </div>
                     <div class="pipeline-cards" id="pipeline-cards-deposit">
-                      <p class="pipeline-empty">No leads yet.</p>
-                    </div>
-                  </div>
-
-                  <div class="pipeline-col" data-stage="building">
-                    <div class="pipeline-col-header">
-                      <span class="pipeline-stage-dot pipeline-dot--building"></span>
-                      <h4 class="pipeline-col-title">Building</h4>
-                      <span class="pipeline-col-count" id="pipeline-count-building">0</span>
-                    </div>
-                    <div class="pipeline-cards" id="pipeline-cards-building">
-                      <p class="pipeline-empty">No leads yet.</p>
-                    </div>
-                  </div>
-
-                  <div class="pipeline-col" data-stage="launched">
-                    <div class="pipeline-col-header">
-                      <span class="pipeline-stage-dot pipeline-dot--launched"></span>
-                      <h4 class="pipeline-col-title">Launched</h4>
-                      <span class="pipeline-col-count" id="pipeline-count-launched">0</span>
-                    </div>
-                    <div class="pipeline-cards" id="pipeline-cards-launched">
-                      <p class="pipeline-empty">No leads yet.</p>
-                    </div>
-                  </div>
-
-                  <div class="pipeline-col" data-stage="maintenance">
-                    <div class="pipeline-col-header">
-                      <span class="pipeline-stage-dot pipeline-dot--maintenance"></span>
-                      <h4 class="pipeline-col-title">Maintenance</h4>
-                      <span class="pipeline-col-count" id="pipeline-count-maintenance">0</span>
-                    </div>
-                    <div class="pipeline-cards" id="pipeline-cards-maintenance">
                       <p class="pipeline-empty">No leads yet.</p>
                     </div>
                   </div>
@@ -3343,12 +3307,8 @@
                     <label for="lead-stage">Stage</label>
                     <select id="lead-stage" required>
                       <option value="lead">Lead</option>
-                      <option value="discovery">Discovery</option>
                       <option value="proposal">Proposal Sent</option>
                       <option value="deposit">Deposit Paid</option>
-                      <option value="building">Building</option>
-                      <option value="launched">Launched</option>
-                      <option value="maintenance">Maintenance</option>
                     </select>
                   </div>
                   <div class="form-group form-group-half">
@@ -5109,7 +5069,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
         <div class="form-group"><label>Milestones</label><ul class="hub-milestone-list" id="hub-milestones-list"></ul></div>
         <div class="form-group"><label>Enabled add-on modules</label><div id="hub-modules-checks"></div></div>
         <div class="form-group"><label for="hub-notes">Notes</label><textarea id="hub-notes" class="has-scrollbar" rows="3"></textarea></div>
-        <p class="form-hint" id="hub-portal-link-out" hidden></p>
+        <div id="hub-portal-link-out" class="hub-portal-link-box" hidden></div>
       </div>
       <div class="agency-modal-footer">
         <button type="button" class="btn btn-secondary" id="hub-generate-portal-btn">Generate client link</button>
@@ -5150,7 +5110,11 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
         </div>
         <div class="form-row">
           <div class="form-group form-group-half"><label for="maint-renewal">Renewal date</label><input type="date" id="maint-renewal"></div>
-          <div class="form-group form-group-half"><label for="maint-sla">SLA (hours)</label><input type="number" id="maint-sla" min="1" value="48"></div>
+          <div class="form-group form-group-half">
+            <label for="maint-sla">Service level agreement (hours)</label>
+            <input type="number" id="maint-sla" min="1" value="48" placeholder="Service level agreement" title="Service level agreement — promised response time in hours (e.g. 48 = within 48 hours)">
+            <span class="form-hint">Service level agreement — hours until you respond (Standard 72, Priority 24).</span>
+          </div>
         </div>
         <div class="form-group"><label for="maint-notes">Notes</label><textarea id="maint-notes" class="has-scrollbar" rows="3"></textarea></div>
       </div>
@@ -5188,14 +5152,9 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     </div>
   </div>
 
-  <div class="client-portal-view" id="client-portal-view" aria-hidden="true">
-    <button type="button" class="btn btn-secondary" id="client-portal-close" style="position:fixed;top:16px;right:16px;z-index:2;">Close</button>
-    <div class="client-portal-inner" id="client-portal-inner"></div>
-  </div>
-
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
   <script src="/assets/js/script.js?v=portfolio-home-trade-niches-20260522"></script>
-  <script src="/assets/js/agency-tools.js?v=agency-tools-20260521"></script>
+  <script src="/assets/js/agency-tools.js?v=hub-portal-persist-20260523"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
