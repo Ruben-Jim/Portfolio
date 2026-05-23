@@ -7750,7 +7750,7 @@ body.project-modal-open {
   align-items: center;
   overflow-y: auto;
   overscroll-behavior: contain;
-  z-index: 20;
+  z-index: 10050;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -7881,7 +7881,7 @@ body.project-modal-open {
   align-items: center;
   overflow-y: auto;
   overscroll-behavior: contain;
-  z-index: 20;
+  z-index: 10050;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -8958,10 +8958,26 @@ body.project-modal-open {
 
   .add-blog-modal,
   .business-doc-modal {
+    z-index: 10050;
     align-items: flex-end;
     justify-content: flex-end;
     overflow: hidden;
     padding: 0;
+  }
+
+  /* Bottom tab bar sits above legacy z-index:20 modals — hide while sheets are open */
+  body.admin-page-active:has(.add-blog-modal.active) .admin.active .admin-tab-bar,
+  body.admin-page-active:has(.business-doc-modal.active) .admin.active .admin-tab-bar,
+  body.admin-page-active:has(.agency-modal.active) .admin.active .admin-tab-bar,
+  body.admin-page-active.lead-drawer-open .admin.active .admin-tab-bar,
+  body.admin-page-active:has(.lead-drawer:not([hidden])) .admin.active .admin-tab-bar,
+  body.admin-page-active.admin-contact-detail-open .admin.active .admin-tab-bar,
+  body.admin-page-active.admin-dm-sheet-open .admin.active .admin-tab-bar,
+  body.admin-page-active:has(#admin-dm-sheet-root.is-open) .admin.active .admin-tab-bar,
+  body.admin-page-active:has(.modal-container.active) .admin.active .admin-tab-bar {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 
   .add-blog-modal .add-blog-content,
