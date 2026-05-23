@@ -10637,6 +10637,39 @@ body.project-modal-open {
   overflow: hidden;
 }
 
+/* Mobile admin panels: don't stretch collapsible bodies (grid 1fr + heading flex-grow caused huge gaps) */
+@media (max-width: 767px) {
+  .admin-tabs .admin-collapsible-section.admin-collapsible-open > .admin-collapsible-content,
+  .admin-tabs .business-docs-section.business-docs-open > .business-docs-content {
+    grid-template-rows: minmax(0, max-content);
+  }
+
+  .admin-tabs .admin-panel-heading {
+    margin-bottom: 12px;
+  }
+
+  .admin-tabs .admin-panel-heading--with-action {
+    justify-content: flex-start;
+    gap: 12px;
+  }
+
+  .admin-tabs .admin-panel-heading--with-action .admin-panel-heading-main {
+    flex: 0 1 auto;
+  }
+
+  .admin-tabs .admin-panel-heading--with-action .admin-panel-heading-action,
+  .admin-tabs .admin-panel-heading--with-action > .btn {
+    order: 0;
+    align-self: stretch;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-tabs .blog-management-controls {
+    margin-top: 0;
+  }
+}
+
 /* Mobile: tighter vertical rhythm when sections are collapsed */
 @media (max-width: 767px) {
   .business-docs-section:not(.business-docs-open) .business-docs-section-header,
@@ -14049,10 +14082,6 @@ article.contact[data-page="contact"] {
 
   #admin-panel-messages #messages-content.admin-collapsible-content {
     margin-top: 0;
-  }
-
-  #admin-panel-messages .admin-collapsible-section.admin-collapsible-open > .admin-collapsible-content {
-    grid-template-rows: minmax(0, max-content);
   }
 
   #admin-panel-messages .admin-collapsible-inner-content {

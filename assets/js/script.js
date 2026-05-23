@@ -8241,7 +8241,10 @@ window.addEventListener('load', function() {
     leadModal.style.display = '';
     leadModal.classList.add('active');
     leadModal.setAttribute('aria-hidden', 'false');
-    if (nameEl) nameEl.focus();
+    // Desktop only — avoid mobile keyboard + zoom on sheet open
+    if (nameEl && window.matchMedia('(min-width: 768px)').matches) {
+      nameEl.focus();
+    }
   }
 
   function closeLeadModal() {
