@@ -331,15 +331,40 @@
   }
 }
 
-@media (max-width: 520px) {
-  .agency-modal {
-    padding: 10px;
-    align-items: flex-end;
+@media (max-width: 767px) {
+  .agency-modal-body .form-group input,
+  .agency-modal-body .form-group select,
+  .agency-modal-body .form-group textarea {
+    font-size: 16px;
   }
 
-  .agency-modal-content {
+  .agency-modal {
+    padding: 0;
+    align-items: flex-end;
+    justify-content: flex-end;
+    overflow: hidden;
+  }
+
+  .agency-modal-content,
+  .agency-modal-content--wide,
+  .agency-modal-content--full {
+    width: 100%;
+    max-width: 100%;
     max-height: min(92dvh, 100%);
-    border-radius: 16px 16px 0 0;
+    border-radius: 18px 18px 0 0;
+    transform: translate3d(0, 100%, 0);
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .agency-modal.active .agency-modal-content,
+  .agency-modal.active .agency-modal-content--wide,
+  .agency-modal.active .agency-modal-content--full {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .agency-modal-body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   .agency-modal-body .form-row {

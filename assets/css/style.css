@@ -8941,9 +8941,63 @@ body.project-modal-open {
   }
 }
 
+/* Admin modals on phones: bottom sheets + 16px inputs (prevents iOS focus zoom) */
+@media (max-width: 767px) {
+  .add-blog-modal .form-group input,
+  .add-blog-modal .form-group select,
+  .add-blog-modal .form-group textarea,
+  .business-doc-modal-body .form-group input,
+  .business-doc-modal-body .form-group select,
+  .business-doc-modal-body .form-group textarea,
+  .portfolio-slides-add-row select,
+  .portfolio-slides-add-row input[type="text"],
+  .portfolio-project-images-url-input,
+  .login-form .form-group input {
+    font-size: 16px;
+  }
+
+  .add-blog-modal,
+  .business-doc-modal {
+    align-items: flex-end;
+    justify-content: flex-end;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .add-blog-modal .add-blog-content,
+  .business-doc-modal-content {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    max-height: min(92dvh, 100%);
+    height: auto;
+    border-radius: 18px 18px 0 0;
+    border-bottom: none;
+    transform: translate3d(0, 100%, 0);
+    opacity: 1;
+    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .add-blog-modal.active .add-blog-content,
+  .business-doc-modal.active .business-doc-modal-content {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .add-blog-form,
+  .business-doc-modal-body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .add-blog-header,
+  .business-doc-modal-header {
+    flex-shrink: 0;
+  }
+}
+
 @media (max-width: 480px) {
   .add-blog-content {
-    margin: 5px;
+    margin: 0;
   }
   
   .add-blog-form {
