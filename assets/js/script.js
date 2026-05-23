@@ -7392,11 +7392,14 @@ window.addEventListener('load', function() {
     if (!tabBar) return;
 
     var reorderActive = false;
-    var reorderEnteredAt = 0;
     var longPressTimer = null;
     var suppressClickUntil = 0;
     var dragTabId = null;
     var currentOrder = loadOrder();
+    var reorderDock = null;
+    var reorderStrip = null;
+    var tabHomes = null;
+    var stripEventsBound = false;
 
     function isMobileBar() {
       return window.matchMedia('(max-width: 767px)').matches;
@@ -7407,7 +7410,17 @@ window.addEventListener('load', function() {
     }
 
     function allTabButtons() {
-      return Array.prototype.slice.call(tabBar.querySelectorAll('.admin-tab[data-admin-tab]'));
+      var root = reorderActive && reorderStrip ? reorderStrip : tabBar;
+      return Array.prototype.slice.call(root.querySelectorAll('.admin-tab[data-admin-tab]'));
+    }
+
+    function findTabButton(tabId) {
+      if (!tabId) return null;
+      if (reorderStrip) {
+        var inStrip = reorderStrip.querySelector('.admin-tab[data-admin-tab="' + tabId + '"]');
+        if (inStrip) return inStrip;
+      }
+      return tabBar.querySelector('.admin-tab[data-admin-tab="' + tabId + '"]');
     }
 
     function loadOrder() {
@@ -7475,21 +7488,71 @@ window.addEventListener('load', function() {
       }
     }
 
-    function ensureReorderBanner() {
-      var el = document.getElementById('admin-tab-reorder-banner');
-      if (el) return el;
-      el = document.createElement('div');
-      el.id = 'admin-tab-reorder-banner';
-      el.className = 'admin-tab-reorder-banner';
-      el.setAttribute('hidden', '');
-      el.innerHTML =
-        '<span class="admin-tab-reorder-banner-text">Hold &amp; drag tabs · first ' + PRIMARY_SLOT_COUNT + ' show on the bar</span>' +
+    function setReorderStep(text) {
+      var step = document.getElementById('admin-tab-reorder-step');
+      if (step) step.textContent = text;
+    }
+
+    function ensureReorderDock() {
+      if (reorderDock) return reorderDock;
+      reorderDock = document.createElement('div');
+      reorderDock.id = 'admin-tab-reorder-dock';
+      reorderDock.className = 'admin-tab-reorder-dock';
+      reorderDock.hidden = true;
+
+      reorderStrip = document.createElement('div');
+      reorderStrip.id = 'admin-tab-reorder-strip';
+      reorderStrip.className = 'admin-tab-reorder-strip';
+      reorderStrip.setAttribute('role', 'toolbar');
+      reorderStrip.setAttribute('aria-label', 'Reorder admin tabs');
+
+      var banner = document.createElement('div');
+      banner.id = 'admin-tab-reorder-banner';
+      banner.className = 'admin-tab-reorder-banner';
+      banner.innerHTML =
+        '<p class="admin-tab-reorder-banner-text" id="admin-tab-reorder-step"></p>' +
         '<button type="button" class="admin-tab-reorder-done" id="admin-tab-reorder-done">Done</button>';
-      document.body.appendChild(el);
-      el.querySelector('#admin-tab-reorder-done').addEventListener('click', function () {
+      banner.querySelector('#admin-tab-reorder-done').addEventListener('click', function () {
         exitReorderMode(true);
       });
-      return el;
+
+      reorderDock.appendChild(reorderStrip);
+      reorderDock.appendChild(banner);
+      document.body.appendChild(reorderDock);
+      bindReorderStripEvents();
+      return reorderDock;
+    }
+
+    function captureTabHomes() {
+      tabHomes = {};
+      tabBar.querySelectorAll('.admin-tab[data-admin-tab]').forEach(function (btn) {
+        var id = btn.getAttribute('data-admin-tab');
+        tabHomes[id] = { parent: btn.parentNode, next: btn.nextSibling };
+      });
+    }
+
+    function mountReorderStrip() {
+      captureTabHomes();
+      ensureReorderDock();
+      reorderStrip.innerHTML = '';
+      currentOrder.forEach(function (id) {
+        var btn = tabBar.querySelector('.admin-tab[data-admin-tab="' + id + '"]');
+        if (btn) reorderStrip.appendChild(btn);
+      });
+      tabBar.classList.add('is-reorder-source-hidden');
+    }
+
+    function unmountReorderStrip() {
+      if (!tabHomes || !reorderStrip) return;
+      currentOrder.forEach(function (id) {
+        var btn = reorderStrip.querySelector('.admin-tab[data-admin-tab="' + id + '"]');
+        var home = tabHomes[id];
+        if (btn && home && home.parent) {
+          home.parent.insertBefore(btn, home.next);
+        }
+      });
+      tabBar.classList.remove('is-reorder-source-hidden');
+      reorderStrip.innerHTML = '';
     }
 
     function closeMoreDropdownIfOpen() {
@@ -7505,12 +7568,16 @@ window.addEventListener('load', function() {
     function enterReorderMode() {
       if (!isMobileBar() || !isSignedInAdmin()) return;
       reorderActive = true;
-      reorderEnteredAt = Date.now();
       closeMoreDropdownIfOpen();
-      tabBar.classList.add('is-reorder-mode');
       document.body.classList.add('admin-tab-reorder-active');
-      var banner = ensureReorderBanner();
-      banner.hidden = false;
+      mountReorderStrip();
+      ensureReorderDock();
+      reorderDock.hidden = false;
+      setReorderStep(
+        'Step 1: Drag a tab left or right. Step 2: First ' +
+          PRIMARY_SLOT_COUNT +
+          ' tabs stay on the bottom bar. Tap Done when finished.'
+      );
       if (navigator.vibrate) {
         try { navigator.vibrate(12); } catch (e) {}
       }
@@ -7518,15 +7585,14 @@ window.addEventListener('load', function() {
 
     function exitReorderMode(save) {
       if (save) saveOrder(currentOrder);
+      unmountReorderStrip();
       reorderActive = false;
       dragTabId = null;
-      tabBar.classList.remove('is-reorder-mode');
       document.body.classList.remove('admin-tab-reorder-active');
-      allTabButtons().forEach(function (btn) {
+      if (reorderDock) reorderDock.hidden = true;
+      tabBar.querySelectorAll('.admin-tab[data-admin-tab]').forEach(function (btn) {
         btn.classList.remove('is-dragging');
       });
-      var banner = document.getElementById('admin-tab-reorder-banner');
-      if (banner) banner.hidden = true;
       if (!save) applyOrder(loadOrder());
     }
 
@@ -7564,7 +7630,8 @@ window.addEventListener('load', function() {
         suppressClickUntil = Date.now() + 700;
         enterReorderMode();
         dragTabId = tabId;
-        tab.classList.add('is-dragging');
+        var stripTab = findTabButton(tabId);
+        if (stripTab) stripTab.classList.add('is-dragging');
         if (e.cancelable) e.preventDefault();
         if (tab.setPointerCapture && e.pointerId != null) {
           try { tab.setPointerCapture(e.pointerId); } catch (err) {}
@@ -7592,30 +7659,55 @@ window.addEventListener('load', function() {
       });
     }
 
-    function onTabPointerMove(e) {
-      if (!reorderActive || !dragTabId) return;
-      var hit = document.elementFromPoint(e.clientX, e.clientY);
-      var target = hit && hit.closest('.admin-tab[data-admin-tab]');
-      if (target && tabBar.contains(target)) {
+    function tabUnderPointer(clientX, clientY) {
+      var hit = document.elementFromPoint(clientX, clientY);
+      return hit && hit.closest('.admin-tab[data-admin-tab]');
+    }
+
+    function onReorderPointerMove(e) {
+      if (!reorderActive || !dragTabId || !reorderStrip) return;
+      var target = tabUnderPointer(e.clientX, e.clientY);
+      if (target && reorderStrip.contains(target)) {
         swapToward(dragTabId, target.getAttribute('data-admin-tab'));
+        setReorderStep('Release to place · first ' + PRIMARY_SLOT_COUNT + ' tabs show on the bar');
       }
     }
 
-    function onTabPointerUp(e) {
+    function onReorderPointerUp() {
       if (!reorderActive) return;
-      if (Date.now() - reorderEnteredAt < 180) return;
       allTabButtons().forEach(function (btn) {
         btn.classList.remove('is-dragging');
       });
-      if (dragTabId) {
-        exitReorderMode(true);
+      dragTabId = null;
+      setReorderStep(
+        'Step 1: Drag a tab left or right. Step 2: First ' +
+          PRIMARY_SLOT_COUNT +
+          ' tabs stay on the bottom bar. Tap Done when finished.'
+      );
+    }
+
+    function onStripPointerDown(e) {
+      if (!reorderActive) return;
+      var tab = e.target.closest('.admin-tab[data-admin-tab]');
+      if (!tab || !reorderStrip.contains(tab)) return;
+      dragTabId = tab.getAttribute('data-admin-tab');
+      tab.classList.add('is-dragging');
+      setReorderStep('Drag over another tab, then release to swap positions');
+      if (tab.setPointerCapture && e.pointerId != null) {
+        try { tab.setPointerCapture(e.pointerId); } catch (err) {}
       }
     }
 
+    function bindReorderStripEvents() {
+      if (!reorderStrip || stripEventsBound) return;
+      stripEventsBound = true;
+      reorderStrip.addEventListener('pointerdown', onStripPointerDown);
+      reorderStrip.addEventListener('pointermove', onReorderPointerMove);
+      reorderStrip.addEventListener('pointerup', onReorderPointerUp);
+      reorderStrip.addEventListener('pointercancel', onReorderPointerUp);
+    }
+
     tabBar.addEventListener('pointerdown', onTabPointerDown);
-    tabBar.addEventListener('pointermove', onTabPointerMove);
-    tabBar.addEventListener('pointerup', onTabPointerUp);
-    tabBar.addEventListener('pointercancel', onTabPointerUp);
 
     tabBar.addEventListener('click', function (e) {
       if (Date.now() < suppressClickUntil) {

@@ -17324,7 +17324,7 @@ body.lead-drawer-open {
   }
 }
 
-/* Admin tab reorder — scrollable strip (≤767px matches fixed bottom bar) */
+/* Admin tab reorder — dedicated dock (mobile) */
 @media (max-width: 767px) {
   body.admin-tab-reorder-active {
     user-select: none !important;
@@ -17333,115 +17333,150 @@ body.lead-drawer-open {
   }
 
   body.admin-tab-reorder-active #admin-dashboard-content,
-  body.admin-tab-reorder-active .admin-tab-panels,
-  body.admin-tab-reorder-active .admin-tab-bar .admin-tab {
+  body.admin-tab-reorder-active .admin-tab-panels {
     user-select: none !important;
     -webkit-user-select: none !important;
     -webkit-touch-callout: none !important;
   }
 
-  body.admin-tab-reorder-active .admin-tab-more-wrap {
-    display: none !important;
+  body.admin-tab-reorder-active .admin-tab-panels,
+  body.admin-page-active.admin-tab-reorder-active .admin-tab-panels {
+    padding-bottom: calc(168px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  /* Extra scroll room for tab strip + instruction bar stacked at bottom */
-  body.admin-tab-reorder-active .admin.active .admin-tab-panels {
-    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
-  }
-
-  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode {
-    left: 8px;
-    right: 8px;
-    bottom: calc(68px + max(10px, env(safe-area-inset-bottom, 0px)));
-    z-index: 46;
-    justify-content: flex-start;
-    align-items: stretch;
-    gap: 6px;
-    padding: 8px 10px;
-    min-height: 58px;
-    max-height: none;
-    overflow-x: auto;
-    overflow-y: visible;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
-  }
-
-  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab {
-    display: inline-flex !important;
-    flex: 0 0 auto !important;
-    min-width: 56px !important;
-    width: auto !important;
-    max-width: none !important;
-    min-height: 48px !important;
-    padding: 6px 8px !important;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    cursor: grab;
-    touch-action: none;
-    transform: none;
-    -webkit-tap-highlight-color: transparent;
-    color: var(--light-gray);
-    background: hsla(240, 5%, 18%, 0.95);
-    border: 1px solid hsla(0, 0%, 100%, 0.06);
-  }
-
-  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab ion-icon {
-    font-size: 20px;
-    flex-shrink: 0;
-  }
-
-  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab .admin-tab-label-mobile {
-    display: block;
-    font-size: 9px;
-    line-height: 1.1;
-    max-width: 56px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab.is-dragging {
-    cursor: grabbing;
-    z-index: 2;
-    opacity: 1;
-    transform: none;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-    background: var(--border-gradient-onyx);
-    color: var(--orange-yellow-crayola);
-  }
-
-  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab.is-mobile-primary-slot {
-    border-color: hsla(45, 100%, 72%, 0.45);
-    box-shadow: inset 0 0 0 1px hsla(45, 100%, 72%, 0.25);
-  }
-
-  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab.is-mobile-primary-slot::after {
-    content: "";
-    position: absolute;
-    top: 4px;
-    left: 50%;
-    width: 4px;
-    height: 4px;
-    margin-left: -2px;
-    border-radius: 50%;
-    background: var(--orange-yellow-crayola);
-    opacity: 0.85;
-  }
-
-  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab {
-    position: relative;
+  body.admin-tab-reorder-active .admin-tab-bar.is-reorder-source-hidden {
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 }
 
-.admin-tab-reorder-banner {
+.admin-tab-reorder-dock {
   position: fixed;
-  left: 10px;
-  right: 10px;
-  bottom: max(10px, env(safe-area-inset-bottom, 0px));
-  z-index: 41;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 10px max(10px, env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
+}
+
+.admin-tab-reorder-dock[hidden] {
+  display: none !important;
+}
+
+.admin-tab-reorder-strip {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  border-radius: 14px;
+  background: hsla(240, 5%, 12%, 0.98);
+  border: 1px solid hsla(45, 100%, 72%, 0.28);
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  scrollbar-width: none;
+}
+
+.admin-tab-reorder-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-tab-reorder-strip .admin-tab {
+  display: inline-flex !important;
+  flex: 0 0 auto;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 62px;
+  max-width: 72px;
+  min-height: 54px;
+  padding: 8px 8px;
+  border-radius: 12px;
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  background: hsla(240, 5%, 20%, 0.98);
+  color: var(--light-gray);
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.admin-tab-reorder-strip .admin-tab ion-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-tab-reorder-strip .admin-tab .admin-tab-label {
+  flex: 0 0 auto;
+  min-width: 0;
+  width: 100%;
+  text-align: center;
+}
+
+.admin-tab-reorder-strip .admin-tab .admin-tab-label-desktop {
+  display: none !important;
+}
+
+.admin-tab-reorder-strip .admin-tab .admin-tab-label-mobile {
+  display: block !important;
+  font-size: 9px;
+  line-height: 1.15;
+  font-weight: var(--fw-600);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-tab-reorder-strip .admin-tab.is-mobile-primary-slot {
+  border-color: hsla(45, 100%, 72%, 0.5);
+  box-shadow:
+    inset 0 0 0 1px hsla(45, 100%, 72%, 0.22),
+    0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.admin-tab-reorder-strip .admin-tab.is-mobile-primary-slot::before {
+  content: "Bar";
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 7px;
+  font-weight: var(--fw-700);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--smoky-black);
+  background: var(--orange-yellow-crayola);
+  line-height: 1.2;
+}
+
+.admin-tab-reorder-strip .admin-tab.is-dragging {
+  cursor: grabbing;
+  z-index: 2;
+  color: var(--orange-yellow-crayola);
+  background: var(--border-gradient-onyx);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.42);
+  transform: scale(1.04);
+}
+
+.admin-tab-reorder-banner {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 10px;
   padding: 10px 12px;
@@ -17450,17 +17485,14 @@ body.lead-drawer-open {
   background: hsla(240, 5%, 12%, 0.96);
   backdrop-filter: blur(8px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
-  pointer-events: auto;
-}
-
-.admin-tab-reorder-banner[hidden] {
-  display: none !important;
 }
 
 .admin-tab-reorder-banner-text {
+  margin: 0;
   font-size: 11px;
   color: var(--light-gray);
-  line-height: 1.35;
+  line-height: 1.45;
+  flex: 1 1 auto;
 }
 
 .admin-tab-reorder-done {
