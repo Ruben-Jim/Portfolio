@@ -338,34 +338,7 @@
     font-size: 16px;
   }
 
-  .agency-modal {
-    padding: 0;
-    align-items: flex-end;
-    justify-content: flex-end;
-    overflow: hidden;
-  }
-
-  .agency-modal-content,
-  .agency-modal-content--wide,
-  .agency-modal-content--full {
-    width: 100%;
-    max-width: 100%;
-    max-height: min(92dvh, 100%);
-    border-radius: 18px 18px 0 0;
-    transform: translate3d(0, 100%, 0);
-    transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .agency-modal.active .agency-modal-content,
-  .agency-modal.active .agency-modal-content--wide,
-  .agency-modal.active .agency-modal-content--full {
-    transform: translate3d(0, 0, 0);
-  }
-
-  .agency-modal-body {
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-  }
+  /* Bottom sheet chrome: style.css (DM inbox pattern) */
 
   .agency-modal-body .form-row {
     grid-template-columns: 1fr;
