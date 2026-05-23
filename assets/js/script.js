@@ -24,6 +24,7 @@ function setSidebarContactsExpanded(expanded) {
   }
   if (sidebarBtn) {
     sidebarBtn.setAttribute("aria-expanded", expanded ? "true" : "false");
+    sidebarBtn.setAttribute("aria-label", expanded ? "Hide contacts" : "Show contacts");
   }
   if (sidebarInfo && isSidebarCollapsibleViewport()) {
     sidebarInfo.setAttribute("aria-expanded", expanded ? "true" : "false");
@@ -4874,7 +4875,7 @@ function initPortfolioProjectModal() {
     });
   }
 
-  const PROJECT_SHEET_SNAPS = [0.44, 0.72, 0.92];
+  const PROJECT_SHEET_SNAPS = [0.5, 0.78, 0.94];
   let projectSheetSnapIndex = 1;
   let projectSheetDragBound = false;
 

@@ -1803,24 +1803,16 @@ main::-webkit-scrollbar { display: none; }
 
 .info_more-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  border-radius: 12px;
+  top: -15px;
+  right: -15px;
+  border-radius: 0 15px;
   font-size: 13px;
   color: var(--orange-yellow-crayola);
   background: var(--border-gradient-onyx);
   padding: 10px;
   box-shadow: var(--shadow-2);
   transition: var(--transition-1);
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  min-width: 44px;
-  min-height: 44px;
-  -webkit-tap-highlight-color: transparent;
+  z-index: 1;
 }
 
 .info_more-btn::before {
@@ -1856,14 +1848,9 @@ main::-webkit-scrollbar { display: none; }
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 16px 58px 16px 14px;
+    padding: 16px 14px;
     width: 100%;
     box-sizing: border-box;
-  }
-
-  .info_more-btn {
-    top: 12px;
-    right: max(10px, env(safe-area-inset-right, 0px));
   }
 
   .avatar-box {
@@ -1900,18 +1887,23 @@ main::-webkit-scrollbar { display: none; }
     max-width: 100%;
   }
 
+  .info_more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
   .info_more-btn ion-icon {
-    font-size: 20px;
+    font-size: 22px;
     display: block;
     transition: transform var(--transition-1);
   }
 
   .info_more-btn span {
-    display: block;
-    font-size: 10px;
-    line-height: 1.2;
-    max-width: 72px;
-    text-align: center;
+    display: none;
   }
 
   .sidebar.active .info_more-btn ion-icon {
@@ -1924,15 +1916,6 @@ main::-webkit-scrollbar { display: none; }
   .sidebar-info {
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    padding-right: 58px;
-    box-sizing: border-box;
-  }
-
-  .info_more-btn {
-    top: 10px;
-    right: max(10px, env(safe-area-inset-right, 0px));
-    border-radius: 12px;
-    z-index: 3;
   }
 
   .sidebar.active .info_more-btn ion-icon {
@@ -5705,9 +5688,9 @@ textarea.form-input::-webkit-resizer { display: none; }
   .info-content .title { padding: 5px 18px; }
 
   .info_more-btn {
-    top: 10px;
-    right: max(10px, env(safe-area-inset-right, 0px));
-    padding: 10px 12px;
+    top: -30px;
+    right: -30px;
+    padding: 10px 15px;
   }
 
   .info_more-btn span {
@@ -6510,16 +6493,33 @@ textarea.form-input::-webkit-resizer { display: none; }
   justify-content: center;
 }
 
-/* Keep slide image inside the frame; dots sit above the bottom edge at all resolutions */
-.project-detail-media .portfolio-carousel-track {
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-  aspect-ratio: unset;
-  max-height: 100%;
-  overflow: hidden;
-  padding-bottom: 28px;
-  box-sizing: border-box;
+/* Desktop sheet: track grows with the media column */
+@media (min-width: 901px) {
+  .project-detail-media .portfolio-carousel-track {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    aspect-ratio: unset;
+    max-height: 100%;
+    overflow: hidden;
+    padding-bottom: 28px;
+    box-sizing: border-box;
+  }
+}
+
+/* Mobile bottom sheet: fixed aspect frame so the carousel never collapses */
+@media (max-width: 900px) {
+  .project-detail-media .portfolio-carousel-track {
+    position: relative;
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 168px;
+    aspect-ratio: 16 / 10;
+    max-height: min(38vh, 280px);
+    overflow: hidden;
+    padding-bottom: 28px;
+    box-sizing: border-box;
+  }
 }
 
 .project-detail-media .portfolio-carousel-slide {
@@ -7149,7 +7149,7 @@ body.project-modal-open {
   .project-detail-content {
     width: 100%;
     max-width: 100%;
-    height: var(--project-sheet-height, 68dvh);
+    height: var(--project-sheet-height, 78dvh);
     max-height: var(--project-sheet-height, min(92dvh, 100%));
     display: flex;
     flex-direction: column;
@@ -7199,33 +7199,47 @@ body.project-modal-open {
   .project-detail-media {
     border-right: 0;
     border-bottom: 1px solid hsla(45, 100%, 72%, 0.12);
-    padding: 10px 16px 12px;
+    padding: 4px 16px 12px;
+    flex: 0 0 auto;
     flex-shrink: 0;
+    width: 100%;
     height: auto;
-    max-height: min(32vh, 280px);
-    min-height: 0;
-    overflow: visible;
+    min-height: clamp(168px, 34vw, 260px);
+    max-height: none;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .project-detail-media .project-detail-carousel,
   .project-detail-media .portfolio-carousel {
-    min-height: 0;
-    max-height: min(30vh, 260px);
-  }
-
-  .project-detail-media .portfolio-carousel-track {
-    padding-bottom: 26px;
+    flex: 0 0 auto;
+    width: 100%;
+    height: auto;
+    min-height: clamp(168px, 34vw, 260px);
+    max-height: min(40vh, 300px);
   }
 
   .project-detail-media .portfolio-carousel-dots {
-    bottom: 6px;
+    bottom: 8px;
     gap: 6px;
+  }
+
+  .project-detail-media .portfolio-carousel-slide {
+    padding: 0 4px;
+    box-sizing: border-box;
   }
 
   .project-detail-media img,
   .project-detail-media .portfolio-carousel-slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
     max-height: 100%;
-    min-height: 0;
+    min-height: 120px;
+    object-fit: contain;
+    object-position: center center;
   }
 
   .portfolio-carousel-btn {
@@ -17330,17 +17344,24 @@ body.lead-drawer-open {
     display: none !important;
   }
 
+  /* Extra scroll room for tab strip + instruction bar stacked at bottom */
+  body.admin-tab-reorder-active .admin.active .admin-tab-panels {
+    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+  }
+
   body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode {
     left: 8px;
     right: 8px;
-    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(68px + max(10px, env(safe-area-inset-bottom, 0px)));
+    z-index: 46;
     justify-content: flex-start;
-    align-items: center;
+    align-items: stretch;
     gap: 6px;
-    padding: 6px 10px;
-    max-height: 54px;
+    padding: 8px 10px;
+    min-height: 58px;
+    max-height: none;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x;
   }
@@ -17348,15 +17369,36 @@ body.lead-drawer-open {
   body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab {
     display: inline-flex !important;
     flex: 0 0 auto !important;
-    min-width: 54px !important;
+    min-width: 56px !important;
     width: auto !important;
     max-width: none !important;
-    min-height: 42px !important;
+    min-height: 48px !important;
     padding: 6px 8px !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     cursor: grab;
     touch-action: none;
     transform: none;
     -webkit-tap-highlight-color: transparent;
+    color: var(--light-gray);
+    background: hsla(240, 5%, 18%, 0.95);
+    border: 1px solid hsla(0, 0%, 100%, 0.06);
+  }
+
+  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab ion-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab .admin-tab-label-mobile {
+    display: block;
+    font-size: 9px;
+    line-height: 1.1;
+    max-width: 56px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab.is-dragging {
@@ -17366,11 +17408,29 @@ body.lead-drawer-open {
     transform: none;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     background: var(--border-gradient-onyx);
+    color: var(--orange-yellow-crayola);
   }
 
   body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab.is-mobile-primary-slot {
-    outline: 1px dashed hsla(45, 100%, 72%, 0.4);
-    outline-offset: 2px;
+    border-color: hsla(45, 100%, 72%, 0.45);
+    box-shadow: inset 0 0 0 1px hsla(45, 100%, 72%, 0.25);
+  }
+
+  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab.is-mobile-primary-slot::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--orange-yellow-crayola);
+    opacity: 0.85;
+  }
+
+  body.admin-tab-reorder-active .admin.active .admin-tab-bar.is-reorder-mode .admin-tab {
+    position: relative;
   }
 }
 
@@ -17378,8 +17438,8 @@ body.lead-drawer-open {
   position: fixed;
   left: 10px;
   right: 10px;
-  bottom: calc(78px + env(safe-area-inset-bottom, 0px));
-  z-index: 45;
+  bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  z-index: 41;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -17390,6 +17450,7 @@ body.lead-drawer-open {
   background: hsla(240, 5%, 12%, 0.96);
   backdrop-filter: blur(8px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
 }
 
 .admin-tab-reorder-banner[hidden] {
