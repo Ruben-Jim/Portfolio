@@ -275,6 +275,62 @@
   color-scheme: light;
 }
 
+@media (min-width: 768px) {
+  .agency-modal {
+    display: none;
+    padding: 0;
+    align-items: stretch;
+    justify-content: flex-end;
+    overflow: hidden;
+  }
+
+  .agency-modal.active {
+    display: block;
+  }
+
+  .agency-modal-overlay {
+    position: fixed;
+    inset: 0;
+  }
+
+  .agency-modal-content,
+  .agency-modal-content--wide,
+  .agency-modal-content--full {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    margin: 0;
+    width: min(560px, 94vw);
+    max-width: none;
+    max-height: 100vh;
+    max-height: 100dvh;
+    border-radius: 0;
+    border-left: 1px solid hsla(45, 100%, 72%, 0.22);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: -12px 0 48px hsla(0, 0%, 0%, 0.45);
+    transform: translate3d(100%, 0, 0);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .agency-modal-content--wide {
+    width: min(720px, 94vw);
+  }
+
+  .agency-modal-content--full {
+    width: min(800px, 94vw);
+  }
+
+  .agency-modal.active .agency-modal-content,
+  .agency-modal.active .agency-modal-content--wide,
+  .agency-modal.active .agency-modal-content--full {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (max-width: 520px) {
   .agency-modal {
     padding: 10px;
@@ -466,11 +522,57 @@
   border-radius: 10px;
   border: 1px solid hsla(45, 100%, 72%, 0.16);
   background: hsla(240, 2%, 16%, 0.8);
-  cursor: pointer;
 }
 
 .hub-list-item:hover {
   border-color: hsla(45, 100%, 72%, 0.35);
+}
+
+.hub-list-item-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.hub-list-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.hub-list-chevron {
+  font-size: 20px;
+  color: var(--light-gray-70);
+  pointer-events: none;
+}
+
+.hub-list-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid hsla(45, 100%, 72%, 0.2);
+  background: hsla(240, 2%, 12%, 0.9);
+  color: var(--light-gray);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.hub-list-btn ion-icon {
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.hub-list-btn:hover,
+.hub-list-btn:focus-visible {
+  outline: none;
+  border-color: hsla(0, 72%, 68%, 0.55);
+  color: hsl(0, 72%, 68%);
+  background: hsla(0, 72%, 68%, 0.1);
 }
 
 .hub-milestone-list {
@@ -566,6 +668,18 @@
   padding: 8px 10px;
   text-align: left;
   border-bottom: 1px solid hsla(45, 100%, 72%, 0.12);
+}
+
+.referral-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.referral-table-actions .hub-list-btn {
+  flex-shrink: 0;
 }
 
 .agency-health-panel {

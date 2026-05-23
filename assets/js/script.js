@@ -7373,6 +7373,262 @@ window.addEventListener('load', function() {
   // Initial render on load
   renderBusinessDocs();
 
+  // Mobile admin bottom tab bar — custom order (long-press to rearrange)
+  (function initAdminMobileTabBarOrder() {
+    var MOBILE_ORDER_KEY = 'adminMobileTabOrder';
+    var PRIMARY_SLOT_COUNT = 4;
+    var DEFAULT_ORDER = [
+      'overview', 'messages', 'pipeline', 'docs',
+      'hub', 'maintenance', 'referrals', 'health',
+      'portfolio', 'blog', 'testimonials', 'ops'
+    ];
+    var VALID_TAB = {
+      overview: 1, docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      hub: 1, maintenance: 1, referrals: 1, health: 1, ops: 1
+    };
+    var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
+    var moreWrap = document.getElementById('admin-tab-more-wrap');
+    if (!tabBar) return;
+
+    var reorderActive = false;
+    var reorderEnteredAt = 0;
+    var longPressTimer = null;
+    var suppressClickUntil = 0;
+    var dragTabId = null;
+    var currentOrder = loadOrder();
+
+    function isMobileBar() {
+      return window.matchMedia('(max-width: 580px)').matches;
+    }
+
+    function isSignedInAdmin() {
+      return typeof isAdminSession === 'function' && isAdminSession();
+    }
+
+    function allTabButtons() {
+      return Array.prototype.slice.call(tabBar.querySelectorAll('.admin-tab[data-admin-tab]'));
+    }
+
+    function loadOrder() {
+      try {
+        var raw = localStorage.getItem(MOBILE_ORDER_KEY);
+        if (!raw) return DEFAULT_ORDER.slice();
+        var parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return DEFAULT_ORDER.slice();
+        var seen = {};
+        var out = [];
+        parsed.forEach(function (id) {
+          if (VALID_TAB[id] && !seen[id]) {
+            seen[id] = true;
+            out.push(id);
+          }
+        });
+        DEFAULT_ORDER.forEach(function (id) {
+          if (!seen[id]) out.push(id);
+        });
+        return out;
+      } catch (e) {
+        return DEFAULT_ORDER.slice();
+      }
+    }
+
+    function saveOrder(order) {
+      try {
+        localStorage.setItem(MOBILE_ORDER_KEY, JSON.stringify(order));
+      } catch (e) {}
+    }
+
+    function applyOrder(order) {
+      currentOrder = order.slice();
+      var buttons = allTabButtons();
+      var byId = {};
+      buttons.forEach(function (btn) {
+        byId[btn.getAttribute('data-admin-tab')] = btn;
+      });
+
+      order.forEach(function (id, index) {
+        var btn = byId[id];
+        if (!btn) return;
+        if (isMobileBar()) {
+          btn.style.order = String(index);
+        } else {
+          btn.style.order = '';
+        }
+        if (index < PRIMARY_SLOT_COUNT) {
+          btn.setAttribute('data-mobile-primary', '');
+          btn.classList.add('is-mobile-primary-slot');
+        } else {
+          btn.removeAttribute('data-mobile-primary');
+          btn.classList.remove('is-mobile-primary-slot');
+        }
+      });
+
+      if (moreWrap && isMobileBar()) {
+        moreWrap.style.order = '1000';
+      } else if (moreWrap) {
+        moreWrap.style.order = '';
+      }
+
+      if (typeof window.rebuildAdminTabMoreDropdown === 'function') {
+        window.rebuildAdminTabMoreDropdown();
+      }
+    }
+
+    function ensureReorderBanner() {
+      var el = document.getElementById('admin-tab-reorder-banner');
+      if (el) return el;
+      el = document.createElement('div');
+      el.id = 'admin-tab-reorder-banner';
+      el.className = 'admin-tab-reorder-banner';
+      el.setAttribute('hidden', '');
+      el.innerHTML =
+        '<span class="admin-tab-reorder-banner-text">Drag tabs to rearrange · first ' + PRIMARY_SLOT_COUNT + ' show on the bar</span>' +
+        '<button type="button" class="admin-tab-reorder-done" id="admin-tab-reorder-done">Done</button>';
+      document.body.appendChild(el);
+      el.querySelector('#admin-tab-reorder-done').addEventListener('click', function () {
+        exitReorderMode(true);
+      });
+      return el;
+    }
+
+    function enterReorderMode() {
+      if (!isMobileBar() || !isSignedInAdmin()) return;
+      reorderActive = true;
+      reorderEnteredAt = Date.now();
+      tabBar.classList.add('is-reorder-mode');
+      document.body.classList.add('admin-tab-reorder-active');
+      var banner = ensureReorderBanner();
+      banner.hidden = false;
+      if (navigator.vibrate) {
+        try { navigator.vibrate(12); } catch (e) {}
+      }
+    }
+
+    function exitReorderMode(save) {
+      if (save) saveOrder(currentOrder);
+      reorderActive = false;
+      dragTabId = null;
+      tabBar.classList.remove('is-reorder-mode');
+      document.body.classList.remove('admin-tab-reorder-active');
+      allTabButtons().forEach(function (btn) {
+        btn.classList.remove('is-dragging');
+      });
+      var banner = document.getElementById('admin-tab-reorder-banner');
+      if (banner) banner.hidden = true;
+      if (!save) applyOrder(loadOrder());
+    }
+
+    function swapToward(dragId, targetId) {
+      if (!dragId || !targetId || dragId === targetId) return;
+      var from = currentOrder.indexOf(dragId);
+      var to = currentOrder.indexOf(targetId);
+      if (from < 0 || to < 0) return;
+      var next = currentOrder.slice();
+      next.splice(from, 1);
+      next.splice(to, 0, dragId);
+      currentOrder = next;
+      applyOrder(currentOrder);
+    }
+
+    function clearLongPress() {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    }
+
+    function onTabPointerDown(e) {
+      if (!isMobileBar() || !isSignedInAdmin()) return;
+      if (reorderActive) return;
+      var tab = e.target.closest('.admin-tab[data-admin-tab]');
+      if (!tab || !tabBar.contains(tab)) return;
+      var startX = e.clientX;
+      var startY = e.clientY;
+      var tabId = tab.getAttribute('data-admin-tab');
+
+      clearLongPress();
+      longPressTimer = setTimeout(function () {
+        longPressTimer = null;
+        suppressClickUntil = Date.now() + 700;
+        enterReorderMode();
+        dragTabId = tabId;
+        tab.classList.add('is-dragging');
+        if (tab.setPointerCapture && e.pointerId != null) {
+          try { tab.setPointerCapture(e.pointerId); } catch (err) {}
+        }
+      }, 520);
+
+      function cancelIfMoved(ev) {
+        if (Math.abs(ev.clientX - startX) > 12 || Math.abs(ev.clientY - startY) > 12) {
+          clearLongPress();
+        }
+      }
+
+      tab.addEventListener('pointermove', cancelIfMoved);
+      tab.addEventListener('pointerup', function cleanup() {
+        clearLongPress();
+        tab.removeEventListener('pointermove', cancelIfMoved);
+        tab.removeEventListener('pointerup', cleanup);
+        tab.removeEventListener('pointercancel', cleanup);
+      });
+      tab.addEventListener('pointercancel', function cleanup() {
+        clearLongPress();
+        tab.removeEventListener('pointermove', cancelIfMoved);
+        tab.removeEventListener('pointerup', cleanup);
+        tab.removeEventListener('pointercancel', cleanup);
+      });
+    }
+
+    function onTabPointerMove(e) {
+      if (!reorderActive || !dragTabId) return;
+      var hit = document.elementFromPoint(e.clientX, e.clientY);
+      var target = hit && hit.closest('.admin-tab[data-admin-tab]');
+      if (target && tabBar.contains(target)) {
+        swapToward(dragTabId, target.getAttribute('data-admin-tab'));
+      }
+    }
+
+    function onTabPointerUp(e) {
+      if (!reorderActive) return;
+      if (Date.now() - reorderEnteredAt < 180) return;
+      allTabButtons().forEach(function (btn) {
+        btn.classList.remove('is-dragging');
+      });
+      if (dragTabId) {
+        exitReorderMode(true);
+      }
+    }
+
+    tabBar.addEventListener('pointerdown', onTabPointerDown);
+    tabBar.addEventListener('pointermove', onTabPointerMove);
+    tabBar.addEventListener('pointerup', onTabPointerUp);
+    tabBar.addEventListener('pointercancel', onTabPointerUp);
+
+    tabBar.addEventListener('click', function (e) {
+      if (Date.now() < suppressClickUntil) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }, true);
+
+    tabBar.addEventListener('contextmenu', function (e) {
+      if (isMobileBar() && isSignedInAdmin()) e.preventDefault();
+    });
+
+    window.addEventListener('resize', function () {
+      if (!isMobileBar() && reorderActive) exitReorderMode(true);
+      applyOrder(currentOrder);
+    });
+
+    applyOrder(currentOrder);
+
+    window.AdminMobileTabOrder = {
+      getOrder: function () { return currentOrder.slice(); },
+      apply: function () { applyOrder(currentOrder); },
+      isReorderActive: function () { return reorderActive; }
+    };
+  })();
+
   // Admin dashboard tabs (Business Documents | Contact Messages | Blog Management)
   function initAdminTabs() {
     var root = document.getElementById('admin-tabs');
@@ -7465,6 +7721,7 @@ window.addEventListener('load', function() {
 
     tabs.forEach(function(tab) {
       tab.addEventListener('click', function() {
+        if (window.AdminMobileTabOrder && window.AdminMobileTabOrder.isReorderActive()) return;
         activate(tab.getAttribute('data-admin-tab'));
       });
     });
@@ -8152,34 +8409,58 @@ window.addEventListener('load', function() {
     var dropdown = document.getElementById('admin-tab-more-dropdown');
     if (!bar || !moreBtn || !dropdown) return;
 
-    // Collect overflow tabs (those without data-mobile-primary)
-    var overflowTabs = Array.prototype.slice.call(
-      bar.querySelectorAll('.admin-tab[data-admin-tab]:not([data-mobile-primary])')
-    );
+    var overflowTabs = [];
 
-    // Build dropdown items
-    overflowTabs.forEach(function(tab) {
-      var tabId   = tab.getAttribute('data-admin-tab');
-      var iconEl  = tab.querySelector('ion-icon');
-      var labelEl = tab.querySelector('.admin-tab-label-mobile') || tab.querySelector('.admin-tab-label-desktop');
-      var iconName = iconEl ? iconEl.getAttribute('name') : 'apps-outline';
-      var label    = labelEl ? labelEl.textContent.trim() : tabId;
+    function collectOverflowTabs() {
+      return Array.prototype.slice.call(
+        bar.querySelectorAll('.admin-tab[data-admin-tab]:not([data-mobile-primary])')
+      );
+    }
 
-      var item = document.createElement('button');
-      item.type = 'button';
-      item.className = 'admin-tab-more-item';
-      item.setAttribute('role', 'option');
-      item.setAttribute('data-more-tab', tabId);
-      item.innerHTML = '<ion-icon name="' + iconName + '" aria-hidden="true"></ion-icon><span>' + label + '</span>';
+    function rebuildDropdown() {
+      dropdown.innerHTML = '';
+      overflowTabs = collectOverflowTabs();
+      var order = window.AdminMobileTabOrder && window.AdminMobileTabOrder.getOrder
+        ? window.AdminMobileTabOrder.getOrder()
+        : null;
+      if (order && order.length) {
+        var byId = {};
+        overflowTabs.forEach(function (tab) {
+          byId[tab.getAttribute('data-admin-tab')] = tab;
+        });
+        overflowTabs = order
+          .map(function (id) { return byId[id]; })
+          .filter(Boolean);
+      }
 
-      item.addEventListener('click', function() {
-        if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
-        closeDropdown();
-        syncMoreState();
+      overflowTabs.forEach(function(tab) {
+        var tabId   = tab.getAttribute('data-admin-tab');
+        var iconEl  = tab.querySelector('ion-icon');
+        var labelEl = tab.querySelector('.admin-tab-label-mobile') || tab.querySelector('.admin-tab-label-desktop');
+        var iconName = iconEl ? iconEl.getAttribute('name') : 'apps-outline';
+        var label    = labelEl ? labelEl.textContent.trim() : tabId;
+
+        var item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'admin-tab-more-item';
+        item.setAttribute('role', 'option');
+        item.setAttribute('data-more-tab', tabId);
+        item.innerHTML = '<ion-icon name="' + iconName + '" aria-hidden="true"></ion-icon><span>' + label + '</span>';
+
+        item.addEventListener('click', function() {
+          if (window.AdminMobileTabOrder && window.AdminMobileTabOrder.isReorderActive()) return;
+          if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+          closeDropdown();
+          syncMoreState();
+        });
+
+        dropdown.appendChild(item);
       });
+      syncMoreState();
+    }
 
-      dropdown.appendChild(item);
-    });
+    window.rebuildAdminTabMoreDropdown = rebuildDropdown;
+    rebuildDropdown();
 
     function openDropdown() {
       var rect = moreBtn.getBoundingClientRect();
@@ -8216,6 +8497,7 @@ window.addEventListener('load', function() {
 
     moreBtn.addEventListener('click', function(e) {
       e.stopPropagation();
+      if (window.AdminMobileTabOrder && window.AdminMobileTabOrder.isReorderActive()) return;
       if (dropdown.classList.contains('is-open')) { closeDropdown(); } else { openDropdown(); syncMoreState(); }
     });
 
@@ -9642,6 +9924,43 @@ function toggleTheme() {
     { id: 'toggle-theme', label: 'Toggle dark mode', icon: 'moon-outline', action: () => { if (typeof toggleTheme === 'function') toggleTheme(); } }
   ];
 
+  function isAdminSignedIn() {
+    return typeof isAdminSession === 'function' && isAdminSession();
+  }
+
+  function runAdminTab(tabId, afterFn) {
+    if (typeof switchToPage === 'function') switchToPage('admin');
+    setTimeout(function () {
+      if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+      if (typeof afterFn === 'function') setTimeout(afterFn, 90);
+    }, 60);
+  }
+
+  function clickById(id) {
+    var el = document.getElementById(id);
+    if (el) el.click();
+  }
+
+  function getAdminCommands() {
+    if (!isAdminSignedIn()) return [];
+    return [
+      { id: 'admin-open', label: 'Admin: Open dashboard', icon: 'grid-outline', search: 'admin dashboard', action: function () { if (typeof switchToPage === 'function') switchToPage('admin'); } },
+      { id: 'admin-messages', label: 'Admin: Contact messages', icon: 'mail-outline', search: 'admin contact messages inbox', action: function () { runAdminTab('messages'); } },
+      { id: 'admin-pipeline', label: 'Admin: Client pipeline', icon: 'git-network-outline', search: 'admin pipeline leads crm', action: function () { runAdminTab('pipeline'); } },
+      { id: 'admin-hub', label: 'Admin: Project hub', icon: 'layers-outline', search: 'admin project hub client', action: function () { runAdminTab('hub'); } },
+      { id: 'admin-maintenance', label: 'Admin: Maintenance & SLA', icon: 'construct-outline', search: 'admin maintenance sla', action: function () { runAdminTab('maintenance'); } },
+      { id: 'admin-portfolio', label: 'Admin: Portfolio projects', icon: 'albums-outline', search: 'admin portfolio projects', action: function () { runAdminTab('portfolio'); } },
+      { id: 'admin-blog', label: 'Admin: Blog management', icon: 'newspaper-outline', search: 'admin blog posts', action: function () { runAdminTab('blog'); } },
+      { id: 'admin-docs', label: 'Admin: Business documents', icon: 'document-text-outline', search: 'admin documents proposal invoice', action: function () { runAdminTab('docs'); } },
+      { id: 'admin-dm-inbox', label: 'Admin: Open DM inbox', icon: 'chatbubbles-outline', search: 'admin dm inbox messages realtime', action: function () { runAdminTab('messages', function () { clickById('admin-open-dm-inbox'); }); } },
+      { id: 'admin-add-lead', label: 'Admin: Add pipeline lead', icon: 'person-add-outline', search: 'admin add lead pipeline new', action: function () { runAdminTab('pipeline', function () { if (typeof window.openLeadModal === 'function') window.openLeadModal(); }); } },
+      { id: 'admin-new-hub', label: 'Admin: New project hub', icon: 'add-circle-outline', search: 'admin new project hub', action: function () { runAdminTab('hub', function () { clickById('project-hub-add-btn'); }); } },
+      { id: 'admin-new-portfolio', label: 'Admin: New portfolio project', icon: 'add-outline', search: 'admin new portfolio project', action: function () { runAdminTab('portfolio', function () { clickById('admin-add-portfolio-btn'); }); } },
+      { id: 'admin-new-blog', label: 'Admin: New blog post', icon: 'create-outline', search: 'admin new blog post', action: function () { runAdminTab('blog', function () { clickById('admin-add-blog-btn'); }); } },
+      { id: 'admin-new-doc', label: 'Admin: New business document', icon: 'document-outline', search: 'admin new document proposal', action: function () { runAdminTab('docs', function () { clickById('business-doc-create-btn'); }); } }
+    ];
+  }
+
   function getCommandPaletteProjects() {
     const raw =
       window.portfolioProjects && window.portfolioProjects.length
@@ -9688,7 +10007,7 @@ function toggleTheme() {
     const el = document.createElement('div');
     el.className = 'command-palette-feedback';
     el.textContent = msg;
-    el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--orange-yellow-crayola);color:var(--smoky-black);padding:8px 16px;border-radius:8px;font-size:14px;z-index:10001;animation:fade 0.3s ease;';
+    el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--orange-yellow-crayola);color:var(--smoky-black);padding:8px 16px;border-radius:8px;font-size:14px;z-index:10080;animation:fade 0.3s ease;';
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2000);
   }
@@ -9705,19 +10024,42 @@ function toggleTheme() {
         search: p.title.toLowerCase()
       };
     });
-    return nav.concat(projects);
+    return nav.concat(getAdminCommands()).concat(projects);
   }
 
   let fullList = buildFullList();
   let filtered = [];
   let selectedIndex = 0;
 
-  function isContactDetailDrawerOpen() {
-    return document.body.classList.contains('admin-contact-detail-open');
+  function isAdminOverlayOpen() {
+    if (document.body.classList.contains('admin-contact-detail-open')) return true;
+    if (document.body.classList.contains('lead-drawer-open')) return true;
+    if (document.body.classList.contains('admin-dm-sheet-open')) return true;
+    var dmRoot = document.getElementById('admin-dm-sheet-root');
+    if (dmRoot && dmRoot.classList.contains('is-open')) return true;
+    if (document.querySelector('.agency-modal.active')) return true;
+    if (document.querySelector('.business-doc-modal.active')) return true;
+    if (document.querySelector('.add-blog-modal.active')) return true;
+    if (document.querySelector('.modal-container.active')) return true;
+    return false;
+  }
+
+  function syncCommandPaletteHintVisibility() {
+    var h = document.getElementById('command-palette-hint');
+    if (!h || overlay.classList.contains('active')) return;
+    if (isAdminOverlayOpen()) {
+      h.style.visibility = 'hidden';
+      h.style.opacity = '0';
+      h.style.pointerEvents = 'none';
+    } else {
+      h.style.visibility = '';
+      h.style.opacity = '';
+      h.style.pointerEvents = '';
+    }
   }
 
   function open() {
-    if (isContactDetailDrawerOpen()) return;
+    if (isAdminOverlayOpen()) return;
     fullList = buildFullList();
     overlay.classList.add('active');
     overlay.setAttribute('aria-hidden', 'false');
@@ -9732,8 +10074,7 @@ function toggleTheme() {
     overlay.classList.remove('active');
     overlay.setAttribute('aria-hidden', 'true');
     selectedIndex = 0;
-    var h = document.getElementById('command-palette-hint');
-    if (h) h.style.visibility = '';
+    syncCommandPaletteHintVisibility();
   }
 
   function filter(q) {
@@ -9801,11 +10142,29 @@ function toggleTheme() {
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
       e.preventDefault();
-      if (isContactDetailDrawerOpen()) return;
+      if (isAdminOverlayOpen()) return;
       if (overlay.classList.contains('active')) close();
       else open();
     }
   });
+
+  if (typeof MutationObserver !== 'undefined') {
+    var overlayObserver = new MutationObserver(syncCommandPaletteHintVisibility);
+    overlayObserver.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class'],
+      subtree: true,
+      attributeOldValue: false
+    });
+    ['admin-dm-sheet-root'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) overlayObserver.observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+    document.querySelectorAll('.agency-modal, .business-doc-modal, .add-blog-modal, .modal-container').forEach(function (el) {
+      overlayObserver.observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
+  syncCommandPaletteHintVisibility();
 
   overlay.querySelector('[data-cmd-close]').addEventListener('click', close);
 

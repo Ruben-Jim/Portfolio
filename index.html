@@ -61,8 +61,8 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-textarea-resizer-match-20260521">
-  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=hub-portal-link-box-20260523">
+  <link rel="stylesheet" href="./assets/css/style.css?v=admin-mobile-tab-reorder-20260523">
+  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=referral-delete-confirm-20260523">
 
   <!--
     - google font link
@@ -3234,6 +3234,66 @@
           </section>
         </div>
 
+        <!-- Delete project hub confirmation -->
+        <div class="modal-container" id="delete-hub-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-hub-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-hub-confirm-title" aria-describedby="delete-hub-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-hub-confirm-title">Delete project hub?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-hub-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-hub-confirm-desc">This permanently removes the project hub and invalidates any client portal link. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-hub-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-hub-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete maintenance client confirmation -->
+        <div class="modal-container" id="delete-maint-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-maint-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-maint-confirm-title" aria-describedby="delete-maint-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-maint-confirm-title">Delete maintenance client?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-maint-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-maint-confirm-desc">This permanently removes the maintenance record and any linked tickets. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-maint-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-maint-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Delete referral partner confirmation -->
+        <div class="modal-container" id="delete-referral-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-referral-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-referral-confirm-title" aria-describedby="delete-referral-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-referral-confirm-title">Delete referral partner?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-referral-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-referral-confirm-desc">This permanently removes the referral partner record. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-referral-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-referral-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
         <!-- Delete testimonial invite / published quote (admin Testimonials tab) -->
         <div class="modal-container" id="delete-testimonial-confirm-modal" aria-hidden="true">
           <div class="overlay" id="delete-testimonial-confirm-overlay"></div>
@@ -5153,8 +5213,8 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=portfolio-home-trade-niches-20260522"></script>
-  <script src="/assets/js/agency-tools.js?v=hub-portal-persist-20260523"></script>
+  <script src="/assets/js/script.js?v=admin-mobile-tab-reorder-20260523"></script>
+  <script src="/assets/js/agency-tools.js?v=maint-delete-confirm-20260523"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

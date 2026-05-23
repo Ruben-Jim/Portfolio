@@ -1174,7 +1174,7 @@ article.active {
 .command-palette-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 10070;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -1311,8 +1311,22 @@ article.active {
   font-size: var(--fs-7);
   cursor: pointer;
   box-shadow: var(--shadow-2);
-  z-index: 9999;
-  transition: border-color 0.2s, color 0.2s, transform 0.2s;
+  z-index: 10065;
+  transition: border-color 0.2s, color 0.2s, transform 0.2s, visibility 0.15s ease, opacity 0.15s ease;
+}
+
+/* Hide Search hint when admin drawers, sheets, or editor panels are open */
+body.admin-contact-detail-open #command-palette-hint,
+body.lead-drawer-open #command-palette-hint,
+body.admin-dm-sheet-open #command-palette-hint,
+body:has(#admin-dm-sheet-root.is-open) #command-palette-hint,
+body:has(.agency-modal.active) #command-palette-hint,
+body:has(.business-doc-modal.active) #command-palette-hint,
+body:has(.add-blog-modal.active) #command-palette-hint,
+body:has(.modal-container.active) #command-palette-hint {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .command-palette-hint:hover {
@@ -3078,6 +3092,12 @@ article {
 .modal-container.active {
   pointer-events: all;
   visibility: visible;
+}
+
+#delete-hub-confirm-modal.modal-container,
+#delete-referral-confirm-modal.modal-container,
+#delete-maint-confirm-modal.modal-container {
+  z-index: 10060;
 }
 
 .overlay {
@@ -11328,6 +11348,9 @@ body.project-modal-open {
 #delete-blog-confirm-modal.active .overlay,
 #delete-document-confirm-modal.active .overlay,
 #delete-portfolio-confirm-modal.active .overlay,
+#delete-hub-confirm-modal.active .overlay,
+#delete-referral-confirm-modal.active .overlay,
+#delete-maint-confirm-modal.active .overlay,
 #delete-testimonial-confirm-modal.active .overlay {
   opacity: 0.85;
   visibility: visible;
@@ -11355,6 +11378,9 @@ body.project-modal-open {
 #delete-blog-confirm-modal.active .confirm-delete-modal,
 #delete-document-confirm-modal.active .confirm-delete-modal,
 #delete-portfolio-confirm-modal.active .confirm-delete-modal,
+#delete-hub-confirm-modal.active .confirm-delete-modal,
+#delete-referral-confirm-modal.active .confirm-delete-modal,
+#delete-maint-confirm-modal.active .confirm-delete-modal,
 #delete-testimonial-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
@@ -12668,14 +12694,28 @@ body.dm-customer-sheet-open {
 
 @media (min-width: 768px) {
   .admin-dm-sheet {
-    left: 50%;
-    right: auto;
-    width: min(960px, calc(100vw - 40px));
-    transform: translate3d(-50%, 100%, 0);
+    --dm-sheet-max-vh: 100;
+    top: 0;
+    left: auto;
+    right: 0;
+    bottom: 0;
+    width: min(720px, 94vw);
+    max-height: 100vh;
+    max-height: 100dvh;
+    padding-bottom: 0;
+    border-radius: 0;
+    border-bottom: 1px solid hsla(45, 40%, 50%, 0.22);
+    border-left: 1px solid hsla(45, 40%, 50%, 0.22);
+    box-shadow: -12px 0 48px hsla(0, 0%, 0%, 0.5);
+    transform: translate3d(100%, 0, 0);
   }
 
   .admin-dm-sheet-root.is-open .admin-dm-sheet {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+
+  .admin-dm-sheet-grabber {
+    display: none;
   }
 }
 
@@ -15985,13 +16025,7 @@ body.admin-contact-detail-open {
   overflow: hidden;
 }
 
-/* Command palette hint uses z-index 9999; hide it so it does not cover the message detail drawer */
-body.admin-contact-detail-open #command-palette-hint {
-  visibility: hidden !important;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease, visibility 0.15s ease;
-}
+/* (command-palette-hint visibility when overlays open — see #COMMAND PALETTE section) */
 
 .admin-contact-detail__backdrop {
   position: absolute;
@@ -17053,6 +17087,75 @@ body.lead-drawer-open {
   color: #fca5a5;
 }
 
+/* =============================================
+   ADMIN — DESKTOP DRAWERS (768px+)
+   Right-side panels; mobile keeps bottom sheets / centered where defined.
+   ============================================= */
+@media (min-width: 768px) {
+  .business-doc-modal {
+    display: block;
+    overflow: hidden;
+  }
+
+  .business-doc-modal.active {
+    display: block;
+  }
+
+  .business-doc-modal-content,
+  .add-blog-modal .add-blog-content {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    margin: 0;
+    width: min(560px, 94vw);
+    max-width: none;
+    max-height: 100vh;
+    max-height: 100dvh;
+    height: auto;
+    border-radius: 0;
+    border-left: 1px solid var(--jet);
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: -8px 0 40px hsla(0, 0%, 0%, 0.45);
+    transform: translate3d(100%, 0, 0);
+    opacity: 1;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .business-doc-modal.active .business-doc-modal-content,
+  .add-blog-modal.active .add-blog-content {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .add-blog-modal {
+    display: block;
+    overflow: hidden;
+  }
+
+  .add-blog-modal.active {
+    display: block;
+  }
+
+  #portfolio-project-modal.active .add-blog-content,
+  .portfolio-project-modal-content.add-blog-content {
+    width: min(720px, 94vw);
+  }
+
+  .add-blog-modal.fullscreen-editor.active .add-blog-content {
+    width: min(920px, 96vw);
+    margin: 0;
+    height: 100%;
+    max-height: 100dvh;
+  }
+
+  .add-blog-modal.fullscreen-editor.active {
+    display: block !important;
+  }
+}
+
 /* Responsive: collapse KPI & pipeline summary to 2-col on smaller screens */
 @media (max-width: 580px) {
   .admin-kpi-bar,
@@ -17173,10 +17276,79 @@ body.lead-drawer-open {
   .admin-tab-bar .admin-tab:not([data-mobile-primary]) {
     display: none;
   }
+
+  .admin.active .admin-tab-bar.is-reorder-mode .admin-tab {
+    display: inline-flex !important;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .admin.active .admin-tab-bar.is-reorder-mode .admin-tab.is-dragging {
+    cursor: grabbing;
+    z-index: 2;
+    opacity: 0.92;
+    transform: scale(1.06);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  }
+
+  .admin.active .admin-tab-bar.is-reorder-mode .admin-tab.is-mobile-primary-slot {
+    outline: 1px dashed hsla(45, 100%, 72%, 0.35);
+    outline-offset: 2px;
+  }
+
   .admin-tab-more-wrap {
     display: flex;
     align-items: center;
   }
+}
+
+.admin-tab-reorder-banner {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  background: hsla(240, 5%, 12%, 0.96);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+.admin-tab-reorder-banner[hidden] {
+  display: none !important;
+}
+
+.admin-tab-reorder-banner-text {
+  font-size: 11px;
+  color: var(--light-gray);
+  line-height: 1.35;
+}
+
+.admin-tab-reorder-done {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid hsla(45, 100%, 72%, 0.4);
+  background: hsla(45, 100%, 72%, 0.14);
+  color: var(--orange-yellow-crayola);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  cursor: pointer;
+}
+
+.admin-tab-reorder-done:hover {
+  background: hsla(45, 100%, 72%, 0.22);
+}
+
+body.admin-tab-reorder-active .admin-tab-bar {
+  overflow-x: auto;
 }
 
 /* =============================================
@@ -17307,7 +17479,7 @@ body.lead-drawer-open {
     width: 100%;
   }
 
-  /* Sidebar */
+  /* Sidebar — full nav visible; page scrolls, not the nav column */
   #admin-dashboard-content > .admin-tabs > .admin-tab-bar {
     flex-direction: column !important;
     flex-wrap: nowrap !important;
@@ -17320,10 +17492,14 @@ body.lead-drawer-open {
     position: sticky;
     top: 20px;
     align-self: flex-start;
-    max-height: calc(100vh - 40px);
-    overflow-x: visible !important;
-    overflow-y: auto !important;
-    scrollbar-width: thin;
+    max-height: none;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    overscroll-behavior: contain;
+  }
+
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar::-webkit-scrollbar {
+    display: none;
   }
 
   /* All tabs visible — override mobile-primary hiding */

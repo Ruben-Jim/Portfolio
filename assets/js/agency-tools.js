@@ -58,6 +58,9 @@
   var agencyMaintenance = [];
   var agencyReferrals = [];
   var agencyUnsubs = [];
+  var pendingDeleteHubId = null;
+  var pendingDeleteRefId = null;
+  var pendingDeleteMaintId = null;
 
   function esc(s) {
     if (s == null) return '';
@@ -402,17 +405,136 @@
         var total = p.milestones.length || 1;
         return (
           '<li class="hub-list-item" data-hub-id="' + esc(p.id) + '">' +
-          '<div><strong>' + esc(p.clientName || p.title || 'Untitled') + '</strong>' +
+          '<div class="hub-list-item-main">' +
+          '<strong>' + esc(p.clientName || p.title || 'Untitled') + '</strong>' +
           '<br><span class="form-hint">' + done + '/' + total + ' milestones</span></div>' +
-          '<ion-icon name="chevron-forward-outline"></ion-icon></li>'
+          '<div class="hub-list-item-actions">' +
+          '<button type="button" class="hub-list-btn hub-list-btn-delete" data-hub-delete="' + esc(p.id) + '" aria-label="Delete project hub">' +
+          '<ion-icon name="trash-outline"></ion-icon></button>' +
+          '<ion-icon class="hub-list-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>' +
+          '</div></li>'
         );
       })
       .join('');
     list.querySelectorAll('[data-hub-id]').forEach(function (el) {
-      el.addEventListener('click', function () {
+      el.addEventListener('click', function (e) {
+        if (e.target.closest('[data-hub-delete]')) return;
         openProjectHubEditor(el.getAttribute('data-hub-id'));
       });
     });
+    list.querySelectorAll('[data-hub-delete]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDeleteHubConfirmModal(btn.getAttribute('data-hub-delete'));
+      });
+    });
+  }
+
+  function openDeleteHubConfirmModal(id) {
+    if (!id) return;
+    pendingDeleteHubId = id;
+    var p = agencyProjects.find(function (x) { return x.id === id; });
+    var label = p ? (p.clientName || p.title || 'Untitled') : 'this project hub';
+    var desc = document.getElementById('delete-hub-confirm-desc');
+    if (desc) {
+      desc.textContent =
+        'Permanently delete the project hub for “' + label + '”? Any client portal link for this hub will stop working. This cannot be undone.';
+    }
+    var modal = document.getElementById('delete-hub-confirm-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var cancelBtn = document.getElementById('delete-hub-confirm-cancel');
+    if (cancelBtn) {
+      setTimeout(function () {
+        cancelBtn.focus();
+      }, 40);
+    }
+  }
+
+  function closeDeleteHubConfirmModal() {
+    var modal = document.getElementById('delete-hub-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingDeleteHubId = null;
+  }
+
+  async function performDeleteProjectHub(id) {
+    if (!id || !rtdbReady()) return;
+    var p = agencyProjects.find(function (x) { return x.id === id; });
+
+    if (p && p.portalToken && typeof window.rtdbRemove === 'function') {
+      await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.clientPortals + '/' + p.portalToken));
+    }
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.projects + '/' + id));
+
+    var editorModal = document.getElementById('project-hub-editor-modal');
+    var editId = document.getElementById('hub-edit-id');
+    if (editorModal && editorModal.classList.contains('active') && editId && editId.value === id) {
+      closeModal('project-hub-editor-modal');
+    }
+  }
+
+  function setupDeleteHubConfirmModal() {
+    var modal = document.getElementById('delete-hub-confirm-modal');
+    if (!modal || modal.dataset.hubDelBound) return;
+    modal.dataset.hubDelBound = '1';
+
+    var overlay = document.getElementById('delete-hub-confirm-overlay');
+    var btnClose = document.getElementById('delete-hub-confirm-close');
+    var btnCancel = document.getElementById('delete-hub-confirm-cancel');
+    var btnDelete = document.getElementById('delete-hub-confirm-delete');
+
+    function close() {
+      closeDeleteHubConfirmModal();
+    }
+
+    [overlay, btnClose, btnCancel].forEach(function (el) {
+      if (el) el.addEventListener('click', close);
+    });
+
+    if (btnDelete) {
+      btnDelete.addEventListener('click', function () {
+        var id = pendingDeleteHubId;
+        if (!id || !rtdbReady()) {
+          close();
+          return;
+        }
+        btnDelete.disabled = true;
+        performDeleteProjectHub(id)
+          .then(function () {
+            close();
+            if (typeof showSuccessMessage === 'function') {
+              showSuccessMessage('Project hub deleted.');
+            }
+          })
+          .catch(function (err) {
+            console.error(err);
+            if (typeof showErrorMessage === 'function') {
+              showErrorMessage(err.message || 'Could not delete project hub.');
+            } else {
+              alert('Could not delete project hub. Try again.');
+            }
+          })
+          .finally(function () {
+            btnDelete.disabled = false;
+          });
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      function hubDelEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        var m = document.getElementById('delete-hub-confirm-modal');
+        if (!m || !m.classList.contains('active')) return;
+        ev.stopImmediatePropagation();
+        close();
+      },
+      true
+    );
   }
 
   function openProjectHubEditor(id) {
@@ -526,6 +648,7 @@
   }
 
   function initProjectHub() {
+    setupDeleteHubConfirmModal();
     var addBtn = document.getElementById('project-hub-add-btn');
     if (addBtn) addBtn.addEventListener('click', function () { openProjectHubEditor('new'); });
     bindModalClose('project-hub-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
@@ -743,17 +866,130 @@
       .map(function (m) {
         return (
           '<li class="hub-list-item" data-maint-id="' + esc(m.id) + '">' +
-          '<div><strong>' + esc(m.clientName) + '</strong><br>' +
+          '<div class="hub-list-item-main"><strong>' + esc(m.clientName) + '</strong><br>' +
           '<span class="form-hint">' + m.hoursUsed + '/' + m.hoursIncluded + ' hrs · SLA ' + m.slaHours + 'h</span></div>' +
-          '<ion-icon name="chevron-forward-outline"></ion-icon></li>'
+          '<div class="hub-list-item-actions">' +
+          '<button type="button" class="hub-list-btn hub-list-btn-delete" data-maint-delete="' + esc(m.id) + '" aria-label="Delete maintenance client">' +
+          '<ion-icon name="trash-outline"></ion-icon></button>' +
+          '<ion-icon class="hub-list-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>' +
+          '</div></li>'
         );
       })
       .join('');
     list.querySelectorAll('[data-maint-id]').forEach(function (el) {
-      el.addEventListener('click', function () {
+      el.addEventListener('click', function (e) {
+        if (e.target.closest('[data-maint-delete]')) return;
         openMaintenanceEditor(el.getAttribute('data-maint-id'));
       });
     });
+    list.querySelectorAll('[data-maint-delete]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDeleteMaintConfirmModal(btn.getAttribute('data-maint-delete'));
+      });
+    });
+  }
+
+  function openDeleteMaintConfirmModal(id) {
+    if (!id) return;
+    pendingDeleteMaintId = id;
+    var m = agencyMaintenance.find(function (x) { return x.id === id; });
+    var label = m ? (m.clientName || 'this client') : 'this client';
+    var desc = document.getElementById('delete-maint-confirm-desc');
+    if (desc) {
+      desc.textContent =
+        'Permanently delete maintenance record for “' + label + '”? This cannot be undone.';
+    }
+    var modal = document.getElementById('delete-maint-confirm-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var cancelBtn = document.getElementById('delete-maint-confirm-cancel');
+    if (cancelBtn) {
+      setTimeout(function () {
+        cancelBtn.focus();
+      }, 40);
+    }
+  }
+
+  function closeDeleteMaintConfirmModal() {
+    var modal = document.getElementById('delete-maint-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingDeleteMaintId = null;
+  }
+
+  async function performDeleteMaintenance(id) {
+    if (!id || !rtdbReady()) return;
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + id));
+
+    var editorModal = document.getElementById('maintenance-editor-modal');
+    var editId = document.getElementById('maint-edit-id');
+    if (editorModal && editorModal.classList.contains('active') && editId && editId.value === id) {
+      closeModal('maintenance-editor-modal');
+    }
+  }
+
+  function setupDeleteMaintConfirmModal() {
+    var modal = document.getElementById('delete-maint-confirm-modal');
+    if (!modal || modal.dataset.maintDelBound) return;
+    modal.dataset.maintDelBound = '1';
+
+    var overlay = document.getElementById('delete-maint-confirm-overlay');
+    var btnClose = document.getElementById('delete-maint-confirm-close');
+    var btnCancel = document.getElementById('delete-maint-confirm-cancel');
+    var btnDelete = document.getElementById('delete-maint-confirm-delete');
+
+    function close() {
+      closeDeleteMaintConfirmModal();
+    }
+
+    [overlay, btnClose, btnCancel].forEach(function (el) {
+      if (el) el.addEventListener('click', close);
+    });
+
+    if (btnDelete) {
+      btnDelete.addEventListener('click', function () {
+        var id = pendingDeleteMaintId;
+        if (!id || !rtdbReady()) {
+          close();
+          return;
+        }
+        btnDelete.disabled = true;
+        performDeleteMaintenance(id)
+          .then(function () {
+            close();
+            if (typeof showSuccessMessage === 'function') {
+              showSuccessMessage('Maintenance client deleted.');
+            }
+          })
+          .catch(function (err) {
+            console.error(err);
+            if (typeof showErrorMessage === 'function') {
+              showErrorMessage(err.message || 'Could not delete maintenance client.');
+            } else {
+              alert('Could not delete maintenance client. Try again.');
+            }
+          })
+          .finally(function () {
+            btnDelete.disabled = false;
+          });
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      function maintDelEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        var m = document.getElementById('delete-maint-confirm-modal');
+        if (!m || !m.classList.contains('active')) return;
+        ev.stopImmediatePropagation();
+        close();
+      },
+      true
+    );
   }
 
   function openMaintenanceEditor(id) {
@@ -796,6 +1032,7 @@
   }
 
   function initMaintenance() {
+    setupDeleteMaintConfirmModal();
     var add = document.getElementById('maintenance-add-btn');
     if (add) add.addEventListener('click', function () { openMaintenanceEditor('new'); });
     bindModalClose('maintenance-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
@@ -891,15 +1128,128 @@
           '<td>' + esc(r.email) + '</td>' +
           '<td>' + r.commissionPct + '%</td>' +
           '<td>' + r.leadsReferred + '</td>' +
-          '<td><button type="button" class="btn btn-secondary btn-sm" data-edit-ref="' + esc(r.id) + '">Edit</button></td></tr>'
+          '<td class="referral-table-actions">' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-edit-ref="' + esc(r.id) + '">Edit</button>' +
+          '<button type="button" class="hub-list-btn hub-list-btn-delete" data-ref-delete="' + esc(r.id) + '" aria-label="Delete referral partner">' +
+          '<ion-icon name="trash-outline"></ion-icon></button>' +
+          '</td></tr>'
         );
       })
       .join('');
     tbody.querySelectorAll('[data-edit-ref]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
         openReferralEditor(btn.getAttribute('data-edit-ref'));
       });
     });
+    tbody.querySelectorAll('[data-ref-delete]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openDeleteReferralConfirmModal(btn.getAttribute('data-ref-delete'));
+      });
+    });
+  }
+
+  function openDeleteReferralConfirmModal(id) {
+    if (!id) return;
+    pendingDeleteRefId = id;
+    var r = agencyReferrals.find(function (x) { return x.id === id; });
+    var label = r ? (r.name || r.email || 'this partner') : 'this partner';
+    var desc = document.getElementById('delete-referral-confirm-desc');
+    if (desc) {
+      desc.textContent =
+        'Permanently delete referral partner “' + label + '”? This cannot be undone.';
+    }
+    var modal = document.getElementById('delete-referral-confirm-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var cancelBtn = document.getElementById('delete-referral-confirm-cancel');
+    if (cancelBtn) {
+      setTimeout(function () {
+        cancelBtn.focus();
+      }, 40);
+    }
+  }
+
+  function closeDeleteReferralConfirmModal() {
+    var modal = document.getElementById('delete-referral-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingDeleteRefId = null;
+  }
+
+  async function performDeleteReferral(id) {
+    if (!id || !rtdbReady()) return;
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.referrals + '/' + id));
+
+    var editorModal = document.getElementById('referral-editor-modal');
+    var editId = document.getElementById('ref-edit-id');
+    if (editorModal && editorModal.classList.contains('active') && editId && editId.value === id) {
+      closeModal('referral-editor-modal');
+    }
+  }
+
+  function setupDeleteReferralConfirmModal() {
+    var modal = document.getElementById('delete-referral-confirm-modal');
+    if (!modal || modal.dataset.refDelBound) return;
+    modal.dataset.refDelBound = '1';
+
+    var overlay = document.getElementById('delete-referral-confirm-overlay');
+    var btnClose = document.getElementById('delete-referral-confirm-close');
+    var btnCancel = document.getElementById('delete-referral-confirm-cancel');
+    var btnDelete = document.getElementById('delete-referral-confirm-delete');
+
+    function close() {
+      closeDeleteReferralConfirmModal();
+    }
+
+    [overlay, btnClose, btnCancel].forEach(function (el) {
+      if (el) el.addEventListener('click', close);
+    });
+
+    if (btnDelete) {
+      btnDelete.addEventListener('click', function () {
+        var id = pendingDeleteRefId;
+        if (!id || !rtdbReady()) {
+          close();
+          return;
+        }
+        btnDelete.disabled = true;
+        performDeleteReferral(id)
+          .then(function () {
+            close();
+            if (typeof showSuccessMessage === 'function') {
+              showSuccessMessage('Referral partner deleted.');
+            }
+          })
+          .catch(function (err) {
+            console.error(err);
+            if (typeof showErrorMessage === 'function') {
+              showErrorMessage(err.message || 'Could not delete referral partner.');
+            } else {
+              alert('Could not delete referral partner. Try again.');
+            }
+          })
+          .finally(function () {
+            btnDelete.disabled = false;
+          });
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      function refDelEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        var m = document.getElementById('delete-referral-confirm-modal');
+        if (!m || !m.classList.contains('active')) return;
+        ev.stopImmediatePropagation();
+        close();
+      },
+      true
+    );
   }
 
   function openReferralEditor(id) {
@@ -939,6 +1289,7 @@
   }
 
   function initReferrals() {
+    setupDeleteReferralConfirmModal();
     var add = document.getElementById('referral-add-btn');
     if (add) add.addEventListener('click', function () { openReferralEditor('new'); });
     bindModalClose('referral-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
