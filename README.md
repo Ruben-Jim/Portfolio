@@ -23,7 +23,7 @@ vCard is a fully responsive personal portfolio website, responsive for all devic
 
 ### Admin Access
 
-- **URL:** Open `/admin` on the main site ([`index.html`](index.html)), not the 404 page.
+- **URL:** Open `/admin` on the main site ([`index.html`](index.html)). On GitHub Pages, `/admin` is served via `404.html` (HTTP 404 status is normal); keep `404.html` in sync with `index.html` after admin changes (see below).
 - **Sign-in:** Username **`admin`** / password **`admin123`** (configured in `ADMIN_CREDENTIALS` in [`assets/js/config.js`](assets/js/config.js)). Session is stored in the browser (`sessionStorage`).
 - **Firebase data:** Contact messages (Firestore), DM inbox (RTDB `dm/*`), pipeline, and portfolio admin writes use **open rules** while auth is local-only. The admin UI is still gated by `ADMIN_CREDENTIALS`. Deploy rules after changes: `firebase deploy --only firestore:rules,database`.
 - **Security:** Anyone with your Firebase web API key could read/write admin collections until you re-enable Firebase Auth and tighten `firestore.rules` / `database.rules.json`.
@@ -38,8 +38,24 @@ firebase deploy --only firestore:rules,database,functions,hosting
 
 Admin-only emails (`admin_reply`, `testimonial_request`) require a valid Firebase ID token; public contact/hire-me forms stay unauthenticated.
 
+### GitHub Pages SPA routes (`/admin`, `/portfolio`, …)
+
+`rubenjimenez.dev` uses GitHub Pages (see [`CNAME`](CNAME)). Unlike Firebase Hosting, GH Pages cannot rewrite `/admin` → `index.html`. Instead:
+
+- `/admin` → serves [`404.html`](404.html) (browser may log a 404; the app still runs using the URL path).
+- `/admin/` → serves [`admin/index.html`](admin/index.html) (HTTP 200).
+
+After editing [`index.html`](index.html), sync copies before deploy:
+
+```bash
+cp index.html 404.html && cp index.html admin/index.html
+```
+
+For a clean **HTTP 200** at `/admin`, connect the custom domain to [Firebase Hosting](https://firebase.google.com/docs/hosting/custom-domain) (`firebase deploy --only hosting`) — rewrites in [`firebase.json`](firebase.json) already map `/admin` to `index.html`. Verify: `https://portfolio-2578e.web.app/admin` returns 200.
+
 ### Troubleshooting
 
+- **`Failed to load resource: 404` on `/admin`:** Expected on GitHub Pages for the document request; admin should still load. If the dashboard is blank or stale, run the `cp` commands above and redeploy. Prefer Firebase Hosting on the custom domain to remove the 404.
 - **Messages not showing:** Sign in with `ADMIN_CREDENTIALS`, run `firebase deploy --only firestore:rules,database`, then hard refresh.
 - **DM inbox empty:** Deploy database rules; confirm `databaseURL` in config.js; use **Open DM inbox** after admin sign-in.
 - **Invalid username/password:** Uses `ADMIN_CREDENTIALS` (default `admin` / `admin123`).
