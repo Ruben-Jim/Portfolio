@@ -17019,10 +17019,6 @@ body.admin-contact-detail-open {
    ADMIN — KPI BAR
    ============================================= */
 
-#admin-panel-overview .admin-quick-actions {
-  margin-bottom: 0;
-}
-
 .admin-kpi-bar {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -17101,6 +17097,128 @@ body.admin-contact-detail-open {
 }
 
 .admin-quick-action-btn ion-icon { font-size: 15px; }
+
+/* =============================================
+   ADMIN — OVERVIEW DASHBOARD
+   ============================================= */
+
+.admin-overview {
+  margin-top: 4px;
+}
+
+.admin-overview-header {
+  margin-bottom: 16px;
+}
+
+.admin-overview-title {
+  font-size: var(--fs-2);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  margin: 0 0 4px;
+}
+
+.admin-overview-subtitle {
+  font-size: var(--fs-6);
+  color: var(--light-gray-70);
+  margin: 0;
+}
+
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.admin-overview-card {
+  background: var(--border-gradient-onyx);
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  padding: 16px 18px;
+  min-height: 140px;
+}
+
+.admin-overview-card--wide {
+  grid-column: 1 / -1;
+}
+
+.admin-overview-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  margin: 0 0 12px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.admin-overview-card-title ion-icon {
+  font-size: 18px;
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-overview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-overview-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--jet);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.admin-overview-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.admin-overview-item:first-child {
+  padding-top: 0;
+}
+
+.admin-overview-item:hover,
+.admin-overview-item:focus-visible {
+  color: var(--orange-yellow-crayola);
+  outline: none;
+}
+
+.admin-overview-item-label {
+  font-size: var(--fs-6);
+  color: var(--light-gray);
+  font-weight: var(--fw-500);
+}
+
+.admin-overview-item-meta {
+  font-size: 11px;
+  color: var(--light-gray-70);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.admin-overview-empty {
+  font-size: var(--fs-6);
+  color: var(--light-gray-70);
+  line-height: 1.5;
+  padding: 4px 0;
+}
+
+@media (max-width: 768px) {
+  .admin-overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-overview-card--wide {
+    grid-column: auto;
+  }
+}
 
 /* =============================================
    ADMIN — CLIENT PIPELINE (CRM)

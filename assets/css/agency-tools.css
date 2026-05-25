@@ -511,50 +511,105 @@
 
 .hub-list-item {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 14px;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
   border-radius: 10px;
   border: 1px solid hsla(45, 100%, 72%, 0.16);
   background: hsla(240, 2%, 16%, 0.8);
+  overflow: hidden;
 }
 
 .hub-list-item:hover {
   border-color: hsla(45, 100%, 72%, 0.35);
 }
 
+.hub-list-item:hover .hub-list-chevron {
+  color: var(--orange-yellow-crayola);
+}
+
+.hub-list-item-open {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 14px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hub-list-item-open:hover,
+.hub-list-item-open:focus-visible {
+  background: hsla(45, 100%, 72%, 0.06);
+  outline: none;
+}
+
 .hub-list-item-main {
   flex: 1 1 auto;
   min-width: 0;
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.hub-list-item-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+.hub-list-item-title {
+  display: block;
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  line-height: 1.3;
+}
+
+.hub-list-item-meta {
+  display: block;
+  font-size: var(--fs-7);
+  color: var(--light-gray-70);
+  line-height: 1.35;
 }
 
 .hub-list-chevron {
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
   color: var(--light-gray-70);
   pointer-events: none;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.hub-list-chevron ion-icon {
+  font-size: 20px;
+}
+
+.hub-list-item-open:hover .hub-list-chevron,
+.hub-list-item-open:focus-visible .hub-list-chevron {
+  transform: translateX(2px);
 }
 
 .hub-list-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 44px;
+  min-height: 100%;
   padding: 0;
-  border-radius: 8px;
-  border: 1px solid hsla(45, 100%, 72%, 0.2);
-  background: hsla(240, 2%, 12%, 0.9);
-  color: var(--light-gray);
+  margin: 0;
+  border: none;
+  border-left: 1px solid hsla(45, 100%, 72%, 0.12);
+  border-radius: 0;
+  background: hsla(240, 2%, 12%, 0.5);
+  color: var(--light-gray-70);
   cursor: pointer;
   transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
@@ -564,12 +619,12 @@
   pointer-events: none;
 }
 
-.hub-list-btn:hover,
-.hub-list-btn:focus-visible {
+.hub-list-btn-delete:hover,
+.hub-list-btn-delete:focus-visible {
   outline: none;
-  border-color: hsla(0, 72%, 68%, 0.55);
   color: hsl(0, 72%, 68%);
-  background: hsla(0, 72%, 68%, 0.1);
+  background: hsla(0, 72%, 68%, 0.12);
+  border-left-color: hsla(0, 72%, 68%, 0.25);
 }
 
 .hub-milestone-list {

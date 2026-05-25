@@ -283,6 +283,7 @@
         });
         renderProjectHubList();
         renderFirebaseHealthProjectSelect();
+        if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
       })
     );
 
@@ -296,6 +297,7 @@
           });
         }
         renderMaintenanceList();
+        if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
       })
     );
 
@@ -404,22 +406,23 @@
         var done = p.milestones.filter(function (m) { return m.done; }).length;
         var total = p.milestones.length || 1;
         return (
-          '<li class="hub-list-item" data-hub-id="' + esc(p.id) + '">' +
-          '<div class="hub-list-item-main">' +
-          '<strong>' + esc(p.clientName || p.title || 'Untitled') + '</strong>' +
-          '<br><span class="form-hint">' + done + '/' + total + ' milestones</span></div>' +
-          '<div class="hub-list-item-actions">' +
+          '<li class="hub-list-item">' +
+          '<button type="button" class="hub-list-item-open" data-hub-id="' + esc(p.id) + '" aria-label="Open project hub for ' + esc(p.clientName || p.title || 'Untitled') + '">' +
+          '<span class="hub-list-item-main">' +
+          '<strong class="hub-list-item-title">' + esc(p.clientName || p.title || 'Untitled') + '</strong>' +
+          '<span class="hub-list-item-meta">' + done + '/' + total + ' milestones</span>' +
+          '</span>' +
+          '<span class="hub-list-chevron" aria-hidden="true"><ion-icon name="chevron-forward-outline"></ion-icon></span>' +
+          '</button>' +
           '<button type="button" class="hub-list-btn hub-list-btn-delete" data-hub-delete="' + esc(p.id) + '" aria-label="Delete project hub">' +
           '<ion-icon name="trash-outline"></ion-icon></button>' +
-          '<ion-icon class="hub-list-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>' +
-          '</div></li>'
+          '</li>'
         );
       })
       .join('');
-    list.querySelectorAll('[data-hub-id]').forEach(function (el) {
-      el.addEventListener('click', function (e) {
-        if (e.target.closest('[data-hub-delete]')) return;
-        openProjectHubEditor(el.getAttribute('data-hub-id'));
+    list.querySelectorAll('.hub-list-item-open[data-hub-id]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openProjectHubEditor(btn.getAttribute('data-hub-id'));
       });
     });
     list.querySelectorAll('[data-hub-delete]').forEach(function (btn) {
@@ -865,21 +868,23 @@
     list.innerHTML = agencyMaintenance
       .map(function (m) {
         return (
-          '<li class="hub-list-item" data-maint-id="' + esc(m.id) + '">' +
-          '<div class="hub-list-item-main"><strong>' + esc(m.clientName) + '</strong><br>' +
-          '<span class="form-hint">' + m.hoursUsed + '/' + m.hoursIncluded + ' hrs · SLA ' + m.slaHours + 'h</span></div>' +
-          '<div class="hub-list-item-actions">' +
+          '<li class="hub-list-item">' +
+          '<button type="button" class="hub-list-item-open" data-maint-id="' + esc(m.id) + '" aria-label="Open maintenance for ' + esc(m.clientName) + '">' +
+          '<span class="hub-list-item-main">' +
+          '<strong class="hub-list-item-title">' + esc(m.clientName) + '</strong>' +
+          '<span class="hub-list-item-meta">' + m.hoursUsed + '/' + m.hoursIncluded + ' hrs · SLA ' + m.slaHours + 'h</span>' +
+          '</span>' +
+          '<span class="hub-list-chevron" aria-hidden="true"><ion-icon name="chevron-forward-outline"></ion-icon></span>' +
+          '</button>' +
           '<button type="button" class="hub-list-btn hub-list-btn-delete" data-maint-delete="' + esc(m.id) + '" aria-label="Delete maintenance client">' +
           '<ion-icon name="trash-outline"></ion-icon></button>' +
-          '<ion-icon class="hub-list-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>' +
-          '</div></li>'
+          '</li>'
         );
       })
       .join('');
-    list.querySelectorAll('[data-maint-id]').forEach(function (el) {
-      el.addEventListener('click', function (e) {
-        if (e.target.closest('[data-maint-delete]')) return;
-        openMaintenanceEditor(el.getAttribute('data-maint-id'));
+    list.querySelectorAll('.hub-list-item-open[data-maint-id]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openMaintenanceEditor(btn.getAttribute('data-maint-id'));
       });
     });
     list.querySelectorAll('[data-maint-delete]').forEach(function (btn) {
@@ -1352,9 +1357,30 @@
     }, 50);
   }
 
+  function getOverviewSnapshot() {
+    return {
+      projects: agencyProjects.map(function (p) {
+        return {
+          clientName: p.clientName,
+          title: p.title,
+          milestones: p.milestones || []
+        };
+      }),
+      maintenance: agencyMaintenance.map(function (m) {
+        return {
+          clientName: m.clientName,
+          renewalDate: m.renewalDate,
+          hoursIncluded: m.hoursIncluded,
+          hoursUsed: m.hoursUsed
+        };
+      })
+    };
+  }
+
   window.AgencyTools = {
     subscribe: subscribeAgencyData,
     unsubscribe: unsubscribeAgencyData,
+    getOverviewSnapshot: getOverviewSnapshot,
     openProjectHub: function (leadId) {
       var existing = agencyProjects.find(function (p) { return p.leadId === leadId; });
       if (existing) openProjectHubEditor(existing.id);

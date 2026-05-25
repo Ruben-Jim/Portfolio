@@ -62,7 +62,7 @@
     - custom css link
   -->
   <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-sheet-full-width-20260524">
-  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=maint-sheet-no-scroll-x-20260524">
+  <link rel="stylesheet" href="./assets/css/agency-tools.css?v=hub-list-row-layout-20260525">
 
   <!--
     - google font link
@@ -2517,23 +2517,36 @@
                 </div>
               </div>
             </div>
-            <div class="admin-quick-actions">
-              <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="docs" data-admin-qa-action="create-doc" title="New Proposal">
-                <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
-                <span>New Proposal</span>
-              </button>
-              <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="docs" data-admin-qa-action="create-invoice" title="New Invoice">
-                <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
-                <span>New Invoice</span>
-              </button>
-              <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="pipeline" data-admin-qa-action="add-lead" title="Add Lead">
-                <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
-                <span>Add Lead</span>
-              </button>
-              <button type="button" class="admin-quick-action-btn" data-admin-qa-tab="testimonials" title="Send Review Request">
-                <ion-icon name="star-half-outline" aria-hidden="true"></ion-icon>
-                <span>Review Request</span>
-              </button>
+            <div class="admin-overview">
+              <header class="admin-overview-header">
+                <div>
+                  <h3 class="admin-overview-title" id="admin-overview-greeting">Overview</h3>
+                  <p class="admin-overview-subtitle" id="admin-overview-date"></p>
+                </div>
+              </header>
+              <div class="admin-overview-grid">
+                <section class="admin-overview-card" aria-labelledby="admin-overview-attention-heading">
+                  <h4 class="admin-overview-card-title" id="admin-overview-attention-heading">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    Needs attention
+                  </h4>
+                  <ul class="admin-overview-list" id="admin-overview-attention-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-overview-card" aria-labelledby="admin-overview-builds-heading">
+                  <h4 class="admin-overview-card-title" id="admin-overview-builds-heading">
+                    <ion-icon name="hammer-outline" aria-hidden="true"></ion-icon>
+                    Active builds
+                  </h4>
+                  <ul class="admin-overview-list" id="admin-overview-builds-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-overview-card admin-overview-card--wide" aria-labelledby="admin-overview-retainers-heading">
+                  <h4 class="admin-overview-card-title" id="admin-overview-retainers-heading">
+                    <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+                    Retainers &amp; renewals
+                  </h4>
+                  <ul class="admin-overview-list" id="admin-overview-retainers-list" aria-live="polite"></ul>
+                </section>
+              </div>
             </div>
           </div><!-- /admin-panel-overview -->
 

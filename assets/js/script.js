@@ -6635,6 +6635,9 @@ window.addEventListener('load', function() {
     if (window.AgencyTools && typeof window.AgencyTools.subscribe === 'function') {
       window.AgencyTools.subscribe();
     }
+    if (typeof window.renderAdminOverview === 'function') {
+      window.renderAdminOverview();
+    }
   }
 
   // Handle logout
@@ -7916,32 +7919,16 @@ window.addEventListener('load', function() {
     window.adminActivateTab = activate;
   }
 
-  // KPI cards and Quick Action buttons — switch to the target tab
-  document.querySelectorAll('[data-admin-kpi-tab], [data-admin-qa-tab]').forEach(function(el) {
+  // KPI cards — switch to the target tab
+  document.querySelectorAll('[data-admin-kpi-tab]').forEach(function(el) {
     el.addEventListener('click', function() {
-      var tabId = el.getAttribute('data-admin-kpi-tab') || el.getAttribute('data-admin-qa-tab');
-      if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
-      // For doc quick actions, also trigger the Create Document button after tab switch
-      var action = el.getAttribute('data-admin-qa-action');
-      if (action === 'create-doc' || action === 'create-invoice') {
-        setTimeout(function() {
-          var createBtn = document.getElementById('business-doc-create-btn');
-          if (createBtn) createBtn.click();
-          if (action === 'create-invoice') {
-            var typeSelect = document.getElementById('business-doc-filter-type');
-            var formType = document.getElementById('business-doc-type');
-            if (formType) formType.value = 'invoice';
-            if (typeSelect) typeSelect.value = 'invoice';
-          }
-        }, 80);
-      }
-      // For add-lead quick action, open lead modal on pipeline tab
-      if (el.getAttribute('data-admin-qa-tab') === 'pipeline' && el.getAttribute('data-admin-qa-action') === 'add-lead') {
-        setTimeout(function() {
-          var addLeadBtn = document.getElementById('admin-add-lead-btn');
-          if (addLeadBtn) addLeadBtn.focus();
-          if (typeof window.openLeadModal === 'function') window.openLeadModal();
-        }, 80);
+      var tabId = el.getAttribute('data-admin-kpi-tab');
+      if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+    });
+    el.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
       }
     });
   });
@@ -8091,6 +8078,7 @@ window.addEventListener('load', function() {
         pipelineLeads = leads;
         renderPipelineBoard(leads);
         renderPipelineSummary(leads);
+        if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
       },
       function (err) {
         console.error('Pipeline RTDB listener error', err);
@@ -8555,6 +8543,179 @@ window.addEventListener('load', function() {
 
   initAdminTabs();
 
+  function overviewEsc(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function overviewGreeting() {
+    var h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  }
+
+  function overviewFormatDate(d) {
+    try {
+      return d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function overviewDaysUntil(dateStr) {
+    if (!dateStr) return null;
+    var parts = String(dateStr).split('-');
+    if (parts.length < 3) return null;
+    var due = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (isNaN(due.getTime())) return null;
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
+    return Math.round((due - today) / 86400000);
+  }
+
+  function overviewListItem(opts) {
+    var tab = opts.tab ? ' data-overview-tab="' + overviewEsc(opts.tab) + '"' : '';
+    var meta = opts.meta ? '<span class="admin-overview-item-meta">' + overviewEsc(opts.meta) + '</span>' : '';
+    return (
+      '<li class="admin-overview-item"' + tab + ' role="button" tabindex="0">' +
+      '<span class="admin-overview-item-label">' + overviewEsc(opts.label) + '</span>' +
+      meta +
+      '</li>'
+    );
+  }
+
+  function overviewEmpty(text) {
+    return '<li class="admin-overview-empty">' + overviewEsc(text) + '</li>';
+  }
+
+  function bindOverviewListClicks(listEl) {
+    if (!listEl || listEl.dataset.overviewBound) return;
+    listEl.dataset.overviewBound = '1';
+    listEl.addEventListener('click', function(e) {
+      var item = e.target.closest('[data-overview-tab]');
+      if (!item) return;
+      var tabId = item.getAttribute('data-overview-tab');
+      if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+    });
+    listEl.addEventListener('keydown', function(e) {
+      var item = e.target.closest('[data-overview-tab]');
+      if (!item || (e.key !== 'Enter' && e.key !== ' ')) return;
+      e.preventDefault();
+      var tabId = item.getAttribute('data-overview-tab');
+      if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+    });
+  }
+
+  function renderAdminOverview() {
+    if (!isAdmin()) return;
+
+    var greetingEl = document.getElementById('admin-overview-greeting');
+    var dateEl = document.getElementById('admin-overview-date');
+    if (greetingEl) greetingEl.textContent = overviewGreeting() + ', Ruben';
+    if (dateEl) dateEl.textContent = overviewFormatDate(new Date());
+
+    var attentionList = document.getElementById('admin-overview-attention-list');
+    var buildsList = document.getElementById('admin-overview-builds-list');
+    var retainersList = document.getElementById('admin-overview-retainers-list');
+    if (!attentionList || !buildsList || !retainersList) return;
+
+    var attention = [];
+    var newMsgEl = document.getElementById('kpi-new-messages');
+    var newMsgCount = newMsgEl ? parseInt(String(newMsgEl.textContent).replace(/\D/g, ''), 10) : 0;
+    if (!isNaN(newMsgCount) && newMsgCount > 0) {
+      attention.push({
+        label: newMsgCount + ' new contact message' + (newMsgCount === 1 ? '' : 's'),
+        meta: 'Reply in Messages',
+        tab: 'messages'
+      });
+    }
+
+    var openLeads = pipelineLeads.filter(function(l) {
+      return l.stage === 'lead' || l.stage === 'proposal';
+    });
+    openLeads.slice(0, 5).forEach(function(lead) {
+      var stageLabel = lead.stage === 'proposal' ? 'Proposal sent' : 'New lead';
+      attention.push({
+        label: (lead.name || lead.company || 'Untitled') + ' — ' + stageLabel,
+        meta: lead.value ? formatPipelineMoney(lead.value) : 'Follow up',
+        tab: 'pipeline'
+      });
+    });
+
+    var agency = window.AgencyTools && typeof window.AgencyTools.getOverviewSnapshot === 'function'
+      ? window.AgencyTools.getOverviewSnapshot()
+      : { projects: [], maintenance: [] };
+
+    agency.maintenance.forEach(function(m) {
+      var days = overviewDaysUntil(m.renewalDate);
+      if (days == null) return;
+      if (days <= 30) {
+        var when = days < 0 ? 'Overdue ' + Math.abs(days) + 'd' : days === 0 ? 'Due today' : 'In ' + days + 'd';
+        attention.push({
+          label: (m.clientName || 'Client') + ' renewal',
+          meta: when,
+          tab: 'maintenance'
+        });
+      }
+    });
+
+    attentionList.innerHTML = attention.length
+      ? attention.map(overviewListItem).join('')
+      : overviewEmpty("You're caught up — nothing urgent right now.");
+
+    var builds = agency.projects.filter(function(p) {
+      var total = p.milestones.length || 0;
+      var done = p.milestones.filter(function(m) { return m.done; }).length;
+      return total === 0 || done < total;
+    });
+
+    buildsList.innerHTML = builds.length
+      ? builds.slice(0, 6).map(function(p) {
+          var done = p.milestones.filter(function(m) { return m.done; }).length;
+          var total = p.milestones.length || 1;
+          return overviewListItem({
+            label: p.clientName || p.title || 'Untitled project',
+            meta: done + '/' + total + ' milestones',
+            tab: 'hub'
+          });
+        }).join('')
+      : overviewEmpty('No active builds in Project Hub — add a hub when you start a client project.');
+
+    var retainers = agency.maintenance.slice();
+    retainers.sort(function(a, b) {
+      var da = overviewDaysUntil(a.renewalDate);
+      var db = overviewDaysUntil(b.renewalDate);
+      if (da == null && db == null) return 0;
+      if (da == null) return 1;
+      if (db == null) return -1;
+      return da - db;
+    });
+
+    retainersList.innerHTML = retainers.length
+      ? retainers.slice(0, 8).map(function(m) {
+          var hrs = (m.hoursUsed || 0) + '/' + (m.hoursIncluded || 0) + ' hrs';
+          var renew = m.renewalDate ? 'Renews ' + m.renewalDate : 'No renewal date';
+          return overviewListItem({
+            label: m.clientName || 'Client',
+            meta: hrs + ' · ' + renew,
+            tab: 'maintenance'
+          });
+        }).join('')
+      : overviewEmpty('No maintenance clients yet — add retainers under Maintenance.');
+
+    bindOverviewListClicks(attentionList);
+    bindOverviewListClicks(buildsList);
+    bindOverviewListClicks(retainersList);
+  }
+
+  window.renderAdminOverview = renderAdminOverview;
+
   // Sync kpi-new-messages from existing messages stats
   var kpiNewMsgs = document.getElementById('kpi-new-messages');
   var srcNewMsgs = document.getElementById('new-messages');
@@ -8564,6 +8725,7 @@ window.addEventListener('load', function() {
     });
     kpiObserver.observe(srcNewMsgs, { childList: true, characterData: true, subtree: true });
     kpiNewMsgs.textContent = srcNewMsgs.textContent || '0';
+    if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
   }
 
   // Mobile "More" overflow dropdown for admin tab bar
