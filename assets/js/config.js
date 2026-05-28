@@ -1,7 +1,7 @@
 // Firebase Configuration
 // Replace with your actual Firebase API key
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCaklIEadgb9ZckNGOyr6SDiaZvbOYZqBY",
+  apiKey: "AIzaSyAIbEHgpNMpjvk4Gv6GC3PyoAOVCZp_9iw",
   // authDomain from Firebase project (Console → Project settings). Do not change per-page.
   authDomain: "portfolio-2578e.firebaseapp.com",
   databaseURL: "https://portfolio-2578e-default-rtdb.firebaseio.com",
