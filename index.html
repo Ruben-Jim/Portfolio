@@ -2378,6 +2378,21 @@
             <p class="admin-guest-gate__kicker">Private dashboard</p>
             <h2 class="h2 article-title admin-guest-gate__title" id="admin-auth-title">Portfolio admin</h2>
             <p class="admin-guest-gate__lead">Sign in with admin credentials to manage messages, blog, portfolio, and documents.</p>
+            <div class="admin-guest-gate__pill-row" aria-hidden="true">
+              <span class="admin-guest-gate__pill"><ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon> Secure access</span>
+              <span class="admin-guest-gate__pill"><ion-icon name="flash-outline" aria-hidden="true"></ion-icon> Fast workflow</span>
+              <span class="admin-guest-gate__pill"><ion-icon name="stats-chart-outline" aria-hidden="true"></ion-icon> Growth focused</span>
+            </div>
+            <ul class="admin-guest-gate__feature-list">
+              <li class="admin-guest-gate__feature-item">
+                <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
+                <span>Review leads, inbox activity, and pending follow-ups in one place.</span>
+              </li>
+              <li class="admin-guest-gate__feature-item">
+                <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
+                <span>Update portfolio projects, blog entries, and client-facing assets quickly.</span>
+              </li>
+            </ul>
             <div class="admin-guest-gate__actions">
               <button type="button" class="btn btn-primary" id="admin-login-btn">
                 <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
@@ -2385,6 +2400,7 @@
               </button>
               <button type="button" class="admin-guest-gate__back" data-nav-link>Home</button>
             </div>
+            <p class="admin-guest-gate__meta"><ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon> Authorized admin accounts only.</p>
             <div class="login-error admin-guest-gate__error" id="admin-login-error-gate" style="display: none;" role="alert" aria-live="polite"></div>
           </div>
         </section>
@@ -4955,13 +4971,16 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
     window.signOut = signOut;
+    window.onAuthStateChanged = onAuthStateChanged;
+    window.GoogleAuthProvider = GoogleAuthProvider;
+    window.signInWithPopup = signInWithPopup;
     window.getFirestore = getFirestore;
     window.collection = collection;
     window.addDoc = addDoc;

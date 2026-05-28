@@ -1,6 +1,17 @@
 'use strict';
 
-    
+// Strip any credential-related query params from the URL immediately (security hygiene for old bookmarks)
+(function () {
+  try {
+    var url = new URL(window.location.href);
+    var stripped = false;
+    ['username', 'password', 'user', 'pass', 'pwd'].forEach(function (key) {
+      if (url.searchParams.has(key)) { url.searchParams.delete(key); stripped = true; }
+    });
+    if (stripped) window.history.replaceState(null, '', url.pathname + (url.searchParams.toString() ? '?' + url.searchParams.toString() : '') + url.hash);
+  } catch (e) {}
+})();
+
 // element toggle function
 const elementToggleFunc = function (elem) { elem.classList.toggle("active"); }
 
