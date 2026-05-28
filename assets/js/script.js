@@ -3852,11 +3852,16 @@ function renderAdminPortfolioProjects() {
   }
   portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
   listEl.innerHTML = '';
-  portfolioProjectsRtdb.forEach(function (p) {
+  portfolioProjectsRtdb.forEach(function (p, index) {
     const row = document.createElement('div');
-    row.className = 'admin-portfolio-row';
+    const cat = String(p.category || 'professional').toLowerCase();
+    const catClass =
+      cat === 'templates' || cat === 'creative' || cat === 'professional' ? cat : 'professional';
+    row.className = 'admin-portfolio-row admin-portfolio-row--' + catClass;
     const thumb = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(p) || p.imageUrl);
-    const orderNum = p.order != null ? p.order : 0;
+    const listPosition = index + 1;
+    const catLabel =
+      catClass === 'templates' ? 'Templates' : catClass === 'creative' ? 'Creative' : 'Professional';
     row.innerHTML =
       '<div class="admin-portfolio-row-main">' +
       '<div class="admin-portfolio-thumb-wrap">' +
@@ -3869,26 +3874,30 @@ function renderAdminPortfolioProjects() {
       portfolioEscapeHtml(p.title || 'Untitled') +
       '</span>' +
       '<div class="admin-portfolio-meta-row">' +
-      '<span class="admin-portfolio-order" title="Sort order">#' +
-      String(orderNum) +
+      '<span class="admin-portfolio-badge admin-portfolio-badge--' +
+      catClass +
+      '">' +
+      portfolioEscapeHtml(catLabel) +
+      '</span>' +
+      '<span class="admin-portfolio-order" title="Position on the public portfolio page">#' +
+      String(listPosition) +
       '</span>' +
       '</div></div></div>' +
       '<div class="admin-portfolio-row-actions">' +
-      '<div class="admin-portfolio-order-controls" role="group" aria-label="Sort order controls">' +
-      '<button type="button" class="blog-action-btn admin-portfolio-order-btn" data-portfolio-order-up="' +
-      portfolioEscapeHtml(p.id) +
-      '" title="Move up"><ion-icon name="chevron-up-outline"></ion-icon></button>' +
-      '<button type="button" class="blog-action-btn admin-portfolio-order-btn" data-portfolio-order-down="' +
-      portfolioEscapeHtml(p.id) +
-      '" title="Move down"><ion-icon name="chevron-down-outline"></ion-icon></button>' +
-      '</div>' +
+      '<div class="admin-portfolio-actions-grid" role="group" aria-label="Project actions">' +
       '<button type="button" class="blog-action-btn edit-btn admin-portfolio-action-btn" data-edit-portfolio="' +
       portfolioEscapeHtml(p.id) +
       '" title="Edit project"><ion-icon name="create-outline"></ion-icon></button>' +
       '<button type="button" class="blog-action-btn delete-btn admin-portfolio-action-btn" data-delete-portfolio="' +
       portfolioEscapeHtml(p.id) +
       '" title="Delete project"><ion-icon name="trash-outline"></ion-icon></button>' +
-      '</div>';
+      '<button type="button" class="blog-action-btn admin-portfolio-order-btn" data-portfolio-order-up="' +
+      portfolioEscapeHtml(p.id) +
+      '" title="Move up"><ion-icon name="chevron-up-outline"></ion-icon></button>' +
+      '<button type="button" class="blog-action-btn admin-portfolio-order-btn" data-portfolio-order-down="' +
+      portfolioEscapeHtml(p.id) +
+      '" title="Move down"><ion-icon name="chevron-down-outline"></ion-icon></button>' +
+      '</div></div>';
     listEl.appendChild(row);
   });
 }
@@ -8095,30 +8104,29 @@ window.addEventListener('load', function() {
   }
 
   function renderPipelineSummary(leads) {
-    var total = leads.length;
-    var active = 0;
+    var counts = { lead: 0, proposal: 0, deposit: 0 };
     var openValue = 0;
     var wonValue = 0;
 
     leads.forEach(function (lead) {
-      if (PIPELINE_ACTIVE_STAGES.indexOf(lead.stage) >= 0) active += 1;
+      if (counts[lead.stage] !== undefined) counts[lead.stage] += 1;
       if (PIPELINE_OPEN_STAGES.indexOf(lead.stage) >= 0) openValue += lead.value;
       if (PIPELINE_WON_STAGES.indexOf(lead.stage) >= 0) wonValue += lead.value;
     });
 
-    var elTotal = document.getElementById('pipeline-total-leads');
-    var elActive = document.getElementById('pipeline-active-count');
-    var elValue = document.getElementById('pipeline-total-value');
-    var elWon = document.getElementById('pipeline-won-value');
+    var elLead = document.getElementById('pipeline-summary-lead');
+    var elProposal = document.getElementById('pipeline-summary-proposal');
+    var elDeposit = document.getElementById('pipeline-summary-deposit');
+    var elDepositValue = document.getElementById('pipeline-summary-deposit-value');
     var kpiValue = document.getElementById('kpi-pipeline-value');
     var kpiActive = document.getElementById('kpi-active-projects');
 
-    if (elTotal) elTotal.textContent = String(total);
-    if (elActive) elActive.textContent = String(active);
-    if (elValue) elValue.textContent = formatPipelineMoney(openValue);
-    if (elWon) elWon.textContent = formatPipelineMoney(wonValue);
+    if (elLead) elLead.textContent = String(counts.lead);
+    if (elProposal) elProposal.textContent = String(counts.proposal);
+    if (elDeposit) elDeposit.textContent = String(counts.deposit);
+    if (elDepositValue) elDepositValue.textContent = formatPipelineMoney(wonValue);
     if (kpiValue) kpiValue.textContent = formatPipelineMoney(openValue);
-    if (kpiActive) kpiActive.textContent = String(active);
+    if (kpiActive) kpiActive.textContent = String(leads.length);
   }
 
   function buildPipelineStageSelect(leadId, currentStage) {

@@ -98,6 +98,8 @@ Success: `{ "ok": true, "id": "..." }`. Errors: `{ "ok": false, "error": "..." }
 
 Server-rendered HTML lives in [`functions/emailTemplates.js`](functions/emailTemplates.js), aligned with the visual language of [`templates/emails/`](templates/emails/). Edit there if you change branding.
 
+Emails declare `color-scheme: light dark` and use `@media (prefers-color-scheme: dark)` so Apple Mail, Gmail (mobile), and similar clients can match the viewer’s light/dark setting. After template changes, redeploy functions: `firebase deploy --only functions`.
+
 ## Local emulator (optional)
 
 ```bash

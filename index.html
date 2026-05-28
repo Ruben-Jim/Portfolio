@@ -61,7 +61,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=admin-tab-content-top-20260528">
+  <link rel="stylesheet" href="/assets/css/style.css?v=portfolio-admin-cards-20260528">
   <link rel="stylesheet" href="/assets/css/agency-tools.css?v=hub-list-row-layout-20260525">
 
   <!--
@@ -2838,7 +2838,7 @@
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Client Pipeline</h3>
-                <p class="admin-panel-lead">Track leads from first contact through proposal and deposit.</p>
+                <p class="admin-panel-lead">Three stages: new lead → proposal sent → deposit paid.</p>
               </div>
               <button type="button" class="btn btn-primary" id="admin-add-lead-btn">
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
@@ -2848,28 +2848,28 @@
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
 
-                <!-- Pipeline summary row -->
-                <div class="pipeline-summary-row">
-                  <div class="pipeline-summary-stat">
-                    <span class="pipeline-summary-value" id="pipeline-total-leads">0</span>
-                    <span class="pipeline-summary-label">Total Leads</span>
+                <!-- Pipeline summary (matches 3 stages) -->
+                <div class="pipeline-summary-row pipeline-summary-row--three">
+                  <div class="pipeline-summary-stat pipeline-summary-stat--lead">
+                    <span class="pipeline-stage-dot pipeline-dot--lead" aria-hidden="true"></span>
+                    <span class="pipeline-summary-value" id="pipeline-summary-lead">0</span>
+                    <span class="pipeline-summary-label">Lead</span>
                   </div>
-                  <div class="pipeline-summary-stat">
-                    <span class="pipeline-summary-value pipeline-summary-value--active" id="pipeline-active-count">0</span>
-                    <span class="pipeline-summary-label">Active</span>
+                  <div class="pipeline-summary-stat pipeline-summary-stat--proposal">
+                    <span class="pipeline-stage-dot pipeline-dot--proposal" aria-hidden="true"></span>
+                    <span class="pipeline-summary-value" id="pipeline-summary-proposal">0</span>
+                    <span class="pipeline-summary-label">Proposal sent</span>
                   </div>
-                  <div class="pipeline-summary-stat">
-                    <span class="pipeline-summary-value pipeline-summary-value--value" id="pipeline-total-value">$0</span>
-                    <span class="pipeline-summary-label">Pipeline Value</span>
-                  </div>
-                  <div class="pipeline-summary-stat">
-                    <span class="pipeline-summary-value pipeline-summary-value--won" id="pipeline-won-value">$0</span>
-                    <span class="pipeline-summary-label">Won (Deposit)</span>
+                  <div class="pipeline-summary-stat pipeline-summary-stat--deposit">
+                    <span class="pipeline-stage-dot pipeline-dot--deposit" aria-hidden="true"></span>
+                    <span class="pipeline-summary-value" id="pipeline-summary-deposit">0</span>
+                    <span class="pipeline-summary-label">Deposit paid</span>
+                    <span class="pipeline-summary-sub" id="pipeline-summary-deposit-value">$0 won</span>
                   </div>
                 </div>
 
                 <!-- Kanban board -->
-                <div class="pipeline-board" id="pipeline-board">
+                <div class="pipeline-board pipeline-board--three" id="pipeline-board">
 
                   <div class="pipeline-col" data-stage="lead">
                     <div class="pipeline-col-header">
@@ -5237,7 +5237,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=direct-google-signin-20260528"></script>
+  <script src="/assets/js/script.js?v=portfolio-list-position-20260528"></script>
   <script src="/assets/js/agency-tools.js?v=hub-rtdb-fetch-20260528"></script>
   <script src="/assets/js/dm-migration.js"></script>
 

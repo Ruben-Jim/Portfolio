@@ -2,24 +2,22 @@
 
 /**
  * HTML email bodies — colors and structure match templates/emails/*.html (portfolio reference).
- * Table layout + inline styles for email clients.
+ * Table layout + inline styles (light default) + <head> CSS for prefers-color-scheme: dark.
  */
 
-/** Exact palette from templates/emails/emailjs-template-contact.html & emailjs-template-hire-me.html */
+/** Light palette (default inline styles) */
 const T = {
   bodyBg: "#f5f5f5",
-  /** .email-container */
-  cardBg: "linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%)",
+  cardBg: "#ffffff",
   cardBorder: "#e0e0e0",
   cardRadius: "20px",
-  cardShadow: "0 16px 40px rgba(0, 0, 0, 0.1)",
-  /** Shared */
+  cardShadow: "0 16px 40px rgba(0, 0, 0, 0.08)",
   subtitle: "#666666",
   infoValue: "#333333",
   messageInnerBg: "#f8f9fa",
   messageInnerBorder: "#e0e0e0",
   technicalBg: "#f8f9fa",
-  techLabel: "#b0b0b0",
+  techLabel: "#888888",
   techValue: "#333333",
   footerBg: "#f8f9fa",
   footerText: "#666666",
@@ -46,7 +44,156 @@ const T = {
     label: "#e65100",
     link: "#e65100",
   },
+  dark: {
+    bodyBg: "#0f0f0f",
+    cardBg: "#1a1a1a",
+    cardBorder: "#3a3a3a",
+    cardShadow: "0 16px 40px rgba(0, 0, 0, 0.45)",
+    subtitle: "#a8a8a8",
+    infoValue: "#e8e8e8",
+    messageInnerBg: "#252525",
+    messageInnerBorder: "#404040",
+    technicalBg: "#222222",
+    techLabel: "#9a9a9a",
+    techValue: "#d8d8d8",
+    footerBg: "#141414",
+    footerText: "#9a9a9a",
+    footerBorder: "#333333",
+    contact: {
+      headerInner: "linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%)",
+      panelBg:
+        "linear-gradient(135deg, rgba(255, 193, 7, 0.14) 0%, rgba(255, 152, 0, 0.08) 100%)",
+    },
+    hire: {
+      headerInner: "linear-gradient(135deg, #2a2618 0%, #1f1c14 100%)",
+      contactPanelBg:
+        "linear-gradient(135deg, rgba(255, 179, 0, 0.16) 0%, rgba(245, 124, 0, 0.1) 100%)",
+      messagePanelBg:
+        "linear-gradient(135deg, rgba(255, 179, 0, 0.14) 0%, rgba(245, 124, 0, 0.08) 100%)",
+    },
+  },
 };
+
+function emailHeadStyles() {
+  const d = T.dark;
+  return (
+    '<meta name="color-scheme" content="light dark">' +
+    '<meta name="supported-color-schemes" content="light dark">' +
+    "<style>" +
+    ":root{color-scheme:light dark;}" +
+    "body,.email-body-outer{background-color:" +
+    T.bodyBg +
+    "!important;}" +
+    ".email-card{background:" +
+    T.cardBg +
+    "!important;border-color:" +
+    T.cardBorder +
+    "!important;}" +
+    ".email-info-value{color:" +
+    T.infoValue +
+    "!important;}" +
+    ".email-subtitle-text{color:" +
+    T.subtitle +
+    "!important;}" +
+    ".email-message-inner{color:" +
+    T.infoValue +
+    "!important;background:" +
+    T.messageInnerBg +
+    "!important;border-color:" +
+    T.messageInnerBorder +
+    "!important;}" +
+    ".email-panel--technical{background:" +
+    T.technicalBg +
+    "!important;}" +
+    ".email-tech-label{color:" +
+    T.techLabel +
+    "!important;}" +
+    ".email-tech-value{color:" +
+    T.techValue +
+    "!important;}" +
+    ".email-footer{background:" +
+    T.footerBg +
+    "!important;border-top-color:" +
+    T.footerBorder +
+    "!important;}" +
+    ".email-footer-text{color:" +
+    T.footerText +
+    "!important;}" +
+    ".email-panel--contact{background:" +
+    T.contact.panelBg +
+    "!important;}" +
+    ".email-panel--hire-contact{background:" +
+    T.hire.contactPanelBg +
+    "!important;}" +
+    ".email-panel--hire-message{background:" +
+    T.hire.messagePanelBg +
+    "!important;}" +
+    ".email-panel{border-color:" +
+    T.cardBorder +
+    "!important;}" +
+    "@media (prefers-color-scheme:dark){" +
+    "body,.email-body-outer{background-color:" +
+    d.bodyBg +
+    "!important;}" +
+    ".email-card{background:" +
+    d.cardBg +
+    "!important;border-color:" +
+    d.cardBorder +
+    "!important;box-shadow:" +
+    d.cardShadow +
+    "!important;}" +
+    ".email-header-inner--contact{background:" +
+    d.contact.headerInner +
+    "!important;}" +
+    ".email-header-inner--hire{background:" +
+    d.hire.headerInner +
+    "!important;}" +
+    ".email-info-value{color:" +
+    d.infoValue +
+    "!important;}" +
+    ".email-subtitle-text{color:" +
+    d.subtitle +
+    "!important;}" +
+    ".email-message-inner{color:" +
+    d.infoValue +
+    "!important;background:" +
+    d.messageInnerBg +
+    "!important;border-color:" +
+    d.messageInnerBorder +
+    "!important;}" +
+    ".email-panel--technical{background:" +
+    d.technicalBg +
+    "!important;}" +
+    ".email-tech-label{color:" +
+    d.techLabel +
+    "!important;}" +
+    ".email-tech-value{color:" +
+    d.techValue +
+    "!important;}" +
+    ".email-footer{background:" +
+    d.footerBg +
+    "!important;border-top-color:" +
+    d.footerBorder +
+    "!important;}" +
+    ".email-footer-text{color:" +
+    d.footerText +
+    "!important;}" +
+    ".email-panel--contact{background:" +
+    d.contact.panelBg +
+    "!important;}" +
+    ".email-panel--hire-contact{background:" +
+    d.hire.contactPanelBg +
+    "!important;}" +
+    ".email-panel--hire-message{background:" +
+    d.hire.messagePanelBg +
+    "!important;}" +
+    ".email-panel{border-color:" +
+    d.cardBorder +
+    "!important;}" +
+    "}" +
+    "</style>"
+  );
+}
 
 function escapeHtml(s) {
   if (s == null) return "";
@@ -109,7 +256,7 @@ function infoRow(variant, label, valueHtmlOrRaw) {
     escapeHtml(label) +
     "</span></td>" +
     '<td style="vertical-align:top;padding-left:15px;">' +
-    '<span style="color:' +
+    '<span class="email-info-value" style="color:' +
     T.infoValue +
     ';font-size:16px;font-weight:500;line-height:1.6;word-break:break-word;">' +
     inner +
@@ -126,12 +273,12 @@ function techRow(label, valueHtmlOrRaw, variant) {
   return (
     '<tr><td style="padding:0 0 8px;font-size:12px;">' +
     '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>' +
-    '<td style="vertical-align:top;color:' +
+    '<td class="email-tech-label" style="vertical-align:top;color:' +
     T.techLabel +
     ';min-width:100px;font-weight:500;width:100px;">' +
     escapeHtml(label) +
     "</td>" +
-    '<td style="vertical-align:top;color:' +
+    '<td class="email-tech-value" style="vertical-align:top;color:' +
     T.techValue +
     ';word-break:break-all;font-weight:400;">' +
     inner +
@@ -144,11 +291,14 @@ function techRow(label, valueHtmlOrRaw, variant) {
  * @param {string} background
  * @param {string} [extraTdStyle]
  */
-function wrapPanel(rowsInner, background, extraTdStyle) {
+function wrapPanel(rowsInner, background, extraTdStyle, panelClass) {
   const extra = extraTdStyle ? ";" + extraTdStyle : "";
+  const cls = panelClass ? ' class="email-panel ' + panelClass + '"' : ' class="email-panel"';
   return (
     '<tr><td style="padding:0 0 30px 0;">' +
-    '<table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background:' +
+    '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"' +
+    cls +
+    ' style="background:' +
     background +
     ";border:1px solid " +
     T.cardBorder +
@@ -174,7 +324,7 @@ function technicalBlock(variant, rowsInner) {
     accent.label +
     ";font-size:14px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;\">" +
     "Technical Details</h4></td></tr>";
-  return wrapPanel(heading + rowsInner, T.technicalBg, "");
+  return wrapPanel(heading + rowsInner, T.technicalBg, "", "email-panel--technical");
 }
 
 /**
@@ -185,10 +335,14 @@ function messageBlock(messageText, variant, messageLabel) {
   const accent = variant === "hire" ? T.hire : T.contact;
   const outerBg =
     variant === "hire" ? T.hire.messagePanelBg : T.contact.panelBg;
+  const panelClass =
+    variant === "hire" ? "email-panel--hire-message" : "email-panel--contact";
   const inner = escapeHtml(messageText);
   return (
     '<tr><td style="padding:0 0 30px 0;">' +
-    '<table width="100%" cellpadding="0" cellspacing="0" style="background:' +
+    '<table width="100%" cellpadding="0" cellspacing="0" class="email-panel ' +
+    panelClass +
+    '" style="background:' +
     outerBg +
     ";border:1px solid " +
     T.cardBorder +
@@ -200,7 +354,7 @@ function messageBlock(messageText, variant, messageLabel) {
     ';font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:15px;">' +
     escapeHtml(messageLabel) +
     "</span>" +
-    '<div style="color:' +
+    '<div class="email-message-inner" style="color:' +
     T.infoValue +
     ";font-size:16px;line-height:1.7;white-space:pre-wrap;background:" +
     T.messageInnerBg +
@@ -217,6 +371,8 @@ function messageBlock(messageText, variant, messageLabel) {
  */
 function emailHeader(variant, title) {
   const h = variant === "hire" ? T.hire : T.contact;
+  const innerClass =
+    variant === "hire" ? "email-header-inner--hire" : "email-header-inner--contact";
   return (
     '<tr><td style="padding:0;">' +
     '<table width="100%" cellpadding="0" cellspacing="0" role="presentation">' +
@@ -228,7 +384,9 @@ function emailHeader(variant, title) {
     T.cardRadius +
     ' 0 0;">' +
     '<table width="100%" cellpadding="0" cellspacing="0" role="presentation">' +
-    '<tr><td style="padding:30px;text-align:center;background:' +
+    '<tr><td class="' +
+    innerClass +
+    '" style="padding:30px;text-align:center;background:' +
     h.headerInner +
     ';">' +
     '<h1 style="margin:0 0 10px 0;font-size:24px;font-weight:600;color:' +
@@ -247,18 +405,24 @@ function emailHeader(variant, title) {
 function wrapEmail(variant, title, innerRows, footerNote) {
   return (
     '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
-    '<meta name="color-scheme" content="light">' +
+    emailHeadStyles() +
     "<title>" +
     escapeHtml(title) +
     "</title></head>" +
-    '<body style="margin:0;padding:0;font-family:Poppins,-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;background-color:' +
+    '<body class="email-body-outer" style="margin:0;padding:0;font-family:Poppins,-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;background-color:' +
     T.bodyBg +
     ';color:' +
     T.infoValue +
     ';line-height:1.6;-webkit-font-smoothing:antialiased;">' +
-    '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="padding:28px 16px;">' +
+    '<table class="email-body-outer" role="presentation" cellpadding="0" cellspacing="0" width="100%" bgcolor="' +
+    T.bodyBg +
+    '" style="padding:28px 16px;background-color:' +
+    T.bodyBg +
+    ';">' +
     '<tr><td align="center">' +
-    '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:600px;background:' +
+    '<table class="email-card" role="presentation" cellpadding="0" cellspacing="0" width="100%" bgcolor="' +
+    T.cardBg +
+    '" style="max-width:600px;background:' +
     T.cardBg +
     ";border:1px solid " +
     T.cardBorder +
@@ -272,12 +436,12 @@ function wrapEmail(variant, title, innerRows, footerNote) {
     '<table width="100%" cellpadding="0" cellspacing="0">' +
     innerRows +
     "</table></td></tr>" +
-    '<tr><td style="padding:20px 30px;text-align:center;background:' +
+    '<tr><td class="email-footer" style="padding:20px 30px;text-align:center;background:' +
     T.footerBg +
     ";border-top:1px solid " +
     T.footerBorder +
     ';">' +
-    '<p style="margin:0;font-size:12px;color:' +
+    '<p class="email-footer-text" style="margin:0;font-size:12px;color:' +
     T.footerText +
     ';font-weight:400;line-height:1.5;">' +
     escapeHtml(footerNote) +
@@ -293,7 +457,8 @@ function buildContactNotificationHtml(p) {
         infoRow("contact", "Email", p.email) +
         infoRow("contact", "Date", p.timestamp || ""),
       T.contact.panelBg,
-      ""
+      "",
+      "email-panel--contact"
     ) +
     messageBlock(p.message, "contact", "Message") +
     technicalBlock(
@@ -319,7 +484,7 @@ function buildHireMeNotificationHtml(p) {
     contactRows += infoRow("hire", "Project", p.project_type);
   if (p.budget) contactRows += infoRow("hire", "Budget", p.budget);
   const innerHire =
-    wrapPanel(contactRows, T.hire.contactPanelBg, "") +
+    wrapPanel(contactRows, T.hire.contactPanelBg, "", "email-panel--hire-contact") +
     messageBlock(p.message, "hire", "Message") +
     technicalBlock(
       "hire",
@@ -342,14 +507,14 @@ function buildTestimonialRequestHtml(p) {
   const url = escapeHtml(p.testimonial_url || "");
   const inner =
     '<tr><td style="padding:0 0 20px 0;">' +
-    '<p style="margin:0;color:' +
+    '<p class="email-info-value" style="margin:0;color:' +
     T.infoValue +
     ';font-size:16px;line-height:1.7;font-weight:400;">' +
     "Hi " +
     name +
     ",</p></td></tr>" +
     '<tr><td style="padding:0 0 20px 0;">' +
-    '<p style="margin:0;color:' +
+    '<p class="email-info-value" style="margin:0;color:' +
     T.infoValue +
     ';font-size:16px;line-height:1.7;font-weight:400;">' +
     "Ruben would love a short testimonial about <strong style=\"color:" +
@@ -365,7 +530,7 @@ function buildTestimonialRequestHtml(p) {
     ";color:#1a1a1a;font-weight:600;font-size:16px;text-decoration:none;border-radius:10px;letter-spacing:0.3px;\">" +
     "Share your testimonial</a></td></tr>" +
     '<tr><td style="padding:0 0 12px 0;">' +
-    '<p style="margin:0;color:' +
+    '<p class="email-subtitle-text" style="margin:0;color:' +
     T.subtitle +
     ';font-size:13px;line-height:1.6;">' +
     "If the button doesn’t work, copy and paste this link into your browser:</p></td></tr>" +
@@ -386,11 +551,14 @@ function buildTestimonialRequestHtml(p) {
       ';font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;">' +
       "Product</span></td>" +
       '<td style="vertical-align:top;padding-left:15px;">' +
-      '<span style="color:#e8e8e8;font-size:16px;font-weight:500;line-height:1.6;word-break:break-word;">' +
+      '<span class="email-info-value" style="color:' +
+      T.infoValue +
+      ';font-size:16px;font-weight:500;line-height:1.6;word-break:break-word;">' +
       product +
       "</span></td></tr></table></td></tr>",
       T.contact.panelBg,
-      ""
+      "",
+      "email-panel--contact"
     );
   return wrapEmail(
     "contact",
@@ -407,13 +575,15 @@ function buildAdminReplyHtml(p) {
       infoRow("contact", "To", (p.to_name || "Customer") + " <" + p.to_email + ">") +
         infoRow("contact", "From", p.from_name || "Ruben Jimenez"),
       T.contact.panelBg,
-      ""
+      "",
+      "email-panel--contact"
     ) +
     messageBlock(p.message, "contact", "Message") +
     wrapPanel(
       infoRow("contact", "Sent", p.timestamp || ""),
       T.contact.panelBg,
-      ""
+      "",
+      "email-panel--contact"
     );
   return wrapEmail(
     "contact",
