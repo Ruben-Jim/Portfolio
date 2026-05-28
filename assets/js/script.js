@@ -179,8 +179,6 @@ const PRIVATE_POST_PASSWORD = 'private123';
 /** Set after local admin login and/or Firebase silent sign-in. */
 let currentUser = null;
 
-const ADMIN_SESSION_KEY = 'adminUser';
-
 function isAdminEmail(email) {
   if (!email) return false;
   const list = window.ADMIN_ALLOWLIST_EMAILS;
@@ -193,26 +191,10 @@ function isAdminEmail(email) {
 
 window.isAdminEmail = isAdminEmail;
 
-function isAdminSession() {
-  try {
-    const saved = sessionStorage.getItem(ADMIN_SESSION_KEY);
-    if (!saved) return false;
-    const user = JSON.parse(saved);
-    return !!(user && user.role === 'admin');
-  } catch (err) {
-    return false;
-  }
-}
-
-/** Firebase ID token for admin-only Cloud Function calls (requires Firebase admin sign-in). */
+/** Firebase ID token for admin-only Cloud Function calls. Requires Google sign-in. */
 async function getAdminIdToken() {
-  if (!isAdminSession()) {
-    throw new Error('Admin sign-in required.');
-  }
   if (!window.firebaseAuth || !window.firebaseAuth.currentUser) {
-    throw new Error(
-      'Firebase admin sign-in is disabled. Admin API calls (e.g. testimonial invite, reply email) are unavailable.'
-    );
+    throw new Error('Admin sign-in required.');
   }
   if (!isAdminEmail(window.firebaseAuth.currentUser.email)) {
     throw new Error('Firebase admin session not allowlisted.');
@@ -222,10 +204,10 @@ async function getAdminIdToken() {
 
 window.getAdminIdToken = getAdminIdToken;
 
-/** Resolves when local admin session exists (optional timeout ms). */
+/** Resolves when Firebase admin session exists (optional timeout ms). */
 function waitForAdminAuth(timeoutMs) {
-  if (isAdminSession()) {
-    return Promise.resolve(currentUser || { role: 'admin' });
+  if (isAdmin()) {
+    return Promise.resolve(currentUser);
   }
   const ms = typeof timeoutMs === 'number' ? timeoutMs : 15000;
   return new Promise(function (resolve, reject) {
@@ -233,10 +215,10 @@ function waitForAdminAuth(timeoutMs) {
       reject(new Error('Admin sign-in timed out'));
     }, ms);
     const check = window.setInterval(function () {
-      if (isAdminSession()) {
+      if (isAdmin()) {
         window.clearTimeout(timer);
         window.clearInterval(check);
-        resolve(currentUser || { role: 'admin' });
+        resolve(currentUser);
       }
     }, 200);
   });
@@ -265,9 +247,8 @@ function updateAuthUI() {
   }
 }
 
-// Helper: local admin session (admin / admin123 gate)
 function isAdmin() {
-  return isAdminSession();
+  return !!(currentUser && currentUser.role === 'admin');
 }
 
 // Blog management moved to admin tab only - authentication required for editing
@@ -326,7 +307,7 @@ function normalizeBlogPostRecord(input, id) {
     title: String(rec.title || ''),
     category: String(rec.category || 'General'),
     date: String(rec.date || toIsoDateOnly(Date.now())),
-    image: String(rec.image || './assets/images/blog-1.jpg'),
+    image: String(rec.image || '/assets/images/blog/blog-1.jpg'),
     imageAlt: String(rec.imageAlt || rec.title || ''),
     imageCaption: String(rec.imageCaption || ''),
     excerpt: String(rec.excerpt || ''),
@@ -1110,7 +1091,7 @@ function collectBlogPostFromForm(form, isEdit) {
   const category = String(formData.get('category') || '').trim();
   const excerpt = String(formData.get('excerpt') || '').trim();
   const content = sanitizeBlogContentHtml(String(formData.get('content') || ''));
-  const image = String(formData.get('image') || '').trim() || './assets/images/blog-1.jpg';
+  const image = String(formData.get('image') || '').trim() || '/assets/images/blog/blog-1.jpg';
   const authorName = String(formData.get('authorName') || '').trim();
   const status = String(formData.get('status') || '').toLowerCase().trim();
   const publishAt = String(formData.get('publishAt') || '').trim();
@@ -2753,7 +2734,7 @@ const defaultBlogPosts = [
     title: "Design conferences in 2022",
     category: "Design",
     date: "2022-02-23",
-    image: "./assets/images/blog-1.jpg",
+    image: "/assets/images/blog/blog-1.jpg",
     excerpt: "Veritatis et quasi architecto beatae vitae dicta sunt, explicabo.",
     content: `
       <p>Design conferences in 2022 brought together the brightest minds in the industry to discuss the latest trends, innovations, and challenges facing designers today. These events served as crucial platforms for knowledge sharing, networking, and professional development.</p>
@@ -2784,7 +2765,7 @@ const defaultBlogPosts = [
     title: "Best fonts every designer",
     category: "Design",
     date: "2022-02-23",
-    image: "./assets/images/blog-2.jpg",
+    image: "/assets/images/blog/blog-2.jpg",
     excerpt: "Sed ut perspiciatis, nam libero tempore, cum soluta nobis est eligendi.",
     content: `
       <p>Typography is the foundation of good design, and choosing the right fonts can make or break a project. In this comprehensive guide, we explore the essential fonts that every designer should have in their toolkit.</p>
@@ -2817,7 +2798,7 @@ const defaultBlogPosts = [
     title: "Design digest #80",
     category: "Design",
     date: "2022-02-23",
-    image: "./assets/images/blog-3.jpg",
+    image: "/assets/images/blog/blog-3.jpg",
     excerpt: "Excepteur sint occaecat cupidatat no proident, quis nostrum exercitationem ullam corporis suscipit.",
     content: `
       <p>Welcome to Design Digest #80, your weekly roundup of the most important design news, trends, and insights from around the web. This week, we're covering some exciting developments in the design world.</p>
@@ -2834,7 +2815,7 @@ const defaultBlogPosts = [
     title: "UI interactions of the week",
     category: "Design",
     date: "2022-02-23",
-    image: "./assets/images/blog-4.jpg",
+    image: "/assets/images/blog/blog-4.jpg",
     excerpt: "Enim ad minim veniam, consectetur adipiscing elit, quis nostrud exercitation ullamco laboris nisi.",
     content: `
       <p>This week's collection of UI interactions showcases some truly innovative approaches to user interface design. From micro-animations to gesture-based navigation, these examples demonstrate the power of thoughtful interaction design.</p>
@@ -2851,7 +2832,7 @@ const defaultBlogPosts = [
     title: "The forgotten art of spacing",
     category: "Design",
     date: "2022-02-23",
-    image: "./assets/images/blog-5.jpg",
+    image: "/assets/images/blog/blog-5.jpg",
     excerpt: "Maxime placeat, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
     content: `
       <p>Spacing is one of the most fundamental yet often overlooked aspects of design. In our rush to add content and features, we sometimes forget that the space between elements is just as important as the elements themselves.</p>
@@ -2868,7 +2849,7 @@ const defaultBlogPosts = [
     title: "Design digest #79",
     category: "Design",
     date: "2022-02-23",
-    image: "./assets/images/blog-6.jpg",
+    image: "/assets/images/blog/blog-6.jpg",
     excerpt: "Optio cumque nihil impedit uo minus quod maxime placeat, velit esse cillum.",
     content: `
       <p>Design Digest #79 brings you the latest insights from the design community, featuring innovative projects, emerging trends, and expert opinions on the future of design.</p>
@@ -2890,27 +2871,27 @@ const defaultBlogPosts = [
 
 let portfolioProjectsRtdb = [];
 
-const PORTFOLIO_PLACEHOLDER_IMAGE = '/assets/images/project-comingsoon.svg';
+const PORTFOLIO_PLACEHOLDER_IMAGE = '/assets/images/projects/project-comingsoon.svg';
 
 /** Fallback if portfolio-built-in-data.js fails to load (e.g. /admin/ + relative script path). */
 const PORTFOLIO_ASSET_IMAGE_FALLBACK = [
-  '/assets/images/project-procleaning.png',
-  '/assets/images/project-grippysocks.png',
-  '/assets/images/project-barbershop.png',
-  '/assets/images/project-rizopizzeria.png',
-  '/assets/images/project-sheltonsprings.png',
-  '/assets/images/project-gadgetgarage.png',
-  '/assets/images/project-rosasalon.png',
-  '/assets/images/project-zoomrealty.png',
-  '/assets/images/project-realestate.png',
-  '/assets/images/project-homeverse.png',
-  '/assets/images/project-lawncare.png',
-  '/assets/images/project-procleaning1.png',
-  '/assets/images/project-rizopizzeria1.png',
-  '/assets/images/project-sheltonsprings1.png',
-  '/assets/images/project-rosasalon1.png',
-  '/assets/images/project-gadgetgarage2.png',
-  '/assets/images/project-homeverse2.png'
+  '/assets/images/projects/project-procleaning.png',
+  '/assets/images/projects/project-grippysocks.png',
+  '/assets/images/projects/project-barbershop.png',
+  '/assets/images/projects/project-rizopizzeria.png',
+  '/assets/images/projects/project-sheltonsprings.png',
+  '/assets/images/projects/project-gadgetgarage.png',
+  '/assets/images/projects/project-rosasalon.png',
+  '/assets/images/projects/project-zoomrealty.png',
+  '/assets/images/projects/project-realestate.png',
+  '/assets/images/projects/project-homeverse.png',
+  '/assets/images/projects/project-lawncare.png',
+  '/assets/images/projects/project-procleaning1.png',
+  '/assets/images/projects/project-rizopizzeria1.png',
+  '/assets/images/projects/project-sheltonsprings1.png',
+  '/assets/images/projects/project-rosasalon1.png',
+  '/assets/images/projects/project-gadgetgarage2.png',
+  '/assets/images/projects/project-homeverse2.png'
 ];
 
 function portfolioEscapeHtml(str) {
@@ -3008,7 +2989,7 @@ function portfolioDisplayImageSrc(url) {
   return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'v=' + PORTFOLIO_IMAGE_CACHE_BUST;
 }
 
-/** ./assets/images/... for admin form display (same info as stored /assets/... path). */
+/** /assets/images/... for admin form display and storage paths. */
 function portfolioRelativeAssetPathForForm(url) {
   var normalized = portfolioNormalizeAssetImageUrl(url);
   if (!normalized) return '';
@@ -5675,7 +5656,6 @@ window.addEventListener('load', function() {
   const adminLoginCloseBtn = document.getElementById('admin-login-close-btn');
   const adminCancelLoginBtn = document.getElementById('admin-cancel-login-btn');
   const adminLoginBtn = document.getElementById('admin-login-btn');
-  const adminLoginForm = document.getElementById('admin-login-form');
   const adminDashboardContent = document.getElementById('admin-dashboard-content');
   const adminLoginError = document.getElementById('admin-login-error');
   const messagesList = document.getElementById('firestore-messages-list');
@@ -5801,7 +5781,7 @@ window.addEventListener('load', function() {
         console.error('Post-init blog refresh failed', blogErr);
       }
       await bootstrapPortfolioUi();
-      await initAdminSession();
+      await setupAuthListeners();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
       if (typeof window.loadDynamicTestimonials === 'function') {
@@ -5810,7 +5790,7 @@ window.addEventListener('load', function() {
     } else {
       console.error('Firebase initialization failed');
       await bootstrapPortfolioUi();
-      await initAdminSession();
+      await setupAuthListeners();
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
     }
@@ -5930,8 +5910,8 @@ window.addEventListener('load', function() {
         var rating = d.rating;
         var brand =
           (typeof window.TESTIMONIAL_BRAND_LOGO === "string" && window.TESTIMONIAL_BRAND_LOGO.trim()) ||
-          "./assets/images/logo.svg";
-        var imgSrc = brand.indexOf('"') === -1 ? brand : "./assets/images/logo.svg";
+          "/assets/images/logo/logo.svg";
+        var imgSrc = brand.indexOf('"') === -1 ? brand : "/assets/images/logo/logo.svg";
         var li = document.createElement("li");
         li.className = "testimonials-item";
         li.setAttribute("data-dynamic-testimonial", "1");
@@ -6151,21 +6131,7 @@ window.addEventListener('load', function() {
   function syncAdminArticleAuth() {
     var el = document.querySelector('article.admin[data-page="admin"]');
     if (!el) return;
-    el.setAttribute('data-admin-auth', isAdminSession() ? 'signed-in' : 'guest');
-  }
-
-  function restoreAdminSessionFromStorage() {
-    try {
-      var saved = sessionStorage.getItem(ADMIN_SESSION_KEY);
-      if (!saved) return null;
-      var user = JSON.parse(saved);
-      if (!user || user.role !== 'admin') return null;
-      currentUser = user;
-      window.currentUser = currentUser;
-      return user;
-    } catch (err) {
-      return null;
-    }
+    el.setAttribute('data-admin-auth', isAdmin() ? 'signed-in' : 'guest');
   }
 
   function openAdminLoginModal() {
@@ -6181,7 +6147,6 @@ window.addEventListener('load', function() {
       adminLoginModal.classList.remove('active');
       adminLoginModal.style.display = 'none';
     }
-    if (adminLoginForm) adminLoginForm.reset();
     showAdminLoginError('');
     syncAdminArticleAuth();
   }
@@ -6195,42 +6160,87 @@ window.addEventListener('load', function() {
     });
   }
 
-  async function handleAdminLogin(e) {
-    e.preventDefault();
-    var creds = window.ADMIN_CREDENTIALS || {};
-    var username = document.getElementById('admin-username');
-    var password = document.getElementById('admin-password');
-    var userVal = username ? String(username.value || '').trim() : '';
-    var passVal = password ? String(password.value || '') : '';
+  function adminGoogleSignInErrorMessage(err) {
+    if (!err || !err.code) {
+      return err && err.message ? err.message : 'Google Sign-In failed.';
+    }
+    if (err.code === 'auth/invalid-continue-uri' || err.code === 'auth/unauthorized-domain') {
+      var authHandlerHost = (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.authDomain) || 'portfolio-2578e.firebaseapp.com';
+      return (
+        'Domain "' + window.location.hostname + '" is not authorized. ' +
+        'Add it to Firebase Console → Authentication → Authorized domains. ' +
+        'Also add https://' + window.location.hostname + ' to Google Cloud Console → OAuth 2.0 Client → Authorized JavaScript origins.'
+      );
+    }
+    if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      return '';
+    }
+    return err.message || 'Google Sign-In failed. Enable Google in Firebase Authentication.';
+  }
 
+  async function handleGoogleSignIn() {
+    if (!window.firebaseAuth || !window.GoogleAuthProvider || !window.signInWithPopup) {
+      showAdminLoginError('Authentication service not initialized. Check Firebase SDK.');
+      return;
+    }
     showAdminLoginError('');
+    var provider = new window.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      var userCredential = await window.signInWithPopup(window.firebaseAuth, provider);
+      if (!isAdminEmail(userCredential.user.email)) {
+        await window.signOut(window.firebaseAuth);
+        showAdminLoginError('Access denied. This Google account is not on the admin allowlist.');
+      }
+    } catch (err) {
+      var msg = adminGoogleSignInErrorMessage(err);
+      if (!msg) return;
+      showAdminLoginError(msg);
+    }
+  }
 
-    if (!userVal || !passVal) {
-      showAdminLoginError('Please enter both username and password.');
+  function handleFirebaseAuthStateChange(firebaseUser) {
+    if (!firebaseUser) {
+      currentUser = null;
+      window.currentUser = null;
+      showLogin();
       return;
     }
-
-    if (userVal !== creds.username || passVal !== creds.password) {
-      showAdminLoginError('Invalid username or password.');
+    if (!isAdminEmail(firebaseUser.email)) {
+      window.signOut(window.firebaseAuth).catch(function () {});
+      currentUser = null;
+      window.currentUser = null;
+      showAdminLoginError('Access denied. This Google account is not authorized for admin.');
+      showLogin();
       return;
     }
-
-    currentUser = { username: userVal, role: 'admin' };
+    currentUser = {
+      role: 'admin',
+      email: firebaseUser.email,
+      displayName: firebaseUser.displayName || firebaseUser.email,
+      uid: firebaseUser.uid
+    };
     window.currentUser = currentUser;
-    sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(currentUser));
     closeAdminLoginModal();
     afterAdminSessionReady();
   }
 
-  async function initAdminSession() {
-    restoreAdminSessionFromStorage();
-    if (isAdminSession()) {
-      afterAdminSessionReady();
+  async function setupAuthListeners() {
+    if (!window.firebaseAuth || typeof window.onAuthStateChanged !== 'function') {
+      console.warn('Firebase Auth not initialized — check Firebase SDK load.');
+      showLogin();
       return;
     }
-    currentUser = null;
-    window.currentUser = null;
-    showLogin();
+    return new Promise(function (resolve) {
+      var resolved = false;
+      window.onAuthStateChanged(window.firebaseAuth, function (firebaseUser) {
+        handleFirebaseAuthStateChange(firebaseUser);
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      });
+    });
   }
 
   function syncAdminNavVisibility() {
@@ -6289,13 +6299,9 @@ window.addEventListener('load', function() {
   // Setup admin event listeners
   function setupAdminEventListeners() {
     ensureGlobalNavbarLogoutButtons();
-    restoreAdminSessionFromStorage();
 
     if (adminLoginBtn) {
       adminLoginBtn.addEventListener('click', openAdminLoginModal);
-    }
-    if (adminLoginForm) {
-      adminLoginForm.addEventListener('submit', handleAdminLogin);
     }
     if (adminLoginCloseBtn) {
       adminLoginCloseBtn.addEventListener('click', closeAdminLoginModal);
@@ -6306,6 +6312,12 @@ window.addEventListener('load', function() {
     if (adminLoginOverlay) {
       adminLoginOverlay.addEventListener('click', closeAdminLoginModal);
     }
+
+    document.querySelectorAll('.admin-google-signin-btn').forEach(function (btn) {
+      if (btn.dataset.googleSigninBound) return;
+      btn.dataset.googleSigninBound = '1';
+      btn.addEventListener('click', handleGoogleSignIn);
+    });
 
     getAdminLogoutButtons().forEach(function (btn) {
       if (btn.dataset.logoutBound) return;
@@ -6648,8 +6660,6 @@ window.addEventListener('load', function() {
     document.dispatchEvent(
       new CustomEvent('adminSessionReady', { detail: { isAdmin: false } })
     );
-
-    sessionStorage.removeItem(ADMIN_SESSION_KEY);
 
     if (window.firebaseAuth && typeof window.signOut === 'function') {
       try {
@@ -7402,7 +7412,7 @@ window.addEventListener('load', function() {
     }
 
     function isSignedInAdmin() {
-      return typeof isAdminSession === 'function' && isAdminSession();
+      return isAdmin();
     }
 
     function allTabButtons() {
@@ -10240,7 +10250,7 @@ function toggleTheme() {
   ];
 
   function isAdminSignedIn() {
-    return typeof isAdminSession === 'function' && isAdminSession();
+    return isAdmin();
   }
 
   function runAdminTab(tabId, afterFn) {

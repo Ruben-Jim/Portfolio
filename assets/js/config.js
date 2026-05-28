@@ -27,16 +27,9 @@ const RESEND_EMAIL_CONFIG = {
 };
 
 /**
- * Local admin gate (username/password shown on the login form).
- */
-const ADMIN_CREDENTIALS = {
-  username: "admin",
-  password: "admin123"
-};
-
-/**
- * Emails for Cloud Functions Bearer verification (admin_reply, testimonial_request).
- * Firestore/RTDB admin paths use open rules while sign-in is local ADMIN_CREDENTIALS only.
+ * Google accounts allowed to access the Admin dashboard.
+ * Must match firestore.rules (isPortfolioAdmin), database.rules.json, and functions/index.js ADMIN_ALLOWLIST_EMAILS.
+ * Enable Google sign-in: Firebase Console → Authentication → Sign-in method → Google.
  */
 const ADMIN_ALLOWLIST_EMAILS = [
   "ruben.jim.co@gmail.com"
@@ -67,11 +60,10 @@ const PORTFOLIO_SHOW_BUY_BUTTONS = false;
  * Logo shown for customer-submitted testimonials on the Home page (dynamic cards).
  * Use a square-ish PNG/WebP/SVG under assets/images/. Change when you add your file.
  */
-const TESTIMONIAL_BRAND_LOGO = "./assets/images/logo.svg";
+const TESTIMONIAL_BRAND_LOGO = "/assets/images/logo/logo.svg";
 
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
-window.ADMIN_CREDENTIALS = ADMIN_CREDENTIALS;
 window.ADMIN_ALLOWLIST_EMAILS = ADMIN_ALLOWLIST_EMAILS;
 window.RESEND_EMAIL_CONFIG = RESEND_EMAIL_CONFIG;
 window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;

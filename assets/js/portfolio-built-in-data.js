@@ -8,7 +8,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Pro Cleaning',
     projectUrl: 'https://roof-cleaning-template.expo.app',
-    imageUrl: './assets/images/project-procleaning.png',
+    imageUrl: '/assets/images/projects/project-procleaning.png',
     imageAlt: 'Pro Cleaning App',
     description:
       'A comprehensive mobile app for professional cleaning services featuring job scheduling, customer management, service tracking, and payment processing. Built to streamline operations for cleaning businesses and enhance customer experience.',
@@ -24,7 +24,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Grippy Socks',
     projectUrl: 'https://grippysocks.expo.app',
-    imageUrl: './assets/images/project-grippysocks.png',
+    imageUrl: '/assets/images/projects/project-grippysocks.png',
     imageAlt: 'Grippy Socks App',
     description:
       'An Expo + Firebase e-commerce app for Grippy Socks with a soccer-themed storefront, single-page shop + cart flow, and admin order management at /admin. MVP checkout is Cash on Delivery, with Stripe card payments prepared for later activation.',
@@ -38,7 +38,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Barber Shop',
     projectUrl: '#',
-    imageUrl: './assets/images/project-barbershop.png',
+    imageUrl: '/assets/images/projects/project-barbershop.png',
     imageAlt: 'Barber Shop App',
     description:
       'A barber shop management app built with Expo Router, React Native, NativeWind, and Firebase Realtime Database. It supports both owner workflows (admin login, dashboard, appointments, services, customers, messages) and customer flows (booking and messaging).',
@@ -52,7 +52,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Rizo Pizzeria',
     projectUrl: 'https://rizo-pizza--by3ty9xb6t.expo.app',
-    imageUrl: './assets/images/project-rizopizzeria.png',
+    imageUrl: '/assets/images/projects/project-rizopizzeria.png',
     imageAlt: 'Rizo Pizzeria',
     description:
       'A production-ready mobile app for Rizo Pizzeria featuring online ordering, real-time order tracking, menu browsing, and seamless payment integration. Built to enhance customer experience and streamline restaurant operations.',
@@ -68,7 +68,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Shelton Springs Home Owners Association App',
     projectUrl: 'https://hoa-demo--l91yvra8kn.expo.app',
-    imageUrl: './assets/images/project-sheltonsprings.png',
+    imageUrl: '/assets/images/projects/project-sheltonsprings.png',
     imageAlt: 'Shelton Springs HOA App',
     description:
       'A production-ready mobile app for HOA community management with real-time notifications, document sharing, and resident communication.',
@@ -84,7 +84,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Gadget Garage',
     projectUrl: 'https://gadgetgarage.app',
-    imageUrl: './assets/images/project-gadgetgarage.png',
+    imageUrl: '/assets/images/projects/project-gadgetgarage.png',
     imageAlt: 'Gadget Garage App',
     description:
       'A comprehensive mobile app for managing and tracking your tech gadgets, warranties, and maintenance schedules. Built with modern mobile technologies.',
@@ -99,7 +99,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: "Rosa's Beauty Salon",
     projectUrl: 'https://rosasalon.expo.app',
-    imageUrl: './assets/images/project-rosasalon.png',
+    imageUrl: '/assets/images/projects/project-rosasalon.png',
     imageAlt: "Rosa's Beauty Salon",
     description:
       'A modern booking and management system for beauty salons. Features appointment scheduling, client management, and service tracking.',
@@ -111,7 +111,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Zoom Realty',
     projectUrl: 'https://ruben-jim.github.io/ZoomRealty2025-main/',
-    imageUrl: './assets/images/project-zoomrealty.png',
+    imageUrl: '/assets/images/projects/project-zoomrealty.png',
     imageAlt: 'Zoom Realty',
     description:
       'A modern real estate website with property listings, search functionality, and agent profiles. Responsive design optimized for all devices.',
@@ -125,7 +125,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'creative',
     title: 'Estate',
     projectUrl: 'https://ruben-jim.github.io/Real-Estate/',
-    imageUrl: './assets/images/project-realestate.png',
+    imageUrl: '/assets/images/projects/project-realestate.png',
     imageAlt: 'Real Estate',
     description:
       'A clean and modern real estate platform showcasing properties with advanced filtering and search capabilities.',
@@ -137,7 +137,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'creative',
     title: 'Homeverse',
     projectUrl: 'https://ruben-jim.github.io/DEMO/',
-    imageUrl: './assets/images/project-homeverse.png',
+    imageUrl: '/assets/images/projects/project-homeverse.png',
     imageAlt: 'Homeverse',
     description:
       'An elegant real estate website featuring property showcases, virtual tours, and seamless user experience.',
@@ -149,7 +149,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Lawn Care',
     projectUrl: '#',
-    imageUrl: './assets/images/project-lawncare.png',
+    imageUrl: '/assets/images/projects/project-lawncare.png',
     imageAlt: 'Lawn Care App',
     description:
       'A lawn care and landscaping business app with service booking, recurring routes, and seasonal add-ons—built for crews that want less back-and-forth over pricing in texts.',
@@ -172,15 +172,15 @@ window.PORTFOLIO_ASSET_IMAGES = (function () {
     add(p.imageUrl);
   });
   [
-    './assets/images/project-lawncare.png',
-    './assets/images/project-realestate.png',
-    './assets/images/project-zoomrealty.png',
-    './assets/images/project-procleaning1.png',
-    './assets/images/project-rizopizzeria1.png',
-    './assets/images/project-sheltonsprings1.png',
-    './assets/images/project-rosasalon1.png',
-    './assets/images/project-gadgetgarage2.png',
-    './assets/images/project-homeverse2.png'
+    '/assets/images/projects/project-lawncare.png',
+    '/assets/images/projects/project-realestate.png',
+    '/assets/images/projects/project-zoomrealty.png',
+    '/assets/images/projects/project-procleaning1.png',
+    '/assets/images/projects/project-rizopizzeria1.png',
+    '/assets/images/projects/project-sheltonsprings1.png',
+    '/assets/images/projects/project-rosasalon1.png',
+    '/assets/images/projects/project-gadgetgarage2.png',
+    '/assets/images/projects/project-homeverse2.png'
   ].forEach(add);
   return list.sort();
 })();
