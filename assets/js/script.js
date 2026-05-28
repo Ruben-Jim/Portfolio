@@ -6306,9 +6306,7 @@ window.addEventListener('load', function() {
   function setupAdminEventListeners() {
     ensureGlobalNavbarLogoutButtons();
 
-    if (adminLoginBtn) {
-      adminLoginBtn.addEventListener('click', openAdminLoginModal);
-    }
+    // admin-login-btn now has admin-google-signin-btn class — handled below
     if (adminLoginCloseBtn) {
       adminLoginCloseBtn.addEventListener('click', closeAdminLoginModal);
     }
