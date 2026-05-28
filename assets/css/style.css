@@ -10252,6 +10252,54 @@ body.project-modal-open {
   min-width: 0;
 }
 
+/* Stack tab panels in one grid cell so hidden panels don't reserve vertical space */
+#admin-dashboard-content .admin-tab-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 0;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+#admin-dashboard-content .admin-tab-panel {
+  grid-area: 1 / 1;
+  align-self: start;
+  min-width: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+#admin-dashboard-content .admin-tab-panel[hidden] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#admin-dashboard-content .admin-tabs .service {
+  margin-bottom: 0;
+}
+
+#admin-dashboard-content .admin-tabs .admin-panel-heading {
+  margin-bottom: 12px;
+}
+
+#admin-dashboard-content .admin-kpi-bar {
+  margin-bottom: 12px;
+}
+
+#admin-dashboard-content .admin-overview {
+  margin-top: 0;
+}
+
+#admin-dashboard-content .admin-overview-header {
+  margin-bottom: 12px;
+}
+
+#admin-dashboard-content .pipeline-summary-row {
+  margin-bottom: 14px;
+}
+
 .admin-panel-heading {
   margin-bottom: 18px;
 }
@@ -10504,9 +10552,14 @@ body.project-modal-open {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
+}
+
+#admin-dashboard-content > .admin-dashboard-header .article-title {
+  margin-bottom: 10px;
+  padding-bottom: 10px;
 }
 
 .admin-dashboard-actions-row {
@@ -10517,7 +10570,8 @@ body.project-modal-open {
 #admin-dashboard-content > .admin-tabs {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 8px;
+  margin-bottom: 0;
 }
 
 #admin-dashboard-content > .admin-tabs > .admin-tab-bar {
@@ -13851,7 +13905,7 @@ body.admin-dm-sheet-open {
 #admin-dashboard-content .h2,
 #admin-dashboard-content .article-title {
   color: var(--white-2);
-  margin-bottom: 30px;
+  margin-bottom: 12px;
 }
 
 /* Ensure admin article follows same base article styles */
@@ -18321,11 +18375,11 @@ body.admin-tab-reorder-active::before {
     flex-shrink: 0 !important;
     width: 236px !important;
     gap: 2px !important;
-    padding: 8px !important;
+    padding: 6px !important;
     margin-bottom: 0 !important;
-    margin-right: 16px;
+    margin-right: 12px;
     position: sticky;
-    top: 20px;
+    top: 8px;
     align-self: flex-start;
     max-height: none;
     overflow-x: hidden !important;
@@ -18372,5 +18426,13 @@ body.admin-tab-reorder-active::before {
     flex: 1 1 0%;
     min-width: 0;
     width: 100%;
+    padding-top: 0;
+    margin-top: 0;
+    align-self: flex-start;
+  }
+
+  #admin-dashboard-content > .admin-tabs {
+    gap: 0;
+    align-items: flex-start;
   }
 }
