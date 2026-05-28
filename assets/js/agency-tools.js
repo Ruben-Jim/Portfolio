@@ -77,8 +77,19 @@
   }
 
   function rtdbReady() {
-    return !!(window.rtdb && window.rtdbRef && window.rtdbGet && window.rtdbSet && window.rtdbPush);
+    return !!(
+      window.rtdb &&
+      window.rtdbRef &&
+      window.rtdbGet &&
+      window.rtdbSet &&
+      window.rtdbPush &&
+      window.rtdbOnValue
+    );
   }
+
+  var agencySubscribeRetryTimer = null;
+  var agencySubscribeRetryCount = 0;
+  var AGENCY_SUBSCRIBE_MAX_RETRIES = 40;
 
   function ts() {
     return window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
@@ -264,27 +275,62 @@
     }
   }
 
+  function applyAgencyProjectsFromVal(val) {
+    agencyProjects = [];
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      Object.keys(val).forEach(function (id) {
+        agencyProjects.push(normalizeProject(id, val[id]));
+      });
+    }
+    agencyProjects.sort(function (a, b) {
+      var aT = typeof a.updatedAt === 'number' ? a.updatedAt : 0;
+      var bT = typeof b.updatedAt === 'number' ? b.updatedAt : 0;
+      return bT - aT;
+    });
+    renderProjectHubList();
+    renderFirebaseHealthProjectSelect();
+    if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+  }
+
+  function fetchAgencyProjectsOnce() {
+    if (!rtdbReady()) return Promise.resolve();
+    return window
+      .rtdbGet(window.rtdbRef(window.rtdb, PATHS.projects))
+      .then(function (snap) {
+        applyAgencyProjectsFromVal(snap.val());
+      })
+      .catch(function (err) {
+        console.warn('Project Hub: could not load agencyProjects', err);
+      });
+  }
+
   // ——— RTDB subscriptions (admin) ———
   function subscribeAgencyData() {
-    if (!isAdmin() || !rtdbReady()) return;
+    if (!isAdmin()) return;
+
+    if (!rtdbReady()) {
+      if (agencySubscribeRetryCount < AGENCY_SUBSCRIBE_MAX_RETRIES) {
+        agencySubscribeRetryCount += 1;
+        if (agencySubscribeRetryTimer) clearTimeout(agencySubscribeRetryTimer);
+        agencySubscribeRetryTimer = setTimeout(subscribeAgencyData, 150);
+      }
+      return;
+    }
+
+    agencySubscribeRetryCount = 0;
+    if (agencySubscribeRetryTimer) {
+      clearTimeout(agencySubscribeRetryTimer);
+      agencySubscribeRetryTimer = null;
+    }
+
     agencyUnsubs.forEach(function (u) { if (typeof u === 'function') u(); });
     agencyUnsubs = [];
 
+    fetchAgencyProjectsOnce();
+
     agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.projects), function (snap) {
-        var val = snap.val();
-        agencyProjects = [];
-        if (val && typeof val === 'object') {
-          Object.keys(val).forEach(function (id) {
-            agencyProjects.push(normalizeProject(id, val[id]));
-          });
-        }
-        agencyProjects.sort(function (a, b) {
-          return (b.updatedAt || 0) - (a.updatedAt || 0);
-        });
-        renderProjectHubList();
-        renderFirebaseHealthProjectSelect();
-        if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+        applyAgencyProjectsFromVal(snap.val());
       })
     );
 
@@ -317,11 +363,19 @@
   }
 
   function unsubscribeAgencyData() {
+    if (agencySubscribeRetryTimer) {
+      clearTimeout(agencySubscribeRetryTimer);
+      agencySubscribeRetryTimer = null;
+    }
+    agencySubscribeRetryCount = 0;
     agencyUnsubs.forEach(function (u) { if (typeof u === 'function') u(); });
     agencyUnsubs = [];
     agencyProjects = [];
     agencyMaintenance = [];
     agencyReferrals = [];
+    renderProjectHubList();
+    renderMaintenanceList();
+    renderReferralTable();
   }
 
   function normalizeProject(id, row) {
@@ -396,7 +450,9 @@
 
   // ——— Project Hub ———
   function renderProjectHubList() {
-    var list = document.getElementById('project-hub-list');
+    var list =
+      document.querySelector('#admin-dashboard-content #project-hub-list') ||
+      document.getElementById('project-hub-list');
     if (!list) return;
     if (!agencyProjects.length) {
       list.innerHTML = '<p class="form-hint">No project hubs yet. Create one from a pipeline lead or here.</p>';
@@ -648,6 +704,7 @@
       var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.projects));
       await window.rtdbSet(ref, payload);
     }
+    await fetchAgencyProjectsOnce();
     closeModal('project-hub-editor-modal');
   }
 
@@ -1381,6 +1438,7 @@
   window.AgencyTools = {
     subscribe: subscribeAgencyData,
     unsubscribe: unsubscribeAgencyData,
+    refresh: fetchAgencyProjectsOnce,
     getOverviewSnapshot: getOverviewSnapshot,
     openProjectHub: function (leadId) {
       var existing = agencyProjects.find(function (p) { return p.leadId === leadId; });
@@ -1406,7 +1464,10 @@
       if (e.detail && e.detail.isAdmin) subscribeAgencyData();
       else unsubscribeAgencyData();
     });
+
+    // Auth may finish before this init runs; subscribe again if already signed in.
     if (isAdmin()) subscribeAgencyData();
+    else if (window.currentUser && window.currentUser.role === 'admin') subscribeAgencyData();
   }
 
   if (document.readyState === 'loading') {

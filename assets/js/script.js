@@ -7879,8 +7879,9 @@ window.addEventListener('load', function() {
       if (tabId === 'portfolio' && typeof populatePortfolioImageAssetSelect === 'function') {
         populatePortfolioImageAssetSelect();
       }
-      if (AGENCY_TABS[tabId] && window.AgencyTools && typeof window.AgencyTools.subscribe === 'function') {
-        window.AgencyTools.subscribe();
+      if (AGENCY_TABS[tabId] && window.AgencyTools) {
+        if (typeof window.AgencyTools.subscribe === 'function') window.AgencyTools.subscribe();
+        if (typeof window.AgencyTools.refresh === 'function') window.AgencyTools.refresh();
       }
     }
 
