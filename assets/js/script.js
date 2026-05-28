@@ -2723,12 +2723,7 @@ function showErrorMessage(message) {
   }, 5000);
 }
 
-// Initialize blog posts on page load (portfolio loads after Firebase — see admin IIFE DOMContentLoaded)
-document.addEventListener('DOMContentLoaded', async function() {
-  await loadBlogPostsFromFirestore();
-  renderBlogPosts();
-  updateAuthUI(); // Initialize authentication UI
-});
+// Blog posts and auth UI are initialized after Firebase in the admin IIFE DOMContentLoaded below.
 
 // add click event to blog modal close button
 blogModalCloseBtn.addEventListener("click", blogModalFunc);
