@@ -5717,19 +5717,7 @@ window.addEventListener('load', function() {
         window.firebaseAuth = window.getAuth(app);
       }
 
-      console.log('Firebase initialized successfully');
-      console.log(
-        'Firebase project:',
-        firebaseConfig.projectId,
-        '| authDomain:',
-        firebaseConfig.authDomain,
-        '| page host:',
-        window.location.hostname,
-        '| admin auth: local (admin / admin123)'
-      );
-      console.log('Firestore database:', window.db);
-      console.log('Realtime Database:', window.rtdb);
-      console.log('Note: Make sure firestore.rules is deployed to Firebase Console for proper permissions');
+      console.log('Firebase initialized successfully | project:', firebaseConfig.projectId, '| host:', window.location.hostname);
 
       // Test Firestore connectivity
       testFirestoreConnection();
