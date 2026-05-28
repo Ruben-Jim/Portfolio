@@ -262,6 +262,11 @@ function isAdmin() {
   return !!(currentUser && currentUser.role === 'admin');
 }
 
+/** Used by agency-tools.js to gate RTDB listeners for Project Hub, maintenance, etc. */
+window.isAdminSession = function () {
+  return isAdmin();
+};
+
 // Blog management moved to admin tab only - authentication required for editing
 
 // blog modal elements

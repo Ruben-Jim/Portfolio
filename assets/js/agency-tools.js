@@ -72,7 +72,8 @@
   }
 
   function isAdmin() {
-    return typeof window.isAdminSession === 'function' && window.isAdminSession();
+    if (typeof window.isAdminSession === 'function') return window.isAdminSession();
+    return !!(window.currentUser && window.currentUser.role === 'admin');
   }
 
   function rtdbReady() {
