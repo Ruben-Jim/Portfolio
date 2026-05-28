@@ -17021,7 +17021,7 @@ body.admin-contact-detail-open {
 
 .admin-kpi-bar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -17035,6 +17035,7 @@ body.admin-contact-detail-open {
   border: 1px solid var(--jet);
   border-radius: 12px;
   transition: border-color 0.2s;
+  min-width: 0;
 }
 
 .admin-kpi-card[role="button"] { cursor: pointer; }
@@ -17061,6 +17062,15 @@ body.admin-contact-detail-open {
   margin-top: 5px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
+}
+
+.admin-kpi-card > div {
+  min-width: 0;
+}
+
+.admin-kpi-value,
+.admin-kpi-label {
+  overflow-wrap: anywhere;
 }
 
 /* =============================================
@@ -17723,10 +17733,13 @@ body.lead-drawer-open {
   }
 }
 
-/* Responsive: collapse KPI & pipeline summary to 2-col on smaller screens */
-@media (max-width: 580px) {
+/* Responsive: collapse KPI & pipeline summary on tablet/mobile */
+@media (max-width: 900px) {
   .admin-kpi-bar,
   .pipeline-summary-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 580px) {
   .admin-kpi-card { gap: 10px; padding: 12px; }
   .admin-kpi-value { font-size: 18px; }
 }
