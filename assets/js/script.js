@@ -189,6 +189,12 @@ const PRIVATE_POST_PASSWORD = 'private123';
 
 /** Set after local admin login and/or Firebase silent sign-in. */
 let currentUser = null;
+/** False until Firebase onAuthStateChanged fires once (or auth init fails). */
+let adminAuthResolved = false;
+
+window.adminAuthResolved = function () {
+  return adminAuthResolved;
+};
 
 function isAdminEmail(email) {
   if (!email) return false;
@@ -5332,17 +5338,20 @@ function switchToPage(pageName, skipSave = false) {
         }, 150); // Small delay to ensure DOM is ready
       }
 
-      // Handle admin page authentication
+      // Handle admin page authentication (wait until Firebase auth has resolved once)
       if (pages[i].dataset.page === "admin") {
-        setTimeout(function() {
+        if (typeof window.syncAdminArticleAuth === "function") {
+          window.syncAdminArticleAuth();
+        }
+        if (typeof window.adminAuthResolved === "function" && window.adminAuthResolved()) {
           if (isAdmin()) {
-            if (typeof window.showDashboard === 'function') window.showDashboard();
-            if (typeof window.fetchMessages === 'function') window.fetchMessages();
-            if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
-          } else {
-            if (typeof window.showLogin === 'function') window.showLogin();
+            if (typeof window.showDashboard === "function") window.showDashboard();
+            if (typeof window.fetchMessages === "function") window.fetchMessages();
+            if (typeof renderAdminBlogPosts === "function") renderAdminBlogPosts();
+          } else if (typeof window.showLogin === "function") {
+            window.showLogin();
           }
-        }, 100); // Small delay to ensure DOM is ready
+        }
       }
       return; // Exit early when page is found
     }
@@ -5793,6 +5802,8 @@ window.addEventListener('load', function() {
     }
 
     if (initializeFirebase()) {
+      syncAdminArticleAuth();
+      var authReady = setupAuthListeners();
       try {
         await loadBlogPostsFromFirestore();
         renderBlogPosts();
@@ -5801,7 +5812,7 @@ window.addEventListener('load', function() {
         console.error('Post-init blog refresh failed', blogErr);
       }
       await bootstrapPortfolioUi();
-      await setupAuthListeners();
+      await authReady;
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
       if (typeof window.loadDynamicTestimonials === 'function') {
@@ -5809,6 +5820,8 @@ window.addEventListener('load', function() {
       }
     } else {
       console.error('Firebase initialization failed');
+      adminAuthResolved = true;
+      syncAdminArticleAuth();
       await bootstrapPortfolioUi();
       await setupAuthListeners();
       setupAdminEventListeners();
@@ -6151,7 +6164,8 @@ window.addEventListener('load', function() {
   function syncAdminArticleAuth() {
     var el = document.querySelector('article.admin[data-page="admin"]');
     if (!el) return;
-    el.setAttribute('data-admin-auth', isAdmin() ? 'signed-in' : 'guest');
+    var state = adminAuthResolved ? (isAdmin() ? 'signed-in' : 'guest') : 'checking';
+    el.setAttribute('data-admin-auth', state);
   }
 
   function openAdminLoginModal() {
@@ -6248,12 +6262,18 @@ window.addEventListener('load', function() {
   async function setupAuthListeners() {
     if (!window.firebaseAuth || typeof window.onAuthStateChanged !== 'function') {
       console.warn('Firebase Auth not initialized — check Firebase SDK load.');
+      adminAuthResolved = true;
+      syncAdminArticleAuth();
       showLogin();
       return;
     }
     return new Promise(function (resolve) {
       var resolved = false;
       window.onAuthStateChanged(window.firebaseAuth, function (firebaseUser) {
+        if (!adminAuthResolved) {
+          adminAuthResolved = true;
+          syncAdminArticleAuth();
+        }
         handleFirebaseAuthStateChange(firebaseUser);
         if (!resolved) {
           resolved = true;
@@ -10136,6 +10156,7 @@ window.addEventListener('load', function() {
   // Expose admin functions to global scope for switchToPage
   window.showLogin = showLogin;
   window.showDashboard = showDashboard;
+  window.syncAdminArticleAuth = syncAdminArticleAuth;
   window.fetchMessages = fetchMessages;
   window.sendReplyEmail = sendReplyEmail;
 

@@ -61,7 +61,13 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="./assets/css/style.css?v=portfolio-admin-cards-20260528">
+  <link rel="stylesheet" href="./assets/css/style.css?v=admin-auth-checking-20260528">
+  <style id="admin-auth-critical">
+    article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
+    article.admin[data-page="admin"][data-admin-auth="checking"] #admin-dashboard-content{display:none!important}
+    .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
+    article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
+  </style>
   <link rel="stylesheet" href="./assets/css/agency-tools.css?v=maint-sheet-no-scroll-x-20260524">
 
   <!--
@@ -2354,7 +2360,7 @@
         - #ADMIN
       -->
 
-      <article class="admin" data-page="admin" data-admin-auth="guest">
+      <article class="admin" data-page="admin" data-admin-auth="checking">
         <nav class="navbar" data-navbar>
           <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
             <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
@@ -2404,6 +2410,11 @@
             <div class="login-error admin-guest-gate__error" id="admin-login-error-gate" style="display: none;" role="alert" aria-live="polite"></div>
           </div>
         </section>
+
+        <div class="admin-auth-checking" aria-live="polite" aria-busy="true" aria-label="Checking admin session">
+          <div class="admin-auth-checking__spinner" aria-hidden="true"></div>
+          <p class="admin-auth-checking__text">Checking admin session…</p>
+        </div>
 
         <!-- Dashboard Content (hidden until authenticated) -->
         <div id="admin-dashboard-content" style="display: none;">
