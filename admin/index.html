@@ -61,14 +61,14 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=admin-auth-checking-20260528">
+  <link rel="stylesheet" href="/assets/css/style.css?v=lead-delete-modal-fix-20260530">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
     article.admin[data-page="admin"][data-admin-auth="checking"] #admin-dashboard-content{display:none!important}
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=hub-list-row-layout-20260525">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=cp-deposit-leads-20260530">
 
   <!--
     - google font link
@@ -2429,35 +2429,43 @@
               <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Overview</span><span class="admin-tab-label-mobile">Overview</span></span>
             </button>
 
-            <div class="admin-nav-group is-expanded" data-nav-group="clients">
+            <div class="admin-nav-group is-expanded" data-nav-group="agency">
               <button type="button" class="admin-nav-group-toggle" id="admin-nav-toggle-clients" aria-expanded="true" aria-controls="admin-nav-items-clients">
-                <span class="admin-nav-group-label">Clients</span>
+                <span class="admin-nav-group-label">Agency</span>
                 <ion-icon name="chevron-down-outline" class="admin-nav-group-chevron" aria-hidden="true"></ion-icon>
               </button>
               <div class="admin-nav-group-items" id="admin-nav-items-clients" role="group" aria-labelledby="admin-nav-toggle-clients">
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-mobile-primary aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
-                  <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
-                </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-pipeline" data-admin-tab="pipeline" data-mobile-primary aria-selected="false" aria-controls="admin-panel-pipeline" tabindex="-1" aria-label="Client Pipeline">
                   <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-projects" data-admin-tab="client-projects" data-mobile-primary aria-selected="false" aria-controls="admin-panel-client-projects" tabindex="-1" aria-label="Clients Projects">
+                  <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients Projects</span><span class="admin-tab-label-mobile">Clients</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-mobile-primary aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
+                  <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
+                </button>
+                <button type="button" class="admin-tab admin-tab--nav-hidden" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub" hidden>
                   <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Project Hub</span><span class="admin-tab-label-mobile">Hub</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-maintenance" data-admin-tab="maintenance" aria-selected="false" aria-controls="admin-panel-maintenance" tabindex="-1" aria-label="Maintenance and SLA">
+                <button type="button" class="admin-tab admin-tab--nav-hidden" role="tab" id="admin-tab-maintenance" data-admin-tab="maintenance" aria-selected="false" aria-controls="admin-panel-maintenance" tabindex="-1" aria-label="Maintenance and SLA" hidden>
                   <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Maintenance</span><span class="admin-tab-label-mobile">Maintenance</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-referrals" data-admin-tab="referrals" aria-selected="false" aria-controls="admin-panel-referrals" tabindex="-1" aria-label="Referral partners">
-                  <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Referrals</span><span class="admin-tab-label-mobile">Referrals</span></span>
-                </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-health" data-admin-tab="health" aria-selected="false" aria-controls="admin-panel-health" tabindex="-1" aria-label="Firebase Health">
+                <button type="button" class="admin-tab admin-tab--nav-hidden" role="tab" id="admin-tab-health" data-admin-tab="health" aria-selected="false" aria-controls="admin-panel-health" tabindex="-1" aria-label="Firebase Health" hidden>
                   <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Firebase Health</span><span class="admin-tab-label-mobile">Health</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" data-mobile-primary aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1" aria-label="Business Documents">
+                  <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Documents</span><span class="admin-tab-label-mobile">Docs</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-ops" data-admin-tab="ops" aria-selected="false" aria-controls="admin-panel-ops" tabindex="-1" aria-label="Business Ops Manual">
+                  <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Ops Manual</span><span class="admin-tab-label-mobile">Ops</span></span>
                 </button>
               </div>
             </div>
@@ -2480,25 +2488,13 @@
                   <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Testimonials</span><span class="admin-tab-label-mobile">Reviews</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-referrals" data-admin-tab="referrals" aria-selected="false" aria-controls="admin-panel-referrals" tabindex="-1" aria-label="Referral partners">
+                  <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Referrals</span><span class="admin-tab-label-mobile">Referrals</span></span>
+                </button>
               </div>
             </div>
 
-            <div class="admin-nav-group is-expanded" data-nav-group="business">
-              <button type="button" class="admin-nav-group-toggle" id="admin-nav-toggle-business" aria-expanded="true" aria-controls="admin-nav-items-business">
-                <span class="admin-nav-group-label">Business</span>
-                <ion-icon name="chevron-down-outline" class="admin-nav-group-chevron" aria-hidden="true"></ion-icon>
-              </button>
-              <div class="admin-nav-group-items" id="admin-nav-items-business" role="group" aria-labelledby="admin-nav-toggle-business">
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" data-mobile-primary aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1" aria-label="Business Documents">
-                  <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Documents</span><span class="admin-tab-label-mobile">Docs</span></span>
-                </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-ops" data-admin-tab="ops" aria-selected="false" aria-controls="admin-panel-ops" tabindex="-1" aria-label="Business Ops Manual">
-                  <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Ops Manual</span><span class="admin-tab-label-mobile">Ops</span></span>
-                </button>
-              </div>
-            </div>
             <!-- More overflow button — mobile only -->
             <div class="admin-tab-more-wrap" id="admin-tab-more-wrap">
               <button type="button" class="admin-tab-more-btn" id="admin-tab-more-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="More tabs">
@@ -2544,34 +2540,59 @@
                 </div>
               </div>
             </div>
-            <div class="admin-overview">
+            <div class="admin-overview admin-command-center">
               <header class="admin-overview-header">
                 <div>
                   <h3 class="admin-overview-title" id="admin-overview-greeting">Overview</h3>
                   <p class="admin-overview-subtitle" id="admin-overview-date"></p>
                 </div>
               </header>
-              <div class="admin-overview-grid">
-                <section class="admin-overview-card" aria-labelledby="admin-overview-attention-heading">
-                  <h4 class="admin-overview-card-title" id="admin-overview-attention-heading">
-                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
-                    Needs attention
+              <div class="admin-cc-grid" id="admin-command-center">
+                <section class="admin-cc-card admin-cc-card--span-full" aria-labelledby="admin-cc-do-today-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-do-today-heading">
+                    <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
+                    Do today
                   </h4>
-                  <ul class="admin-overview-list" id="admin-overview-attention-list" aria-live="polite"></ul>
+                  <ul class="admin-overview-list" id="admin-cc-do-today-list" aria-live="polite"></ul>
                 </section>
-                <section class="admin-overview-card" aria-labelledby="admin-overview-builds-heading">
-                  <h4 class="admin-overview-card-title" id="admin-overview-builds-heading">
-                    <ion-icon name="hammer-outline" aria-hidden="true"></ion-icon>
-                    Active builds
+                <section class="admin-cc-card" aria-labelledby="admin-cc-pipeline-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-pipeline-heading">
+                    <ion-icon name="funnel-outline" aria-hidden="true"></ion-icon>
+                    Pipeline
                   </h4>
-                  <ul class="admin-overview-list" id="admin-overview-builds-list" aria-live="polite"></ul>
+                  <div class="admin-cc-pipeline-stats" id="admin-cc-pipeline-stats" aria-label="Pipeline by stage"></div>
+                  <p class="admin-cc-section-label">Stuck deals</p>
+                  <ul class="admin-overview-list" id="admin-cc-pipeline-stuck" aria-live="polite"></ul>
                 </section>
-                <section class="admin-overview-card admin-overview-card--wide" aria-labelledby="admin-overview-retainers-heading">
-                  <h4 class="admin-overview-card-title" id="admin-overview-retainers-heading">
+                <section class="admin-cc-card" aria-labelledby="admin-cc-inbox-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-inbox-heading">
+                    <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
+                    Inbox
+                  </h4>
+                  <ul class="admin-overview-list" id="admin-cc-inbox-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-cc-card" aria-labelledby="admin-cc-delivery-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-delivery-heading">
+                    <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
+                    Delivery
+                  </h4>
+                  <ul class="admin-overview-list" id="admin-cc-delivery-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-cc-card" aria-labelledby="admin-cc-retainers-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-retainers-heading">
                     <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
-                    Retainers &amp; renewals
+                    Retainers
                   </h4>
-                  <ul class="admin-overview-list" id="admin-overview-retainers-list" aria-live="polite"></ul>
+                  <ul class="admin-overview-list" id="admin-cc-retainers-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-cc-card admin-cc-card--span-full" aria-labelledby="admin-cc-cash-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-cash-heading">
+                    <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
+                    Cash
+                  </h4>
+                  <div class="admin-cc-cash-stats" id="admin-cc-cash-stats" aria-label="Cash summary"></div>
+                  <p class="admin-cc-section-label">Follow-ups</p>
+                  <ul class="admin-overview-list" id="admin-cc-cash-list" aria-live="polite"></ul>
                 </section>
               </div>
             </div>
@@ -2921,6 +2942,34 @@
           </section>
           </div><!-- /admin-panel-pipeline -->
 
+          <!-- Clients Projects -->
+          <div id="admin-panel-client-projects" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-client-projects" data-admin-tab="client-projects" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading">
+              <h3 class="h3 admin-panel-title">Clients Projects</h3>
+              <p class="admin-panel-lead">One workspace per client — hub, maintenance, health, pipeline, docs, and portfolio. Deposit-paid leads appear here until you create their client project.</p>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content client-projects-shell">
+                <div class="cp-client-picker" id="cp-client-picker">
+                  <div class="cp-client-picker-head">
+                    <label class="cp-client-picker-label" for="client-projects-search">Choose a client</label>
+                    <button type="button" class="btn btn-primary btn-sm" id="client-projects-add-btn">
+                      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                      New client
+                    </button>
+                  </div>
+                  <div class="cp-client-picker-search">
+                    <ion-icon name="search-outline" class="cp-client-picker-search-icon" aria-hidden="true"></ion-icon>
+                    <input type="search" id="client-projects-search" class="cp-client-picker-search-input" placeholder="Search by client or project…" autocomplete="off" enterkeyhint="search">
+                  </div>
+                  <ul class="cp-client-picker-list" id="client-projects-picker-list" role="listbox" aria-label="Project Hub clients"></ul>
+                </div>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-client-projects -->
+
           <!-- Project Hub -->
           <div id="admin-panel-hub" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-hub" data-admin-tab="hub" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
@@ -2998,22 +3047,50 @@
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content agency-health-panel">
-                <div class="form-group">
-                  <label for="health-project-select">Project</label>
-                  <select id="health-project-select"></select>
+                <div class="agency-health-toolbar">
+                  <div class="form-group agency-health-project-field">
+                    <label for="health-project-select">Project hub</label>
+                    <select id="health-project-select" class="agency-health-select"></select>
+                  </div>
+                  <p class="health-status-meta" id="health-status-meta" hidden aria-live="polite"></p>
                 </div>
-                <div class="health-checklist">
-                  <label class="health-check-item"><input type="checkbox" id="health-rulesOk"> Rules deployed</label>
-                  <label class="health-check-item"><input type="checkbox" id="health-authOk"> Auth configured</label>
-                  <label class="health-check-item"><input type="checkbox" id="health-functionsOk"> Functions healthy</label>
-                  <label class="health-check-item"><input type="checkbox" id="health-rtdbOk"> RTDB within limits</label>
-                  <label class="health-check-item"><input type="checkbox" id="health-hostingOk"> Hosting live</label>
+                <div class="health-saved-records" id="health-saved-records" hidden>
+                  <p class="health-saved-records-label">Saved in Firebase</p>
+                  <ul class="health-saved-records-list" id="health-saved-records-list"></ul>
                 </div>
-                <div class="form-group">
+                <fieldset class="health-checklist-card" id="health-checklist-card" disabled>
+                  <legend class="health-checklist-legend">Pre-renewal checklist</legend>
+                  <ul class="health-checklist">
+                    <li class="health-check-row">
+                      <input type="checkbox" id="health-rulesOk" name="health-rulesOk">
+                      <label for="health-rulesOk">Rules deployed</label>
+                    </li>
+                    <li class="health-check-row">
+                      <input type="checkbox" id="health-authOk" name="health-authOk">
+                      <label for="health-authOk">Auth configured</label>
+                    </li>
+                    <li class="health-check-row">
+                      <input type="checkbox" id="health-functionsOk" name="health-functionsOk">
+                      <label for="health-functionsOk">Functions healthy</label>
+                    </li>
+                    <li class="health-check-row">
+                      <input type="checkbox" id="health-rtdbOk" name="health-rtdbOk">
+                      <label for="health-rtdbOk">RTDB within limits</label>
+                    </li>
+                    <li class="health-check-row">
+                      <input type="checkbox" id="health-hostingOk" name="health-hostingOk">
+                      <label for="health-hostingOk">Hosting live</label>
+                    </li>
+                  </ul>
+                </fieldset>
+                <div class="form-group agency-health-notes-field">
                   <label for="health-notes">Notes</label>
-                  <textarea id="health-notes" class="has-scrollbar" rows="3"></textarea>
+                  <textarea id="health-notes" class="has-scrollbar agency-health-notes" rows="4" placeholder="Billing alerts, quota notes, renewal blockers…" disabled></textarea>
                 </div>
-                <button type="button" class="btn btn-primary" id="health-save-btn">Save health check</button>
+                <div class="agency-health-actions">
+                  <button type="button" class="btn btn-primary" id="health-save-btn" disabled>Save health check</button>
+                  <p class="health-save-feedback" id="health-save-feedback" role="status" aria-live="polite"></p>
+                </div>
               </div>
             </div>
           </section>
@@ -3306,6 +3383,26 @@
           </section>
         </div>
 
+        <!-- Delete pipeline lead confirmation -->
+        <div class="modal-container" id="delete-lead-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-lead-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-lead-confirm-title" aria-describedby="delete-lead-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-lead-confirm-title">Delete pipeline lead?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-lead-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-lead-confirm-desc">This permanently removes the lead from your pipeline. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-lead-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-lead-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
         <!-- Delete referral partner confirmation -->
         <div class="modal-container" id="delete-referral-confirm-modal" aria-hidden="true">
           <div class="overlay" id="delete-referral-confirm-overlay"></div>
@@ -3436,6 +3533,18 @@
           </div>
         </div>
 
+        <!-- Client project workspace (desktop: drawer / mobile: bottom sheet) -->
+        <div class="cp-client-drawer-overlay" id="cp-client-drawer-overlay" hidden aria-hidden="true"></div>
+        <aside class="cp-client-drawer" id="cp-client-drawer" hidden aria-hidden="true" aria-labelledby="cp-client-drawer-title" data-lenis-prevent>
+          <div class="cp-client-drawer-header">
+            <h3 class="h3" id="cp-client-drawer-title">Client workspace</h3>
+            <button type="button" class="cp-client-drawer-close" id="cp-client-drawer-close" aria-label="Close client workspace">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+          <div class="cp-client-drawer-body has-scrollbar client-projects-workspace" id="client-projects-workspace"></div>
+        </aside>
+
         <!-- Lead detail drawer -->
         <div class="lead-drawer-overlay" id="lead-drawer-overlay" hidden aria-hidden="true"></div>
         <aside class="lead-drawer" id="lead-detail-drawer" hidden aria-hidden="true" aria-labelledby="lead-drawer-title">
@@ -3449,7 +3558,7 @@
           <div class="lead-drawer-footer">
             <button type="button" class="btn btn-primary" id="lead-drawer-hub-btn">
               <ion-icon name="briefcase-outline"></ion-icon>
-              Project hub
+              Client project
             </button>
             <button type="button" class="btn btn-secondary" id="lead-drawer-edit-btn">
               <ion-icon name="create-outline"></ion-icon>
@@ -5162,7 +5271,6 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
           <div class="form-group form-group-half"><label for="hub-business-doc-id">Business doc ID</label><input type="text" id="hub-business-doc-id"></div>
         </div>
         <div class="form-group"><label>Milestones</label><ul class="hub-milestone-list" id="hub-milestones-list"></ul></div>
-        <div class="form-group"><label>Enabled add-on modules</label><div id="hub-modules-checks"></div></div>
         <div class="form-group"><label for="hub-notes">Notes</label><textarea id="hub-notes" class="has-scrollbar" rows="3"></textarea></div>
         <div id="hub-portal-link-out" class="hub-portal-link-box" hidden></div>
       </div>
@@ -5248,8 +5356,8 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=admin-auth-checking-20260528"></script>
-  <script src="/assets/js/agency-tools.js?v=hub-rtdb-fetch-20260528"></script>
+  <script src="/assets/js/script.js?v=admin-nav-reorder-20260530"></script>
+  <script src="/assets/js/agency-tools.js?v=cp-deposit-leads-20260530"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

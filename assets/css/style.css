@@ -1317,6 +1317,7 @@ article.active {
 
 /* Hide Search hint when admin drawers, sheets, or editor panels are open */
 body.admin-contact-detail-open #command-palette-hint,
+body.cp-client-drawer-open #command-palette-hint,
 body.lead-drawer-open #command-palette-hint,
 body.admin-dm-sheet-open #command-palette-hint,
 body.project-modal-open #command-palette-hint,
@@ -3106,6 +3107,10 @@ article {
 #delete-referral-confirm-modal.modal-container,
 #delete-maint-confirm-modal.modal-container {
   z-index: 10060;
+}
+
+#delete-lead-confirm-modal.modal-container {
+  z-index: 10080;
 }
 
 .overlay {
@@ -8949,7 +8954,8 @@ body.project-modal-open {
   .agency-modal,
   #delete-hub-confirm-modal.modal-container,
   #delete-referral-confirm-modal.modal-container,
-  #delete-maint-confirm-modal.modal-container {
+  #delete-maint-confirm-modal.modal-container,
+  #delete-lead-confirm-modal.modal-container {
     align-items: flex-end;
     justify-content: flex-end;
     overflow: hidden;
@@ -8962,7 +8968,8 @@ body.project-modal-open {
   .agency-modal.active .agency-modal-overlay,
   #delete-hub-confirm-modal.active .overlay,
   #delete-referral-confirm-modal.active .overlay,
-  #delete-maint-confirm-modal.active .overlay {
+  #delete-maint-confirm-modal.active .overlay,
+  #delete-lead-confirm-modal.active .overlay {
     background: rgba(0, 0, 0, 0.62);
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
@@ -8977,7 +8984,8 @@ body.project-modal-open {
   .agency-modal-content--full,
   #delete-hub-confirm-modal .confirm-delete-modal,
   #delete-referral-confirm-modal .confirm-delete-modal,
-  #delete-maint-confirm-modal .confirm-delete-modal {
+  #delete-maint-confirm-modal .confirm-delete-modal,
+  #delete-lead-confirm-modal .confirm-delete-modal {
     display: flex;
     flex-direction: column;
     margin: 0;
@@ -9003,7 +9011,8 @@ body.project-modal-open {
   .agency-modal.active .agency-modal-content--full,
   #delete-hub-confirm-modal.active .confirm-delete-modal,
   #delete-referral-confirm-modal.active .confirm-delete-modal,
-  #delete-maint-confirm-modal.active .confirm-delete-modal {
+  #delete-maint-confirm-modal.active .confirm-delete-modal,
+  #delete-lead-confirm-modal.active .confirm-delete-modal {
     transform: translate3d(0, 0, 0);
   }
 
@@ -9028,7 +9037,8 @@ body.project-modal-open {
   .agency-modal-content--full::before,
   #delete-hub-confirm-modal .confirm-delete-modal::before,
   #delete-referral-confirm-modal .confirm-delete-modal::before,
-  #delete-maint-confirm-modal .confirm-delete-modal::before {
+  #delete-maint-confirm-modal .confirm-delete-modal::before,
+  #delete-lead-confirm-modal .confirm-delete-modal::before {
     content: '';
     display: block;
     flex-shrink: 0;
@@ -10056,6 +10066,11 @@ body.project-modal-open {
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
+.admin-tab.admin-tab--nav-hidden,
+.admin-tab[hidden] {
+  display: none !important;
+}
+
 .admin-tab ion-icon {
   font-size: 20px;
   flex-shrink: 0;
@@ -10142,6 +10157,7 @@ body.project-modal-open {
   body:has(.project-detail-modal.active) .admin.active .admin-tab-bar,
   body:has(.modal-container.active) .admin.active .admin-tab-bar,
   body.project-modal-open .admin.active .admin-tab-bar,
+  body.cp-client-drawer-open .admin.active .admin-tab-bar,
   body.lead-drawer-open .admin.active .admin-tab-bar,
   body.admin-contact-detail-open .admin.active .admin-tab-bar,
   body.admin-dm-sheet-open .admin.active .admin-tab-bar,
@@ -11699,7 +11715,8 @@ body.project-modal-open {
 #delete-blog-confirm-modal,
 #delete-document-confirm-modal,
 #delete-portfolio-confirm-modal,
-#delete-testimonial-confirm-modal {
+#delete-testimonial-confirm-modal,
+#delete-lead-confirm-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -11734,11 +11751,16 @@ body.project-modal-open {
   z-index: 10070;
 }
 
+#delete-lead-confirm-modal {
+  z-index: 10080;
+}
+
 #delete-contact-confirm-modal.active,
 #delete-blog-confirm-modal.active,
 #delete-document-confirm-modal.active,
 #delete-portfolio-confirm-modal.active,
-#delete-testimonial-confirm-modal.active {
+#delete-testimonial-confirm-modal.active,
+#delete-lead-confirm-modal.active {
   pointer-events: all;
   visibility: visible;
 }
@@ -11747,7 +11769,8 @@ body.project-modal-open {
 #delete-blog-confirm-modal .overlay,
 #delete-document-confirm-modal .overlay,
 #delete-portfolio-confirm-modal .overlay,
-#delete-testimonial-confirm-modal .overlay {
+#delete-testimonial-confirm-modal .overlay,
+#delete-lead-confirm-modal .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -11768,7 +11791,8 @@ body.project-modal-open {
 #delete-hub-confirm-modal.active .overlay,
 #delete-referral-confirm-modal.active .overlay,
 #delete-maint-confirm-modal.active .overlay,
-#delete-testimonial-confirm-modal.active .overlay {
+#delete-testimonial-confirm-modal.active .overlay,
+#delete-lead-confirm-modal.active .overlay {
   opacity: 0.85;
   visibility: visible;
   pointer-events: all;
@@ -11798,7 +11822,8 @@ body.project-modal-open {
 #delete-hub-confirm-modal.active .confirm-delete-modal,
 #delete-referral-confirm-modal.active .confirm-delete-modal,
 #delete-maint-confirm-modal.active .confirm-delete-modal,
-#delete-testimonial-confirm-modal.active .confirm-delete-modal {
+#delete-testimonial-confirm-modal.active .confirm-delete-modal,
+#delete-lead-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
 }
@@ -17330,6 +17355,114 @@ body.admin-contact-detail-open {
   margin: 0;
 }
 
+/* Command center layout (Overview tab) */
+.admin-cc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-cc-card {
+  background: var(--border-gradient-onyx);
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  padding: 16px 18px;
+  min-height: 120px;
+}
+
+.admin-cc-card--span-full {
+  grid-column: 1 / -1;
+}
+
+.admin-cc-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  margin: 0 0 12px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.admin-cc-card-title ion-icon {
+  font-size: 18px;
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-cc-section-label {
+  margin: 12px 0 8px;
+  font-size: 10px;
+  font-weight: var(--fw-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--light-gray-70);
+}
+
+.admin-cc-pipeline-stats,
+.admin-cc-cash-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.admin-cc-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--jet);
+  background: hsla(0, 0%, 100%, 0.03);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.admin-cc-stat:hover,
+.admin-cc-stat:focus-visible {
+  border-color: hsla(45, 100%, 72%, 0.35);
+  background: hsla(45, 100%, 72%, 0.06);
+  outline: none;
+}
+
+.admin-cc-stat-value {
+  font-size: var(--fs-3);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  line-height: 1.2;
+}
+
+.admin-cc-stat-label {
+  font-size: 10px;
+  font-weight: var(--fw-500);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--light-gray-70);
+  text-align: center;
+}
+
+.admin-cc-stat--highlight .admin-cc-stat-value {
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-cc-pipeline-open {
+  grid-column: 1 / -1;
+  margin: 8px 0 0;
+  font-size: var(--fs-7);
+  color: var(--light-gray-70);
+}
+
+.admin-cc-card--do-today .admin-overview-item-label {
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+}
+
+/* Legacy overview card classes (unused; kept for reference) */
 .admin-overview-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -17419,6 +17552,16 @@ body.admin-contact-detail-open {
 }
 
 @media (max-width: 768px) {
+  .admin-cc-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-cc-card--span-full {
+    grid-column: auto;
+  }
+  .admin-cc-pipeline-stats,
+  .admin-cc-cash-stats {
+    grid-template-columns: 1fr;
+  }
   .admin-overview-grid {
     grid-template-columns: 1fr;
   }
@@ -17755,6 +17898,30 @@ body.lead-drawer-open {
 
 .lead-drawer-fields a {
   color: var(--orange-yellow-crayola);
+}
+
+.lead-drawer-id-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lead-drawer-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--jet);
+  color: var(--light-gray);
+  word-break: break-all;
+}
+
+.lead-drawer-copy-id {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  min-height: 0;
+  font-size: 12px;
 }
 
 .lead-drawer-stage {
@@ -18491,6 +18658,11 @@ body.admin-tab-reorder-active::before {
     min-width: 0 !important;
     text-align: left;
     white-space: nowrap !important;
+  }
+
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab.admin-tab--nav-hidden,
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab[hidden] {
+    display: none !important;
   }
 
   /* Show full desktop label, hide mobile short label */

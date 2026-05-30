@@ -4222,6 +4222,18 @@ function closePortfolioProjectModal() {
   modal.setAttribute('aria-hidden', 'true');
 }
 
+window.openPortfolioProjectEditor = function (id) {
+  var p = portfolioProjectsRtdb.find(function (x) {
+    return x.id === id;
+  });
+  if (!p) return;
+  if (typeof window.adminActivateTab === 'function') window.adminActivateTab('portfolio');
+  openPortfolioProjectModal(false, p);
+};
+window.getPortfolioProjectsSnapshot = function () {
+  return portfolioProjectsRtdb.slice();
+};
+
 function setupPortfolioAdminControls() {
   const addBtn = document.getElementById('admin-add-portfolio-btn');
   const form = document.getElementById('portfolio-project-form');
@@ -7241,6 +7253,7 @@ window.addEventListener('load', function() {
 
       businessDocsTbody.appendChild(tr);
     });
+    if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
   }
 
   function closeDeleteDocumentConfirmModal() {
@@ -7413,18 +7426,34 @@ window.addEventListener('load', function() {
   // Initial render on load
   renderBusinessDocs();
 
+  window.getBusinessDocsSnapshot = function () {
+    return businessDocs.slice();
+  };
+  window.openBusinessDocEditor = function (docId) {
+    var doc = businessDocs.find(function (d) {
+      return d.id === docId;
+    });
+    if (!doc) return;
+    if (typeof window.adminActivateTab === 'function') window.adminActivateTab('docs');
+    openBusinessDocModal(doc);
+  };
+  window.openNewBusinessDocForClient = function (clientName) {
+    if (typeof window.adminActivateTab === 'function') window.adminActivateTab('docs');
+    openBusinessDocModal();
+    if (businessDocClientNameInput && clientName) businessDocClientNameInput.value = clientName;
+  };
+
   // Mobile admin bottom tab bar — custom order (long-press to rearrange)
   (function initAdminMobileTabBarOrder() {
     var MOBILE_ORDER_KEY = 'adminMobileTabOrder';
     var PRIMARY_SLOT_COUNT = 4;
     var DEFAULT_ORDER = [
-      'overview', 'messages', 'pipeline', 'docs',
-      'hub', 'maintenance', 'referrals', 'health',
-      'portfolio', 'blog', 'testimonials', 'ops'
+      'overview', 'pipeline', 'client-projects', 'messages',
+      'docs', 'ops', 'portfolio', 'blog', 'testimonials', 'referrals'
     ];
     var VALID_TAB = {
-      overview: 1, docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
-      hub: 1, maintenance: 1, referrals: 1, health: 1, ops: 1
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      referrals: 1, ops: 1
     };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
@@ -7851,11 +7880,17 @@ window.addEventListener('load', function() {
     }
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
-      overview: 1, docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
-      hub: 1, maintenance: 1, referrals: 1, health: 1, ops: 1
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      referrals: 1, ops: 1
     };
-    var AGENCY_TABS = { hub: 1, maintenance: 1, referrals: 1, health: 1 };
+    var AGENCY_TABS = { 'client-projects': 1, referrals: 1 };
+    var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
     var navGroups = tabBar.querySelectorAll('.admin-nav-group');
+
+    function resolveAdminTab(tabId) {
+      if (LEGACY_AGENCY_TABS[tabId]) return 'client-projects';
+      return tabId;
+    }
 
     function syncNavGroups(activeTabId) {
       navGroups.forEach(function(group) {
@@ -7884,6 +7919,7 @@ window.addEventListener('load', function() {
     }
 
     function activate(tabId) {
+      tabId = resolveAdminTab(tabId);
       if (!VALID[tabId]) return;
       tabs.forEach(function(t) {
         var id = t.getAttribute('data-admin-tab');
@@ -7912,12 +7948,35 @@ window.addEventListener('load', function() {
         if (typeof window.AgencyTools.subscribe === 'function') window.AgencyTools.subscribe();
         if (typeof window.AgencyTools.refresh === 'function') window.AgencyTools.refresh();
       }
+      if (
+        tabId === 'client-projects' &&
+        window.AgencyTools &&
+        typeof window.AgencyTools.refreshClientProjects === 'function'
+      ) {
+        window.AgencyTools.refreshClientProjects();
+      }
+      if (
+        tabId === 'client-projects' &&
+        window.AgencyTools &&
+        typeof window.AgencyTools.refreshFirebaseHealth === 'function'
+      ) {
+        window.AgencyTools.refreshFirebaseHealth();
+      }
+      if (
+        tabId !== 'client-projects' &&
+        window.AgencyTools &&
+        typeof window.AgencyTools.isClientDrawerOpen === 'function' &&
+        window.AgencyTools.isClientDrawerOpen() &&
+        typeof window.AgencyTools.closeClientDrawer === 'function'
+      ) {
+        window.AgencyTools.closeClientDrawer();
+      }
     }
 
     var saved = null;
     try {
       saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved === 'agency') saved = 'hub';
+      if (saved === 'agency' || saved === 'hub' || saved === 'maintenance' || saved === 'health') saved = 'client-projects';
     } catch (e) {}
     var initial = saved && VALID[saved] ? saved : 'overview';
 
@@ -7989,6 +8048,7 @@ window.addEventListener('load', function() {
   var pipelineUnsubscribe = null;
   var pipelineDetailLeadId = null;
   var pipelineDragLeadId = null;
+  var pendingDeleteLeadId = null;
 
   var leadModal = document.getElementById('lead-modal');
   var leadModalOverlay = document.getElementById('lead-modal-overlay');
@@ -8116,6 +8176,9 @@ window.addEventListener('load', function() {
         renderPipelineBoard(leads);
         renderPipelineSummary(leads);
         if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+        if (window.AgencyTools && typeof window.AgencyTools.refreshClientProjectsPicker === 'function') {
+          window.AgencyTools.refreshClientProjectsPicker();
+        }
       },
       function (err) {
         console.error('Pipeline RTDB listener error', err);
@@ -8228,6 +8291,30 @@ window.addEventListener('load', function() {
   }
 
   window.findPipelineLead = findPipelineLead;
+  window.getPipelineLeadsSnapshot = function () {
+    return pipelineLeads.slice();
+  };
+  window.savePipelineLeadPartial = async function (id, partial) {
+    if (!id || !partial || typeof partial !== 'object') return;
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbSet) return;
+    if (!isAdmin()) return;
+    var existing = findPipelineLead(id);
+    if (!existing) return;
+    var payload = sanitizePipelinePayload(Object.assign({}, existing, partial));
+    payload.updatedAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
+    if (existing.createdAt) payload.createdAt = existing.createdAt;
+    await window.rtdbSet(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + id), payload);
+  };
+  window.formatPipelineMoney = formatPipelineMoney;
+  window.pipelineStageLabel = pipelineStageLabel;
+  window.pipelineProjectTypeLabel = pipelineProjectTypeLabel;
+  window.pipelineSourceLabel = pipelineSourceLabel;
+  window.openLeadEditor = function (id) {
+    var lead = findPipelineLead(id);
+    if (!lead) return;
+    if (typeof window.adminActivateTab === 'function') window.adminActivateTab('pipeline');
+    openLeadModal(lead);
+  };
 
   function openLeadModal(lead) {
     if (!leadModal) return;
@@ -8288,6 +8375,13 @@ window.addEventListener('load', function() {
 
     leadDrawerBody.innerHTML =
       '<dl class="lead-drawer-fields">' +
+      '<div><dt>Pipeline ID</dt><dd class="lead-drawer-id-row">' +
+      '<code class="lead-drawer-id">' +
+      escapeHtml(lead.id) +
+      '</code>' +
+      '<button type="button" class="btn btn-secondary btn-sm lead-drawer-copy-id" data-lead-copy-id="' +
+      escapeHtml(lead.id) +
+      '">Copy</button></dd></div>' +
       '<div><dt>Name</dt><dd>' +
       escapeHtml(lead.name || '—') +
       '</dd></div>' +
@@ -8344,8 +8438,6 @@ window.addEventListener('load', function() {
       closeLeadDetail();
       if (typeof window.switchToPage === 'function') window.switchToPage('admin');
       window.setTimeout(function () {
-        var hubTab = document.querySelector('[data-admin-tab="hub"]');
-        if (hubTab) hubTab.click();
         if (window.AgencyTools && typeof window.AgencyTools.openProjectHub === 'function') {
           window.AgencyTools.openProjectHub(pipelineDetailLeadId);
         }
@@ -8430,20 +8522,104 @@ window.addEventListener('load', function() {
     }
   }
 
-  async function deletePipelineLead(leadId) {
+  function closeDeleteLeadConfirmModal() {
+    var modal = document.getElementById('delete-lead-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingDeleteLeadId = null;
+  }
+
+  function openDeleteLeadConfirmModal(leadId) {
     if (!leadId) return;
     var lead = findPipelineLead(leadId);
-    var label = lead && lead.name ? lead.name : 'this lead';
-    if (!window.confirm('Delete ' + label + '? This cannot be undone.')) return;
+    var label = lead && (lead.name || lead.company) ? (lead.name || lead.company).trim() : 'this lead';
+    var desc = document.getElementById('delete-lead-confirm-desc');
+    if (desc) {
+      desc.textContent =
+        'Permanently delete “' + label + '” from your pipeline? This cannot be undone.';
+    }
+    pendingDeleteLeadId = leadId;
+    var modal = document.getElementById('delete-lead-confirm-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var cancelBtn = document.getElementById('delete-lead-confirm-cancel');
+    if (cancelBtn) {
+      setTimeout(function () {
+        cancelBtn.focus();
+      }, 40);
+    }
+  }
+
+  async function performDeletePipelineLead(leadId) {
+    if (!leadId) return;
     if (!window.rtdb || !window.rtdbRemove) return;
     if (!isAdmin()) return;
     try {
       await window.rtdbRemove(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + leadId));
+      closeDeleteLeadConfirmModal();
       closeLeadDetail();
+      if (typeof showSuccessMessage === 'function') {
+        showSuccessMessage('Lead deleted.');
+      }
     } catch (err) {
       console.error('deletePipelineLead', err);
-      alert('Could not delete lead.');
+      if (typeof showErrorMessage === 'function') {
+        showErrorMessage((err && err.message) || 'Could not delete lead.');
+      } else {
+        alert('Could not delete lead.');
+      }
     }
+  }
+
+  function setupDeleteLeadConfirmModal() {
+    var modal = document.getElementById('delete-lead-confirm-modal');
+    if (!modal || modal.dataset.bound) return;
+    modal.dataset.bound = '1';
+
+    var overlay = document.getElementById('delete-lead-confirm-overlay');
+    var btnClose = document.getElementById('delete-lead-confirm-close');
+    var btnCancel = document.getElementById('delete-lead-confirm-cancel');
+    var btnDelete = document.getElementById('delete-lead-confirm-delete');
+
+    function close() {
+      closeDeleteLeadConfirmModal();
+    }
+
+    [overlay, btnClose, btnCancel].forEach(function (el) {
+      if (el) el.addEventListener('click', close);
+    });
+
+    if (btnDelete) {
+      btnDelete.addEventListener('click', function () {
+        var id = pendingDeleteLeadId;
+        if (!id) {
+          close();
+          return;
+        }
+        btnDelete.disabled = true;
+        performDeletePipelineLead(id).finally(function () {
+          btnDelete.disabled = false;
+        });
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      function leadDelEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        var m = document.getElementById('delete-lead-confirm-modal');
+        if (!m || !m.classList.contains('active')) return;
+        ev.stopImmediatePropagation();
+        close();
+      },
+      true
+    );
+  }
+
+  async function deletePipelineLead(leadId) {
+    openDeleteLeadConfirmModal(leadId);
   }
 
   function initPipelineDragDrop() {
@@ -8531,6 +8707,7 @@ window.addEventListener('load', function() {
   }
 
   function initPipelineControls() {
+    setupDeleteLeadConfirmModal();
     if (adminAddLeadBtn) {
       adminAddLeadBtn.addEventListener('click', function () {
         openLeadModal();
@@ -8541,6 +8718,23 @@ window.addEventListener('load', function() {
     if (leadModalOverlay) leadModalOverlay.addEventListener('click', closeLeadModal);
     if (leadDrawerClose) leadDrawerClose.addEventListener('click', closeLeadDetail);
     if (leadDrawerOverlay) leadDrawerOverlay.addEventListener('click', closeLeadDetail);
+    if (leadDrawerBody && !leadDrawerBody.dataset.copyIdBound) {
+      leadDrawerBody.dataset.copyIdBound = '1';
+      leadDrawerBody.addEventListener('click', function (e) {
+        var btn = e.target.closest('.lead-drawer-copy-id');
+        if (!btn) return;
+        e.preventDefault();
+        var id = btn.getAttribute('data-lead-copy-id');
+        if (!id || !navigator.clipboard || !navigator.clipboard.writeText) return;
+        navigator.clipboard.writeText(id).then(function () {
+          var prev = btn.textContent;
+          btn.textContent = 'Copied';
+          window.setTimeout(function () {
+            btn.textContent = prev;
+          }, 1500);
+        }).catch(function () {});
+      });
+    }
     if (leadDrawerEditBtn) {
       leadDrawerEditBtn.addEventListener('click', function () {
         var lead = findPipelineLead(pipelineDetailLeadId);
@@ -8564,8 +8758,13 @@ window.addEventListener('load', function() {
     }
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
+      var leadDelModal = document.getElementById('delete-lead-confirm-modal');
+      if (leadDelModal && leadDelModal.classList.contains('active')) return;
       if (leadModal && leadModal.classList.contains('active')) closeLeadModal();
       else if (leadDrawer && !leadDrawer.hidden) closeLeadDetail();
+      else if (typeof window.AgencyTools !== 'undefined' && typeof window.AgencyTools.isClientDrawerOpen === 'function' && window.AgencyTools.isClientDrawerOpen()) {
+        if (typeof window.AgencyTools.closeClientDrawer === 'function') window.AgencyTools.closeClientDrawer();
+      }
     });
     initPipelineDragDrop();
     initPipelineBoardInteractions();
@@ -8630,6 +8829,238 @@ window.addEventListener('load', function() {
     return '<li class="admin-overview-empty">' + overviewEsc(text) + '</li>';
   }
 
+  var OVERVIEW_PIPELINE_STUCK_DAYS = 7;
+
+  function overviewIsThisMonth(value) {
+    if (value == null || value === '') return false;
+    var d;
+    if (typeof value === 'number') d = new Date(value);
+    else if (value && typeof value.toDate === 'function') d = value.toDate();
+    else if (value && typeof value === 'object' && value.seconds != null) {
+      d = new Date(value.seconds * 1000);
+    } else d = new Date(value);
+    if (isNaN(d.getTime())) return false;
+    var now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }
+
+  function overviewLeadStuckDays(lead) {
+    var ms = pipelineTimestampMs(lead.updatedAt || lead.createdAt);
+    if (!ms) return 999;
+    return Math.floor((Date.now() - ms) / 86400000);
+  }
+
+  function overviewGetAgencySnapshot() {
+    if (window.AgencyTools && typeof window.AgencyTools.getOverviewSnapshot === 'function') {
+      return window.AgencyTools.getOverviewSnapshot();
+    }
+    return { projects: [], maintenance: [] };
+  }
+
+  function overviewPipelineCounts() {
+    var counts = { lead: 0, proposal: 0, deposit: 0 };
+    var openValue = 0;
+    var wonValue = 0;
+    pipelineLeads.forEach(function (lead) {
+      if (counts[lead.stage] !== undefined) counts[lead.stage] += 1;
+      if (PIPELINE_OPEN_STAGES.indexOf(lead.stage) >= 0) openValue += lead.value || 0;
+      if (PIPELINE_WON_STAGES.indexOf(lead.stage) >= 0) wonValue += lead.value || 0;
+    });
+    return { counts: counts, openValue: openValue, wonValue: wonValue };
+  }
+
+  function overviewStuckLeads() {
+    return pipelineLeads
+      .filter(function (lead) {
+        return PIPELINE_OPEN_STAGES.indexOf(lead.stage) >= 0 &&
+          overviewLeadStuckDays(lead) >= OVERVIEW_PIPELINE_STUCK_DAYS;
+      })
+      .sort(function (a, b) {
+        return overviewLeadStuckDays(b) - overviewLeadStuckDays(a);
+      });
+  }
+
+  function overviewProjectProgress(p) {
+    var milestones = p.milestones || [];
+    var total = milestones.length;
+    if (!total) return { done: 0, total: 0, ratio: 0, next: null };
+    var done = milestones.filter(function (m) { return m.done; }).length;
+    var next = milestones.find(function (m) { return !m.done; });
+    return {
+      done: done,
+      total: total,
+      ratio: done / total,
+      next: next ? next.label : null
+    };
+  }
+
+  function overviewBuildDoTodayQueue(agency) {
+    var queue = [];
+    var seen = {};
+
+    function push(item) {
+      var key = item.tab + '|' + item.label;
+      if (seen[key]) return;
+      seen[key] = true;
+      queue.push(item);
+    }
+
+    if (typeof window.getDmInboxOverviewSnapshot === 'function') {
+      window.getDmInboxOverviewSnapshot().forEach(function (row) {
+        push({
+          label: row.label,
+          meta: row.meta || 'DM thread',
+          tab: 'messages',
+          priority: 1
+        });
+      });
+    }
+
+    var newMsgCount = 0;
+    if (typeof lastContactFormMessages !== 'undefined' && lastContactFormMessages.length) {
+      newMsgCount = lastContactFormMessages.filter(function (m) {
+        return (m.status || 'new') === 'new';
+      }).length;
+    } else {
+      var newMsgEl = document.getElementById('kpi-new-messages');
+      newMsgCount = newMsgEl ? parseInt(String(newMsgEl.textContent).replace(/\D/g, ''), 10) : 0;
+      if (isNaN(newMsgCount)) newMsgCount = 0;
+    }
+    if (newMsgCount > 0) {
+      push({
+        label: newMsgCount + ' new contact form message' + (newMsgCount === 1 ? '' : 's'),
+        meta: 'Reply in Messages',
+        tab: 'messages',
+        priority: 2
+      });
+    }
+
+    overviewStuckLeads().slice(0, 4).forEach(function (lead) {
+      var days = overviewLeadStuckDays(lead);
+      push({
+        label: (lead.name || lead.company || 'Untitled') + ' — no movement ' + days + 'd',
+        meta: pipelineStageLabel(lead.stage) + (lead.value ? ' · ' + formatPipelineMoney(lead.value) : ''),
+        tab: 'pipeline',
+        priority: 3
+      });
+    });
+
+    pipelineLeads
+      .filter(function (l) { return l.stage === 'proposal'; })
+      .slice(0, 3)
+      .forEach(function (lead) {
+        if (overviewLeadStuckDays(lead) < OVERVIEW_PIPELINE_STUCK_DAYS) {
+          push({
+            label: (lead.name || lead.company || 'Untitled') + ' — proposal sent',
+            meta: 'Follow up · ' + formatPipelineMoney(lead.value),
+            tab: 'pipeline',
+            priority: 4
+          });
+        }
+      });
+
+    (agency.maintenance || []).forEach(function (m) {
+      var days = overviewDaysUntil(m.renewalDate);
+      if (days == null || days > 30) return;
+      var when = days < 0 ? 'Overdue ' + Math.abs(days) + 'd' : days === 0 ? 'Due today' : 'In ' + days + 'd';
+      push({
+        label: (m.clientName || 'Client') + ' renewal',
+        meta: when,
+        tab: 'client-projects',
+        priority: 5
+      });
+      var included = Number(m.hoursIncluded) || 0;
+      var used = Number(m.hoursUsed) || 0;
+      if (included > 0 && used >= included - 1) {
+        push({
+          label: (m.clientName || 'Client') + ' — low retainer hours',
+          meta: used + '/' + included + ' hrs used',
+          tab: 'client-projects',
+          priority: 6
+        });
+      }
+    });
+
+    businessDocs.filter(function (d) { return d.status === 'draft'; }).slice(0, 3).forEach(function (doc) {
+      push({
+        label: 'Send ' + doc.type + ': ' + (doc.clientName || 'Client'),
+        meta: formatCurrency(Number(doc.total) || 0),
+        tab: 'docs',
+        priority: 7
+      });
+    });
+
+    businessDocs
+      .filter(function (d) {
+        return d.type === 'invoice' && (d.status === 'sent' || d.status === 'accepted') && d.dueDate;
+      })
+      .forEach(function (doc) {
+        var days = overviewDaysUntil(doc.dueDate);
+        if (days == null || days > 7) return;
+        push({
+          label: 'Invoice due: ' + (doc.clientName || 'Client'),
+          meta: days < 0 ? 'Overdue ' + Math.abs(days) + 'd' : days === 0 ? 'Due today' : 'Due in ' + days + 'd',
+          tab: 'docs',
+          priority: 8
+        });
+      });
+
+    queue.sort(function (a, b) { return (a.priority || 99) - (b.priority || 99); });
+    return queue.slice(0, 12);
+  }
+
+  function overviewRenderPipelineStats(container) {
+    if (!container) return;
+    var snap = overviewPipelineCounts();
+    var c = snap.counts;
+    container.innerHTML =
+      '<button type="button" class="admin-cc-stat" data-overview-tab="pipeline" title="Open pipeline">' +
+      '<span class="admin-cc-stat-value">' + c.lead + '</span>' +
+      '<span class="admin-cc-stat-label">Lead</span></button>' +
+      '<button type="button" class="admin-cc-stat" data-overview-tab="pipeline">' +
+      '<span class="admin-cc-stat-value">' + c.proposal + '</span>' +
+      '<span class="admin-cc-stat-label">Proposal sent</span></button>' +
+      '<button type="button" class="admin-cc-stat admin-cc-stat--highlight" data-overview-tab="pipeline">' +
+      '<span class="admin-cc-stat-value">' + c.deposit + '</span>' +
+      '<span class="admin-cc-stat-label">Deposit paid</span></button>' +
+      '<p class="admin-cc-pipeline-open">' +
+      'Open pipeline ' + formatPipelineMoney(snap.openValue) +
+      ' · Won ' + formatPipelineMoney(snap.wonValue) +
+      '</p>';
+  }
+
+  function overviewRenderCashStats(container) {
+    if (!container) return;
+    var now = new Date();
+    var bookedPipeline = 0;
+    pipelineLeads.forEach(function (lead) {
+      if (lead.stage !== 'deposit') return;
+      if (overviewIsThisMonth(lead.updatedAt || lead.createdAt)) bookedPipeline += lead.value || 0;
+    });
+    var bookedDocs = 0;
+    var outstanding = 0;
+    businessDocs.forEach(function (doc) {
+      var total = Number(doc.total) || 0;
+      if (doc.status === 'paid' && overviewIsThisMonth(doc.updatedAt || doc.createdAt)) {
+        bookedDocs += total;
+      }
+      if (doc.type === 'invoice' && (doc.status === 'sent' || doc.status === 'accepted')) {
+        outstanding += total;
+      }
+    });
+    var booked = bookedPipeline + bookedDocs;
+    container.innerHTML =
+      '<div class="admin-cc-stat admin-cc-stat--highlight" role="group">' +
+      '<span class="admin-cc-stat-value">' + formatPipelineMoney(booked) + '</span>' +
+      '<span class="admin-cc-stat-label">Booked ' + now.toLocaleString(undefined, { month: 'short' }) + '</span></div>' +
+      '<button type="button" class="admin-cc-stat" data-overview-tab="docs">' +
+      '<span class="admin-cc-stat-value">' + formatPipelineMoney(outstanding) + '</span>' +
+      '<span class="admin-cc-stat-label">Outstanding</span></button>' +
+      '<button type="button" class="admin-cc-stat" data-overview-tab="pipeline">' +
+      '<span class="admin-cc-stat-value">' + formatPipelineMoney(overviewPipelineCounts().openValue) + '</span>' +
+      '<span class="admin-cc-stat-label">In pipeline</span></button>';
+  }
+
   function bindOverviewListClicks(listEl) {
     if (!listEl || listEl.dataset.overviewBound) return;
     listEl.dataset.overviewBound = '1';
@@ -8648,6 +9079,28 @@ window.addEventListener('load', function() {
     });
   }
 
+  function bindOverviewCommandCenterClicks() {
+    var root = document.getElementById('admin-command-center');
+    if (!root || root.dataset.overviewBound) return;
+    root.dataset.overviewBound = '1';
+    root.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-overview-tab]');
+      if (!btn || !root.contains(btn)) return;
+      var tabId = btn.getAttribute('data-overview-tab');
+      if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+    });
+    [
+      'admin-cc-do-today-list',
+      'admin-cc-pipeline-stuck',
+      'admin-cc-inbox-list',
+      'admin-cc-delivery-list',
+      'admin-cc-retainers-list',
+      'admin-cc-cash-list'
+    ].forEach(function (id) {
+      bindOverviewListClicks(document.getElementById(id));
+    });
+  }
+
   function renderAdminOverview() {
     if (!isAdmin()) return;
 
@@ -8656,75 +9109,86 @@ window.addEventListener('load', function() {
     if (greetingEl) greetingEl.textContent = overviewGreeting() + ', Ruben';
     if (dateEl) dateEl.textContent = overviewFormatDate(new Date());
 
-    var attentionList = document.getElementById('admin-overview-attention-list');
-    var buildsList = document.getElementById('admin-overview-builds-list');
-    var retainersList = document.getElementById('admin-overview-retainers-list');
-    if (!attentionList || !buildsList || !retainersList) return;
+    var doTodayList = document.getElementById('admin-cc-do-today-list');
+    if (!doTodayList) return;
 
-    var attention = [];
-    var newMsgEl = document.getElementById('kpi-new-messages');
-    var newMsgCount = newMsgEl ? parseInt(String(newMsgEl.textContent).replace(/\D/g, ''), 10) : 0;
-    if (!isNaN(newMsgCount) && newMsgCount > 0) {
-      attention.push({
-        label: newMsgCount + ' new contact message' + (newMsgCount === 1 ? '' : 's'),
-        meta: 'Reply in Messages',
-        tab: 'messages'
-      });
+    var agency = overviewGetAgencySnapshot();
+    var doToday = overviewBuildDoTodayQueue(agency);
+
+    doTodayList.innerHTML = doToday.length
+      ? doToday.map(overviewListItem).join('')
+      : overviewEmpty("You're caught up — nothing urgent on your list today.");
+
+    overviewRenderPipelineStats(document.getElementById('admin-cc-pipeline-stats'));
+    var stuckList = document.getElementById('admin-cc-pipeline-stuck');
+    var stuck = overviewStuckLeads();
+    if (stuckList) {
+      stuckList.innerHTML = stuck.length
+        ? stuck.slice(0, 5).map(function (lead) {
+            return overviewListItem({
+              label: lead.name || lead.company || 'Untitled',
+              meta: pipelineStageLabel(lead.stage) + ' · ' + overviewLeadStuckDays(lead) + 'd idle',
+              tab: 'pipeline'
+            });
+          }).join('')
+        : overviewEmpty('No stuck deals — keep momentum in Pipeline.');
     }
 
-    var openLeads = pipelineLeads.filter(function(l) {
-      return l.stage === 'lead' || l.stage === 'proposal';
-    });
-    openLeads.slice(0, 5).forEach(function(lead) {
-      var stageLabel = lead.stage === 'proposal' ? 'Proposal sent' : 'New lead';
-      attention.push({
-        label: (lead.name || lead.company || 'Untitled') + ' — ' + stageLabel,
-        meta: lead.value ? formatPipelineMoney(lead.value) : 'Follow up',
-        tab: 'pipeline'
-      });
-    });
+    var inboxList = document.getElementById('admin-cc-inbox-list');
+    var inboxRows = [];
+    if (typeof window.getDmInboxOverviewSnapshot === 'function') {
+      inboxRows = window.getDmInboxOverviewSnapshot();
+    }
+    if (!inboxRows.length && typeof lastContactFormMessages !== 'undefined') {
+      lastContactFormMessages
+        .filter(function (m) { return (m.status || 'new') === 'new'; })
+        .slice(0, 5)
+        .forEach(function (m) {
+          inboxRows.push({
+            label: m.name || m.fullname || 'Contact form',
+            meta: (m.subject || m.message || '').slice(0, 48) || 'New submission',
+            tab: 'messages'
+          });
+        });
+    }
+    if (inboxList) {
+      inboxList.innerHTML = inboxRows.length
+        ? inboxRows.map(overviewListItem).join('')
+        : overviewEmpty('Inbox clear — no unread threads or new form messages.');
+    }
 
-    var agency = window.AgencyTools && typeof window.AgencyTools.getOverviewSnapshot === 'function'
-      ? window.AgencyTools.getOverviewSnapshot()
-      : { projects: [], maintenance: [] };
-
-    agency.maintenance.forEach(function(m) {
-      var days = overviewDaysUntil(m.renewalDate);
-      if (days == null) return;
-      if (days <= 30) {
-        var when = days < 0 ? 'Overdue ' + Math.abs(days) + 'd' : days === 0 ? 'Due today' : 'In ' + days + 'd';
-        attention.push({
-          label: (m.clientName || 'Client') + ' renewal',
-          meta: when,
-          tab: 'maintenance'
+    var deliveryList = document.getElementById('admin-cc-delivery-list');
+    var deliveryItems = [];
+    (agency.projects || []).forEach(function (p) {
+      var prog = overviewProjectProgress(p);
+      if (prog.total && prog.done >= prog.total) return;
+      var label = p.clientName || p.title || 'Untitled project';
+      if (prog.total && prog.ratio < 0.4) {
+        deliveryItems.push({
+          label: label,
+          meta: 'At risk · ' + prog.done + '/' + prog.total + ' milestones',
+          tab: 'client-projects',
+          sort: 0
+        });
+      } else if (prog.next) {
+        deliveryItems.push({
+          label: label,
+          meta: 'Next: ' + prog.next,
+          tab: 'client-projects',
+          sort: 1
         });
       }
     });
+    deliveryItems.sort(function (a, b) { return a.sort - b.sort; });
+    if (deliveryList) {
+      deliveryList.innerHTML = deliveryItems.length
+        ? deliveryItems.slice(0, 6).map(overviewListItem).join('')
+        : overviewEmpty('No active delivery — add a client in Clients Projects.');
+    }
 
-    attentionList.innerHTML = attention.length
-      ? attention.map(overviewListItem).join('')
-      : overviewEmpty("You're caught up — nothing urgent right now.");
-
-    var builds = agency.projects.filter(function(p) {
-      var total = p.milestones.length || 0;
-      var done = p.milestones.filter(function(m) { return m.done; }).length;
-      return total === 0 || done < total;
-    });
-
-    buildsList.innerHTML = builds.length
-      ? builds.slice(0, 6).map(function(p) {
-          var done = p.milestones.filter(function(m) { return m.done; }).length;
-          var total = p.milestones.length || 1;
-          return overviewListItem({
-            label: p.clientName || p.title || 'Untitled project',
-            meta: done + '/' + total + ' milestones',
-            tab: 'hub'
-          });
-        }).join('')
-      : overviewEmpty('No active builds in Project Hub — add a hub when you start a client project.');
-
-    var retainers = agency.maintenance.slice();
-    retainers.sort(function(a, b) {
+    var retainersList = document.getElementById('admin-cc-retainers-list');
+    var retainers = (agency.maintenance || []).slice();
+    retainers.sort(function (a, b) {
       var da = overviewDaysUntil(a.renewalDate);
       var db = overviewDaysUntil(b.renewalDate);
       if (da == null && db == null) return 0;
@@ -8732,22 +9196,50 @@ window.addEventListener('load', function() {
       if (db == null) return -1;
       return da - db;
     });
+    if (retainersList) {
+      retainersList.innerHTML = retainers.length
+        ? retainers.slice(0, 6).map(function (m) {
+            var hrs = (m.hoursUsed || 0) + '/' + (m.hoursIncluded || 0) + ' hrs';
+            var renew = m.renewalDate ? 'Renews ' + m.renewalDate : 'No renewal date';
+            var low = (m.hoursIncluded || 0) > 0 && (m.hoursUsed || 0) >= (m.hoursIncluded || 0) - 1;
+            return overviewListItem({
+              label: m.clientName || 'Client',
+              meta: hrs + (low ? ' · Low hours' : '') + ' · ' + renew,
+              tab: 'client-projects'
+            });
+          }).join('')
+        : overviewEmpty('No maintenance clients — add retainers in Clients Projects.');
+    }
 
-    retainersList.innerHTML = retainers.length
-      ? retainers.slice(0, 8).map(function(m) {
-          var hrs = (m.hoursUsed || 0) + '/' + (m.hoursIncluded || 0) + ' hrs';
-          var renew = m.renewalDate ? 'Renews ' + m.renewalDate : 'No renewal date';
-          return overviewListItem({
-            label: m.clientName || 'Client',
-            meta: hrs + ' · ' + renew,
-            tab: 'maintenance'
-          });
-        }).join('')
-      : overviewEmpty('No maintenance clients yet — add retainers under Maintenance.');
+    overviewRenderCashStats(document.getElementById('admin-cc-cash-stats'));
+    var cashList = document.getElementById('admin-cc-cash-list');
+    var cashFollowUps = [];
+    businessDocs.filter(function (d) { return d.status === 'draft'; }).slice(0, 4).forEach(function (doc) {
+      cashFollowUps.push({
+        label: 'Draft ' + doc.type + ': ' + (doc.clientName || 'Client'),
+        meta: formatCurrency(Number(doc.total) || 0),
+        tab: 'docs'
+      });
+    });
+    businessDocs
+      .filter(function (d) {
+        return d.type === 'invoice' && (d.status === 'sent' || d.status === 'accepted');
+      })
+      .slice(0, 4)
+      .forEach(function (doc) {
+        cashFollowUps.push({
+          label: 'Collect: ' + (doc.clientName || 'Client'),
+          meta: formatCurrency(Number(doc.total) || 0) + (doc.dueDate ? ' · due ' + doc.dueDate : ''),
+          tab: 'docs'
+        });
+      });
+    if (cashList) {
+      cashList.innerHTML = cashFollowUps.length
+        ? cashFollowUps.map(overviewListItem).join('')
+        : overviewEmpty('No draft docs or open invoices to chase.');
+    }
 
-    bindOverviewListClicks(attentionList);
-    bindOverviewListClicks(buildsList);
-    bindOverviewListClicks(retainersList);
+    bindOverviewCommandCenterClicks();
   }
 
   window.renderAdminOverview = renderAdminOverview;
@@ -10311,14 +10803,14 @@ function toggleTheme() {
       { id: 'admin-open', label: 'Admin: Open dashboard', icon: 'grid-outline', search: 'admin dashboard', action: function () { if (typeof switchToPage === 'function') switchToPage('admin'); } },
       { id: 'admin-messages', label: 'Admin: Contact messages', icon: 'mail-outline', search: 'admin contact messages inbox', action: function () { runAdminTab('messages'); } },
       { id: 'admin-pipeline', label: 'Admin: Client pipeline', icon: 'git-network-outline', search: 'admin pipeline leads crm', action: function () { runAdminTab('pipeline'); } },
-      { id: 'admin-hub', label: 'Admin: Project hub', icon: 'layers-outline', search: 'admin project hub client', action: function () { runAdminTab('hub'); } },
-      { id: 'admin-maintenance', label: 'Admin: Maintenance & SLA', icon: 'construct-outline', search: 'admin maintenance sla', action: function () { runAdminTab('maintenance'); } },
+      { id: 'admin-hub', label: 'Admin: Clients Projects', icon: 'briefcase-outline', search: 'admin clients projects hub client', action: function () { runAdminTab('client-projects'); } },
+      { id: 'admin-maintenance', label: 'Admin: Clients Projects (maintenance)', icon: 'construct-outline', search: 'admin maintenance sla clients', action: function () { runAdminTab('client-projects'); } },
       { id: 'admin-portfolio', label: 'Admin: Portfolio projects', icon: 'albums-outline', search: 'admin portfolio projects', action: function () { runAdminTab('portfolio'); } },
       { id: 'admin-blog', label: 'Admin: Blog management', icon: 'newspaper-outline', search: 'admin blog posts', action: function () { runAdminTab('blog'); } },
       { id: 'admin-docs', label: 'Admin: Business documents', icon: 'document-text-outline', search: 'admin documents proposal invoice', action: function () { runAdminTab('docs'); } },
       { id: 'admin-dm-inbox', label: 'Admin: Open DM inbox', icon: 'chatbubbles-outline', search: 'admin dm inbox messages realtime', action: function () { runAdminTab('messages', function () { clickById('admin-open-dm-inbox'); }); } },
       { id: 'admin-add-lead', label: 'Admin: Add pipeline lead', icon: 'person-add-outline', search: 'admin add lead pipeline new', action: function () { runAdminTab('pipeline', function () { if (typeof window.openLeadModal === 'function') window.openLeadModal(); }); } },
-      { id: 'admin-new-hub', label: 'Admin: New project hub', icon: 'add-circle-outline', search: 'admin new project hub', action: function () { runAdminTab('hub', function () { clickById('project-hub-add-btn'); }); } },
+      { id: 'admin-new-hub', label: 'Admin: New client project', icon: 'add-circle-outline', search: 'admin new client project hub', action: function () { runAdminTab('client-projects', function () { if (window.AgencyTools && typeof window.AgencyTools.openNewClient === 'function') window.AgencyTools.openNewClient(); else clickById('client-projects-add-btn'); }); } },
       { id: 'admin-new-portfolio', label: 'Admin: New portfolio project', icon: 'add-outline', search: 'admin new portfolio project', action: function () { runAdminTab('portfolio', function () { clickById('admin-add-portfolio-btn'); }); } },
       { id: 'admin-new-blog', label: 'Admin: New blog post', icon: 'create-outline', search: 'admin new blog post', action: function () { runAdminTab('blog', function () { clickById('admin-add-blog-btn'); }); } },
       { id: 'admin-new-doc', label: 'Admin: New business document', icon: 'document-outline', search: 'admin new document proposal', action: function () { runAdminTab('docs', function () { clickById('business-doc-create-btn'); }); } }
@@ -10965,6 +11457,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (badge) {
       badge.textContent = String(unreadSum);
       badge.hidden = unreadSum === 0;
+    }
+
+    if (typeof window.renderAdminOverview === 'function') {
+      window.renderAdminOverview();
     }
 
     if (!list.length) {
@@ -12199,5 +12695,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const root = document.getElementById('dm-customer-sheet-root');
     if (!root || !root.classList.contains('is-open')) return;
     setCustomerPortalAuthVisible(true);
+  };
+
+  window.getDmInboxOverviewSnapshot = function () {
+    return DM.conversations
+      .filter(function (c) {
+        return (c.unreadAdmin || 0) > 0 && c.status !== 'closed';
+      })
+      .sort(function (a, b) {
+        return (b.unreadAdmin || 0) - (a.unreadAdmin || 0);
+      })
+      .slice(0, 5)
+      .map(function (c) {
+        var preview = String(c.lastMessage || '').trim();
+        if (preview.length > 42) preview = preview.slice(0, 42) + '…';
+        return {
+          label: (c.customerName || 'Customer') + ' — ' + (c.unreadAdmin || 0) + ' unread',
+          meta: preview || 'Open thread',
+          tab: 'messages'
+        };
+      });
   };
 })();

@@ -55,6 +55,9 @@
   };
 
   var agencyProjects = [];
+  /** @type {Record<string, object>} */
+  var agencyHealthByProject = {};
+  var healthSelectedProjectId = '';
   var agencyMaintenance = [];
   var agencyReferrals = [];
   var agencyUnsubs = [];
@@ -289,6 +292,13 @@
     });
     renderProjectHubList();
     renderFirebaseHealthProjectSelect();
+    refreshClientProjectsPicker();
+    refreshClientProjectsWorkspace();
+    fetchFirebaseHealthOnce().then(function () {
+      if (healthSelectedProjectId) {
+        return loadHealthForProject(healthSelectedProjectId);
+      }
+    });
     if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
   }
 
@@ -344,6 +354,7 @@
           });
         }
         renderMaintenanceList();
+        refreshClientProjectsWorkspace();
         if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
       })
     );
@@ -360,6 +371,15 @@
         renderReferralTable();
       })
     );
+
+    agencyUnsubs.push(
+      window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.firebaseHealth), function (snap) {
+        mergeHealthSnapshot(snap.val());
+        refreshHealthUiAfterData(false);
+      })
+    );
+
+    fetchFirebaseHealthOnce();
   }
 
   function unsubscribeAgencyData() {
@@ -373,9 +393,15 @@
     agencyProjects = [];
     agencyMaintenance = [];
     agencyReferrals = [];
+    agencyHealthByProject = {};
+    healthSelectedProjectId = '';
+    closeCpClientDrawer();
     renderProjectHubList();
     renderMaintenanceList();
     renderReferralTable();
+    renderFirebaseHealthProjectSelect();
+    clearHealthForm(true);
+    refreshClientProjectsPicker();
   }
 
   function normalizeProject(id, row) {
@@ -530,11 +556,18 @@
     }
     await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.projects + '/' + id));
 
+    if (clientProjectsSelectedId === id) {
+      clientProjectsSelectedId = '';
+      closeCpClientDrawer();
+    }
+
     var editorModal = document.getElementById('project-hub-editor-modal');
     var editId = document.getElementById('hub-edit-id');
     if (editorModal && editorModal.classList.contains('active') && editId && editId.value === id) {
       closeModal('project-hub-editor-modal');
     }
+
+    refreshClientProjectsPicker();
   }
 
   function setupDeleteHubConfirmModal() {
@@ -626,7 +659,6 @@
     document.getElementById('hub-business-doc-id').value = p.businessDocId || '';
     document.getElementById('hub-notes').value = p.notes || '';
     renderHubMilestones(p.milestones);
-    renderHubModuleChecks(p.enabledModules);
     renderHubPortalLink(p);
     if (p.id && !p.portalToken) {
       backfillHubPortalLink(p);
@@ -661,17 +693,25 @@
     return out;
   }
 
-  function renderHubModuleChecks(enabled) {
-    var wrap = document.getElementById('hub-modules-checks');
-    if (!wrap) return;
-    wrap.innerHTML = MICRO_SAAS_MODULES.map(function (mod) {
-      var on = enabled && enabled.indexOf(mod.id) >= 0;
-      return (
-        '<label class="matcher-option">' +
-        '<input type="checkbox" value="' + esc(mod.id) + '" ' + (on ? 'checked' : '') + '> ' +
-        '<span><strong>' + esc(mod.name) + '</strong> — ' + esc(mod.price) + '</span></label>'
-      );
-    }).join('');
+  async function saveProjectHubRecord(id, payload, closeModalAfter) {
+    if (!rtdbReady()) return null;
+    var existing = id ? agencyProjects.find(function (x) { return x.id === id; }) : null;
+    if (existing && existing.portalToken) {
+      payload.portalToken = existing.portalToken;
+      payload.portalExpiresAt = existing.portalExpiresAt || 0;
+    }
+    var savedId = id;
+    if (id) {
+      await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.projects + '/' + id), payload);
+    } else {
+      payload.createdAt = ts();
+      var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.projects));
+      savedId = ref.key;
+      await window.rtdbSet(ref, payload);
+    }
+    await fetchAgencyProjectsOnce();
+    if (closeModalAfter) closeModal('project-hub-editor-modal');
+    return savedId;
   }
 
   async function saveProjectHub() {
@@ -686,26 +726,14 @@
       expoUrl: document.getElementById('hub-expo-url').value.trim(),
       firebaseProjectId: document.getElementById('hub-firebase-id').value.trim(),
       businessDocId: document.getElementById('hub-business-doc-id').value.trim(),
+      portfolioProjectId: existing ? (existing.portfolioProjectId || '') : '',
       notes: document.getElementById('hub-notes').value.trim(),
       milestones: collectHubMilestonesFromDom(),
-      enabledModules: Array.from(document.querySelectorAll('#hub-modules-checks input:checked')).map(function (c) {
-        return c.value;
-      }),
+      enabledModules: existing && Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       updatedAt: ts()
     };
-    if (existing && existing.portalToken) {
-      payload.portalToken = existing.portalToken;
-      payload.portalExpiresAt = existing.portalExpiresAt || 0;
-    }
-    if (id) {
-      await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.projects + '/' + id), payload);
-    } else {
-      payload.createdAt = ts();
-      var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.projects));
-      await window.rtdbSet(ref, payload);
-    }
-    await fetchAgencyProjectsOnce();
-    closeModal('project-hub-editor-modal');
+    var savedId = await saveProjectHubRecord(id, payload, true);
+    if (savedId) openClientProjectWorkspace(savedId);
   }
 
   function initProjectHub() {
@@ -993,6 +1021,8 @@
     if (editorModal && editorModal.classList.contains('active') && editId && editId.value === id) {
       closeModal('maintenance-editor-modal');
     }
+
+    if (clientProjectsSelectedId) renderClientProjectsWorkspace();
   }
 
   function setupDeleteMaintConfirmModal() {
@@ -1361,32 +1391,358 @@
   }
 
   // ——— Firebase Health ———
+  var HEALTH_CHECK_KEYS = ['rulesOk', 'authOk', 'functionsOk', 'rtdbOk', 'hostingOk'];
+
+  function normalizeHealthRecord(raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    var checks = raw.checks && typeof raw.checks === 'object' ? raw.checks : raw;
+    function flag(obj, keys) {
+      for (var i = 0; i < keys.length; i++) {
+        var v = obj[keys[i]];
+        if (v === true || v === 1 || v === 'true' || v === '1' || v === 'yes') return true;
+      }
+      return false;
+    }
+    return {
+      rulesOk: flag(checks, ['rulesOk', 'rulesDeployed', 'rules_deployed', 'rules']),
+      authOk: flag(checks, ['authOk', 'authConfigured', 'auth_configured', 'auth']),
+      functionsOk: flag(checks, ['functionsOk', 'functionsHealthy', 'functions_healthy', 'functions']),
+      rtdbOk: flag(checks, ['rtdbOk', 'rtdbWithinLimits', 'rtdb_within_limits', 'rtdb']),
+      hostingOk: flag(checks, ['hostingOk', 'hostingLive', 'hosting_live', 'hosting']),
+      notes: String(raw.notes || raw.note || checks.notes || '').trim(),
+      updatedAt: raw.updatedAt != null ? raw.updatedAt : raw.updated_at || checks.updatedAt
+    };
+  }
+
+  function mergeHealthSnapshot(val) {
+    agencyHealthByProject = {};
+    if (!val || typeof val !== 'object' || Array.isArray(val)) return;
+    Object.keys(val).forEach(function (id) {
+      var normalized = normalizeHealthRecord(val[id]);
+      if (normalized) agencyHealthByProject[id] = normalized;
+    });
+  }
+
+  function healthProjectLabel(projectId) {
+    var p = agencyProjects.find(function (x) { return x.id === projectId; });
+    if (p) return p.clientName || p.title || projectId;
+    return 'Project ' + projectId;
+  }
+
+  function pickAutoHealthProjectId() {
+    var savedIds = Object.keys(agencyHealthByProject);
+    if (!savedIds.length) return '';
+    if (healthSelectedProjectId && agencyHealthByProject[healthSelectedProjectId]) {
+      return healthSelectedProjectId;
+    }
+    var i;
+    for (i = 0; i < savedIds.length; i++) {
+      if (agencyProjects.some(function (p) { return p.id === savedIds[i]; })) {
+        return savedIds[i];
+      }
+    }
+    return savedIds[0];
+  }
+
+  function updateHealthLoadBanner() {
+    var meta = document.getElementById('health-status-meta');
+    if (!meta) return;
+    var count = Object.keys(agencyHealthByProject).length;
+    if (!count) {
+      if (!isAdmin() || !rtdbReady()) {
+        meta.hidden = false;
+        meta.textContent = 'Sign in and wait for Realtime Database to load saved checks.';
+        meta.classList.add('is-empty');
+      }
+      return;
+    }
+    if (!document.getElementById('health-project-select') || !document.getElementById('health-project-select').value) {
+      meta.hidden = false;
+      meta.classList.remove('is-empty');
+      meta.textContent =
+        count +
+        ' saved health record' +
+        (count === 1 ? '' : 's') +
+        ' in Firebase — select a project hub or use a saved record below.';
+    }
+  }
+
+  function renderHealthSavedRecordsList() {
+    var wrap = document.getElementById('health-saved-records');
+    var list = document.getElementById('health-saved-records-list');
+    if (!wrap || !list) return;
+    var ids = Object.keys(agencyHealthByProject);
+    if (!ids.length) {
+      wrap.hidden = true;
+      list.innerHTML = '';
+      return;
+    }
+    wrap.hidden = false;
+    list.innerHTML = ids
+      .map(function (id) {
+        var h = agencyHealthByProject[id];
+        var done = healthCheckedCount(h);
+        var when = healthTimestampLabel(h && h.updatedAt);
+        var inHub = agencyProjects.some(function (p) { return p.id === id; });
+        return (
+          '<li><button type="button" class="health-saved-record-btn" data-health-project-id="' +
+          esc(id) +
+          '">' +
+          '<span class="health-saved-record-label">' +
+          esc(healthProjectLabel(id)) +
+          (inHub ? '' : ' <span class="health-saved-record-tag">legacy id</span>') +
+          '</span>' +
+          '<span class="health-saved-record-meta">' +
+          esc(done + '/' + HEALTH_CHECK_KEYS.length + ' checks' + (when ? ' · ' + when : '')) +
+          '</span></button></li>'
+        );
+      })
+      .join('');
+    if (!list.dataset.bound) {
+      list.dataset.bound = '1';
+      list.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-health-project-id]');
+        if (!btn) return;
+        var pid = btn.getAttribute('data-health-project-id');
+        var sel = document.getElementById('health-project-select');
+        if (sel) {
+          ensureHealthSelectOption(pid);
+          sel.value = pid;
+        }
+        loadHealthForProject(pid);
+      });
+    }
+  }
+
+  function refreshHealthUiAfterData(autoSelect) {
+    renderHealthSavedRecordsList();
+    updateHealthLoadBanner();
+    var sel = document.getElementById('health-project-select');
+    if (!sel) return;
+    if (autoSelect !== false) {
+      var autoId = pickAutoHealthProjectId();
+      if (autoId) {
+        ensureHealthSelectOption(autoId);
+        sel.value = autoId;
+        healthSelectedProjectId = autoId;
+      }
+    }
+    if (sel.value) {
+      setHealthFormEnabled(true);
+      applyHealthToForm(agencyHealthByProject[sel.value] || null);
+    }
+    if (clientProjectsSelectedId) renderClientProjectsWorkspace();
+  }
+
+  function fetchFirebaseHealthOnce() {
+    if (!rtdbReady()) return Promise.resolve();
+    return window
+      .rtdbGet(window.rtdbRef(window.rtdb, PATHS.firebaseHealth))
+      .then(function (snap) {
+        mergeHealthSnapshot(snap.val());
+        refreshHealthUiAfterData(true);
+      })
+      .catch(function (err) {
+        console.error('Firebase Health: could not load agencyFirebaseHealth', err);
+        setHealthSaveFeedback(
+          (err && err.message) ? err.message : 'Could not load health records from Firebase.',
+          true
+        );
+      });
+  }
+
+  function healthTimestampLabel(value) {
+    if (value == null || value === '') return '';
+    var ms;
+    if (typeof value === 'number') ms = value;
+    else if (value && typeof value.toDate === 'function') ms = value.toDate().getTime();
+    else if (value && typeof value === 'object' && value.seconds != null) {
+      ms = value.seconds * 1000;
+    } else {
+      ms = new Date(value).getTime();
+    }
+    if (!ms || isNaN(ms)) return '';
+    try {
+      return new Date(ms).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function healthCheckedCount(h) {
+    if (!h) return 0;
+    return HEALTH_CHECK_KEYS.filter(function (key) { return h[key]; }).length;
+  }
+
+  function setHealthFormEnabled(enabled) {
+    var card = document.getElementById('health-checklist-card');
+    var notes = document.getElementById('health-notes');
+    var save = document.getElementById('health-save-btn');
+    if (card) card.disabled = !enabled;
+    if (notes) notes.disabled = !enabled;
+    if (save) save.disabled = !enabled;
+  }
+
+  function clearHealthForm(disableForm) {
+    HEALTH_CHECK_KEYS.forEach(function (key) {
+      var el = document.getElementById('health-' + key);
+      if (el) el.checked = false;
+    });
+    var notes = document.getElementById('health-notes');
+    if (notes) notes.value = '';
+    var meta = document.getElementById('health-status-meta');
+    if (meta) {
+      meta.hidden = true;
+      meta.textContent = '';
+      meta.classList.remove('is-empty');
+    }
+    var feedback = document.getElementById('health-save-feedback');
+    if (feedback) {
+      feedback.textContent = '';
+      feedback.classList.remove('is-success', 'is-error');
+    }
+    if (disableForm) setHealthFormEnabled(false);
+  }
+
+  function applyHealthToForm(h) {
+    var normalized = h ? normalizeHealthRecord(h) : null;
+    HEALTH_CHECK_KEYS.forEach(function (key) {
+      var el = document.getElementById('health-' + key);
+      if (el) el.checked = normalized ? !!normalized[key] : false;
+    });
+    var notes = document.getElementById('health-notes');
+    if (notes) notes.value = normalized ? normalized.notes : '';
+
+    var meta = document.getElementById('health-status-meta');
+    if (meta) {
+      if (!normalized) {
+        meta.hidden = false;
+        meta.textContent = 'No saved health check for this project yet.';
+        meta.classList.add('is-empty');
+      } else {
+        var when = healthTimestampLabel(normalized.updatedAt);
+        var done = healthCheckedCount(normalized);
+        meta.hidden = false;
+        meta.classList.remove('is-empty');
+        meta.textContent =
+          (when ? 'Last saved ' + when + '. ' : 'Saved. ') +
+          done +
+          ' of ' +
+          HEALTH_CHECK_KEYS.length +
+          ' checks complete.';
+      }
+    }
+  }
+
+  function healthSelectHasOption(sel, projectId) {
+    var i;
+    for (i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].value === projectId) return true;
+    }
+    return false;
+  }
+
+  function ensureHealthSelectOption(projectId) {
+    var sel = document.getElementById('health-project-select');
+    if (!sel || !projectId || healthSelectHasOption(sel, projectId)) return;
+    var opt = document.createElement('option');
+    opt.value = projectId;
+    opt.textContent = healthProjectLabel(projectId) + ' (saved in Firebase)';
+    sel.appendChild(opt);
+  }
+
   function renderFirebaseHealthProjectSelect() {
     var sel = document.getElementById('health-project-select');
     if (!sel) return;
+    var previous = healthSelectedProjectId || sel.value || '';
     sel.innerHTML =
       '<option value="">Select project hub…</option>' +
-      agencyProjects.map(function (p) {
-        return '<option value="' + esc(p.id) + '">' + esc(p.clientName || p.title || p.id) + '</option>';
-      }).join('');
+      agencyProjects
+        .map(function (p) {
+          return (
+            '<option value="' +
+            esc(p.id) +
+            '">' +
+            esc(p.clientName || p.title || p.id) +
+            '</option>'
+          );
+        })
+        .join('');
+    if (previous && agencyProjects.some(function (p) { return p.id === previous; })) {
+      sel.value = previous;
+      healthSelectedProjectId = previous;
+    } else {
+      sel.value = '';
+      healthSelectedProjectId = '';
+    }
   }
 
   async function loadHealthForProject(projectId) {
-    if (!projectId || !rtdbReady()) return;
-    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.firebaseHealth + '/' + projectId));
-    var h = snap.val() || {};
-    ['rulesOk', 'authOk', 'functionsOk', 'rtdbOk', 'hostingOk'].forEach(function (key) {
-      var el = document.getElementById('health-' + key);
-      if (el) el.checked = !!h[key];
-    });
-    var notes = document.getElementById('health-notes');
-    if (notes) notes.value = h.notes || '';
+    healthSelectedProjectId = projectId || '';
+    if (!projectId) {
+      clearHealthForm(true);
+      updateHealthLoadBanner();
+      return;
+    }
+    setHealthFormEnabled(true);
+    ensureHealthSelectOption(projectId);
+
+    if (agencyHealthByProject[projectId]) {
+      applyHealthToForm(agencyHealthByProject[projectId]);
+      setHealthSaveFeedback('', false);
+      return;
+    }
+
+    if (!rtdbReady()) {
+      applyHealthToForm(null);
+      setHealthSaveFeedback('Realtime Database is not ready.', true);
+      return;
+    }
+
+    try {
+      var snap = await window.rtdbGet(
+        window.rtdbRef(window.rtdb, PATHS.firebaseHealth + '/' + projectId)
+      );
+      var raw = snap.val();
+      if (raw && typeof raw === 'object') {
+        var normalized = normalizeHealthRecord(raw);
+        if (normalized) agencyHealthByProject[projectId] = normalized;
+      }
+      applyHealthToForm(agencyHealthByProject[projectId] || null);
+      renderHealthSavedRecordsList();
+      setHealthSaveFeedback('', false);
+    } catch (err) {
+      console.error('Firebase Health: could not load', err);
+      applyHealthToForm(null);
+      setHealthSaveFeedback(
+        (err && err.message) ? err.message : 'Could not load health check.',
+        true
+      );
+    }
+  }
+
+  function setHealthSaveFeedback(message, isError) {
+    var el = document.getElementById('health-save-feedback');
+    if (!el) return;
+    el.textContent = message || '';
+    el.classList.toggle('is-success', !!message && !isError);
+    el.classList.toggle('is-error', !!message && !!isError);
   }
 
   async function saveHealth() {
-    var projectId = document.getElementById('health-project-select').value;
-    if (!projectId || !rtdbReady()) return;
-    await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.firebaseHealth + '/' + projectId), {
+    var sel = document.getElementById('health-project-select');
+    var projectId = sel ? sel.value : '';
+    if (!projectId || !rtdbReady()) {
+      setHealthSaveFeedback('Select a project hub first.', true);
+      return;
+    }
+    var payload = {
       rulesOk: !!document.getElementById('health-rulesOk').checked,
       authOk: !!document.getElementById('health-authOk').checked,
       functionsOk: !!document.getElementById('health-functionsOk').checked,
@@ -1394,14 +1750,999 @@
       hostingOk: !!document.getElementById('health-hostingOk').checked,
       notes: document.getElementById('health-notes').value.trim(),
       updatedAt: ts()
+    };
+    try {
+      await window.rtdbSet(
+        window.rtdbRef(window.rtdb, PATHS.firebaseHealth + '/' + projectId),
+        payload
+      );
+      agencyHealthByProject[projectId] = normalizeHealthRecord(payload);
+      applyHealthToForm(agencyHealthByProject[projectId]);
+      renderHealthSavedRecordsList();
+      updateHealthLoadBanner();
+      setHealthSaveFeedback('Health check saved.', false);
+      if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+    } catch (err) {
+      console.error('Firebase Health: save failed', err);
+      setHealthSaveFeedback((err && err.message) ? err.message : 'Save failed.', true);
+    }
+  }
+
+  function refreshFirebaseHealthPanel() {
+    renderFirebaseHealthProjectSelect();
+    fetchFirebaseHealthOnce().then(function () {
+      var sel = document.getElementById('health-project-select');
+      if (sel && sel.value) {
+        return loadHealthForProject(sel.value);
+      }
+      if (!Object.keys(agencyHealthByProject).length) {
+        clearHealthForm(true);
+      }
     });
   }
 
   function initFirebaseHealth() {
     var sel = document.getElementById('health-project-select');
-    if (sel) sel.addEventListener('change', function () { loadHealthForProject(sel.value); });
+    if (sel && !sel.dataset.healthBound) {
+      sel.dataset.healthBound = '1';
+      sel.addEventListener('change', function () {
+        loadHealthForProject(sel.value);
+      });
+    }
     var save = document.getElementById('health-save-btn');
-    if (save) save.addEventListener('click', function () { saveHealth().catch(console.error); });
+    if (save && !save.dataset.healthBound) {
+      save.dataset.healthBound = '1';
+      save.addEventListener('click', function () {
+        saveHealth().catch(console.error);
+      });
+    }
+    updateHealthLoadBanner();
+  }
+
+  // ——— Clients Projects (unified workspace) ———
+  var clientProjectsSelectedId = '';
+  var clientProjectsSearchQuery = '';
+  var clientProjectsBound = false;
+  var clientProjectsPickerBound = false;
+  var cpSectionCollapseByHub = {};
+
+  function cpMoney(amount) {
+    if (typeof window.formatPipelineMoney === 'function') return window.formatPipelineMoney(amount);
+    var n = Number(amount);
+    if (isNaN(n) || n < 0) return '$0';
+    return '$' + Math.round(n).toLocaleString();
+  }
+
+  function cpStageLabel(stage) {
+    if (typeof window.pipelineStageLabel === 'function') return window.pipelineStageLabel(stage);
+    return stage || '';
+  }
+
+  function findMaintenanceForHub(hub) {
+    if (!hub) return null;
+    var byProject = agencyMaintenance.find(function (m) {
+      return m.projectId === hub.id;
+    });
+    if (byProject) return byProject;
+    var cn = (hub.clientName || '').toLowerCase().trim();
+    if (!cn) return null;
+    return (
+      agencyMaintenance.find(function (m) {
+        return (m.clientName || '').toLowerCase().trim() === cn;
+      }) || null
+    );
+  }
+
+  function findBusinessDocsForHub(hub) {
+    if (!hub || typeof window.getBusinessDocsSnapshot !== 'function') return [];
+    var docs = window.getBusinessDocsSnapshot();
+    var bid = hub.businessDocId || '';
+    var cn = (hub.clientName || '').toLowerCase().trim();
+    return docs.filter(function (d) {
+      if (bid && d.id === bid) return true;
+      if (cn && (d.clientName || '').toLowerCase().trim() === cn) return true;
+      return false;
+    });
+  }
+
+  function findPortfolioForHub(hub) {
+    if (!hub) return null;
+    var list = getPortfolioList();
+    if (hub.portfolioProjectId) {
+      var linked = list.find(function (p) {
+        return p.id === hub.portfolioProjectId;
+      });
+      if (linked) return linked;
+    }
+    var title = (hub.title || hub.clientName || '').toLowerCase().trim();
+    if (!title) return null;
+    return (
+      list.find(function (p) {
+        var pt = (p.title || '').toLowerCase();
+        return pt.indexOf(title) >= 0 || title.indexOf(pt) >= 0;
+      }) || null
+    );
+  }
+
+  function getHubById(id) {
+    return agencyProjects.find(function (p) {
+      return p.id === id;
+    });
+  }
+
+  function getClientPickerMeta(hub) {
+    if (!hub) return { milestones: '0/0', healthLabel: 'Health —', healthClass: '' };
+    var done = (hub.milestones || []).filter(function (m) {
+      return m.done;
+    }).length;
+    var total = hub.milestones ? hub.milestones.length : 0;
+    var health = agencyHealthByProject[hub.id];
+    var healthDone = health ? healthCheckedCount(health) : 0;
+    var healthClass = healthDone >= HEALTH_CHECK_KEYS.length ? 'is-good' : healthDone > 0 ? 'is-warn' : '';
+    return {
+      milestones: done + '/' + (total || 0),
+      healthLabel: 'Health ' + healthDone + '/' + HEALTH_CHECK_KEYS.length,
+      healthClass: healthClass
+    };
+  }
+
+  function hubMatchesClientSearch(hub, query) {
+    if (!query) return true;
+    var hay = ((hub.clientName || '') + ' ' + (hub.title || '')).toLowerCase();
+    return hay.indexOf(query) >= 0;
+  }
+
+  function leadMatchesClientSearch(lead, query) {
+    if (!query) return true;
+    var hay = ((lead.name || '') + ' ' + (lead.company || '')).toLowerCase();
+    return hay.indexOf(query) >= 0;
+  }
+
+  function getDepositLeadsWithoutHub() {
+    if (typeof window.getPipelineLeadsSnapshot !== 'function') return [];
+    return window.getPipelineLeadsSnapshot().filter(function (lead) {
+      if (lead.stage !== 'deposit') return false;
+      return !agencyProjects.some(function (p) {
+        return p.leadId === lead.id;
+      });
+    });
+  }
+
+  function renderCpDepositLeadCard(lead) {
+    var title = (lead.name || lead.company || 'Untitled lead').trim();
+    var sub = lead.company && lead.name && lead.company !== lead.name ? lead.company : cpStageLabel('deposit');
+    return (
+      '<li role="presentation">' +
+      '<button type="button" class="cp-client-picker-card cp-client-picker-card--deposit" ' +
+      'role="option" aria-selected="false" data-cp-lead-id="' + esc(lead.id) + '">' +
+      '<span class="cp-client-picker-card-inner">' +
+      '<span class="cp-client-picker-card-main">' +
+      '<span class="cp-client-picker-card-title">' + esc(title) + '</span>' +
+      '<span class="cp-client-picker-card-sub">' + esc(sub) + '</span>' +
+      '</span>' +
+      '<ion-icon name="add-circle-outline" class="cp-client-picker-chevron" aria-hidden="true"></ion-icon>' +
+      '</span>' +
+      '<span class="cp-client-picker-card-meta">' +
+      '<span class="cp-client-picker-badge is-deposit">Deposit paid</span>' +
+      '<span class="cp-client-picker-badge">' + esc(cpMoney(lead.value)) + '</span>' +
+      '</span>' +
+      '</button></li>'
+    );
+  }
+
+  function renderCpHubPickerCard(p) {
+    var title = (p.clientName || p.title || 'Untitled').trim();
+    var sub =
+      p.title && p.clientName && p.title !== p.clientName ? p.title : p.firebaseProjectId || 'Client project';
+    var meta = getClientPickerMeta(p);
+    var selected = clientProjectsSelectedId === p.id;
+    return (
+      '<li role="presentation">' +
+      '<button type="button" class="cp-client-picker-card' + (selected ? ' is-selected' : '') + '" ' +
+      'role="option" aria-selected="' + (selected ? 'true' : 'false') + '" ' +
+      'data-cp-client-id="' + esc(p.id) + '">' +
+      '<span class="cp-client-picker-card-inner">' +
+      '<span class="cp-client-picker-card-main">' +
+      '<span class="cp-client-picker-card-title">' + esc(title) + '</span>' +
+      '<span class="cp-client-picker-card-sub">' + esc(sub) + '</span>' +
+      '</span>' +
+      '<ion-icon name="chevron-forward-outline" class="cp-client-picker-chevron" aria-hidden="true"></ion-icon>' +
+      '</span>' +
+      '<span class="cp-client-picker-card-meta">' +
+      '<span class="cp-client-picker-badge">' + esc(meta.milestones) + ' milestones</span>' +
+      '<span class="cp-client-picker-badge ' + esc(meta.healthClass) + '">' + esc(meta.healthLabel) + '</span>' +
+      '</span>' +
+      '</button></li>'
+    );
+  }
+
+  function isCpClientDrawerOpen() {
+    var drawer = document.getElementById('cp-client-drawer');
+    return !!(drawer && !drawer.hidden);
+  }
+
+  function openCpClientDrawer() {
+    var drawer = document.getElementById('cp-client-drawer');
+    var overlay = document.getElementById('cp-client-drawer-overlay');
+    if (!drawer || !overlay) return;
+    drawer.hidden = false;
+    drawer.setAttribute('aria-hidden', 'false');
+    overlay.hidden = false;
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('cp-client-drawer-open');
+  }
+
+  function closeCpClientDrawer() {
+    var drawer = document.getElementById('cp-client-drawer');
+    var overlay = document.getElementById('cp-client-drawer-overlay');
+    if (drawer) {
+      drawer.hidden = true;
+      drawer.setAttribute('aria-hidden', 'true');
+    }
+    if (overlay) {
+      overlay.hidden = true;
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    document.body.classList.remove('cp-client-drawer-open');
+    clientProjectsSelectedId = '';
+    var workspace = document.getElementById('client-projects-workspace');
+    if (workspace) workspace.innerHTML = '';
+    var shell = document.querySelector('.client-projects-shell');
+    if (shell) shell.classList.remove('has-client-selected');
+    renderClientProjectsPickerList();
+  }
+
+  function selectClientProject(hubId) {
+    if (!hubId) {
+      closeCpClientDrawer();
+      return;
+    }
+    if (clientProjectsSelectedId === hubId && isCpClientDrawerOpen()) {
+      closeCpClientDrawer();
+      return;
+    }
+    clientProjectsSelectedId = hubId;
+    var shell = document.querySelector('.client-projects-shell');
+    if (shell) shell.classList.add('has-client-selected');
+    renderClientProjectsPickerList();
+    renderClientProjectsWorkspace();
+    openCpClientDrawer();
+    var card = document.querySelector('.cp-client-picker-card.is-selected');
+    if (card && typeof card.scrollIntoView === 'function') {
+      card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  function setCpFeedback(section, message, isError) {
+    var root = document.getElementById('client-projects-workspace');
+    if (!root) return;
+    var el = root.querySelector('[data-cp-feedback="' + section + '"]');
+    if (!el) return;
+    el.textContent = message || '';
+    el.classList.toggle('is-success', !!message && !isError);
+    el.classList.toggle('is-error', !!message && !!isError);
+  }
+
+  function renderCpMilestonesHtml(milestones) {
+    return (milestones || []).map(function (m, i) {
+      return (
+        '<li class="hub-milestone cp-hub-milestone">' +
+        '<input type="checkbox" data-cp-milestone-done="' + i + '" ' + (m.done ? 'checked' : '') + '>' +
+        '<input type="text" class="form-input hub-milestone-label" data-cp-milestone-label="' + i + '" value="' + esc(m.label) + '">' +
+        '</li>'
+      );
+    }).join('');
+  }
+
+  function snapshotCpSectionCollapse(hubId) {
+    var workspace = document.getElementById('client-projects-workspace');
+    if (!workspace || clientProjectsSelectedId !== hubId) return;
+    var state = {};
+    workspace.querySelectorAll('.cp-section--collapsible[data-cp-section]').forEach(function (sec) {
+      state[sec.getAttribute('data-cp-section')] = sec.classList.contains('is-expanded');
+    });
+    if (Object.keys(state).length) cpSectionCollapseByHub[hubId] = state;
+  }
+
+  function isCpSectionExpanded(hubId, sectionId) {
+    var hubState = cpSectionCollapseByHub[hubId];
+    if (!hubState || hubState[sectionId] === undefined) return true;
+    return !!hubState[sectionId];
+  }
+
+  function saveCpSectionCollapse(hubId, sectionId, expanded) {
+    if (!cpSectionCollapseByHub[hubId]) cpSectionCollapseByHub[hubId] = {};
+    cpSectionCollapseByHub[hubId][sectionId] = expanded;
+  }
+
+  function toggleCpSection(sectionEl) {
+    if (!sectionEl) return;
+    var sectionId = sectionEl.getAttribute('data-cp-section');
+    var next = !sectionEl.classList.contains('is-expanded');
+    sectionEl.classList.toggle('is-expanded', next);
+    var btn = sectionEl.querySelector('.cp-section-toggle');
+    if (btn) btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+    if (clientProjectsSelectedId) saveCpSectionCollapse(clientProjectsSelectedId, sectionId, next);
+    if (next && typeof sectionEl.scrollIntoView === 'function') {
+      window.requestAnimationFrame(function () {
+        sectionEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      });
+    }
+  }
+
+  function setAllCpSectionsExpanded(expanded) {
+    var workspace = document.getElementById('client-projects-workspace');
+    if (!workspace) return;
+    workspace.querySelectorAll('.cp-section--collapsible').forEach(function (sec) {
+      var sectionId = sec.getAttribute('data-cp-section');
+      sec.classList.toggle('is-expanded', expanded);
+      var btn = sec.querySelector('.cp-section-toggle');
+      if (btn) btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if (clientProjectsSelectedId) saveCpSectionCollapse(clientProjectsSelectedId, sectionId, expanded);
+    });
+  }
+
+  function cpSectionSummary(id, ctx) {
+    var hub = ctx.hub;
+    var maint = ctx.maint;
+    var health = ctx.health;
+    var lead = ctx.lead;
+    var docs = ctx.docs;
+    var portfolio = ctx.portfolio;
+    if (id === 'hub') {
+      var done = (hub.milestones || []).filter(function (m) {
+        return m.done;
+      }).length;
+      var total = hub.milestones ? hub.milestones.length : 0;
+      return done + '/' + total + ' milestones';
+    }
+    if (id === 'maintenance') {
+      if (!maint) return 'No record';
+      return maint.hoursUsed + '/' + maint.hoursIncluded + ' hrs';
+    }
+    if (id === 'health') {
+      var hDone = health ? healthCheckedCount(health) : 0;
+      return 'Health ' + hDone + '/' + HEALTH_CHECK_KEYS.length;
+    }
+    if (id === 'pipeline') {
+      if (!lead) return 'No lead linked';
+      return cpStageLabel(lead.stage) + ' · ' + cpMoney(lead.value);
+    }
+    if (id === 'docs') {
+      if (!docs.length) return 'No documents';
+      return docs.length + (docs.length === 1 ? ' document' : ' documents');
+    }
+    if (id === 'portfolio') {
+      if (!portfolio) return 'Not linked';
+      return portfolio.title || 'Linked';
+    }
+    return '';
+  }
+
+  function renderCpHubPortalHtml(hub) {
+    var token = hub && hub.portalToken;
+    var expires = hub && hub.portalExpiresAt;
+    if (!token || (expires && expires < Date.now())) {
+      return (
+        '<div class="cp-hub-portal-empty">' +
+        '<p class="form-hint">No active client portal link.</p>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="generate-portal">Generate client link</button></div>'
+      );
+    }
+    var url = clientPortalUrl(token);
+    var expiryLabel = formatPortalExpiry(expires);
+    return (
+      '<div class="hub-portal-link-box cp-hub-portal">' +
+      '<span class="hub-portal-link-label">Client link' + (expiryLabel ? ' · expires ' + esc(expiryLabel) : ' (90 days)') + '</span>' +
+      '<a class="hub-portal-link-url" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>' +
+      '<div class="cp-hub-portal-actions">' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="copy-portal">Copy link</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="generate-portal">Regenerate link</button>' +
+      '</div></div>'
+    );
+  }
+
+  function buildCpCollapsibleSection(sectionId, title, tabId, bodyHtml, summary, expanded) {
+    var isOpen = expanded !== false;
+    var panelId = 'cp-section-panel-' + sectionId;
+    var tabLink = tabId
+      ? '<button type="button" class="cp-section-link" data-cp-action="open-tab" data-tab="' + esc(tabId) + '">Open full tab →</button>'
+      : '';
+    return (
+      '<section class="cp-section cp-section--collapsible' + (isOpen ? ' is-expanded' : '') + '" data-cp-section="' + esc(sectionId) + '">' +
+      '<div class="cp-section-header">' +
+      '<button type="button" class="cp-section-toggle" data-cp-action="toggle-section" aria-expanded="' + (isOpen ? 'true' : 'false') + '" aria-controls="' + panelId + '">' +
+      '<ion-icon name="chevron-down-outline" class="cp-section-chevron" aria-hidden="true"></ion-icon>' +
+      '<span class="cp-section-toggle-text">' +
+      '<span class="cp-section-toggle-title">' + esc(title) + '</span>' +
+      (summary ? '<span class="cp-section-toggle-summary">' + esc(summary) + '</span>' : '') +
+      '</span></button>' +
+      tabLink +
+      '</div>' +
+      '<div class="cp-section-collapse-wrap" id="' + panelId + '">' +
+      '<div class="cp-section-collapse-inner"><div class="cp-section-body">' + bodyHtml + '</div></div></div></section>'
+    );
+  }
+
+  function collectCpMilestonesFromWorkspace(root) {
+    var labels = root.querySelectorAll('[data-cp-milestone-label]');
+    var out = [];
+    labels.forEach(function (inp, i) {
+      var chk = root.querySelector('[data-cp-milestone-done="' + i + '"]');
+      out.push({
+        id: 'm' + i,
+        label: inp.value.trim(),
+        done: chk ? chk.checked : false
+      });
+    });
+    return out;
+  }
+
+  function renderClientProjectsWorkspace() {
+    var workspace = document.getElementById('client-projects-workspace');
+    var titleEl = document.getElementById('cp-client-drawer-title');
+    if (!workspace) return;
+
+    if (!clientProjectsSelectedId) {
+      if (titleEl) titleEl.textContent = 'Client workspace';
+      workspace.innerHTML = '';
+      return;
+    }
+
+    var hub = getHubById(clientProjectsSelectedId);
+    if (!hub) {
+      closeCpClientDrawer();
+      return;
+    }
+
+    if (titleEl) {
+      titleEl.textContent = hub.clientName || hub.title || 'Client workspace';
+    }
+
+    snapshotCpSectionCollapse(hub.id);
+    var sectionCtx = { hub: hub };
+
+    var maint = findMaintenanceForHub(hub);
+    var health = agencyHealthByProject[hub.id] || null;
+    var lead = hub.leadId && typeof window.findPipelineLead === 'function' ? window.findPipelineLead(hub.leadId) : null;
+    var docs = findBusinessDocsForHub(hub);
+    var portfolio = findPortfolioForHub(hub);
+    var portfolioList = getPortfolioList();
+    var healthDone = health ? healthCheckedCount(health) : 0;
+
+    var portfolioOptions =
+      '<option value="">Link a portfolio project…</option>' +
+      portfolioList
+        .map(function (p) {
+          var selected = (hub.portfolioProjectId && hub.portfolioProjectId === p.id) || (!hub.portfolioProjectId && portfolio && portfolio.id === p.id);
+          return '<option value="' + esc(p.id) + '" ' + (selected ? 'selected' : '') + '>' + esc(p.title || p.id) + '</option>';
+        })
+        .join('');
+
+    var docsHtml = '';
+    if (docs.length) {
+      docsHtml =
+        '<ul class="cp-docs-list">' +
+        docs
+          .map(function (d) {
+            return (
+              '<li>' +
+              '<div><strong>' + esc(d.type || 'doc') + '</strong> · ' + esc(d.clientName || '') +
+              '<div class="cp-docs-meta">' + esc(d.status || '') + ' · ' + cpMoney(d.total) + '</div></div>' +
+              '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="edit-doc" data-doc-id="' + esc(d.id) + '">Edit</button>' +
+              '</li>'
+            );
+          })
+          .join('') +
+        '</ul>';
+    } else {
+      docsHtml =
+        '<div class="cp-section-empty">' +
+        '<p>No business documents linked yet.</p>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="add-doc">Add business document →</button>' +
+        '</div>';
+    }
+
+    var portfolioHtml = '';
+    if (portfolio) {
+      var imgUrl = '';
+      if (Array.isArray(portfolio.imageUrls) && portfolio.imageUrls.length) imgUrl = portfolio.imageUrls[0];
+      else if (portfolio.imageUrl) imgUrl = portfolio.imageUrl;
+      portfolioHtml =
+        '<div class="cp-portfolio-summary">' +
+        (imgUrl ? '<img src="' + esc(imgUrl) + '" alt="" loading="lazy">' : '') +
+        '<div><strong>' + esc(portfolio.title || 'Portfolio project') + '</strong>' +
+        (portfolio.category ? '<div class="cp-docs-meta">' + esc(portfolio.category) + '</div>' : '') +
+        '</div>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="edit-portfolio" data-portfolio-id="' + esc(portfolio.id) + '">Edit portfolio</button>' +
+        '</div>';
+    } else {
+      portfolioHtml = '<div class="cp-section-empty"><p>No portfolio project linked yet.</p></div>';
+    }
+
+    sectionCtx.maint = maint;
+    sectionCtx.health = health;
+    sectionCtx.lead = lead;
+    sectionCtx.docs = docs;
+    sectionCtx.portfolio = portfolio;
+
+    var hubBody =
+      '<div class="cp-form-grid cp-form-grid--can-split">' +
+      '<div class="form-group"><label for="cp-hub-client">Client name</label><input id="cp-hub-client" class="form-input" type="text" value="' + esc(hub.clientName) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-title">Project title</label><input id="cp-hub-title" class="form-input" type="text" value="' + esc(hub.title) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-lead">Pipeline lead ID</label><input id="cp-hub-lead" class="form-input" type="text" value="' + esc(hub.leadId) + '" placeholder="Link to pipelineLeads id"></div>' +
+      '<div class="form-group"><label for="cp-hub-firebase">Firebase project ID</label><input id="cp-hub-firebase" class="form-input" type="text" value="' + esc(hub.firebaseProjectId) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-repo">Repo URL</label><input id="cp-hub-repo" class="form-input" type="url" value="' + esc(hub.repoUrl) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-expo">Expo / demo URL</label><input id="cp-hub-expo" class="form-input" type="url" value="' + esc(hub.expoUrl) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-doc-id">Business doc ID</label><input id="cp-hub-doc-id" class="form-input" type="text" value="' + esc(hub.businessDocId) + '"></div>' +
+      '<div class="form-group form-group--full"><label for="cp-hub-notes">Notes</label><textarea id="cp-hub-notes" class="form-input has-scrollbar" rows="3">' + esc(hub.notes) + '</textarea></div>' +
+      '</div>' +
+      '<div class="form-group"><label>Milestones</label><ul class="cp-milestones-list" id="cp-hub-milestones">' + renderCpMilestonesHtml(hub.milestones) + '</ul></div>' +
+      '<div class="form-group form-group--full"><label>Client portal</label>' + renderCpHubPortalHtml(hub) + '</div>' +
+      '<div class="cp-section-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-hub">Save hub</button>' +
+      '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-hub">Delete client</button>' +
+      '<p class="cp-section-feedback" data-cp-feedback="hub" role="status"></p></div>';
+
+    var maintBody = maint
+      ? '<input type="hidden" id="cp-maint-id" value="' + esc(maint.id) + '">' +
+        '<div class="cp-form-grid cp-form-grid--can-split">' +
+        '<div class="form-group"><label for="cp-maint-hours-included">Hours included</label><input id="cp-maint-hours-included" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursIncluded)) + '"></div>' +
+        '<div class="form-group"><label for="cp-maint-hours-used">Hours used</label><input id="cp-maint-hours-used" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursUsed)) + '"></div>' +
+        '<div class="form-group"><label for="cp-maint-renewal">Renewal date</label><input id="cp-maint-renewal" class="form-input" type="date" value="' + esc(maint.renewalDate) + '"></div>' +
+        '<div class="form-group"><label for="cp-maint-sla">SLA (hours)</label><input id="cp-maint-sla" class="form-input" type="number" min="1" value="' + esc(String(maint.slaHours)) + '"></div>' +
+        '<div class="form-group form-group--full"><label for="cp-maint-notes">Notes</label><textarea id="cp-maint-notes" class="form-input has-scrollbar" rows="2">' + esc(maint.notes) + '</textarea></div>' +
+        '</div>' +
+        '<div class="cp-section-actions">' +
+        '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint">Save maintenance</button>' +
+        '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-maint">Delete maintenance</button>' +
+        '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>'
+      : '<div class="cp-section-empty"><p>No maintenance record for this client yet.</p>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="add-maint">Add maintenance →</button></div>';
+
+    var healthWhen = health ? healthTimestampLabel(health.updatedAt) : '';
+    var healthBody =
+      '<fieldset class="health-checklist-card cp-health-block">' +
+      '<legend class="health-checklist-legend">Pre-renewal checklist</legend>' +
+      '<p class="cp-health-meta health-status-meta">' + (healthWhen ? 'Last saved ' + esc(healthWhen) : 'Not saved yet') + '</p>' +
+      '<p class="cp-health-status">' + healthDone + ' of ' + HEALTH_CHECK_KEYS.length + ' checks complete</p>' +
+      '<ul class="health-checklist">' +
+      HEALTH_CHECK_KEYS.map(function (key) {
+        var labels = {
+          rulesOk: 'Rules deployed',
+          authOk: 'Auth configured',
+          functionsOk: 'Functions healthy',
+          rtdbOk: 'RTDB within limits',
+          hostingOk: 'Hosting live'
+        };
+        return (
+          '<li class="health-check-row">' +
+          '<input type="checkbox" id="cp-health-' + key + '" name="cp-health-' + key + '" ' + (health && health[key] ? 'checked' : '') + '>' +
+          '<label for="cp-health-' + key + '">' + esc(labels[key] || key) + '</label></li>'
+        );
+      }).join('') +
+      '</ul></fieldset>' +
+      '<div class="form-group"><label for="cp-health-notes">Notes</label><textarea id="cp-health-notes" class="form-input has-scrollbar" rows="3">' + esc(health ? health.notes : '') + '</textarea></div>' +
+      '<div class="cp-section-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-health">Save health check</button>' +
+      '<p class="cp-section-feedback" data-cp-feedback="health" role="status"></p></div>';
+
+    var pipelineBody = lead
+      ? '<p class="form-hint">' + esc(lead.name || lead.company || 'Lead') + ' · ' + cpStageLabel(lead.stage) + ' · ' + cpMoney(lead.value) + '</p>' +
+        '<div class="cp-form-grid cp-form-grid--can-split">' +
+        '<div class="form-group"><label for="cp-pipeline-stage">Stage</label><select id="cp-pipeline-stage" class="form-input">' +
+        ['lead', 'proposal', 'deposit'].map(function (st) {
+          return '<option value="' + st + '" ' + (lead.stage === st ? 'selected' : '') + '>' + esc(cpStageLabel(st)) + '</option>';
+        }).join('') +
+        '</select></div>' +
+        '<div class="form-group"><label for="cp-pipeline-value">Deal value</label><input id="cp-pipeline-value" class="form-input" type="number" min="0" value="' + esc(String(lead.value || 0)) + '"></div>' +
+        '<div class="form-group form-group--full"><label for="cp-pipeline-notes">Notes</label><textarea id="cp-pipeline-notes" class="form-input has-scrollbar" rows="2">' + esc(lead.notes) + '</textarea></div>' +
+        '</div>' +
+        '<div class="cp-section-actions">' +
+        '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-pipeline">Save pipeline</button>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="edit-lead">Edit full lead →</button>' +
+        '<p class="cp-section-feedback" data-cp-feedback="pipeline" role="status"></p></div>'
+      : '<div class="cp-section-empty"><p>No pipeline lead linked. Add a Pipeline lead ID in Project Hub above, then save.</p>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="open-tab" data-tab="pipeline">Open Client Pipeline →</button></div>';
+
+    var portfolioBody =
+      portfolioHtml +
+      '<div class="form-group"><label for="cp-portfolio-select">Link portfolio project</label>' +
+      '<select id="cp-portfolio-select" class="form-input">' + portfolioOptions + '</select></div>' +
+      '<div class="cp-section-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">Save link</button>' +
+      '<p class="cp-section-feedback" data-cp-feedback="portfolio" role="status"></p></div>';
+
+    workspace.innerHTML =
+      '<div class="cp-workspace-toolbar">' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="expand-all-sections">Expand all</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="collapse-all-sections">Collapse all</button>' +
+      '</div>' +
+      buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub')) +
+      buildCpCollapsibleSection('maintenance', 'Maintenance & SLA', null, maintBody, cpSectionSummary('maintenance', sectionCtx), isCpSectionExpanded(hub.id, 'maintenance')) +
+      buildCpCollapsibleSection('health', 'Firebase Health', null, healthBody, cpSectionSummary('health', sectionCtx), isCpSectionExpanded(hub.id, 'health')) +
+      buildCpCollapsibleSection('pipeline', 'Pipeline & deal', 'pipeline', pipelineBody, cpSectionSummary('pipeline', sectionCtx), isCpSectionExpanded(hub.id, 'pipeline')) +
+      buildCpCollapsibleSection('docs', 'Business documents', 'docs', docsHtml, cpSectionSummary('docs', sectionCtx), isCpSectionExpanded(hub.id, 'docs')) +
+      buildCpCollapsibleSection('portfolio', 'Portfolio project', 'portfolio', portfolioBody, cpSectionSummary('portfolio', sectionCtx), isCpSectionExpanded(hub.id, 'portfolio'));
+  }
+
+  function renderClientProjectsPickerList() {
+    var list = document.getElementById('client-projects-picker-list');
+    if (!list) return;
+    var query = clientProjectsSearchQuery.toLowerCase().trim();
+    var depositLeads = getDepositLeadsWithoutHub().filter(function (lead) {
+      return leadMatchesClientSearch(lead, query);
+    });
+    var filtered = agencyProjects.filter(function (p) {
+      return hubMatchesClientSearch(p, query);
+    });
+    var html = '';
+
+    if (depositLeads.length) {
+      html +=
+        '<li class="cp-client-picker-section-label" role="presentation">Deposit paid — ready to onboard</li>' +
+        depositLeads.map(renderCpDepositLeadCard).join('');
+    }
+
+    if (filtered.length) {
+      if (depositLeads.length) {
+        html += '<li class="cp-client-picker-section-label" role="presentation">Active clients</li>';
+      }
+      html += filtered.map(renderCpHubPickerCard).join('');
+    }
+
+    if (!html) {
+      if (!agencyProjects.length && !getDepositLeadsWithoutHub().length) {
+        list.innerHTML =
+          '<li class="cp-client-picker-empty">No clients yet. ' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="new-client">Add your first client</button></li>';
+      } else {
+        list.innerHTML = '<li class="cp-client-picker-empty">No clients match your search.</li>';
+      }
+      return;
+    }
+
+    list.innerHTML = html;
+  }
+
+  function refreshClientProjectsPicker() {
+    var prev = clientProjectsSelectedId;
+    if (prev && !agencyProjects.some(function (p) { return p.id === prev; })) {
+      clientProjectsSelectedId = '';
+    }
+    renderClientProjectsPickerList();
+  }
+
+  function refreshClientProjectsWorkspace() {
+    refreshClientProjectsPicker();
+    renderClientProjectsWorkspace();
+    renderClientProjectsPickerList();
+  }
+
+  async function saveHubFromClientWorkspace() {
+    var hubId = clientProjectsSelectedId;
+    if (!hubId || !rtdbReady()) return;
+    var existing = getHubById(hubId);
+    if (!existing) return;
+    var root = document.getElementById('client-projects-workspace');
+    var payload = {
+      leadId: (document.getElementById('cp-hub-lead') || {}).value.trim(),
+      clientName: (document.getElementById('cp-hub-client') || {}).value.trim(),
+      title: (document.getElementById('cp-hub-title') || {}).value.trim(),
+      repoUrl: (document.getElementById('cp-hub-repo') || {}).value.trim(),
+      expoUrl: (document.getElementById('cp-hub-expo') || {}).value.trim(),
+      firebaseProjectId: (document.getElementById('cp-hub-firebase') || {}).value.trim(),
+      businessDocId: (document.getElementById('cp-hub-doc-id') || {}).value.trim(),
+      portfolioProjectId: existing.portfolioProjectId || '',
+      notes: (document.getElementById('cp-hub-notes') || {}).value.trim(),
+      milestones: root ? collectCpMilestonesFromWorkspace(root) : existing.milestones,
+      enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
+      updatedAt: ts()
+    };
+    try {
+      await saveProjectHubRecord(hubId, payload, false);
+      setCpFeedback('hub', 'Hub saved.', false);
+      renderClientProjectsWorkspace();
+      if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+    } catch (err) {
+      console.error(err);
+      setCpFeedback('hub', (err && err.message) || 'Save failed.', true);
+    }
+  }
+
+  async function saveMaintFromClientWorkspace() {
+    if (!rtdbReady()) return;
+    var maintId = (document.getElementById('cp-maint-id') || {}).value.trim();
+    if (!maintId) return;
+    var hub = getHubById(clientProjectsSelectedId);
+    var payload = {
+      clientName: hub ? hub.clientName : '',
+      leadId: hub ? hub.leadId : '',
+      projectId: clientProjectsSelectedId,
+      hoursIncluded: Number((document.getElementById('cp-maint-hours-included') || {}).value) || 4,
+      hoursUsed: Number((document.getElementById('cp-maint-hours-used') || {}).value) || 0,
+      renewalDate: (document.getElementById('cp-maint-renewal') || {}).value || '',
+      slaHours: Number((document.getElementById('cp-maint-sla') || {}).value) || 48,
+      notes: (document.getElementById('cp-maint-notes') || {}).value.trim(),
+      updatedAt: ts()
+    };
+    try {
+      await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
+      setCpFeedback('maint', 'Maintenance saved.', false);
+      if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+    } catch (err) {
+      console.error(err);
+      setCpFeedback('maint', (err && err.message) || 'Save failed.', true);
+    }
+  }
+
+  async function createMaintenanceForHub(hub) {
+    if (!hub || !rtdbReady()) return;
+    var payload = {
+      clientName: hub.clientName || hub.title || '',
+      leadId: hub.leadId || '',
+      projectId: hub.id,
+      planTier: 'standard',
+      hoursIncluded: 4,
+      hoursUsed: 0,
+      renewalDate: '',
+      slaHours: 48,
+      notes: '',
+      tickets: [],
+      createdAt: ts(),
+      updatedAt: ts()
+    };
+    try {
+      var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.maintenance));
+      await window.rtdbSet(ref, payload);
+    } catch (err) {
+      console.error(err);
+      alert('Could not create maintenance record.');
+    }
+  }
+
+  async function saveHealthFromClientWorkspace() {
+    var hubId = clientProjectsSelectedId;
+    if (!hubId || !rtdbReady()) return;
+    var payload = {
+      rulesOk: !!(document.getElementById('cp-health-rulesOk') && document.getElementById('cp-health-rulesOk').checked),
+      authOk: !!(document.getElementById('cp-health-authOk') && document.getElementById('cp-health-authOk').checked),
+      functionsOk: !!(document.getElementById('cp-health-functionsOk') && document.getElementById('cp-health-functionsOk').checked),
+      rtdbOk: !!(document.getElementById('cp-health-rtdbOk') && document.getElementById('cp-health-rtdbOk').checked),
+      hostingOk: !!(document.getElementById('cp-health-hostingOk') && document.getElementById('cp-health-hostingOk').checked),
+      notes: (document.getElementById('cp-health-notes') || {}).value.trim(),
+      updatedAt: ts()
+    };
+    try {
+      await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.firebaseHealth + '/' + hubId), payload);
+      agencyHealthByProject[hubId] = normalizeHealthRecord(payload);
+      setCpFeedback('health', 'Health check saved.', false);
+      renderClientProjectsWorkspace();
+      if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+    } catch (err) {
+      console.error(err);
+      setCpFeedback('health', (err && err.message) || 'Save failed.', true);
+    }
+  }
+
+  async function savePipelineFromClientWorkspace() {
+    var hub = getHubById(clientProjectsSelectedId);
+    if (!hub || !hub.leadId || typeof window.savePipelineLeadPartial !== 'function') return;
+    try {
+      await window.savePipelineLeadPartial(hub.leadId, {
+        stage: (document.getElementById('cp-pipeline-stage') || {}).value,
+        value: (document.getElementById('cp-pipeline-value') || {}).value,
+        notes: (document.getElementById('cp-pipeline-notes') || {}).value
+      });
+      setCpFeedback('pipeline', 'Pipeline saved.', false);
+      renderClientProjectsWorkspace();
+      if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+    } catch (err) {
+      console.error(err);
+      setCpFeedback('pipeline', (err && err.message) || 'Save failed.', true);
+    }
+  }
+
+  async function linkPortfolioFromClientWorkspace() {
+    var hubId = clientProjectsSelectedId;
+    if (!hubId || !rtdbReady()) return;
+    var existing = getHubById(hubId);
+    if (!existing) return;
+    var portfolioId = (document.getElementById('cp-portfolio-select') || {}).value.trim();
+    var payload = {
+      leadId: existing.leadId,
+      clientName: existing.clientName,
+      title: existing.title,
+      repoUrl: existing.repoUrl,
+      expoUrl: existing.expoUrl,
+      firebaseProjectId: existing.firebaseProjectId,
+      businessDocId: existing.businessDocId,
+      portfolioProjectId: portfolioId,
+      notes: existing.notes,
+      milestones: existing.milestones,
+      enabledModules: existing.enabledModules,
+      updatedAt: ts()
+    };
+    try {
+      await saveProjectHubRecord(hubId, payload, false);
+      setCpFeedback('portfolio', portfolioId ? 'Portfolio linked.' : 'Portfolio link cleared.', false);
+      renderClientProjectsWorkspace();
+    } catch (err) {
+      console.error(err);
+      setCpFeedback('portfolio', (err && err.message) || 'Save failed.', true);
+    }
+  }
+
+  function handleClientProjectsAction(action, el) {
+    var hub = getHubById(clientProjectsSelectedId);
+    if (action === 'new-client') {
+      openProjectHubEditor('new');
+      return;
+    }
+    if (action === 'toggle-section') {
+      toggleCpSection(el.closest('.cp-section--collapsible'));
+      return;
+    }
+    if (action === 'expand-all-sections') {
+      setAllCpSectionsExpanded(true);
+      return;
+    }
+    if (action === 'collapse-all-sections') {
+      setAllCpSectionsExpanded(false);
+      return;
+    }
+    if (action === 'open-tab') {
+      var tab = el.getAttribute('data-tab');
+      closeCpClientDrawer();
+      if (tab && typeof window.adminActivateTab === 'function') window.adminActivateTab(tab);
+      return;
+    }
+    if (action === 'generate-portal') {
+      if (!clientProjectsSelectedId) return;
+      generateClientPortalLink(clientProjectsSelectedId)
+        .then(function () {
+          renderClientProjectsWorkspace();
+        })
+        .catch(console.error);
+      return;
+    }
+    if (action === 'copy-portal') {
+      if (!hub || !hub.portalToken) return;
+      navigator.clipboard.writeText(clientPortalUrl(hub.portalToken)).catch(function () {});
+      setCpFeedback('hub', 'Portal link copied.', false);
+      return;
+    }
+    if (action === 'delete-hub') {
+      if (clientProjectsSelectedId) openDeleteHubConfirmModal(clientProjectsSelectedId);
+      return;
+    }
+    if (action === 'delete-maint') {
+      var maintId = (document.getElementById('cp-maint-id') || {}).value.trim();
+      if (maintId) openDeleteMaintConfirmModal(maintId);
+      return;
+    }
+    if (action === 'save-hub') {
+      saveHubFromClientWorkspace().catch(console.error);
+      return;
+    }
+    if (action === 'save-maint') {
+      saveMaintFromClientWorkspace().catch(console.error);
+      return;
+    }
+    if (action === 'add-maint') {
+      if (hub) createMaintenanceForHub(hub).catch(console.error);
+      return;
+    }
+    if (action === 'save-health') {
+      saveHealthFromClientWorkspace().catch(console.error);
+      return;
+    }
+    if (action === 'save-pipeline') {
+      savePipelineFromClientWorkspace().catch(console.error);
+      return;
+    }
+    if (action === 'edit-lead' && hub && hub.leadId && typeof window.openLeadEditor === 'function') {
+      window.openLeadEditor(hub.leadId);
+      return;
+    }
+    if (action === 'edit-doc') {
+      var docId = el.getAttribute('data-doc-id');
+      if (docId && typeof window.openBusinessDocEditor === 'function') window.openBusinessDocEditor(docId);
+      return;
+    }
+    if (action === 'add-doc') {
+      if (typeof window.openNewBusinessDocForClient === 'function') {
+        window.openNewBusinessDocForClient(hub ? hub.clientName : '');
+      }
+      return;
+    }
+    if (action === 'edit-portfolio') {
+      var pid = el.getAttribute('data-portfolio-id');
+      if (pid && typeof window.openPortfolioProjectEditor === 'function') window.openPortfolioProjectEditor(pid);
+      return;
+    }
+    if (action === 'link-portfolio') {
+      linkPortfolioFromClientWorkspace().catch(console.error);
+    }
+  }
+
+  function setupCpClientDrawer() {
+    var closeBtn = document.getElementById('cp-client-drawer-close');
+    var overlay = document.getElementById('cp-client-drawer-overlay');
+    if (closeBtn && !closeBtn.dataset.cpBound) {
+      closeBtn.dataset.cpBound = '1';
+      closeBtn.addEventListener('click', closeCpClientDrawer);
+    }
+    if (overlay && !overlay.dataset.cpBound) {
+      overlay.dataset.cpBound = '1';
+      overlay.addEventListener('click', closeCpClientDrawer);
+    }
+  }
+
+  function initClientProjects() {
+    setupCpClientDrawer();
+
+    var search = document.getElementById('client-projects-search');
+    if (search && !search.dataset.cpBound) {
+      search.dataset.cpBound = '1';
+      search.addEventListener('input', function () {
+        clientProjectsSearchQuery = search.value || '';
+        renderClientProjectsPickerList();
+      });
+    }
+
+    var addBtn = document.getElementById('client-projects-add-btn');
+    if (addBtn && !addBtn.dataset.cpBound) {
+      addBtn.dataset.cpBound = '1';
+      addBtn.addEventListener('click', function () {
+        openProjectHubEditor('new');
+      });
+    }
+
+    var picker = document.getElementById('client-projects-picker-list');
+    if (picker && !clientProjectsPickerBound) {
+      clientProjectsPickerBound = true;
+      picker.addEventListener('click', function (e) {
+        var actionBtn = e.target.closest('[data-cp-action]');
+        if (actionBtn) {
+          e.preventDefault();
+          handleClientProjectsAction(actionBtn.getAttribute('data-cp-action'), actionBtn);
+          return;
+        }
+        var leadCard = e.target.closest('[data-cp-lead-id]');
+        if (leadCard) {
+          e.preventDefault();
+          var leadId = leadCard.getAttribute('data-cp-lead-id');
+          if (leadId && typeof window.AgencyTools !== 'undefined' && typeof window.AgencyTools.openProjectHub === 'function') {
+            window.AgencyTools.openProjectHub(leadId);
+          }
+          return;
+        }
+        var card = e.target.closest('[data-cp-client-id]');
+        if (!card) return;
+        e.preventDefault();
+        selectClientProject(card.getAttribute('data-cp-client-id'));
+      });
+    }
+
+    var workspace = document.getElementById('client-projects-workspace');
+    if (workspace && !clientProjectsBound) {
+      clientProjectsBound = true;
+      workspace.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-cp-action]');
+        if (!btn) return;
+        e.preventDefault();
+        handleClientProjectsAction(btn.getAttribute('data-cp-action'), btn);
+      });
+    }
+
+    refreshClientProjectsPicker();
+  }
+
+  function openClientProjectWorkspace(hubId) {
+    if (!hubId) return;
+    if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-projects');
+    selectClientProject(hubId);
   }
 
   // ——— Pipeline hook: open hub from lead ———
@@ -1439,14 +2780,23 @@
     subscribe: subscribeAgencyData,
     unsubscribe: unsubscribeAgencyData,
     refresh: fetchAgencyProjectsOnce,
+    refreshFirebaseHealth: refreshFirebaseHealthPanel,
+    refreshClientProjects: refreshClientProjectsWorkspace,
+    refreshClientProjectsPicker: renderClientProjectsPickerList,
+    openClientProject: openClientProjectWorkspace,
+    closeClientDrawer: closeCpClientDrawer,
+    isClientDrawerOpen: isCpClientDrawerOpen,
     getOverviewSnapshot: getOverviewSnapshot,
     openProjectHub: function (leadId) {
       var existing = agencyProjects.find(function (p) { return p.leadId === leadId; });
-      if (existing) openProjectHubEditor(existing.id);
+      if (existing) openClientProjectWorkspace(existing.id);
       else if (typeof window.findPipelineLead === 'function') {
         var lead = window.findPipelineLead(leadId);
         if (lead) createHubFromLead(lead);
       }
+    },
+    openNewClient: function () {
+      openProjectHubEditor('new');
     },
     createHubFromLead: createHubFromLead
   };
@@ -1459,6 +2809,7 @@
     initContentRepurposing();
     initReferrals();
     initFirebaseHealth();
+    initClientProjects();
 
     document.addEventListener('adminSessionReady', function (e) {
       if (e.detail && e.detail.isAdmin) subscribeAgencyData();
