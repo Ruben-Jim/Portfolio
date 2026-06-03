@@ -7052,6 +7052,25 @@ textarea.form-input::-webkit-resizer { display: none; }
   margin-bottom: 6px;
 }
 
+.portfolio-detail-sections-list {
+  list-style: none;
+  margin: 10px 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.portfolio-detail-section-row {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  background: hsla(240, 2%, 16%, 0.75);
+}
+
+.portfolio-detail-section-row .form-group:last-of-type {
+  margin-bottom: 10px;
+}
+
 .portfolio-project-images-list {
   list-style: none;
   margin: 14px 0 0;

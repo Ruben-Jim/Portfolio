@@ -41,53 +41,24 @@
     };
   }
 
-  function parseTechTags(raw) {
-    if (raw == null || raw === '') return [];
-    if (Array.isArray(raw)) {
-      return raw.map(function (t) { return String(t).trim(); }).filter(Boolean).slice(0, 24);
+  function getPortalToken() {
+    var params = new URLSearchParams(location.search);
+    var fromQuery = params.get('token');
+    if (fromQuery) return fromQuery.replace(/[^a-f0-9]/gi, '').slice(0, 64);
+
+    var parts = location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
+    var portalIdx = parts.indexOf('portal');
+    if (portalIdx >= 0 && parts[portalIdx + 1] && parts[portalIdx + 1] !== 'portal.html') {
+      return parts[portalIdx + 1].replace(/[^a-f0-9]/gi, '').slice(0, 64);
     }
-    return String(raw)
-      .split(/[\n,]+/)
-      .map(function (t) { return t.trim(); })
-      .filter(Boolean)
-      .slice(0, 24);
-  }
-
-  function imageUrlsFromRecord(row) {
-    if (!row || typeof row !== 'object') return [];
-    if (Array.isArray(row.imageUrls) && row.imageUrls.length) {
-      return row.imageUrls.map(function (u) { return portalImageUrl(u); }).filter(Boolean).slice(0, 12);
-    }
-    if (row.imageUrl) return [portalImageUrl(row.imageUrl)].filter(Boolean);
-    return [];
-  }
-
-  function portalImageUrl(url) {
-    var s = String(url || '').trim();
-    if (!s) return '';
-    if (/^https?:\/\//i.test(s)) return s;
-    if (s.charAt(0) === '/') return s;
-    return '/' + s.replace(/^\/+/, '');
-  }
-
-  function normalizePortfolio(id, row) {
-    row = row || {};
-    return {
-      id: id,
-      title: String(row.title || '').slice(0, 200),
-      description: String(row.description || '').slice(0, 8000),
-      outcome: String(row.outcome || '').slice(0, 4000),
-      imageAlt: String(row.imageAlt || '').slice(0, 200),
-      imageUrls: imageUrlsFromRecord(row),
-      techTags: parseTechTags(row.techTags)
-    };
+    return '';
   }
 
   async function loadPortfolioRecord(id) {
     if (!id) return null;
     var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PORTFOLIO + '/' + id));
     if (!snap.val()) return null;
-    return normalizePortfolio(id, snap.val());
+    return Object.assign({ id: id }, snap.val());
   }
 
   function findPortfolioMatchId(hubRow, allPortfolioVal) {
@@ -103,7 +74,7 @@
     return '';
   }
 
-  async function resolveShowcaseForHub(hubRow) {
+  async function resolveShowcaseRaw(hubRow) {
     if (hubRow.portfolioProjectId) {
       var linked = await loadPortfolioRecord(hubRow.portfolioProjectId);
       if (linked) return linked;
@@ -116,139 +87,83 @@
     return loadPortfolioRecord(matchedId);
   }
 
-  function getPortalToken() {
-    var params = new URLSearchParams(location.search);
-    var fromQuery = params.get('token');
-    if (fromQuery) return fromQuery.replace(/[^a-f0-9]/gi, '').slice(0, 64);
-
-    var parts = location.pathname.replace(/\/+$/, '').split('/').filter(Boolean);
-    var portalIdx = parts.indexOf('portal');
-    if (portalIdx >= 0 && parts[portalIdx + 1] && parts[portalIdx + 1] !== 'portal.html') {
-      return parts[portalIdx + 1].replace(/[^a-f0-9]/gi, '').slice(0, 64);
-    }
-    return '';
+  function renderBrandHeader(project) {
+    return (
+      '<div class="client-portal-brand">' +
+      '<h1>' +
+      esc(project.clientName || project.title || 'Your project') +
+      '</h1>' +
+      '<p class="client-portal-tagline">CodeWithRuben client portal</p></div>'
+    );
   }
 
-  function renderMultilineHtml(text) {
-    return esc(text).replace(/\r?\n/g, '<br>');
-  }
-
-  function renderShowcaseHtml(showcase) {
-    if (!showcase) return '';
-    var urls = showcase.imageUrls || [];
-    var carousel =
-      urls.length > 0
-        ? '<div class="client-portal-showcase-carousel" data-showcase-carousel>' +
-          '<div class="client-portal-showcase-track">' +
-          urls
-            .map(function (url, i) {
-              return (
-                '<figure class="client-portal-showcase-slide' +
-                (i === 0 ? ' is-active' : '') +
-                '" data-showcase-slide="' +
-                i +
-                '">' +
-                '<img src="' +
-                esc(url) +
-                '" alt="' +
-                esc(showcase.imageAlt || showcase.title || 'Project screenshot') +
-                '" loading="lazy">' +
-                '</figure>'
-              );
-            })
-            .join('') +
-          '</div>' +
-          (urls.length > 1
-            ? '<div class="client-portal-showcase-controls">' +
-              '<button type="button" class="client-portal-showcase-btn" data-showcase-prev aria-label="Previous screenshot">‹</button>' +
-              '<span class="client-portal-showcase-counter" data-showcase-counter>1 / ' +
-              urls.length +
-              '</span>' +
-              '<button type="button" class="client-portal-showcase-btn" data-showcase-next aria-label="Next screenshot">›</button>' +
-              '</div>'
-            : '') +
-          '</div>'
+  function renderStatusFooter(project, detailRecord, options) {
+    options = options || {};
+    var done = project.milestones.filter(function (m) { return m.done; }).length;
+    var total = project.milestones.length || 0;
+    var liveUrl =
+      window.PortfolioDetailShared && detailRecord
+        ? window.PortfolioDetailShared.resolveLiveUrl(detailRecord, options)
         : '';
-
-    var techTags = showcase.techTags || [];
-    var techHtml = techTags.length
-      ? '<div class="client-portal-tech-tags">' +
-        techTags
-          .map(function (tag) {
-            return '<span class="client-portal-tech-tag">' + esc(tag) + '</span>';
-          })
-          .join('') +
-        '</div>'
-      : '';
-
-    var outcomeHtml =
-      showcase.outcome && showcase.outcome.trim()
-        ? '<div class="client-portal-showcase-outcome"><strong>Outcome</strong><p>' +
-          renderMultilineHtml(showcase.outcome.trim()) +
-          '</p></div>'
-        : '';
+    var expoUrl = String(project.expoUrl || '').trim();
+    var showPreview =
+      expoUrl &&
+      expoUrl !== '#' &&
+      (!liveUrl || expoUrl.replace(/\/+$/, '') !== liveUrl.replace(/\/+$/, ''));
 
     return (
-      '<section class="client-portal-section client-portal-showcase">' +
-      '<h2>' +
-      esc(showcase.title || 'Project showcase') +
-      '</h2>' +
-      carousel +
-      (showcase.description && showcase.description.trim()
-        ? '<div class="client-portal-showcase-description">' + renderMultilineHtml(showcase.description.trim()) + '</div>'
+      '<details class="client-portal-status-footer">' +
+      '<summary>Project status</summary>' +
+      '<div class="client-portal-status-footer-body">' +
+      '<p class="client-portal-status-meta">' +
+      done +
+      ' of ' +
+      total +
+      ' milestones complete</p>' +
+      project.milestones
+        .map(function (m) {
+          return (
+            '<div class="client-portal-milestone' +
+            (m.done ? ' done' : '') +
+            '">' +
+            '<span class="client-portal-milestone-icon" aria-hidden="true"></span>' +
+            '<span>' +
+            esc(m.label) +
+            '</span></div>'
+          );
+        })
+        .join('') +
+      (showPreview
+        ? '<p class="client-portal-status-preview"><a class="btn btn-primary" href="' +
+          esc(expoUrl) +
+          '" target="_blank" rel="noopener">Open preview</a></p>'
         : '') +
-      techHtml +
-      outcomeHtml +
+      '</div></details>'
+    );
+  }
+
+  function renderNoShowcaseMessage() {
+    return (
+      '<section class="client-portal-section client-portal-empty-showcase">' +
+      '<h2>Project showcase</h2>' +
+      '<p>No client showcase is linked to this project yet. Your project contact will share the full detail page once it is ready.</p>' +
       '</section>'
     );
   }
 
-  function initShowcaseCarousel(root) {
-    if (!root) return;
-    var carousel = root.querySelector('[data-showcase-carousel]');
-    if (!carousel) return;
-    var slides = carousel.querySelectorAll('[data-showcase-slide]');
-    if (slides.length <= 1) return;
-    var counter = carousel.querySelector('[data-showcase-counter]');
-    var index = 0;
-
-    function showSlide(next) {
-      index = (next + slides.length) % slides.length;
-      slides.forEach(function (slide, i) {
-        slide.classList.toggle('is-active', i === index);
-      });
-      if (counter) counter.textContent = index + 1 + ' / ' + slides.length;
+  function renderProjectPage(inner, project, detailRecord, detailOptions) {
+    var brand = renderBrandHeader(project);
+    var detailHtml = '';
+    if (detailRecord && window.PortfolioDetailShared) {
+      detailHtml = window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, detailOptions);
+    } else {
+      detailHtml = renderNoShowcaseMessage();
     }
-
-    var prev = carousel.querySelector('[data-showcase-prev]');
-    var next = carousel.querySelector('[data-showcase-next]');
-    if (prev) prev.addEventListener('click', function () { showSlide(index - 1); });
-    if (next) next.addEventListener('click', function () { showSlide(index + 1); });
-  }
-
-  function renderProject(inner, p, showcase) {
-    var done = p.milestones.filter(function (m) { return m.done; }).length;
-    var total = p.milestones.length || 0;
-    inner.innerHTML =
-      '<div class="client-portal-brand"><h1>' + esc(p.clientName || p.title || 'Your project') + '</h1>' +
-      '<p class="client-portal-tagline">CodeWithRuben client portal</p></div>' +
-      '<section class="client-portal-section"><h2>Progress</h2>' +
-      '<p>' + done + ' of ' + total + ' milestones complete</p>' +
-      p.milestones.map(function (m) {
-        return '<div class="client-portal-milestone' + (m.done ? ' done' : '') + '">' +
-          '<span class="client-portal-milestone-icon" aria-hidden="true"></span>' +
-          '<span>' + esc(m.label) + '</span></div>';
-      }).join('') +
-      '</section>' +
-      (p.expoUrl
-        ? '<section class="client-portal-section"><h2>Preview</h2><a class="btn btn-primary" href="' + esc(p.expoUrl) + '" target="_blank" rel="noopener">Open preview</a></section>'
-        : '') +
-      renderShowcaseHtml(showcase) +
-      '<section class="client-portal-section"><h2>Share files</h2>' +
-      '<p class="client-portal-note">Email assets to your project contact, or use the message below.</p>' +
-      '<textarea class="client-portal-textarea" rows="3" readonly>Project: ' + esc(p.title) + ' — assets shared via client portal.</textarea></section>';
-
-    initShowcaseCarousel(inner);
+    var footer = renderStatusFooter(project, detailRecord, detailOptions);
+    inner.innerHTML = brand + detailHtml + footer;
+    if (detailRecord && window.PortfolioDetailShared) {
+      window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
+    }
   }
 
   function renderError(inner, message) {
@@ -279,6 +194,11 @@
       return;
     }
 
+    if (!window.PortfolioDetailShared) {
+      renderError(inner, 'Unable to load project showcase. Please try again later.');
+      return;
+    }
+
     if (!initFirebase() || !rtdbReady()) {
       renderError(inner, 'Unable to load project data. Please try again later.');
       return;
@@ -294,11 +214,21 @@
 
       var projSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PROJECTS + '/' + link.projectId));
       var hubRow = projSnap.val() || {};
-      var p = normalizeProject(link.projectId, hubRow);
-      var showcase = await resolveShowcaseForHub(hubRow);
+      var project = normalizeProject(link.projectId, hubRow);
+      var showcaseRaw = await resolveShowcaseRaw(hubRow);
+      var detailRecord = showcaseRaw
+        ? window.PortfolioDetailShared.normalizePortfolioDetailRecord(showcaseRaw, showcaseRaw.id)
+        : null;
+      var detailOptions = {
+        hideBuyButtons: true,
+        hideQuoteButton: true,
+        showLiveButton: true,
+        liveUrlFallback: project.expoUrl,
+        adminSectionLabel: 'Admin dashboard'
+      };
 
-      renderProject(inner, p, showcase);
-      document.title = (p.clientName || p.title || 'Your project') + ' — CodeWithRuben';
+      renderProjectPage(inner, project, detailRecord, detailOptions);
+      document.title = (project.clientName || project.title || 'Your project') + ' — CodeWithRuben';
     } catch (err) {
       console.error(err);
       renderError(inner, 'Unable to load project data. Please try again later.');
@@ -306,14 +236,20 @@
   }
 
   function boot() {
-    var token = getPortalToken();
-    loadClientPortal(token);
+    loadClientPortal(getPortalToken());
   }
 
   function waitForSdk() {
     var attempts = 0;
     (function tick() {
-      if (window.FIREBASE_CONFIG && window.initializeApp && window.getDatabase && window.rtdbRef && window.rtdbGet) {
+      if (
+        window.FIREBASE_CONFIG &&
+        window.initializeApp &&
+        window.getDatabase &&
+        window.rtdbRef &&
+        window.rtdbGet &&
+        window.PortfolioDetailShared
+      ) {
         boot();
         return;
       }

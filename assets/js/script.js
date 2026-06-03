@@ -3345,6 +3345,7 @@ function normalizePortfolioRtdbRow(row) {
       });
   }
   out.visibility = String(out.visibility || 'public').toLowerCase() === 'private' ? 'private' : 'public';
+  out.detailSections = portfolioParseDetailSections(row.detailSections);
   return out;
 }
 
@@ -3398,6 +3399,62 @@ function portfolioTechTagsFromRecord(data) {
   return portfolioParseTechTags(data.techTags);
 }
 
+function portfolioParseDetailSections(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(function (s) {
+      if (!s || typeof s !== 'object') return null;
+      var title = String(s.title || '').trim().slice(0, 120);
+      var body = String(s.body || '').trim().slice(0, 4000);
+      if (!title && !body) return null;
+      return { title: title, body: body };
+    })
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function renderPortfolioDetailSectionsList(sections) {
+  var list = document.getElementById('portfolio-detail-sections-list');
+  if (!list) return;
+  var rows = portfolioParseDetailSections(sections);
+  if (!rows.length) rows = [{ title: '', body: '' }];
+  list.innerHTML = rows
+    .map(function (s, i) {
+      return (
+        '<li class="portfolio-detail-section-row">' +
+        '<div class="form-group">' +
+        '<label>Section title</label>' +
+        '<input type="text" class="form-input portfolio-detail-section-title" maxlength="120" placeholder="e.g. Booking flow" value="' +
+        portfolioEscapeHtml(s.title || '') +
+        '">' +
+        '</div>' +
+        '<div class="form-group">' +
+        '<label>Section body</label>' +
+        '<textarea class="form-input portfolio-detail-section-body has-scrollbar" rows="3" placeholder="Describe this part of the project.">' +
+        portfolioEscapeHtml(s.body || '') +
+        '</textarea></div>' +
+        '<button type="button" class="btn btn-secondary btn-sm portfolio-detail-section-remove" data-section-index="' +
+        i +
+        '">Remove section</button></li>'
+      );
+    })
+    .join('');
+}
+
+function collectPortfolioDetailSectionsFromDom() {
+  var list = document.getElementById('portfolio-detail-sections-list');
+  if (!list) return [];
+  var out = [];
+  list.querySelectorAll('.portfolio-detail-section-row').forEach(function (row) {
+    var titleEl = row.querySelector('.portfolio-detail-section-title');
+    var bodyEl = row.querySelector('.portfolio-detail-section-body');
+    var title = titleEl ? titleEl.value.trim() : '';
+    var body = bodyEl ? bodyEl.value.trim() : '';
+    if (title || body) out.push({ title: title, body: body });
+  });
+  return out;
+}
+
 function portfolioSanitizeDocumentPayload(data) {
   const imageUrls = portfolioParseImageUrls(
     data.imageUrls,
@@ -3425,7 +3482,8 @@ function portfolioSanitizeDocumentPayload(data) {
       String(data.visibility || 'public').toLowerCase() === 'private' ||
       data.showPublicPortfolio === false
         ? 'private'
-        : 'public'
+        : 'public',
+    detailSections: portfolioParseDetailSections(data.detailSections)
   };
   return out;
 }
@@ -4249,6 +4307,7 @@ function openPortfolioProjectModal(isNew, project) {
       : '';
     const showPublicEl = document.getElementById('portfolio-project-show-public');
     if (showPublicEl) showPublicEl.checked = isPortfolioPublic(project);
+    renderPortfolioDetailSectionsList(project.detailSections);
   } else if (isNew && project) {
     document.getElementById('portfolio-project-title').value = project.title || '';
     document.getElementById('portfolio-project-url').value = project.projectUrl || '';
@@ -4257,11 +4316,13 @@ function openPortfolioProjectModal(isNew, project) {
     const showPublicEl = document.getElementById('portfolio-project-show-public');
     if (showPublicEl) showPublicEl.checked = project.visibility !== 'private';
     renderPortfolioFormImagesList([]);
+    renderPortfolioDetailSectionsList([]);
   } else {
     document.getElementById('portfolio-project-show-quote').checked = true;
     const showPublicElDefault = document.getElementById('portfolio-project-show-public');
     if (showPublicElDefault) showPublicElDefault.checked = true;
     renderPortfolioFormImagesList([]);
+    renderPortfolioDetailSectionsList([]);
   }
   populatePortfolioImageAssetSelect();
   syncPortfolioImageAssetSelectFromInput();
@@ -4354,6 +4415,34 @@ function setupPortfolioAdminControls() {
     });
   }
   populatePortfolioImageAssetSelect();
+
+  var detailSectionsList = document.getElementById('portfolio-detail-sections-list');
+  var detailSectionsAdd = document.getElementById('portfolio-detail-section-add');
+  if (detailSectionsAdd && !detailSectionsAdd.dataset.bound) {
+    detailSectionsAdd.dataset.bound = '1';
+    detailSectionsAdd.addEventListener('click', function () {
+      var current = collectPortfolioDetailSectionsFromDom();
+      if (current.length >= 8) {
+        showErrorMessage('Maximum 8 detail sections per project.');
+        return;
+      }
+      current.push({ title: '', body: '' });
+      renderPortfolioDetailSectionsList(current);
+    });
+  }
+  if (detailSectionsList && !detailSectionsList.dataset.bound) {
+    detailSectionsList.dataset.bound = '1';
+    detailSectionsList.addEventListener('click', function (e) {
+      var removeBtn = e.target.closest('.portfolio-detail-section-remove');
+      if (!removeBtn) return;
+      var row = removeBtn.closest('.portfolio-detail-section-row');
+      if (!row) return;
+      row.remove();
+      if (!detailSectionsList.querySelector('.portfolio-detail-section-row')) {
+        renderPortfolioDetailSectionsList([]);
+      }
+    });
+  }
 
   const imageAssetSelect = document.getElementById('portfolio-project-image-asset');
   const imageInput = document.getElementById('portfolio-project-image');
@@ -4456,7 +4545,8 @@ function setupPortfolioAdminControls() {
           .filter(Boolean),
         showPublicPortfolio: document.getElementById('portfolio-project-show-public')
           ? document.getElementById('portfolio-project-show-public').checked
-          : true
+          : true,
+        detailSections: collectPortfolioDetailSectionsFromDom()
       };
       try {
         let newPortfolioId = null;
