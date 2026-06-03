@@ -56,10 +56,18 @@
   function imageUrlsFromRecord(row) {
     if (!row || typeof row !== 'object') return [];
     if (Array.isArray(row.imageUrls) && row.imageUrls.length) {
-      return row.imageUrls.map(function (u) { return String(u || '').trim(); }).filter(Boolean).slice(0, 12);
+      return row.imageUrls.map(function (u) { return portalImageUrl(u); }).filter(Boolean).slice(0, 12);
     }
-    if (row.imageUrl) return [String(row.imageUrl).trim()];
+    if (row.imageUrl) return [portalImageUrl(row.imageUrl)].filter(Boolean);
     return [];
+  }
+
+  function portalImageUrl(url) {
+    var s = String(url || '').trim();
+    if (!s) return '';
+    if (/^https?:\/\//i.test(s)) return s;
+    if (s.charAt(0) === '/') return s;
+    return '/' + s.replace(/^\/+/, '');
   }
 
   function normalizePortfolio(id, row) {
@@ -73,6 +81,39 @@
       imageUrls: imageUrlsFromRecord(row),
       techTags: parseTechTags(row.techTags)
     };
+  }
+
+  async function loadPortfolioRecord(id) {
+    if (!id) return null;
+    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PORTFOLIO + '/' + id));
+    if (!snap.val()) return null;
+    return normalizePortfolio(id, snap.val());
+  }
+
+  function findPortfolioMatchId(hubRow, allPortfolioVal) {
+    if (!allPortfolioVal || typeof allPortfolioVal !== 'object') return '';
+    var title = String(hubRow.title || hubRow.clientName || '').toLowerCase().trim();
+    if (!title) return '';
+    var keys = Object.keys(allPortfolioVal);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var pt = String(allPortfolioVal[key].title || '').toLowerCase();
+      if (pt.indexOf(title) >= 0 || title.indexOf(pt) >= 0) return key;
+    }
+    return '';
+  }
+
+  async function resolveShowcaseForHub(hubRow) {
+    if (hubRow.portfolioProjectId) {
+      var linked = await loadPortfolioRecord(hubRow.portfolioProjectId);
+      if (linked) return linked;
+    }
+    var allSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PORTFOLIO));
+    var allVal = allSnap.val();
+    if (!allVal) return null;
+    var matchedId = findPortfolioMatchId(hubRow, allVal);
+    if (!matchedId) return null;
+    return loadPortfolioRecord(matchedId);
   }
 
   function getPortalToken() {
@@ -252,17 +293,9 @@
       }
 
       var projSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PROJECTS + '/' + link.projectId));
-      var p = normalizeProject(link.projectId, projSnap.val());
-
-      var showcase = null;
-      if (p.portfolioProjectId) {
-        var portSnap = await window.rtdbGet(
-          window.rtdbRef(window.rtdb, PATH_PORTFOLIO + '/' + p.portfolioProjectId)
-        );
-        if (portSnap.val()) {
-          showcase = normalizePortfolio(p.portfolioProjectId, portSnap.val());
-        }
-      }
+      var hubRow = projSnap.val() || {};
+      var p = normalizeProject(link.projectId, hubRow);
+      var showcase = await resolveShowcaseForHub(hubRow);
 
       renderProject(inner, p, showcase);
       document.title = (p.clientName || p.title || 'Your project') + ' — CodeWithRuben';

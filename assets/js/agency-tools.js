@@ -2112,7 +2112,8 @@
     }
     if (id === 'portfolio') {
       if (!portfolio) return 'Not linked';
-      return portfolio.title || 'Linked';
+      if (hub.portfolioProjectId && portfolio.id === hub.portfolioProjectId) return portfolio.title || 'Linked';
+      return 'Save link for portal';
     }
     return '';
   }
@@ -2243,6 +2244,8 @@
     }
 
     var portfolioHtml = '';
+    var portfolioLinked = !!(hub.portfolioProjectId && portfolio && portfolio.id === hub.portfolioProjectId);
+    var portfolioSuggested = !!(portfolio && !portfolioLinked);
     if (portfolio) {
       var imgUrl = '';
       if (Array.isArray(portfolio.imageUrls) && portfolio.imageUrls.length) imgUrl = portfolio.imageUrls[0];
@@ -2253,6 +2256,9 @@
         '<div><strong>' + esc(portfolio.title || 'Portfolio project') + '</strong>' +
         (portfolio.category ? '<div class="cp-docs-meta">' + esc(portfolio.category) + '</div>' : '') +
         (!isPortfolioEntryPublic(portfolio) ? '<div class="cp-docs-meta">Private — shared via client portal only</div>' : '') +
+        (portfolioLinked
+          ? '<div class="cp-docs-meta">Linked to client portal</div>'
+          : '<div class="cp-docs-meta cp-portfolio-link-warning">Not linked to portal yet — click Save link below</div>') +
         '</div>' +
         '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="edit-portfolio" data-portfolio-id="' + esc(portfolio.id) + '">Edit showcase</button>' +
         '</div>';
@@ -2352,9 +2358,15 @@
     var portfolioBody =
       portfolioHtml +
       '<div class="form-group"><label for="cp-portfolio-select">Link portfolio project</label>' +
-      '<select id="cp-portfolio-select" class="form-input">' + portfolioOptions + '</select></div>' +
+      '<select id="cp-portfolio-select" class="form-input">' + portfolioOptions + '</select>' +
+      (portfolioSuggested
+        ? '<p class="form-hint cp-portfolio-link-warning">A showcase is selected but not saved on this client. Click <strong>Save link</strong> so it appears on the client portal.</p>'
+        : '<p class="form-hint">Private showcases are hidden from the public Portfolio tab and shown on the client portal when linked here.</p>') +
+      '</div>' +
       '<div class="cp-section-actions">' +
-      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">Save link</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">' +
+      (portfolioSuggested || !hub.portfolioProjectId ? 'Save link to portal' : 'Save link') +
+      '</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="portfolio" role="status"></p></div>';
 
     workspace.innerHTML =
@@ -2590,7 +2602,7 @@
     };
     try {
       await saveProjectHubRecord(hubId, payload, false);
-      setCpFeedback('portfolio', portfolioId ? 'Portfolio linked.' : 'Portfolio link cleared.', false);
+      setCpFeedback('portfolio', portfolioId ? 'Showcase linked — refresh the client portal to see it.' : 'Portfolio link cleared.', false);
       renderClientProjectsWorkspace();
     } catch (err) {
       console.error(err);

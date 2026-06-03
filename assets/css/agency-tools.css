@@ -1988,6 +1988,10 @@ body.cp-client-drawer-open {
   color: var(--light-gray);
 }
 
+.cp-portfolio-link-warning {
+  color: hsl(38, 90%, 68%);
+}
+
 .cp-portfolio-summary {
   display: flex;
   flex-wrap: wrap;
