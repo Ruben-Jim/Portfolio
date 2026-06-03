@@ -4634,6 +4634,21 @@ form.addEventListener("submit", async function(e) {
       throw new Error('Please fill in all required fields');
     }
     
+    if (isContactForm) {
+      if (!window.customerDmApi || typeof window.customerDmApi.sendFromContactForm !== 'function') {
+        throw new Error('Direct messages are not ready yet. Please try again in a moment.');
+      }
+      await window.customerDmApi.sendFromContactForm({
+        name: String(fullname),
+        email: String(email),
+        message: String(message)
+      });
+      showSuccessMessage("Message sent. Your direct message thread is open below.");
+      form.reset();
+      formBtn.setAttribute("disabled", "");
+      return;
+    }
+
     const subject = isHireMeForm
       ? 'New Hire Me Inquiry - Portfolio'
       : 'New Contact Form Submission - Portfolio';
@@ -4696,8 +4711,6 @@ form.addEventListener("submit", async function(e) {
           block: 'center',
           inline: 'nearest'
         });
-      } else if (isContactForm) {
-        showSuccessMessage("Message sent successfully! I'll get back to you soon.");
       } else {
         showFormSuccess(formMessage, formError);
       }
@@ -4804,6 +4817,7 @@ function prefillContactForm(serviceType, message) {
     }
   }, 300);
 }
+window.prefillContactForm = prefillContactForm;
 
 // Track events for Google Analytics
 function trackEvent(eventName, eventLabel, eventValue) {
@@ -5241,7 +5255,7 @@ const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
 // Valid path segments for rubenjimenez.dev/(tab)
-var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'hire-me', 'contact', 'messages', 'admin'];
+var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'business-systems', 'hire-me', 'contact', 'messages', 'admin'];
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
@@ -5312,6 +5326,9 @@ function switchToPage(pageName, skipSave = false) {
         if (navPageName === "services & pricing" || (navPageName.includes("services") && navPageName.includes("pricing"))) {
           navPageName = "services-pricing";
         }
+        if (navPageName === "what we build" || navPageName === "for business") {
+          navPageName = "business-systems";
+        }
         if (navPageName === "hire me") {
           navPageName = "hire-me";
         }
@@ -5339,6 +5356,10 @@ function switchToPage(pageName, skipSave = false) {
             window.loadDynamicTestimonials();
           }
         }, 80);
+      }
+
+      if (pageName === "business-systems" && typeof window.initBusinessSystemsPage === "function") {
+        setTimeout(window.initBusinessSystemsPage, 80);
       }
 
       // Re-initialize accordions if resume page is shown
@@ -5377,6 +5398,8 @@ for (let i = 0; i < navigationLinks.length; i++) {
     // Handle special cases for page names
     if (pageName === "services & pricing" || (pageName.includes("services") && pageName.includes("pricing"))) {
       pageName = "services-pricing";
+    } else if (pageName === "what we build" || pageName === "for business") {
+      pageName = "business-systems";
     } else if (pageName === "hire me") {
       pageName = "hire-me";
     } else if (pageName === "dm") {
@@ -5458,6 +5481,55 @@ document.addEventListener('DOMContentLoaded', function() {
   // Small delay to ensure loading screen is visible
   setTimeout(restoreActivePage, 50);
 });
+
+/** Trusted By logos — custom scroll track + has-scroll when row overflows (mobile/tablet). */
+function initClientsTrustedByScroll() {
+  var list = document.getElementById('clients-list');
+  var shell = list && list.closest('.clients-scroll-shell');
+  var track = document.getElementById('clients-scroll-track');
+  var thumb = document.getElementById('clients-scroll-thumb');
+  if (!list || !shell || !track || !thumb) return;
+
+  function isDesktopGrid() {
+    return window.matchMedia('(min-width: 1024px)').matches;
+  }
+
+  function syncClientsScroll() {
+    if (isDesktopGrid()) {
+      shell.classList.remove('has-scroll');
+      list.classList.remove('has-scroll');
+      return;
+    }
+    var overflow = list.scrollWidth > list.clientWidth + 2;
+    shell.classList.toggle('has-scroll', overflow);
+    list.classList.toggle('has-scroll', overflow);
+    if (!overflow) {
+      thumb.style.width = '';
+      thumb.style.transform = '';
+      return;
+    }
+    var trackW = track.clientWidth;
+    if (trackW < 1) return;
+    var ratio = list.clientWidth / list.scrollWidth;
+    var thumbW = Math.max(28, Math.round(trackW * ratio));
+    var maxLeft = Math.max(0, trackW - thumbW);
+    var scrollRange = list.scrollWidth - list.clientWidth;
+    var left = scrollRange > 0 ? (list.scrollLeft / scrollRange) * maxLeft : 0;
+    thumb.style.width = thumbW + 'px';
+    thumb.style.transform = 'translateX(' + left + 'px)';
+  }
+
+  list.addEventListener('scroll', syncClientsScroll, { passive: true });
+  window.addEventListener('resize', syncClientsScroll);
+  if (typeof ResizeObserver !== 'undefined') {
+    var ro = new ResizeObserver(syncClientsScroll);
+    ro.observe(list);
+    ro.observe(shell);
+  }
+  syncClientsScroll();
+}
+
+document.addEventListener('DOMContentLoaded', initClientsTrustedByScroll);
 
 // Also restore if DOM is already loaded
 if (document.readyState === 'loading') {
@@ -11035,6 +11107,7 @@ function toggleTheme() {
       kbd.textContent = 'Ctrl+K';
     }
   }
+  window.openCommandPalette = open;
 })();
 
 // ─────────────────────────────────────────────
@@ -11116,7 +11189,8 @@ document.addEventListener('DOMContentLoaded', function() {
     unsubAdminPresence: null,
     unsubCustomerPresence: null,
     typingTimer: null,
-    customerSession: null
+    customerSession: null,
+    unsubCustomerMeta: null
   };
 
   function hasDMDeps() {
@@ -12021,7 +12095,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function setupCustomerPortalUI() {
     if (!isCustomerDmPortalEnabled()) return;
-    const portalHost = document.querySelector('article[data-page="messages"]');
+    const portalHost = document.querySelector('article[data-page="contact"]');
     if (!portalHost || document.getElementById('customer-dm-portal')) return;
 
     const section = document.createElement('section');
@@ -12029,8 +12103,8 @@ document.addEventListener('DOMContentLoaded', function() {
     section.id = 'customer-dm-portal';
     section.innerHTML = [
       (!window.rtdb ? '<p class="dm-help-text dm-rtdb-unavailable" role="alert">Realtime Database is not connected. Add <code>databaseURL</code> in Firebase config, deploy <code>database.rules.json</code> (<code>firebase deploy --only database</code>), then reload.</p>' : ''),
-      '<h3 class="h3 form-title">Customer Message Portal</h3>',
-      '<p class="dm-help-text">Enter the same name and email you use with this site. We open your conversation in real time (Firebase Realtime Database). No email is sent—this only identifies your thread in this browser.</p>',
+      '<h3 class="h3 form-title">Direct Message</h3>',
+      '<p class="dm-help-text">Use your name and email to open your private thread. Messages sync in real time and stay connected to your customer conversation.</p>',
       '<div class="dm-customer-auth" id="dm-customer-auth">',
       '<form id="dm-portal-open-form" class="form">',
       '<div class="input-wrapper">',
@@ -12047,18 +12121,30 @@ document.addEventListener('DOMContentLoaded', function() {
       '<div class="dm-customer-sheet-grabber" id="dm-customer-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag up or down to resize" tabindex="0"></div>',
       '<div class="dm-customer-sheet-head">',
       '<h3 id="dm-customer-sheet-title" class="dm-customer-sheet-title">Messages</h3>',
+      '<button type="button" class="dm-customer-commandk" id="dm-customer-commandk" aria-label="Open search shortcuts">',
+      '<ion-icon name="search-outline" aria-hidden="true"></ion-icon>',
+      '<span class="dm-customer-commandk-label">Search</span>',
+      '<span class="dm-customer-commandk-kbd">⌘K</span>',
+      '</button>',
       '<button type="button" class="dm-customer-sheet-close" id="dm-customer-sheet-close" aria-label="Close conversation">',
       '<ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>',
       '</button>',
       '</div>',
+      '<div id="dm-customer-status-badges" class="dm-customer-status-badges" role="status" aria-live="polite"></div>',
       '<section id="dm-customer-thread" class="dm-customer-thread">',
       '<div id="dm-customer-message-list" class="dm-message-list has-scrollbar"></div>',
       '<form id="dm-customer-composer" class="dm-composer">',
+      '<button type="button" id="dm-customer-attachment-toggle" class="dm-customer-attachment-toggle" aria-expanded="false" aria-controls="dm-customer-attachment-wrap" aria-label="Attach link">',
+      '<ion-icon name="link-outline" aria-hidden="true"></ion-icon>',
+      '</button>',
       '<div class="dm-composer-input-wrap">',
       '<textarea id="dm-customer-message" class="form-textarea dm-composer-textarea" rows="2" spellcheck="true" placeholder="Message" aria-label="Your message" required></textarea>',
       '</div>',
       '<button class="form-btn dm-composer-send" type="submit" aria-label="Send message"><ion-icon name="send-outline" aria-hidden="true"></ion-icon></button>',
       '</form>',
+      '<div id="dm-customer-attachment-wrap" class="dm-customer-attachment-wrap" hidden>',
+      '<input type="url" id="dm-customer-attachment-url" class="form-input dm-customer-attachment-input" placeholder="https:// link (optional)" aria-label="Attachment link">',
+      '</div>',
       '</section>',
       '</div>',
       '</div>'
@@ -12066,6 +12152,20 @@ document.addEventListener('DOMContentLoaded', function() {
     portalHost.appendChild(section);
 
     bindCustomerPortalEvents();
+  }
+
+  function renderCustomerStatusBadges(meta) {
+    const root = document.getElementById('dm-customer-status-badges');
+    if (!root) return;
+    const status = String((meta && meta.status) || 'open').toLowerCase();
+    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+    const updated = formatDMDate(meta && (meta.lastMessageAt || meta.updatedAt || meta.createdAt));
+    const unread = Number((meta && meta.unreadCustomer) || 0);
+    root.innerHTML = [
+      '<span class="dm-customer-status-pill dm-customer-status-pill--' + escapeDmHtml(status) + '">Status: ' + escapeDmHtml(statusLabel) + '</span>',
+      updated ? '<span class="dm-customer-status-pill">Updated: ' + escapeDmHtml(updated) + '</span>' : '',
+      unread > 0 ? '<span class="dm-customer-status-pill">Unread: ' + unread + '</span>' : '<span class="dm-customer-status-pill">Unread: 0</span>'
+    ].join('');
   }
 
   async function getOrCreateConversationForEmail(email, name) {
@@ -12157,6 +12257,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!session || !session.conversationId) return;
 
     if (DM.unsubCustomerMessages) DM.unsubCustomerMessages();
+    if (DM.unsubCustomerMeta) DM.unsubCustomerMeta();
     const threadRef = rtdbThreadRef(session.conversationId);
     const q = window.rtdbQuery(threadRef, window.rtdbOrderByChild('createdAt'), window.rtdbLimitToFirst(200));
     DM.unsubCustomerMessages = window.rtdbOnValue(q, async function (snap) {
@@ -12183,6 +12284,10 @@ document.addEventListener('DOMContentLoaded', function() {
       }).catch(function () {});
     });
 
+    DM.unsubCustomerMeta = window.rtdbOnValue(rtdbMetaRef(session.conversationId), function (snap) {
+      renderCustomerStatusBadges(snap.val() || {});
+    });
+
     await window.rtdbSet(rtdbPresenceRef(session.conversationId, 'customer'), {
       senderRole: 'customer',
       isOnline: true,
@@ -12205,6 +12310,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (DM.unsubCustomerMessages && typeof DM.unsubCustomerMessages === 'function') {
       DM.unsubCustomerMessages();
       DM.unsubCustomerMessages = null;
+    }
+    if (DM.unsubCustomerMeta && typeof DM.unsubCustomerMeta === 'function') {
+      DM.unsubCustomerMeta();
+      DM.unsubCustomerMeta = null;
     }
   }
 
@@ -12447,9 +12556,12 @@ document.addEventListener('DOMContentLoaded', function() {
   function setCustomerPortalAuthVisible(visible) {
     const auth = document.getElementById('dm-customer-auth');
     const sheetRoot = document.getElementById('dm-customer-sheet-root');
-    if (auth) auth.style.display = visible ? '' : 'none';
+    const prefersDesktopSplit = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
+    if (auth) {
+      auth.style.display = (visible || prefersDesktopSplit) ? '' : 'none';
+    }
     if (sheetRoot) {
-      if (visible) {
+      if (visible && !prefersDesktopSplit) {
         sheetRoot.classList.remove('is-open');
         sheetRoot.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('dm-customer-sheet-open');
@@ -12507,6 +12619,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusEl = document.getElementById('dm-portal-status');
     const composer = document.getElementById('dm-customer-composer');
     const input = document.getElementById('dm-customer-message');
+    const attachmentToggle = document.getElementById('dm-customer-attachment-toggle');
+    const attachmentWrap = document.getElementById('dm-customer-attachment-wrap');
+    const attachmentInput = document.getElementById('dm-customer-attachment-url');
+    const commandKBtn = document.getElementById('dm-customer-commandk');
 
     function setPortalStatus(message, isError) {
       if (!statusEl) return;
@@ -12582,17 +12698,20 @@ document.addEventListener('DOMContentLoaded', function() {
           return;
         }
         const text = input.value.trim();
-        if (!text) return;
+        const attachmentUrl = attachmentInput && attachmentInput.value.trim() ? attachmentInput.value.trim() : '';
+        const cleanAttachmentUrl = normalizeDmAttachmentUrl(attachmentUrl);
+        if (!text && !cleanAttachmentUrl) return;
         const displayName = DM.customerSession.customerName || 'Customer';
         const msgRef = window.rtdbPush(rtdbThreadRef(DM.customerSession.conversationId));
         window.rtdbSet(msgRef, {
           senderRole: 'customer',
           senderName: displayName,
           body: text,
+          attachmentUrl: cleanAttachmentUrl,
           createdAt: window.rtdbServerTimestamp(),
           readByAdmin: false,
           readByCustomer: true,
-          type: 'text'
+          type: cleanAttachmentUrl ? 'attachment' : 'text'
         }).then(function () {
           const metaPatch = {
             lastMessage: text,
@@ -12608,6 +12727,7 @@ document.addEventListener('DOMContentLoaded', function() {
           return window.rtdbUpdate(rtdbMetaRef(DM.customerSession.conversationId), metaPatch);
         }).then(function () {
           input.value = '';
+          if (attachmentInput) attachmentInput.value = '';
         }).catch(function (error) {
           alert('Failed to send: ' + error.message);
         });
@@ -12630,6 +12750,32 @@ document.addEventListener('DOMContentLoaded', function() {
             updatedAt: window.rtdbServerTimestamp()
           }).catch(function () {});
         }, 1200);
+      });
+    }
+
+    if (attachmentToggle && attachmentWrap) {
+      attachmentToggle.addEventListener('click', function () {
+        const isHidden = attachmentWrap.hasAttribute('hidden');
+        if (isHidden) {
+          attachmentWrap.removeAttribute('hidden');
+          attachmentToggle.setAttribute('aria-expanded', 'true');
+          if (attachmentInput) attachmentInput.focus();
+        } else {
+          attachmentWrap.setAttribute('hidden', '');
+          attachmentToggle.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    if (commandKBtn) {
+      var customerKbd = commandKBtn.querySelector('.dm-customer-commandk-kbd');
+      if (customerKbd && !/Mac|iPhone|iPad/i.test(navigator.platform)) {
+        customerKbd.textContent = 'Ctrl+K';
+      }
+      commandKBtn.addEventListener('click', function () {
+        if (typeof window.openCommandPalette === 'function') {
+          window.openCommandPalette();
+        }
       });
     }
 
@@ -12695,6 +12841,56 @@ document.addEventListener('DOMContentLoaded', function() {
     const root = document.getElementById('dm-customer-sheet-root');
     if (!root || !root.classList.contains('is-open')) return;
     setCustomerPortalAuthVisible(true);
+  };
+
+  window.customerDmApi = {
+    sendFromContactForm: async function (payload) {
+      const name = String((payload && payload.name) || '').trim();
+      const email = String((payload && payload.email) || '').trim().toLowerCase();
+      const message = String((payload && payload.message) || '').trim();
+      if (!name || !email || !message) {
+        throw new Error('Please fill in all required fields');
+      }
+      if (!window.rtdb || !window.rtdbPush || !window.rtdbSet || !window.rtdbUpdate || !window.rtdbServerTimestamp) {
+        throw new Error('Realtime Database is not available.');
+      }
+      const conv = await getOrCreateConversationForEmail(email, name);
+      DM.customerSession = {
+        conversationId: conv.id,
+        customerEmail: (conv.customerEmail || email).toLowerCase(),
+        customerName: conv.customerName || name
+      };
+      localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
+
+      const msgRef = window.rtdbPush(rtdbThreadRef(DM.customerSession.conversationId));
+      await window.rtdbSet(msgRef, {
+        senderRole: 'customer',
+        senderName: DM.customerSession.customerName || 'Customer',
+        body: message,
+        createdAt: window.rtdbServerTimestamp(),
+        readByAdmin: false,
+        readByCustomer: true,
+        type: 'text',
+        source: 'contact'
+      });
+
+      const metaPatch = {
+        lastMessage: message,
+        lastMessageAt: window.rtdbServerTimestamp(),
+        status: 'open',
+        source: 'contact',
+        updatedAt: window.rtdbServerTimestamp()
+      };
+      if (window.rtdbIncrement) {
+        metaPatch.unreadAdmin = window.rtdbIncrement(1);
+      } else {
+        metaPatch.unreadAdmin = 1;
+      }
+      await window.rtdbUpdate(rtdbMetaRef(DM.customerSession.conversationId), metaPatch);
+      openCustomerPortalSession();
+      await startCustomerThread(DM.customerSession);
+      return DM.customerSession;
+    }
   };
 
   window.getDmInboxOverviewSnapshot = function () {

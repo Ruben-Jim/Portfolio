@@ -30,6 +30,8 @@
       { "source": "/services-pricing/**", "destination": "/index.html" },
       { "source": "/service-pricing", "destination": "/index.html" },
       { "source": "/service-pricing/**", "destination": "/index.html" },
+      { "source": "/business-systems", "destination": "/index.html" },
+      { "source": "/business-systems/**", "destination": "/index.html" },
       { "source": "/hire-me", "destination": "/index.html" },
       { "source": "/hire-me/**", "destination": "/index.html" },
       { "source": "/contact", "destination": "/index.html" },

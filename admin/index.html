@@ -61,7 +61,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=lead-delete-modal-fix-20260530">
+  <link rel="stylesheet" href="/assets/css/style.css?v=business-systems-grid-20260531">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
     article.admin[data-page="admin"][data-admin-auth="checking"] #admin-dashboard-content{display:none!important}
@@ -69,6 +69,7 @@
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
   <link rel="stylesheet" href="/assets/css/agency-tools.css?v=cp-deposit-leads-20260530">
+  <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
     - google font link
@@ -259,6 +260,9 @@
               </li>
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link>Services & Pricing</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>What We Build</button>
               </li>
               <li class="navbar-item" style="display: none;">
                 <button class="navbar-link" data-nav-link>Hire Me</button>
@@ -496,7 +500,8 @@
 
           <h3 class="h3 clients-title">Trusted By</h3>
 
-          <ul class="clients-list has-scrollbar">
+          <div class="clients-scroll-shell">
+          <ul class="clients-list has-scrollbar" id="clients-list" aria-label="Client logos">
 
             <li class="clients-item">
               <a href="#Portfolio">
@@ -535,6 +540,10 @@
             </li> -->
 
           </ul>
+          <div class="clients-scroll-track" id="clients-scroll-track" aria-hidden="true">
+            <div class="clients-scroll-thumb" id="clients-scroll-thumb"></div>
+          </div>
+          </div>
 
         </section>
       </article>
@@ -553,6 +562,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -1037,6 +1047,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -1176,6 +1187,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -1449,6 +1461,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -1664,7 +1677,64 @@
         </section>
 
       </article>
-        
+
+      <!--
+        - #WHAT WE BUILD (Business Systems Explorer)
+      -->
+
+      <article class="business-systems" data-page="business-systems">
+        <nav class="navbar" data-navbar>
+          <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
+            <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
+            <ion-icon name="close-outline" class="navbar-toggle-icon-close"></ion-icon>
+          </button>
+          <div class="navbar-menu" data-navbar-menu>
+            <ul class="navbar-list">
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
+            </ul>
+          </div>
+        </nav>
+        <header>
+          <h2 class="h2 article-title">What We Build</h2>
+        </header>
+
+        <section class="about-text bs-hero-lead">
+          <p id="bs-page-lead">Explore what we can build for your business. Tap what interests you, then contact us with your list. Packages and pricing are on Services &amp; Pricing.</p>
+        </section>
+
+        <section class="service">
+          <p class="bs-section-label">Which sounds like you?</p>
+          <div class="bs-path-fork" id="bs-path-fork" role="group" aria-label="Choose your business situation">
+            <button type="button" class="bs-path-card" data-bs-path="newBrand" aria-pressed="false">
+              <ion-icon name="rocket-outline" aria-hidden="true"></ion-icon>
+              <span class="bs-path-card-title">Starting fresh</span>
+              <span class="bs-path-card-sub">New business — no site or app yet</span>
+            </button>
+            <button type="button" class="bs-path-card" data-bs-path="existingApp" aria-pressed="false">
+              <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
+              <span class="bs-path-card-title">We already have something</span>
+              <span class="bs-path-card-sub">Existing website or app</span>
+            </button>
+          </div>
+          <p class="bs-path-hint" id="bs-path-hint" hidden></p>
+          <div class="bs-catalog" id="bs-catalog" hidden></div>
+
+          <div class="bs-sticky-cta" id="bs-sticky-cta">
+            <p class="bs-sticky-cta-text" id="bs-selection-count">Tap the offers you’re interested in</p>
+            <div class="bs-sticky-cta-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="bs-packages-btn">See package pricing</button>
+              <button type="button" class="btn btn-primary btn-sm" id="bs-contact-btn" disabled>Contact about my picks</button>
+            </div>
+          </div>
+        </section>
+      </article>
 
       <!--
         - #HIRE ME
@@ -2059,6 +2129,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -2282,6 +2353,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -2342,6 +2414,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -2371,6 +2444,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -5356,7 +5430,9 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/script.js?v=admin-nav-reorder-20260530"></script>
+  <script src="/assets/js/business-systems-data.js?v=business-systems-trim-20260601"></script>
+  <script src="/assets/js/script.js?v=business-systems-20260530"></script>
+  <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=cp-deposit-leads-20260530"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
