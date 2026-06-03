@@ -157,3 +157,108 @@ body.client-portal-page {
   line-height: 1.45;
   resize: vertical;
 }
+
+.client-portal-showcase-description {
+  margin: 0 0 14px;
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+  line-height: 1.6;
+}
+
+.client-portal-showcase-carousel {
+  margin-bottom: 16px;
+}
+
+.client-portal-showcase-track {
+  position: relative;
+  min-height: 180px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--onyx);
+  border: 1px solid hsla(45, 100%, 72%, 0.12);
+}
+
+.client-portal-showcase-slide {
+  display: none;
+  margin: 0;
+}
+
+.client-portal-showcase-slide.is-active {
+  display: block;
+}
+
+.client-portal-showcase-slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  object-fit: contain;
+  background: var(--smoky-black);
+}
+
+.client-portal-showcase-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.client-portal-showcase-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid hsla(45, 100%, 72%, 0.25);
+  background: var(--onyx);
+  color: var(--white-1);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.client-portal-showcase-btn:hover {
+  border-color: var(--orange-yellow-crayola);
+  color: var(--orange-yellow-crayola);
+}
+
+.client-portal-showcase-counter {
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+  font-variant-numeric: tabular-nums;
+}
+
+.client-portal-tech-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.client-portal-tech-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  background: hsla(240, 5%, 22%, 0.9);
+  border: 1px solid hsla(45, 40%, 50%, 0.18);
+}
+
+.client-portal-showcase-outcome {
+  padding-top: 12px;
+  border-top: 1px solid hsla(45, 100%, 72%, 0.1);
+}
+
+.client-portal-showcase-outcome strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--white-1);
+  font-size: var(--fs-6);
+}
+
+.client-portal-showcase-outcome p {
+  margin: 0;
+  color: var(--light-gray);
+  line-height: 1.55;
+}

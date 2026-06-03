@@ -3298,13 +3298,17 @@ function getBuiltInPortfolioProjects() {
   return list;
 }
 
+function isPortfolioPublic(p) {
+  return !p || String(p.visibility || 'public').toLowerCase() !== 'private';
+}
+
 function getEffectivePortfolioProjects() {
   const list =
     portfolioProjectsRtdb.length > 0
       ? portfolioProjectsRtdb.slice()
       : getBuiltInPortfolioProjects();
   list.sort(comparePortfolioProjectsByOrder);
-  return list;
+  return list.filter(isPortfolioPublic);
 }
 
 function syncWindowPortfolioProjectsRef() {
@@ -3340,6 +3344,7 @@ function normalizePortfolioRtdbRow(row) {
         return x != null && String(x).trim() !== '';
       });
   }
+  out.visibility = String(out.visibility || 'public').toLowerCase() === 'private' ? 'private' : 'public';
   return out;
 }
 
@@ -3415,7 +3420,12 @@ function portfolioSanitizeDocumentPayload(data) {
     adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
-      : []
+      : [],
+    visibility:
+      String(data.visibility || 'public').toLowerCase() === 'private' ||
+      data.showPublicPortfolio === false
+        ? 'private'
+        : 'public'
   };
   return out;
 }
@@ -3946,6 +3956,9 @@ function renderAdminPortfolioProjects() {
       '">' +
       portfolioEscapeHtml(catLabel) +
       '</span>' +
+      (!isPortfolioPublic(p)
+        ? '<span class="admin-portfolio-badge admin-portfolio-badge--private">Private</span>'
+        : '') +
       '<span class="admin-portfolio-order" title="Position on the public portfolio page">#' +
       String(listPosition) +
       '</span>' +
@@ -4234,8 +4247,20 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-bestfor').value = Array.isArray(project.bestFor)
       ? project.bestFor.join('\n')
       : '';
+    const showPublicEl = document.getElementById('portfolio-project-show-public');
+    if (showPublicEl) showPublicEl.checked = isPortfolioPublic(project);
+  } else if (isNew && project) {
+    document.getElementById('portfolio-project-title').value = project.title || '';
+    document.getElementById('portfolio-project-url').value = project.projectUrl || '';
+    document.getElementById('portfolio-project-description').value = project.description || '';
+    document.getElementById('portfolio-project-show-quote').checked = project.showQuoteButton !== false;
+    const showPublicEl = document.getElementById('portfolio-project-show-public');
+    if (showPublicEl) showPublicEl.checked = project.visibility !== 'private';
+    renderPortfolioFormImagesList([]);
   } else {
     document.getElementById('portfolio-project-show-quote').checked = true;
+    const showPublicElDefault = document.getElementById('portfolio-project-show-public');
+    if (showPublicElDefault) showPublicElDefault.checked = true;
     renderPortfolioFormImagesList([]);
   }
   populatePortfolioImageAssetSelect();
@@ -4291,9 +4316,21 @@ window.openPortfolioProjectEditor = function (id) {
   if (typeof window.adminActivateTab === 'function') window.adminActivateTab('portfolio');
   openPortfolioProjectModal(false, p);
 };
+window.openPortfolioProjectModalForClientShowcase = function (hubId, prefill) {
+  prefill = prefill || {};
+  window.__portfolioSaveLinkHubId = hubId || null;
+  openPortfolioProjectModal(true, {
+    title: prefill.title || '',
+    projectUrl: prefill.projectUrl || prefill.expoUrl || '',
+    description: prefill.description || '',
+    visibility: 'private',
+    showQuoteButton: false
+  });
+};
 window.getPortfolioProjectsSnapshot = function () {
   return portfolioProjectsRtdb.slice();
 };
+window.isPortfolioPublic = isPortfolioPublic;
 
 function setupPortfolioAdminControls() {
   const addBtn = document.getElementById('admin-add-portfolio-btn');
@@ -4416,9 +4453,13 @@ function setupPortfolioAdminControls() {
           .getElementById('portfolio-project-bestfor')
           .value.split(/\r?\n/)
           .map(function (l) { return l.trim(); })
-          .filter(Boolean)
+          .filter(Boolean),
+        showPublicPortfolio: document.getElementById('portfolio-project-show-public')
+          ? document.getElementById('portfolio-project-show-public').checked
+          : true
       };
       try {
+        let newPortfolioId = null;
         if (editId) {
           const existing = portfolioProjectsRtdb.find(function (x) { return x.id === editId; });
           payload.order = existing ? portfolioNumericOrder(existing) : 0;
@@ -4426,8 +4467,17 @@ function setupPortfolioAdminControls() {
           showSuccessMessage('Project updated.');
         } else {
           payload.order = getNextPortfolioOrderValue();
-          await saveNewPortfolioProject(payload);
+          newPortfolioId = await saveNewPortfolioProject(payload);
           showSuccessMessage('Project created.');
+        }
+        if (newPortfolioId && window.__portfolioSaveLinkHubId) {
+          if (
+            typeof window.AgencyTools !== 'undefined' &&
+            typeof window.AgencyTools.linkHubToPortfolio === 'function'
+          ) {
+            await window.AgencyTools.linkHubToPortfolio(window.__portfolioSaveLinkHubId, newPortfolioId);
+          }
+          window.__portfolioSaveLinkHubId = null;
         }
         closePortfolioProjectModal();
         await loadPortfolioProjectsFromRtdb();

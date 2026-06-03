@@ -99,6 +99,10 @@
   }
 
   function getPortfolioList() {
+    if (typeof window.getPortfolioProjectsSnapshot === 'function') {
+      var snap = window.getPortfolioProjectsSnapshot();
+      if (Array.isArray(snap) && snap.length) return snap;
+    }
     if (Array.isArray(window.portfolioProjects) && window.portfolioProjects.length) {
       return window.portfolioProjects;
     }
@@ -107,6 +111,11 @@
     return built.map(function (p, i) {
       return Object.assign({}, p, { id: 'builtin-' + i });
     });
+  }
+
+  function isPortfolioEntryPublic(p) {
+    if (typeof window.isPortfolioPublic === 'function') return window.isPortfolioPublic(p);
+    return !p || String(p.visibility || 'public').toLowerCase() !== 'private';
   }
 
   function scoreProject(p, industry, need) {
@@ -2204,7 +2213,8 @@
       portfolioList
         .map(function (p) {
           var selected = (hub.portfolioProjectId && hub.portfolioProjectId === p.id) || (!hub.portfolioProjectId && portfolio && portfolio.id === p.id);
-          return '<option value="' + esc(p.id) + '" ' + (selected ? 'selected' : '') + '>' + esc(p.title || p.id) + '</option>';
+          var privateLabel = isPortfolioEntryPublic(p) ? '' : ' (Private)';
+          return '<option value="' + esc(p.id) + '" ' + (selected ? 'selected' : '') + '>' + esc(p.title || p.id) + esc(privateLabel) + '</option>';
         })
         .join('');
 
@@ -2242,11 +2252,16 @@
         (imgUrl ? '<img src="' + esc(imgUrl) + '" alt="" loading="lazy">' : '') +
         '<div><strong>' + esc(portfolio.title || 'Portfolio project') + '</strong>' +
         (portfolio.category ? '<div class="cp-docs-meta">' + esc(portfolio.category) + '</div>' : '') +
+        (!isPortfolioEntryPublic(portfolio) ? '<div class="cp-docs-meta">Private — shared via client portal only</div>' : '') +
         '</div>' +
-        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="edit-portfolio" data-portfolio-id="' + esc(portfolio.id) + '">Edit portfolio</button>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="edit-portfolio" data-portfolio-id="' + esc(portfolio.id) + '">Edit showcase</button>' +
         '</div>';
     } else {
-      portfolioHtml = '<div class="cp-section-empty"><p>No portfolio project linked yet.</p></div>';
+      portfolioHtml =
+        '<div class="cp-section-empty">' +
+        '<p>No client showcase linked yet. Private showcases stay off the public Portfolio tab — share them using the client portal link in Project Hub.</p>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="create-showcase">Create client showcase</button>' +
+        '</div>';
     }
 
     sectionCtx.maint = maint;
@@ -2528,6 +2543,31 @@
     }
   }
 
+  async function linkHubToPortfolio(hubId, portfolioId) {
+    if (!hubId || !portfolioId || !rtdbReady()) return;
+    var existing = getHubById(hubId);
+    if (!existing) return;
+    var payload = {
+      leadId: existing.leadId,
+      clientName: existing.clientName,
+      title: existing.title,
+      repoUrl: existing.repoUrl,
+      expoUrl: existing.expoUrl,
+      firebaseProjectId: existing.firebaseProjectId,
+      businessDocId: existing.businessDocId,
+      portfolioProjectId: portfolioId,
+      notes: existing.notes,
+      milestones: existing.milestones,
+      enabledModules: existing.enabledModules,
+      updatedAt: ts()
+    };
+    await saveProjectHubRecord(hubId, payload, false);
+    if (clientProjectsSelectedId === hubId) {
+      setCpFeedback('portfolio', 'Client showcase created and linked.', false);
+      renderClientProjectsWorkspace();
+    }
+  }
+
   async function linkPortfolioFromClientWorkspace() {
     var hubId = clientProjectsSelectedId;
     if (!hubId || !rtdbReady()) return;
@@ -2636,6 +2676,17 @@
     if (action === 'edit-portfolio') {
       var pid = el.getAttribute('data-portfolio-id');
       if (pid && typeof window.openPortfolioProjectEditor === 'function') window.openPortfolioProjectEditor(pid);
+      return;
+    }
+    if (action === 'create-showcase') {
+      if (!hub) return;
+      if (typeof window.openPortfolioProjectModalForClientShowcase === 'function') {
+        window.openPortfolioProjectModalForClientShowcase(hub.id, {
+          title: hub.title || hub.clientName || '',
+          projectUrl: hub.expoUrl || '',
+          description: hub.notes || ''
+        });
+      }
       return;
     }
     if (action === 'link-portfolio') {
@@ -2775,7 +2826,8 @@
     openNewClient: function () {
       openProjectHubEditor('new');
     },
-    createHubFromLead: createHubFromLead
+    createHubFromLead: createHubFromLead,
+    linkHubToPortfolio: linkHubToPortfolio
   };
 
   function init() {

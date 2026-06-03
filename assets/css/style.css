@@ -4796,6 +4796,12 @@ article {
   border-color: hsla(270, 38%, 58%, 0.28);
 }
 
+.admin-portfolio-badge--private {
+  color: hsl(38, 90%, 72%);
+  background: hsla(38, 55%, 45%, 0.16);
+  border-color: hsla(38, 60%, 50%, 0.28);
+}
+
 .admin-portfolio-order {
   font-size: var(--fs-8);
   font-weight: var(--fw-500);
