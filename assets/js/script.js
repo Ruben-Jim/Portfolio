@@ -173,6 +173,67 @@ if (testimonialsList && modalContainer && modalCloseBtn && overlay && modalImg &
   overlay.addEventListener("click", testimonialsModalFunc);
 }
 
+/** Trusted By logos — custom horizontal scroll track (visible when list overflows). */
+function initClientsScrollIndicator() {
+  var list = document.getElementById('clients-list');
+  var shell = list && list.closest('.clients-scroll-shell');
+  var thumb = document.getElementById('clients-scroll-thumb');
+  var track = document.getElementById('clients-scroll-track');
+  if (!list || !shell || !thumb || !track) return;
+
+  function syncClientsScrollIndicator() {
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      shell.classList.remove('has-scroll');
+      return;
+    }
+    var overflow = list.scrollWidth > list.clientWidth + 2;
+    shell.classList.toggle('has-scroll', overflow);
+    if (!overflow) return;
+
+    var trackWidth = track.clientWidth;
+    if (trackWidth <= 0) return;
+
+    var thumbWidth = Math.max(28, Math.round((list.clientWidth / list.scrollWidth) * trackWidth));
+    var maxScroll = list.scrollWidth - list.clientWidth;
+    var maxThumbTravel = Math.max(0, trackWidth - thumbWidth);
+    var thumbLeft = maxScroll > 0 ? (list.scrollLeft / maxScroll) * maxThumbTravel : 0;
+
+    thumb.style.width = thumbWidth + 'px';
+    thumb.style.transform = 'translateX(' + thumbLeft + 'px)';
+  }
+
+  list.addEventListener('scroll', syncClientsScrollIndicator, { passive: true });
+  window.addEventListener('resize', syncClientsScrollIndicator);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(syncClientsScrollIndicator, 120);
+  });
+
+  if (typeof ResizeObserver !== 'undefined') {
+    var ro = new ResizeObserver(function () {
+      syncClientsScrollIndicator();
+    });
+    ro.observe(list);
+    ro.observe(track);
+  }
+
+  if (list.querySelectorAll('img').length) {
+    list.querySelectorAll('img').forEach(function (img) {
+      if (img.complete) return;
+      img.addEventListener('load', syncClientsScrollIndicator, { once: true });
+    });
+  }
+
+  syncClientsScrollIndicator();
+  requestAnimationFrame(syncClientsScrollIndicator);
+  setTimeout(syncClientsScrollIndicator, 350);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initClientsScrollIndicator);
+} else {
+  initClientsScrollIndicator();
+}
+
 
 
 
@@ -5481,55 +5542,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Small delay to ensure loading screen is visible
   setTimeout(restoreActivePage, 50);
 });
-
-/** Trusted By logos — custom scroll track + has-scroll when row overflows (mobile/tablet). */
-function initClientsTrustedByScroll() {
-  var list = document.getElementById('clients-list');
-  var shell = list && list.closest('.clients-scroll-shell');
-  var track = document.getElementById('clients-scroll-track');
-  var thumb = document.getElementById('clients-scroll-thumb');
-  if (!list || !shell || !track || !thumb) return;
-
-  function isDesktopGrid() {
-    return window.matchMedia('(min-width: 1024px)').matches;
-  }
-
-  function syncClientsScroll() {
-    if (isDesktopGrid()) {
-      shell.classList.remove('has-scroll');
-      list.classList.remove('has-scroll');
-      return;
-    }
-    var overflow = list.scrollWidth > list.clientWidth + 2;
-    shell.classList.toggle('has-scroll', overflow);
-    list.classList.toggle('has-scroll', overflow);
-    if (!overflow) {
-      thumb.style.width = '';
-      thumb.style.transform = '';
-      return;
-    }
-    var trackW = track.clientWidth;
-    if (trackW < 1) return;
-    var ratio = list.clientWidth / list.scrollWidth;
-    var thumbW = Math.max(28, Math.round(trackW * ratio));
-    var maxLeft = Math.max(0, trackW - thumbW);
-    var scrollRange = list.scrollWidth - list.clientWidth;
-    var left = scrollRange > 0 ? (list.scrollLeft / scrollRange) * maxLeft : 0;
-    thumb.style.width = thumbW + 'px';
-    thumb.style.transform = 'translateX(' + left + 'px)';
-  }
-
-  list.addEventListener('scroll', syncClientsScroll, { passive: true });
-  window.addEventListener('resize', syncClientsScroll);
-  if (typeof ResizeObserver !== 'undefined') {
-    var ro = new ResizeObserver(syncClientsScroll);
-    ro.observe(list);
-    ro.observe(shell);
-  }
-  syncClientsScroll();
-}
-
-document.addEventListener('DOMContentLoaded', initClientsTrustedByScroll);
 
 // Also restore if DOM is already loaded
 if (document.readyState === 'loading') {
