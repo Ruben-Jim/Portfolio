@@ -1672,19 +1672,6 @@ body.cp-client-drawer-open {
   overflow: visible;
 }
 
-.cp-client-drawer .cp-workspace-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  padding: 0 2px 12px;
-  margin-bottom: 4px;
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: linear-gradient(180deg, var(--eerie-black-1) 85%, transparent);
-}
-
 .cp-client-drawer .cp-section--collapsible .cp-section-header {
   display: flex;
   flex-wrap: nowrap;

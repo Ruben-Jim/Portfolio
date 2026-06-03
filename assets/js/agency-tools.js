@@ -2002,6 +2002,7 @@
       return;
     }
     clientProjectsSelectedId = hubId;
+    delete cpSectionCollapseByHub[hubId];
     var shell = document.querySelector('.client-projects-shell');
     if (shell) shell.classList.add('has-client-selected');
     renderClientProjectsPickerList();
@@ -2046,7 +2047,7 @@
 
   function isCpSectionExpanded(hubId, sectionId) {
     var hubState = cpSectionCollapseByHub[hubId];
-    if (!hubState || hubState[sectionId] === undefined) return true;
+    if (!hubState || hubState[sectionId] === undefined) return false;
     return !!hubState[sectionId];
   }
 
@@ -2068,18 +2069,6 @@
         sectionEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       });
     }
-  }
-
-  function setAllCpSectionsExpanded(expanded) {
-    var workspace = document.getElementById('client-projects-workspace');
-    if (!workspace) return;
-    workspace.querySelectorAll('.cp-section--collapsible').forEach(function (sec) {
-      var sectionId = sec.getAttribute('data-cp-section');
-      sec.classList.toggle('is-expanded', expanded);
-      var btn = sec.querySelector('.cp-section-toggle');
-      if (btn) btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-      if (clientProjectsSelectedId) saveCpSectionCollapse(clientProjectsSelectedId, sectionId, expanded);
-    });
   }
 
   function cpSectionSummary(id, ctx) {
@@ -2143,7 +2132,7 @@
   }
 
   function buildCpCollapsibleSection(sectionId, title, tabId, bodyHtml, summary, expanded) {
-    var isOpen = expanded !== false;
+    var isOpen = expanded === true;
     var panelId = 'cp-section-panel-' + sectionId;
     var tabLink = tabId
       ? '<button type="button" class="cp-section-link" data-cp-action="open-tab" data-tab="' + esc(tabId) + '">Open full tab →</button>'
@@ -2354,10 +2343,6 @@
       '<p class="cp-section-feedback" data-cp-feedback="portfolio" role="status"></p></div>';
 
     workspace.innerHTML =
-      '<div class="cp-workspace-toolbar">' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="expand-all-sections">Expand all</button>' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="collapse-all-sections">Collapse all</button>' +
-      '</div>' +
       buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub')) +
       buildCpCollapsibleSection('maintenance', 'Maintenance & SLA', null, maintBody, cpSectionSummary('maintenance', sectionCtx), isCpSectionExpanded(hub.id, 'maintenance')) +
       buildCpCollapsibleSection('health', 'Firebase Health', null, healthBody, cpSectionSummary('health', sectionCtx), isCpSectionExpanded(hub.id, 'health')) +
@@ -2581,14 +2566,6 @@
     }
     if (action === 'toggle-section') {
       toggleCpSection(el.closest('.cp-section--collapsible'));
-      return;
-    }
-    if (action === 'expand-all-sections') {
-      setAllCpSectionsExpanded(true);
-      return;
-    }
-    if (action === 'collapse-all-sections') {
-      setAllCpSectionsExpanded(false);
       return;
     }
     if (action === 'open-tab') {
