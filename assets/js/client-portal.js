@@ -18,7 +18,9 @@
       title: 'Web + Mobile App',
       monthly: '$150/mo',
       annual: '$990/yr',
+      monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
+      annualEquiv: '~$83/mo equivalent · billed once per year',
       slaLabel: '72 business hours',
       features: [
         'Response within 72 business hours',
@@ -33,7 +35,9 @@
       title: 'Web + Mobile App',
       monthly: '$300/mo',
       annual: '$1,980/yr',
+      monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
+      annualEquiv: '~$165/mo equivalent · billed once per year',
       slaLabel: '24 business hours',
       features: [
         'Response within 24 business hours',
@@ -136,6 +140,32 @@
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
 
+  function maintenancePlanPriceNote(plan, billing) {
+    if (billing === 'annual') {
+      return plan.annualNote + (plan.annualEquiv ? ' · ' + plan.annualEquiv : '');
+    }
+    return plan.monthlyNote || '';
+  }
+
+  function updatePortalMaintPlanPrices(pickerEl) {
+    if (!pickerEl) pickerEl = document.getElementById('portal-maint-picker');
+    if (!pickerEl) return;
+    var billInput = pickerEl.querySelector('input[name="portal-billing-pref"]:checked');
+    var billing = billInput && billInput.value === 'annual' ? 'annual' : 'monthly';
+    MAINTENANCE_PLANS.forEach(function (plan) {
+      var priceMain = pickerEl.querySelector(
+        '.client-portal-plan-price[data-maint-plan="' + plan.id + '"] .client-portal-plan-price-main'
+      );
+      var noteEl = pickerEl.querySelector('.client-portal-plan-note[data-maint-plan="' + plan.id + '"]');
+      if (priceMain) priceMain.textContent = billing === 'annual' ? plan.annual : plan.monthly;
+      if (noteEl) {
+        var note = maintenancePlanPriceNote(plan, billing);
+        noteEl.textContent = note;
+        noteEl.hidden = !note;
+      }
+    });
+  }
+
   function renderMaintenancePlanCards(selectedTier) {
     return (
       '<div class="client-portal-plan-grid">' +
@@ -154,13 +184,16 @@
           '<strong class="client-portal-plan-title">' +
           esc(plan.title) +
           '</strong>' +
-          '<p class="client-portal-plan-price">' +
+          '<p class="client-portal-plan-price" data-maint-plan="' +
+          esc(plan.id) +
+          '">' +
+          '<span class="client-portal-plan-price-main">' +
           esc(plan.monthly) +
-          ' · ' +
-          esc(plan.annual) +
-          '</p>' +
-          '<p class="client-portal-plan-note">' +
-          esc(plan.annualNote) +
+          '</span></p>' +
+          '<p class="client-portal-plan-note" data-maint-plan="' +
+          esc(plan.id) +
+          '">' +
+          esc(plan.monthlyNote || '') +
           '</p>' +
           '<ul class="client-portal-plan-features">' +
           plan.features
@@ -263,8 +296,7 @@
       '<form id="portal-dm-composer" class="portal-dm-composer">' +
       '<div class="portal-dm-composer-row">' +
       '<textarea id="portal-dm-message" class="portal-dm-input portal-dm-textarea" rows="2" placeholder="Describe the issue or question…" required></textarea>' +
-      '<button type="submit" class="btn btn-primary portal-dm-send" aria-label="Send message">Send</button></div></form>' +
-      '<button type="button" class="btn btn-secondary btn-sm portal-dm-switch-email" id="portal-dm-switch-email">Use different email</button></div></div></div></div>'
+      '<button type="submit" class="btn btn-primary portal-dm-send" aria-label="Send message">Send</button></div></form></div></div></div></div>'
     );
   }
 
@@ -494,7 +526,6 @@
     var statusEl = document.getElementById('portal-dm-status');
     var composer = document.getElementById('portal-dm-composer');
     var msgInput = document.getElementById('portal-dm-message');
-    var switchBtn = document.getElementById('portal-dm-switch-email');
 
     function setDmStatus(msg, isError) {
       if (!statusEl) return;
@@ -581,22 +612,20 @@
       });
     }
 
-    if (switchBtn) {
-      switchBtn.addEventListener('click', function () {
-        stopPortalDmSubscription();
-        DM.clearCustomerSession();
-        window.portalDmSession = null;
-        showPortalDmPanel('auth');
-        setDmStatus('', false);
-        if (msgInput) msgInput.value = '';
-      });
-    }
-
     initPortalDmSheetResize();
   }
 
   function bindMaintenanceSupportSection(root, ctx, project, maint) {
     if (!root) return;
+    var picker = root.querySelector('#portal-maint-picker');
+    if (picker) {
+      updatePortalMaintPlanPrices(picker);
+      picker.querySelectorAll('input[name="portal-billing-pref"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+          updatePortalMaintPlanPrices(picker);
+        });
+      });
+    }
     var requestBtn = root.querySelector('#portal-request-plan-btn');
     if (requestBtn) {
       requestBtn.addEventListener('click', function () {

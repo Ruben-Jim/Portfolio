@@ -715,10 +715,20 @@ body.client-portal-page {
   font-weight: var(--fw-600);
 }
 
+.client-portal-plan-price-main {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
 .client-portal-plan-note {
   margin: 0 0 10px;
   font-size: var(--fs-8);
   color: var(--light-gray-70);
+  line-height: 1.4;
+}
+
+.client-portal-plan-note[hidden] {
+  display: none;
 }
 
 .client-portal-plan-features {
@@ -1051,10 +1061,6 @@ body.portal-dm-sheet-open .portal-dm-fab {
 
 .portal-dm-send {
   align-self: flex-end;
-}
-
-.portal-dm-switch-email {
-  align-self: flex-start;
 }
 
 .btn-block {
