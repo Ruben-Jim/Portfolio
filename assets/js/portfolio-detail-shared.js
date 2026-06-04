@@ -133,7 +133,6 @@
     record = record || {};
     var adminLabel = options.adminSectionLabel || 'Admin Page';
     var techTags = record.techTags || [];
-    var bestFor = record.bestFor || [];
     var detailSections = record.detailSections || [];
     var liveUrl = resolveLiveUrl(record, options);
 
@@ -164,18 +163,6 @@
           renderMultilineHtml(record.adminModalNote.trim()) +
           '</p></section>'
         : '';
-
-    var bestForHtml = bestFor.length
-      ? '<section class="project-detail-section project-detail-bestfor-section">' +
-        '<h4 class="project-detail-section-title">Best for</h4>' +
-        '<ul class="project-fit-list project-detail-bestfor-list">' +
-        bestFor
-          .map(function (item) {
-            return '<li>' + esc(item) + '</li>';
-          })
-          .join('') +
-        '</ul></section>'
-      : '';
 
     var accordionHtml = detailSections.length
       ? '<section class="project-detail-section project-detail-extra-sections">' +
@@ -233,7 +220,6 @@
       techHtml +
       outcomeHtml +
       adminHtml +
-      bestForHtml +
       accordionHtml +
       '</div>' +
       actionsHtml +

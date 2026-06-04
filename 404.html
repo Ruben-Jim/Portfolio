@@ -1114,9 +1114,23 @@
           </figure>
 
           <div class="project-detail-body">
-            <div class="project-detail-scroll has-scrollbar">
+            <div class="project-detail-scroll has-scrollbar is-detail-compact" id="project-detail-scroll">
             <div class="project-detail-meta">
               <h3 class="h3 project-detail-title" id="project-detail-title">Project Title</h3>
+              <button type="button" class="project-detail-density-btn" id="project-detail-density-toggle" aria-pressed="true" aria-label="Use larger text size" title="Text size">
+                <span class="project-detail-density-btn-label" aria-hidden="true">A</span>
+                <span class="project-detail-density-btn-hint">Compact</span>
+              </button>
+            </div>
+
+            <div class="project-detail-cta-top" id="project-detail-cta-top" hidden>
+              <a class="project-detail-btn project-detail-btn-primary" id="project-detail-live" href="#" target="_blank" rel="noopener noreferrer">
+                <ion-icon name="open-outline" aria-hidden="true"></ion-icon>
+                <span class="project-detail-btn-text">
+                  <span class="project-detail-btn-label project-detail-btn-label--long">Open Live Project</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--short">Live demo</span>
+                </span>
+              </a>
             </div>
 
             <p class="project-detail-description" id="project-detail-description"></p>
@@ -1128,15 +1142,26 @@
               <p class="project-detail-outcome" id="project-detail-outcome"></p>
             </section>
 
-            <section class="project-detail-section project-detail-admin-section">
+            <section class="project-detail-section project-detail-admin-section" id="project-detail-admin-section">
               <h4 class="h4 project-detail-section-title">Admin Page</h4>
               <p class="project-detail-admin-text" id="project-detail-admin"></p>
             </section>
 
-            <section class="project-detail-section project-detail-bestfor-section" id="project-detail-bestfor-section" hidden>
-              <h4 class="h4 project-detail-section-title">Best for</h4>
-              <ul class="project-fit-list project-detail-bestfor-list" id="project-detail-bestfor-list"></ul>
+            <section class="project-detail-section project-detail-extra-sections" id="project-detail-extra-sections" hidden>
+              <h4 class="h4 project-detail-section-title">Project details</h4>
+              <div class="project-detail-page-accordion" id="project-detail-sections-accordion" role="region" aria-label="Project detail sections"></div>
             </section>
+
+            <div class="project-detail-cta-inline" id="project-detail-cta-inline" hidden>
+              <p class="project-detail-cta-inline-hint">Want something like this for your business?</p>
+              <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote" id="project-detail-quote" href="#contact">
+                <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+                <span class="project-detail-btn-text">
+                  <span class="project-detail-btn-label project-detail-btn-label--long">Similar Project? Get a Quote</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--short">Get a quote</span>
+                </span>
+              </a>
+            </div>
             </div>
 
             <div class="project-detail-actions">
@@ -1154,14 +1179,14 @@
                   <span class="project-detail-btn-label project-detail-btn-label--short">Premium</span>
                 </span>
               </a>
-              <a class="project-detail-btn project-detail-btn-primary" id="project-detail-live" href="#" target="_blank" rel="noopener noreferrer">
+              <a class="project-detail-btn project-detail-btn-primary project-detail-btn--live-footer" id="project-detail-live-footer" href="#" target="_blank" rel="noopener noreferrer" hidden>
                 <ion-icon name="open-outline" aria-hidden="true"></ion-icon>
                 <span class="project-detail-btn-text">
                   <span class="project-detail-btn-label project-detail-btn-label--long">Open Live Project</span>
                   <span class="project-detail-btn-label project-detail-btn-label--short">Live demo</span>
                 </span>
               </a>
-              <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-quote" href="#contact">
+              <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote-footer" id="project-detail-quote-footer" href="#contact" hidden>
                 <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
                 <span class="project-detail-btn-text">
                   <span class="project-detail-btn-label project-detail-btn-label--long">Similar Project? Get a Quote</span>
@@ -4468,7 +4493,7 @@
         </div>
         <div class="form-group" id="portfolio-detail-sections-group">
           <label>Detail sections (optional, for client portal)</label>
-          <p class="form-hint">Shown as accordion blocks on the client portal full detail page.</p>
+          <p class="form-hint">Shown as accordion blocks on the public portfolio detail modal and the client portal full detail page.</p>
           <ul class="portfolio-detail-sections-list" id="portfolio-detail-sections-list"></ul>
           <button type="button" class="btn btn-secondary btn-sm" id="portfolio-detail-section-add">Add section</button>
         </div>

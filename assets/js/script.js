@@ -3413,6 +3413,28 @@ function portfolioParseDetailSections(raw) {
     .slice(0, 8);
 }
 
+function portfolioRenderDetailSectionsAccordionHtml(sections) {
+  var rows = portfolioParseDetailSections(sections);
+  if (!rows.length) return '';
+  return rows
+    .map(function (section, i) {
+      var bodyHtml = portfolioEscapeHtml(section.body || '').replace(/\r?\n/g, '<br>');
+      return (
+        '<details class="project-detail-page-item"' +
+        (i === 0 ? ' open' : '') +
+        '>' +
+        '<summary>' +
+        portfolioEscapeHtml(section.title || 'Section ' + (i + 1)) +
+        '</summary>' +
+        '<div class="project-detail-page-body">' +
+        '<p class="project-detail-page-row portfolio-preserve-breaks">' +
+        bodyHtml +
+        '</p></div></details>'
+      );
+    })
+    .join('');
+}
+
 function portfolioDetailSectionsForForm(raw) {
   if (!Array.isArray(raw)) return [];
   return raw
@@ -5063,12 +5085,41 @@ function initPortfolioProjectModal() {
   const tech = document.getElementById('project-detail-tech');
   const outcome = document.getElementById('project-detail-outcome');
   const admin = document.getElementById('project-detail-admin');
+  const adminSection = document.getElementById('project-detail-admin-section');
+  const extraSectionsWrap = document.getElementById('project-detail-extra-sections');
+  const extraSectionsAccordion = document.getElementById('project-detail-sections-accordion');
+  const ctaTop = document.getElementById('project-detail-cta-top');
+  const ctaInline = document.getElementById('project-detail-cta-inline');
   const liveBtn = document.getElementById('project-detail-live');
+  const liveFooterBtn = document.getElementById('project-detail-live-footer');
   const buyNowBtn = document.getElementById('project-detail-buy-now');
   const buyPremiumBtn = document.getElementById('project-detail-buy-premium');
   const quoteBtn = document.getElementById('project-detail-quote');
-  const bestForSection = document.getElementById('project-detail-bestfor-section');
-  const bestForList = document.getElementById('project-detail-bestfor-list');
+  const quoteFooterBtn = document.getElementById('project-detail-quote-footer');
+  const detailScroll = document.getElementById('project-detail-scroll');
+  const detailDensityToggle = document.getElementById('project-detail-density-toggle');
+
+  function applyProjectDetailDensity(compact) {
+    if (!detailScroll) return;
+    detailScroll.classList.toggle('is-detail-compact', !!compact);
+    if (!detailDensityToggle) return;
+    detailDensityToggle.setAttribute('aria-pressed', compact ? 'true' : 'false');
+    detailDensityToggle.setAttribute(
+      'aria-label',
+      compact ? 'Use larger text size' : 'Use compact text size'
+    );
+    var hint = detailDensityToggle.querySelector('.project-detail-density-btn-hint');
+    if (hint) hint.textContent = compact ? 'Compact' : 'Comfort';
+  }
+
+  function syncProjectDetailDensityForViewport() {
+    if (!detailScroll) return;
+    if (isProjectSheetViewport()) applyProjectDetailDensity(true);
+    else {
+      detailScroll.classList.remove('is-detail-compact');
+      if (detailDensityToggle) detailDensityToggle.setAttribute('aria-pressed', 'false');
+    }
+  }
 
   // Hard reset modal state on init so it never renders open by default.
   if (modal) {
@@ -5246,6 +5297,7 @@ function initPortfolioProjectModal() {
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('project-modal-open');
+    syncProjectDetailDensityForViewport();
     initProjectDetailSheetDrag();
     if (isProjectSheetViewport()) applyProjectSheetSnap(projectSheetSnapIndex);
     else resetProjectSheetHeight();
@@ -5323,50 +5375,57 @@ function initPortfolioProjectModal() {
       }
     }
 
+    var adminText = '';
+    if (record && record.adminModalNote && String(record.adminModalNote).trim()) {
+      adminText = String(record.adminModalNote).trim();
+    } else if (projectPreset?.admin) {
+      adminText = String(projectPreset.admin).trim();
+    }
     if (admin) {
-      if (record && record.adminModalNote && String(record.adminModalNote).trim()) {
-        portfolioSetMultilineElement(admin, record.adminModalNote);
-      } else if (projectPreset?.admin) {
-        portfolioSetMultilineElement(admin, projectPreset.admin);
+      if (adminText) {
+        portfolioSetMultilineElement(admin, adminText);
       } else {
         admin.textContent =
           'Admin page focus: central management panel for operations, user actions, and business updates.';
       }
     }
+    if (adminSection && admin) {
+      adminSection.hidden = !String(admin.textContent || '').trim();
+    }
 
-    if (bestForList && bestForSection) {
-      var bestForItems = [];
-      if (record && Array.isArray(record.bestFor) && record.bestFor.length) {
-        bestForItems = record.bestFor;
-      } else if (projectPreset && Array.isArray(projectPreset.bestFor) && projectPreset.bestFor.length) {
-        bestForItems = projectPreset.bestFor;
+    if (extraSectionsWrap && extraSectionsAccordion) {
+      var sectionsHtml = record
+        ? portfolioRenderDetailSectionsAccordionHtml(record.detailSections)
+        : '';
+      if (sectionsHtml) {
+        extraSectionsAccordion.innerHTML = sectionsHtml;
+        extraSectionsWrap.hidden = false;
       } else {
-        bestForItems = portfolioGetDefaultBestFor(titleText, '');
-      }
-      if (bestForItems.length) {
-        bestForList.innerHTML = bestForItems
-          .map(function (item) {
-            return (
-              '<li>' + portfolioEscapeHtml(String(item).trim()) + '</li>'
-            );
-          })
-          .join('');
-        bestForSection.hidden = false;
-      } else {
-        bestForList.innerHTML = '';
-        bestForSection.hidden = true;
+        extraSectionsAccordion.innerHTML = '';
+        extraSectionsWrap.hidden = true;
       }
     }
 
-    if (liveBtn) {
-      if (hasLiveUrl) {
-        liveBtn.href = liveUrl;
-        liveBtn.hidden = false;
-      } else {
-        liveBtn.href = '#';
-        liveBtn.hidden = true;
+    function setLiveButtonsVisible(show) {
+      if (ctaTop) ctaTop.hidden = !show;
+      if (liveBtn) {
+        liveBtn.href = show ? liveUrl : '#';
+        liveBtn.hidden = !show;
+      }
+      if (liveFooterBtn) {
+        liveFooterBtn.href = show ? liveUrl : '#';
+        liveFooterBtn.hidden = !show;
       }
     }
+    if (hasLiveUrl) setLiveButtonsVisible(true);
+    else setLiveButtonsVisible(false);
+
+    var showQuote =
+      !record || record.showQuoteButton === undefined || record.showQuoteButton !== false;
+    if (ctaInline) ctaInline.hidden = !showQuote;
+    if (quoteBtn) quoteBtn.hidden = !showQuote;
+    if (quoteFooterBtn) quoteFooterBtn.hidden = !showQuote;
+
     const showBuyButtons = window.PORTFOLIO_SHOW_BUY_BUTTONS === true;
     if (buyNowBtn) {
       const buyNowLabel = record && record.buyNowLabel != null ? String(record.buyNowLabel).trim() : '';
@@ -5414,6 +5473,20 @@ function initPortfolioProjectModal() {
   renderPortfolioBestForSections();
   initProjectDetailSheetDrag();
 
+  if (detailDensityToggle && !detailDensityToggle.dataset.portfolioDetailBound) {
+    detailDensityToggle.dataset.portfolioDetailBound = '1';
+    detailDensityToggle.addEventListener('click', function () {
+      if (!detailScroll || !isProjectSheetViewport()) return;
+      applyProjectDetailDensity(!detailScroll.classList.contains('is-detail-compact'));
+    });
+  }
+  if (!window.__projectDetailDensityResizeBound) {
+    window.__projectDetailDensityResizeBound = true;
+    window.addEventListener('resize', function () {
+      if (modal && modal.classList.contains('active')) syncProjectDetailDensityForViewport();
+    });
+  }
+
   if (closeBtn && !closeBtn.dataset.portfolioDetailBound) {
     closeBtn.dataset.portfolioDetailBound = '1';
     closeBtn.addEventListener('click', closeProjectModal);
@@ -5423,9 +5496,10 @@ function initPortfolioProjectModal() {
     overlay.addEventListener('click', closeProjectModal);
   }
 
-  if (quoteBtn && !quoteBtn.dataset.portfolioDetailBound) {
-    quoteBtn.dataset.portfolioDetailBound = '1';
-    quoteBtn.addEventListener('click', function (event) {
+  function bindProjectDetailContactBtn(btn) {
+    if (!btn || btn.dataset.portfolioDetailBound) return;
+    btn.dataset.portfolioDetailBound = '1';
+    btn.addEventListener('click', function (event) {
       event.preventDefault();
       closeProjectModal();
       if (typeof switchToPage === 'function') {
@@ -5433,6 +5507,8 @@ function initPortfolioProjectModal() {
       }
     });
   }
+  bindProjectDetailContactBtn(quoteBtn);
+  bindProjectDetailContactBtn(quoteFooterBtn);
   if (buyNowBtn && !buyNowBtn.dataset.portfolioDetailBound) {
     buyNowBtn.dataset.portfolioDetailBound = '1';
     buyNowBtn.addEventListener('click', function (event) {
