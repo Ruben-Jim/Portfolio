@@ -1823,6 +1823,7 @@ body.cp-client-drawer-open {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  color: var(--white-2);
 }
 
 .cp-client-drawer .cp-section-empty {
@@ -1981,6 +1982,8 @@ body.cp-client-drawer-open {
 
 .cp-docs-list li strong {
   font-size: 0.9rem;
+  font-weight: var(--fw-600);
+  color: var(--white-2);
 }
 
 .cp-docs-meta {
@@ -2001,6 +2004,22 @@ body.cp-client-drawer-open {
   border-radius: 8px;
   background: hsla(240, 5%, 6%, 0.45);
   border: 1px solid hsla(45, 40%, 50%, 0.1);
+  color: var(--white-2);
+}
+
+.cp-portfolio-summary > div {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.cp-portfolio-summary strong,
+.cp-portfolio-showcase-title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .cp-portfolio-summary img {
@@ -2008,6 +2027,7 @@ body.cp-client-drawer-open {
   height: 48px;
   object-fit: cover;
   border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .cp-client-drawer .cp-section-feedback {
@@ -2018,6 +2038,30 @@ body.cp-client-drawer-open {
 
 .cp-client-drawer .cp-section-feedback.is-success {
   color: hsl(140, 55%, 55%);
+}
+
+.cp-maint-pending-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: hsla(45, 100%, 72%, 0.2);
+  color: var(--orange-yellow-crayola, hsl(45, 100%, 72%));
+}
+
+.cp-maint-pending-alert {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  background: hsla(45, 100%, 72%, 0.08);
+}
+
+.cp-maint-pending-alert p {
+  margin: 0 0 10px;
 }
 
 .cp-client-drawer .cp-section-feedback.is-error {
@@ -2043,6 +2087,20 @@ body.cp-client-drawer-open {
 
 [data-theme="light"] .cp-client-drawer .form-group > label {
   color: var(--eerie-black-2);
+}
+
+[data-theme="light"] .cp-portfolio-summary {
+  color: var(--white-2);
+  background: hsla(0, 0%, 100%, 0.55);
+}
+
+[data-theme="light"] .cp-portfolio-summary strong,
+[data-theme="light"] .cp-portfolio-showcase-title {
+  color: var(--white-2);
+}
+
+[data-theme="light"] .cp-docs-list li strong {
+  color: var(--white-2);
 }
 
 @media (min-width: 600px) {

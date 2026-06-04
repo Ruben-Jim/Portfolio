@@ -4061,18 +4061,18 @@ function renderAdminPortfolioProjects() {
       '</div></div></div>' +
       '<div class="admin-portfolio-row-actions">' +
       '<div class="admin-portfolio-actions-grid" role="group" aria-label="Project actions">' +
-      '<button type="button" class="blog-action-btn edit-btn admin-portfolio-action-btn" data-edit-portfolio="' +
+      '<button type="button" class="blog-action-btn edit-btn admin-portfolio-action-btn admin-portfolio-action-btn--edit" data-edit-portfolio="' +
       portfolioEscapeHtml(p.id) +
-      '" title="Edit project"><ion-icon name="create-outline"></ion-icon></button>' +
-      '<button type="button" class="blog-action-btn delete-btn admin-portfolio-action-btn" data-delete-portfolio="' +
+      '" title="Edit project"><ion-icon name="create-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Edit</span></button>' +
+      '<button type="button" class="blog-action-btn delete-btn admin-portfolio-action-btn admin-portfolio-action-btn--delete" data-delete-portfolio="' +
       portfolioEscapeHtml(p.id) +
-      '" title="Delete project"><ion-icon name="trash-outline"></ion-icon></button>' +
-      '<button type="button" class="blog-action-btn admin-portfolio-order-btn" data-portfolio-order-up="' +
+      '" title="Delete project"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Delete</span></button>' +
+      '<button type="button" class="blog-action-btn admin-portfolio-order-btn admin-portfolio-action-btn admin-portfolio-action-btn--order" data-portfolio-order-up="' +
       portfolioEscapeHtml(p.id) +
-      '" title="Move up"><ion-icon name="chevron-up-outline"></ion-icon></button>' +
-      '<button type="button" class="blog-action-btn admin-portfolio-order-btn" data-portfolio-order-down="' +
+      '" title="Move up"><ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Up</span></button>' +
+      '<button type="button" class="blog-action-btn admin-portfolio-order-btn admin-portfolio-action-btn admin-portfolio-action-btn--order" data-portfolio-order-down="' +
       portfolioEscapeHtml(p.id) +
-      '" title="Move down"><ion-icon name="chevron-down-outline"></ion-icon></button>' +
+      '" title="Move down"><ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Down</span></button>' +
       '</div></div>';
     listEl.appendChild(row);
   });
@@ -7099,6 +7099,7 @@ window.addEventListener('load', function() {
   // ----------------------------
 
   const BUSINESS_DOCS_STORAGE_KEY = 'businessDocs.v1';
+  const BUSINESS_DOCS_RTD_PATH = 'agencyBusinessDocuments';
 
   /**
    * @typedef {{ label: string, amount: number }} BusinessDocAddOnPriceOption
@@ -7141,6 +7142,77 @@ window.addEventListener('load', function() {
       localStorage.setItem(BUSINESS_DOCS_STORAGE_KEY, JSON.stringify(docs));
     } catch (e) {
       console.warn('Failed to save business docs to localStorage', e);
+    }
+  }
+
+  function sanitizeBusinessDocForRtdb(doc) {
+    if (!doc || !doc.id) return null;
+    var status = String(doc.status || 'draft');
+    if (['draft', 'sent', 'accepted', 'paid'].indexOf(status) < 0) status = 'draft';
+    var type = String(doc.type || 'proposal');
+    if (['proposal', 'estimate', 'invoice'].indexOf(type) < 0) type = 'proposal';
+    var out = {
+      id: String(doc.id).slice(0, 80),
+      type: type,
+      clientName: String(doc.clientName || '').slice(0, 120),
+      clientEmail: String(doc.clientEmail || '').slice(0, 200),
+      total: typeof doc.total === 'number' && !isNaN(doc.total) ? doc.total : 0,
+      status: status,
+      dueDate: String(doc.dueDate || '').slice(0, 32),
+      notes: String(doc.notes || '').slice(0, 8000),
+      createdAt: doc.createdAt || new Date().toISOString(),
+      updatedAt: doc.updatedAt || new Date().toISOString()
+    };
+    var site = String(doc.proposedSiteUrl || '').trim().slice(0, 500);
+    if (site) out.proposedSiteUrl = site;
+    if (Array.isArray(doc.addOns) && doc.addOns.length) out.addOns = doc.addOns;
+    return out;
+  }
+
+  async function syncBusinessDocToRtdb(doc) {
+    var clean = sanitizeBusinessDocForRtdb(doc);
+    if (!clean || !window.rtdb || !window.rtdbRef || !window.rtdbSet) return;
+    try {
+      await window.rtdbSet(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH + '/' + clean.id), clean);
+    } catch (e) {
+      console.warn('Failed to sync business doc to RTDB', e);
+    }
+  }
+
+  async function removeBusinessDocFromRtdb(docId) {
+    if (!docId || !window.rtdb || !window.rtdbRef || !window.rtdbRemove) return;
+    try {
+      await window.rtdbRemove(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH + '/' + docId));
+    } catch (e) {
+      console.warn('Failed to remove business doc from RTDB', e);
+    }
+  }
+
+  async function loadBusinessDocsFromRtdb() {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) return null;
+    try {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH));
+      var val = snap.val();
+      if (!val || typeof val !== 'object') return null;
+      return Object.keys(val).map(function (k) {
+        return Object.assign({ id: k }, val[k]);
+      });
+    } catch (e) {
+      console.warn('Failed to load business docs from RTDB', e);
+      return null;
+    }
+  }
+
+  async function migrateBusinessDocsToRtdbIfNeeded() {
+    var fromRtdb = await loadBusinessDocsFromRtdb();
+    if (fromRtdb && fromRtdb.length) {
+      businessDocs = fromRtdb;
+      saveBusinessDocs(businessDocs);
+      return;
+    }
+    if (!businessDocs.length) return;
+    for (var i = 0; i < businessDocs.length; i++) {
+      await syncBusinessDocToRtdb(businessDocs[i]);
     }
   }
 
@@ -7604,6 +7676,7 @@ window.addEventListener('load', function() {
       return d.id !== docId;
     });
     saveBusinessDocs(businessDocs);
+    removeBusinessDocFromRtdb(docId).catch(console.error);
     renderBusinessDocs();
     closeDeleteDocumentConfirmModal();
     if (
@@ -7695,6 +7768,7 @@ window.addEventListener('load', function() {
       }
 
       saveBusinessDocs(businessDocs);
+      syncBusinessDocToRtdb(doc).catch(console.error);
       closeBusinessDocModal();
       resetBusinessDocForm();
       renderBusinessDocs();
@@ -7740,6 +7814,11 @@ window.addEventListener('load', function() {
 
   // Initial render on load
   renderBusinessDocs();
+  migrateBusinessDocsToRtdbIfNeeded()
+    .then(function () {
+      renderBusinessDocs();
+    })
+    .catch(console.error);
 
   window.getBusinessDocsSnapshot = function () {
     return businessDocs.slice();
@@ -10194,7 +10273,7 @@ window.addEventListener('load', function() {
   async function generateBusinessDocPdf(doc) {
     try {
       if (!doc) return;
-
+      if (window.BusinessDocShared && window.BusinessDocShared.openPrintWindow(doc)) return;
       var html = buildBusinessDocHtml(doc);
       var win = window.open('', '_blank');
       if (!win) {
@@ -10205,9 +10284,7 @@ window.addEventListener('load', function() {
       win.document.write(html);
       win.document.close();
       win.focus();
-
-      // Wait for fonts/content to load, then trigger print (Save as PDF)
-      setTimeout(function() {
+      setTimeout(function () {
         try {
           win.print();
         } catch (e) {
@@ -11549,6 +11626,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function isCustomerDmPortalEnabled() {
+    if (window.CustomerDmShared && window.CustomerDmShared.isCustomerDmPortalEnabled) {
+      return window.CustomerDmShared.isCustomerDmPortalEnabled();
+    }
     const flags = window.DM_FEATURE_FLAGS || {};
     if (typeof flags.enableCustomerDmPortal === 'boolean') {
       return flags.enableCustomerDmPortal;
@@ -11906,6 +11986,9 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function escapeDmHtml(value) {
+    if (window.CustomerDmShared && window.CustomerDmShared.escapeDmHtml) {
+      return window.CustomerDmShared.escapeDmHtml(value);
+    }
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -12400,50 +12483,17 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderCustomerStatusBadges(meta) {
     const root = document.getElementById('dm-customer-status-badges');
     if (!root) return;
-    const status = String((meta && meta.status) || 'open').toLowerCase();
-    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-    const updated = formatDMDate(meta && (meta.lastMessageAt || meta.updatedAt || meta.createdAt));
-    const unread = Number((meta && meta.unreadCustomer) || 0);
-    root.innerHTML = [
-      '<span class="dm-customer-status-pill dm-customer-status-pill--' + escapeDmHtml(status) + '">Status: ' + escapeDmHtml(statusLabel) + '</span>',
-      updated ? '<span class="dm-customer-status-pill">Updated: ' + escapeDmHtml(updated) + '</span>' : '',
-      unread > 0 ? '<span class="dm-customer-status-pill">Unread: ' + unread + '</span>' : '<span class="dm-customer-status-pill">Unread: 0</span>'
-    ].join('');
+    if (window.CustomerDmShared && window.CustomerDmShared.renderStatusBadgesHtml) {
+      root.innerHTML = window.CustomerDmShared.renderStatusBadgesHtml(meta);
+      return;
+    }
   }
 
-  async function getOrCreateConversationForEmail(email, name) {
-    const metaRoot = window.rtdbRef(window.rtdb, 'dm/meta');
-    const q = window.rtdbQuery(
-      metaRoot,
-      window.rtdbOrderByChild('customerEmail'),
-      window.rtdbEqualTo(email.toLowerCase()),
-      window.rtdbLimitToFirst(1)
-    );
-    const snap = await promiseWithTimeout(window.rtdbGet(q), 20000);
-    const val = snap.val();
-    if (val) {
-      const id = Object.keys(val)[0];
-      return Object.assign({}, val[id], { id: id });
+  async function getOrCreateConversationForEmail(email, name, options) {
+    if (window.CustomerDmShared && window.CustomerDmShared.getOrCreateConversationForEmail) {
+      return window.CustomerDmShared.getOrCreateConversationForEmail(email, name, options);
     }
-
-    const newRef = window.rtdbPush(metaRoot);
-    const id = newRef.key;
-    const now = window.rtdbServerTimestamp();
-    await promiseWithTimeout(window.rtdbSet(newRef, {
-      customerName: name,
-      customerEmail: email.toLowerCase(),
-      source: 'portal',
-      status: 'open',
-      priority: 'normal',
-      tags: ['portal'],
-      assignee: 'Admin',
-      unreadAdmin: 0,
-      unreadCustomer: 0,
-      lastMessage: '',
-      createdAt: now,
-      updatedAt: now
-    }), 20000);
-    return { id: id, customerName: name, customerEmail: email.toLowerCase() };
+    throw new Error('Customer DM module not loaded');
   }
 
   async function validateMagicToken(token) {
@@ -12470,73 +12520,25 @@ document.addEventListener('DOMContentLoaded', function() {
   function renderCustomerThread(messages) {
     const list = document.getElementById('dm-customer-message-list');
     if (!list) return;
-    if (!messages.length) {
-      list.innerHTML = [
-        '<div class="dm-thread-empty no-messages" role="status">',
-        '<ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>',
-        '<p class="dm-thread-empty-title">No messages yet</p>',
-        '<p class="dm-thread-empty-hint">Your conversation appears here in real time.</p>',
-        '</div>'
-      ].join('');
+    if (window.CustomerDmShared && window.CustomerDmShared.renderMessagesToElement) {
+      window.CustomerDmShared.renderMessagesToElement(list, messages, { showReadState: true });
       return;
     }
-    list.innerHTML = messages.map(function (msg) {
-      const mine = msg.senderRole === 'customer';
-      return [
-        '<div class="dm-message-row ' + (mine ? 'dm-message-customer' : 'dm-message-admin') + '">',
-        '<div class="dm-message-bubble">',
-        '<p class="dm-message-author">' + (mine ? 'You' : 'Admin') + '</p>',
-        '<div class="dm-message-body">' + renderDmMessageBodyHtml(msg) + '</div>',
-        renderDmAttachmentHtml(msg),
-        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? '' : (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) ) + '</p>',
-        '</div>',
-        '</div>'
-      ].join('');
-    }).join('');
-    list.scrollTop = list.scrollHeight;
   }
 
   async function startCustomerThread(session) {
     if (!session || !session.conversationId) return;
-
-    if (DM.unsubCustomerMessages) DM.unsubCustomerMessages();
-    if (DM.unsubCustomerMeta) DM.unsubCustomerMeta();
-    const threadRef = rtdbThreadRef(session.conversationId);
-    const q = window.rtdbQuery(threadRef, window.rtdbOrderByChild('createdAt'), window.rtdbLimitToFirst(200));
-    DM.unsubCustomerMessages = window.rtdbOnValue(q, async function (snap) {
-      const val = snap.val() || {};
-      const messages = Object.keys(val)
-        .map(function (k) {
-          return Object.assign({}, val[k], { id: k });
-        })
-        .sort(function (a, b) { return (a.createdAt || 0) - (b.createdAt || 0); });
-      renderCustomerThread(messages);
-      const unread = messages.filter(function (m) { return !m.readByCustomer; });
-      if (unread.length) {
-        const rootRef = window.rtdbRef(window.rtdb);
-        const patch = {};
-        unread.forEach(function (msg) {
-          patch['dm/threadMessages/' + session.conversationId + '/' + msg.id + '/readByCustomer'] = true;
-          patch['dm/threadMessages/' + session.conversationId + '/' + msg.id + '/readAtCustomer'] = window.rtdbServerTimestamp();
-        });
-        await window.rtdbUpdate(rootRef, patch).catch(function () {});
+    stopCustomerDmMessageSubscription();
+    if (!window.CustomerDmShared || !window.CustomerDmShared.subscribeCustomerThread) return;
+    const sub = window.CustomerDmShared.subscribeCustomerThread(session, {
+      onMessages: function (messages) {
+        renderCustomerThread(messages);
+      },
+      onMeta: function (meta) {
+        renderCustomerStatusBadges(meta);
       }
-      await window.rtdbUpdate(rtdbMetaRef(session.conversationId), {
-        unreadCustomer: 0,
-        updatedAt: window.rtdbServerTimestamp()
-      }).catch(function () {});
     });
-
-    DM.unsubCustomerMeta = window.rtdbOnValue(rtdbMetaRef(session.conversationId), function (snap) {
-      renderCustomerStatusBadges(snap.val() || {});
-    });
-
-    await window.rtdbSet(rtdbPresenceRef(session.conversationId, 'customer'), {
-      senderRole: 'customer',
-      isOnline: true,
-      isTyping: false,
-      updatedAt: window.rtdbServerTimestamp()
-    });
+    DM.unsubCustomerThreadStop = sub.stop;
   }
 
   function stripDmTokenQueryParam() {
@@ -12550,6 +12552,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function stopCustomerDmMessageSubscription() {
+    if (DM.unsubCustomerThreadStop && typeof DM.unsubCustomerThreadStop === 'function') {
+      DM.unsubCustomerThreadStop();
+      DM.unsubCustomerThreadStop = null;
+    }
     if (DM.unsubCustomerMessages && typeof DM.unsubCustomerMessages === 'function') {
       DM.unsubCustomerMessages();
       DM.unsubCustomerMessages = null;
@@ -12844,17 +12850,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function restoreCustomerPortalFromStorage() {
-    const saved = localStorage.getItem('customerDmSession');
+    const saved =
+      window.CustomerDmShared && window.CustomerDmShared.readCustomerSession
+        ? window.CustomerDmShared.readCustomerSession()
+        : null;
     if (!saved) return false;
-    try {
-      DM.customerSession = JSON.parse(saved);
-      if (!DM.customerSession || !DM.customerSession.conversationId) return false;
-      openCustomerPortalSession();
-      startCustomerThread(DM.customerSession).catch(function () {});
-      return true;
-    } catch (error) {
-      return false;
-    }
+    DM.customerSession = saved;
+    openCustomerPortalSession();
+    startCustomerThread(DM.customerSession).catch(function () {});
+    return true;
   }
 
   function bindCustomerPortalEvents() {
@@ -12902,7 +12906,11 @@ document.addEventListener('DOMContentLoaded', function() {
               customerEmail: (conv.customerEmail || email).toLowerCase(),
               customerName: conv.customerName || name
             };
-            localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
+            if (window.CustomerDmShared && window.CustomerDmShared.writeCustomerSession) {
+              window.CustomerDmShared.writeCustomerSession(DM.customerSession);
+            } else {
+              localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
+            }
             setPortalStatus('', false);
             openCustomerPortalSession();
             return startCustomerThread(DM.customerSession);
@@ -12944,54 +12952,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const attachmentUrl = attachmentInput && attachmentInput.value.trim() ? attachmentInput.value.trim() : '';
         const cleanAttachmentUrl = normalizeDmAttachmentUrl(attachmentUrl);
         if (!text && !cleanAttachmentUrl) return;
-        const displayName = DM.customerSession.customerName || 'Customer';
-        const msgRef = window.rtdbPush(rtdbThreadRef(DM.customerSession.conversationId));
-        window.rtdbSet(msgRef, {
-          senderRole: 'customer',
-          senderName: displayName,
-          body: text,
-          attachmentUrl: cleanAttachmentUrl,
-          createdAt: window.rtdbServerTimestamp(),
-          readByAdmin: false,
-          readByCustomer: true,
-          type: cleanAttachmentUrl ? 'attachment' : 'text'
-        }).then(function () {
-          const metaPatch = {
-            lastMessage: text,
-            lastMessageAt: window.rtdbServerTimestamp(),
-            status: 'open',
-            updatedAt: window.rtdbServerTimestamp()
-          };
-          if (window.rtdbIncrement) {
-            metaPatch.unreadAdmin = window.rtdbIncrement(1);
-          } else {
-            metaPatch.unreadAdmin = 1;
-          }
-          return window.rtdbUpdate(rtdbMetaRef(DM.customerSession.conversationId), metaPatch);
-        }).then(function () {
-          input.value = '';
-          if (attachmentInput) attachmentInput.value = '';
-        }).catch(function (error) {
-          alert('Failed to send: ' + error.message);
-        });
+        const send =
+          window.CustomerDmShared && window.CustomerDmShared.sendCustomerMessage
+            ? window.CustomerDmShared.sendCustomerMessage(
+                DM.customerSession.conversationId,
+                DM.customerSession,
+                text,
+                cleanAttachmentUrl
+              )
+            : Promise.reject(new Error('Customer DM module not loaded'));
+        send
+          .then(function () {
+            input.value = '';
+            if (attachmentInput) attachmentInput.value = '';
+          })
+          .catch(function (error) {
+            alert('Failed to send: ' + error.message);
+          });
       });
 
       input.addEventListener('input', function () {
         if (!DM.customerSession || !DM.customerSession.conversationId) return;
-        window.rtdbSet(rtdbPresenceRef(DM.customerSession.conversationId, 'customer'), {
-          senderRole: 'customer',
-          isOnline: true,
-          isTyping: true,
-          updatedAt: window.rtdbServerTimestamp()
-        }).catch(function () {});
+        if (window.CustomerDmShared && window.CustomerDmShared.setCustomerTyping) {
+          window.CustomerDmShared.setCustomerTyping(DM.customerSession.conversationId, true).catch(function () {});
+        }
         clearTimeout(DM.typingTimer);
         DM.typingTimer = setTimeout(function () {
-          window.rtdbSet(rtdbPresenceRef(DM.customerSession.conversationId, 'customer'), {
-            senderRole: 'customer',
-            isOnline: true,
-            isTyping: false,
-            updatedAt: window.rtdbServerTimestamp()
-          }).catch(function () {});
+          if (window.CustomerDmShared && window.CustomerDmShared.setCustomerTyping) {
+            window.CustomerDmShared.setCustomerTyping(DM.customerSession.conversationId, false).catch(function () {});
+          }
         }, 1200);
       });
     }

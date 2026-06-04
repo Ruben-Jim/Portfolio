@@ -207,7 +207,7 @@
       '<div class="portfolio-carousel-dots" role="tablist" aria-label="Screenshot slides"></div>' +
       '</div></figure>' +
       '<div class="project-detail-body">' +
-      '<div class="project-detail-scroll">' +
+      '<div class="project-detail-scroll has-scrollbar">' +
       '<div class="project-detail-meta">' +
       '<h2 class="project-detail-title">' +
       esc(record.title || 'Project') +

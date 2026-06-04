@@ -50,6 +50,7 @@ Rules under `dm/` are permissive for development parity with the previous Firest
 
 - Firebase modular SDK is loaded once in [`index.html`](index.html) (and [`404.html`](404.html)): Firestore + Auth + Realtime Database helpers on `window` (`rtdbRef`, `rtdbOnValue`, `rtdbServerTimestamp`, …).
 - [`assets/js/script.js`](assets/js/script.js) initializes `window.rtdb` via `getDatabase(app)` when `databaseURL` is present.
+- [`assets/js/customer-dm-shared.js`](assets/js/customer-dm-shared.js) — customer thread open, subscribe, send (Messages page + client portal).
 - Optional standalone migration: [`assets/js/dm-migration.js`](assets/js/dm-migration.js) exposes `window.dmMigration.migrateLegacyMessagesToConversations()` (same RTDB layout as the admin migrate button).
 - Feature flags: [`assets/js/config.js`](assets/js/config.js) — `enableCustomerDmPortal` (preferred) and deprecated `enableCustomerMagicLinks` (both gate the customer portal when set to `false`).
 
@@ -58,9 +59,16 @@ Rules under `dm/` are permissive for development parity with the previous Firest
 ### Customer (Messages page)
 
 1. Enter **name** and **email**, then **Open my conversation**. The app finds or creates one conversation per email in **`dm/meta`** (query on `customerEmail`).
-2. A small session (`conversationId`, `customerEmail`, `customerName`) is stored in **`localStorage`**; the UI subscribes to **`dm/threadMessages/{conversationId}`** for real-time messages. **No email is sent.**
+2. A small session (`conversationId`, `customerEmail`, `customerName`) is stored in **`localStorage`** (`customerDmSession`); the UI subscribes to **`dm/threadMessages/{conversationId}`** for real-time messages. **No email is sent.**
 3. Sending a message **`push()`**es into the thread and updates **`dm/meta`** (last message, unread counts for admin).
 4. **Legacy:** If the URL contains **`?dm_token=`**, a one-time validation against **`dm/magicLinks/{token}`** can still open the thread (then the param is removed).
+
+### Customer (client portal)
+
+1. On [`portal.html`](portal.html), the **Maintenance & support** section includes inline messaging when `enableCustomerDmPortal` is true in [`assets/js/config.js`](assets/js/config.js).
+2. Uses the same **`customerDmSession`** and **`getOrCreateConversationForEmail`** flow as the Messages page (one thread per email). Reloading the portal or Messages page restores the same conversation.
+3. New conversations opened from the portal may include `source: 'client-portal'`, tags `client-portal`, and optional **`agencyProjectId`** on **`dm/meta`** for admin context.
+4. Shared helpers live in [`assets/js/customer-dm-shared.js`](assets/js/customer-dm-shared.js) (loaded on the main site and portal).
 
 ### Admin (Contact Messages tab, logged in)
 

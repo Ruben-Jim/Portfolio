@@ -4822,6 +4822,15 @@ article {
   gap: 6px;
 }
 
+.admin-portfolio-action-label {
+  display: none;
+  font-size: 10px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
 .admin-portfolio-order-btn {
   width: 36px;
   height: 36px;
@@ -4831,6 +4840,20 @@ article {
 
 .admin-portfolio-order-btn ion-icon {
   font-size: 18px;
+}
+
+.admin-portfolio-action-btn--edit {
+  border-color: hsla(45, 100%, 72%, 0.22);
+}
+
+.admin-portfolio-action-btn--delete {
+  border-color: hsla(0, 55%, 55%, 0.25);
+}
+
+.admin-portfolio-action-btn--order:hover {
+  border-color: hsla(192, 50%, 55%, 0.35);
+  background: hsla(192, 45%, 45%, 0.12);
+  color: hsl(192, 58%, 78%);
 }
 
 #portfolio-admin-section .admin-portfolio-list-panel > .empty-item {
@@ -4861,6 +4884,7 @@ article {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0;
   border-radius: 8px;
 }
 
@@ -4868,7 +4892,7 @@ article {
   font-size: 18px;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .admin-portfolio-toolbar .btn {
     width: 100%;
   }
@@ -4876,7 +4900,7 @@ article {
   .admin-portfolio-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 10px;
     padding: 12px;
   }
 
@@ -4891,34 +4915,75 @@ article {
   }
 
   .admin-portfolio-title {
+    font-size: var(--fs-6);
     white-space: normal;
     overflow: visible;
     text-overflow: initial;
     overflow-wrap: anywhere;
     word-break: break-word;
+    -webkit-line-clamp: unset;
   }
 
   .admin-portfolio-row-actions {
+    display: block;
     width: 100%;
-    justify-content: flex-end;
     align-self: stretch;
-    padding: 6px;
+    padding: 8px;
+    border-radius: 12px;
+    background: hsla(0, 0%, 0%, 0.28);
+    border: 1px solid hsla(45, 100%, 72%, 0.12);
   }
 
   .admin-portfolio-actions-grid {
-    margin-left: auto;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto auto;
+    gap: 8px;
+    justify-items: stretch;
   }
 
-  .admin-portfolio-action-btn,
-  .admin-portfolio-order-btn {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
+  .admin-portfolio-actions-grid .blog-action-btn,
+  .admin-portfolio-actions-grid .admin-portfolio-action-btn,
+  .admin-portfolio-actions-grid .admin-portfolio-order-btn {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: auto;
+    min-height: 44px;
+    padding: 10px 8px;
+    flex-direction: column;
+    gap: 4px;
+    border-radius: 10px;
   }
 
-  .admin-portfolio-actions-grid {
-    grid-template-columns: repeat(2, 40px);
-    grid-template-rows: repeat(2, 40px);
+  .admin-portfolio-action-label {
+    display: block;
+  }
+
+  .admin-portfolio-action-btn ion-icon,
+  .admin-portfolio-order-btn ion-icon {
+    font-size: 20px;
+  }
+
+  .admin-portfolio-action-btn--edit {
+    background: hsla(45, 100%, 72%, 0.1);
+    border-color: hsla(45, 100%, 72%, 0.28);
+    color: var(--orange-yellow-crayola);
+  }
+
+  .admin-portfolio-action-btn--delete {
+    background: hsla(0, 55%, 50%, 0.1);
+    border-color: hsla(0, 55%, 55%, 0.28);
+    color: hsl(0, 72%, 72%);
+  }
+
+  .admin-portfolio-action-btn--order {
+    background: hsla(192, 45%, 45%, 0.08);
+    border-color: hsla(192, 50%, 55%, 0.2);
+    color: hsl(192, 58%, 78%);
   }
 }
 
@@ -4954,6 +5019,28 @@ article {
 [data-theme="light"] .admin-portfolio-row-actions {
   background: hsla(0, 0%, 100%, 0.7);
   border-color: hsla(0, 0%, 0%, 0.08);
+}
+
+@media (max-width: 768px) {
+  [data-theme="light"] .admin-portfolio-row-actions {
+    background: hsla(0, 0%, 96%, 0.95);
+    border-color: hsla(0, 0%, 0%, 0.1);
+  }
+
+  [data-theme="light"] .admin-portfolio-action-btn--edit {
+    background: hsla(45, 58%, 45%, 0.12);
+    color: hsl(45, 58%, 32%);
+  }
+
+  [data-theme="light"] .admin-portfolio-action-btn--delete {
+    background: hsla(0, 55%, 50%, 0.08);
+    color: hsl(0, 55%, 42%);
+  }
+
+  [data-theme="light"] .admin-portfolio-action-btn--order {
+    background: hsla(192, 40%, 45%, 0.08);
+    color: hsl(192, 45%, 32%);
+  }
 }
 
 [data-theme="light"] .admin-portfolio-thumb-wrap {

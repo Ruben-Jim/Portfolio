@@ -62,6 +62,10 @@
       ".read": true,
       ".write": true
     },
+    "agencyBusinessDocuments": {
+      ".read": true,
+      ".write": true
+    },
     "agencyFirebaseHealth": {
       ".read": true,
       ".write": true

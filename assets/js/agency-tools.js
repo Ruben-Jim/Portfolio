@@ -452,14 +452,32 @@
     ];
   }
 
+  function inferMaintenancePlanStatus(row) {
+    var ps = String((row && row.planStatus) || '').toLowerCase();
+    if (ps === 'pending' || ps === 'active' || ps === 'none') return ps;
+    if (row && (row.renewalDate || Number(row.hoursIncluded) > 0)) return 'active';
+    return 'none';
+  }
+
+  function maintenanceTierDefaults(tier) {
+    var t = String(tier || 'standard').toLowerCase();
+    if (t === 'priority') {
+      return { planTier: 'priority', slaHours: 24, hoursIncluded: 8 };
+    }
+    return { planTier: 'standard', slaHours: 72, hoursIncluded: 4 };
+  }
+
   function normalizeMaintenance(id, row) {
     row = row || {};
-    return {
+    var normalized = {
       id: id,
       clientName: String(row.clientName || '').slice(0, 120),
       leadId: String(row.leadId || ''),
       projectId: String(row.projectId || ''),
       planTier: String(row.planTier || 'standard').slice(0, 40),
+      planStatus: String(row.planStatus || '').toLowerCase().slice(0, 20),
+      billingPreference: String(row.billingPreference || 'monthly').slice(0, 20),
+      planRequestedAt: row.planRequestedAt || null,
       hoursIncluded: Number(row.hoursIncluded) || 4,
       hoursUsed: Number(row.hoursUsed) || 0,
       renewalDate: String(row.renewalDate || ''),
@@ -468,6 +486,8 @@
       tickets: Array.isArray(row.tickets) ? row.tickets : [],
       updatedAt: row.updatedAt || null
     };
+    normalized.effectivePlanStatus = inferMaintenancePlanStatus(normalized);
+    return normalized;
   }
 
   function normalizeReferral(id, row) {
@@ -967,7 +987,11 @@
           '<button type="button" class="hub-list-item-open" data-maint-id="' + esc(m.id) + '" aria-label="Open maintenance for ' + esc(m.clientName) + '">' +
           '<span class="hub-list-item-main">' +
           '<strong class="hub-list-item-title">' + esc(m.clientName) + '</strong>' +
-          '<span class="hub-list-item-meta">' + m.hoursUsed + '/' + m.hoursIncluded + ' hrs · SLA ' + m.slaHours + 'h</span>' +
+          '<span class="hub-list-item-meta">' +
+          (m.effectivePlanStatus === 'pending'
+            ? '<span class="cp-maint-pending-badge">Pending</span> · ' + esc(m.planTier || 'standard') + ' · ' + esc(m.billingPreference || 'monthly')
+            : m.hoursUsed + '/' + m.hoursIncluded + ' hrs · SLA ' + m.slaHours + 'h') +
+          '</span>' +
           '</span>' +
           '<span class="hub-list-chevron" aria-hidden="true"><ion-icon name="chevron-forward-outline"></ion-icon></span>' +
           '</button>' +
@@ -1098,7 +1122,20 @@
     var m = agencyMaintenance.find(function (x) { return x.id === id; });
     if (!m && id !== 'new') return;
     if (id === 'new') {
-      m = { id: '', clientName: '', leadId: '', projectId: '', planTier: 'standard', hoursIncluded: 4, hoursUsed: 0, renewalDate: '', slaHours: 48, notes: '' };
+      m = {
+        id: '',
+        clientName: '',
+        leadId: '',
+        projectId: '',
+        planTier: 'standard',
+        planStatus: 'active',
+        billingPreference: 'monthly',
+        hoursIncluded: 4,
+        hoursUsed: 0,
+        renewalDate: '',
+        slaHours: 48,
+        notes: ''
+      };
     }
     document.getElementById('maint-edit-id').value = m.id || '';
     document.getElementById('maint-client-name').value = m.clientName || '';
@@ -1113,6 +1150,7 @@
   async function saveMaintenance() {
     if (!rtdbReady()) return;
     var id = document.getElementById('maint-edit-id').value.trim();
+    var existing = id ? agencyMaintenance.find(function (x) { return x.id === id; }) : null;
     var payload = {
       clientName: document.getElementById('maint-client-name').value.trim(),
       hoursIncluded: Number(document.getElementById('maint-hours-included').value) || 4,
@@ -1122,6 +1160,18 @@
       notes: document.getElementById('maint-notes').value.trim(),
       updatedAt: ts()
     };
+    if (existing) {
+      payload.planTier = existing.planTier;
+      payload.planStatus = existing.planStatus || existing.effectivePlanStatus || 'active';
+      payload.billingPreference = existing.billingPreference || 'monthly';
+      payload.planRequestedAt = existing.planRequestedAt || null;
+      payload.projectId = existing.projectId || '';
+      payload.leadId = existing.leadId || '';
+    } else {
+      payload.planTier = 'standard';
+      payload.planStatus = 'active';
+      payload.billingPreference = 'monthly';
+    }
     if (id) {
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + id), payload);
     } else {
@@ -2096,6 +2146,9 @@
     }
     if (id === 'maintenance') {
       if (!maint) return 'No record';
+      if (maint.effectivePlanStatus === 'pending') {
+        return 'Pending · ' + (maint.planTier || 'standard');
+      }
       return maint.hoursUsed + '/' + maint.hoursIncluded + ' hrs';
     }
     if (id === 'health') {
@@ -2253,7 +2306,9 @@
       portfolioHtml =
         '<div class="cp-portfolio-summary">' +
         (imgUrl ? '<img src="' + esc(imgUrl) + '" alt="" loading="lazy">' : '') +
-        '<div><strong>' + esc(portfolio.title || 'Portfolio project') + '</strong>' +
+        '<div><strong class="cp-portfolio-showcase-title">' +
+        esc(portfolio.title || 'Portfolio project') +
+        '</strong>' +
         (portfolio.category ? '<div class="cp-docs-meta">' + esc(portfolio.category) + '</div>' : '') +
         (!isPortfolioEntryPublic(portfolio) ? '<div class="cp-docs-meta">Private — shared via client portal only</div>' : '') +
         (portfolioLinked
@@ -2294,8 +2349,23 @@
       '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-hub">Delete client</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="hub" role="status"></p></div>';
 
+    var maintPendingBlock =
+      maint && maint.effectivePlanStatus === 'pending'
+        ? '<div class="cp-maint-pending-alert" role="status">' +
+          '<p><strong>Plan request pending</strong> — ' +
+          esc((maint.planTier || 'standard').charAt(0).toUpperCase() + (maint.planTier || 'standard').slice(1)) +
+          ' · ' +
+          esc(maint.billingPreference === 'annual' ? 'Annual billing' : 'Monthly billing') +
+          '</p>' +
+          '<div class="cp-section-actions">' +
+          '<button type="button" class="btn btn-primary btn-sm" data-cp-action="approve-maint-plan">Approve plan</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="decline-maint-plan">Decline</button>' +
+          '</div></div>'
+        : '';
+
     var maintBody = maint
       ? '<input type="hidden" id="cp-maint-id" value="' + esc(maint.id) + '">' +
+        maintPendingBlock +
         '<div class="cp-form-grid cp-form-grid--can-split">' +
         '<div class="form-group"><label for="cp-maint-hours-included">Hours included</label><input id="cp-maint-hours-included" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursIncluded)) + '"></div>' +
         '<div class="form-group"><label for="cp-maint-hours-used">Hours used</label><input id="cp-maint-hours-used" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursUsed)) + '"></div>' +
@@ -2467,6 +2537,7 @@
     var maintId = (document.getElementById('cp-maint-id') || {}).value.trim();
     if (!maintId) return;
     var hub = getHubById(clientProjectsSelectedId);
+    var existing = agencyMaintenance.find(function (x) { return x.id === maintId; });
     var payload = {
       clientName: hub ? hub.clientName : '',
       leadId: hub ? hub.leadId : '',
@@ -2478,6 +2549,13 @@
       notes: (document.getElementById('cp-maint-notes') || {}).value.trim(),
       updatedAt: ts()
     };
+    if (existing) {
+      payload.planTier = existing.planTier;
+      payload.planStatus = existing.planStatus || existing.effectivePlanStatus || 'active';
+      payload.billingPreference = existing.billingPreference || 'monthly';
+      payload.planRequestedAt = existing.planRequestedAt || null;
+      payload.tickets = existing.tickets || [];
+    }
     try {
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
       setCpFeedback('maint', 'Maintenance saved.', false);
@@ -2488,6 +2566,36 @@
     }
   }
 
+  async function approveMaintenancePlan(maintId) {
+    if (!maintId || !rtdbReady()) return;
+    var m = agencyMaintenance.find(function (x) { return x.id === maintId; });
+    if (!m) return;
+    var defs = maintenanceTierDefaults(m.planTier);
+    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId));
+    var row = snap.val() || {};
+    var payload = Object.assign({}, row, defs, {
+      planStatus: 'active',
+      planTier: defs.planTier,
+      updatedAt: ts()
+    });
+    await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
+  }
+
+  async function declineMaintenancePlan(maintId) {
+    if (!maintId || !rtdbReady()) return;
+    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId));
+    var row = snap.val() || {};
+    var note = String(row.notes || '').trim();
+    var declineNote = 'Plan request declined ' + new Date().toLocaleDateString() + '.';
+    var payload = Object.assign({}, row, {
+      planStatus: 'none',
+      planRequestedAt: null,
+      notes: note ? note + '\n' + declineNote : declineNote,
+      updatedAt: ts()
+    });
+    await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
+  }
+
   async function createMaintenanceForHub(hub) {
     if (!hub || !rtdbReady()) return;
     var payload = {
@@ -2495,6 +2603,8 @@
       leadId: hub.leadId || '',
       projectId: hub.id,
       planTier: 'standard',
+      planStatus: 'active',
+      billingPreference: 'monthly',
       hoursIncluded: 4,
       hoursUsed: 0,
       renewalDate: '',
@@ -2660,6 +2770,35 @@
     }
     if (action === 'add-maint') {
       if (hub) createMaintenanceForHub(hub).catch(console.error);
+      return;
+    }
+    if (action === 'approve-maint-plan') {
+      var approveId = (document.getElementById('cp-maint-id') || {}).value.trim();
+      if (!approveId) return;
+      approveMaintenancePlan(approveId)
+        .then(function () {
+          setCpFeedback('maint', 'Plan approved and activated.', false);
+          renderClientProjectsWorkspace();
+          if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+        })
+        .catch(function (err) {
+          console.error(err);
+          setCpFeedback('maint', (err && err.message) || 'Approve failed.', true);
+        });
+      return;
+    }
+    if (action === 'decline-maint-plan') {
+      var declineId = (document.getElementById('cp-maint-id') || {}).value.trim();
+      if (!declineId) return;
+      declineMaintenancePlan(declineId)
+        .then(function () {
+          setCpFeedback('maint', 'Plan request declined.', false);
+          renderClientProjectsWorkspace();
+        })
+        .catch(function (err) {
+          console.error(err);
+          setCpFeedback('maint', (err && err.message) || 'Decline failed.', true);
+        });
       return;
     }
     if (action === 'save-health') {
