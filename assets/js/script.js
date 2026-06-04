@@ -3413,11 +3413,27 @@ function portfolioParseDetailSections(raw) {
     .slice(0, 8);
 }
 
+function portfolioDetailSectionsForForm(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(function (s) {
+      if (!s || typeof s !== 'object') return { title: '', body: '' };
+      return {
+        title: String(s.title || '').slice(0, 120),
+        body: String(s.body || '').slice(0, 4000)
+      };
+    })
+    .slice(0, 8);
+}
+
 function renderPortfolioDetailSectionsList(sections) {
   var list = document.getElementById('portfolio-detail-sections-list');
   if (!list) return;
-  var rows = portfolioParseDetailSections(sections);
-  if (!rows.length) rows = [{ title: '', body: '' }];
+  var rows = portfolioDetailSectionsForForm(sections);
+  if (!rows.length) {
+    list.innerHTML = '';
+    return;
+  }
   list.innerHTML = rows
     .map(function (s, i) {
       return (
@@ -3450,9 +3466,9 @@ function collectPortfolioDetailSectionsFromDom() {
     var bodyEl = row.querySelector('.portfolio-detail-section-body');
     var title = titleEl ? titleEl.value.trim() : '';
     var body = bodyEl ? bodyEl.value.trim() : '';
-    if (title || body) out.push({ title: title, body: body });
+    out.push({ title: title, body: body });
   });
-  return out;
+  return out.slice(0, 8);
 }
 
 function portfolioSanitizeDocumentPayload(data) {
@@ -4420,7 +4436,8 @@ function setupPortfolioAdminControls() {
   var detailSectionsAdd = document.getElementById('portfolio-detail-section-add');
   if (detailSectionsAdd && !detailSectionsAdd.dataset.bound) {
     detailSectionsAdd.dataset.bound = '1';
-    detailSectionsAdd.addEventListener('click', function () {
+    detailSectionsAdd.addEventListener('click', function (e) {
+      e.preventDefault();
       var current = collectPortfolioDetailSectionsFromDom();
       if (current.length >= 8) {
         showErrorMessage('Maximum 8 detail sections per project.');
@@ -4435,12 +4452,10 @@ function setupPortfolioAdminControls() {
     detailSectionsList.addEventListener('click', function (e) {
       var removeBtn = e.target.closest('.portfolio-detail-section-remove');
       if (!removeBtn) return;
+      e.preventDefault();
       var row = removeBtn.closest('.portfolio-detail-section-row');
       if (!row) return;
       row.remove();
-      if (!detailSectionsList.querySelector('.portfolio-detail-section-row')) {
-        renderPortfolioDetailSectionsList([]);
-      }
     });
   }
 
@@ -4546,7 +4561,7 @@ function setupPortfolioAdminControls() {
         showPublicPortfolio: document.getElementById('portfolio-project-show-public')
           ? document.getElementById('portfolio-project-show-public').checked
           : true,
-        detailSections: collectPortfolioDetailSectionsFromDom()
+        detailSections: portfolioParseDetailSections(collectPortfolioDetailSectionsFromDom())
       };
       try {
         let newPortfolioId = null;
