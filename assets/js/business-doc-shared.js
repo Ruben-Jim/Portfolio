@@ -364,4 +364,4 @@
     buildPrintHtml: buildBusinessDocHtml,
     openPrintWindow: openPrintWindow
   };
-})();
+})(typeof window !== 'undefined' ? window : this);

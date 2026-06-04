@@ -107,7 +107,12 @@
 
   async function loadAllMaintenanceRecords() {
     if (!rtdbReady()) return [];
-    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_MAINTENANCE));
+    try {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_MAINTENANCE));
+    } catch (err) {
+      console.warn('Could not load maintenance records for portal:', err);
+      return [];
+    }
     var val = snap.val();
     if (!val || typeof val !== 'object') return [];
     return Object.keys(val).map(function (key) {
@@ -223,37 +228,43 @@
     );
   }
 
-  function renderPortalDmBlock(project) {
-    if (!window.CustomerDmShared || !window.CustomerDmShared.isCustomerDmPortalEnabled()) {
-      return '';
-    }
-    if (!rtdbWriteReady() || !window.rtdbOnValue) {
-      return (
-        '<div class="client-portal-dm-block">' +
-        '<h3 class="client-portal-support-subhead">Messages</h3>' +
-        '<p class="client-portal-dm-unavailable">Messaging is temporarily unavailable. Please use the contact form on our website.</p></div>'
-      );
-    }
-    var prefillName = esc(project.clientName || project.title || '');
+  function isPortalDmAvailable() {
     return (
-      '<div class="client-portal-dm-block" id="portal-dm-root">' +
-      '<h3 class="client-portal-support-subhead">Messages</h3>' +
-      '<p class="client-portal-dm-lead">Report an issue or ask about maintenance. Uses the same thread as our Messages page when you sign in with the same email.</p>' +
-      '<div id="portal-dm-auth">' +
-      '<form id="portal-dm-open-form" class="client-portal-dm-form">' +
-      '<input type="text" id="portal-dm-name" class="client-portal-input" placeholder="Your name" required value="' +
-      prefillName +
+      window.CustomerDmShared &&
+      window.CustomerDmShared.isCustomerDmPortalEnabled() &&
+      rtdbWriteReady() &&
+      window.rtdbOnValue
+    );
+  }
+
+  function renderPortalDmOverlayHtml(prefillName) {
+    return (
+      '<div id="portal-dm-sheet-root" class="portal-dm-sheet-root" aria-hidden="true">' +
+      '<div class="portal-dm-sheet-backdrop" id="portal-dm-sheet-backdrop"></div>' +
+      '<div class="portal-dm-sheet" role="dialog" aria-modal="true" aria-labelledby="portal-dm-sheet-title">' +
+      '<div class="portal-dm-sheet-grabber" id="portal-dm-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag to resize" tabindex="0"></div>' +
+      '<div class="portal-dm-sheet-head">' +
+      '<h2 id="portal-dm-sheet-title" class="portal-dm-sheet-title">Messages</h2>' +
+      '<button type="button" class="portal-dm-sheet-close" id="portal-dm-sheet-close" aria-label="Close messages">×</button>' +
+      '</div>' +
+      '<div class="portal-dm-sheet-body has-scrollbar">' +
+      '<div id="portal-dm-auth" class="portal-dm-auth">' +
+      '<p class="portal-dm-auth-lead">Use your name and email to open your thread. Same conversation as our Messages page when you use the same email.</p>' +
+      '<form id="portal-dm-open-form" class="portal-dm-auth-form">' +
+      '<input type="text" id="portal-dm-name" class="portal-dm-input" placeholder="Your name" required value="' +
+      esc(prefillName) +
       '">' +
-      '<input type="email" id="portal-dm-email" class="client-portal-input" placeholder="Your email" required>' +
-      '<p id="portal-dm-status" class="client-portal-dm-status" role="status"></p>' +
-      '<button type="submit" class="btn btn-primary">Open conversation</button></form></div>' +
-      '<div id="portal-dm-thread" class="client-portal-dm-thread" hidden>' +
-      '<div id="portal-dm-status-badges" class="client-portal-dm-badges" role="status"></div>' +
-      '<div id="portal-dm-message-list" class="client-portal-dm-messages has-scrollbar" aria-live="polite"></div>' +
-      '<form id="portal-dm-composer" class="client-portal-dm-composer">' +
-      '<textarea id="portal-dm-message" class="client-portal-input" rows="2" placeholder="Describe the issue or question…" required></textarea>' +
-      '<button type="submit" class="btn btn-primary">Send</button></form>' +
-      '<button type="button" class="btn btn-secondary btn-sm" id="portal-dm-switch-email">Use different email</button></div></div>'
+      '<input type="email" id="portal-dm-email" class="portal-dm-input" placeholder="Your email" required>' +
+      '<p id="portal-dm-status" class="portal-dm-status" role="status" aria-live="polite"></p>' +
+      '<button type="submit" class="btn btn-primary btn-block">Open conversation</button></form></div>' +
+      '<div id="portal-dm-conversation" class="portal-dm-conversation" hidden>' +
+      '<div id="portal-dm-status-badges" class="portal-dm-badges" role="status"></div>' +
+      '<div id="portal-dm-message-list" class="portal-dm-message-list has-scrollbar" aria-live="polite"></div>' +
+      '<form id="portal-dm-composer" class="portal-dm-composer">' +
+      '<div class="portal-dm-composer-row">' +
+      '<textarea id="portal-dm-message" class="portal-dm-input portal-dm-textarea" rows="2" placeholder="Describe the issue or question…" required></textarea>' +
+      '<button type="submit" class="btn btn-primary portal-dm-send" aria-label="Send message">Send</button></div></form>' +
+      '<button type="button" class="btn btn-secondary btn-sm portal-dm-switch-email" id="portal-dm-switch-email">Use different email</button></div></div></div></div>'
     );
   }
 
@@ -263,7 +274,6 @@
       '<summary>Maintenance &amp; support</summary>' +
       '<div class="client-portal-support-body">' +
       renderMaintenanceBlock(maint, project) +
-      renderPortalDmBlock(project) +
       '</div></details>'
     );
   }
@@ -327,24 +337,164 @@
     portalDmSubscription = null;
   }
 
-  function showPortalDmThread(show) {
-    var auth = document.getElementById('portal-dm-auth');
-    var thread = document.getElementById('portal-dm-thread');
-    if (auth) auth.hidden = !!show;
-    if (thread) thread.hidden = !show;
+  var PORTAL_DM_SHEET_VH_KEY = 'portalDmSheetMaxHeightVh';
+  var PORTAL_DM_SHEET_MIN_VH = 40;
+  var PORTAL_DM_SHEET_MAX_VH = 100;
+  var PORTAL_DM_SHEET_DEFAULT_VH = 88;
+
+  function readPortalDmSheetMaxVh() {
+    try {
+      var n = parseFloat(localStorage.getItem(PORTAL_DM_SHEET_VH_KEY));
+      if (!isNaN(n)) return Math.max(PORTAL_DM_SHEET_MIN_VH, Math.min(PORTAL_DM_SHEET_MAX_VH, n));
+    } catch (e) {}
+    return PORTAL_DM_SHEET_DEFAULT_VH;
   }
 
-  function bindPortalDm(ctx) {
-    if (!window.CustomerDmShared || !window.CustomerDmShared.isCustomerDmPortalEnabled()) return;
+  function applyPortalDmSheetMaxVh(sheetEl, vh) {
+    if (!sheetEl) return;
+    var v = Math.max(PORTAL_DM_SHEET_MIN_VH, Math.min(PORTAL_DM_SHEET_MAX_VH, vh));
+    sheetEl.style.setProperty('--portal-dm-sheet-max-vh', String(v));
+  }
+
+  function showPortalDmPanel(mode) {
+    var auth = document.getElementById('portal-dm-auth');
+    var conv = document.getElementById('portal-dm-conversation');
+    if (auth) auth.hidden = mode !== 'auth';
+    if (conv) conv.hidden = mode !== 'conversation';
+  }
+
+  function openPortalDmSheet() {
+    var root = document.getElementById('portal-dm-sheet-root');
+    if (!root) return;
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('portal-dm-sheet-open');
+    var sheet = root.querySelector('.portal-dm-sheet');
+    if (sheet) applyPortalDmSheetMaxVh(sheet, readPortalDmSheetMaxVh());
+    var session = window.portalDmSession || (window.CustomerDmShared && window.CustomerDmShared.readCustomerSession());
+    if (session && session.conversationId) {
+      startPortalDmConversation(session);
+    } else {
+      showPortalDmPanel('auth');
+    }
+  }
+
+  function closePortalDmSheet() {
+    var root = document.getElementById('portal-dm-sheet-root');
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('portal-dm-sheet-open');
+  }
+
+  function startPortalDmConversation(session) {
+    var DM = window.CustomerDmShared;
+    if (!DM || !session || !session.conversationId) return;
+    DM.writeCustomerSession(session);
+    window.portalDmSession = session;
+    showPortalDmPanel('conversation');
+    stopPortalDmSubscription();
+    var listEl = document.getElementById('portal-dm-message-list');
+    var badgesEl = document.getElementById('portal-dm-status-badges');
+    portalDmSubscription = DM.subscribeCustomerThread(session, {
+      onMessages: function (messages) {
+        DM.renderMessagesToElement(listEl, messages, { showReadState: true });
+      },
+      onMeta: function (meta) {
+        if (badgesEl) badgesEl.innerHTML = DM.renderStatusBadgesHtml(meta);
+      }
+    });
+  }
+
+  function initPortalDmSheetResize() {
+    var sheet = document.querySelector('#portal-dm-sheet-root .portal-dm-sheet');
+    var grabber = document.getElementById('portal-dm-sheet-grabber');
+    if (!sheet || !grabber) return;
+    applyPortalDmSheetMaxVh(sheet, readPortalDmSheetMaxVh());
+    var dragging = false;
+    var startY = 0;
+    var startVh = 0;
+
+    function endDrag() {
+      dragging = false;
+      grabber.classList.remove('is-dragging');
+      grabber.removeAttribute('aria-grabbed');
+      sheet.classList.remove('is-resizing');
+      try {
+        localStorage.setItem(PORTAL_DM_SHEET_VH_KEY, String(readPortalDmSheetMaxVhFromDom(sheet)));
+      } catch (e) {}
+    }
+
+    function readPortalDmSheetMaxVhFromDom(el) {
+      var raw = el.style.getPropertyValue('--portal-dm-sheet-max-vh').trim();
+      if (raw) {
+        var p = parseFloat(raw);
+        if (!isNaN(p)) return Math.max(PORTAL_DM_SHEET_MIN_VH, Math.min(PORTAL_DM_SHEET_MAX_VH, p));
+      }
+      return readPortalDmSheetMaxVh();
+    }
+
+    function onPointerDown(e) {
+      if (window.matchMedia && window.matchMedia('(min-width: 900px)').matches) return;
+      dragging = true;
+      startY = e.clientY;
+      startVh = readPortalDmSheetMaxVhFromDom(sheet);
+      grabber.classList.add('is-dragging');
+      grabber.setAttribute('aria-grabbed', 'true');
+      sheet.classList.add('is-resizing');
+      if (grabber.setPointerCapture) grabber.setPointerCapture(e.pointerId);
+    }
+
+    function onPointerMove(e) {
+      if (!dragging) return;
+      var deltaPx = startY - e.clientY;
+      var deltaVh = (deltaPx / window.innerHeight) * 100;
+      applyPortalDmSheetMaxVh(sheet, startVh + deltaVh);
+      e.preventDefault();
+    }
+
+    grabber.addEventListener('pointerdown', onPointerDown);
+    grabber.addEventListener('pointermove', onPointerMove);
+    grabber.addEventListener('pointerup', endDrag);
+    grabber.addEventListener('pointercancel', endDrag);
+  }
+
+  function mountPortalDmChrome(project, ctx) {
+    if (!isPortalDmAvailable()) return;
+    var existingFab = document.getElementById('portal-dm-fab');
+    if (existingFab) existingFab.remove();
+    var existingRoot = document.getElementById('portal-dm-sheet-root');
+    if (existingRoot) existingRoot.remove();
+    stopPortalDmSubscription();
+
+    var prefillName = project.clientName || project.title || '';
+    var fab = document.createElement('button');
+    fab.type = 'button';
+    fab.id = 'portal-dm-fab';
+    fab.className = 'portal-dm-fab';
+    fab.setAttribute('aria-label', 'Open messages');
+    fab.innerHTML = '<span class="portal-dm-fab-label">Messages</span>';
+    document.body.appendChild(fab);
+
+    var wrap = document.createElement('div');
+    wrap.innerHTML = renderPortalDmOverlayHtml(prefillName);
+    var overlay = wrap.firstElementChild;
+    if (overlay) document.body.appendChild(overlay);
+
+    window.portalDmCtx = ctx;
+    var DM = window.CustomerDmShared;
+    var saved = DM.readCustomerSession();
+    if (saved && saved.conversationId) {
+      window.portalDmSession = saved;
+    } else {
+      window.portalDmSession = null;
+    }
 
     var openForm = document.getElementById('portal-dm-open-form');
     var statusEl = document.getElementById('portal-dm-status');
     var composer = document.getElementById('portal-dm-composer');
     var msgInput = document.getElementById('portal-dm-message');
     var switchBtn = document.getElementById('portal-dm-switch-email');
-    var listEl = document.getElementById('portal-dm-message-list');
-    var badgesEl = document.getElementById('portal-dm-status-badges');
-    var DM = window.CustomerDmShared;
 
     function setDmStatus(msg, isError) {
       if (!statusEl) return;
@@ -352,29 +502,26 @@
       statusEl.classList.toggle('is-error', !!isError);
     }
 
-    function openDmSession(session) {
-      DM.writeCustomerSession(session);
-      window.portalDmSession = session;
-      showPortalDmThread(true);
-      stopPortalDmSubscription();
-      portalDmSubscription = DM.subscribeCustomerThread(session, {
-        onMessages: function (messages) {
-          DM.renderMessagesToElement(listEl, messages, { showReadState: true });
-        },
-        onMeta: function (meta) {
-          if (badgesEl) badgesEl.innerHTML = DM.renderStatusBadgesHtml(meta);
-        }
-      });
-    }
+    fab.addEventListener('click', function () {
+      openPortalDmSheet();
+    });
 
-    var saved = DM.readCustomerSession();
-    if (saved) {
-      openDmSession(saved);
-    }
+    var backdrop = document.getElementById('portal-dm-sheet-backdrop');
+    var closeBtn = document.getElementById('portal-dm-sheet-close');
+    if (backdrop) backdrop.addEventListener('click', closePortalDmSheet);
+    if (closeBtn) closeBtn.addEventListener('click', closePortalDmSheet);
+
+    document.addEventListener('keydown', function portalDmEsc(e) {
+      if (e.key !== 'Escape') return;
+      var root = document.getElementById('portal-dm-sheet-root');
+      if (!root || !root.classList.contains('is-open')) return;
+      closePortalDmSheet();
+    });
 
     if (openForm) {
       openForm.addEventListener('submit', function (e) {
         e.preventDefault();
+        var activeCtx = window.portalDmCtx || ctx;
         var nameEl = document.getElementById('portal-dm-name');
         var emailEl = document.getElementById('portal-dm-email');
         var name = nameEl ? nameEl.value.trim() : '';
@@ -387,10 +534,10 @@
         DM.getOrCreateConversationForEmail(email, name, {
           source: 'client-portal',
           tags: ['portal', 'client-portal'],
-          agencyProjectId: ctx.projectId || ''
+          agencyProjectId: activeCtx.projectId || ''
         })
           .then(function (conv) {
-            openDmSession({
+            startPortalDmConversation({
               conversationId: conv.id,
               customerEmail: (conv.customerEmail || email).toLowerCase(),
               customerName: conv.customerName || name
@@ -409,9 +556,11 @@
         var session = window.portalDmSession || DM.readCustomerSession();
         if (!session || !session.conversationId) {
           setDmStatus('Open your conversation with name and email first.', true);
+          showPortalDmPanel('auth');
           return;
         }
         var text = msgInput.value.trim();
+        if (!text) return;
         DM.sendCustomerMessage(session.conversationId, session, text, '')
           .then(function () {
             msgInput.value = '';
@@ -425,8 +574,8 @@
         var session = window.portalDmSession || DM.readCustomerSession();
         if (!session || !session.conversationId) return;
         DM.setCustomerTyping(session.conversationId, true).catch(function () {});
-        clearTimeout(bindPortalDm._typingTimer);
-        bindPortalDm._typingTimer = setTimeout(function () {
+        clearTimeout(mountPortalDmChrome._typingTimer);
+        mountPortalDmChrome._typingTimer = setTimeout(function () {
           DM.setCustomerTyping(session.conversationId, false).catch(function () {});
         }, 1200);
       });
@@ -437,10 +586,13 @@
         stopPortalDmSubscription();
         DM.clearCustomerSession();
         window.portalDmSession = null;
-        showPortalDmThread(false);
+        showPortalDmPanel('auth');
         setDmStatus('', false);
+        if (msgInput) msgInput.value = '';
       });
     }
+
+    initPortalDmSheetResize();
   }
 
   function bindMaintenanceSupportSection(root, ctx, project, maint) {
@@ -456,7 +608,6 @@
         submitMaintenancePlanRequest(ctx, tier, billing);
       });
     }
-    bindPortalDm(ctx);
   }
 
   function normalizeProject(id, row) {
@@ -621,7 +772,12 @@
 
   async function loadBusinessDocumentsForHub(hubRow, project) {
     if (!rtdbReady()) return [];
-    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_BUSINESS_DOCS));
+    try {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_BUSINESS_DOCS));
+    } catch (err) {
+      console.warn('Could not load business documents for portal:', err);
+      return [];
+    }
     var val = snap.val();
     if (!val || typeof val !== 'object') return [];
     var bid = String(hubRow.businessDocId || project.businessDocId || '').trim();
@@ -735,6 +891,7 @@
     }
     bindPortalDocViewButtons(inner);
     bindMaintenanceSupportSection(inner, portalCtx, project, maint);
+    mountPortalDmChrome(project, portalCtx);
   }
 
   function renderError(inner, message) {
@@ -798,8 +955,18 @@
         adminSectionLabel: 'Admin dashboard'
       };
 
-      var businessDocs = await loadBusinessDocumentsForHub(hubRow, project);
-      var allMaint = await loadAllMaintenanceRecords();
+      var businessDocs = [];
+      var allMaint = [];
+      try {
+        businessDocs = await loadBusinessDocumentsForHub(hubRow, project);
+      } catch (err) {
+        console.warn('Business documents skipped:', err);
+      }
+      try {
+        allMaint = await loadAllMaintenanceRecords();
+      } catch (err) {
+        console.warn('Maintenance records skipped:', err);
+      }
       var maint = findMaintenanceForHub(hubRow, link.projectId, allMaint);
       var portalCtx = {
         projectId: link.projectId,
