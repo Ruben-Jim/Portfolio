@@ -5654,7 +5654,7 @@ function updateUrlForPage(pageName, replace) {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
     return;
   }
-  var url = pageName === 'home' ? '/' : '/' + pageName;
+  var url = pageName === 'home' ? '/' : '/' + pageName + '/';
   if (replace) {
     window.history.replaceState({ page: pageName }, '', url);
   } else {

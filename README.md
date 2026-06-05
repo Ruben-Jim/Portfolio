@@ -42,20 +42,22 @@ Admin-only emails (`admin_reply`, `testimonial_request`) require a valid Firebas
 
 `rubenjimenez.dev` uses GitHub Pages (see [`CNAME`](CNAME)). Unlike Firebase Hosting, GH Pages cannot rewrite `/admin` → `index.html`. Instead:
 
+- `/about` → serves [`404.html`](404.html) unless [`about/index.html`](about/index.html) exists (browser may log a 404; the app still runs).
+- `/about/` → serves [`about/index.html`](about/index.html) (HTTP 200).
 - `/admin` → serves [`404.html`](404.html) (browser may log a 404; the app still runs using the URL path).
 - `/admin/` → serves [`admin/index.html`](admin/index.html) (HTTP 200).
 
 After editing [`index.html`](index.html), sync copies before deploy:
 
 ```bash
-cp index.html 404.html && cp index.html admin/index.html
+cp index.html 404.html && cp index.html about/index.html && cp index.html admin/index.html
 ```
 
-For a clean **HTTP 200** at `/admin`, connect the custom domain to [Firebase Hosting](https://firebase.google.com/docs/hosting/custom-domain) (`firebase deploy --only hosting`) — rewrites in [`firebase.json`](firebase.json) already map `/admin` to `index.html`. Verify: `https://portfolio-2578e.web.app/admin` returns 200.
+For clean **HTTP 200** SPA routes on the custom domain, connect it to [Firebase Hosting](https://firebase.google.com/docs/hosting/custom-domain) (`firebase deploy --only hosting`) — rewrites in [`firebase.json`](firebase.json) already map `/about`, `/admin`, etc. to `index.html`. Verify: `https://portfolio-2578e.web.app/about` returns 200.
 
 ### Troubleshooting
 
-- **`Failed to load resource: 404` on `/admin`:** Expected on GitHub Pages for the document request; admin should still load. If the dashboard is blank or stale, run the `cp` commands above and redeploy. Prefer Firebase Hosting on the custom domain to remove the 404.
+- **`Failed to load resource: 404` on `/about` or `/admin`:** Expected on GitHub Pages when the path has no trailing slash (falls back to `404.html`). Use `/about/` or `/admin/` for HTTP 200, or run the `cp` commands above so `about/index.html` exists, then redeploy. Prefer Firebase Hosting on the custom domain to remove 404s on all routes.
 - **Messages not showing:** Sign in with `ADMIN_CREDENTIALS`, run `firebase deploy --only firestore:rules,database`, then hard refresh.
 - **DM inbox empty:** Deploy database rules; confirm `databaseURL` in config.js; use **Open DM inbox** after admin sign-in.
 - **Invalid username/password:** Uses `ADMIN_CREDENTIALS` (default `admin` / `admin123`).

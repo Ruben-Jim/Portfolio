@@ -11,6 +11,11 @@
     (function () {
       var m = location.pathname.match(/^\/portal\/([a-f0-9]{16,64})/i);
       if (m) location.replace('/portal.html?token=' + encodeURIComponent(m[1]));
+      // GitHub Pages serves folder routes at /about/ not /about (bare path → 404.html).
+      var bare = location.pathname.replace(/\/+$/, '');
+      if (bare === '/about' || bare === '/admin') {
+        location.replace(bare + '/' + location.search + location.hash);
+      }
     })();
   </script>
   
