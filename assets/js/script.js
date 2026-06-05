@@ -5546,13 +5546,88 @@ function initPortfolioProjectModal() {
 const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
+var LANDING_MARQUEE_PROJECTS = [
+  { src: '/assets/images/projects/project-procleaning.png', label: 'Cleaning &amp; field service' },
+  { src: '/assets/images/projects/project-rizopizzeria.png', label: 'Restaurants &amp; ordering' },
+  { src: '/assets/images/projects/project-realestate.png', label: 'Real estate &amp; insurance' },
+  { src: '/assets/images/projects/project-tradeservice.png', label: 'Trades &amp; contractors' },
+  { src: '/assets/images/projects/project-sheltonsprings.png', label: 'HOA &amp; communities' },
+  { src: '/assets/images/projects/project-barbershop.png', label: 'Local service brands' },
+  { src: '/assets/images/projects/project-zoomrealty.png', label: 'Real estate portal' },
+  { src: '/assets/images/projects/project-lawncare.png', label: 'Lawn care' },
+  { src: '/assets/images/projects/project-merchstore.png', label: 'E-commerce' },
+  { src: '/assets/images/projects/project-gadgetgarage.png', label: 'Retail &amp; repair' },
+  { src: '/assets/images/projects/project-rosasalon.png', label: 'Salon booking' },
+  { src: '/assets/images/projects/project-hoa.png', label: 'HOA management' }
+];
+
+function buildLandingMarqueeTile(project, eager) {
+  return '<li class="cwr-landing-tile"><img src="' + project.src + '" alt="" loading="' + (eager ? 'eager' : 'lazy') + '"><span>' + project.label + '</span></li>';
+}
+
+function buildLandingMarqueeColumn(projects, direction, extraClass) {
+  if (!projects.length) return '';
+  var tiles = projects.map(function (project, index) {
+    return buildLandingMarqueeTile(project, index === 0);
+  }).join('');
+  var dirClass = direction === 'down' ? ' cwr-landing-marquee-col--down' : ' cwr-landing-marquee-col--up';
+  var extra = extraClass ? ' ' + extraClass : '';
+  return '<div class="cwr-landing-marquee-col' + dirClass + extra + '">' +
+    '<div class="cwr-landing-marquee-track">' +
+    '<ul class="cwr-landing-tiles">' + tiles + '</ul>' +
+    '<ul class="cwr-landing-tiles" aria-hidden="true">' + tiles + '</ul>' +
+    '</div></div>';
+}
+
+function initLandingProjectMarquee() {
+  var stage = document.querySelector('[data-landing-marquee]');
+  if (!stage || stage.dataset.marqueeReady === '1') return;
+
+  var projects = LANDING_MARQUEE_PROJECTS;
+  var perCol = Math.ceil(projects.length / 3);
+  var cols = [
+    projects.slice(0, perCol),
+    projects.slice(perCol, perCol * 2),
+    projects.slice(perCol * 2)
+  ];
+
+  stage.innerHTML = '<div class="cwr-landing-marquee">' +
+    buildLandingMarqueeColumn(cols[0], 'up', 'cwr-landing-marquee-col--fast') +
+    buildLandingMarqueeColumn(cols[1], 'down', '') +
+    buildLandingMarqueeColumn(cols[2], 'up', 'cwr-landing-marquee-col--slow') +
+    '</div>';
+  stage.dataset.marqueeReady = '1';
+}
+
+window.initLandingProjectMarquee = initLandingProjectMarquee;
+
+function updateLandingNavbarScroll() {
+  var nav = document.querySelector("article.home.active .cwr-landing-navbar");
+  if (!nav) {
+    var idleNav = document.querySelector("article.home .cwr-landing-navbar");
+    if (idleNav) idleNav.classList.remove("is-scrolled");
+    return;
+  }
+  nav.classList.toggle("is-scrolled", window.scrollY > 40);
+}
+
+function initLandingNavbarScroll() {
+  updateLandingNavbarScroll();
+  if (window.__cwrLandingNavScrollBound) return;
+  window.addEventListener("scroll", updateLandingNavbarScroll, { passive: true });
+  window.__cwrLandingNavScrollBound = true;
+}
+
+window.initLandingNavbarScroll = initLandingNavbarScroll;
+window.updateLandingNavbarScroll = updateLandingNavbarScroll;
+
 // Valid path segments for rubenjimenez.dev/(tab)
 var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'business-systems', 'hire-me', 'contact', 'messages', 'admin'];
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
-  if (path === '') return null;
-  if (path === 'home') return 'about';
+  if (path === '') return 'home';
+  if (path === 'home') return 'home';
   if (path === 'service-pricing') return 'services-pricing';
   if (VALID_PAGES.indexOf(path) !== -1) return path;
   return null;
@@ -5565,7 +5640,7 @@ function getPageFromRedirectParam() {
     var redirect = params.get('redirect') || params.get('p') || params.get('path') || null;
     if (!redirect) return null;
     var normalized = redirect.toString().replace(/^https?:\/\/[^/]+/i, '').replace(/^\/+|\/+$/g, '');
-    if (normalized === 'home') return 'about';
+    if (normalized === 'home') return 'home';
     if (normalized === 'service-pricing') return 'services-pricing';
     if (VALID_PAGES.indexOf(normalized) !== -1) return normalized;
     return null;
@@ -5579,7 +5654,7 @@ function updateUrlForPage(pageName, replace) {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
     return;
   }
-  var url = '/' + pageName;
+  var url = pageName === 'home' ? '/' : '/' + pageName;
   if (replace) {
     window.history.replaceState({ page: pageName }, '', url);
   } else {
@@ -5600,6 +5675,7 @@ function switchToPage(pageName, skipSave = false) {
     navigationLinks[i].classList.remove("active");
   }
   document.body.classList.remove("admin-page-active");
+  document.body.classList.remove("home-page-active");
   
   // Find and activate the matching page
   for (let i = 0; i < pages.length; i++) {
@@ -5607,6 +5683,9 @@ function switchToPage(pageName, skipSave = false) {
       pages[i].classList.add("active");
       if (pageName === "admin") {
         document.body.classList.add("admin-page-active");
+      }
+      if (pageName === "home") {
+        document.body.classList.add("home-page-active");
       }
       window.scrollTo(0, 0);
       
@@ -5627,9 +5706,6 @@ function switchToPage(pageName, skipSave = false) {
         if (navPageName === "dm") {
           navPageName = "messages";
         }
-        if (navPageName === "home") {
-          navPageName = "about";
-        }
         if (navPageName === pageName) {
           navigationLinks[j].classList.add("active");
         }
@@ -5648,6 +5724,24 @@ function switchToPage(pageName, skipSave = false) {
             window.loadDynamicTestimonials();
           }
         }, 80);
+      }
+
+      if (pageName === "home") {
+        setTimeout(function () {
+          if (typeof window.initLandingProjectMarquee === "function") {
+            window.initLandingProjectMarquee();
+          }
+          if (typeof window.loadDynamicTestimonials === "function") {
+            window.loadDynamicTestimonials();
+          }
+          if (typeof window.initLandingNavbarScroll === "function") {
+            window.initLandingNavbarScroll();
+          }
+        }, 50);
+      } else {
+        if (typeof window.updateLandingNavbarScroll === "function") {
+          window.updateLandingNavbarScroll();
+        }
       }
 
       if (pageName === "business-systems" && typeof window.initBusinessSystemsPage === "function") {
@@ -5696,8 +5790,6 @@ for (let i = 0; i < navigationLinks.length; i++) {
       pageName = "hire-me";
     } else if (pageName === "dm") {
       pageName = "messages";
-    } else if (pageName === "home") {
-      pageName = "about";
     }
     switchToPage(pageName);
     // close all hamburger menus after navigation
@@ -5733,12 +5825,11 @@ function restoreActivePage() {
   }
   // URL path wins (e.g. rubenjimenez.dev/portfolio), then localStorage, then about
   // Redirect param wins (from 404 fallback), then URL path, then localStorage, then about
-  var targetPage = redirectPage || pageFromPath || savedPage || 'about';
+  var targetPage = redirectPage || pageFromPath || savedPage || 'home';
 
-  // Always show About first (don't save to localStorage during initial load)
-  switchToPage('about', true);
+  switchToPage('home', true);
 
-  if (targetPage && targetPage !== 'about') {
+  if (targetPage && targetPage !== 'home') {
     setTimeout(function() {
       switchToPage(targetPage, true);
       updateUrlForPage(targetPage, true);
@@ -5748,8 +5839,8 @@ function restoreActivePage() {
       }
     }, 700);
   } else {
-    if (targetPage === 'about') {
-      updateUrlForPage('about', true);
+    if (targetPage === 'home') {
+      updateUrlForPage('home', true);
     }
     setTimeout(function() {
       if (loadingScreen) {
@@ -6230,10 +6321,10 @@ window.addEventListener('load', function() {
     if (!window.db || !window.collection || !window.getDocs) {
       return;
     }
-    var list =
-      document.querySelector("article.about .testimonials-list") ||
-      document.querySelector(".testimonials-list");
-    if (!list) return;
+    var lists = document.querySelectorAll(
+      'article.about .testimonials-list, article.home .cwr-landing-testimonials[data-home-testimonials]'
+    );
+    if (!lists.length) return;
     try {
       var ref = window.collection(window.db, "testimonials");
       var snap = await window.getDocs(ref);
@@ -6245,63 +6336,65 @@ window.addEventListener('load', function() {
         return testimonialCreatedMs(b.data) - testimonialCreatedMs(a.data);
       });
       rows = rows.slice(0, 40);
-      list.querySelectorAll('li[data-dynamic-testimonial="1"]').forEach(function (n) {
-        n.remove();
-      });
-      rows.forEach(function (row) {
-        var d = row.data;
-        var iso = testimonialDateIso(d);
-        var label = testimonialDateLabel(d);
-        var dateAttrs = "";
-        if (iso || label) {
-          dateAttrs =
-            ' data-created-iso="' +
-            escapeTestimonialHtml(iso) +
-            '" data-created-label="' +
-            escapeTestimonialHtml(label) +
-            '"';
-        }
-        var name = escapeTestimonialHtml(d.name);
-        var title = escapeTestimonialHtml(d.title);
-        var company = escapeTestimonialHtml(d.company);
-        var product = escapeTestimonialHtml(d.product);
-        var textRaw = d.text == null ? "" : String(d.text);
-        var text = escapeTestimonialHtml(textRaw).replace(/\n/g, "<br>");
-        var rating = d.rating;
-        var brand =
-          (typeof window.TESTIMONIAL_BRAND_LOGO === "string" && window.TESTIMONIAL_BRAND_LOGO.trim()) ||
-          "/assets/images/logo/logo.svg";
-        var imgSrc = brand.indexOf('"') === -1 ? brand : "/assets/images/logo/logo.svg";
-        var li = document.createElement("li");
-        li.className = "testimonials-item";
-        li.setAttribute("data-dynamic-testimonial", "1");
-        li.innerHTML =
-          '<div class="content-card" data-testimonials-item' +
-          dateAttrs +
-          '>' +
-          '<figure class="testimonials-avatar-box">' +
-          '<img src="' +
-          imgSrc +
-          '" alt="' +
-          name +
-          '" width="60" data-testimonials-avatar>' +
-          "</figure>" +
-          '<h4 class="h4 testimonials-item-title" data-testimonials-title>' +
-          name +
-          "</h4>" +
-          '<div class="testimonials-text" data-testimonials-text>' +
-          testimonialsStarHtml(rating) +
-          '<p class="testimonials-meta" style="font-size:12px;margin:0 0 10px 0;opacity:0.85;">' +
-          title +
-          " &middot; " +
-          company +
-          (product ? " &middot; " + product : "") +
-          "</p>" +
-          "<p>" +
-          text +
-          "</p>" +
-          "</div></div>";
-        list.appendChild(li);
+      lists.forEach(function (list) {
+        list.querySelectorAll('li[data-dynamic-testimonial="1"]').forEach(function (n) {
+          n.remove();
+        });
+        rows.forEach(function (row) {
+          var d = row.data;
+          var iso = testimonialDateIso(d);
+          var label = testimonialDateLabel(d);
+          var dateAttrs = "";
+          if (iso || label) {
+            dateAttrs =
+              ' data-created-iso="' +
+              escapeTestimonialHtml(iso) +
+              '" data-created-label="' +
+              escapeTestimonialHtml(label) +
+              '"';
+          }
+          var name = escapeTestimonialHtml(d.name);
+          var title = escapeTestimonialHtml(d.title);
+          var company = escapeTestimonialHtml(d.company);
+          var product = escapeTestimonialHtml(d.product);
+          var textRaw = d.text == null ? "" : String(d.text);
+          var text = escapeTestimonialHtml(textRaw).replace(/\n/g, "<br>");
+          var rating = d.rating;
+          var brand =
+            (typeof window.TESTIMONIAL_BRAND_LOGO === "string" && window.TESTIMONIAL_BRAND_LOGO.trim()) ||
+            "/assets/images/logo/logo.svg";
+          var imgSrc = brand.indexOf('"') === -1 ? brand : "/assets/images/logo/logo.svg";
+          var li = document.createElement("li");
+          li.className = "testimonials-item";
+          li.setAttribute("data-dynamic-testimonial", "1");
+          li.innerHTML =
+            '<div class="content-card" data-testimonials-item' +
+            dateAttrs +
+            '>' +
+            '<figure class="testimonials-avatar-box">' +
+            '<img src="' +
+            imgSrc +
+            '" alt="' +
+            name +
+            '" width="60" data-testimonials-avatar>' +
+            "</figure>" +
+            '<h4 class="h4 testimonials-item-title" data-testimonials-title>' +
+            name +
+            "</h4>" +
+            '<div class="testimonials-text" data-testimonials-text>' +
+            testimonialsStarHtml(rating) +
+            '<p class="testimonials-meta" style="font-size:12px;margin:0 0 10px 0;opacity:0.85;">' +
+            title +
+            " &middot; " +
+            company +
+            (product ? " &middot; " + product : "") +
+            "</p>" +
+            "<p>" +
+            text +
+            "</p>" +
+            "</div></div>";
+          list.appendChild(li);
+        });
       });
     } catch (e) {
       console.error("loadDynamicTestimonials", e);
@@ -8464,6 +8557,38 @@ window.addEventListener('load', function() {
     return '$' + Math.round(n).toLocaleString();
   }
 
+  function digitsOnlyPhone(str) {
+    var d = String(str || '').replace(/\D/g, '');
+    if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+    return d.slice(0, 10);
+  }
+
+  function formatUsPhoneDisplay(str) {
+    var d = digitsOnlyPhone(str);
+    if (!d.length) return '';
+    if (d.length <= 3) return '(' + d;
+    if (d.length <= 6) return '(' + d.slice(0, 3) + ') ' + d.slice(3);
+    return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+  }
+
+  function bindLeadPhoneFormatter() {
+    var phoneEl = document.getElementById('lead-phone');
+    if (!phoneEl || phoneEl.dataset.phoneFormatBound === '1') return;
+    phoneEl.dataset.phoneFormatBound = '1';
+    phoneEl.setAttribute('maxlength', '14');
+    phoneEl.setAttribute('inputmode', 'tel');
+    phoneEl.setAttribute('autocomplete', 'tel');
+
+    phoneEl.addEventListener('input', function () {
+      var formatted = formatUsPhoneDisplay(phoneEl.value);
+      if (phoneEl.value !== formatted) phoneEl.value = formatted;
+    });
+
+    phoneEl.addEventListener('blur', function () {
+      if (phoneEl.value) phoneEl.value = formatUsPhoneDisplay(phoneEl.value);
+    });
+  }
+
   function pipelineStageLabel(stage) {
     var map = {
       lead: 'Lead',
@@ -8503,7 +8628,10 @@ window.addEventListener('load', function() {
       id: id,
       name: String(row.name || '').trim().slice(0, 120),
       email: String(row.email || '').trim().slice(0, 160),
-      phone: String(row.phone || '').trim().slice(0, 40),
+      phone: (function (raw) {
+        var formatted = formatUsPhoneDisplay(raw);
+        return formatted || String(raw || '').trim().slice(0, 40);
+      })(row.phone),
       company: String(row.company || '').trim().slice(0, 160),
       projectType: projectType,
       value: Math.max(0, Number(row.value) || 0),
@@ -8728,7 +8856,7 @@ window.addEventListener('load', function() {
     if (isEdit) {
       if (nameEl) nameEl.value = lead.name || '';
       if (emailEl) emailEl.value = lead.email || '';
-      if (phoneEl) phoneEl.value = lead.phone || '';
+      if (phoneEl) phoneEl.value = formatUsPhoneDisplay(lead.phone || '');
       if (companyEl) companyEl.value = lead.company || '';
       if (typeEl) typeEl.value = lead.projectType || 'web';
       if (valueEl) valueEl.value = lead.value ? String(lead.value) : '';
@@ -9102,6 +9230,7 @@ window.addEventListener('load', function() {
 
   function initPipelineControls() {
     setupDeleteLeadConfirmModal();
+    bindLeadPhoneFormatter();
     if (adminAddLeadBtn) {
       adminAddLeadBtn.addEventListener('click', function () {
         openLeadModal();
@@ -11164,7 +11293,8 @@ function toggleTheme() {
   if (!overlay || !input || !listEl) return;
 
   const COMMANDS = [
-    { id: 'nav-home', label: 'Go to Home', icon: 'home-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('about'); } },
+    { id: 'nav-home', label: 'Go to Home', icon: 'home-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('home'); } },
+    { id: 'nav-about', label: 'Go to About', icon: 'person-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('about'); } },
     { id: 'nav-portfolio', label: 'Go to Portfolio', icon: 'grid-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('portfolio'); } },
     { id: 'nav-services', label: 'Go to Services & Pricing', icon: 'pricetag-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('services-pricing'); } },
     { id: 'nav-contact', label: 'Go to Contact', icon: 'mail-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('contact'); } },
@@ -11445,6 +11575,16 @@ document.addEventListener('DOMContentLoaded', function() {
       opacity: 0,
       y: 20,
       duration: 0.55,
+      ease: 'power2.out'
+    });
+  }
+
+  var landingReveal = document.querySelector('[data-cwr-landing-reveal]');
+  if (landingReveal) {
+    gsap.from(landingReveal, {
+      opacity: 0,
+      y: 28,
+      duration: 0.65,
       ease: 'power2.out'
     });
   }

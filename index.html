@@ -61,7 +61,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=business-systems-grid-20260531">
+  <link rel="stylesheet" href="/assets/css/style.css?v=home-hero-mobile-overlay-20260605">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
     article.admin[data-page="admin"][data-admin-auth="checking"] #admin-dashboard-content{display:none!important}
@@ -241,11 +241,15 @@
     <div class="main-content">
 
       <!--
-        - #ABOUT
+        - #HOME (marketing landing)
       -->
 
-      <article class="about  active" data-page="about">
-        <nav class="navbar" data-navbar>
+      <article class="home active" data-page="home">
+        <nav class="navbar cwr-landing-navbar" data-navbar>
+          <a class="cwr-landing-brand" href="/" aria-label="CodeWithRuben home" onclick="if(typeof switchToPage === 'function') { switchToPage('home'); } return false;">
+            <span class="cwr-landing-brand-mark">CodeWith<span class="cwr-landing-brand-accent">Ruben</span></span>
+            <span class="cwr-landing-brand-sub">Web &amp; Mobile Dev Studio</span>
+          </a>
           <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
             <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
             <ion-icon name="close-outline" class="navbar-toggle-icon-close"></ion-icon>
@@ -254,6 +258,192 @@
             <ul class="navbar-list">
               <li class="navbar-item">
                 <button class="navbar-link active" data-nav-link>Home</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>About</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>Portfolio</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>Services & Pricing</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>What We Build</button>
+              </li>
+              <li class="navbar-item" style="display: none;">
+                <button class="navbar-link" data-nav-link>Hire Me</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>Contact</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>Messages</button>
+              </li>
+              <li class="navbar-item" style="display: none;">
+                <button class="navbar-link" data-nav-link>Admin</button>
+              </li>
+            </ul>
+          </div>
+          <button type="button" class="btn btn-primary cwr-landing-nav-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get started</button>
+        </nav>
+
+        <section class="cwr-landing-hero" aria-labelledby="cwr-landing-title">
+          <div class="cwr-landing-hero-bg" aria-hidden="true"></div>
+          <div class="cwr-landing-hero-noise" aria-hidden="true"></div>
+          <div class="cwr-landing-hero-grid">
+            <div class="cwr-landing-copy" data-cwr-landing-reveal>
+              <h1 class="cwr-landing-title" id="cwr-landing-title">Run your business<br>from your phone</h1>
+              <div class="cwr-landing-offer" aria-label="Website plus software">
+                <span class="cwr-landing-offer-box">Website</span>
+                <span class="cwr-landing-offer-plus" aria-hidden="true">+</span>
+                <span class="cwr-landing-offer-box">Software</span>
+              </div>
+              <p class="cwr-landing-price">Packages from <strong>$1,500</strong> · Year 1 maintenance included</p>
+              <p class="cwr-landing-proof"><span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards <span class="cwr-landing-stars" aria-hidden="true">★★★★★</span></p>
+              <div class="cwr-landing-actions">
+                <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get started</button>
+                <button type="button" class="btn cwr-landing-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
+                <button type="button" class="btn cwr-landing-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View work</button>
+              </div>
+            </div>
+            <div class="cwr-landing-visual" aria-hidden="true">
+              <div class="cwr-landing-visual-fade" aria-hidden="true"></div>
+              <div class="cwr-landing-visual-stage" data-landing-marquee></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 2: Demo reel -->
+        <section class="cwr-landing-band cwr-landing-band--light" aria-labelledby="cwr-demo-title">
+          <div class="cwr-landing-band-inner cwr-landing-demo-grid">
+            <div class="cwr-landing-demo-media">
+              <div class="cwr-landing-demo-reel" aria-hidden="true">
+                <img src="/assets/images/projects/project-procleaning.png" alt="" loading="lazy">
+                <img src="/assets/images/projects/project-rizopizzeria.png" alt="" loading="lazy">
+                <img src="/assets/images/projects/project-realestate.png" alt="" loading="lazy">
+                <img src="/assets/images/projects/project-tradeservice.png" alt="" loading="lazy">
+                <img src="/assets/images/projects/project-sheltonsprings.png" alt="" loading="lazy">
+                <img src="/assets/images/projects/project-barbershop.png" alt="" loading="lazy">
+                <img src="/assets/images/projects/project-lawncare.png" alt="" loading="lazy">
+                <img src="/assets/images/projects/project-merchstore.png" alt="" loading="lazy">
+              </div>
+              <span class="cwr-landing-demo-badge"><ion-icon name="play-circle-outline"></ion-icon> Live demos</span>
+            </div>
+            <div class="cwr-landing-demo-copy">
+              <p class="cwr-landing-band-kicker">Demo reel</p>
+              <h2 class="cwr-landing-band-title" id="cwr-demo-title">See what we ship for local businesses</h2>
+              <p class="cwr-landing-band-lead">Custom websites, booking flows, admin dashboards, and mobile apps — built for how service businesses actually run day to day.</p>
+              <ul class="cwr-landing-demo-links">
+                <li><a href="https://roof-cleaning-template.expo.app" target="_blank" rel="noopener noreferrer">Pro Cleaning demo</a></li>
+                <li><button type="button" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Full portfolio</button></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 3: How it works -->
+        <section class="cwr-landing-band cwr-landing-band--dark" aria-labelledby="cwr-process-title">
+          <div class="cwr-landing-band-inner">
+            <header class="cwr-landing-band-header">
+              <p class="cwr-landing-band-kicker">Process</p>
+              <h2 class="cwr-landing-band-title" id="cwr-process-title">How it works</h2>
+              <p class="cwr-landing-band-lead">From first message to launch — clear milestones, no surprises.</p>
+            </header>
+            <ol class="cwr-landing-steps">
+              <li class="cwr-landing-step">
+                <span class="cwr-landing-step-num">01</span>
+                <div class="cwr-landing-step-body">
+                  <h3>Share your idea</h3>
+                  <p>Tell us your goals, timeline, and what tools you want to replace.</p>
+                </div>
+              </li>
+              <li class="cwr-landing-step">
+                <span class="cwr-landing-step-num">02</span>
+                <div class="cwr-landing-step-body">
+                  <h3>Discovery call</h3>
+                  <p>Quick call to align on scope, users, and the right stack.</p>
+                </div>
+              </li>
+              <li class="cwr-landing-step">
+                <span class="cwr-landing-step-num">03</span>
+                <div class="cwr-landing-step-body">
+                  <h3>Build &amp; review</h3>
+                  <p>We design, develop, and QA with check-ins so you see progress early.</p>
+                </div>
+              </li>
+              <li class="cwr-landing-step">
+                <span class="cwr-landing-step-num">04</span>
+                <div class="cwr-landing-step-body">
+                  <h3>Launch &amp; support</h3>
+                  <p>Ship to web and app stores with docs, training, and Year 1 maintenance.</p>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- Section 4: Social proof -->
+        <section class="cwr-landing-band cwr-landing-band--muted" aria-labelledby="cwr-proof-title">
+          <div class="cwr-landing-band-inner">
+            <header class="cwr-landing-band-header cwr-landing-band-header--center">
+              <p class="cwr-landing-band-kicker">Social proof</p>
+              <h2 class="cwr-landing-band-title" id="cwr-proof-title">Trusted by local businesses</h2>
+            </header>
+            <ul class="cwr-landing-clients" aria-label="Client logos">
+              <li><img src="/assets/images/logo/logo-1-color.png" alt="Client logo"></li>
+              <li><img src="/assets/images/logo/logo-2-color.png" alt="Client logo"></li>
+              <li><img src="/assets/images/logo/logo-3-color.png" alt="Client logo"></li>
+            </ul>
+            <ul class="testimonials-list cwr-landing-testimonials has-scrollbar" data-home-testimonials aria-label="Client testimonials">
+              <li class="testimonials-item">
+                <div class="content-card" data-testimonials-item>
+                  <figure class="testimonials-avatar-box">
+                    <img src="/assets/images/avatar/avatar-5.png" alt="Roberto" width="60" data-testimonials-avatar>
+                  </figure>
+                  <h4 class="h4 testimonials-item-title" data-testimonials-title>Roberto</h4>
+                  <div class="testimonials-text" data-testimonials-text>
+                    <p>Ruben was hired to create an ordering ecosystem featuring dual interfaces for customers and kitchen staff. Customers enjoy a seamless experience with real-time order tracking, while the Cook Dashboard empowers staff to manage orders from Pending to Completed in real time.</p>
+                  </div>
+                </div>
+              </li>
+            </ul>
+            <p class="cwr-landing-proof-link">
+              <button type="button" class="cwr-landing-text-link" onclick="if(typeof switchToPage === 'function') { switchToPage('about'); } return false;">Read more on About</button>
+            </p>
+          </div>
+        </section>
+
+        <!-- Section 5: CTA band -->
+        <section class="cwr-landing-band cwr-landing-band--cta" aria-labelledby="cwr-cta-title">
+          <div class="cwr-landing-band-inner cwr-landing-cta-inner">
+            <h2 class="cwr-landing-band-title" id="cwr-cta-title">Ready to run your business from your phone?</h2>
+            <p class="cwr-landing-band-lead">Packages from <strong>$1,500</strong> · Year 1 maintenance included · Fresno-based studio</p>
+            <div class="cwr-landing-cta-actions">
+              <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get started</button>
+              <button type="button" class="btn cwr-landing-btn-outline cwr-landing-btn-outline--on-dark" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <!--
+        - #ABOUT (studio story, bento, testimonials)
+      -->
+
+      <article class="about" data-page="about">
+        <nav class="navbar" data-navbar>
+          <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
+            <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
+            <ion-icon name="close-outline" class="navbar-toggle-icon-close"></ion-icon>
+          </button>
+          <div class="navbar-menu" data-navbar-menu>
+            <ul class="navbar-list">
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link>Home</button>
+              </li>
+              <li class="navbar-item">
+                <button class="navbar-link active" data-nav-link>About</button>
               </li>
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link>Portfolio</button>
@@ -560,6 +750,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
@@ -1045,6 +1236,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
@@ -1210,6 +1402,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
@@ -1484,6 +1677,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
@@ -1716,6 +1910,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
@@ -2152,6 +2347,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
@@ -2376,6 +2572,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
@@ -2437,6 +2634,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
@@ -2467,6 +2665,7 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
