@@ -1929,8 +1929,18 @@
     });
   }
 
+  function clientPickerInitials(name) {
+    var parts = String(name || '')
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  }
+
   function getClientPickerMeta(hub) {
-    if (!hub) return { milestones: '0/0', healthLabel: 'Health —', healthClass: '' };
+    if (!hub) return { milestones: '0/0', milestonesPct: 0, healthLabel: 'Health —', healthClass: '', maintPending: false };
     var done = (hub.milestones || []).filter(function (m) {
       return m.done;
     }).length;
@@ -1938,10 +1948,17 @@
     var health = agencyHealthByProject[hub.id];
     var healthDone = health ? healthCheckedCount(health) : 0;
     var healthClass = healthDone >= HEALTH_CHECK_KEYS.length ? 'is-good' : healthDone > 0 ? 'is-warn' : '';
+    var maint = findMaintenanceForHub(hub);
+    var maintPending = !!(maint && maint.effectivePlanStatus === 'pending');
     return {
       milestones: done + '/' + (total || 0),
+      milestonesPct: total ? Math.round((done / total) * 100) : 0,
+      milestonesDone: done,
+      milestonesTotal: total,
       healthLabel: 'Health ' + healthDone + '/' + HEALTH_CHECK_KEYS.length,
-      healthClass: healthClass
+      healthClass: healthClass,
+      maintPending: maintPending,
+      maintTier: maint && maint.planTier ? maint.planTier : ''
     };
   }
 
@@ -1970,21 +1987,22 @@
   function renderCpDepositLeadCard(lead) {
     var title = (lead.name || lead.company || 'Untitled lead').trim();
     var sub = lead.company && lead.name && lead.company !== lead.name ? lead.company : cpStageLabel('deposit');
+    var initials = clientPickerInitials(title);
     return (
       '<li role="presentation">' +
-      '<button type="button" class="cp-client-picker-card cp-client-picker-card--deposit" ' +
+      '<button type="button" class="cp-client-picker-card cp-client-picker-card--deposit cp-client-picker-row" ' +
       'role="option" aria-selected="false" data-cp-lead-id="' + esc(lead.id) + '">' +
-      '<span class="cp-client-picker-card-inner">' +
-      '<span class="cp-client-picker-card-main">' +
+      '<span class="cp-client-picker-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
+      '<span class="cp-client-picker-row-main">' +
+      '<span class="cp-client-picker-row-head">' +
       '<span class="cp-client-picker-card-title">' + esc(title) + '</span>' +
-      '<span class="cp-client-picker-card-sub">' + esc(sub) + '</span>' +
-      '</span>' +
-      '<ion-icon name="add-circle-outline" class="cp-client-picker-chevron" aria-hidden="true"></ion-icon>' +
-      '</span>' +
-      '<span class="cp-client-picker-card-meta">' +
+      '<span class="cp-client-picker-row-badges">' +
       '<span class="cp-client-picker-badge is-deposit">Deposit paid</span>' +
       '<span class="cp-client-picker-badge">' + esc(cpMoney(lead.value)) + '</span>' +
+      '</span></span>' +
+      '<span class="cp-client-picker-card-sub">' + esc(sub) + ' · Ready to onboard</span>' +
       '</span>' +
+      '<ion-icon name="add-circle-outline" class="cp-client-picker-chevron" aria-hidden="true"></ion-icon>' +
       '</button></li>'
     );
   }
@@ -1995,22 +2013,38 @@
       p.title && p.clientName && p.title !== p.clientName ? p.title : p.firebaseProjectId || 'Client project';
     var meta = getClientPickerMeta(p);
     var selected = clientProjectsSelectedId === p.id;
+    var initials = clientPickerInitials(title);
+    var maintBadge = meta.maintPending
+      ? '<span class="cp-client-picker-badge is-pending">Plan pending</span>'
+      : '';
     return (
       '<li role="presentation">' +
-      '<button type="button" class="cp-client-picker-card' + (selected ? ' is-selected' : '') + '" ' +
+      '<button type="button" class="cp-client-picker-card cp-client-picker-row' + (selected ? ' is-selected' : '') + '" ' +
       'role="option" aria-selected="' + (selected ? 'true' : 'false') + '" ' +
       'data-cp-client-id="' + esc(p.id) + '">' +
-      '<span class="cp-client-picker-card-inner">' +
-      '<span class="cp-client-picker-card-main">' +
+      '<span class="cp-client-picker-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
+      '<span class="cp-client-picker-row-main">' +
+      '<span class="cp-client-picker-row-head">' +
       '<span class="cp-client-picker-card-title">' + esc(title) + '</span>' +
+      '<span class="cp-client-picker-row-badges">' +
+      maintBadge +
+      '<span class="cp-client-picker-badge ' + esc(meta.healthClass) + '">' + esc(meta.healthLabel) + '</span>' +
+      '</span></span>' +
       '<span class="cp-client-picker-card-sub">' + esc(sub) + '</span>' +
+      (meta.milestonesTotal
+        ? '<span class="cp-client-picker-progress" aria-label="' +
+          esc(meta.milestones + ' milestones complete') +
+          '">' +
+          '<span class="cp-client-picker-progress-track">' +
+          '<span class="cp-client-picker-progress-fill" style="width:' +
+          esc(String(meta.milestonesPct)) +
+          '%"></span></span>' +
+          '<span class="cp-client-picker-progress-label">' +
+          esc(meta.milestones) +
+          ' milestones</span></span>'
+        : '<span class="cp-client-picker-progress-label cp-client-picker-progress-label--empty">No milestones</span>') +
       '</span>' +
       '<ion-icon name="chevron-forward-outline" class="cp-client-picker-chevron" aria-hidden="true"></ion-icon>' +
-      '</span>' +
-      '<span class="cp-client-picker-card-meta">' +
-      '<span class="cp-client-picker-badge">' + esc(meta.milestones) + ' milestones</span>' +
-      '<span class="cp-client-picker-badge ' + esc(meta.healthClass) + '">' + esc(meta.healthLabel) + '</span>' +
-      '</span>' +
       '</button></li>'
     );
   }
@@ -2458,7 +2492,18 @@
     var filtered = agencyProjects.filter(function (p) {
       return hubMatchesClientSearch(p, query);
     });
+    filtered.sort(function (a, b) {
+      var ma = findMaintenanceForHub(a);
+      var mb = findMaintenanceForHub(b);
+      var pa = ma && ma.effectivePlanStatus === 'pending' ? 0 : 1;
+      var pb = mb && mb.effectivePlanStatus === 'pending' ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      return String(a.clientName || a.title || '').localeCompare(String(b.clientName || b.title || ''), undefined, {
+        sensitivity: 'base'
+      });
+    });
     var html = '';
+    var clientCount = filtered.length + depositLeads.length;
 
     if (depositLeads.length) {
       html +=
@@ -2468,7 +2513,9 @@
 
     if (filtered.length) {
       if (depositLeads.length) {
-        html += '<li class="cp-client-picker-section-label" role="presentation">Active clients</li>';
+        html += '<li class="cp-client-picker-section-label" role="presentation">Active clients (' + filtered.length + ')</li>';
+      } else if (clientCount > 0) {
+        html += '<li class="cp-client-picker-section-label" role="presentation">' + clientCount + (clientCount === 1 ? ' client' : ' clients') + '</li>';
       }
       html += filtered.map(renderCpHubPickerCard).join('');
     }
