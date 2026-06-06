@@ -1575,6 +1575,8 @@ article.home .cwr-landing-navbar .navbar-menu {
   }
 }
 
+/* Landing scroll-reveal: content stays visible until GSAP onEnter runs (no CSS pre-hide) */
+
 /* Landing bands below hero */
 .cwr-landing-band {
   width: 100%;

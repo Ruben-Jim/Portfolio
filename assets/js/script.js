@@ -5763,7 +5763,7 @@ function switchToPage(pageName, skipSave = false) {
           if (typeof window.initActivePageScrollReveals === "function") {
             window.initActivePageScrollReveals();
           }
-        }, 50);
+        }, 100);
       } else {
         if (typeof window.updateLandingNavbarScroll === "function") {
           window.updateLandingNavbarScroll();
@@ -11574,6 +11574,8 @@ function toggleTheme() {
 // GSAP scroll reveals + micro-interactions
 // ─────────────────────────────────────────────
 var scrollRevealTriggers = [];
+var scrollRevealTargets = [];
+var scrollRevealPlayed = typeof WeakSet !== 'undefined' ? new WeakSet() : { has: function () { return false; }, add: function () {} };
 
 function canUseScrollReveal() {
   return typeof gsap !== 'undefined' &&
@@ -11582,52 +11584,116 @@ function canUseScrollReveal() {
 }
 
 function killScrollReveals() {
-  scrollRevealTriggers.forEach(function (trigger) {
-    if (trigger && trigger.animation) {
-      gsap.set(trigger.animation.targets(), { clearProps: 'opacity,visibility,transform' });
-    }
-    if (trigger && trigger.kill) trigger.kill();
+  scrollRevealTriggers.forEach(function (st) {
+    if (st && st.kill) st.kill();
   });
   scrollRevealTriggers = [];
+  if (scrollRevealTargets.length) {
+    gsap.set(scrollRevealTargets, { clearProps: 'opacity,visibility,transform' });
+    scrollRevealTargets = [];
+  }
+  scrollRevealPlayed = typeof WeakSet !== 'undefined' ? new WeakSet() : { has: function () { return false; }, add: function () {} };
 }
 
 function bindScrollReveal(section, itemSelector, options) {
-  if (!section) return;
+  if (!section || scrollRevealPlayed.has(section)) return;
   options = options || {};
-  var items = section.querySelectorAll(itemSelector);
+  var items = gsap.utils.toArray(section.querySelectorAll(itemSelector));
   if (!items.length) return;
 
   gsap.set(items, { clearProps: 'opacity,visibility,transform' });
+  scrollRevealTargets = scrollRevealTargets.concat(items);
 
-  var anim = gsap.from(items, {
-    autoAlpha: 0,
-    y: options.y != null ? options.y : 36,
-    duration: options.duration || 0.85,
-    stagger: options.stagger || 0.11,
-    ease: options.ease || 'power3.out',
-    immediateRender: false,
-    scrollTrigger: {
-      trigger: section,
-      start: options.start || 'top 85%',
-      once: true,
-      toggleActions: 'play none none none',
-      invalidateOnRefresh: true
-    }
+  function playReveal() {
+    if (scrollRevealPlayed.has(section)) return;
+    scrollRevealPlayed.add(section);
+    gsap.fromTo(
+      items,
+      { autoAlpha: 0, y: options.y != null ? options.y : 32 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        duration: options.duration || 0.8,
+        stagger: options.stagger || 0.1,
+        ease: options.ease || 'power3.out',
+        overwrite: 'auto'
+      }
+    );
+  }
+
+  var trigger = ScrollTrigger.create({
+    trigger: section,
+    start: options.start || 'top 82%',
+    once: true,
+    onEnter: playReveal
   });
 
-  if (anim && anim.scrollTrigger) {
-    scrollRevealTriggers.push(anim.scrollTrigger);
+  scrollRevealTriggers.push(trigger);
+
+  if (trigger.isActive) {
+    playReveal();
+  }
+}
+
+function initHomeHeroReveal(homeArticle) {
+  if (!canUseScrollReveal() || !homeArticle) return;
+
+  var copy = homeArticle.querySelector('[data-cwr-landing-reveal]');
+  if (copy && copy.getAttribute('data-hero-revealed') !== '1') {
+    copy.setAttribute('data-hero-revealed', '1');
+    gsap.fromTo(
+      copy,
+      { autoAlpha: 0, y: 28 },
+      { autoAlpha: 1, y: 0, duration: 0.7, ease: 'power3.out' }
+    );
+  }
+
+  var visual = homeArticle.querySelector('.cwr-landing-visual-stage');
+  if (visual && visual.getAttribute('data-hero-revealed') !== '1') {
+    visual.setAttribute('data-hero-revealed', '1');
+    gsap.fromTo(
+      visual,
+      { autoAlpha: 0, scale: 0.94 },
+      { autoAlpha: 1, scale: 1, duration: 0.9, ease: 'power3.out', delay: 0.12 }
+    );
   }
 }
 
 function initHomeLandingScrollReveals(homeArticle) {
-  homeArticle.querySelectorAll('.cwr-landing-band').forEach(function (section) {
-    bindScrollReveal(
-      section,
-      '.cwr-landing-band-header, .cwr-landing-demo-media, .cwr-landing-demo-copy, ' +
-      '.cwr-landing-step, .cwr-landing-clients, .cwr-landing-testimonials, ' +
-      '.cwr-landing-proof-link, .cwr-landing-cta-inner > *'
-    );
+  var bands = [
+    {
+      el: homeArticle.querySelector('.cwr-landing-band--light'),
+      items: '.cwr-landing-demo-media, .cwr-landing-demo-copy',
+      y: 40,
+      stagger: 0.14
+    },
+    {
+      el: homeArticle.querySelector('.cwr-landing-band--dark'),
+      items: '.cwr-landing-band-header, .cwr-landing-step',
+      y: 32,
+      stagger: 0.09
+    },
+    {
+      el: homeArticle.querySelector('.cwr-landing-band--muted'),
+      items: '.cwr-landing-band-header, .cwr-landing-clients, .cwr-landing-testimonials, .cwr-landing-proof-link',
+      y: 32,
+      stagger: 0.11
+    },
+    {
+      el: homeArticle.querySelector('.cwr-landing-band--cta'),
+      items: '.cwr-landing-cta-inner > *',
+      y: 28,
+      stagger: 0.1
+    }
+  ];
+
+  bands.forEach(function (band) {
+    if (!band.el) return;
+    bindScrollReveal(band.el, band.items, {
+      y: band.y,
+      stagger: band.stagger,
+      start: 'top 84%'
+    });
   });
 }
 
@@ -11666,21 +11732,33 @@ function initAboutScrollReveals(aboutArticle) {
 window.initActivePageScrollReveals = function () {
   if (!canUseScrollReveal()) return;
 
-  gsap.registerPlugin(ScrollTrigger);
-  killScrollReveals();
+  requestAnimationFrame(function () {
+    gsap.registerPlugin(ScrollTrigger);
+    killScrollReveals();
 
-  var activeArticle = document.querySelector('article.active[data-page]');
-  if (!activeArticle) return;
+    var activeArticle = document.querySelector('article.active[data-page]');
+    if (!activeArticle) return;
 
-  var page = activeArticle.dataset.page;
-  if (page === 'home') {
-    initHomeLandingScrollReveals(activeArticle);
-  } else if (page === 'about') {
-    initAboutScrollReveals(activeArticle);
-  }
+    var page = activeArticle.dataset.page;
+    if (page === 'home') {
+      initHomeHeroReveal(activeArticle);
+      initHomeLandingScrollReveals(activeArticle);
+    } else if (page === 'about') {
+      initAboutScrollReveals(activeArticle);
+    }
 
-  ScrollTrigger.refresh(true);
+    ScrollTrigger.refresh(true);
+  });
 };
+
+var scrollRevealResizeTimer;
+window.addEventListener('resize', function () {
+  if (!canUseScrollReveal()) return;
+  clearTimeout(scrollRevealResizeTimer);
+  scrollRevealResizeTimer = setTimeout(function () {
+    ScrollTrigger.refresh(true);
+  }, 200);
+});
 
 document.addEventListener('DOMContentLoaded', function () {
   if (typeof gsap === 'undefined') return;
@@ -11688,22 +11766,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   gsap.registerPlugin(ScrollTrigger);
 
-  // Above-the-fold hero copy (home landing)
-  var landingReveal = document.querySelector('article.home.active [data-cwr-landing-reveal]');
-  if (landingReveal) {
-    gsap.from(landingReveal, {
-      autoAlpha: 0,
-      y: 28,
-      duration: 0.65,
-      ease: 'power2.out'
-    });
-  }
-
   setTimeout(function () {
     if (typeof window.initActivePageScrollReveals === 'function') {
       window.initActivePageScrollReveals();
     }
-  }, 120);
+  }, 150);
 
   // Magnetic effect on primary buttons
   var magneticTargets = document.querySelectorAll('.btn-hire-me, .btn-bento-cta');
