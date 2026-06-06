@@ -851,6 +851,7 @@ article.home .cwr-landing-navbar.is-scrolled {
   color: var(--white-1);
   letter-spacing: -0.02em;
   line-height: 1.1;
+  white-space: nowrap;
 }
 
 .cwr-landing-brand-accent {
