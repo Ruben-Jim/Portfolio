@@ -1561,6 +1561,20 @@ article.home .cwr-landing-navbar .navbar-menu {
   }
 }
 
+/* Scroll reveals: GSAP sets autoAlpha; keep content visible if JS is disabled */
+@media (prefers-reduced-motion: reduce) {
+  article.home .cwr-landing-band *,
+  article.about section.home-hero *,
+  article.about section.bento-grid *,
+  article.about section.home-who-i-am *,
+  article.about section.testimonials *,
+  article.about section.clients * {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+}
+
 /* Landing bands below hero */
 .cwr-landing-band {
   width: 100%;

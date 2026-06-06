@@ -5743,6 +5743,9 @@ function switchToPage(pageName, skipSave = false) {
           if (typeof window.loadDynamicTestimonials === "function") {
             window.loadDynamicTestimonials();
           }
+          if (typeof window.initActivePageScrollReveals === "function") {
+            window.initActivePageScrollReveals();
+          }
         }, 80);
       }
 
@@ -5756,6 +5759,9 @@ function switchToPage(pageName, skipSave = false) {
           }
           if (typeof window.initLandingNavbarScroll === "function") {
             window.initLandingNavbarScroll();
+          }
+          if (typeof window.initActivePageScrollReveals === "function") {
+            window.initActivePageScrollReveals();
           }
         }, 50);
       } else {
@@ -11565,45 +11571,132 @@ function toggleTheme() {
 })();
 
 // ─────────────────────────────────────────────
-// GSAP Micro-interactions
+// GSAP scroll reveals + micro-interactions
 // ─────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
+var scrollRevealTriggers = [];
+
+function canUseScrollReveal() {
+  return typeof gsap !== 'undefined' &&
+    typeof ScrollTrigger !== 'undefined' &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function killScrollReveals() {
+  scrollRevealTriggers.forEach(function (trigger) {
+    if (trigger && trigger.kill) trigger.kill();
+  });
+  scrollRevealTriggers = [];
+}
+
+function bindScrollReveal(section, itemSelector, options) {
+  if (!section) return;
+  options = options || {};
+  var items = section.querySelectorAll(itemSelector);
+  if (!items.length) return;
+
+  var anim = gsap.from(items, {
+    autoAlpha: 0,
+    y: options.y != null ? options.y : 36,
+    duration: options.duration || 0.85,
+    stagger: options.stagger || 0.11,
+    ease: options.ease || 'power3.out',
+    scrollTrigger: {
+      trigger: section,
+      start: options.start || 'top 82%',
+      once: true,
+      toggleActions: 'play none none none'
+    }
+  });
+
+  if (anim && anim.scrollTrigger) {
+    scrollRevealTriggers.push(anim.scrollTrigger);
+  }
+}
+
+function initHomeLandingScrollReveals(homeArticle) {
+  homeArticle.querySelectorAll('.cwr-landing-band').forEach(function (section) {
+    bindScrollReveal(
+      section,
+      '.cwr-landing-band-header, .cwr-landing-demo-media, .cwr-landing-demo-copy, ' +
+      '.cwr-landing-step, .cwr-landing-clients, .cwr-landing-testimonials, ' +
+      '.cwr-landing-proof-link, .cwr-landing-cta-inner > *'
+    );
+  });
+}
+
+function initAboutScrollReveals(aboutArticle) {
+  bindScrollReveal(
+    aboutArticle.querySelector('section.home-hero'),
+    '.home-hero-inner, .home-hero-visual',
+    { y: 32, stagger: 0.14 }
+  );
+
+  bindScrollReveal(
+    aboutArticle.querySelector('section.bento-grid'),
+    '[data-bento-cell]',
+    { y: 28, stagger: 0.12 }
+  );
+
+  bindScrollReveal(
+    aboutArticle.querySelector('section.home-who-i-am'),
+    '.home-who-i-am-card, .work-marquee',
+    { y: 28, stagger: 0.14 }
+  );
+
+  bindScrollReveal(
+    aboutArticle.querySelector('section.testimonials'),
+    '.testimonials-item',
+    { y: 24, stagger: 0.1 }
+  );
+
+  bindScrollReveal(
+    aboutArticle.querySelector('section.clients'),
+    '.clients-title, .clients-scroll-shell',
+    { y: 28, stagger: 0.12 }
+  );
+}
+
+window.initActivePageScrollReveals = function () {
+  if (!canUseScrollReveal()) return;
+
+  gsap.registerPlugin(ScrollTrigger);
+  killScrollReveals();
+
+  var activeArticle = document.querySelector('article.active[data-page]');
+  if (!activeArticle) return;
+
+  var page = activeArticle.dataset.page;
+  if (page === 'home') {
+    initHomeLandingScrollReveals(activeArticle);
+  } else if (page === 'about') {
+    initAboutScrollReveals(activeArticle);
+  }
+
+  ScrollTrigger.refresh();
+};
+
+document.addEventListener('DOMContentLoaded', function () {
   if (typeof gsap === 'undefined') return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   gsap.registerPlugin(ScrollTrigger);
 
-  var heroReveal = document.querySelector('[data-home-hero-reveal]');
-  if (heroReveal) {
-    gsap.from(heroReveal, {
-      opacity: 0,
-      y: 20,
-      duration: 0.55,
-      ease: 'power2.out'
-    });
-  }
-
-  var landingReveal = document.querySelector('[data-cwr-landing-reveal]');
+  // Above-the-fold hero copy (home landing)
+  var landingReveal = document.querySelector('article.home.active [data-cwr-landing-reveal]');
   if (landingReveal) {
     gsap.from(landingReveal, {
-      opacity: 0,
+      autoAlpha: 0,
       y: 28,
       duration: 0.65,
       ease: 'power2.out'
     });
   }
 
-  // Staggered Bento reveal on load (includes home Who I Am card after grid)
-  var bentoCells = document.querySelectorAll('[data-bento-cell]');
-  if (bentoCells.length) {
-    gsap.from(bentoCells, {
-      opacity: 0,
-      y: 24,
-      duration: 0.6,
-      stagger: 0.1,
-      ease: 'power2.out'
-    });
-  }
+  setTimeout(function () {
+    if (typeof window.initActivePageScrollReveals === 'function') {
+      window.initActivePageScrollReveals();
+    }
+  }, 120);
 
   // Magnetic effect on primary buttons
   var magneticTargets = document.querySelectorAll('.btn-hire-me, .btn-bento-cta');
