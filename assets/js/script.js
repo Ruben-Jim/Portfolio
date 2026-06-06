@@ -11583,6 +11583,9 @@ function canUseScrollReveal() {
 
 function killScrollReveals() {
   scrollRevealTriggers.forEach(function (trigger) {
+    if (trigger && trigger.animation) {
+      gsap.set(trigger.animation.targets(), { clearProps: 'opacity,visibility,transform' });
+    }
     if (trigger && trigger.kill) trigger.kill();
   });
   scrollRevealTriggers = [];
@@ -11594,17 +11597,21 @@ function bindScrollReveal(section, itemSelector, options) {
   var items = section.querySelectorAll(itemSelector);
   if (!items.length) return;
 
+  gsap.set(items, { clearProps: 'opacity,visibility,transform' });
+
   var anim = gsap.from(items, {
     autoAlpha: 0,
     y: options.y != null ? options.y : 36,
     duration: options.duration || 0.85,
     stagger: options.stagger || 0.11,
     ease: options.ease || 'power3.out',
+    immediateRender: false,
     scrollTrigger: {
       trigger: section,
-      start: options.start || 'top 82%',
+      start: options.start || 'top 85%',
       once: true,
-      toggleActions: 'play none none none'
+      toggleActions: 'play none none none',
+      invalidateOnRefresh: true
     }
   });
 
@@ -11672,7 +11679,7 @@ window.initActivePageScrollReveals = function () {
     initAboutScrollReveals(activeArticle);
   }
 
-  ScrollTrigger.refresh();
+  ScrollTrigger.refresh(true);
 };
 
 document.addEventListener('DOMContentLoaded', function () {
