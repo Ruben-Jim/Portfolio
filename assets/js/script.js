@@ -5626,7 +5626,7 @@ var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pric
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
-  if (path === '') return 'home';
+  if (path === '' || path === 'index.html') return 'home';
   if (path === 'home') return 'home';
   if (path === 'service-pricing') return 'services-pricing';
   if (VALID_PAGES.indexOf(path) !== -1) return path;
@@ -5662,25 +5662,67 @@ function updateUrlForPage(pageName, replace) {
   }
 }
 
+var restoreNavigationSessionId = 0;
+var restoreNavigationTimer = null;
+
+function invalidateRestoreNavigationTimers() {
+  restoreNavigationSessionId += 1;
+  if (restoreNavigationTimer) {
+    clearTimeout(restoreNavigationTimer);
+    restoreNavigationTimer = null;
+  }
+}
+
+function resolveNavPageName(navText) {
+  var navPageName = (navText || '').toLowerCase().trim();
+  if (navPageName === 'services & pricing' || (navPageName.includes('services') && navPageName.includes('pricing'))) {
+    return 'services-pricing';
+  }
+  if (navPageName === 'what we build' || navPageName === 'for business') {
+    return 'business-systems';
+  }
+  if (navPageName === 'hire me') {
+    return 'hire-me';
+  }
+  if (navPageName === 'dm') {
+    return 'messages';
+  }
+  return navPageName;
+}
+
+function syncNavActiveForArticle(articleEl, pageName) {
+  if (!articleEl) return;
+  articleEl.querySelectorAll('[data-nav-link]').forEach(function (link) {
+    link.classList.remove('active');
+    if (resolveNavPageName(link.textContent.trim()) === pageName) {
+      link.classList.add('active');
+    }
+  });
+}
+
 // Function to switch to a specific page
 function switchToPage(pageName, skipSave = false) {
+  if (!skipSave) {
+    invalidateRestoreNavigationTimers();
+  }
   if (pageName !== 'messages' && typeof window.dismissCustomerDmSheetForNavigation === 'function') {
     window.dismissCustomerDmSheetForNavigation();
   }
-  // First, remove active class from all pages and navigation links
-  for (let i = 0; i < pages.length; i++) {
-    pages[i].classList.remove("active");
-  }
-  for (let i = 0; i < navigationLinks.length; i++) {
-    navigationLinks[i].classList.remove("active");
-  }
+  var pageArticles = document.querySelectorAll('article[data-page]');
+  pageArticles.forEach(function (articleEl) {
+    articleEl.classList.remove('active');
+  });
+  document.querySelectorAll('[data-nav-link]').forEach(function (link) {
+    link.classList.remove('active');
+  });
   document.body.classList.remove("admin-page-active");
   document.body.classList.remove("home-page-active");
   
   // Find and activate the matching page
-  for (let i = 0; i < pages.length; i++) {
-    if (pageName === pages[i].dataset.page) {
-      pages[i].classList.add("active");
+  for (let i = 0; i < pageArticles.length; i++) {
+    if (pageName === pageArticles[i].dataset.page) {
+      pageArticles[i].classList.add("active");
+      syncNavActiveForArticle(pageArticles[i], pageName);
       if (pageName === "admin") {
         document.body.classList.add("admin-page-active");
       }
@@ -5688,28 +5730,6 @@ function switchToPage(pageName, skipSave = false) {
         document.body.classList.add("home-page-active");
       }
       window.scrollTo(0, 0);
-      
-      // Find the matching navigation link by comparing text content
-      for (let j = 0; j < navigationLinks.length; j++) {
-        const navText = navigationLinks[j].textContent.trim();
-        // Match by converting both to lowercase and handling special cases
-        let navPageName = navText.toLowerCase().trim();
-        if (navPageName === "services & pricing" || (navPageName.includes("services") && navPageName.includes("pricing"))) {
-          navPageName = "services-pricing";
-        }
-        if (navPageName === "what we build" || navPageName === "for business") {
-          navPageName = "business-systems";
-        }
-        if (navPageName === "hire me") {
-          navPageName = "hire-me";
-        }
-        if (navPageName === "dm") {
-          navPageName = "messages";
-        }
-        if (navPageName === pageName) {
-          navigationLinks[j].classList.add("active");
-        }
-      }
       
       // Save to localStorage and update URL path (unless skipSave is true)
       if (!skipSave) {
@@ -5749,7 +5769,7 @@ function switchToPage(pageName, skipSave = false) {
       }
 
       // Re-initialize accordions if resume page is shown
-      if (pages[i].dataset.page === "resume") {
+      if (pageArticles[i].dataset.page === "resume") {
         accordionInitialized = false; // Reset flag to allow re-initialization
         setTimeout(function() {
           initClassAccordion();
@@ -5758,7 +5778,7 @@ function switchToPage(pageName, skipSave = false) {
       }
 
       // Handle admin page authentication (wait until Firebase auth has resolved once)
-      if (pages[i].dataset.page === "admin") {
+      if (pageArticles[i].dataset.page === "admin") {
         if (typeof window.syncAdminArticleAuth === "function") {
           window.syncAdminArticleAuth();
         }
@@ -5780,17 +5800,7 @@ function switchToPage(pageName, skipSave = false) {
 // add event to all nav link
 for (let i = 0; i < navigationLinks.length; i++) {
   navigationLinks[i].addEventListener("click", function () {
-    let pageName = this.textContent.trim().toLowerCase();
-    // Handle special cases for page names
-    if (pageName === "services & pricing" || (pageName.includes("services") && pageName.includes("pricing"))) {
-      pageName = "services-pricing";
-    } else if (pageName === "what we build" || pageName === "for business") {
-      pageName = "business-systems";
-    } else if (pageName === "hire me") {
-      pageName = "hire-me";
-    } else if (pageName === "dm") {
-      pageName = "messages";
-    }
+    var pageName = resolveNavPageName(this.textContent.trim());
     switchToPage(pageName);
     // close all hamburger menus after navigation
     document.querySelectorAll("[data-navbar]").forEach(function (nav) {
@@ -5798,6 +5808,8 @@ for (let i = 0; i < navigationLinks.length; i++) {
     });
   });
 }
+
+window.switchToPage = switchToPage;
 
 /** True when URL is for standalone testimonial.html but the SPA shell (index) was served instead. */
 function isTestimonialUrlServedAsSpaShell() {
@@ -5812,7 +5824,12 @@ function isTestimonialUrlServedAsSpaShell() {
 }
 
 // Restore active page from URL path or localStorage on page load with loading animation
+var restoreActivePageStarted = false;
+
 function restoreActivePage() {
+  if (restoreActivePageStarted) return;
+  restoreActivePageStarted = true;
+
   var loadingScreen = document.getElementById('loading-screen');
   var redirectPage = getPageFromRedirectParam();
   var pageFromPath = getPageFromPath();
@@ -5823,54 +5840,41 @@ function restoreActivePage() {
     pageFromPath = null;
     redirectPage = null;
   }
-  // URL path wins (e.g. rubenjimenez.dev/portfolio), then localStorage, then about
-  // Redirect param wins (from 404 fallback), then URL path, then localStorage, then about
+  // Redirect param wins (from 404 fallback), then URL path, then localStorage, then home
   var targetPage = redirectPage || pageFromPath || savedPage || 'home';
-
-  switchToPage('home', true);
-
-  if (targetPage && targetPage !== 'home') {
-    setTimeout(function() {
-      switchToPage(targetPage, true);
-      updateUrlForPage(targetPage, true);
-      if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-        setTimeout(function() { loadingScreen.style.display = 'none'; }, 500);
-      }
-    }, 700);
-  } else {
-    if (targetPage === 'home') {
-      updateUrlForPage('home', true);
-    }
-    setTimeout(function() {
-      if (loadingScreen) {
-        loadingScreen.classList.add('hidden');
-        setTimeout(function() { loadingScreen.style.display = 'none'; }, 500);
-      }
-    }, 700);
+  if (VALID_PAGES.indexOf(targetPage) === -1) {
+    targetPage = 'home';
   }
+
+  var sessionId = restoreNavigationSessionId;
+  switchToPage(targetPage, true);
+  updateUrlForPage(targetPage, true);
+
+  restoreNavigationTimer = setTimeout(function () {
+    if (sessionId !== restoreNavigationSessionId) return;
+    if (loadingScreen) {
+      loadingScreen.classList.add('hidden');
+      setTimeout(function () { loadingScreen.style.display = 'none'; }, 500);
+    }
+  }, 700);
 }
 
 // Back/forward: sync tab to URL path
 window.addEventListener('popstate', function(e) {
+  invalidateRestoreNavigationTimers();
   var page = (e.state && e.state.page) ? e.state.page : getPageFromPath();
   if (page) {
     switchToPage(page, true);
+    updateUrlForPage(page, true);
   }
 });
 
 // Restore page on load
 document.addEventListener('DOMContentLoaded', function() {
-  // Small delay to ensure loading screen is visible
   setTimeout(restoreActivePage, 50);
 });
 
-// Also restore if DOM is already loaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(restoreActivePage, 50);
-  });
-} else {
+if (document.readyState !== 'loading') {
   setTimeout(restoreActivePage, 50);
 }
 
