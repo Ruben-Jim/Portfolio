@@ -1561,7 +1561,22 @@ article.home .cwr-landing-navbar .navbar-menu {
   }
 }
 
-/* Scroll reveals: GSAP sets autoAlpha; keep content visible if JS is disabled */
+/* Section ease-in reveal (fade up on scroll) */
+@media (prefers-reduced-motion: no-preference) {
+  .cwr-ease-in {
+    opacity: 0;
+    transform: translate3d(0, 32px, 0);
+    transition:
+      opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cwr-ease-in.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   article.home .cwr-landing-band *,
   article.about section.home-hero *,
@@ -1573,9 +1588,13 @@ article.home .cwr-landing-navbar .navbar-menu {
     visibility: visible !important;
     transform: none !important;
   }
-}
 
-/* Landing scroll-reveal: content stays visible until GSAP onEnter runs (no CSS pre-hide) */
+  .cwr-ease-in {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
 
 /* Landing bands below hero */
 .cwr-landing-band {
