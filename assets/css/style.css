@@ -846,6 +846,9 @@ article.home .cwr-landing-navbar.is-scrolled {
 }
 
 .cwr-landing-brand-mark {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: baseline;
   font-size: clamp(1.1rem, 1.5vw, 1.35rem);
   font-weight: var(--fw-600);
   color: var(--white-1);
@@ -855,6 +858,7 @@ article.home .cwr-landing-navbar.is-scrolled {
 }
 
 .cwr-landing-brand-accent {
+  display: inline;
   color: var(--orange-yellow-crayola);
 }
 
