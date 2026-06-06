@@ -11,11 +11,6 @@
     (function () {
       var m = location.pathname.match(/^\/portal\/([a-f0-9]{16,64})/i);
       if (m) location.replace('/portal.html?token=' + encodeURIComponent(m[1]));
-      // GitHub Pages serves folder routes at /about/ not /about (bare path → 404.html).
-      var bare = location.pathname.replace(/\/+$/, '');
-      if (bare === '/about' || bare === '/admin') {
-        location.replace(bare + '/' + location.search + location.hash);
-      }
     })();
   </script>
   
@@ -304,7 +299,7 @@
                 <span class="cwr-landing-offer-plus" aria-hidden="true">+</span>
                 <span class="cwr-landing-offer-box">Software</span>
               </div>
-              <p class="cwr-landing-price">Packages from <strong>$1,500</strong> · Year 1 maintenance included</p>
+              <p class="cwr-landing-price">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong></p>
               <p class="cwr-landing-proof"><span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards <span class="cwr-landing-stars" aria-hidden="true">★★★★★</span></p>
               <div class="cwr-landing-actions">
                 <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get started</button>
@@ -388,7 +383,7 @@
           </div>
         </section>
 
-        <!-- Section 4: Social proof -->
+        <!-- Section 4: Social proof (client logos) -->
         <section class="cwr-landing-band cwr-landing-band--muted" aria-labelledby="cwr-proof-title">
           <div class="cwr-landing-band-inner">
             <header class="cwr-landing-band-header cwr-landing-band-header--center">
@@ -400,6 +395,16 @@
               <li><img src="/assets/images/logo/logo-2-color.png" alt="Client logo"></li>
               <li><img src="/assets/images/logo/logo-3-color.png" alt="Client logo"></li>
             </ul>
+          </div>
+        </section>
+
+        <!-- Section 4b: Testimonials -->
+        <section class="cwr-landing-band cwr-landing-band--dark" aria-labelledby="cwr-testimonials-title">
+          <div class="cwr-landing-band-inner">
+            <header class="cwr-landing-band-header cwr-landing-band-header--center">
+              <p class="cwr-landing-band-kicker">Testimonials</p>
+              <h2 class="cwr-landing-band-title" id="cwr-testimonials-title">What clients say</h2>
+            </header>
             <ul class="testimonials-list cwr-landing-testimonials has-scrollbar" data-home-testimonials aria-label="Client testimonials">
               <li class="testimonials-item">
                 <div class="content-card" data-testimonials-item>
@@ -423,7 +428,7 @@
         <section class="cwr-landing-band cwr-landing-band--cta" aria-labelledby="cwr-cta-title">
           <div class="cwr-landing-band-inner cwr-landing-cta-inner">
             <h2 class="cwr-landing-band-title" id="cwr-cta-title">Ready to run your business from your phone?</h2>
-            <p class="cwr-landing-band-lead">Packages from <strong>$1,500</strong> · Year 1 maintenance included · Fresno-based studio</p>
+            <p class="cwr-landing-band-lead">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong> · Fresno-based studio</p>
             <div class="cwr-landing-cta-actions">
               <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get started</button>
               <button type="button" class="btn cwr-landing-btn-outline cwr-landing-btn-outline--on-dark" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
@@ -475,116 +480,70 @@
           </div>
         </nav>
 
-        <section class="home-hero" aria-labelledby="home-hero-title">
-          <div class="home-hero-bg" aria-hidden="true"></div>
-          <div class="home-hero-noise" aria-hidden="true"></div>
-          <div class="home-hero-grid">
-            <div class="home-hero-inner" data-home-hero-reveal>
-              <div class="home-hero-kicker">
-                <span class="home-hero-kicker-line" aria-hidden="true"></span>
-                <p class="home-hero-eyebrow">CodeWithRuben — Web & Mobile Dev Studio</p>
-              </div>
-              <h2 class="home-hero-title" id="home-hero-title">More customers. Less busywork. Built for how you run your business.</h2>
-              <p class="home-hero-lead">Stop juggling generic websites, booking apps, and spreadsheets. We design and build custom software that brings in jobs, keeps clients on track, and saves your team hours every week.</p>
-              <div class="home-hero-tools">
-                <p class="home-hero-pills-label">Ready to replace the tools you use today?</p>
-                <ul class="home-hero-pills" aria-label="Tools and platforms businesses often outgrow">
-                  <li>House Pro Call</li>
-                  <li>GoDaddy</li>
-                  <li>Wix</li>
-                  <li>Thumbtack</li>
-                  <li>Jobber</li>
-                  <li>Yelp</li>
-                </ul>
-              </div>
-              <div class="home-hero-actions">
-                <button type="button" class="btn btn-primary home-hero-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View portfolio</button>
-                <button type="button" class="btn home-hero-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Contact</button>
-                <button type="button" class="btn home-hero-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services & pricing</button>
-              </div>
-            </div>
-            <div class="home-hero-visual" aria-hidden="true">
-              <div class="home-hero-visual-gridline"></div>
-              <div class="home-hero-visual-card">
-                <p class="home-hero-visual-kicker">Delivery Focus</p>
-                <h3 class="home-hero-visual-title">Web + Mobile Build Flow</h3>
-                <ul class="home-hero-visual-steps">
-                  <li><span class="home-hero-step-dot"></span> Scope & architecture</li>
-                  <li><span class="home-hero-step-dot"></span> Build & QA</li>
-                  <li><span class="home-hero-step-dot"></span> Ship & support</li>
-                </ul>
-                <div class="home-hero-visual-metrics">
-                  <div class="home-hero-visual-metric">
-                    <span class="home-hero-visual-metric-label">Response</span>
-                    <strong>24h</strong>
-                  </div>
-                  <div class="home-hero-visual-metric">
-                    <span class="home-hero-visual-metric-label">Apps Shipped</span>
-                    <strong>3</strong>
-                  </div>
-                </div>
-              </div>
-              <div class="home-hero-visual-badge">
-                <ion-icon name="code-slash-outline"></ion-icon>
-                <span>Build · Ship · Iterate</span>
-              </div>
-            </div>
+        <header>
+          <h2 class="h2 article-title">About</h2>
+        </header>
+
+        <!-- Studio intro -->
+        <section class="about-text">
+          <p><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based product studio</span> for local businesses — we design, build, and ship <span class="highlight-accent">web and mobile apps</span> with clear UX and dependable backends. Stack: <span class="highlight-accent">React Native, Node, Firebase</span>, and more.</p>
+          <div class="bento-intro-links" style="margin-top: 16px;">
+            <a href="/portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Work</a>
+            <a href="/services-pricing" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services</a>
+            <a href="/contact" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Start a project</a>
           </div>
         </section>
 
-        <!-- Bento Grid -->
-        <section class="bento-grid" aria-label="Portfolio highlights">
-          <div class="bento-card bento-latest-project" data-bento-cell>
-            <h3 class="h3 bento-card-title">Latest Project</h3>
-            <a href="https://roof-cleaning-template.expo.app" class="bento-project-link" target="_blank" rel="noopener noreferrer">
-              <figure class="bento-project-img">
-                <img src="/assets/images/projects/project-procleaning.png" alt="Pro Cleaning App" loading="lazy">
-                <div class="bento-project-overlay">
-                  <ion-icon name="eye-outline"></ion-icon>
-                </div>
-              </figure>
-            </a>
-            <h4 class="h4 bento-project-title">Pro Cleaning</h4>
-            <div class="bento-project-tech">
-              <span class="tech-tag">React Native</span>
-              <span class="tech-tag">Expo</span>
-              <span class="tech-tag">Firebase</span>
-            </div>
-            <a href="#contact" class="btn-bento-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get a Quote</a>
-          </div>
-
-          <div class="bento-card bento-services" data-bento-cell>
-            <h3 class="h3 bento-card-title">What We Build</h3>
-            <ul class="bento-services-list">
-              <li class="bento-service-item">
-                <img src="/assets/images/icons/icon-dev.svg" alt="" width="32">
-                <span>Web apps & presence sites</span>
-              </li>
-              <li class="bento-service-item">
-                <img src="/assets/images/icons/icon-app.svg" alt="" width="32">
-                <span>iOS & Android mobile apps</span>
-              </li>
-              <li class="bento-service-item">
-                <img src="/assets/images/icons/icon-design.svg" alt="" width="32">
-                <span>Booking, payments & admin</span>
-              </li>
-            </ul>
-          </div>
+        <!-- Mission statement -->
+        <section class="about-text">
+          <h3 class="h3" style="margin-bottom: 12px; line-height: 1.25;">More customers. Less busywork.<br>Built for how you run your business.</h3>
+          <p>Stop juggling generic websites, booking apps, and spreadsheets. We design and build custom software that brings in jobs, keeps clients on track, and saves your team hours every week.</p>
+          <p class="home-hero-pills-label" style="margin-top: 20px;">Ready to replace the tools you use today?</p>
+          <ul class="home-hero-pills about-tools-pills" aria-label="Tools and platforms businesses often outgrow">
+            <li>House Pro Call</li>
+            <li>GoDaddy</li>
+            <li>Wix</li>
+            <li>Thumbtack</li>
+            <li>Jobber</li>
+            <li>Yelp</li>
+          </ul>
         </section>
 
-        <section class="home-who-i-am" aria-labelledby="who-i-am-title">
-          <div class="bento-card home-who-i-am-card" data-bento-cell>
-            <h3 class="h3 bento-card-title" id="who-i-am-title">About the studio</h3>
-            <p class="bento-intro-text"><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based product studio</span> for local businesses — we design, build, and ship <span class="highlight-accent">web and mobile apps</span> with clear UX and dependable backends. Stack: <span class="highlight-accent">React Native, Node, Firebase</span>, and more.</p>
-            <div class="bento-intro-links">
-              <a href="/portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Work</a>
-              <a href="/services-pricing" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services</a>
-              <a href="/contact" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Start a project</a>
-            </div>
-          </div>
+        <!-- What we build -->
+        <section class="service">
+          <h3 class="h3 service-title">What We Build</h3>
+          <ul class="service-list">
+            <li class="service-item">
+              <div class="service-icon-box">
+                <img src="/assets/images/icons/icon-dev.svg" alt="Web development icon" width="40">
+              </div>
+              <div class="service-content-box">
+                <h4 class="h4 service-item-title">Web Apps & Presence Sites</h4>
+                <p class="service-item-text">Fast, SEO-ready marketing sites and full-stack web apps tailored to your business operations.</p>
+              </div>
+            </li>
+            <li class="service-item">
+              <div class="service-icon-box">
+                <img src="/assets/images/icons/icon-app.svg" alt="Mobile app icon" width="40">
+              </div>
+              <div class="service-content-box">
+                <h4 class="h4 service-item-title">iOS & Android Mobile Apps</h4>
+                <p class="service-item-text">Cross-platform React Native apps that ship to both stores from a single codebase — no duplicate work.</p>
+              </div>
+            </li>
+            <li class="service-item">
+              <div class="service-icon-box">
+                <img src="/assets/images/icons/icon-design.svg" alt="Dashboard icon" width="40">
+              </div>
+              <div class="service-content-box">
+                <h4 class="h4 service-item-title">Booking, Payments & Admin</h4>
+                <p class="service-item-text">Real-time booking systems, Stripe payments, and custom admin dashboards built for daily operations.</p>
+              </div>
+            </li>
+          </ul>
         </section>
 
-        <!-- Technologies & Clients ↔ What Clients Say (marquee centered between headings) -->
+        <!-- Technologies & clients marquee -->
         <div class="home-tech-clients-zone">
           <h3 class="h3 work-marquee-title">Technologies & Clients</h3>
           <section class="work-marquee" aria-label="Technologies and clients">
@@ -612,135 +571,51 @@
           </section>
           <h3 class="h3 testimonials-title" id="testimonials-heading">What Clients Say</h3>
         </div>
-        
-        <!--
-          - testimonials
-        -->
-        
+
+        <!-- Testimonials -->
         <section class="testimonials" aria-labelledby="testimonials-heading">
-
           <ul class="testimonials-list has-scrollbar">
-
             <li class="testimonials-item">
               <div class="content-card" data-testimonials-item>
-
                 <figure class="testimonials-avatar-box">
                   <img src="/assets/images/avatar/avatar-5.png" alt="Roberto" width="60" data-testimonials-avatar>
                 </figure>
-
                 <h4 class="h4 testimonials-item-title" data-testimonials-title>Roberto</h4>
-
                 <div class="testimonials-text" data-testimonials-text>
-                  <p>
-                    Ruben was hired to create a ordering ecosystem featuring dual interfaces for customers and kitchen staff. 
-                    Customers enjoy a seamless experience with real-time order tracking and menu browsing, 
-                    while the dedicated Cook Dashboard empowers staff to manage availability, toggle order acceptance, 
-                    and track statuses from "Pending" to "Completed" in real-time.
-                  </p>
+                  <p>Ruben was hired to create a ordering ecosystem featuring dual interfaces for customers and kitchen staff. Customers enjoy a seamless experience with real-time order tracking and menu browsing, while the dedicated Cook Dashboard empowers staff to manage availability, toggle order acceptance, and track statuses from "Pending" to "Completed" in real-time.</p>
                 </div>
-
               </div>
             </li>
-
           </ul>
-
         </section>
-        
 
-        <!--
-          - testimonials modal (fullscreen blog post) 
-        -->
-
-        <div class="modal-container" data-modal-container>
-
-          <div class="overlay" data-overlay></div>
-
-          <section class="testimonials-modal">
-
-            <button class="modal-close-btn" data-modal-close-btn>
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-
-            <div class="modal-img-wrapper">
-              <figure class="modal-avatar-box">
-                <img src="/assets/images/avatar/avatar-1.png" alt="Daniel lewis" width="80" data-modal-img>
-              </figure>
-
-              <img src="/assets/images/icons/icon-quote.svg" alt="quote icon">
-            </div>
-
-            <div class="modal-content">
-
-              <h4 class="h3 modal-title" data-modal-title>Daniel lewis</h4>
-
-              <time class="modal-date" datetime="" data-modal-time hidden></time>
-
-              <div data-modal-text>
-                <p>
-                
-                </p>
-              </div>
-
-            </div>
-
-          </section>
-
-        </div>
-
-        <!--
-          - clients
-        -->
-       
+        <!-- Clients -->
         <section class="clients">
-
           <h3 class="h3 clients-title">Trusted By</h3>
-
           <div class="clients-scroll-shell">
-          <ul class="clients-list has-scrollbar" id="clients-list" aria-label="Client logos">
-
-            <li class="clients-item">
-              <a href="#Portfolio">
-                <img src="/assets/images/logo/logo-1-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#Portfolio">
-                <img src="/assets/images/logo/logo-2-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#Portfolio">
-                <img src="/assets/images/logo/logo-3-color.png" alt="client logo">
-              </a>
-            </li>
-<!-- 
-            <li class="clients-item">
-              <a href="#">
-                <img src="/assets/images/logo/logo-4-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="/assets/images/logo/logo-5-color.png" alt="client logo">
-              </a>
-            </li>
-
-            <li class="clients-item">
-              <a href="#">
-                <img src="/assets/images/logo/logo-6-color.png" alt="client logo">
-              </a>
-            </li> -->
-
-          </ul>
-          <div class="clients-scroll-track" id="clients-scroll-track" aria-hidden="true">
-            <div class="clients-scroll-thumb" id="clients-scroll-thumb"></div>
+            <ul class="clients-list has-scrollbar" id="clients-list" aria-label="Client logos">
+              <li class="clients-item">
+                <a href="#Portfolio">
+                  <img src="/assets/images/logo/logo-1-color.png" alt="client logo">
+                </a>
+              </li>
+              <li class="clients-item">
+                <a href="#Portfolio">
+                  <img src="/assets/images/logo/logo-2-color.png" alt="client logo">
+                </a>
+              </li>
+              <li class="clients-item">
+                <a href="#Portfolio">
+                  <img src="/assets/images/logo/logo-3-color.png" alt="client logo">
+                </a>
+              </li>
+            </ul>
+            <div class="clients-scroll-track" id="clients-scroll-track" aria-hidden="true">
+              <div class="clients-scroll-thumb" id="clients-scroll-thumb"></div>
+            </div>
           </div>
-          </div>
-
         </section>
+
       </article>
       
       <!--
@@ -1749,13 +1624,17 @@
                 </a>
               </div>
 
-              <div class="enterprise-card">
+              <div class="enterprise-card enterprise-card--agency">
+                <span class="enterprise-card-badge enterprise-card-badge--agency">Agency Build</span>
                 <div class="enterprise-card-title">Business Platform</div>
                 <div class="enterprise-card-sub">
                   Web + mobile app with full operations — payments, worker management, admin dashboard, and production-grade Firebase backend.
                 </div>
-                <div class="enterprise-price">$6,000–$12,000</div>
-                <div class="enterprise-price-note">Fixed package · 6–10 weeks · Maintenance included · Year 1 only</div>
+                <div class="enterprise-agency-range">
+                  <span class="enterprise-agency-range-label">Investment</span>
+                  <span class="enterprise-agency-range-value">$6k – $12k</span>
+                  <span class="enterprise-agency-range-note">Scoped after discovery · Year 1 maintenance included</span>
+                </div>
                 <ul class="enterprise-feature-list">
                   <li>Web + iOS + Android — one unified Expo codebase</li>
                   <li>Role-based Auth + deeper Firestore data modeling</li>
@@ -1763,19 +1642,23 @@
                   <li>Cloud Functions automation + Storage file handling</li>
                   <li>Performance QA + Firebase Analytics conversion setup</li>
                 </ul>
-                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Business Platform ($6,000–$12,000)', 'Interested in the Business Platform package ($6,000–$12,000 range, maintenance included for the first year only). I need a web + mobile build with payments and operations tools.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
-                  <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Get a Quote
+                <a href="#contact" class="enterprise-cta enterprise-cta--agency" onclick="prefillContactForm('Business Platform', 'I\'m interested in the Business Platform build (web + mobile, payments, admin dashboard). Happy to set up a discovery call to confirm scope.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  Book Discovery Call
                 </a>
               </div>
 
-              <div class="enterprise-card">
+              <div class="enterprise-card enterprise-card--agency">
+                <span class="enterprise-card-badge enterprise-card-badge--agency">Studio Build</span>
                 <div class="enterprise-card-title">Studio Build</div>
                 <div class="enterprise-card-sub">
                   Custom enterprise platform — full-scale build with subscriptions, push notifications, multi-role admin, and complete source handoff.
                 </div>
-                <div class="enterprise-price">$15,000–$40,000</div>
-                <div class="enterprise-price-note">Custom scope · Timeline confirmed after discovery · Maintenance included · Year 1 only</div>
+                <div class="enterprise-agency-range">
+                  <span class="enterprise-agency-range-label">Investment</span>
+                  <span class="enterprise-agency-range-value">$15k – $40k</span>
+                  <span class="enterprise-agency-range-note">Custom scope · Timeline after discovery · Year 1 maintenance included</span>
+                </div>
                 <ul class="enterprise-feature-list">
                   <li>Everything in Business + full custom business scope</li>
                   <li>Full Firebase stack: Auth, Firestore, Functions, Storage</li>
@@ -1784,9 +1667,9 @@
                   <li>Advanced CMS/Admin panel and operations tools</li>
                   <li>Crashlytics/monitoring + deployment hardening + handoff</li>
                 </ul>
-                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Studio Build ($15,000–$40,000)', 'Interested in the Studio Build package ($15,000–$40,000 range, scope confirmed after discovery). I need a full custom platform with subscriptions, push notifications, and complete handoff.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
-                  <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Discuss Scope
+                <a href="#contact" class="enterprise-cta enterprise-cta--agency" onclick="prefillContactForm('Studio Build', 'I\'m interested in a Studio Build — a full custom platform build. Let\'s set up a discovery call to walk through the scope and timeline.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  Start Discovery
                 </a>
               </div>
 
@@ -1804,15 +1687,15 @@
 
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label">Monthly</span>
-                  <div class="enterprise-price">$150<span class="enterprise-price-period">/mo</span></div>
+                  <div class="enterprise-price">$79<span class="enterprise-price-period">/mo</span></div>
                   <div class="enterprise-price-note maintenance-billing-note">72-hour response · 1 maintenance window/month</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <p class="maintenance-price-compare">Was <s>$1,800</s>/yr at monthly rate</p>
-                  <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note">~$83/mo equivalent · billed once per year</div>
+                  <p class="maintenance-price-compare">Was <s>$948</s>/yr at monthly rate</p>
+                  <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
+                  <div class="enterprise-price-note maintenance-billing-note">~$44/mo equivalent · billed once per year</div>
                 </div>
 
                 <ul class="enterprise-feature-list">
@@ -1832,15 +1715,15 @@
 
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label">Monthly</span>
-                  <div class="enterprise-price">$300<span class="enterprise-price-period">/mo</span></div>
+                  <div class="enterprise-price">$150<span class="enterprise-price-period">/mo</span></div>
                   <div class="enterprise-price-note maintenance-billing-note">24-hour response · 2 maintenance windows/month</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <p class="maintenance-price-compare">Was <s>$3,600</s>/yr at monthly rate</p>
-                  <div class="enterprise-price">$1,980<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note">~$165/mo equivalent · billed once per year</div>
+                  <p class="maintenance-price-compare">Was <s>$1,800</s>/yr at monthly rate</p>
+                  <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
+                  <div class="enterprise-price-note maintenance-billing-note">~$83/mo equivalent · billed once per year</div>
                 </div>
 
                 <ul class="enterprise-feature-list">
@@ -1862,7 +1745,7 @@
             </div> -->
 
             <div class="standard-addon-cta-wrap">
-              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after year 1 — Standard $150/mo or $990/yr (annual), or Priority $300/mo or $1,980/yr (annual, 45% off vs monthly).'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after year 1 — Standard $79/mo or $522/yr (annual), or Priority $150/mo or $990/yr (annual, 45% off vs monthly).'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                 <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                 Discuss Plan
               </a>
@@ -3982,6 +3865,41 @@
     </div>
 
   </main>
+
+  <!-- Testimonials Modal (Global - accessible from any page) -->
+  <div class="modal-container" data-modal-container>
+
+    <div class="overlay" data-overlay></div>
+
+    <section class="testimonials-modal">
+
+      <button class="modal-close-btn" data-modal-close-btn>
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+
+      <div class="modal-img-wrapper">
+        <figure class="modal-avatar-box">
+          <img src="/assets/images/avatar/avatar-1.png" alt="" width="80" data-modal-img>
+        </figure>
+
+        <img src="/assets/images/icons/icon-quote.svg" alt="quote icon">
+      </div>
+
+      <div class="modal-content">
+
+        <h4 class="h3 modal-title" data-modal-title></h4>
+
+        <time class="modal-date" datetime="" data-modal-time hidden></time>
+
+        <div data-modal-text>
+          <p></p>
+        </div>
+
+      </div>
+
+    </section>
+
+  </div>
 
   <!-- Blog Management Modals (Global - accessible from any page) -->
   

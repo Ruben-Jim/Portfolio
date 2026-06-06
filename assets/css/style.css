@@ -312,6 +312,97 @@ article.active {
   100% { opacity: 1; }
 }
 
+/* ── Modern RN-style page transition system ─────────────────────────────── */
+
+:root {
+  --page-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --page-dur: 0.58s;
+}
+
+@keyframes pageItemReveal {
+  0%   { opacity: 0; transform: translate3d(0, 26px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes sidebarEnter {
+  0%   { opacity: 0; transform: scale(0.984) translate3d(-24px, 12px, 0); }
+  100% { opacity: 1; transform: scale(1)     translate3d(0, 0, 0); }
+}
+
+@keyframes avatarPop {
+  0%   { opacity: 0; transform: scale(0.82) translate3d(-10px, 0, 0); }
+  65%  { transform: scale(1.06) translate3d(0, 0, 0); }
+  100% { opacity: 1; transform: scale(1) translate3d(0, 0, 0); }
+}
+
+/* Non-home articles: card lifts into place, children cascade inside */
+@keyframes cardReveal {
+  0%   { opacity: 0; transform: scale(0.984) translate3d(0, 12px, 0); }
+  100% { opacity: 1; transform: scale(1)     translate3d(0, 0,    0); }
+}
+
+article.active:not(.home) {
+  animation: cardReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Article title */
+article.active:not(.home) > header .article-title {
+  animation: pageItemReveal var(--page-dur) var(--page-ease) both;
+  animation-delay: 40ms;
+}
+
+/* Stagger each direct <section> inside non-home articles */
+article.active:not(.home) > section:nth-of-type(1) {
+  animation: pageItemReveal var(--page-dur) var(--page-ease) both;
+  animation-delay: 80ms;
+}
+article.active:not(.home) > section:nth-of-type(2) {
+  animation: pageItemReveal var(--page-dur) var(--page-ease) both;
+  animation-delay: 145ms;
+}
+article.active:not(.home) > section:nth-of-type(3) {
+  animation: pageItemReveal var(--page-dur) var(--page-ease) both;
+  animation-delay: 210ms;
+}
+article.active:not(.home) > section:nth-of-type(4) {
+  animation: pageItemReveal var(--page-dur) var(--page-ease) both;
+  animation-delay: 275ms;
+}
+article.active:not(.home) > section:nth-of-type(5) {
+  animation: pageItemReveal var(--page-dur) var(--page-ease) both;
+  animation-delay: 340ms;
+}
+
+/* Sidebar: slide in from left when transitioning from home */
+.sidebar.sidebar-enter {
+  animation: sidebarEnter 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.sidebar.sidebar-enter .avatar-box {
+  animation: avatarPop 0.62s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 80ms;
+}
+.sidebar.sidebar-enter .info-content {
+  animation: pageItemReveal 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 130ms;
+}
+.sidebar.sidebar-enter .info_more-btn {
+  animation: pageItemReveal 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 175ms;
+}
+
+/* Reduced motion: cut all motion, preserve fades only */
+@media (prefers-reduced-motion: reduce) {
+  article.active:not(.home) > header .article-title,
+  article.active:not(.home) > section,
+  .sidebar.sidebar-enter,
+  .sidebar.sidebar-enter .avatar-box,
+  .sidebar.sidebar-enter .info-content,
+  .sidebar.sidebar-enter .info_more-btn {
+    animation: fade 0.3s ease both !important;
+    transform: none !important;
+  }
+}
+
 .h2,
 .h3,
 .h4,
@@ -1233,6 +1324,23 @@ article.home .cwr-landing-navbar .navbar-menu {
   transform-origin: center center;
 }
 
+/* Preserve 3D tilt when scroll-reveal classes are applied by JS */
+.cwr-landing-visual-stage.cwr-ease-in {
+  transform: perspective(1000px) rotateY(-14deg) rotateX(8deg) rotateZ(3deg) translateY(24px);
+}
+.cwr-landing-visual-stage.cwr-ease-in.is-visible {
+  transform: perspective(1000px) rotateY(-14deg) rotateX(8deg) rotateZ(3deg);
+}
+
+@media (min-width: 960px) {
+  .cwr-landing-visual-stage.cwr-ease-in {
+    transform: perspective(1100px) rotateY(-16deg) rotateX(9deg) rotateZ(3deg) translateY(24px);
+  }
+  .cwr-landing-visual-stage.cwr-ease-in.is-visible {
+    transform: perspective(1100px) rotateY(-16deg) rotateX(9deg) rotateZ(3deg);
+  }
+}
+
 .cwr-landing-marquee {
   display: flex;
   gap: clamp(10px, 1.4vw, 16px);
@@ -1838,7 +1946,7 @@ article.home .cwr-landing-navbar .navbar-menu {
   align-items: center;
   gap: clamp(28px, 5vw, 56px);
   list-style: none;
-  margin: 0 0 clamp(28px, 4vw, 40px);
+  margin: 0;
   padding: 0;
 }
 
@@ -3892,6 +4000,63 @@ article {
   background:
     radial-gradient(ellipse 140% 90% at 50% -20%, hsla(45, 100%, 72%, 0.12), transparent 58%),
     var(--eerie-black-2);
+}
+
+.enterprise-card--agency {
+  border-color: hsla(210, 60%, 60%, 0.2);
+  background:
+    radial-gradient(ellipse 130% 80% at 50% -30%, hsla(210, 70%, 55%, 0.06), transparent 60%),
+    var(--eerie-black-2);
+}
+
+.enterprise-card-badge--agency {
+  background: hsla(210, 60%, 60%, 0.12);
+  color: hsl(210, 80%, 72%);
+  border-color: hsla(210, 60%, 60%, 0.22);
+}
+
+.enterprise-agency-range {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  border: 1px solid hsla(0, 0%, 100%, 0.07);
+  background: hsla(0, 0%, 100%, 0.03);
+}
+
+.enterprise-agency-range-label {
+  font-size: 10px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: hsl(210, 70%, 68%);
+}
+
+.enterprise-agency-range-value {
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  font-weight: var(--fw-600);
+  color: var(--white-1);
+  line-height: 1.15;
+}
+
+.enterprise-agency-range-note {
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+  letter-spacing: 0.03em;
+}
+
+.enterprise-cta--agency {
+  border-color: hsla(210, 60%, 60%, 0.3);
+  background: hsla(210, 60%, 60%, 0.08);
+  color: hsl(210, 80%, 72%);
+}
+
+.enterprise-cta--agency:hover {
+  background: hsla(210, 60%, 60%, 0.16);
+  border-color: hsla(210, 60%, 60%, 0.45);
+  color: hsl(210, 90%, 82%);
 }
 
 .enterprise-card-badge {

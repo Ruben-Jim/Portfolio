@@ -121,7 +121,7 @@ document.addEventListener("click", function (e) {
 });
 
 // testimonials modal — event delegation so dynamically loaded items work
-const testimonialsList = document.querySelector(".testimonials-list");
+const testimonialsLists = document.querySelectorAll(".testimonials-list");
 const modalContainer = document.querySelector("[data-modal-container]");
 const modalCloseBtn = document.querySelector("[data-modal-close-btn]");
 const overlay = document.querySelector("[data-overlay]");
@@ -139,34 +139,36 @@ const testimonialsModalFunc = function () {
   overlay.classList.toggle("active");
 };
 
-if (testimonialsList && modalContainer && modalCloseBtn && overlay && modalImg && modalTitle && modalText) {
-  testimonialsList.addEventListener("click", function (e) {
-    const card = e.target.closest("[data-testimonials-item]");
-    if (!card || !testimonialsList.contains(card)) return;
-    const av = card.querySelector("[data-testimonials-avatar]");
-    const ti = card.querySelector("[data-testimonials-title]");
-    const tx = card.querySelector("[data-testimonials-text]");
-    if (av) {
-      modalImg.src = av.src;
-      modalImg.alt = av.alt || "";
-    }
-    if (ti) modalTitle.innerHTML = ti.innerHTML;
-    if (modalTime) {
-      var iso = card.getAttribute("data-created-iso");
-      var lbl = card.getAttribute("data-created-label");
-      if (iso || lbl) {
-        if (iso) modalTime.setAttribute("datetime", iso);
-        else modalTime.removeAttribute("datetime");
-        modalTime.textContent = lbl || "";
-        modalTime.hidden = false;
-      } else {
-        modalTime.removeAttribute("datetime");
-        modalTime.textContent = "";
-        modalTime.hidden = true;
+if (testimonialsLists.length && modalContainer && modalCloseBtn && overlay && modalImg && modalTitle && modalText) {
+  testimonialsLists.forEach(function (list) {
+    list.addEventListener("click", function (e) {
+      const card = e.target.closest("[data-testimonials-item]");
+      if (!card || !list.contains(card)) return;
+      const av = card.querySelector("[data-testimonials-avatar]");
+      const ti = card.querySelector("[data-testimonials-title]");
+      const tx = card.querySelector("[data-testimonials-text]");
+      if (av) {
+        modalImg.src = av.src;
+        modalImg.alt = av.alt || "";
       }
-    }
-    if (tx) modalText.innerHTML = tx.innerHTML;
-    testimonialsModalFunc();
+      if (ti) modalTitle.innerHTML = ti.innerHTML;
+      if (modalTime) {
+        var iso = card.getAttribute("data-created-iso");
+        var lbl = card.getAttribute("data-created-label");
+        if (iso || lbl) {
+          if (iso) modalTime.setAttribute("datetime", iso);
+          else modalTime.removeAttribute("datetime");
+          modalTime.textContent = lbl || "";
+          modalTime.hidden = false;
+        } else {
+          modalTime.removeAttribute("datetime");
+          modalTime.textContent = "";
+          modalTime.hidden = true;
+        }
+      }
+      if (tx) modalText.innerHTML = tx.innerHTML;
+      testimonialsModalFunc();
+    });
   });
 
   modalCloseBtn.addEventListener("click", testimonialsModalFunc);
@@ -5708,6 +5710,7 @@ function switchToPage(pageName, skipSave = false) {
   if (pageName !== 'messages' && typeof window.dismissCustomerDmSheetForNavigation === 'function') {
     window.dismissCustomerDmSheetForNavigation();
   }
+  var wasHome = document.body.classList.contains('home-page-active');
   var pageArticles = document.querySelectorAll('article[data-page]');
   pageArticles.forEach(function (articleEl) {
     articleEl.classList.remove('active');
@@ -5730,6 +5733,17 @@ function switchToPage(pageName, skipSave = false) {
         document.body.classList.add("home-page-active");
       }
       window.scrollTo(0, 0);
+
+      // Sidebar card entrance: animate on every non-home page switch
+      if (pageName !== 'home') {
+        var sidebarEl = document.querySelector('[data-sidebar]');
+        if (sidebarEl) {
+          sidebarEl.classList.remove('sidebar-enter');
+          void sidebarEl.offsetWidth; // force reflow so animation restarts
+          sidebarEl.classList.add('sidebar-enter');
+          setTimeout(function () { sidebarEl.classList.remove('sidebar-enter'); }, 650);
+        }
+      }
       
       // Save to localStorage and update URL path (unless skipSave is true)
       if (!skipSave) {
