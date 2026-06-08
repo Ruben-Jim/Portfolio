@@ -2542,11 +2542,11 @@
         ? '<p class="form-hint cp-portfolio-link-warning">A showcase is selected but not saved on this client. Click <strong>Save showcase link</strong> so it appears on the client portal.</p>'
         : '<p class="form-hint">Optional slideshow + project detail page. For a guide only, use <strong>Docs &amp; guide</strong> above — no showcase link needed.</p>') +
       '</div>' +
-      '<div class="cp-section-actions">' +
-      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">Save showcase link</button>' +
-      (hub.portfolioProjectId
-        ? '<button type="button" class="btn btn-danger btn-sm" data-cp-action="unlink-portfolio">Unlink showcase</button>'
+      '<div class="cp-section-actions cp-section-actions--split">' +
+      (portfolioLinked || hub.portfolioProjectId
+        ? '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="unlink-portfolio">Unlink showcase</button>'
         : '') +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">Save showcase link</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="portfolio" role="status"></p></div>';
 
     workspace.innerHTML =
@@ -2862,6 +2862,10 @@
     var existing = getHubById(hubId);
     if (!existing) return;
     var portfolioId = (document.getElementById('cp-portfolio-select') || {}).value.trim();
+    if (!portfolioId) {
+      setCpFeedback('portfolio', 'Select a portfolio project first, or use Unlink showcase.', true);
+      return;
+    }
     var payload = {
       leadId: existing.leadId,
       clientName: existing.clientName,
@@ -2893,10 +2897,15 @@
     var hubId = clientProjectsSelectedId;
     if (!hubId || !rtdbReady()) return;
     var existing = getHubById(hubId);
-    if (!existing || !existing.portfolioProjectId) return;
+    if (!existing || !existing.portfolioProjectId) {
+      setCpFeedback('portfolio', 'No showcase is linked to this client.', true);
+      return;
+    }
+    var portfolio = findPortfolioForHub(existing);
+    var label = (portfolio && portfolio.title) || existing.portfolioProjectId;
     if (
-      !confirm(
-        'Unlink this portfolio showcase from the client portal? The portfolio project is not deleted — only the client link is removed.'
+      !window.confirm(
+        'Unlink “' + label + '” from this client portal?\n\nThe portfolio project is not deleted — only the client link is removed.'
       )
     ) {
       return;
