@@ -221,25 +221,298 @@
     return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'v=' + CANVAS_DOC_CACHE_BUST;
   }
 
-  function renderMarkdownToHtml(md) {
-    return String(md || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/\n/g, '<br>')
+  function resolveDocRelativeUrl(href, docUrl) {
+    var s = String(href || '').trim();
+    if (!s || /^(https?:|data:|mailto:|tel:|#)/i.test(s)) return s;
+    if (s.charAt(0) === '/') return s;
+    var base = normalizeCanvasDocUrl(docUrl);
+    if (!base) return s;
+    var dir = base.replace(/[^/]+$/, '');
+    if (dir.charAt(dir.length - 1) !== '/') dir += '/';
+    var parts = (dir + s).split('/').filter(Boolean);
+    var stack = [];
+    parts.forEach(function (part) {
+      if (part === '..') stack.pop();
+      else if (part !== '.') stack.push(part);
+    });
+    return '/' + stack.join('/');
+  }
+
+  function displayDocAssetSrc(path, docUrl) {
+    var resolved = resolveDocRelativeUrl(path, docUrl);
+    if (!resolved) return '';
+    if (/^https?:\/\//i.test(resolved)) return resolved;
+    return resolved + (resolved.indexOf('?') >= 0 ? '&' : '?') + 'v=' + CANVAS_DOC_CACHE_BUST;
+  }
+
+  function parseMarkdownTableRow(line) {
+    var cells = String(line || '')
+      .split('|')
+      .map(function (cell) {
+        return cell.trim();
+      });
+    if (cells.length && cells[0] === '') cells.shift();
+    if (cells.length && cells[cells.length - 1] === '') cells.pop();
+    return cells;
+  }
+
+  function isMarkdownTableRow(line) {
+    return /^\|.+\|$/.test(String(line || '').trim());
+  }
+
+  function isMarkdownTableSeparator(line) {
+    var trimmed = String(line || '').trim();
+    return /^\|?[\s\-:|]+\|?$/.test(trimmed) && trimmed.indexOf('-') >= 0;
+  }
+
+  function renderInlineMarkdown(text, docUrl) {
+    return esc(text)
+      .replace(/!\[(.*?)\]\((.*?)\)/g, function (_match, alt, src) {
+        return (
+          '<img class="portfolio-md-inline-img" src="' +
+          esc(displayDocAssetSrc(src, docUrl)) +
+          '" alt="' +
+          esc(alt) +
+          '" loading="lazy">'
+        );
+      })
+      .replace(/\[(.*?)\]\((.*?)\)/g, function (_match, label, href) {
+        var resolved = resolveDocRelativeUrl(href, docUrl);
+        return (
+          '<a href="' +
+          esc(resolved) +
+          '" target="_blank" rel="noopener noreferrer">' +
+          label +
+          '</a>'
+        );
+      })
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.*?)\*/g, '<em>$1</em>')
       .replace(/~~(.*?)~~/g, '<del>$1</del>')
-      .replace(/`(.*?)`/g, '<code>$1</code>')
-      .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
-      .replace(/^> (.*)$/gm, '<blockquote>$1</blockquote>')
-      .replace(/^### (.*)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.*)$/gm, '<h2>$1</h2>')
-      .replace(/^# (.*)$/gm, '<h1>$1</h1>')
-      .replace(/^\- (.*)$/gm, '<ul><li>$1</li></ul>')
-      .replace(/^\d+\. (.*)$/gm, '<ol><li>$1</li></ol>')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
-      .replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" loading="lazy">');
+      .replace(/`([^`]+)`/g, '<code>$1</code>');
+  }
+
+  function renderMarkdownTable(headers, rows, docUrl) {
+    return (
+      '<div class="portfolio-md-table-wrap" tabindex="0" role="region" aria-label="Table">' +
+      '<table class="portfolio-md-table"><thead><tr>' +
+      headers
+        .map(function (cell) {
+          return '<th>' + renderInlineMarkdown(cell, docUrl) + '</th>';
+        })
+        .join('') +
+      '</tr></thead><tbody>' +
+      rows
+        .map(function (row) {
+          return (
+            '<tr>' +
+            row
+              .map(function (cell) {
+                return '<td>' + renderInlineMarkdown(cell, docUrl) + '</td>';
+              })
+              .join('') +
+            '</tr>'
+          );
+        })
+        .join('') +
+      '</tbody></table></div>'
+    );
+  }
+
+  function isMarkdownSubtitleParagraph(text) {
+    var trimmed = String(text || '').trim();
+    return trimmed.charAt(0) === '*' && trimmed.charAt(trimmed.length - 1) === '*' && trimmed.indexOf('*', 1) === trimmed.length - 1;
+  }
+
+  function isMarkdownStepHeading(text) {
+    return /^Step \d+/i.test(String(text || '').trim());
+  }
+
+  function renderMarkdownToHtml(md, docUrl) {
+    var lines = String(md || '').replace(/\r\n/g, '\n').split('\n');
+    var html = [];
+    var i = 0;
+    var openStepSection = false;
+    var sawDocTitle = false;
+
+    function closeStepSection() {
+      if (openStepSection) {
+        html.push('</section>');
+        openStepSection = false;
+      }
+    }
+
+    function pushStepHeading(title) {
+      closeStepSection();
+      html.push('<section class="portfolio-md-step">');
+      openStepSection = true;
+      html.push('<h3>' + renderInlineMarkdown(title, docUrl) + '</h3>');
+    }
+
+    while (i < lines.length) {
+      var line = lines[i];
+      var trimmed = line.trim();
+
+      if (!trimmed) {
+        i++;
+        continue;
+      }
+
+      if (trimmed.indexOf('```') === 0) {
+        closeStepSection();
+        var code = [];
+        i++;
+        while (i < lines.length && lines[i].trim().indexOf('```') !== 0) {
+          code.push(lines[i]);
+          i++;
+        }
+        i++;
+        html.push('<pre><code>' + esc(code.join('\n')) + '</code></pre>');
+        continue;
+      }
+
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(trimmed)) {
+        closeStepSection();
+        html.push('<hr class="portfolio-md-hr">');
+        i++;
+        continue;
+      }
+
+      var h3Match = trimmed.match(/^### (.+)$/);
+      if (h3Match) {
+        if (isMarkdownStepHeading(h3Match[1])) pushStepHeading(h3Match[1]);
+        else {
+          closeStepSection();
+          html.push('<h3>' + renderInlineMarkdown(h3Match[1], docUrl) + '</h3>');
+        }
+        i++;
+        continue;
+      }
+
+      var h2Match = trimmed.match(/^## (.+)$/);
+      if (h2Match) {
+        closeStepSection();
+        html.push('<h2>' + renderInlineMarkdown(h2Match[1], docUrl) + '</h2>');
+        i++;
+        continue;
+      }
+
+      var h1Match = trimmed.match(/^# (.+)$/);
+      if (h1Match) {
+        closeStepSection();
+        html.push('<h1 class="portfolio-md-doc-title">' + renderInlineMarkdown(h1Match[1], docUrl) + '</h1>');
+        sawDocTitle = true;
+        i++;
+        continue;
+      }
+
+      if (trimmed.indexOf('> ') === 0) {
+        closeStepSection();
+        var quote = [];
+        while (i < lines.length && lines[i].trim().indexOf('> ') === 0) {
+          quote.push(lines[i].trim().slice(2));
+          i++;
+        }
+        html.push(
+          '<blockquote class="portfolio-md-callout"><p>' +
+            renderInlineMarkdown(quote.join(' '), docUrl) +
+            '</p></blockquote>'
+        );
+        continue;
+      }
+
+      if (isMarkdownTableRow(trimmed) && i + 1 < lines.length && isMarkdownTableSeparator(lines[i + 1])) {
+        closeStepSection();
+        var headers = parseMarkdownTableRow(trimmed);
+        i += 2;
+        var tableRows = [];
+        while (i < lines.length && isMarkdownTableRow(lines[i].trim())) {
+          tableRows.push(parseMarkdownTableRow(lines[i].trim()));
+          i++;
+        }
+        html.push(renderMarkdownTable(headers, tableRows, docUrl));
+        continue;
+      }
+
+      if (/^[-*] /.test(trimmed)) {
+        closeStepSection();
+        var bullets = [];
+        while (i < lines.length && /^[-*] /.test(lines[i].trim())) {
+          bullets.push(lines[i].trim().slice(2));
+          i++;
+        }
+        html.push(
+          '<ul class="portfolio-md-list">' +
+            bullets
+              .map(function (item) {
+                return '<li>' + renderInlineMarkdown(item, docUrl) + '</li>';
+              })
+              .join('') +
+            '</ul>'
+        );
+        continue;
+      }
+
+      if (/^\d+\. /.test(trimmed)) {
+        closeStepSection();
+        var ordered = [];
+        while (i < lines.length && /^\d+\. /.test(lines[i].trim())) {
+          ordered.push(lines[i].trim().replace(/^\d+\.\s*/, ''));
+          i++;
+        }
+        html.push(
+          '<ol class="portfolio-md-list">' +
+            ordered
+              .map(function (item) {
+                return '<li>' + renderInlineMarkdown(item, docUrl) + '</li>';
+              })
+              .join('') +
+            '</ol>'
+        );
+        continue;
+      }
+
+      var imageMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
+      if (imageMatch) {
+        html.push(
+          '<figure class="portfolio-md-figure">' +
+            '<img src="' +
+            esc(displayDocAssetSrc(imageMatch[2], docUrl)) +
+            '" alt="' +
+            esc(imageMatch[1]) +
+            '" loading="lazy">' +
+            '<figcaption>' +
+            esc(imageMatch[1]) +
+            '</figcaption></figure>'
+        );
+        i++;
+        continue;
+      }
+
+      var paragraph = [trimmed];
+      i++;
+      while (i < lines.length) {
+        var nextLine = lines[i].trim();
+        if (!nextLine) break;
+        if (
+          /^(#{1,3} |[-*] |\d+\. |> |```|\|.+\||!\[|(-{3,}|\*{3,}|_{3,})$)/.test(nextLine)
+        ) {
+          break;
+        }
+        paragraph.push(nextLine);
+        i++;
+      }
+
+      var paragraphText = paragraph.join(' ');
+      var paragraphClass = 'portfolio-md-paragraph';
+      if (sawDocTitle && isMarkdownSubtitleParagraph(paragraphText)) {
+        paragraphClass += ' portfolio-md-subtitle';
+      }
+      html.push('<p class="' + paragraphClass + '">' + renderInlineMarkdown(paragraphText, docUrl) + '</p>');
+    }
+
+    closeStepSection();
+    return html.join('\n');
   }
 
   function renderCanvasDocSectionHtml(record) {
@@ -305,7 +578,7 @@
         .then(function (text) {
           body.innerHTML =
             '<div class="project-detail-canvas-md portfolio-markdown">' +
-            renderMarkdownToHtml(text) +
+            renderMarkdownToHtml(text, url) +
             '</div>';
         })
         .catch(function () {

@@ -1,0 +1,268 @@
+/**
+ * Shared project guide / markdown layout (portfolio modal + client portal).
+ */
+
+.project-detail-canvas-doc {
+  margin-top: 4px;
+  padding: 18px 20px 20px;
+  border-radius: 16px;
+  border: 1px solid hsla(45, 100%, 72%, 0.2);
+  background:
+    radial-gradient(circle at 100% 0%, hsla(45, 100%, 72%, 0.08), transparent 42%),
+    linear-gradient(160deg, hsla(240, 2%, 16%, 0.96), hsla(240, 2%, 11%, 0.98));
+}
+
+.project-detail-canvas-doc .project-detail-section-title {
+  margin-bottom: 14px;
+  font-size: var(--fs-5, 17px);
+  color: var(--orange-yellow-crayola, #ffd966);
+}
+
+/* Section title above the guide replaces the markdown H1 headline */
+.project-detail-canvas-doc .portfolio-markdown > .portfolio-md-doc-title:first-child {
+  display: none;
+}
+
+.project-detail-canvas-doc .portfolio-markdown > .portfolio-md-doc-title:first-child + .portfolio-md-subtitle {
+  margin-top: 0 !important;
+}
+
+.project-detail-canvas-body {
+  min-width: 0;
+}
+
+.portfolio-markdown {
+  --md-gap: 1.1rem;
+  --md-radius: 14px;
+  color: var(--light-gray, hsl(0, 0%, 84%));
+  font-size: var(--fs-6, 15px);
+  line-height: 1.75;
+  min-width: 0;
+}
+
+.portfolio-markdown > * + * {
+  margin-top: var(--md-gap);
+}
+
+.portfolio-markdown > .portfolio-md-hr + * {
+  margin-top: 1.35rem;
+}
+
+.portfolio-md-doc-title {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.4vw, 1.45rem);
+  line-height: 1.35;
+  color: var(--white-1, #fff);
+  letter-spacing: -0.01em;
+}
+
+.portfolio-md-subtitle {
+  margin-top: 0.35rem !important;
+  color: var(--light-gray-70, hsl(0, 0%, 70%));
+  font-size: 0.95em;
+}
+
+.portfolio-markdown h2 {
+  margin: 1.5rem 0 0.65rem;
+  font-size: clamp(1.02rem, 2vw, 1.12rem);
+  font-weight: var(--fw-600, 600);
+  color: var(--white-2, hsl(0, 0%, 96%));
+  letter-spacing: 0.01em;
+}
+
+.portfolio-markdown h3 {
+  margin: 1.15rem 0 0.55rem;
+  font-size: 1rem;
+  font-weight: var(--fw-600, 600);
+  color: var(--white-1, #fff);
+}
+
+.portfolio-md-paragraph {
+  margin: 0;
+}
+
+.portfolio-md-callout {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: var(--md-radius);
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  background: hsla(45, 100%, 72%, 0.08);
+}
+
+.portfolio-md-callout p {
+  margin: 0;
+  color: var(--light-gray, hsl(0, 0%, 84%));
+}
+
+.portfolio-md-hr {
+  margin: 1.5rem 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsla(45, 100%, 72%, 0.35) 18%,
+    hsla(45, 100%, 72%, 0.35) 82%,
+    transparent
+  );
+}
+
+.portfolio-md-step {
+  margin-top: 1.25rem;
+  border-radius: var(--md-radius);
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  background: hsla(240, 2%, 13%, 0.72);
+  overflow: hidden;
+}
+
+.portfolio-md-step > h3 {
+  margin: 0;
+  padding: 13px 16px;
+  border-bottom: 1px solid hsla(45, 100%, 72%, 0.12);
+  background: hsla(240, 2%, 16%, 0.88);
+}
+
+.portfolio-md-step > :not(h3) {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
+.portfolio-md-step > :not(h3):last-child {
+  margin-bottom: 16px;
+}
+
+.portfolio-md-step > .portfolio-md-paragraph:first-of-type {
+  margin-top: 14px;
+}
+
+.portfolio-md-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.portfolio-md-list li + li {
+  margin-top: 0.4rem;
+}
+
+.portfolio-md-list li::marker {
+  color: var(--orange-yellow-crayola, #ffd966);
+}
+
+.portfolio-md-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  background: hsla(240, 2%, 10%, 0.55);
+}
+
+.portfolio-md-table {
+  width: 100%;
+  min-width: 280px;
+  border-collapse: collapse;
+  font-size: 0.92em;
+}
+
+.portfolio-md-table th,
+.portfolio-md-table td {
+  padding: 10px 14px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid hsla(45, 100%, 72%, 0.1);
+}
+
+.portfolio-md-table th {
+  background: hsla(240, 2%, 14%, 0.95);
+  color: var(--white-2, hsl(0, 0%, 96%));
+  font-weight: var(--fw-600, 600);
+  white-space: nowrap;
+}
+
+.portfolio-md-table tr:last-child td {
+  border-bottom: none;
+}
+
+.portfolio-md-table td strong {
+  color: var(--orange-yellow-crayola, #ffd966);
+}
+
+.portfolio-md-figure {
+  margin: 14px 0 0;
+}
+
+.portfolio-md-figure img,
+.portfolio-md-inline-img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.14);
+  box-shadow: 0 16px 36px hsla(0, 0%, 0%, 0.35);
+  background: hsla(240, 2%, 8%, 0.88);
+}
+
+.portfolio-md-inline-img {
+  width: auto;
+  max-width: min(100%, 420px);
+  margin: 0.35rem 0;
+}
+
+.portfolio-md-figure figcaption {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 0.86em;
+  color: var(--light-gray-70, hsl(0, 0%, 70%));
+}
+
+.portfolio-markdown code {
+  font-family: var(--ff-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.9em;
+  padding: 0.12em 0.38em;
+  border-radius: 5px;
+  background: hsla(240, 2%, 14%, 0.95);
+  border: 1px solid hsla(45, 100%, 72%, 0.1);
+}
+
+.portfolio-markdown pre {
+  margin: 0;
+  overflow-x: auto;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: hsla(240, 2%, 10%, 0.95);
+  border: 1px solid hsla(45, 100%, 72%, 0.12);
+}
+
+.portfolio-markdown pre code {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.portfolio-markdown a {
+  color: var(--orange-yellow-crayola, #ffd966);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.portfolio-markdown a:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 640px) {
+  .project-detail-canvas-doc {
+    padding: 14px 14px 16px;
+    border-radius: 14px;
+  }
+
+  .portfolio-md-step > :not(h3) {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .portfolio-md-table th,
+  .portfolio-md-table td {
+    padding: 9px 10px;
+    font-size: 0.88em;
+  }
+}

@@ -205,19 +205,6 @@ body.client-portal-page {
   background: hsla(240, 2%, 8%, 0.88);
 }
 
-.project-detail-canvas-md {
-  color: var(--light-gray);
-  font-size: var(--fs-6);
-  line-height: 1.7;
-}
-
-.project-detail-canvas-md h1,
-.project-detail-canvas-md h2,
-.project-detail-canvas-md h3 {
-  color: var(--white-1);
-  margin: 1rem 0 0.5rem;
-}
-
 .project-detail-canvas-pdf-link {
   display: inline-flex;
   margin-bottom: 12px;

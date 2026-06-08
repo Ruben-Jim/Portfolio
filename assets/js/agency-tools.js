@@ -880,7 +880,7 @@
 
   function clientPortalUrl(token) {
     var base = String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '');
-    return base + '/portal/' + token;
+    return base + '/portal.html?token=' + encodeURIComponent(token);
   }
 
   function formatPortalExpiry(expiresAt) {
