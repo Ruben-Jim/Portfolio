@@ -9,16 +9,16 @@
   <base href="/">
   <script>
     (function () {
-      var path = location.pathname.replace(/\/+$/, '') || '/';
-      if (path === '/admin') {
+      var pathname = location.pathname;
+      if (pathname === '/admin') {
         location.replace('/admin/' + location.search + location.hash);
         return;
       }
-      if (path === '/about') {
+      if (pathname === '/about') {
         location.replace('/about/' + location.search + location.hash);
         return;
       }
-      var m = location.pathname.match(/^\/portal\/([a-f0-9]{16,64})/i);
+      var m = pathname.match(/^\/portal\/([a-f0-9]{16,64})/i);
       if (m) location.replace('/portal.html?token=' + encodeURIComponent(m[1]));
     })();
   </script>
