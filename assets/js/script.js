@@ -3051,11 +3051,16 @@ function portfolioIsVideoUrl(url) {
   return /\.(?:mp4|webm|mov)(?:\?|$)/i.test(normalized);
 }
 
-/** Optional poster path: project-foo-demo.mp4 → project-foo-demo-poster.webp */
-function portfolioVideoPosterUrl(url) {
+/** Optional poster path: project-foo-demo.mp4 → project-foo-demo-poster.jpg (falls back from .webp) */
+function portfolioVideoPosterUrl(url, ext) {
   var normalized = portfolioNormalizeAssetImageUrl(url);
   if (!normalized || !portfolioIsVideoUrl(normalized)) return '';
-  return normalized.replace(/\.(mp4|webm|mov)$/i, '-poster.webp');
+  return normalized.replace(/\.(mp4|webm|mov)$/i, '-poster.' + (ext || 'jpg'));
+}
+
+/** Returns the best available poster URL, trying jpg then webp. */
+function portfolioVideoPosterUrlBest(url) {
+  return portfolioVideoPosterUrl(url, 'jpg') || portfolioVideoPosterUrl(url, 'webp');
 }
 
 /** Canonical storage path: /assets/images/... (root-relative, works on /admin, /portfolio, etc.). */
@@ -3159,7 +3164,7 @@ function portfolioPrimaryImageUrl(row) {
     if (!portfolioIsVideoUrl(urls[i])) return urls[i];
   }
   if (urls.length && portfolioIsVideoUrl(urls[0])) {
-    return portfolioVideoPosterUrl(urls[0]) || PORTFOLIO_PLACEHOLDER_IMAGE;
+    return portfolioVideoPosterUrlBest(urls[0]) || PORTFOLIO_PLACEHOLDER_IMAGE;
   }
   return urls.length ? urls[0] : '';
 }
@@ -3167,7 +3172,7 @@ function portfolioPrimaryImageUrl(row) {
 function portfolioRenderCarouselSlideMedia(url, alt) {
   if (portfolioIsVideoUrl(url)) {
     var src = portfolioDisplayMediaSrc(url);
-    var poster = portfolioVideoPosterUrl(url);
+    var poster = portfolioVideoPosterUrlBest(url);
     var posterAttr = poster
       ? ' poster="' + portfolioEscapeHtml(portfolioDisplayMediaSrc(poster)) + '"'
       : '';
@@ -3176,7 +3181,7 @@ function portfolioRenderCarouselSlideMedia(url, alt) {
       portfolioEscapeHtml(src) +
       '"' +
       posterAttr +
-      ' playsinline muted loop preload="metadata" aria-label="' +
+      ' playsinline muted loop disablepictureinpicture controlslist="nodownload nofullscreen" preload="metadata" aria-label="' +
       portfolioEscapeHtml(alt) +
       '"></video>'
     );
@@ -3207,14 +3212,28 @@ function portfolioSyncCarouselVideos(track, activeIndex) {
   });
 }
 
+function portfolioVideoThumbPosterError(img) {
+  var wrap = img && img.parentNode;
+  if (!wrap) return;
+  img.remove();
+  if (!wrap.querySelector('.portfolio-slides-thumb-video')) {
+    var span = document.createElement('span');
+    span.className = 'portfolio-slides-thumb-video';
+    span.setAttribute('aria-hidden', 'true');
+    span.innerHTML = '<ion-icon name="videocam-outline"></ion-icon>';
+    wrap.insertBefore(span, wrap.firstChild);
+  }
+}
+window.portfolioVideoThumbPosterError = portfolioVideoThumbPosterError;
+
 function portfolioFormSlideThumbHtml(url) {
   if (portfolioIsVideoUrl(url)) {
-    var poster = portfolioVideoPosterUrl(url);
+    var poster = portfolioVideoPosterUrlBest(url);
     if (poster) {
       return (
         '<img src="' +
         portfolioEscapeHtml(portfolioDisplayMediaSrc(poster)) +
-        '" alt="" loading="lazy" onerror="portfolioHandleImageError(this)">' +
+        '" alt="" loading="lazy" onerror="portfolioVideoThumbPosterError(this)">' +
         '<span class="portfolio-slides-thumb-badge" aria-hidden="true">' +
         '<ion-icon name="videocam-outline"></ion-icon></span>'
       );
