@@ -48,7 +48,7 @@ Tap the gear on home. Orders today shows here for staff only — removed from th
 
 ### Step 4 — Cook dashboard
 
-Manage Announcements for pop-up + GoFundMe. Each order card shows subtotal, tax, tip, and total.
+Manage Announcements for pop-up + GoFundMe.
 
 --
 
