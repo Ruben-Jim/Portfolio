@@ -3160,13 +3160,12 @@ function portfolioImageUrlsFromRecord(row) {
 
 function portfolioPrimaryImageUrl(row) {
   var urls = portfolioImageUrlsFromRecord(row);
-  for (var i = 0; i < urls.length; i++) {
-    if (!portfolioIsVideoUrl(urls[i])) return urls[i];
-  }
-  if (urls.length && portfolioIsVideoUrl(urls[0])) {
+  if (!urls.length) return '';
+  // Slide 1 is always the card cover — if it's a video use its poster, otherwise use it directly
+  if (portfolioIsVideoUrl(urls[0])) {
     return portfolioVideoPosterUrlBest(urls[0]) || PORTFOLIO_PLACEHOLDER_IMAGE;
   }
-  return urls.length ? urls[0] : '';
+  return urls[0];
 }
 
 function portfolioRenderCarouselSlideMedia(url, alt) {
