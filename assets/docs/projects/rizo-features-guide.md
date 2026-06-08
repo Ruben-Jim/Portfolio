@@ -6,7 +6,7 @@
 
 ## Note from Ruben
 
-I wasn't able to offer payment right now, but I built these improvements instead so ordering and running the pop-up is easier for you and your customers.
+Hey — I wasn’t in a place to donate to the fundraisers this time, but I still wanted to show up for you. I built these updates in the app instead, to make ordering and running your pop-up a little smoother for you and your customers. Hope they help.
 
 ---
 
@@ -56,7 +56,6 @@ Manage Announcements for pop-up + GoFundMe.
 
 **Manage Announcements**
 
----
 - **Pop-up Event** (on/off) — Title, location, date, time, description, links
 - **GoFundMe** (on/off) — Title, description, donate URL
 
@@ -64,7 +63,6 @@ Manage Announcements for pop-up + GoFundMe.
 
 **Quick steps**
 
----
 1. Gear on home → password
 2. Manage Announcements → Save
 3. Toggle event or GoFundMe anytime
