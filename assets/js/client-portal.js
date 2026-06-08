@@ -649,6 +649,9 @@
       expoUrl: String(row.expoUrl || '').slice(0, 500),
       portfolioProjectId: String(row.portfolioProjectId || '').slice(0, 80),
       businessDocId: String(row.businessDocId || '').slice(0, 80),
+      portalCanvasDocUrl: String(row.portalCanvasDocUrl || '').slice(0, 500),
+      portalCanvasDocTitle: String(row.portalCanvasDocTitle || 'Project guide').slice(0, 120),
+      showMaintenanceInPortal: row.showMaintenanceInPortal !== false,
       milestones: milestones.map(function (m, i) {
         return {
           id: m.id || 'm' + i,
@@ -888,6 +891,25 @@
     });
   }
 
+  function applyHubPortalCanvas(detailRecord, hubRow, project) {
+    if (!hubRow || !hubRow.portalCanvasDocUrl || !window.PortfolioDetailShared) {
+      return detailRecord;
+    }
+    var url = window.PortfolioDetailShared.normalizeCanvasDocUrl(hubRow.portalCanvasDocUrl);
+    if (!url) return detailRecord;
+    var base = detailRecord || {
+      title: (project && (project.title || project.clientName)) || 'Your project',
+      description: ''
+    };
+    return Object.assign({}, base, {
+      canvasDocUrl: url,
+      canvasDocTitle: String(hubRow.portalCanvasDocTitle || base.canvasDocTitle || 'Project guide').slice(
+        0,
+        120
+      )
+    });
+  }
+
   function renderNoShowcaseMessage() {
     return (
       '<section class="client-portal-section client-portal-empty-showcase">' +
@@ -912,7 +934,10 @@
       detailHtml = renderNoShowcaseMessage();
     }
     var docsSection = renderBusinessDocumentsSection(businessDocs);
-    var supportSection = renderMaintenanceSupportSection(maint, project);
+    var supportSection =
+      project.showMaintenanceInPortal !== false
+        ? renderMaintenanceSupportSection(maint, project)
+        : '';
     var footer = renderStatusFooter(project, detailRecord, detailOptions);
     inner.innerHTML = brand + detailHtml + docsSection + supportSection + footer;
     if (detailRecord && window.PortfolioDetailShared) {
@@ -976,6 +1001,7 @@
       var detailRecord = showcaseRaw
         ? window.PortfolioDetailShared.normalizePortfolioDetailRecord(showcaseRaw, showcaseRaw.id)
         : null;
+      detailRecord = applyHubPortalCanvas(detailRecord, hubRow, project);
       var detailOptions = {
         hideBuyButtons: true,
         hideQuoteButton: true,

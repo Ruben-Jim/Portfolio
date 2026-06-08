@@ -3030,14 +3030,32 @@ function portfolioCleanImageUrlInput(url) {
     .trim();
 }
 
+var PORTFOLIO_ASSET_MEDIA_EXT =
+  '(?:png|jpe?g|webp|svg|gif|mp4|webm|mov)';
+
 /** Extract /assets/images/file.ext from any path or absolute URL (fixes /admin/assets/... and /portfolio/assets/...). */
 function portfolioExtractAssetImagePath(url) {
   var s = portfolioCleanImageUrlInput(url);
   if (!s) return '';
-  var match = s.match(/assets\/images\/[A-Za-z0-9._-]+\.(?:png|jpe?g|webp|svg|gif)/i);
+  var match = s.match(
+    new RegExp('assets/images/[A-Za-z0-9._-]+\\.' + PORTFOLIO_ASSET_MEDIA_EXT, 'i')
+  );
   if (!match) return '';
   var file = match[0].slice('assets/images/'.length).toLowerCase();
   return '/assets/images/' + file;
+}
+
+function portfolioIsVideoUrl(url) {
+  var normalized = portfolioNormalizeAssetImageUrl(url);
+  if (!normalized) return false;
+  return /\.(?:mp4|webm|mov)(?:\?|$)/i.test(normalized);
+}
+
+/** Optional poster path: project-foo-demo.mp4 → project-foo-demo-poster.webp */
+function portfolioVideoPosterUrl(url) {
+  var normalized = portfolioNormalizeAssetImageUrl(url);
+  if (!normalized || !portfolioIsVideoUrl(normalized)) return '';
+  return normalized.replace(/\.(mp4|webm|mov)$/i, '-poster.webp');
 }
 
 /** Canonical storage path: /assets/images/... (root-relative, works on /admin, /portfolio, etc.). */
@@ -3055,7 +3073,7 @@ function portfolioNormalizeAssetImageUrl(url) {
 
 var PORTFOLIO_IMAGE_CACHE_BUST = '20260518b';
 
-/** Root-relative src for <img> — never breaks on /admin or /portfolio routes. */
+/** Root-relative src for <img> / <video> — never breaks on /admin or /portfolio routes. */
 function portfolioDisplayImageSrc(url) {
   var path = portfolioNormalizeAssetImageUrl(url) || PORTFOLIO_PLACEHOLDER_IMAGE;
   if (/^https?:\/\//i.test(path)) {
@@ -3067,6 +3085,24 @@ function portfolioDisplayImageSrc(url) {
     path = '/' + String(path).replace(/^\.?\//, '');
   }
   return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'v=' + PORTFOLIO_IMAGE_CACHE_BUST;
+}
+
+function portfolioDisplayMediaSrc(url) {
+  return portfolioDisplayImageSrc(url);
+}
+
+function portfolioNormalizeCanvasDocUrl(url) {
+  if (window.PortfolioDetailShared && window.PortfolioDetailShared.normalizeCanvasDocUrl) {
+    return window.PortfolioDetailShared.normalizeCanvasDocUrl(url);
+  }
+  var s = portfolioCleanImageUrlInput(url);
+  if (!s) return '';
+  var match = s.match(/assets\/(?:docs\/)?[A-Za-z0-9._/-]+\.(?:md|pdf|canvas\.tsx)/i);
+  if (match) return '/' + match[0].toLowerCase();
+  if (/^\.?\/?assets\/docs\//i.test(s)) {
+    return '/' + s.replace(/^\.?\//, '');
+  }
+  return s;
 }
 
 /** /assets/images/... for admin form display and storage paths. */
@@ -3119,7 +3155,80 @@ function portfolioImageUrlsFromRecord(row) {
 
 function portfolioPrimaryImageUrl(row) {
   var urls = portfolioImageUrlsFromRecord(row);
+  for (var i = 0; i < urls.length; i++) {
+    if (!portfolioIsVideoUrl(urls[i])) return urls[i];
+  }
+  if (urls.length && portfolioIsVideoUrl(urls[0])) {
+    return portfolioVideoPosterUrl(urls[0]) || PORTFOLIO_PLACEHOLDER_IMAGE;
+  }
   return urls.length ? urls[0] : '';
+}
+
+function portfolioRenderCarouselSlideMedia(url, alt) {
+  if (portfolioIsVideoUrl(url)) {
+    var src = portfolioDisplayMediaSrc(url);
+    var poster = portfolioVideoPosterUrl(url);
+    var posterAttr = poster
+      ? ' poster="' + portfolioEscapeHtml(portfolioDisplayMediaSrc(poster)) + '"'
+      : '';
+    return (
+      '<video src="' +
+      portfolioEscapeHtml(src) +
+      '"' +
+      posterAttr +
+      ' playsinline muted loop preload="metadata" aria-label="' +
+      portfolioEscapeHtml(alt) +
+      '"></video>'
+    );
+  }
+  return (
+    '<img src="' +
+    portfolioEscapeHtml(portfolioDisplayImageSrc(url)) +
+    '" alt="' +
+    portfolioEscapeHtml(alt) +
+    '" loading="lazy" onerror="portfolioHandleImageError(this)">'
+  );
+}
+
+function portfolioSyncCarouselVideos(track, activeIndex) {
+  if (!track) return;
+  track.querySelectorAll('.portfolio-carousel-slide').forEach(function (slide, j) {
+    var video = slide.querySelector('video');
+    if (!video) return;
+    if (j === activeIndex && slide.classList.contains('is-active')) {
+      video.currentTime = 0;
+      var playPromise = video.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(function () {});
+      }
+    } else {
+      video.pause();
+    }
+  });
+}
+
+function portfolioFormSlideThumbHtml(url) {
+  if (portfolioIsVideoUrl(url)) {
+    var poster = portfolioVideoPosterUrl(url);
+    if (poster) {
+      return (
+        '<img src="' +
+        portfolioEscapeHtml(portfolioDisplayMediaSrc(poster)) +
+        '" alt="" loading="lazy" onerror="portfolioHandleImageError(this)">' +
+        '<span class="portfolio-slides-thumb-badge" aria-hidden="true">' +
+        '<ion-icon name="videocam-outline"></ion-icon></span>'
+      );
+    }
+    return (
+      '<span class="portfolio-slides-thumb-video" aria-hidden="true">' +
+      '<ion-icon name="videocam-outline"></ion-icon></span>'
+    );
+  }
+  return (
+    '<img src="' +
+    portfolioEscapeHtml(portfolioDisplayImageSrc(url)) +
+    '" alt="" loading="lazy" onerror="portfolioHandleImageError(this)">'
+  );
 }
 
 function portfolioRenderCarousel(rootEl, options) {
@@ -3149,11 +3258,7 @@ function portfolioRenderCarousel(rootEl, options) {
         '" data-index="' +
         i +
         '">' +
-        '<img src="' +
-        portfolioEscapeHtml(portfolioDisplayImageSrc(url)) +
-        '" alt="' +
-        portfolioEscapeHtml(alt) +
-        '" loading="lazy" onerror="portfolioHandleImageError(this)">' +
+        portfolioRenderCarouselSlideMedia(url, alt) +
         '</div>'
       );
     })
@@ -3170,6 +3275,7 @@ function portfolioRenderCarousel(rootEl, options) {
         dot.setAttribute('aria-selected', j === index ? 'true' : 'false');
       });
     }
+    portfolioSyncCarouselVideos(track, index);
   }
 
   var multi = urls.length > 1;
@@ -3192,7 +3298,7 @@ function portfolioRenderCarousel(rootEl, options) {
           return (
             '<button type="button" class="portfolio-carousel-dot' +
             (i === index ? ' is-active' : '') +
-            '" role="tab" aria-label="Screenshot ' +
+            '" role="tab" aria-label="Slide ' +
             (i + 1) +
             '" aria-selected="' +
             (i === index ? 'true' : 'false') +
@@ -3223,7 +3329,7 @@ function populatePortfolioImageAssetSelect() {
   if (select) {
     var current = select.value;
     select.innerHTML =
-      '<option value="">Choose a screenshot…</option>' +
+      '<option value="">Choose a file…</option>' +
       options
         .map(function (path) {
           var label = path.replace(/^\/?assets\/images\//, '');
@@ -3523,7 +3629,9 @@ function portfolioSanitizeDocumentPayload(data) {
       data.showPublicPortfolio === false
         ? 'private'
         : 'public',
-    detailSections: portfolioParseDetailSections(data.detailSections)
+    detailSections: portfolioParseDetailSections(data.detailSections),
+    canvasDocUrl: portfolioNormalizeCanvasDocUrl(data.canvasDocUrl),
+    canvasDocTitle: String(data.canvasDocTitle || 'Project overview').slice(0, 120)
   };
   return out;
 }
@@ -4119,11 +4227,11 @@ function portfolioTryAddFormImage(rawUrl, options) {
   }
   const current = getPortfolioFormImageUrlsFromDom();
   if (current.indexOf(normalized) >= 0) {
-    if (!options.silent) showErrorMessage('That image is already in the slideshow.');
+    if (!options.silent) showErrorMessage('That slide is already in the slideshow.');
     return false;
   }
   if (current.length >= PORTFOLIO_MAX_SLIDES) {
-    if (!options.silent) showErrorMessage('Maximum ' + PORTFOLIO_MAX_SLIDES + ' images per project.');
+    if (!options.silent) showErrorMessage('Maximum ' + PORTFOLIO_MAX_SLIDES + ' slides per project.');
     return false;
   }
   current.push(normalized);
@@ -4238,9 +4346,7 @@ function renderPortfolioFormImagesList(urls) {
         '<ion-icon name="reorder-three-outline"></ion-icon>' +
         '</button>' +
         '<div class="portfolio-slides-thumb">' +
-        '<img src="' +
-        portfolioEscapeHtml(portfolioDisplayImageSrc(url)) +
-        '" alt="" loading="lazy" onerror="portfolioHandleImageError(this)">' +
+        portfolioFormSlideThumbHtml(url) +
         '</div>' +
         '<div class="portfolio-slides-item-body">' +
         '<div class="portfolio-slides-item-meta">' +
@@ -4342,6 +4448,8 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-buy-premium').value = project.buyPremiumLabel || '';
     document.getElementById('portfolio-project-show-quote').checked = project.showQuoteButton !== false;
     document.getElementById('portfolio-project-admin-note').value = project.adminModalNote || '';
+    document.getElementById('portfolio-project-canvas-doc').value = project.canvasDocUrl || '';
+    document.getElementById('portfolio-project-canvas-title').value = project.canvasDocTitle || '';
     document.getElementById('portfolio-project-bestfor').value = Array.isArray(project.bestFor)
       ? project.bestFor.join('\n')
       : '';
@@ -4577,6 +4685,8 @@ function setupPortfolioAdminControls() {
         buyPremiumLabel: document.getElementById('portfolio-project-buy-premium').value,
         showQuoteButton: document.getElementById('portfolio-project-show-quote').checked,
         adminModalNote: document.getElementById('portfolio-project-admin-note').value,
+        canvasDocUrl: document.getElementById('portfolio-project-canvas-doc').value,
+        canvasDocTitle: document.getElementById('portfolio-project-canvas-title').value,
         bestFor: document
           .getElementById('portfolio-project-bestfor')
           .value.split(/\r?\n/)
@@ -5090,6 +5200,9 @@ function initPortfolioProjectModal() {
   const adminSection = document.getElementById('project-detail-admin-section');
   const extraSectionsWrap = document.getElementById('project-detail-extra-sections');
   const extraSectionsAccordion = document.getElementById('project-detail-sections-accordion');
+  const canvasSection = document.getElementById('project-detail-canvas-section');
+  const canvasTitleEl = document.getElementById('project-detail-canvas-title-el');
+  const canvasBody = document.getElementById('project-detail-canvas-body');
   const ctaTop = document.getElementById('project-detail-cta-top');
   const ctaInline = document.getElementById('project-detail-cta-inline');
   const liveBtn = document.getElementById('project-detail-live');
@@ -5405,6 +5518,21 @@ function initPortfolioProjectModal() {
       } else {
         extraSectionsAccordion.innerHTML = '';
         extraSectionsWrap.hidden = true;
+      }
+    }
+
+    if (canvasSection && canvasBody) {
+      var canvasUrl = record ? portfolioNormalizeCanvasDocUrl(record.canvasDocUrl) : '';
+      if (canvasUrl && window.PortfolioDetailShared && window.PortfolioDetailShared.initCanvasDoc) {
+        canvasSection.hidden = false;
+        if (canvasTitleEl) {
+          canvasTitleEl.textContent = (record && record.canvasDocTitle) || 'Project overview';
+        }
+        canvasBody.innerHTML = '<p class="project-detail-canvas-loading">Loading document…</p>';
+        window.PortfolioDetailShared.initCanvasDoc(canvasSection, record);
+      } else {
+        canvasSection.hidden = true;
+        canvasBody.innerHTML = '';
       }
     }
 

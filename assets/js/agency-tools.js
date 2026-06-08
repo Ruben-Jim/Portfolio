@@ -430,6 +430,9 @@
       enabledModules: Array.isArray(row.enabledModules) ? row.enabledModules.slice(0, 12) : [],
       portalToken: String(row.portalToken || '').replace(/[^a-f0-9]/gi, '').slice(0, 64),
       portalExpiresAt: Number(row.portalExpiresAt) || 0,
+      showMaintenanceInPortal: row.showMaintenanceInPortal !== false,
+      portalCanvasDocUrl: String(row.portalCanvasDocUrl || '').slice(0, 500),
+      portalCanvasDocTitle: String(row.portalCanvasDocTitle || 'Project guide').slice(0, 120),
       milestones: milestones.map(function (m, i) {
         return {
           id: m.id || 'm' + i,
@@ -759,6 +762,9 @@
       notes: document.getElementById('hub-notes').value.trim(),
       milestones: collectHubMilestonesFromDom(),
       enabledModules: existing && Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
+      showMaintenanceInPortal: existing ? existing.showMaintenanceInPortal !== false : true,
+      portalCanvasDocUrl: existing ? existing.portalCanvasDocUrl || '' : '',
+      portalCanvasDocTitle: existing ? existing.portalCanvasDocTitle || 'Project guide' : 'Project guide',
       updatedAt: ts()
     };
     var savedId = await saveProjectHubRecord(id, payload, true);
@@ -861,6 +867,15 @@
     var a = new Uint8Array(16);
     crypto.getRandomValues(a);
     return Array.from(a, function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  function normalizePortalCanvasDocUrl(url) {
+    var s = String(url || '').trim();
+    if (!s) return '';
+    var match = s.match(/assets\/(?:docs\/)?[A-Za-z0-9._/-]+\.(?:md|pdf|canvas\.tsx)/i);
+    if (match) return '/' + match[0].toLowerCase();
+    if (/^\.?\/?assets\//i.test(s)) return '/' + s.replace(/^\.?\//, '');
+    return s;
   }
 
   function clientPortalUrl(token) {
@@ -2179,6 +2194,7 @@
       return done + '/' + total + ' milestones';
     }
     if (id === 'maintenance') {
+      if (hub.showMaintenanceInPortal === false) return 'Hidden from portal';
       if (!maint) return 'No record';
       if (maint.effectivePlanStatus === 'pending') {
         return 'Pending · ' + (maint.planTier || 'standard');
@@ -2198,8 +2214,11 @@
       return docs.length + (docs.length === 1 ? ' document' : ' documents');
     }
     if (id === 'portfolio') {
-      if (!portfolio) return 'Not linked';
-      if (hub.portfolioProjectId && portfolio.id === hub.portfolioProjectId) return portfolio.title || 'Linked';
+      if (!portfolio && !hub.portalCanvasDocUrl) return 'Not linked';
+      var label = portfolio ? portfolio.title || 'Linked' : 'Guide only';
+      if (hub.portalCanvasDocUrl) label += ' · private doc';
+      if (hub.portfolioProjectId && portfolio && portfolio.id === hub.portfolioProjectId) return label;
+      if (hub.portalCanvasDocUrl) return label;
       return 'Save link for portal';
     }
     return '';
@@ -2378,6 +2397,13 @@
       '</div>' +
       '<div class="form-group"><label>Milestones</label><ul class="cp-milestones-list" id="cp-hub-milestones">' + renderCpMilestonesHtml(hub.milestones) + '</ul></div>' +
       '<div class="form-group form-group--full"><label>Client portal</label>' + renderCpHubPortalHtml(hub) + '</div>' +
+      '<div class="form-group form-group-checkbox-row">' +
+      '<label class="portfolio-project-checkbox">' +
+      '<input type="checkbox" id="cp-hub-show-maint-portal"' +
+      (hub.showMaintenanceInPortal !== false ? ' checked' : '') +
+      '>' +
+      '<span>Show maintenance &amp; support in client portal</span></label>' +
+      '<p class="form-hint">Uncheck when this client is not on maintenance billing — hides the plan upsell from their portal.</p></div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-hub">Save hub</button>' +
       '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-hub">Delete client</button>' +
@@ -2467,10 +2493,17 @@
         ? '<p class="form-hint cp-portfolio-link-warning">A showcase is selected but not saved on this client. Click <strong>Save link</strong> so it appears on the client portal.</p>'
         : '<p class="form-hint">Private showcases are hidden from the public Portfolio tab and shown on the client portal when linked here.</p>') +
       '</div>' +
+      '<div class="form-group"><label for="cp-portal-canvas-doc">Client portal guide (private)</label>' +
+      '<input id="cp-portal-canvas-doc" class="form-input" type="text" value="' +
+      esc(hub.portalCanvasDocUrl || '') +
+      '" placeholder="/assets/docs/projects/project-rizopizzeria-client.md">' +
+      '<p class="form-hint">Optional <code>.md</code> or <code>.pdf</code> shown <strong>only in this client&apos;s portal</strong>. Overrides the showcase canvas doc. Use a separate file from the public portfolio guide.</p></div>' +
+      '<div class="form-group"><label for="cp-portal-canvas-title">Portal guide section title</label>' +
+      '<input id="cp-portal-canvas-title" class="form-input" type="text" maxlength="120" value="' +
+      esc(hub.portalCanvasDocTitle || 'Project guide') +
+      '" placeholder="New features guide"></div>' +
       '<div class="cp-section-actions">' +
-      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">' +
-      (portfolioSuggested || !hub.portfolioProjectId ? 'Save link to portal' : 'Save link') +
-      '</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">Save portfolio &amp; guide</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="portfolio" role="status"></p></div>';
 
     workspace.innerHTML =
@@ -2566,6 +2599,13 @@
       notes: (document.getElementById('cp-hub-notes') || {}).value.trim(),
       milestones: root ? collectCpMilestonesFromWorkspace(root) : existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
+      showMaintenanceInPortal: !!(document.getElementById('cp-hub-show-maint-portal') || {}).checked,
+      portalCanvasDocUrl: normalizePortalCanvasDocUrl(
+        (document.getElementById('cp-portal-canvas-doc') || {}).value
+      ),
+      portalCanvasDocTitle: String(
+        (document.getElementById('cp-portal-canvas-title') || {}).value || 'Project guide'
+      ).trim().slice(0, 120),
       updatedAt: ts()
     };
     try {
@@ -2728,6 +2768,9 @@
       notes: existing.notes,
       milestones: existing.milestones,
       enabledModules: existing.enabledModules,
+      showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
+      portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
+      portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
       updatedAt: ts()
     };
     await saveProjectHubRecord(hubId, payload, false);
@@ -2755,11 +2798,18 @@
       notes: existing.notes,
       milestones: existing.milestones,
       enabledModules: existing.enabledModules,
+      showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
+      portalCanvasDocUrl: normalizePortalCanvasDocUrl(
+        (document.getElementById('cp-portal-canvas-doc') || {}).value
+      ),
+      portalCanvasDocTitle: String(
+        (document.getElementById('cp-portal-canvas-title') || {}).value || 'Project guide'
+      ).trim().slice(0, 120),
       updatedAt: ts()
     };
     try {
       await saveProjectHubRecord(hubId, payload, false);
-      setCpFeedback('portfolio', portfolioId ? 'Showcase linked — refresh the client portal to see it.' : 'Portfolio link cleared.', false);
+      setCpFeedback('portfolio', 'Portal showcase and guide saved — refresh the client portal to see changes.', false);
       renderClientProjectsWorkspace();
     } catch (err) {
       console.error(err);

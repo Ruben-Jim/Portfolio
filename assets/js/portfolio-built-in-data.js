@@ -158,7 +158,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
   }
 ];
 
-/** Local screenshots under assets/images/ (same paths as built-in projects use). */
+/** Local media under assets/images/ (screenshots + optional MP4 demos). */
 window.PORTFOLIO_ASSET_IMAGES = (function () {
   var seen = {};
   var list = [];
@@ -170,6 +170,9 @@ window.PORTFOLIO_ASSET_IMAGES = (function () {
   }
   (window.DEFAULT_PORTFOLIO_PROJECTS || []).forEach(function (p) {
     add(p.imageUrl);
+    if (Array.isArray(p.imageUrls)) {
+      p.imageUrls.forEach(add);
+    }
   });
   [
     '/assets/images/projects/project-lawncare.png',
@@ -181,6 +184,7 @@ window.PORTFOLIO_ASSET_IMAGES = (function () {
     '/assets/images/projects/project-rosasalon1.png',
     '/assets/images/projects/project-gadgetgarage2.png',
     '/assets/images/projects/project-homeverse2.png'
+    // Add screen recordings here, e.g. '/assets/images/projects/project-lawncare-demo.mp4'
   ].forEach(add);
   return list.sort();
 })();

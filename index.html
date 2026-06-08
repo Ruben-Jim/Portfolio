@@ -1175,13 +1175,13 @@
           <figure class="project-detail-media">
             <div class="portfolio-carousel project-detail-carousel" id="project-detail-carousel" aria-roledescription="carousel">
               <div class="portfolio-carousel-track" id="project-detail-carousel-track" aria-live="polite"></div>
-              <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="project-detail-carousel-prev" aria-label="Previous screenshot" hidden>
+              <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="project-detail-carousel-prev" aria-label="Previous slide" hidden>
                 <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
               </button>
-              <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="project-detail-carousel-next" aria-label="Next screenshot" hidden>
+              <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="project-detail-carousel-next" aria-label="Next slide" hidden>
                 <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
               </button>
-              <div class="portfolio-carousel-dots" id="project-detail-carousel-dots" role="tablist" aria-label="Screenshot slides"></div>
+              <div class="portfolio-carousel-dots" id="project-detail-carousel-dots" role="tablist" aria-label="Slideshow slides"></div>
             </div>
           </figure>
 
@@ -1217,6 +1217,11 @@
             <section class="project-detail-section project-detail-admin-section" id="project-detail-admin-section">
               <h4 class="h4 project-detail-section-title">Admin Page</h4>
               <p class="project-detail-admin-text" id="project-detail-admin"></p>
+            </section>
+
+            <section class="project-detail-section project-detail-canvas-doc" id="project-detail-canvas-section" data-portfolio-canvas-doc hidden>
+              <h4 class="h4 project-detail-section-title" id="project-detail-canvas-title-el">Project overview</h4>
+              <div class="project-detail-canvas-body" id="project-detail-canvas-body" data-portfolio-canvas-body></div>
             </section>
 
             <section class="project-detail-section project-detail-extra-sections" id="project-detail-extra-sections" hidden>
@@ -4519,16 +4524,16 @@
         </div>
         <div class="form-group portfolio-project-images-group">
           <div class="portfolio-slides-header">
-            <label>Project screenshots (slideshow)</label>
+            <label>Project media (slideshow)</label>
             <span class="portfolio-slides-count" id="portfolio-slides-count" hidden></span>
           </div>
-          <p class="form-hint">First slide is the portfolio card thumbnail. Pick from <code>assets/images</code> or paste a URL — drag slides to reorder.</p>
+          <p class="form-hint">First slide is the portfolio card thumbnail. Add screenshots or screen recordings (MP4) from <code>assets/images</code> or paste a URL — drag slides to reorder.</p>
           <div class="portfolio-slides-add-bar">
             <div class="portfolio-slides-add-field">
               <label for="portfolio-project-image-asset">From repo</label>
               <div class="portfolio-slides-add-row">
                 <select id="portfolio-project-image-asset">
-                  <option value="">Choose a screenshot…</option>
+                  <option value="">Choose a file…</option>
                 </select>
                 <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-from-asset" title="Add selected file">Add</button>
               </div>
@@ -4536,7 +4541,7 @@
             <div class="portfolio-slides-add-field">
               <label for="portfolio-project-image">Custom URL</label>
               <div class="portfolio-slides-add-row">
-                <input type="text" id="portfolio-project-image" list="portfolio-project-image-options" placeholder="/assets/images/projects/project-lawncare.png">
+                <input type="text" id="portfolio-project-image" list="portfolio-project-image-options" placeholder="/assets/images/projects/project-lawncare-demo.mp4">
                 <datalist id="portfolio-project-image-options"></datalist>
                 <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-image-btn" title="Add URL (Enter)">Add</button>
               </div>
@@ -4546,7 +4551,7 @@
             <label for="portfolio-project-image-alt">Alt text (all slides)</label>
             <input type="text" id="portfolio-project-image-alt" maxlength="200" placeholder="e.g. Lawn care app homepage and admin dashboard">
           </div>
-          <ul class="portfolio-project-images-list" id="portfolio-project-images-list" aria-label="Slideshow images"></ul>
+          <ul class="portfolio-project-images-list" id="portfolio-project-images-list" aria-label="Slideshow slides"></ul>
           <p class="portfolio-project-images-empty" id="portfolio-project-images-empty">No slides yet — choose a file from the repo or add a custom URL.</p>
         </div>
         <div class="portfolio-project-image-preview-wrap" id="portfolio-project-image-preview-wrap" hidden>
@@ -4558,13 +4563,13 @@
             <div class="portfolio-slides-preview-panel">
               <div class="portfolio-carousel portfolio-project-admin-carousel" id="portfolio-project-admin-carousel" aria-roledescription="carousel">
                 <div class="portfolio-carousel-track" id="portfolio-project-admin-carousel-track" aria-live="polite"></div>
-                <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="portfolio-project-admin-carousel-prev" aria-label="Previous screenshot" hidden>
+                <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="portfolio-project-admin-carousel-prev" aria-label="Previous slide" hidden>
                   <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
                 </button>
-                <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="portfolio-project-admin-carousel-next" aria-label="Next screenshot" hidden>
+                <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="portfolio-project-admin-carousel-next" aria-label="Next slide" hidden>
                   <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
                 </button>
-                <div class="portfolio-carousel-dots" id="portfolio-project-admin-carousel-dots" role="tablist" aria-label="Screenshot slides"></div>
+                <div class="portfolio-carousel-dots" id="portfolio-project-admin-carousel-dots" role="tablist" aria-label="Slideshow slides"></div>
               </div>
               <p class="portfolio-project-image-preview-error" id="portfolio-project-image-preview-error" hidden>
                 Could not load one or more images. Confirm files exist under <code>assets/images/</code> and are deployed.
@@ -4610,6 +4615,15 @@
         <div class="form-group">
           <label for="portfolio-project-admin-note">Detail modal — admin focus (optional)</label>
           <textarea id="portfolio-project-admin-note" class="has-scrollbar" rows="2" placeholder="Custom text for the admin section in the project detail modal."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="portfolio-project-canvas-doc">Canvas / case study file (optional)</label>
+          <input type="text" id="portfolio-project-canvas-doc" placeholder="/assets/docs/projects/project-lawncare.md">
+          <p class="form-hint"><strong>Public portfolio</strong> — <code>.md</code> renders inline for all visitors. For a <strong>client-only</strong> guide, set the path under Project Hub → Portfolio → Client portal guide (private). See <code>assets/docs/projects/CANVAS-TO-MARKDOWN.md</code>.</p>
+        </div>
+        <div class="form-group">
+          <label for="portfolio-project-canvas-title">Canvas section title</label>
+          <input type="text" id="portfolio-project-canvas-title" maxlength="120" placeholder="Project overview">
         </div>
         <div class="form-group" id="portfolio-detail-sections-group">
           <label>Detail sections (optional, for client portal)</label>

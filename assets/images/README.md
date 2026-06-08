@@ -32,12 +32,53 @@ Use local image files under `assets/images` for all portfolio content.
 - Keep a fallback image for missing project images:
   `/assets/images/projects/project-comingsoon.svg`
 
+## Screen recordings (portfolio slideshow)
+
+Store MP4 demos alongside project screenshots under `assets/images/projects/`.
+
+### Record on Mac
+- **Cmd+Shift+5 → Record Selected Portion** — crop to the browser window, not full Retina desktop.
+- Keep clips **10–30 seconds**. macOS saves `.mov` (often HEVC) — convert before committing.
+
+### Export for web
+| Setting | Target |
+|--------|--------|
+| Container | `.mp4` |
+| Codec | H.264 (AVC), `yuv420p` |
+| Resolution | 1920×1200 or 1600×1000 (16:10) |
+| Frame rate | 30 fps |
+| Audio | Remove for UI walkthroughs |
+| Size | **2–8 MB** per clip |
+
+**ffmpeg example** (from repo root):
+
+```bash
+ffmpeg -i ~/Desktop/recording.mov \
+  -c:v libx264 -profile:v main -pix_fmt yuv420p -crf 23 -preset slow \
+  -movflags +faststart -an \
+  assets/images/projects/project-<slug>-demo.mp4
+```
+
+**Poster frame** (optional, for card thumbnail + admin preview):
+
+```bash
+ffmpeg -i assets/images/projects/project-<slug>-demo.mp4 \
+  -frames:v 1 assets/images/projects/project-<slug>-demo-poster.webp
+```
+
+### Naming
+- Video: `project-<slug>-demo.mp4`
+- Poster: `project-<slug>-demo-poster.webp`
+- Admin path: `/assets/images/projects/project-<slug>-demo.mp4`
+
+Add new `.mp4` paths to `PORTFOLIO_ASSET_IMAGES` in [`assets/js/portfolio-built-in-data.js`](../js/portfolio-built-in-data.js) so they appear in the admin asset picker.
+
 ## Upload checklist
 1. Put the file in the correct subfolder.
 2. Rename file to follow the naming pattern.
 3. Compress/optimize before committing.
 4. Reference with `/assets/images/...` path.
-5. Verify image loads on:
+5. Verify media loads on:
    - `/` (public site)
    - `/admin/` (admin dashboard)
-   - any standalone page using the same image
+   - any standalone page using the same asset
