@@ -698,31 +698,41 @@
         '<span class="project-detail-btn-label">Open live project</span></a></div>';
     }
 
+    var guideOnly = !!options.guideOnly;
+    var pageClass = 'portfolio-detail-page' + (guideOnly ? ' portfolio-detail-page--guide-only' : '');
+    var mediaHtml = guideOnly
+      ? ''
+      : '<figure class="project-detail-media">' +
+        '<div class="portfolio-carousel project-detail-carousel" data-portfolio-detail-carousel aria-roledescription="carousel">' +
+        '<div class="portfolio-carousel-track" aria-live="polite"></div>' +
+        '<button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" aria-label="Previous slide" hidden>&#8249;</button>' +
+        '<button type="button" class="portfolio-carousel-btn portfolio-carousel-next" aria-label="Next slide" hidden>&#8250;</button>' +
+        '<div class="portfolio-carousel-dots" role="tablist" aria-label="Slideshow slides"></div>' +
+        '</div></figure>';
+
     return (
-      '<article class="portfolio-detail-page" data-portfolio-detail-root>' +
-      '<figure class="project-detail-media">' +
-      '<div class="portfolio-carousel project-detail-carousel" data-portfolio-detail-carousel aria-roledescription="carousel">' +
-      '<div class="portfolio-carousel-track" aria-live="polite"></div>' +
-      '<button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" aria-label="Previous slide" hidden>&#8249;</button>' +
-      '<button type="button" class="portfolio-carousel-btn portfolio-carousel-next" aria-label="Next slide" hidden>&#8250;</button>' +
-      '<div class="portfolio-carousel-dots" role="tablist" aria-label="Slideshow slides"></div>' +
-      '</div></figure>' +
+      '<article class="' +
+      pageClass +
+      '" data-portfolio-detail-root>' +
+      mediaHtml +
       '<div class="project-detail-body">' +
       '<div class="project-detail-scroll has-scrollbar">' +
-      '<div class="project-detail-meta">' +
-      '<h2 class="project-detail-title">' +
-      esc(record.title || 'Project') +
-      '</h2></div>' +
-      (record.description && record.description.trim()
+      (guideOnly
+        ? ''
+        : '<div class="project-detail-meta">' +
+          '<h2 class="project-detail-title">' +
+          esc(record.title || 'Project') +
+          '</h2></div>') +
+      (!guideOnly && record.description && record.description.trim()
         ? '<p class="project-detail-description portfolio-preserve-breaks">' +
           renderMultilineHtml(record.description.trim()) +
           '</p>'
         : '') +
-      techHtml +
-      outcomeHtml +
-      adminHtml +
+      (guideOnly ? '' : techHtml) +
+      (guideOnly ? '' : outcomeHtml) +
+      (guideOnly ? '' : adminHtml) +
       canvasDocHtml +
-      accordionHtml +
+      (guideOnly ? '' : accordionHtml) +
       '</div>' +
       actionsHtml +
       '</div></article>'
@@ -820,8 +830,11 @@
 
   function initPortfolioDetailPage(rootEl, record, options) {
     if (!rootEl) return;
+    options = options || {};
     var detailRoot = rootEl.querySelector('[data-portfolio-detail-root]') || rootEl;
-    initPortfolioDetailCarousel(detailRoot, record, options);
+    if (!options.guideOnly) {
+      initPortfolioDetailCarousel(detailRoot, record, options);
+    }
     initCanvasDoc(detailRoot, record);
   }
 

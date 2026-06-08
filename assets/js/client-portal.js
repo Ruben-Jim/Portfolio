@@ -998,14 +998,20 @@
       var hubRow = projSnap.val() || {};
       var project = normalizeProject(link.projectId, hubRow);
       var showcaseRaw = await resolveShowcaseRaw(hubRow);
+      var hasShowcase = !!showcaseRaw;
       var detailRecord = showcaseRaw
         ? window.PortfolioDetailShared.normalizePortfolioDetailRecord(showcaseRaw, showcaseRaw.id)
         : null;
       detailRecord = applyHubPortalCanvas(detailRecord, hubRow, project);
+      var guideOnly =
+        !hasShowcase &&
+        detailRecord &&
+        window.PortfolioDetailShared.normalizeCanvasDocUrl(detailRecord.canvasDocUrl);
       var detailOptions = {
         hideBuyButtons: true,
         hideQuoteButton: true,
-        showLiveButton: true,
+        showLiveButton: !guideOnly,
+        guideOnly: !!guideOnly,
         liveUrlFallback: project.expoUrl,
         adminSectionLabel: 'Admin dashboard'
       };
