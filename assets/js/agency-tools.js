@@ -2353,7 +2353,7 @@
       '<option value="">Link a portfolio project…</option>' +
       portfolioList
         .map(function (p) {
-          var selected = (hub.portfolioProjectId && hub.portfolioProjectId === p.id) || (!hub.portfolioProjectId && portfolio && portfolio.id === p.id);
+          var selected = !!(hub.portfolioProjectId && hub.portfolioProjectId === p.id);
           var privateLabel = isPortfolioEntryPublic(p) ? '' : ' (Private)';
           return '<option value="' + esc(p.id) + '" ' + (selected ? 'selected' : '') + '>' + esc(p.title || p.id) + esc(privateLabel) + '</option>';
         })

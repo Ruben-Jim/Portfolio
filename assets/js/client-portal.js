@@ -682,30 +682,9 @@
     return Object.assign({ id: id }, snap.val());
   }
 
-  function findPortfolioMatchId(hubRow, allPortfolioVal) {
-    if (!allPortfolioVal || typeof allPortfolioVal !== 'object') return '';
-    var title = String(hubRow.title || hubRow.clientName || '').toLowerCase().trim();
-    if (!title) return '';
-    var keys = Object.keys(allPortfolioVal);
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      var pt = String(allPortfolioVal[key].title || '').toLowerCase();
-      if (pt.indexOf(title) >= 0 || title.indexOf(pt) >= 0) return key;
-    }
-    return '';
-  }
-
   async function resolveShowcaseRaw(hubRow) {
-    if (hubRow.portfolioProjectId) {
-      var linked = await loadPortfolioRecord(hubRow.portfolioProjectId);
-      if (linked) return linked;
-    }
-    var allSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PORTFOLIO));
-    var allVal = allSnap.val();
-    if (!allVal) return null;
-    var matchedId = findPortfolioMatchId(hubRow, allVal);
-    if (!matchedId) return null;
-    return loadPortfolioRecord(matchedId);
+    if (!hubRow || !hubRow.portfolioProjectId) return null;
+    return loadPortfolioRecord(hubRow.portfolioProjectId);
   }
 
   function renderBrandHeader(project) {
