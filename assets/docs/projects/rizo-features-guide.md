@@ -51,15 +51,18 @@ Tap the gear on home. Orders today shows here for staff only — removed from th
 Manage Announcements for pop-up + GoFundMe.
 
 ![manage events + GoFundMe](images/step-4-manage.png)
+
 ---
 
 **Manage Announcements**
 
+---
 - **Pop-up Event** (on/off) — Title, location, date, time, description, links
 - **GoFundMe** (on/off) — Title, description, donate URL
 
 **Quick steps**
 
+---
 1. Gear on home → password
 2. Manage Announcements → Save
 3. Toggle event or GoFundMe anytime
