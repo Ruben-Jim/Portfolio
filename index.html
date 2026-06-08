@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=admin-mobile-tabbar-20260608">
+  <link rel="stylesheet" href="/assets/css/style.css?v=admin-dm-inline-20260608">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -348,7 +348,7 @@
               <h2 class="cwr-landing-band-title" id="cwr-demo-title">See what we ship for local businesses</h2>
               <p class="cwr-landing-band-lead">Custom websites, booking flows, admin dashboards, and mobile apps — built for how service businesses actually run day to day.</p>
               <ul class="cwr-landing-demo-links">
-                <li><a href="https://tradesevices.expo.app" target="_blank" rel="noopener noreferrer">Trade Service demo</a></li>
+                <li><a href="https://tradeservice.expo.app" target="_blank" rel="noopener noreferrer">Trade Service demo</a></li>
                 <li><button type="button" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Full portfolio</button></li>
               </ul>
             </div>
@@ -499,7 +499,7 @@
 
         <!-- Studio intro -->
         <section class="about-text">
-          <p><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based product studio</span> for local businesses — we design, build, and ship <span class="highlight-accent">web and mobile apps</span> with clear UX and dependable backends. Stack: <span class="highlight-accent">React Native, Node, Firebase</span>, and more.</p>
+          <p><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based dev studio</span> — we design, build, and ship <span class="highlight-accent">web and mobile apps</span> for local service businesses. Real software, not templates.</p>
           <div class="bento-intro-links" style="margin-top: 16px;">
             <a href="/portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Work</a>
             <a href="/services-pricing" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services</a>
@@ -507,86 +507,67 @@
           </div>
         </section>
 
-        <!-- Mission statement -->
+        <!-- Founder bio -->
         <section class="about-text">
-          <h3 class="h3" style="margin-bottom: 12px; line-height: 1.25;">More customers. Less busywork.<br>Built for how you run your business.</h3>
-          <p>Stop juggling generic websites, booking apps, and spreadsheets. We design and build custom software that brings in jobs, keeps clients on track, and saves your team hours every week.</p>
-          <p class="home-hero-pills-label" style="margin-top: 20px;">Ready to replace the tools you use today?</p>
-          <ul class="home-hero-pills about-tools-pills" aria-label="Tools and platforms businesses often outgrow">
-            <li>House Pro Call</li>
-            <li>GoDaddy</li>
-            <li>Wix</li>
-            <li>Thumbtack</li>
-            <li>Jobber</li>
-            <li>Yelp</li>
-          </ul>
-        </section>
-
-        <!-- What we build -->
-        <section class="service">
-          <h3 class="h3 service-title">What We Build</h3>
-          <ul class="service-list">
-            <li class="service-item">
-              <div class="service-icon-box">
-                <img src="/assets/images/icons/icon-dev.svg" alt="Web development icon" width="40">
-              </div>
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Web Apps & Presence Sites</h4>
-                <p class="service-item-text">Fast, SEO-ready marketing sites and full-stack web apps tailored to your business operations.</p>
-              </div>
-            </li>
-            <li class="service-item">
-              <div class="service-icon-box">
-                <img src="/assets/images/icons/icon-app.svg" alt="Mobile app icon" width="40">
-              </div>
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">iOS & Android Mobile Apps</h4>
-                <p class="service-item-text">Cross-platform React Native apps that ship to both stores from a single codebase — no duplicate work.</p>
-              </div>
-            </li>
-            <li class="service-item">
-              <div class="service-icon-box">
-                <img src="/assets/images/icons/icon-design.svg" alt="Dashboard icon" width="40">
-              </div>
-              <div class="service-content-box">
-                <h4 class="h4 service-item-title">Booking, Payments & Admin</h4>
-                <p class="service-item-text">Real-time booking systems, Stripe payments, and custom admin dashboards built for daily operations.</p>
-              </div>
-            </li>
-          </ul>
-        </section>
-
-        <!-- Technologies & clients marquee -->
-        <div class="home-tech-clients-zone">
-          <h3 class="h3 work-marquee-title">Technologies & Clients</h3>
-          <section class="work-marquee" aria-label="Technologies and clients">
-          <div class="marquee-track">
-            <div class="marquee-content">
-              <span class="marquee-item"><ion-icon name="logo-react"></ion-icon> React</span>
-              <span class="marquee-item"><ion-icon name="logo-firebase"></ion-icon> Firebase</span>
-              <span class="marquee-item"><ion-icon name="logo-nodejs"></ion-icon> Node</span>
-              <span class="marquee-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
-              <span class="marquee-item"><ion-icon name="code-slash-outline"></ion-icon> TypeScript</span>
-              <img src="/assets/images/logo/logo-1-color.png" alt="" class="marquee-logo">
-              <img src="/assets/images/logo/logo-2-color.png" alt="" class="marquee-logo">
-              <img src="/assets/images/logo/logo-3-color.png" alt="" class="marquee-logo">
-              <span class="marquee-item"><ion-icon name="logo-react"></ion-icon> React Native</span>
-              <span class="marquee-item"><ion-icon name="phone-portrait-outline"></ion-icon> Expo</span>
-              <span class="marquee-item"><ion-icon name="logo-firebase"></ion-icon> Firebase</span>
-              <span class="marquee-item"><ion-icon name="logo-nodejs"></ion-icon> Node</span>
-              <span class="marquee-item"><ion-icon name="logo-javascript"></ion-icon> JavaScript</span>
-              <span class="marquee-item"><ion-icon name="code-slash-outline"></ion-icon> TypeScript</span>
-              <img src="/assets/images/logo/logo-1-color.png" alt="" class="marquee-logo">
-              <img src="/assets/images/logo/logo-2-color.png" alt="" class="marquee-logo">
-              <img src="/assets/images/logo/logo-3-color.png" alt="" class="marquee-logo">
+          <div class="about-founder">
+            <img src="/assets/images/avatar/my-avatar.png" alt="Ruben Jimenez" class="about-founder-avatar">
+            <div>
+              <p class="about-founder-name">Ruben Jimenez</p>
+              <p class="about-founder-role">Founder &amp; Developer</p>
+              <p>Self-taught developer based in Fresno, CA. I started CWR because local businesses deserve software built for how they actually operate — not generic tools that barely fit. I handle every project personally from first call to launch.</p>
             </div>
           </div>
-          </section>
-          <h3 class="h3 testimonials-title" id="testimonials-heading">What Clients Say</h3>
-        </div>
+          <div class="about-stat-row">
+            <div>
+              <span class="about-stat-number">3+</span>
+              <span class="about-stat-label">Paid builds</span>
+            </div>
+            <div>
+              <span class="about-stat-number">App Store</span>
+              <span class="about-stat-label">Live on iOS &amp; Android</span>
+            </div>
+            <div>
+              <span class="about-stat-number">Fresno</span>
+              <span class="about-stat-label">Central Valley, CA</span>
+            </div>
+            <div>
+              <span class="about-stat-number">2022</span>
+              <span class="about-stat-label">Founded</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Why CWR -->
+        <section class="about-text">
+          <h3 class="h3" style="margin-bottom: 16px;">Why CWR</h3>
+          <ul class="about-why-list">
+            <li class="about-why-item">
+              <ion-icon name="location-outline" class="about-why-icon" aria-hidden="true"></ion-icon>
+              <div>
+                <p class="about-why-title">Local, not outsourced</p>
+                <p>You talk directly to the person writing your code — not a project manager relaying messages to an overseas team. Fresno-based means fast responses and real accountability.</p>
+              </div>
+            </li>
+            <li class="about-why-item">
+              <ion-icon name="phone-portrait-outline" class="about-why-icon" aria-hidden="true"></ion-icon>
+              <div>
+                <p class="about-why-title">Real apps in production</p>
+                <p>proCleaning Seattle is live on the App Store and Google Play — full booking system, Stripe payments, worker management. That's the standard we build to for every client.</p>
+              </div>
+            </li>
+            <li class="about-why-item">
+              <ion-icon name="settings-outline" class="about-why-icon" aria-hidden="true"></ion-icon>
+              <div>
+                <p class="about-why-title">Built for your operations</p>
+                <p>Every build includes a custom admin dashboard so you control bookings, messages, and content without calling a developer. Your business, your software.</p>
+              </div>
+            </li>
+          </ul>
+        </section>
 
         <!-- Testimonials -->
         <section class="testimonials" aria-labelledby="testimonials-heading">
+          <h3 class="h3 testimonials-title" id="testimonials-heading">What Clients Say</h3>
           <ul class="testimonials-list has-scrollbar">
             <li class="testimonials-item">
               <div class="content-card" data-testimonials-item>
@@ -595,39 +576,19 @@
                 </figure>
                 <h4 class="h4 testimonials-item-title" data-testimonials-title>Roberto</h4>
                 <div class="testimonials-text" data-testimonials-text>
-                  <p>Ruben was hired to create a ordering ecosystem featuring dual interfaces for customers and kitchen staff. Customers enjoy a seamless experience with real-time order tracking and menu browsing, while the dedicated Cook Dashboard empowers staff to manage availability, toggle order acceptance, and track statuses from "Pending" to "Completed" in real-time.</p>
+                  <p>Ruben was hired to create an ordering ecosystem featuring dual interfaces for customers and kitchen staff. Customers enjoy a seamless experience with real-time order tracking and menu browsing, while the Cook Dashboard empowers staff to manage orders from Pending to Completed in real time.</p>
                 </div>
               </div>
             </li>
           </ul>
         </section>
 
-        <!-- Clients -->
-        <section class="clients">
-          <h3 class="h3 clients-title">Trusted By</h3>
-          <div class="clients-scroll-shell">
-            <ul class="clients-list has-scrollbar" id="clients-list" aria-label="Client logos">
-              <li class="clients-item">
-                <a href="#Portfolio">
-                  <img src="/assets/images/logo/logo-1-color.png" alt="client logo">
-                </a>
-              </li>
-              <li class="clients-item">
-                <a href="#Portfolio">
-                  <img src="/assets/images/logo/logo-2-color.png" alt="client logo">
-                </a>
-              </li>
-              <li class="clients-item">
-                <a href="#Portfolio">
-                  <img src="/assets/images/logo/logo-3-color.png" alt="client logo">
-                </a>
-              </li>
-            </ul>
-            <div class="clients-scroll-track" id="clients-scroll-track" aria-hidden="true">
-              <div class="clients-scroll-thumb" id="clients-scroll-thumb"></div>
-            </div>
-          </div>
-        </section>
+        <!-- CTA -->
+        <div class="about-cta-band">
+          <h3 class="about-cta-title">Ready to build something real?</h3>
+          <p class="about-cta-sub">Packages from <strong>$1,500</strong> · Web + iOS + Android · Fresno-based studio</p>
+          <button type="button" class="btn btn-primary" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Start a project</button>
+        </div>
 
       </article>
       
@@ -2865,20 +2826,16 @@
         </section>
           </div><!-- /admin-panel-docs -->
 
-          <!-- Contact Messages (Firestore form submissions) + entry to DM inbox -->
+          <!-- DM conversations (realtime threads) -->
           <div id="admin-panel-messages" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-messages" data-admin-tab="messages" hidden>
           <section class="service admin-collapsible-section admin-messages-section admin-collapsible-open" id="messages-section">
           <div class="admin-panel-heading admin-panel-heading--with-action">
             <div class="admin-panel-heading-main">
-              <h3 class="h3 admin-panel-title">Contact form messages</h3>
-              <p class="admin-panel-lead">Firestore submissions (hire form, contact). Open <strong>DM inbox</strong> for realtime threads.</p>
+              <h3 class="h3 admin-panel-title">Conversations</h3>
+              <p class="admin-panel-lead">Realtime threads from contact form and direct messages. Select a row to reply.</p>
             </div>
             <div class="admin-panel-heading-action">
-              <button type="button" class="btn btn-primary admin-open-dm-btn" id="admin-open-dm-inbox" title="Open realtime DM inbox">
-                <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
-                <span>Open DM inbox</span>
-                <span class="admin-dm-unread-badge" id="admin-dm-unread-badge" hidden aria-live="polite">0</span>
-              </button>
+              <span class="admin-dm-unread-badge admin-dm-unread-badge--inline" id="admin-dm-unread-badge" hidden aria-live="polite">0 unread</span>
             </div>
           </div>
 
@@ -2890,20 +2847,22 @@
                 <span class="admin-stat-value" id="total-messages">0</span>
               </div>
               <div class="admin-stat-mini">
-                <span class="admin-stat-label">New</span>
+                <span class="admin-stat-label">Unread</span>
                 <span class="admin-stat-value" id="new-messages">0</span>
               </div>
               <div class="admin-stat-mini">
-                <span class="admin-stat-label">Replied</span>
+                <span class="admin-stat-label">Closed</span>
                 <span class="admin-stat-value" id="replied-messages">0</span>
               </div>
             </div>
 
             <div class="messages-controls admin-fs-messages-controls">
-              <div class="messages-filter" id="firestore-messages-filter" role="group" aria-label="Filter contact form messages">
+              <div class="messages-filter" id="dm-inbox-filters" role="group" aria-label="Filter conversations">
                 <button type="button" class="filter-btn active" data-filter="all">All</button>
-                <button type="button" class="filter-btn" data-filter="new">New</button>
-                <button type="button" class="filter-btn" data-filter="replied">Replied</button>
+                <button type="button" class="filter-btn" data-filter="unread">Unread</button>
+                <button type="button" class="filter-btn" data-filter="open">Open</button>
+                <button type="button" class="filter-btn" data-filter="pending">Pending</button>
+                <button type="button" class="filter-btn" data-filter="closed">Closed</button>
               </div>
 
               <div class="messages-actions">
@@ -2932,7 +2891,10 @@
                     <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
                   </button>
                 </header>
-                <div class="admin-contact-detail__body has-scrollbar" id="admin-contact-detail-body"></div>
+                <div class="admin-contact-detail__body has-scrollbar" id="admin-contact-detail-body">
+                  <div id="admin-contact-detail-firestore-view"></div>
+                  <div id="admin-dm-detail-host" class="admin-dm-detail-host" hidden></div>
+                </div>
                 <footer class="admin-contact-detail__foot" id="admin-contact-detail-foot"></footer>
               </div>
             </div>
@@ -3440,8 +3402,8 @@
           </div><!-- /admin-tabs-body -->
         </div><!-- /admin-tabs -->
 
-        <!-- Admin DM inbox: fullscreen overlay / bottom sheet (content injected by script.js) -->
-        <div id="admin-dm-sheet-root" class="admin-dm-sheet-root" aria-hidden="true">
+        <!-- Legacy admin DM sheet (unused — conversations live in Messages tab) -->
+        <div id="admin-dm-sheet-root" class="admin-dm-sheet-root" aria-hidden="true" hidden>
           <div class="admin-dm-sheet-backdrop" id="admin-dm-sheet-backdrop" tabindex="-1"></div>
           <div class="admin-dm-sheet" id="admin-dm-sheet" role="dialog" aria-modal="true" aria-labelledby="admin-dm-sheet-title" data-lenis-prevent>
             <div class="admin-dm-sheet-grabber" id="admin-dm-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag to resize inbox height" tabindex="0"></div>
@@ -5681,11 +5643,11 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   </div>
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
-  <script src="/assets/js/business-systems-data.js?v=business-systems-trim-20260601"></script>
+  <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
   <script src="/assets/js/business-doc-shared.js?v=portal-maint-dm-20260605"></script>
-  <script src="/assets/js/customer-dm-shared.js?v=portal-maint-dm-20260604"></script>
+  <script src="/assets/js/customer-dm-shared.js?v=contact-form-message-20260608"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
-  <script src="/assets/js/script.js?v=video-poster-fix-20260608"></script>
+  <script src="/assets/js/script.js?v=admin-inbox-init-20260608"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=cp-deposit-leads-20260530"></script>
   <script src="/assets/js/dm-migration.js"></script>

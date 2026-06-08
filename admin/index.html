@@ -2862,20 +2862,16 @@
         </section>
           </div><!-- /admin-panel-docs -->
 
-          <!-- Contact Messages (Firestore form submissions) + entry to DM inbox -->
+          <!-- DM conversations (realtime threads) -->
           <div id="admin-panel-messages" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-messages" data-admin-tab="messages" hidden>
           <section class="service admin-collapsible-section admin-messages-section admin-collapsible-open" id="messages-section">
           <div class="admin-panel-heading admin-panel-heading--with-action">
             <div class="admin-panel-heading-main">
-              <h3 class="h3 admin-panel-title">Contact form messages</h3>
-              <p class="admin-panel-lead">Firestore submissions (hire form, contact). Open <strong>DM inbox</strong> for realtime threads.</p>
+              <h3 class="h3 admin-panel-title">Conversations</h3>
+              <p class="admin-panel-lead">Realtime threads from contact form and direct messages. Select a row to reply.</p>
             </div>
             <div class="admin-panel-heading-action">
-              <button type="button" class="btn btn-primary admin-open-dm-btn" id="admin-open-dm-inbox" title="Open realtime DM inbox">
-                <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
-                <span>Open DM inbox</span>
-                <span class="admin-dm-unread-badge" id="admin-dm-unread-badge" hidden aria-live="polite">0</span>
-              </button>
+              <span class="admin-dm-unread-badge admin-dm-unread-badge--inline" id="admin-dm-unread-badge" hidden aria-live="polite">0 unread</span>
             </div>
           </div>
 
@@ -2887,20 +2883,22 @@
                 <span class="admin-stat-value" id="total-messages">0</span>
               </div>
               <div class="admin-stat-mini">
-                <span class="admin-stat-label">New</span>
+                <span class="admin-stat-label">Unread</span>
                 <span class="admin-stat-value" id="new-messages">0</span>
               </div>
               <div class="admin-stat-mini">
-                <span class="admin-stat-label">Replied</span>
+                <span class="admin-stat-label">Closed</span>
                 <span class="admin-stat-value" id="replied-messages">0</span>
               </div>
             </div>
 
             <div class="messages-controls admin-fs-messages-controls">
-              <div class="messages-filter" id="firestore-messages-filter" role="group" aria-label="Filter contact form messages">
+              <div class="messages-filter" id="dm-inbox-filters" role="group" aria-label="Filter conversations">
                 <button type="button" class="filter-btn active" data-filter="all">All</button>
-                <button type="button" class="filter-btn" data-filter="new">New</button>
-                <button type="button" class="filter-btn" data-filter="replied">Replied</button>
+                <button type="button" class="filter-btn" data-filter="unread">Unread</button>
+                <button type="button" class="filter-btn" data-filter="open">Open</button>
+                <button type="button" class="filter-btn" data-filter="pending">Pending</button>
+                <button type="button" class="filter-btn" data-filter="closed">Closed</button>
               </div>
 
               <div class="messages-actions">
@@ -2929,7 +2927,10 @@
                     <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
                   </button>
                 </header>
-                <div class="admin-contact-detail__body has-scrollbar" id="admin-contact-detail-body"></div>
+                <div class="admin-contact-detail__body has-scrollbar" id="admin-contact-detail-body">
+                  <div id="admin-contact-detail-firestore-view"></div>
+                  <div id="admin-dm-detail-host" class="admin-dm-detail-host" hidden></div>
+                </div>
                 <footer class="admin-contact-detail__foot" id="admin-contact-detail-foot"></footer>
               </div>
             </div>
@@ -5682,7 +5683,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/business-doc-shared.js?v=portal-maint-dm-20260605"></script>
   <script src="/assets/js/customer-dm-shared.js?v=portal-maint-dm-20260604"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
-  <script src="/assets/js/script.js?v=admin-mobile-tabbar-20260608"></script>
+  <script src="/assets/js/script.js?v=admin-inbox-init-20260608"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=cp-deposit-leads-20260530"></script>
   <script src="/assets/js/dm-migration.js"></script>

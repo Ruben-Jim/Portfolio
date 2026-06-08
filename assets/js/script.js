@@ -5011,7 +5011,6 @@ form.addEventListener("submit", async function(e) {
         email: String(email),
         message: String(message)
       });
-      showSuccessMessage("Message sent. Your direct message thread is open below.");
       form.reset();
       formBtn.setAttribute("disabled", "");
       return;
@@ -5877,6 +5876,9 @@ function switchToPage(pageName, skipSave = false) {
       }
       if (pageName === "home") {
         document.body.classList.add("home-page-active");
+      }
+      if (typeof window.syncAdminMobileTabBarDock === 'function') {
+        window.syncAdminMobileTabBarDock();
       }
       window.scrollTo(0, 0);
 
@@ -7089,7 +7091,25 @@ window.addEventListener('load', function() {
         if (e.target.closest('button') || e.target.closest('a')) return;
         openContactDetailDrawer(row.getAttribute('data-id'));
       });
+      messagesList.addEventListener('click', function (e) {
+        const dmRow = e.target.closest('tbody tr.admin-dm-table__row[data-conversation-id]');
+        if (!dmRow || !messagesList.contains(dmRow)) return;
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        if (typeof window.openAdminDmConversation === 'function') {
+          window.openAdminDmConversation(dmRow.getAttribute('data-conversation-id'));
+        }
+      });
       messagesList.addEventListener('keydown', function (e) {
+        const dmRow = e.target.closest('tbody tr.admin-dm-table__row[data-conversation-id]');
+        if (dmRow && messagesList.contains(dmRow)) {
+          if (e.key !== 'Enter') return;
+          if (e.target.closest('button') || e.target.closest('a')) return;
+          e.preventDefault();
+          if (typeof window.openAdminDmConversation === 'function') {
+            window.openAdminDmConversation(dmRow.getAttribute('data-conversation-id'));
+          }
+          return;
+        }
         const th = e.target.closest('th[data-contact-sort]');
         if (th && messagesList.contains(th)) {
           if (e.key !== 'Enter' && e.key !== ' ') return;
@@ -7642,23 +7662,31 @@ window.addEventListener('load', function() {
   // Filter messages based on status (datasheet rows)
   function filterMessages(filter) {
     if (!filter) {
-      const activeBtn = document.querySelector('#firestore-messages-filter .filter-btn.active');
+      const activeBtn =
+        document.querySelector('#firestore-messages-filter .filter-btn.active') ||
+        document.querySelector('#dm-inbox-filters .filter-btn.active');
       filter = activeBtn && activeBtn.dataset.filter ? activeBtn.dataset.filter : 'all';
     }
     const messageItems = document.querySelectorAll('#firestore-messages-list .message-item');
 
     messageItems.forEach(item => {
-      const status = item.dataset.status;
+      const status = item.dataset.status || 'new';
       let show = false;
       switch (filter) {
         case 'all':
           show = true;
           break;
         case 'new':
-          show = status === 'new';
+        case 'unread':
+        case 'open':
+          show = status === 'new' || status === 'open' || status === 'pending';
           break;
         case 'replied':
-          show = status === 'replied';
+        case 'closed':
+          show = status === 'replied' || status === 'closed';
+          break;
+        case 'pending':
+          show = status === 'pending' || status === 'new';
           break;
         default:
           show = true;
@@ -8462,10 +8490,18 @@ window.addEventListener('load', function() {
       }
     }
 
+    function isAdminPageActive() {
+      return document.body.classList.contains('admin-page-active');
+    }
+
     function syncMobileTabBarDock() {
       if (!tabBar) return;
       captureTabBarHome();
-      var shouldDock = isMobileBar() && isSignedInAdmin() && isAdminDashboardVisible();
+      var shouldDock =
+        isMobileBar() &&
+        isSignedInAdmin() &&
+        isAdminDashboardVisible() &&
+        isAdminPageActive();
       var dock = document.getElementById('admin-mobile-tab-bar-root');
       if (shouldDock) {
         if (!dock) {
@@ -8477,6 +8513,7 @@ window.addEventListener('load', function() {
         dock.hidden = false;
         if (tabBar.parentNode !== dock) dock.appendChild(tabBar);
       } else {
+        if (reorderActive) exitReorderMode(true);
         restoreTabBarToDom();
         if (dock) dock.hidden = true;
       }
@@ -10997,8 +11034,19 @@ window.addEventListener('load', function() {
         });
 
         console.log('Total messages processed:', messages.length);
-        renderMessages(messages);
-        updateStats(messages);
+        lastContactFormMessages = messages.slice();
+        if (typeof window.portfolioSyncAdminMessagesView === 'function') {
+          window.portfolioSyncAdminMessagesView();
+        } else {
+          renderMessages(messages);
+          updateStats(messages);
+        }
+        if (
+          typeof window.portfolioEnsureAdminInboxSubscriptions === 'function' &&
+          !(typeof window.portfolioAdminInboxRtdbActive === 'function' && window.portfolioAdminInboxRtdbActive())
+        ) {
+          window.portfolioEnsureAdminInboxSubscriptions(false);
+        }
       }, (error) => {
         console.error('Error fetching messages:', error);
         lastContactFormMessages = [];
@@ -11159,15 +11207,25 @@ window.addEventListener('load', function() {
   function closeContactDetailDrawer() {
     const root = document.getElementById('admin-contact-detail');
     if (!root) return;
-    root.classList.remove('is-open');
+    const closingDm =
+      typeof window.portfolioAdminDmDetailIsOpen === 'function' && window.portfolioAdminDmDetailIsOpen();
+    root.classList.remove('is-open', 'admin-contact-detail--dm');
     root.setAttribute('aria-hidden', 'true');
     contactDetailOpenId = null;
+    if (typeof window.portfolioAdminDmDetailClose === 'function') {
+      window.portfolioAdminDmDetailClose();
+    }
     document.body.classList.remove('admin-contact-detail-open');
+    const dmHost = document.getElementById('admin-dm-detail-host');
+    if (dmHost) dmHost.hidden = true;
+    if (closingDm && typeof window.clearAdminDmThreadSelection === 'function') {
+      window.clearAdminDmThreadSelection();
+    }
   }
 
   function fillContactDetailDrawer(message) {
     const titleEl = document.getElementById('admin-contact-detail-title');
-    const bodyEl = document.getElementById('admin-contact-detail-body');
+    const bodyEl = document.getElementById('admin-contact-detail-firestore-view');
     const footEl = document.getElementById('admin-contact-detail-foot');
     if (!message || !titleEl || !bodyEl || !footEl) return;
 
@@ -11260,8 +11318,16 @@ window.addEventListener('load', function() {
   function openContactDetailDrawer(messageId) {
     const root = document.getElementById('admin-contact-detail');
     const msg = getContactMessageById(messageId);
+    const dmHost = document.getElementById('admin-dm-detail-host');
+    const firestoreView = document.getElementById('admin-contact-detail-firestore-view');
     if (!root || !msg) return;
+    if (typeof window.portfolioAdminDmDetailClose === 'function') {
+      window.portfolioAdminDmDetailClose();
+    }
     contactDetailOpenId = messageId;
+    if (dmHost) dmHost.hidden = true;
+    if (firestoreView) firestoreView.hidden = false;
+    root.classList.remove('admin-contact-detail--dm');
     root.classList.add('is-open');
     root.setAttribute('aria-hidden', 'false');
     document.body.classList.add('admin-contact-detail-open');
@@ -11697,6 +11763,21 @@ window.addEventListener('load', function() {
   window.syncAdminArticleAuth = syncAdminArticleAuth;
   window.fetchMessages = fetchMessages;
   window.sendReplyEmail = sendReplyEmail;
+  window.closeAdminContactDetailDrawer = closeContactDetailDrawer;
+  window.syncAdminContactTableScrollState = syncAdminContactTableScrollState;
+  window.renderAdminLegacyContactMessages = function () {
+    if (typeof window.portfolioSyncAdminMessagesView === 'function') {
+      window.portfolioSyncAdminMessagesView();
+      return;
+    }
+    renderMessages(lastContactFormMessages);
+    updateStats(lastContactFormMessages);
+  };
+  window.getAdminLegacyContactMessages = function () {
+    return lastContactFormMessages.slice();
+  };
+  window.getAdminContactTimestampMs = getContactTimestampMs;
+  window.formatAdminContactTableDate = formatContactTableDate;
 
 })();
 
@@ -11855,7 +11936,7 @@ function toggleTheme() {
       { id: 'admin-portfolio', label: 'Admin: Portfolio projects', icon: 'albums-outline', search: 'admin portfolio projects', action: function () { runAdminTab('portfolio'); } },
       { id: 'admin-blog', label: 'Admin: Blog management', icon: 'newspaper-outline', search: 'admin blog posts', action: function () { runAdminTab('blog'); } },
       { id: 'admin-docs', label: 'Admin: Business documents', icon: 'document-text-outline', search: 'admin documents proposal invoice', action: function () { runAdminTab('docs'); } },
-      { id: 'admin-dm-inbox', label: 'Admin: Open DM inbox', icon: 'chatbubbles-outline', search: 'admin dm inbox messages realtime', action: function () { runAdminTab('messages', function () { clickById('admin-open-dm-inbox'); }); } },
+      { id: 'admin-dm-inbox', label: 'Admin: Conversations', icon: 'chatbubbles-outline', search: 'admin dm inbox messages realtime conversations', action: function () { runAdminTab('messages'); } },
       { id: 'admin-add-lead', label: 'Admin: Add pipeline lead', icon: 'person-add-outline', search: 'admin add lead pipeline new', action: function () { runAdminTab('pipeline', function () { if (typeof window.openLeadModal === 'function') window.openLeadModal(); }); } },
       { id: 'admin-new-hub', label: 'Admin: New client project', icon: 'add-circle-outline', search: 'admin new client project hub', action: function () { runAdminTab('client-projects', function () { if (window.AgencyTools && typeof window.AgencyTools.openNewClient === 'function') window.AgencyTools.openNewClient(); else clickById('client-projects-add-btn'); }); } },
       { id: 'admin-new-portfolio', label: 'Admin: New portfolio project', icon: 'add-outline', search: 'admin new portfolio project', action: function () { runAdminTab('portfolio', function () { clickById('admin-add-portfolio-btn'); }); } },
@@ -12308,6 +12389,23 @@ document.addEventListener('DOMContentLoaded', function () {
 (function () {
   'use strict';
 
+  const DM_CONTACT_GATE_KEY = 'customerDmContactGateCompleted';
+
+  function isCustomerDmContactGateCompleted() {
+    return localStorage.getItem(DM_CONTACT_GATE_KEY) === '1';
+  }
+
+  function markCustomerDmContactGateCompleted() {
+    localStorage.setItem(DM_CONTACT_GATE_KEY, '1');
+  }
+
+  function isCustomerDmPortalRevealed() {
+    var portal = document.getElementById('customer-dm-portal');
+    return !!(portal && portal.classList.contains('dm-portal--active'));
+  }
+
+  let dmDetailOpenId = null;
+
   const DM = {
     conversations: [],
     filteredConversations: [],
@@ -12348,6 +12446,7 @@ document.addEventListener('DOMContentLoaded', function () {
       window.query
     );
   }
+  window.portfolioHasDmDeps = hasDMDeps;
 
   function formatDMDate(value) {
     if (value == null || value === '') return '';
@@ -12475,34 +12574,42 @@ document.addEventListener('DOMContentLoaded', function () {
     ].join('');
   }
 
-  function ensureAdminInboxUI() {
-    const sheetBody = document.getElementById('admin-dm-sheet-body');
-    if (!sheetBody) return;
+  function setupAdminMessagesPanelForDm() {
+    if (!hasDMDeps()) return;
 
-    if (!document.getElementById('dm-inbox-toolbar')) {
-      const toolbar = document.createElement('div');
-      toolbar.id = 'dm-inbox-toolbar';
-      toolbar.className = 'dm-inbox-toolbar messages-controls';
-      toolbar.innerHTML = [
-        '<input type="search" id="dm-search-input" class="form-input dm-search-input" placeholder="Search threads: name, email, tags…">',
-        '<div id="dm-inbox-filters" class="messages-filter dm-inbox-filters" role="group" aria-label="Filter threads by inbox status">',
-        '<button type="button" class="filter-btn active" data-filter="all">All</button>',
-        '<button type="button" class="filter-btn" data-filter="unread">Unread</button>',
-        '<button type="button" class="filter-btn" data-filter="open">Open</button>',
-        '<button type="button" class="filter-btn" data-filter="pending">Pending</button>',
-        '<button type="button" class="filter-btn" data-filter="closed">Closed</button>',
-        '</div>'
-      ].join('');
-      sheetBody.insertBefore(toolbar, sheetBody.firstChild);
+    const controls = document.querySelector('#admin-panel-messages .admin-fs-messages-controls');
+    if (controls && !document.getElementById('dm-search-input')) {
+      const searchWrap = document.createElement('div');
+      searchWrap.className = 'admin-dm-search-wrap';
+      searchWrap.innerHTML =
+        '<input type="search" id="dm-search-input" class="form-input dm-search-input" placeholder="Search conversations…" aria-label="Search conversations">';
+      controls.insertBefore(searchWrap, controls.firstChild);
     }
 
-    if (!document.getElementById('dm-layout')) {
-      const layout = document.createElement('div');
-      layout.className = 'dm-layout';
-      layout.id = 'dm-layout';
+    const body = document.getElementById('admin-contact-detail-body');
+    if (body && !document.getElementById('admin-contact-detail-firestore-view')) {
+      const firestoreView = document.createElement('div');
+      firestoreView.id = 'admin-contact-detail-firestore-view';
+      const dmHost = document.createElement('div');
+      dmHost.id = 'admin-dm-detail-host';
+      dmHost.className = 'admin-dm-detail-host';
+      dmHost.hidden = true;
+      body.innerHTML = '';
+      body.appendChild(firestoreView);
+      body.appendChild(dmHost);
+    }
+  }
 
+  function ensureAdminInboxUI() {
+    setupAdminMessagesPanelForDm();
+    if (!hasDMDeps()) return;
+
+    const dmHost = document.getElementById('admin-dm-detail-host');
+    if (!dmHost) return;
+
+    if (!document.getElementById('dm-thread-panel')) {
       const thread = document.createElement('section');
-      thread.className = 'dm-thread-panel';
+      thread.className = 'dm-thread-panel dm-thread-panel--in-detail';
       thread.id = 'dm-thread-panel';
       thread.innerHTML = [
         '<div class="dm-thread-admin-meta">',
@@ -12553,65 +12660,81 @@ document.addEventListener('DOMContentLoaded', function () {
         '</div>',
         '</form>'
       ].join('');
-
-      const listWrap = document.createElement('div');
-      listWrap.className = 'dm-conversation-list-wrap';
-      const convList = document.createElement('div');
-      convList.id = 'dm-conversation-list';
-      convList.className = 'messages-list has-scrollbar';
-      listWrap.appendChild(convList);
-      layout.appendChild(listWrap);
-      layout.appendChild(thread);
-      sheetBody.appendChild(layout);
+      dmHost.appendChild(thread);
     }
     upgradeDmInboxFilterStrip();
-    syncAdminDmLayoutClass();
   }
 
   function syncAdminDmLayoutClass() {
-    const layout = document.getElementById('dm-layout');
     const thread = document.getElementById('dm-thread-panel');
-    const sheetBody = document.getElementById('admin-dm-sheet-body');
-    const sheet = document.getElementById('admin-dm-sheet');
-    const sheetTitle = document.getElementById('admin-dm-sheet-title');
     const hasThread = !!DM.activeConversationId;
-
-    const sheetBack = document.getElementById('admin-dm-sheet-back');
-    if (sheetBack) {
-      sheetBack.hidden = !hasThread;
-      sheetBack.setAttribute('aria-hidden', hasThread ? 'false' : 'true');
-    }
-    if (sheetTitle) {
-      if (!sheetTitle.getAttribute('data-dm-default-title')) {
-        sheetTitle.setAttribute('data-dm-default-title', sheetTitle.textContent.trim() || 'DM inbox');
-      }
+    if (thread) {
+      thread.classList.toggle('dm-thread-panel--minimal', hasThread);
       if (hasThread) {
-        sheetTitle.textContent = (DM.activeConversationData && DM.activeConversationData.customerName) || 'Conversation';
-      } else {
-        sheetTitle.textContent = sheetTitle.getAttribute('data-dm-default-title') || 'DM inbox';
+        thread.removeAttribute('hidden');
+        thread.setAttribute('aria-hidden', 'false');
       }
     }
-    if (sheetBody) {
-      sheetBody.classList.toggle('dm-inbox--thread-open', hasThread);
-    }
-    if (sheet) {
-      sheet.classList.toggle('admin-dm-sheet--conversation-open', hasThread);
-    }
+  }
 
-    if (!layout || !thread) return;
+  function openDmContactDetailDrawer(conversationId) {
+    const conv =
+      DM.conversations.find(function (c) { return c.id === conversationId; }) ||
+      DM.activeConversationData;
+    const root = document.getElementById('admin-contact-detail');
+    const dmHost = document.getElementById('admin-dm-detail-host');
+    const firestoreView = document.getElementById('admin-contact-detail-firestore-view');
+    const titleEl = document.getElementById('admin-contact-detail-title');
+    const footEl = document.getElementById('admin-contact-detail-foot');
+    if (!root || !dmHost || !conv) return;
 
-    layout.classList.toggle('dm-layout--no-thread', !hasThread);
-    layout.classList.toggle('dm-layout--thread-only', hasThread);
-
-    thread.classList.toggle('dm-thread-panel--minimal', hasThread);
-    if (hasThread) {
-      thread.removeAttribute('hidden');
-      thread.setAttribute('aria-hidden', 'false');
-    } else {
-      thread.classList.remove('dm-thread-panel--minimal');
-      thread.setAttribute('hidden', '');
-      thread.setAttribute('aria-hidden', 'true');
+    dmDetailOpenId = conversationId;
+    if (firestoreView) {
+      firestoreView.hidden = true;
+      firestoreView.innerHTML = '';
     }
+    dmHost.hidden = false;
+    root.classList.add('is-open', 'admin-contact-detail--dm');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('admin-contact-detail-open');
+    if (titleEl) titleEl.textContent = conv.customerName || 'Conversation';
+    if (footEl) {
+      footEl.innerHTML = isAdmin()
+        ? [
+            '<button type="button" class="btn-icon dm-conversation-delete" data-id="' + escapeDmHtml(conversationId) + '" aria-label="Delete conversation" title="Delete conversation">',
+            '<ion-icon name="trash-outline" aria-hidden="true"></ion-icon>',
+            '</button>'
+          ].join('')
+        : '';
+      footEl.querySelectorAll('.dm-conversation-delete').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          e.preventDefault();
+          if (!isAdmin()) return;
+          const id = btn.getAttribute('data-id');
+          if (!id || !hasDMDeps()) return;
+          const label = conv.customerName || id;
+          if (!window.confirm('Delete conversation with ' + label + '? This removes all messages and cannot be undone.')) {
+            return;
+          }
+          btn.disabled = true;
+          deleteConversationFromRtdb(id)
+            .then(function () {
+              if (typeof window.closeAdminContactDetailDrawer === 'function') {
+                window.closeAdminContactDetailDrawer();
+              }
+            })
+            .catch(function (err) {
+              alert(formatRtdbPortalError(err));
+              btn.disabled = false;
+            });
+        });
+      });
+    }
+    try {
+      const closeBtn = document.getElementById('admin-contact-detail-close');
+      if (closeBtn) closeBtn.focus();
+    } catch (fe) {}
   }
 
   function clearAdminThreadSelection() {
@@ -12647,24 +12770,140 @@ document.addEventListener('DOMContentLoaded', function () {
     syncAdminDmLayoutClass();
   }
 
+  function getOrphanLegacyContactMessages() {
+    var legacy =
+      typeof window.getAdminLegacyContactMessages === 'function'
+        ? window.getAdminLegacyContactMessages()
+        : [];
+    var coveredConvIds = Object.create(null);
+    var coveredLegacyIds = Object.create(null);
+    DM.conversations.forEach(function (c) {
+      if (c.id) coveredConvIds[c.id] = true;
+      if (c.legacyMessageId) coveredLegacyIds[c.legacyMessageId] = true;
+    });
+    return legacy.filter(function (msg) {
+      if (msg.conversationId && coveredConvIds[msg.conversationId]) return false;
+      if (msg.id && coveredLegacyIds[msg.id]) return false;
+      return true;
+    });
+  }
+
+  function filterOrphanLegacyMessages(orphans) {
+    var searchInput = document.getElementById('dm-search-input');
+    var queryText = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    var activeFilter = document.querySelector('#dm-inbox-filters .filter-btn.active');
+    var statusFilter = activeFilter ? activeFilter.dataset.filter : 'all';
+
+    return orphans.filter(function (msg) {
+      var st = String(msg.status || 'new').toLowerCase();
+      var statusMatch =
+        statusFilter === 'all'
+          ? true
+          : statusFilter === 'unread'
+            ? st === 'new'
+            : statusFilter === 'open'
+              ? st === 'new' || st === 'open'
+              : statusFilter === 'pending'
+                ? st === 'pending' || st === 'new'
+                : statusFilter === 'closed'
+                  ? st === 'replied' || st === 'closed'
+                  : st === statusFilter;
+      if (!statusMatch) return false;
+      if (!queryText) return true;
+      var haystack = [msg.name, msg.email, msg.message, msg.subject, msg.source]
+        .join(' ')
+        .toLowerCase();
+      return haystack.indexOf(queryText) !== -1;
+    });
+  }
+
+  function legacyContactSortMs(msg) {
+    if (typeof window.getAdminContactTimestampMs === 'function') {
+      return window.getAdminContactTimestampMs(msg);
+    }
+    return 0;
+  }
+
+  function conversationSortMs(conv) {
+    var v = conv.lastMessageAt || conv.updatedAt || conv.createdAt;
+    if (typeof v === 'number') return v;
+    if (v && typeof v.toMillis === 'function') return v.toMillis();
+    if (v && typeof v === 'object' && v.seconds != null) return v.seconds * 1000;
+    return 0;
+  }
+
+  function renderLegacyInboxRow(msg) {
+    var st = msg.status || 'new';
+    var safeSt = escapeDmHtml(st);
+    var em = escapeDmHtml(msg.email || '');
+    var src = msg.source ? escapeDmHtml(String(msg.source)) : 'contact form';
+    var dateLabel =
+      typeof window.formatAdminContactTableDate === 'function'
+        ? window.formatAdminContactTableDate(msg.timestamp)
+        : formatDMDate(msg.timestamp);
+    return [
+      '<tr class="message-item admin-contact-table__row admin-legacy-table__row" role="button" tabindex="0" aria-label="Open submission details" data-status="',
+      safeSt,
+      '" data-id="',
+      escapeDmHtml(msg.id),
+      '">',
+      '<td class="admin-contact-table__td admin-contact-table__td--muted" data-label="Date">',
+      escapeDmHtml(dateLabel || '—'),
+      '</td>',
+      '<td class="admin-contact-table__td admin-contact-table__td--status" data-label="Status"><span class="status-badge status-',
+      safeSt,
+      '">',
+      safeSt,
+      '</span></td>',
+      '<td class="admin-contact-table__td" data-label="From">',
+      escapeDmHtml(msg.name || 'Anonymous'),
+      '</td>',
+      '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" data-label="Email">',
+      em ? '<a href="mailto:' + em + '">' + em + '</a>' : '—',
+      '</td>',
+      '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" data-label="Source" title="',
+      src,
+      '">',
+      src,
+      '</td>',
+      '</tr>'
+    ].join('');
+  }
+
   function renderConversationList() {
-    const listEl = document.getElementById('dm-conversation-list');
-    const totalEl = document.getElementById('dm-inbox-total');
-    const newEl = document.getElementById('dm-inbox-new');
-    const closedEl = document.getElementById('dm-inbox-closed');
-    if (!listEl) return;
+    const messagesListEl = document.getElementById('firestore-messages-list');
+    if (!messagesListEl) return;
 
-    const list = DM.filteredConversations.length ? DM.filteredConversations : DM.conversations;
-    if (totalEl) totalEl.textContent = String(DM.conversations.length);
-    if (newEl) newEl.textContent = String(DM.conversations.filter(function (c) { return (c.unreadAdmin || 0) > 0; }).length);
-    if (closedEl) closedEl.textContent = String(DM.conversations.filter(function (c) { return c.status === 'closed'; }).length);
+    applyConversationFilters();
+    const dmList = DM.filteredConversations.length ? DM.filteredConversations : DM.conversations;
+    const orphanLegacy = filterOrphanLegacyMessages(getOrphanLegacyContactMessages());
 
-    const unreadSum = DM.conversations.reduce(function (acc, c) {
-      return acc + (c.unreadAdmin || 0);
-    }, 0);
+    const unreadSum =
+      DM.conversations.reduce(function (acc, c) {
+        return acc + (c.unreadAdmin || 0);
+      }, 0) +
+      orphanLegacy.filter(function (m) {
+        return (m.status || 'new') === 'new';
+      }).length;
+    const closedCount =
+      DM.conversations.filter(function (c) {
+        return c.status === 'closed';
+      }).length +
+      orphanLegacy.filter(function (m) {
+        return m.status === 'replied' || m.status === 'closed';
+      }).length;
+    const totalCount = DM.conversations.length + orphanLegacy.length;
+
+    const totalMessagesEl = document.getElementById('total-messages');
+    const newMessagesEl = document.getElementById('new-messages');
+    const repliedMessagesEl = document.getElementById('replied-messages');
+    if (totalMessagesEl) totalMessagesEl.textContent = String(totalCount);
+    if (newMessagesEl) newMessagesEl.textContent = String(unreadSum);
+    if (repliedMessagesEl) repliedMessagesEl.textContent = String(closedCount);
+
     const badge = document.getElementById('admin-dm-unread-badge');
     if (badge) {
-      badge.textContent = String(unreadSum);
+      badge.textContent = unreadSum === 1 ? '1 unread' : unreadSum + ' unread';
       badge.hidden = unreadSum === 0;
     }
 
@@ -12672,97 +12911,100 @@ document.addEventListener('DOMContentLoaded', function () {
       window.renderAdminOverview();
     }
 
-    if (!list.length) {
-      listEl.innerHTML = '<div class="no-messages"><ion-icon name="chatbubbles-outline"></ion-icon><p>No conversations yet</p></div>';
+    if (!dmList.length && !orphanLegacy.length) {
+      messagesListEl.innerHTML = [
+        '<div class="no-messages">',
+        '<ion-icon name="chatbubbles-outline"></ion-icon>',
+        '<p>No conversations yet</p>',
+        '</div>'
+      ].join('');
       return;
     }
 
-    listEl.innerHTML = '<ul class="message-grid">' + list.map(function (conv) {
-      const activeClass = DM.activeConversationId === conv.id ? ' dm-conversation-active' : '';
+    const mergedRows = [];
+    dmList.forEach(function (conv) {
+      const st = conv.status || 'open';
+      const safeSt = escapeDmHtml(st);
+      const em = escapeDmHtml(conv.customerEmail || '');
       const unread = conv.unreadAdmin || 0;
-      const tags = Array.isArray(conv.tags) ? conv.tags.slice(0, 3) : [];
-      return [
-        '<li class="message-item" data-status="' + (conv.status || 'open') + '">',
-        '<article class="message-card dm-conversation-card' + activeClass + '" data-conversation-id="' + conv.id + '">',
-        '<div class="message-card-header">',
-        '<h4 class="message-card-name">' + (conv.customerName || 'Customer') + '</h4>',
-        '<span class="status-badge status-' + (conv.status || 'open') + '">' + (conv.status || 'open') + '</span>',
-        '</div>',
-        '<p class="message-card-email">' + (conv.customerEmail || '') + '</p>',
-        '<p class="message-card-subject">' + (conv.lastMessage || 'No messages yet') + '</p>',
-        '<div class="message-card-footer">',
-        '<p class="message-card-date">' + formatDMDate(conv.lastMessageAt || conv.updatedAt || conv.createdAt) + '</p>',
-        tags.length ? '<p class="message-card-source">Tags: ' + tags.join(', ') + '</p>' : '',
-        '</div>',
-        '<div class="message-card-actions dm-conversation-card-actions">',
-        '<button class="reply-btn dm-open-conversation" data-id="' + conv.id + '"><ion-icon name="chatbox-ellipses-outline"></ion-icon><span>Open</span></button>',
-        (isAdmin()
-          ? '<button type="button" class="btn-icon dm-conversation-delete" data-id="' + conv.id + '" aria-label="Delete conversation" title="Delete conversation">'
-            + '<ion-icon name="trash-outline" aria-hidden="true"></ion-icon></button>'
-          : ''),
-        unread > 0 ? '<span class="status-badge status-new">Unread ' + unread + '</span>' : '',
-        '</div>',
-        '</article>',
-        '</li>'
-      ].join('');
-    }).join('') + '</ul>';
-
-    listEl.querySelectorAll('.dm-open-conversation').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        const id = e.currentTarget.dataset.id;
-        openConversation(id);
+      const fromContact = String(conv.source || '').toLowerCase() === 'contact';
+      const src = fromContact ? 'contact form' : 'dm';
+      const activeClass = DM.activeConversationId === conv.id ? ' admin-dm-table__row--active' : '';
+      const statusLabel = unread > 0 ? 'unread' : safeSt;
+      mergedRows.push({
+        sortMs: conversationSortMs(conv),
+        html: [
+          '<tr class="message-item admin-contact-table__row admin-dm-table__row' + activeClass + '" role="button" tabindex="0" aria-label="Open conversation" data-status="',
+          safeSt,
+          '" data-conversation-id="',
+          escapeDmHtml(conv.id),
+          '">',
+          '<td class="admin-contact-table__td admin-contact-table__td--muted" data-label="Date">',
+          escapeDmHtml(formatDMDate(conv.lastMessageAt || conv.updatedAt || conv.createdAt)),
+          '</td>',
+          '<td class="admin-contact-table__td admin-contact-table__td--status" data-label="Status"><span class="status-badge status-' +
+          escapeDmHtml(statusLabel) +
+          '">' +
+          (unread > 0 ? 'unread ' + unread : safeSt) +
+          '</span></td>',
+          '<td class="admin-contact-table__td" data-label="From">',
+          escapeDmHtml(conv.customerName || 'Customer'),
+          '</td>',
+          '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" data-label="Email">',
+          em ? '<a href="mailto:' + em + '">' + em + '</a>' : '—',
+          '</td>',
+          '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" data-label="Source" title="',
+          escapeDmHtml(src),
+          '">',
+          escapeDmHtml(src),
+          '</td>',
+          '</tr>'
+        ].join('')
       });
     });
 
-    listEl.querySelectorAll('.dm-conversation-delete').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-        if (!isAdmin()) {
-          alert('Sign in as admin to delete conversations.');
-          return;
-        }
-        const id = e.currentTarget.getAttribute('data-id');
-        if (!id || !hasDMDeps()) return;
-        const card = e.currentTarget.closest('.dm-conversation-card');
-        const nameEl = card ? card.querySelector('.message-card-name') : null;
-        const label = nameEl ? nameEl.textContent.trim() : id;
-        if (!window.confirm('Delete conversation with ' + label + '? This removes all messages and cannot be undone.')) {
-          return;
-        }
-        const delBtn = e.currentTarget;
-        delBtn.disabled = true;
-        delBtn.setAttribute('aria-busy', 'true');
-        deleteConversationFromRtdb(id)
-          .then(function () {
-            if (DM.activeConversationId === id) {
-              clearAdminThreadSelection();
-            }
-          })
-          .catch(function (err) {
-            alert(formatRtdbPortalError(err));
-            delBtn.disabled = false;
-            delBtn.removeAttribute('aria-busy');
-          });
+    orphanLegacy.forEach(function (msg) {
+      mergedRows.push({
+        sortMs: legacyContactSortMs(msg),
+        html: renderLegacyInboxRow(msg)
       });
     });
 
-    listEl.querySelectorAll('.dm-conversation-card').forEach(function (card) {
-      card.setAttribute('role', 'button');
-      card.setAttribute('tabindex', '0');
-      card.addEventListener('click', function (e) {
-        if (e.target.closest('button')) return;
-        const id = card.getAttribute('data-conversation-id');
-        if (id) openConversation(id);
-      });
-      card.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter') return;
-        if (e.target.closest('button')) return;
-        const id = card.getAttribute('data-conversation-id');
-        if (id) openConversation(id);
-      });
+    mergedRows.sort(function (a, b) {
+      return b.sortMs - a.sortMs;
     });
+
+    const tableRows = mergedRows
+      .map(function (row) {
+        return row.html;
+      })
+      .join('');
+
+    messagesListEl.innerHTML =
+      '<div class="admin-contact-messages">' +
+      '<div class="admin-contact-messages__table-wrap has-scrollbar" role="region" aria-label="Conversations table">' +
+      '<table class="admin-contact-table">' +
+      '<thead><tr>' +
+      '<th scope="col" class="admin-contact-table__th">Date</th>' +
+      '<th scope="col" class="admin-contact-table__th">Status</th>' +
+      '<th scope="col" class="admin-contact-table__th">From</th>' +
+      '<th scope="col" class="admin-contact-table__th">Email</th>' +
+      '<th scope="col" class="admin-contact-table__th">Source</th>' +
+      '</tr></thead><tbody>' +
+      tableRows +
+      '</tbody></table></div></div>';
+
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          if (typeof window.syncAdminContactTableScrollState === 'function') {
+            window.syncAdminContactTableScrollState();
+          }
+        });
+      });
+    } else if (typeof window.syncAdminContactTableScrollState === 'function') {
+      window.syncAdminContactTableScrollState();
+    }
   }
 
   function applyConversationFilters() {
@@ -12831,6 +13073,24 @@ document.addEventListener('DOMContentLoaded', function () {
     return '<a class="dm-attachment-link" href="' + escapeDmHtml(href) + '" target="_blank" rel="noopener noreferrer">Attachment</a>';
   }
 
+  function renderAdminDmMessageRow(msg) {
+    if (window.CustomerDmShared && window.CustomerDmShared.renderAdminMessageRowHtml) {
+      return window.CustomerDmShared.renderAdminMessageRowHtml(msg);
+    }
+    const mine = msg.senderRole === 'admin';
+    const authorLabel = mine ? 'You' : 'Customer';
+    return [
+      '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
+      '<div class="dm-message-bubble">',
+      '<p class="dm-message-author">' + authorLabel + '</p>',
+      '<div class="dm-message-body">' + renderDmMessageBodyHtml(msg) + '</div>',
+      renderDmAttachmentHtml(msg),
+      '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
+      '</div>',
+      '</div>'
+    ].join('');
+  }
+
   function renderThread(conversation, messages) {
     const title = document.getElementById('dm-thread-title');
     const subtitle = document.getElementById('dm-thread-subtitle');
@@ -12841,7 +13101,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!title || !subtitle || !list) return;
 
     title.textContent = conversation.customerName || 'Customer';
-    subtitle.textContent = (conversation.customerEmail || '') + ' · Assigned: ' + (conversation.assignee || 'unassigned');
+    var sourceNote =
+      String(conversation.source || '').toLowerCase() === 'contact' ? ' · Started via contact form' : '';
+    subtitle.textContent =
+      (conversation.customerEmail || '') + ' · Assigned: ' + (conversation.assignee || 'unassigned') + sourceNote;
     if (statusSelect) statusSelect.value = conversation.status || 'open';
     if (prioritySelect) prioritySelect.value = conversation.priority || 'normal';
     if (tagInput) tagInput.value = Array.isArray(conversation.tags) ? conversation.tags.join(', ') : '';
@@ -12858,18 +13121,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     list.innerHTML = messages.map(function (msg) {
-      const mine = msg.senderRole === 'admin';
-      const authorLabel = mine ? 'You' : 'Customer';
-      return [
-        '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
-        '<div class="dm-message-bubble">',
-        '<p class="dm-message-author">' + authorLabel + '</p>',
-        '<div class="dm-message-body">' + renderDmMessageBodyHtml(msg) + '</div>',
-        renderDmAttachmentHtml(msg),
-        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
-        '</div>',
-        '</div>'
-      ].join('');
+      return renderAdminDmMessageRow(msg);
     }).join('');
     list.scrollTop = list.scrollHeight;
     syncAdminDmLayoutClass();
@@ -12923,6 +13175,7 @@ document.addEventListener('DOMContentLoaded', function () {
     DM.activeConversationData = DM.conversations.find(function (c) { return c.id === conversationId; }) || null;
     applyConversationFilters();
     renderConversationList();
+    openDmContactDetailDrawer(conversationId);
 
     if (DM.unsubMessages) DM.unsubMessages();
     const loadMoreBtn = document.getElementById('dm-load-more');
@@ -13008,17 +13261,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     const existingHtml = list.innerHTML;
     const olderHtml = older.map(function (msg) {
-      const mine = msg.senderRole === 'admin';
-      const authorLabel = mine ? 'You' : 'Customer';
-      return [
-        '<div class="dm-message-row ' + (mine ? 'dm-message-admin' : 'dm-message-customer') + '">',
-        '<div class="dm-message-bubble">',
-        '<p class="dm-message-author">' + authorLabel + '</p>',
-        '<div class="dm-message-body">' + renderDmMessageBodyHtml(msg) + '</div>',
-        renderDmAttachmentHtml(msg),
-        '<p class="dm-message-meta">' + formatDMDate(msg.createdAt) + (mine ? (' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')) : '') + '</p>',
-        '</div></div>'
-      ].join('');
+      return renderAdminDmMessageRow(msg);
     }).join('');
     list.innerHTML = olderHtml + existingHtml;
     if (entries.length < DM.currentMessagePageSize) {
@@ -13106,8 +13349,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('dm-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', function () {
-        applyConversationFilters();
-        renderConversationList();
+        syncAdminMessagesView();
       });
     }
 
@@ -13122,8 +13364,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         clicked.classList.add('active');
         setTimeout(function () {
-          applyConversationFilters();
-          renderConversationList();
+          syncAdminMessagesView();
         }, 0);
       });
     }
@@ -13140,7 +13381,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const sheetBackBtn = document.getElementById('admin-dm-sheet-back');
     if (sheetBackBtn) {
       sheetBackBtn.addEventListener('click', function () {
-        clearAdminThreadSelection();
+        if (typeof window.closeAdminContactDetailDrawer === 'function') {
+          window.closeAdminContactDetailDrawer();
+        }
       });
     }
 
@@ -13203,32 +13446,47 @@ document.addEventListener('DOMContentLoaded', function () {
 
   }
 
+  function syncAdminMessagesView() {
+    if (!document.getElementById('firestore-messages-list')) return;
+    renderConversationList();
+  }
+
   function subscribeConversations() {
     if (DM.unsubConversations) DM.unsubConversations();
+    if (!hasDMDeps()) {
+      syncAdminMessagesView();
+      return;
+    }
     const metaRoot = window.rtdbRef(window.rtdb, 'dm/meta');
     const q = window.rtdbQuery(metaRoot, window.rtdbOrderByChild('updatedAt'), window.rtdbLimitToLast(150));
-    DM.unsubConversations = window.rtdbOnValue(q, function (snap) {
-      const val = snap.val() || {};
-      const records = [];
-      Object.keys(val).forEach(function (k) {
-        records.push(Object.assign({}, val[k], { id: k }));
-      });
-      records.sort(function (a, b) {
-        return (b.updatedAt || 0) - (a.updatedAt || 0);
-      });
-      DM.conversations = records;
-      applyConversationFilters();
-      renderConversationList();
-      if (DM.activeConversationId) {
-        const stillThere = records.some(function (r) { return r.id === DM.activeConversationId; });
-        if (stillThere) {
-          DM.activeConversationData = records.find(function (r) { return r.id === DM.activeConversationId; }) || null;
-        } else {
-          clearAdminThreadSelection();
+    DM.unsubConversations = window.rtdbOnValue(
+      q,
+      function (snap) {
+        const val = snap.val() || {};
+        const records = [];
+        Object.keys(val).forEach(function (k) {
+          records.push(Object.assign({}, val[k], { id: k }));
+        });
+        records.sort(function (a, b) {
+          return (b.updatedAt || 0) - (a.updatedAt || 0);
+        });
+        DM.conversations = records;
+        syncAdminMessagesView();
+        if (DM.activeConversationId) {
+          const stillThere = records.some(function (r) { return r.id === DM.activeConversationId; });
+          if (stillThere) {
+            DM.activeConversationData = records.find(function (r) { return r.id === DM.activeConversationId; }) || null;
+          } else {
+            clearAdminThreadSelection();
+          }
         }
+        syncAdminDmLayoutClass();
+      },
+      function (err) {
+        console.error('DM inbox subscription error:', err);
+        syncAdminMessagesView();
       }
-      syncAdminDmLayoutClass();
-    });
+    );
   }
 
   function setupCustomerPortalUI() {
@@ -13237,28 +13495,27 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!portalHost || document.getElementById('customer-dm-portal')) return;
 
     const section = document.createElement('section');
-    section.className = 'contact-form';
+    section.className = 'contact-form dm-portal-pending';
     section.id = 'customer-dm-portal';
     section.innerHTML = [
       (!window.rtdb ? '<p class="dm-help-text dm-rtdb-unavailable" role="alert">Realtime Database is not connected. Add <code>databaseURL</code> in Firebase config, deploy <code>database.rules.json</code> (<code>firebase deploy --only database</code>), then reload.</p>' : ''),
-      '<h3 class="h3 form-title">Direct Message</h3>',
-      '<p class="dm-help-text">Use your name and email to open your private thread. Messages sync in real time and stay connected to your customer conversation.</p>',
-      '<div class="dm-customer-auth" id="dm-customer-auth">',
-      '<form id="dm-portal-open-form" class="form">',
-      '<div class="input-wrapper">',
-      '<input type="text" id="dm-portal-name" class="form-input" placeholder="Your name" required>',
-      '<input type="email" id="dm-portal-email" class="form-input" placeholder="Your email" required>',
+      '<div id="dm-contact-success" class="dm-contact-success" hidden role="status" aria-live="polite">',
+      '<span class="dm-contact-success-icon" aria-hidden="true"><ion-icon name="checkmark-circle"></ion-icon></span>',
+      '<div class="dm-contact-success-copy">',
+      '<p class="dm-contact-success-title">Message received</p>',
+      '<p class="dm-contact-success-lead">Your note is saved. Open your private thread to keep chatting — we typically reply within 24–72 business hours.</p>',
+      '<button type="button" id="dm-contact-success-continue" class="form-btn dm-contact-success-continue">',
+      '<ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>',
+      '<span>Open your conversation</span>',
+      '</button>',
       '</div>',
-      '<p id="dm-portal-status" class="dm-portal-status" role="status" aria-live="polite"></p>',
-      '<button class="form-btn" type="submit"><ion-icon name="chatbubbles-outline"></ion-icon><span>Open my conversation</span></button>',
-      '</form>',
       '</div>',
       '<div id="dm-customer-sheet-root" class="dm-customer-sheet-root" aria-hidden="true">',
       '<div class="dm-customer-sheet-backdrop" id="dm-customer-sheet-backdrop"></div>',
       '<div class="dm-customer-sheet" role="dialog" aria-modal="true" aria-labelledby="dm-customer-sheet-title">',
       '<div class="dm-customer-sheet-grabber" id="dm-customer-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag up or down to resize" tabindex="0"></div>',
       '<div class="dm-customer-sheet-head">',
-      '<h3 id="dm-customer-sheet-title" class="dm-customer-sheet-title">Messages</h3>',
+      '<h3 id="dm-customer-sheet-title" class="dm-customer-sheet-title">Your conversation</h3>',
       '<button type="button" class="dm-customer-commandk" id="dm-customer-commandk" aria-label="Open search shortcuts">',
       '<ion-icon name="search-outline" aria-hidden="true"></ion-icon>',
       '<span class="dm-customer-commandk-label">Search</span>',
@@ -13285,6 +13542,18 @@ document.addEventListener('DOMContentLoaded', function () {
       '</div>',
       '</section>',
       '</div>',
+      '</div>',
+      '<h3 class="h3 form-title dm-portal-heading">Direct Message</h3>',
+      '<p class="dm-help-text">Use your name and email to open your private thread. Messages sync in real time and stay connected to your customer conversation.</p>',
+      '<div class="dm-customer-auth" id="dm-customer-auth">',
+      '<form id="dm-portal-open-form" class="form">',
+      '<div class="input-wrapper">',
+      '<input type="text" id="dm-portal-name" class="form-input" placeholder="Your name" required>',
+      '<input type="email" id="dm-portal-email" class="form-input" placeholder="Your email" required>',
+      '</div>',
+      '<p id="dm-portal-status" class="dm-portal-status" role="status" aria-live="polite"></p>',
+      '<button class="form-btn" type="submit"><ion-icon name="chatbubbles-outline"></ion-icon><span>Open my conversation</span></button>',
+      '</form>',
       '</div>'
     ].join('');
     portalHost.appendChild(section);
@@ -13529,34 +13798,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function initAdminDmSheet() {
-    const openBtn = document.getElementById('admin-open-dm-inbox');
-    const root = document.getElementById('admin-dm-sheet-root');
-    const backdrop = document.getElementById('admin-dm-sheet-backdrop');
-    const closeBtn = document.getElementById('admin-dm-sheet-close');
-
     initAdminDmSheetResize();
-
-    if (openBtn) {
-      openBtn.addEventListener('click', function () {
-        setAdminDmSheetOpen(true);
-      });
-    }
-    if (backdrop) {
-      backdrop.addEventListener('click', function () {
-        setAdminDmSheetOpen(false);
-      });
-    }
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function () {
-        setAdminDmSheetOpen(false);
-      });
-    }
-
-    document.addEventListener('keydown', function adminDmSheetEsc(e) {
-      if (e.key !== 'Escape' && e.keyCode !== 27) return;
-      if (!root || !root.classList.contains('is-open')) return;
-      setAdminDmSheetOpen(false);
-    });
   }
 
   function initCustomerSheetResize() {
@@ -13618,8 +13860,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const auth = document.getElementById('dm-customer-auth');
     const sheetRoot = document.getElementById('dm-customer-sheet-root');
     const prefersDesktopSplit = window.matchMedia && window.matchMedia('(min-width: 1024px)').matches;
+    const fromContactGate = isCustomerDmContactGateCompleted() || isCustomerDmPortalRevealed();
     if (auth) {
-      auth.style.display = (visible || prefersDesktopSplit) ? '' : 'none';
+      auth.style.display = fromContactGate ? 'none' : (visible || prefersDesktopSplit) ? '' : 'none';
     }
     if (sheetRoot) {
       if (visible && !prefersDesktopSplit) {
@@ -13638,6 +13881,57 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function revealCustomerDmConversation() {
+    var portal = document.getElementById('customer-dm-portal');
+    var successEl = document.getElementById('dm-contact-success');
+    var sheetRoot = document.getElementById('dm-customer-sheet-root');
+    if (successEl) successEl.hidden = true;
+    if (portal) {
+      portal.classList.remove('dm-portal--success-only', 'dm-portal--has-success');
+      portal.classList.add('dm-portal--conversation');
+    }
+    if (sheetRoot) sheetRoot.hidden = false;
+    openCustomerPortalSession();
+    if (portal) portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function revealCustomerDmPortal(options) {
+    options = options || {};
+    var contactArticle = document.querySelector('article[data-page="contact"]');
+    var portal = document.getElementById('customer-dm-portal');
+    var formSection = document.querySelector('[data-page="contact"] section.contact-form:not(#customer-dm-portal)');
+    if (formSection) formSection.style.display = 'none';
+    if (contactArticle) contactArticle.classList.add('contact-dm-active');
+    if (portal) {
+      portal.classList.remove('dm-portal-pending');
+      portal.classList.add('dm-portal--active');
+      portal.querySelectorAll('.dm-help-text').forEach(function (el) {
+        el.style.display = 'none';
+      });
+      var title = portal.querySelector('.dm-portal-heading');
+      var sheetTitle = document.getElementById('dm-customer-sheet-title');
+      var successEl = document.getElementById('dm-contact-success');
+      var sheetRoot = document.getElementById('dm-customer-sheet-root');
+      var successOnly = !!options.showSuccess;
+      if (sheetTitle) sheetTitle.textContent = 'Your conversation';
+      if (title) title.hidden = true;
+      portal.classList.toggle('dm-portal--success-only', successOnly);
+      portal.classList.toggle('dm-portal--conversation', !successOnly);
+      portal.classList.toggle('dm-portal--has-success', successOnly);
+      if (successEl) successEl.hidden = !successOnly;
+      if (sheetRoot) {
+        sheetRoot.hidden = successOnly;
+        if (successOnly) {
+          sheetRoot.classList.remove('is-open');
+          sheetRoot.setAttribute('aria-hidden', 'true');
+          document.body.classList.remove('dm-customer-sheet-open');
+        }
+      }
+      if (!successOnly) openCustomerPortalSession();
+      portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   function openCustomerPortalSession() {
     setCustomerPortalAuthVisible(false);
   }
@@ -13653,6 +13947,7 @@ document.addEventListener('DOMContentLoaded', function () {
         return startCustomerThread(session);
       })
       .then(function () {
+        revealCustomerDmPortal();
         return true;
       })
       .catch(function () {
@@ -13662,6 +13957,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function restoreCustomerPortalFromStorage() {
+    if (!isCustomerDmContactGateCompleted()) return false;
     const saved =
       window.CustomerDmShared && window.CustomerDmShared.readCustomerSession
         ? window.CustomerDmShared.readCustomerSession()
@@ -13670,6 +13966,7 @@ document.addEventListener('DOMContentLoaded', function () {
     DM.customerSession = saved;
     openCustomerPortalSession();
     startCustomerThread(DM.customerSession).catch(function () {});
+    revealCustomerDmPortal();
     return true;
   }
 
@@ -13694,6 +13991,13 @@ document.addEventListener('DOMContentLoaded', function () {
         restoreCustomerPortalFromStorage();
       }
     });
+
+    var successContinueBtn = document.getElementById('dm-contact-success-continue');
+    if (successContinueBtn) {
+      successContinueBtn.addEventListener('click', function () {
+        revealCustomerDmConversation();
+      });
+    }
 
     if (portalForm) {
       portalForm.addEventListener('submit', function (e) {
@@ -13734,6 +14038,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function closeCustomerSheetToPortal() {
+      if (isCustomerDmContactGateCompleted()) return;
       setCustomerPortalAuthVisible(true);
     }
 
@@ -13826,11 +14131,37 @@ document.addEventListener('DOMContentLoaded', function () {
     initCustomerSheetResize();
   }
 
+  function ensureAdminInboxSubscriptions(forceResubscribe) {
+    if (!isAdmin()) return;
+    if (!hasDMDeps()) {
+      syncAdminMessagesView();
+      return;
+    }
+    if (DM.unsubConversations && !forceResubscribe) return;
+    subscribeConversations();
+  }
+
+  function installAdminDmFetchBridge() {
+    if (window.__portfolioAdminDmFetchBridged) return;
+    window.__portfolioAdminDmFetchBridged = true;
+
+    const previousFetchMessages =
+      typeof window.fetchMessages === 'function' ? window.fetchMessages : null;
+
+    window.fetchMessages = function () {
+      if (!isAdmin()) return;
+      if (typeof previousFetchMessages === 'function') {
+        previousFetchMessages();
+      }
+      ensureAdminInboxSubscriptions();
+    };
+  }
+
   function initializeProfessionalDM() {
     if (!window.db) return;
     if (window.DM_FEATURE_FLAGS && window.DM_FEATURE_FLAGS.enableProfessionalInbox === false) return;
 
-    const previousFetchMessages = typeof window.fetchMessages === 'function' ? window.fetchMessages : null;
+    installAdminDmFetchBridge();
 
     ensureAdminInboxUI();
 
@@ -13841,27 +14172,20 @@ document.addEventListener('DOMContentLoaded', function () {
     bindAdminInboxEvents();
     initAdminDmSheet();
 
-    window.fetchMessages = function () {
-      if (!isAdmin()) return;
-      if (typeof previousFetchMessages === 'function') {
-        previousFetchMessages();
-      }
-      if (hasDMDeps()) {
-        subscribeConversations();
-      }
-    };
-
-    if (!hasDMDeps()) {
-      console.warn(
-        'Portfolio DM: Realtime Database not ready. Set databaseURL in assets/js/config.js, deploy database.rules.json, and reload. Legacy Firestore messages still work when inbox fallback applies.'
-      );
-      return;
-    }
-
     if (isAdmin()) {
-      subscribeConversations();
+      ensureAdminInboxSubscriptions();
+    } else {
+      syncAdminMessagesView();
     }
   }
+
+  installAdminDmFetchBridge();
+
+  document.addEventListener('adminSessionReady', function (e) {
+    if (e.detail && e.detail.isAdmin) {
+      ensureAdminInboxSubscriptions();
+    }
+  });
 
   document.addEventListener('DOMContentLoaded', function () {
     setTimeout(initializeProfessionalDM, 250);
@@ -13931,8 +14255,9 @@ document.addEventListener('DOMContentLoaded', function () {
         metaPatch.unreadAdmin = 1;
       }
       await window.rtdbUpdate(rtdbMetaRef(DM.customerSession.conversationId), metaPatch);
-      openCustomerPortalSession();
+      markCustomerDmContactGateCompleted();
       await startCustomerThread(DM.customerSession);
+      revealCustomerDmPortal({ showSuccess: true });
       return DM.customerSession;
     }
   };
@@ -13956,4 +14281,18 @@ document.addEventListener('DOMContentLoaded', function () {
         };
       });
   };
+
+  window.portfolioAdminDmDetailIsOpen = function () {
+    return !!dmDetailOpenId;
+  };
+  window.portfolioAdminDmDetailClose = function () {
+    dmDetailOpenId = null;
+  };
+  window.clearAdminDmThreadSelection = clearAdminThreadSelection;
+  window.openAdminDmConversation = openConversation;
+  window.portfolioEnsureAdminInboxSubscriptions = ensureAdminInboxSubscriptions;
+  window.portfolioAdminInboxRtdbActive = function () {
+    return !!DM.unsubConversations;
+  };
+  window.portfolioSyncAdminMessagesView = syncAdminMessagesView;
 })();

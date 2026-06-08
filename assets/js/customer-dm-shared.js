@@ -53,6 +53,21 @@
     return '';
   }
 
+  function isContactFormMessage(msg) {
+    return !!(msg && String(msg.source || '').toLowerCase() === 'contact');
+  }
+
+  function renderContactFormSourceBadgeHtml(forAdmin) {
+    var label = forAdmin ? 'Contact form submission' : 'Sent via contact form';
+    return (
+      '<span class="dm-message-source-badge dm-message-source-badge--contact">' +
+      '<ion-icon name="mail-outline" aria-hidden="true"></ion-icon>' +
+      '<span>' +
+      escapeDmHtml(label) +
+      '</span></span>'
+    );
+  }
+
   function renderDmMessageBodyHtml(msg) {
     return escapeDmHtml(msg && msg.body ? msg.body : '').replace(/\n/g, '<br>');
   }
@@ -140,6 +155,7 @@
     return messages
       .map(function (msg) {
         var mine = msg.senderRole === 'customer';
+        var fromContact = isContactFormMessage(msg);
         var readBit =
           options.showReadState && !mine
             ? ' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')
@@ -147,8 +163,12 @@
         return (
           '<div class="dm-message-row ' +
           (mine ? 'dm-message-customer' : 'dm-message-admin') +
+          (fromContact ? ' dm-message-row--from-contact-form' : '') +
           '">' +
-          '<div class="dm-message-bubble">' +
+          '<div class="dm-message-bubble' +
+          (fromContact ? ' dm-message-bubble--from-contact-form' : '') +
+          '">' +
+          (fromContact ? renderContactFormSourceBadgeHtml(false) : '') +
           '<p class="dm-message-author">' +
           (mine ? 'You' : 'Admin') +
           '</p>' +
@@ -163,6 +183,34 @@
         );
       })
       .join('');
+  }
+
+  function renderAdminMessageRowHtml(msg) {
+    var mine = msg.senderRole === 'admin';
+    var fromContact = isContactFormMessage(msg);
+    var authorLabel = mine ? 'You' : 'Customer';
+    var readBit = mine ? ' · Read: ' + (msg.readByCustomer ? 'yes' : 'no') : '';
+    return (
+      '<div class="dm-message-row ' +
+      (mine ? 'dm-message-admin' : 'dm-message-customer') +
+      (fromContact ? ' dm-message-row--from-contact-form' : '') +
+      '">' +
+      '<div class="dm-message-bubble' +
+      (fromContact ? ' dm-message-bubble--from-contact-form' : '') +
+      '">' +
+      (fromContact ? renderContactFormSourceBadgeHtml(true) : '') +
+      '<p class="dm-message-author">' +
+      escapeDmHtml(authorLabel) +
+      '</p>' +
+      '<div class="dm-message-body">' +
+      renderDmMessageBodyHtml(msg) +
+      '</div>' +
+      renderDmAttachmentHtml(msg) +
+      '<p class="dm-message-meta">' +
+      formatDMDate(msg.createdAt) +
+      readBit +
+      '</p></div></div>'
+    );
   }
 
   function renderMessagesToElement(listEl, messages, options) {
@@ -365,6 +413,9 @@
     normalizeDmAttachmentUrl: normalizeDmAttachmentUrl,
     renderDmMessageBodyHtml: renderDmMessageBodyHtml,
     renderDmAttachmentHtml: renderDmAttachmentHtml,
+    isContactFormMessage: isContactFormMessage,
+    renderContactFormSourceBadgeHtml: renderContactFormSourceBadgeHtml,
+    renderAdminMessageRowHtml: renderAdminMessageRowHtml,
     rtdbThreadRef: rtdbThreadRef,
     rtdbMetaRef: rtdbMetaRef,
     rtdbPresenceRef: rtdbPresenceRef,
