@@ -46,35 +46,7 @@ Tap the gear on home. Orders today shows here for staff only — removed from th
 
 ---
 
-### Step 4 — Cart + tipping
-
-GoFundMe banner at top (no pop-up banner in cart). Pick 15%, 18%, 20%, or Custom before Pay Now. Tip is charged via Square and shown on cook order cards.
-
-![Cart with tipping](images/step-4-cart-tips.png)
-
----
-
-### Step 5 — Special requests
-
-Per pizza: Add special requests opens a modal. Notes appear on the cart item and on your order in the cook dashboard.
-
-![Special requests modal](images/step-5-special-requests.png)
-
----
-
-### Step 6 — Checkout button states
-
-Select Tip to Continue until a tip is chosen. Currently Closed when not accepting orders. Disabled labels use light gray text for readability.
-
-| State | When | Button label |
-|-------|------|----------------|
-| Tip required | Cart has items, no tip selected | **Select Tip to Continue** (light gray on dark button) |
-| Closed | Store is not accepting orders | **Currently Closed** (light gray on dark button) |
-| Ready to pay | Tip selected and store is open | **Pay Now →** (black on white button) |
-
----
-
-### Step 7 — Cook dashboard
+### Step 4 — Cook dashboard
 
 Manage Announcements for pop-up + GoFundMe. Each order card shows subtotal, tax, tip, and total.
 
