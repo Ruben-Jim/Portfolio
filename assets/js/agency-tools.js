@@ -2544,6 +2544,9 @@
       '</div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">Save showcase link</button>' +
+      (hub.portfolioProjectId
+        ? '<button type="button" class="btn btn-danger btn-sm" data-cp-action="unlink-portfolio">Unlink showcase</button>'
+        : '') +
       '<p class="cp-section-feedback" data-cp-feedback="portfolio" role="status"></p></div>';
 
     workspace.innerHTML =
@@ -2886,6 +2889,45 @@
     }
   }
 
+  async function unlinkPortfolioFromClientWorkspace() {
+    var hubId = clientProjectsSelectedId;
+    if (!hubId || !rtdbReady()) return;
+    var existing = getHubById(hubId);
+    if (!existing || !existing.portfolioProjectId) return;
+    if (
+      !confirm(
+        'Unlink this portfolio showcase from the client portal? The portfolio project is not deleted — only the client link is removed.'
+      )
+    ) {
+      return;
+    }
+    var payload = {
+      leadId: existing.leadId,
+      clientName: existing.clientName,
+      title: existing.title,
+      repoUrl: existing.repoUrl,
+      expoUrl: existing.expoUrl,
+      firebaseProjectId: existing.firebaseProjectId,
+      businessDocId: existing.businessDocId,
+      portfolioProjectId: '',
+      notes: existing.notes,
+      milestones: existing.milestones,
+      enabledModules: existing.enabledModules,
+      showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
+      portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
+      portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
+      updatedAt: ts()
+    };
+    try {
+      await saveProjectHubRecord(hubId, payload, false);
+      setCpFeedback('portfolio', 'Showcase unlinked — refresh the client portal to see changes.', false);
+      renderClientProjectsWorkspace();
+    } catch (err) {
+      console.error(err);
+      setCpFeedback('portfolio', (err && err.message) || 'Unlink failed.', true);
+    }
+  }
+
   function handleClientProjectsAction(action, el) {
     var hub = getHubById(clientProjectsSelectedId);
     if (action === 'new-client') {
@@ -3012,6 +3054,10 @@
     }
     if (action === 'link-portfolio') {
       linkPortfolioFromClientWorkspace().catch(console.error);
+      return;
+    }
+    if (action === 'unlink-portfolio') {
+      unlinkPortfolioFromClientWorkspace().catch(console.error);
     }
   }
 
