@@ -7221,6 +7221,317 @@ window.addEventListener('load', function() {
     if (typeof window.subscribePipelineLeads === 'function') {
       window.subscribePipelineLeads();
     }
+    if (typeof initAdminClientEmailSender === 'function') {
+      initAdminClientEmailSender();
+    }
+    if (typeof window.syncAdminMobileTabBarDock === 'function') {
+      window.syncAdminMobileTabBarDock();
+    }
+  }
+
+  var ADMIN_CLIENT_EMAIL_TEMPLATES = [
+    {
+      id: 'progress-update',
+      label: 'Progress update',
+      defaultSubject: 'Quick update on {{projectName}}',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'Quick update on {{projectName}}: things are moving forward and I wanted to keep you in the loop.\n\n' +
+        'Next step: {{nextStep}}\n\n' +
+        '{{linkLine}}\n' +
+        'Thanks again,\nRuben'
+    },
+    {
+      id: 'delivery-handoff',
+      label: 'Delivery handoff',
+      defaultSubject: '{{projectName}} is ready for your review',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'Your latest {{projectName}} update is ready for review.\n\n' +
+        'What to do next:\n' +
+        '1) Open the link below\n' +
+        '2) Test your main flow\n' +
+        '3) Send any edits you want bundled in the next pass\n\n' +
+        '{{linkLine}}\n' +
+        'Target next step: {{nextStep}}\n\n' +
+        'Appreciate you,\nRuben'
+    },
+    {
+      id: 'check-in',
+      label: 'Friendly check-in',
+      defaultSubject: 'Checking in on {{projectName}}',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'Wanted to check in and make sure everything on {{projectName}} feels good on your side.\n\n' +
+        'If you want any tweaks, send them over and I can queue them up.\n' +
+        'Next step: {{nextStep}}\n\n' +
+        '{{linkLine}}\n' +
+        'Talk soon,\nRuben'
+    }
+  ];
+
+  var ADMIN_CLIENT_EMAIL_DRAFT_KEY = 'adminClientEmailDraftV1';
+  var adminClientEmailState = {
+    initialized: false,
+    sending: false
+  };
+
+  function adminClientEmailEls() {
+    return {
+      form: document.getElementById('admin-client-email-form'),
+      template: document.getElementById('admin-client-email-template'),
+      toName: document.getElementById('admin-client-email-to-name'),
+      toEmail: document.getElementById('admin-client-email-to-email'),
+      nextStep: document.getElementById('admin-client-email-next-step'),
+      link: document.getElementById('admin-client-email-link'),
+      subject: document.getElementById('admin-client-email-subject'),
+      message: document.getElementById('admin-client-email-message'),
+      preview: document.getElementById('admin-client-email-preview'),
+      sendBtn: document.getElementById('admin-client-email-send-btn'),
+      resetBtn: document.getElementById('admin-client-email-reset-btn'),
+      feedback: document.getElementById('admin-client-email-feedback')
+    };
+  }
+
+  function escHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function getTemplateById(templateId) {
+    return ADMIN_CLIENT_EMAIL_TEMPLATES.find(function (tpl) { return tpl.id === templateId; }) || ADMIN_CLIENT_EMAIL_TEMPLATES[0];
+  }
+
+  function getAdminClientEmailVars(els) {
+    var link = String((els.link && els.link.value) || '').trim();
+    return {
+      clientName: String((els.toName && els.toName.value) || '').trim() || 'there',
+      projectName: 'your project',
+      nextStep: String((els.nextStep && els.nextStep.value) || '').trim() || 'Reply with your notes when ready',
+      link: link,
+      linkLine: link ? 'Link: ' + link : 'Link: (add your portal or preview link here)'
+    };
+  }
+
+  function renderEmailTemplateText(templateText, vars) {
+    return String(templateText || '')
+      .replace(/\{\{\s*clientName\s*\}\}/g, vars.clientName)
+      .replace(/\{\{\s*projectName\s*\}\}/g, vars.projectName)
+      .replace(/\{\{\s*nextStep\s*\}\}/g, vars.nextStep)
+      .replace(/\{\{\s*linkLine\s*\}\}/g, vars.linkLine)
+      .replace(/\{\{\s*link\s*\}\}/g, vars.link);
+  }
+
+  function setAdminClientEmailFeedback(els, message, isError) {
+    if (!els.feedback) return;
+    els.feedback.textContent = message || '';
+    els.feedback.classList.toggle('is-error', !!isError);
+    els.feedback.classList.toggle('is-success', !isError && !!message);
+  }
+
+  function syncAdminClientEmailDynamicFields(els) {
+    var vars = getAdminClientEmailVars(els);
+    if (els.message) {
+      var msg = String(els.message.value || '');
+      msg = msg.replace(/^Link:.*$/gm, vars.linkLine);
+      msg = msg.replace(/^Next step:\s*.*/gm, 'Next step: ' + vars.nextStep);
+      msg = msg.replace(/^Target next step:\s*.*/gm, 'Target next step: ' + vars.nextStep);
+      msg = msg.replace(/^Hey .+?,/m, 'Hey ' + vars.clientName + ',');
+      els.message.value = msg;
+    }
+    if (els.subject && /\{\{/.test(String(els.subject.value || ''))) {
+      els.subject.value = renderEmailTemplateText(els.subject.value, vars);
+    }
+    updateAdminClientEmailPreview(els);
+    saveAdminClientEmailDraft(els);
+  }
+
+  function updateAdminClientEmailPreview(els) {
+    if (!els.preview) return;
+    var vars = getAdminClientEmailVars(els);
+    var subject = renderEmailTemplateText((els.subject && els.subject.value) || '', vars);
+    var message = renderEmailTemplateText((els.message && els.message.value) || '', vars);
+    els.preview.innerHTML =
+      '<p><strong>Subject:</strong> ' + escHtml(subject) + '</p>' +
+      '<hr>' +
+      '<p>' + escHtml(message).replace(/\r?\n/g, '<br>') + '</p>';
+  }
+
+  function saveAdminClientEmailDraft(els) {
+    try {
+      var payload = {
+        templateId: (els.template && els.template.value) || '',
+        toName: (els.toName && els.toName.value) || '',
+        toEmail: (els.toEmail && els.toEmail.value) || '',
+        nextStep: (els.nextStep && els.nextStep.value) || '',
+        link: (els.link && els.link.value) || '',
+        subject: (els.subject && els.subject.value) || '',
+        message: (els.message && els.message.value) || ''
+      };
+      localStorage.setItem(ADMIN_CLIENT_EMAIL_DRAFT_KEY, JSON.stringify(payload));
+    } catch (e) {}
+  }
+
+  function loadAdminClientEmailDraft() {
+    try {
+      var raw = localStorage.getItem(ADMIN_CLIENT_EMAIL_DRAFT_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function applyAdminClientEmailTemplate(els, templateId) {
+    var template = getTemplateById(templateId);
+    if (els.template) els.template.value = template.id;
+    var vars = getAdminClientEmailVars(els);
+    if (els.subject) els.subject.value = renderEmailTemplateText(template.defaultSubject, vars);
+    if (els.message) els.message.value = renderEmailTemplateText(template.defaultBody, vars);
+    updateAdminClientEmailPreview(els);
+    saveAdminClientEmailDraft(els);
+  }
+
+  function isEmailValid(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+  }
+
+  async function sendAdminClientEmail(els) {
+    if (adminClientEmailState.sending) return;
+    var toName = String((els.toName && els.toName.value) || '').trim();
+    var toEmail = String((els.toEmail && els.toEmail.value) || '').trim();
+    var vars = getAdminClientEmailVars(els);
+    var subject = renderEmailTemplateText((els.subject && els.subject.value) || '', vars).trim();
+    var message = renderEmailTemplateText((els.message && els.message.value) || '', vars).trim();
+
+    if (!toName || !toEmail || !subject || !message) {
+      setAdminClientEmailFeedback(els, 'Please complete client name, email, subject, and message.', true);
+      return;
+    }
+    if (!isEmailValid(toEmail)) {
+      setAdminClientEmailFeedback(els, 'Enter a valid client email address.', true);
+      return;
+    }
+
+    adminClientEmailState.sending = true;
+    if (els.sendBtn) {
+      els.sendBtn.disabled = true;
+      els.sendBtn.classList.add('is-loading');
+    }
+    setAdminClientEmailFeedback(els, 'Sending email…', false);
+
+    try {
+      await sendPortfolioEmailRequest(
+        {
+          type: 'admin_reply',
+          payload: {
+            to_email: toEmail,
+            to_name: toName,
+            from_name: 'Ruben Jimenez',
+            subject: subject,
+            message: message,
+            timestamp: new Date().toISOString()
+          }
+        },
+        { requireAdmin: true }
+      );
+      setAdminClientEmailFeedback(els, 'Email sent successfully.', false);
+      saveAdminClientEmailDraft(els);
+    } catch (err) {
+      console.error(err);
+      setAdminClientEmailFeedback(els, (err && err.message) || 'Failed to send email.', true);
+    } finally {
+      adminClientEmailState.sending = false;
+      if (els.sendBtn) {
+        els.sendBtn.disabled = false;
+        els.sendBtn.classList.remove('is-loading');
+      }
+    }
+  }
+
+  function resetAdminClientEmailDraft(els) {
+    if (els.toName) els.toName.value = '';
+    if (els.toEmail) els.toEmail.value = '';
+    if (els.nextStep) els.nextStep.value = '';
+    if (els.link) els.link.value = '';
+    applyAdminClientEmailTemplate(els, (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
+    setAdminClientEmailFeedback(els, 'Draft reset.', false);
+  }
+
+  function initAdminClientEmailSender() {
+    var els = adminClientEmailEls();
+    if (!els.form || els.form.dataset.boundClientEmail === '1') return;
+    els.form.dataset.boundClientEmail = '1';
+
+    if (els.template) {
+      els.template.innerHTML = ADMIN_CLIENT_EMAIL_TEMPLATES.map(function (tpl) {
+        return '<option value="' + escHtml(tpl.id) + '">' + escHtml(tpl.label) + '</option>';
+      }).join('');
+    }
+
+    var draft = loadAdminClientEmailDraft();
+    if (draft) {
+      if (els.template) els.template.value = draft.templateId || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
+      if (els.toName) els.toName.value = draft.toName || '';
+      if (els.toEmail) els.toEmail.value = draft.toEmail || '';
+      if (els.nextStep) els.nextStep.value = draft.nextStep || '';
+      if (els.link) els.link.value = draft.link || '';
+      if (els.subject) els.subject.value = draft.subject || '';
+      if (els.message) els.message.value = draft.message || '';
+    } else {
+      applyAdminClientEmailTemplate(els, ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
+    }
+
+    if (!draft || !String((els.subject && els.subject.value) || '').trim() || !String((els.message && els.message.value) || '').trim()) {
+      applyAdminClientEmailTemplate(els, (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
+    }
+
+    if (els.template) {
+      els.template.addEventListener('change', function () {
+        applyAdminClientEmailTemplate(els, els.template.value);
+        setAdminClientEmailFeedback(els, '', false);
+      });
+    }
+
+    [els.toName, els.nextStep, els.link].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener('input', function () {
+        syncAdminClientEmailDynamicFields(els);
+      });
+    });
+
+    [els.subject, els.message].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener('input', function () {
+        updateAdminClientEmailPreview(els);
+        saveAdminClientEmailDraft(els);
+      });
+    });
+
+    if (els.toEmail) {
+      els.toEmail.addEventListener('input', function () {
+        updateAdminClientEmailPreview(els);
+        saveAdminClientEmailDraft(els);
+      });
+    }
+
+    if (els.resetBtn) {
+      els.resetBtn.addEventListener('click', function () {
+        resetAdminClientEmailDraft(els);
+      });
+    }
+
+    els.form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      sendAdminClientEmail(els).catch(console.error);
+    });
+
+    updateAdminClientEmailPreview(els);
+    adminClientEmailState.initialized = true;
   }
 
   function afterAdminSessionReady() {
@@ -8087,11 +8398,11 @@ window.addEventListener('load', function() {
     var MOBILE_ORDER_KEY = 'adminMobileTabOrder';
     var PRIMARY_SLOT_COUNT = 4;
     var DEFAULT_ORDER = [
-      'overview', 'pipeline', 'client-projects', 'messages',
+      'overview', 'pipeline', 'client-projects', 'messages', 'client-email',
       'docs', 'ops', 'portfolio', 'blog', 'testimonials', 'referrals'
     ];
     var VALID_TAB = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
       referrals: 1, ops: 1
     };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
@@ -8112,6 +8423,46 @@ window.addEventListener('load', function() {
     var stripPointerStartX = 0;
     var stripPointerStartY = 0;
     var stripScrollIntent = false;
+    var tabBarHome = null;
+
+    function isAdminDashboardVisible() {
+      var dash = document.getElementById('admin-dashboard-content');
+      if (!dash || dash.style.display === 'none') return false;
+      var article = document.querySelector('article.admin[data-page="admin"]');
+      return !!(article && article.getAttribute('data-admin-auth') === 'signed-in');
+    }
+
+    function captureTabBarHome() {
+      if (!tabBar || tabBarHome) return;
+      tabBarHome = { parent: tabBar.parentNode, next: tabBar.nextSibling };
+    }
+
+    function restoreTabBarToDom() {
+      if (!tabBar || !tabBarHome || !tabBarHome.parent) return;
+      if (tabBar.parentNode !== tabBarHome.parent) {
+        tabBarHome.parent.insertBefore(tabBar, tabBarHome.next);
+      }
+    }
+
+    function syncMobileTabBarDock() {
+      if (!tabBar) return;
+      captureTabBarHome();
+      var shouldDock = isMobileBar() && isSignedInAdmin() && isAdminDashboardVisible();
+      var dock = document.getElementById('admin-mobile-tab-bar-root');
+      if (shouldDock) {
+        if (!dock) {
+          dock = document.createElement('div');
+          dock.id = 'admin-mobile-tab-bar-root';
+          dock.className = 'admin-mobile-tab-bar-root';
+          document.body.appendChild(dock);
+        }
+        dock.hidden = false;
+        if (tabBar.parentNode !== dock) dock.appendChild(tabBar);
+      } else {
+        restoreTabBarToDom();
+        if (dock) dock.hidden = true;
+      }
+    }
 
     function isMobileBar() {
       return window.matchMedia('(max-width: 767px)').matches;
@@ -8487,15 +8838,19 @@ window.addEventListener('load', function() {
     window.addEventListener('resize', function () {
       if (!isMobileBar() && reorderActive) exitReorderMode(true);
       applyOrder(currentOrder);
+      syncMobileTabBarDock();
     });
 
     applyOrder(currentOrder);
+    syncMobileTabBarDock();
 
     window.AdminMobileTabOrder = {
       getOrder: function () { return currentOrder.slice(); },
       apply: function () { applyOrder(currentOrder); },
-      isReorderActive: function () { return reorderActive; }
+      isReorderActive: function () { return reorderActive; },
+      syncDock: syncMobileTabBarDock
     };
+    window.syncAdminMobileTabBarDock = syncMobileTabBarDock;
   })();
 
   // Admin dashboard tabs (Business Documents | Contact Messages | Blog Management)
@@ -8519,7 +8874,7 @@ window.addEventListener('load', function() {
     }
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
       referrals: 1, ops: 1
     };
     var AGENCY_TABS = { 'client-projects': 1, referrals: 1 };

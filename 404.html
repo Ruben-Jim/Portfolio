@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=ease-in-sections-20260608">
+  <link rel="stylesheet" href="/assets/css/style.css?v=admin-mobile-tabbar-20260608">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -2648,6 +2648,10 @@
                   <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-email" data-admin-tab="client-email" data-mobile-primary aria-selected="false" aria-controls="admin-panel-client-email" tabindex="-1" aria-label="Client Email Sender">
+                  <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Email</span><span class="admin-tab-label-mobile">Email</span></span>
+                </button>
                 <button type="button" class="admin-tab admin-tab--nav-hidden" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub" hidden>
                   <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Project Hub</span><span class="admin-tab-label-mobile">Hub</span></span>
@@ -2933,6 +2937,66 @@
             </div>
           </section>
           </div><!-- /admin-panel-messages -->
+
+          <!-- Client Email Sender -->
+          <div id="admin-panel-client-email" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-client-email" data-admin-tab="client-email" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open" id="admin-client-email-section">
+            <div class="admin-panel-heading">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Client email sender</h3>
+                <p class="admin-panel-lead">Send one-off client emails with reusable CWR templates.</p>
+              </div>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <form id="admin-client-email-form" class="admin-client-email-form" novalidate>
+                  <div class="admin-client-email-grid">
+                    <div class="form-group">
+                      <label class="form-label" for="admin-client-email-to-name">Client name</label>
+                      <input class="form-input" type="text" id="admin-client-email-to-name" maxlength="120" placeholder="Jane Doe" autocomplete="name" required>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="admin-client-email-to-email">Client email</label>
+                      <input class="form-input" type="email" id="admin-client-email-to-email" maxlength="180" placeholder="jane@company.com" autocomplete="email" required>
+                    </div>
+                    <div class="form-group admin-client-email-grid-full">
+                      <label class="form-label" for="admin-client-email-template">Template</label>
+                      <select class="form-input" id="admin-client-email-template" aria-label="Email template"></select>
+                    </div>
+                    <div class="form-group admin-client-email-grid-full">
+                      <label class="form-label" for="admin-client-email-next-step">Next step</label>
+                      <input class="form-input" type="text" id="admin-client-email-next-step" maxlength="180" placeholder="Review the update and send any edits by Friday">
+                    </div>
+                    <div class="form-group admin-client-email-grid-full">
+                      <label class="form-label" for="admin-client-email-link">Link (optional)</label>
+                      <input class="form-input" type="text" id="admin-client-email-link" maxlength="2000" placeholder="https://rubenjimenez.dev/portal.html?token=...">
+                    </div>
+                    <div class="form-group admin-client-email-grid-full">
+                      <label class="form-label" for="admin-client-email-subject">Subject</label>
+                      <input class="form-input" type="text" id="admin-client-email-subject" maxlength="180" placeholder="Update on your project" required>
+                    </div>
+                    <div class="form-group admin-client-email-grid-full">
+                      <label class="form-label" for="admin-client-email-message">Message</label>
+                      <textarea class="form-input has-scrollbar admin-client-email-message" id="admin-client-email-message" rows="10" maxlength="12000" placeholder="Write your email here..." required></textarea>
+                    </div>
+                  </div>
+                  <div class="admin-client-email-preview">
+                    <p class="admin-client-email-preview-label">Preview</p>
+                    <div class="admin-client-email-preview-box has-scrollbar" id="admin-client-email-preview" aria-live="polite"></div>
+                  </div>
+                  <div class="admin-client-email-actions">
+                    <button type="submit" class="btn btn-primary" id="admin-client-email-send-btn">
+                      <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
+                      Send email
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="admin-client-email-reset-btn">Reset draft</button>
+                    <p class="admin-client-email-feedback" id="admin-client-email-feedback" role="status" aria-live="polite"></p>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-client-email -->
 
           <!-- Testimonial invites (Firestore + Resend) -->
           <div id="admin-panel-testimonials" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-testimonials" data-admin-tab="testimonials" hidden>
@@ -5618,7 +5682,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/business-doc-shared.js?v=portal-maint-dm-20260605"></script>
   <script src="/assets/js/customer-dm-shared.js?v=portal-maint-dm-20260604"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
-  <script src="/assets/js/script.js?v=ease-in-sections-20260608"></script>
+  <script src="/assets/js/script.js?v=admin-mobile-tabbar-20260608"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=cp-deposit-leads-20260530"></script>
   <script src="/assets/js/dm-migration.js"></script>

@@ -345,6 +345,14 @@ article.active:not(.home) {
   animation: cardReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Admin mobile bottom tab bar must anchor to the viewport, not the article */
+@media (max-width: 767px) {
+  body.admin-page-active article.admin[data-page="admin"].active {
+    animation: fade 0.5s ease backwards !important;
+    transform: none !important;
+  }
+}
+
 /* Article title */
 article.active:not(.home) > header .article-title {
   animation: pageItemReveal var(--page-dur) var(--page-ease) both;
@@ -12056,8 +12064,7 @@ body.project-modal-open {
     margin-bottom: 0;
   }
 
-  body.admin-page-active .admin.active .admin-tab-bar,
-  .admin.active .admin-tab-bar {
+  body.admin-page-active .admin-tab-bar {
     flex-direction: row;
     flex-wrap: nowrap;
     align-items: stretch;
@@ -12084,12 +12091,11 @@ body.project-modal-open {
     scrollbar-width: none;
   }
 
-  .admin.active .admin-tab-bar::-webkit-scrollbar {
+  body.admin-page-active .admin-tab-bar::-webkit-scrollbar {
     display: none;
   }
 
-  body.admin-page-active .admin.active .admin-tab-panels,
-  .admin.active .admin-tab-panels {
+  body.admin-page-active .admin-tab-panels {
     padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 
@@ -12099,17 +12105,17 @@ body.project-modal-open {
   }
 
   /* Hide bottom tab bar while admin sheets / overlays are open */
-  body:has(.add-blog-modal.active) .admin.active .admin-tab-bar,
-  body:has(.business-doc-modal.active) .admin.active .admin-tab-bar,
-  body:has(.agency-modal.active) .admin.active .admin-tab-bar,
-  body:has(.project-detail-modal.active) .admin.active .admin-tab-bar,
-  body:has(.modal-container.active) .admin.active .admin-tab-bar,
-  body.project-modal-open .admin.active .admin-tab-bar,
-  body.cp-client-drawer-open .admin.active .admin-tab-bar,
-  body.lead-drawer-open .admin.active .admin-tab-bar,
-  body.admin-contact-detail-open .admin.active .admin-tab-bar,
-  body.admin-dm-sheet-open .admin.active .admin-tab-bar,
-  body:has(#admin-dm-sheet-root.is-open) .admin.active .admin-tab-bar {
+  body:has(.add-blog-modal.active) .admin-tab-bar,
+  body:has(.business-doc-modal.active) .admin-tab-bar,
+  body:has(.agency-modal.active) .admin-tab-bar,
+  body:has(.project-detail-modal.active) .admin-tab-bar,
+  body:has(.modal-container.active) .admin-tab-bar,
+  body.project-modal-open .admin-tab-bar,
+  body.cp-client-drawer-open .admin-tab-bar,
+  body.lead-drawer-open .admin-tab-bar,
+  body.admin-contact-detail-open .admin-tab-bar,
+  body.admin-dm-sheet-open .admin-tab-bar,
+  body:has(#admin-dm-sheet-root.is-open) .admin-tab-bar {
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
@@ -12178,7 +12184,7 @@ body.project-modal-open {
 }
 
 @media (max-width: 379px) {
-  .admin.active .admin-tab-bar {
+  body.admin-page-active .admin-tab-bar {
     padding: 3px;
     padding-bottom: max(3px, env(safe-area-inset-bottom, 0px));
     gap: 2px;
@@ -20789,5 +20795,141 @@ body.admin-tab-reorder-active::before {
   #admin-dashboard-content > .admin-tabs {
     gap: 0;
     align-items: flex-start;
+  }
+}
+
+/* Admin — Client email sender */
+.admin-client-email-form {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-client-email-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.admin-client-email-grid-full {
+  grid-column: 1 / -1;
+}
+
+.admin-client-email-message {
+  min-height: 220px;
+  resize: vertical;
+}
+
+.admin-client-email-preview {
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  border-radius: 12px;
+  background: hsla(240, 2%, 14%, 0.7);
+  padding: 12px 14px;
+}
+
+.admin-client-email-preview-label {
+  margin: 0 0 8px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  color: var(--orange-yellow-crayola);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.admin-client-email-preview-box {
+  max-height: 220px;
+  overflow: auto;
+  padding-right: 4px;
+  color: var(--light-gray);
+  line-height: 1.65;
+}
+
+.admin-client-email-message.has-scrollbar::-webkit-scrollbar-button,
+.admin-client-email-preview-box.has-scrollbar::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.admin-client-email-preview-box p {
+  margin: 0;
+}
+
+.admin-client-email-preview-box p + p {
+  margin-top: 10px;
+}
+
+.admin-client-email-preview-box hr {
+  border: 0;
+  border-top: 1px solid hsla(45, 100%, 72%, 0.2);
+  margin: 10px 0;
+}
+
+.admin-client-email-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.admin-client-email-feedback {
+  margin: 0;
+  flex: 1 1 100%;
+  color: var(--light-gray-70);
+  font-size: var(--fs-8);
+}
+
+.admin-client-email-feedback.is-success {
+  color: hsl(140, 55%, 55%);
+}
+
+.admin-client-email-feedback.is-error {
+  color: hsl(6, 88%, 67%);
+}
+
+@media (min-width: 1024px) {
+  .admin-client-email-form {
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+    align-items: start;
+    gap: 16px 20px;
+  }
+
+  .admin-client-email-grid {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .admin-client-email-preview {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+
+  .admin-client-email-preview-box {
+    flex: 1;
+    max-height: none;
+    min-height: 360px;
+  }
+
+  .admin-client-email-message {
+    min-height: 260px;
+  }
+
+  .admin-client-email-actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-client-email-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-client-email-actions .btn {
+    width: 100%;
+    justify-content: center;
   }
 }
