@@ -170,7 +170,9 @@ body.client-portal-page {
   width: 100%;
   min-height: 180px;
   aspect-ratio: 16 / 10;
+  max-height: min(52vh, 420px);
   padding-bottom: 28px;
+  box-sizing: border-box;
 }
 
 .project-detail-media .portfolio-carousel-slide {
@@ -179,6 +181,7 @@ body.client-portal-page {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 12px;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.35s ease, visibility 0.35s ease;
@@ -194,11 +197,13 @@ body.client-portal-page {
 .project-detail-media .portfolio-carousel-slide img,
 .project-detail-media .portfolio-carousel-slide video {
   display: block;
-  width: 100%;
-  max-width: 100%;
+  width: auto;
+  max-width: min(100%, 360px);
   height: auto;
-  max-height: min(52vh, 420px);
+  max-height: min(48vh, 400px);
+  margin-inline: auto;
   object-fit: contain;
+  object-position: center center;
   border-radius: 14px;
   border: 1px solid hsla(45, 100%, 72%, 0.14);
   box-shadow: 0 18px 42px hsla(0, 0%, 0%, 0.38);
@@ -1257,6 +1262,78 @@ body.portal-dm-sheet-open {
 .btn-sm {
   padding: 8px 14px;
   font-size: var(--fs-8);
+}
+
+@media (max-width: 719px) {
+  .client-portal-inner {
+    padding: 16px 12px 40px;
+  }
+
+  .project-detail-media {
+    padding: 8px 8px 4px;
+  }
+
+  .project-detail-media .portfolio-carousel-track {
+    aspect-ratio: unset;
+    min-height: clamp(160px, 32vh, 240px);
+    max-height: clamp(200px, 38vh, 300px);
+    padding-bottom: 30px;
+  }
+
+  .project-detail-media .portfolio-carousel-slide {
+    padding: 0 34px;
+  }
+
+  .project-detail-media .portfolio-carousel-slide img,
+  .project-detail-media .portfolio-carousel-slide video {
+    max-width: min(58vw, 200px);
+    max-height: min(34vh, 260px);
+    border-radius: 12px;
+    box-shadow: 0 10px 24px hsla(0, 0%, 0%, 0.32);
+  }
+
+  .portfolio-carousel-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    border-color: hsla(45, 100%, 72%, 0.28);
+    background: hsla(240, 2%, 10%, 0.92);
+  }
+
+  .portfolio-carousel-prev {
+    left: 2px;
+  }
+
+  .portfolio-carousel-next {
+    right: 2px;
+  }
+
+  .portfolio-carousel-dots {
+    bottom: 2px;
+    gap: 6px;
+  }
+
+  .portfolio-carousel-dot {
+    width: 7px;
+    height: 7px;
+  }
+
+  .project-detail-scroll {
+    padding: 18px 16px 8px;
+  }
+
+  .project-detail-title {
+    font-size: clamp(18px, 5vw, 22px);
+  }
+
+  .project-detail-description {
+    font-size: var(--fs-7);
+    line-height: 1.65;
+  }
+
+  .project-detail-actions {
+    padding: 0 16px 18px;
+  }
 }
 
 @media (min-width: 720px) {

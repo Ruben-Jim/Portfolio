@@ -34,6 +34,7 @@
 .portfolio-markdown {
   --md-gap: 1.1rem;
   --md-radius: 14px;
+  --md-screenshot-max-width: 280px;
   color: var(--light-gray, hsl(0, 0%, 84%));
   font-size: var(--fs-6, 15px);
   line-height: 1.75;
@@ -187,7 +188,8 @@
 }
 
 .portfolio-md-figure {
-  margin: 14px 0 0;
+  margin: 14px auto 0;
+  max-width: var(--md-screenshot-max-width);
 }
 
 .portfolio-md-figure img,
@@ -198,14 +200,14 @@
   height: auto;
   border-radius: 12px;
   border: 1px solid hsla(45, 100%, 72%, 0.14);
-  box-shadow: 0 16px 36px hsla(0, 0%, 0%, 0.35);
+  box-shadow: 0 12px 28px hsla(0, 0%, 0%, 0.32);
   background: hsla(240, 2%, 8%, 0.88);
 }
 
 .portfolio-md-inline-img {
   width: auto;
-  max-width: min(100%, 420px);
-  margin: 0.35rem 0;
+  max-width: min(100%, var(--md-screenshot-max-width));
+  margin: 0.35rem auto;
 }
 
 .portfolio-md-figure figcaption {
@@ -213,6 +215,10 @@
   text-align: center;
   font-size: 0.86em;
   color: var(--light-gray-70, hsl(0, 0%, 70%));
+}
+
+.portfolio-md-step .portfolio-md-figure {
+  max-width: var(--md-screenshot-max-width);
 }
 
 .portfolio-markdown code {
@@ -250,6 +256,10 @@
 }
 
 @media (max-width: 640px) {
+  .portfolio-markdown {
+    --md-screenshot-max-width: min(72vw, 260px);
+  }
+
   .project-detail-canvas-doc {
     padding: 14px 14px 16px;
     border-radius: 14px;
