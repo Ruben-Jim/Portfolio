@@ -50,7 +50,7 @@ Tap the gear on home. Orders today shows here for staff only — removed from th
 
 Manage Announcements for pop-up + GoFundMe.
 
-![manage events + GoFundMe](images/step-4-manage.png)
+![Manage events + GoFundMe](images/step-4-manage.png)
 
 ---
 
