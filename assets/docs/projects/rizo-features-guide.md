@@ -60,6 +60,8 @@ Manage Announcements for pop-up + GoFundMe.
 - **Pop-up Event** (on/off) — Title, location, date, time, description, links
 - **GoFundMe** (on/off) — Title, description, donate URL
 
+---
+
 **Quick steps**
 
 ---
