@@ -5855,6 +5855,9 @@ function switchToPage(pageName, skipSave = false) {
   if (pageName !== 'messages' && typeof window.dismissCustomerDmSheetForNavigation === 'function') {
     window.dismissCustomerDmSheetForNavigation();
   }
+  if (pageName !== 'contact' && typeof window.dismissContactDmForNavigation === 'function') {
+    window.dismissContactDmForNavigation();
+  }
   var wasHome = document.body.classList.contains('home-page-active');
   var pageArticles = document.querySelectorAll('article[data-page]');
   pageArticles.forEach(function (articleEl) {
@@ -5876,6 +5879,20 @@ function switchToPage(pageName, skipSave = false) {
       }
       if (pageName === "home") {
         document.body.classList.add("home-page-active");
+      }
+      if (pageName === "contact") {
+        var contactPortal = document.getElementById("customer-dm-portal");
+        var contactArticleEl = pageArticles[i];
+        if (
+          contactPortal &&
+          contactPortal.classList.contains("dm-portal--active") &&
+          contactArticleEl
+        ) {
+          contactArticleEl.classList.add("contact-dm-active");
+        }
+        if (typeof window.syncContactFormExistingDmLink === "function") {
+          window.syncContactFormExistingDmLink();
+        }
       }
       if (typeof window.syncAdminMobileTabBarDock === 'function') {
         window.syncAdminMobileTabBarDock();
@@ -6583,6 +6600,285 @@ window.addEventListener('load', function() {
     }, 400);
   });
 
+  var testimonialAdminCache = { tokens: {}, testimonials: {} };
+
+  var TESTIMONIAL_TIMELINE_LABELS = {
+    on_time: "Yes — delivered on time",
+    close: "Close to it, minor delay",
+    ran_over: "It ran over significantly",
+  };
+  var TESTIMONIAL_VALUE_LABELS = {
+    worth_more: "Worth even more than I paid",
+    fair: "Fair — exactly what it should cost",
+    expected_less: "Honestly expected to pay less",
+  };
+  var TESTIMONIAL_REFERRAL_LABELS = {
+    yes: "Yes — I already have or would",
+    likely: "Likely, in the right situation",
+    not_yet: "Not at this time",
+  };
+  var TESTIMONIAL_SOURCE_LABELS = {
+    referral: "Referral from someone I know",
+    google: "Google search",
+    instagram: "Instagram",
+    facebook: "Facebook",
+    reached_out: "Ruben reached out to me directly",
+    other: "Other",
+  };
+
+  function ensureAdminTestimonialDetailPortal() {
+    var root = document.getElementById("admin-testimonial-detail");
+    if (!root || root.parentNode === document.body) return;
+    document.body.appendChild(root);
+  }
+
+  function closeTestimonialDetailDrawer() {
+    var root = document.getElementById("admin-testimonial-detail");
+    if (!root) return;
+    root.classList.remove("is-open");
+    root.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("admin-testimonial-detail-open");
+  }
+
+  function testimonialWizardChoiceLabel(map, key) {
+    if (key == null || key === "") return "";
+    return map[String(key)] || String(key);
+  }
+
+  function testimonialDetailField(label, valueHtml, opts) {
+    opts = opts || {};
+    var esc = escapeTestimonialHtml;
+    return (
+      '<div class="admin-testimonial-detail__field' +
+      (opts.prose ? " admin-testimonial-detail__field--message" : "") +
+      '"><dt>' +
+      esc(label) +
+      "</dt><dd>" +
+      (valueHtml || '<span class="admin-testimonial-detail__empty">—</span>') +
+      "</dd></div>"
+    );
+  }
+
+  function testimonialDetailSectionTitle(title, badge) {
+    var esc = escapeTestimonialHtml;
+    var badgeHtml = badge
+      ? '<span class="admin-testimonial-detail__badge admin-testimonial-detail__badge--' +
+        esc(badge) +
+        '">' +
+        (badge === "private" ? "Private" : "Published") +
+        "</span>"
+      : "";
+    return (
+      '<div class="admin-testimonial-detail__section-head">' +
+      '<h5 class="admin-testimonial-detail__section-title">' +
+      esc(title) +
+      "</h5>" +
+      badgeHtml +
+      "</div>"
+    );
+  }
+
+  function renderTestimonialDetailHtml(invite, testimonial) {
+    var esc = escapeTestimonialHtml;
+    var parts = [];
+    var d = testimonial ? testimonial.data : null;
+    var priv = d && d.private && typeof d.private === "object" ? d.private : {};
+
+    if (invite && invite.data) {
+      parts.push(testimonialDetailSectionTitle("Invite", null));
+      parts.push('<dl class="admin-testimonial-detail__meta">');
+      parts.push(testimonialDetailField("Customer", esc(invite.data.name)));
+      parts.push(
+        testimonialDetailField(
+          "Email",
+          invite.data.email
+            ? '<a class="admin-testimonial-detail__mailto" href="mailto:' +
+                esc(invite.data.email) +
+                '">' +
+                esc(invite.data.email) +
+                "</a>"
+            : ""
+        )
+      );
+      parts.push(testimonialDetailField("Product / service", esc(invite.data.product)));
+      parts.push(
+        testimonialDetailField("Invite status", invite.data.used === true ? "Used" : "Pending")
+      );
+      parts.push("</dl>");
+    }
+
+    if (!d) {
+      parts.push(
+        '<p class="admin-testimonial-detail__empty-state">No questionnaire submitted yet. The customer has not completed the testimonial wizard.</p>'
+      );
+      return parts.join("");
+    }
+
+    parts.push(testimonialDetailSectionTitle("About you", null));
+    parts.push('<dl class="admin-testimonial-detail__meta">');
+    parts.push(testimonialDetailField("Name", esc(d.name)));
+    parts.push(testimonialDetailField("Job title", esc(d.title)));
+    parts.push(testimonialDetailField("Business", esc(d.company)));
+    parts.push(testimonialDetailField("Product / service", esc(d.product)));
+    parts.push(testimonialDetailField("Submitted", esc(testimonialDateLabel(d) || "—")));
+    parts.push("</dl>");
+
+    parts.push(testimonialDetailSectionTitle("Communication", "private"));
+    parts.push('<dl class="admin-testimonial-detail__meta">');
+    parts.push(
+      testimonialDetailField(
+        "Rating",
+        priv.commRating != null && priv.commRating !== ""
+          ? esc(String(priv.commRating)) + " / 5"
+          : ""
+      )
+    );
+    parts.push(
+      testimonialDetailField(
+        "How could communication improve?",
+        priv.commImprovement
+          ? esc(String(priv.commImprovement)).replace(/\n/g, "<br>")
+          : "",
+        { prose: !!priv.commImprovement }
+      )
+    );
+    parts.push("</dl>");
+
+    parts.push(testimonialDetailSectionTitle("Timeline", "private"));
+    parts.push('<dl class="admin-testimonial-detail__meta">');
+    parts.push(
+      testimonialDetailField(
+        "Did the project land on time?",
+        esc(testimonialWizardChoiceLabel(TESTIMONIAL_TIMELINE_LABELS, priv.timeline))
+      )
+    );
+    parts.push("</dl>");
+
+    parts.push(testimonialDetailSectionTitle("Value vs price", "private"));
+    parts.push('<dl class="admin-testimonial-detail__meta">');
+    parts.push(
+      testimonialDetailField(
+        "Value perception",
+        esc(testimonialWizardChoiceLabel(TESTIMONIAL_VALUE_LABELS, priv.valueSentiment))
+      )
+    );
+    if (priv.valueAmount != null && priv.valueAmount !== "" && !isNaN(Number(priv.valueAmount))) {
+      parts.push(
+        testimonialDetailField(
+          "Feels like the right price",
+          esc("$" + Number(priv.valueAmount).toLocaleString())
+        )
+      );
+    }
+    parts.push("</dl>");
+
+    parts.push(testimonialDetailSectionTitle("Private feedback", "private"));
+    parts.push('<dl class="admin-testimonial-detail__meta">');
+    parts.push(
+      testimonialDetailField(
+        "Would refer CodeWithRuben?",
+        esc(testimonialWizardChoiceLabel(TESTIMONIAL_REFERRAL_LABELS, priv.referral))
+      )
+    );
+    parts.push(
+      testimonialDetailField(
+        "How they heard about you",
+        priv.source
+          ? esc(testimonialWizardChoiceLabel(TESTIMONIAL_SOURCE_LABELS, priv.source))
+          : ""
+      )
+    );
+    parts.push(
+      testimonialDetailField(
+        "Notes for Ruben only",
+        priv.privateNotes
+          ? esc(String(priv.privateNotes)).replace(/\n/g, "<br>")
+          : "",
+        { prose: !!priv.privateNotes }
+      )
+    );
+    parts.push("</dl>");
+
+    parts.push(testimonialDetailSectionTitle("Published testimonial", "public"));
+    parts.push('<dl class="admin-testimonial-detail__meta">');
+    parts.push(
+      testimonialDetailField(
+        "Overall rating",
+        d.rating != null && d.rating !== "" ? esc(String(d.rating)) + " / 5" : ""
+      )
+    );
+    parts.push(
+      testimonialDetailField(
+        "Quote on site",
+        d.text ? esc(String(d.text)).replace(/\n/g, "<br>") : "",
+        { prose: !!d.text }
+      )
+    );
+    parts.push("</dl>");
+
+    return parts.join("");
+  }
+
+  function openTestimonialDetailDrawer(opts) {
+    opts = opts || {};
+    ensureAdminTestimonialDetailPortal();
+    var root = document.getElementById("admin-testimonial-detail");
+    var bodyEl = document.getElementById("admin-testimonial-detail-body");
+    var titleEl = document.getElementById("admin-testimonial-detail-title");
+    var footEl = document.getElementById("admin-testimonial-detail-foot");
+    if (!root || !bodyEl || !titleEl) return;
+
+    var tokenId = opts.tokenId ? String(opts.tokenId) : "";
+    var testimonialId = opts.testimonialId ? String(opts.testimonialId) : "";
+    var invite = tokenId ? testimonialAdminCache.tokens[tokenId] : null;
+    var testimonial = testimonialId ? testimonialAdminCache.testimonials[testimonialId] : null;
+
+    if (!invite && testimonial && testimonial.data && testimonial.data.token) {
+      invite = testimonialAdminCache.tokens[testimonial.data.token] || null;
+      if (!tokenId) tokenId = String(testimonial.data.token);
+    }
+
+    var displayName =
+      (testimonial && testimonial.data && testimonial.data.name) ||
+      (invite && invite.data && invite.data.name) ||
+      "Testimonial";
+    titleEl.textContent = displayName;
+
+    bodyEl.innerHTML = renderTestimonialDetailHtml(invite, testimonial);
+
+    if (footEl) {
+      var footParts = [];
+      if (testimonialId) {
+        footParts.push(
+          '<button type="button" class="btn btn-secondary" data-delete-published-testimonial="' +
+            escapeTestimonialHtml(testimonialId) +
+            '"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon><span>Remove from site</span></button>'
+        );
+      }
+      if (tokenId && invite) {
+        footParts.push(
+          '<button type="button" class="btn btn-secondary" data-delete-testimonial-token="' +
+            escapeTestimonialHtml(tokenId) +
+            '"><ion-icon name="link-outline" aria-hidden="true"></ion-icon><span>Delete invite link</span></button>'
+        );
+      }
+      footEl.innerHTML = footParts.join("");
+    }
+
+    root.dataset.testimonialTokenId = tokenId;
+    root.dataset.testimonialDocId = testimonialId;
+    root.classList.add("is-open");
+    root.setAttribute("aria-hidden", "false");
+    document.body.classList.add("admin-testimonial-detail-open");
+    try {
+      var closeBtn = document.getElementById("admin-testimonial-detail-close");
+      if (closeBtn) closeBtn.focus();
+    } catch (fe) {}
+  }
+
+  window.closeTestimonialDetailDrawer = closeTestimonialDetailDrawer;
+  window.openTestimonialDetailDrawer = openTestimonialDetailDrawer;
+
   async function loadTestimonialAdminPanel() {
     var combined = document.getElementById("admin-testimonials-combined-list");
     function esc(s) {
@@ -6623,6 +6919,15 @@ window.addEventListener('load', function() {
       });
       pRows = pRows.slice(0, 80);
 
+      testimonialAdminCache.tokens = {};
+      testimonialAdminCache.testimonials = {};
+      tRows.forEach(function (r) {
+        testimonialAdminCache.tokens[r.id] = r;
+      });
+      pRows.forEach(function (r) {
+        testimonialAdminCache.testimonials[r.id] = r;
+      });
+
       var tokenIdSet = {};
       tRows.forEach(function (r) {
         tokenIdSet[r.id] = true;
@@ -6644,6 +6949,27 @@ window.addEventListener('load', function() {
       function appendActions(container, tokenId, testimonialId, hasInvite) {
         var actions = document.createElement("div");
         actions.className = "admin-testimonial-combined-actions";
+        var btnView = document.createElement("button");
+        btnView.type = "button";
+        btnView.className = "btn btn-primary btn-sm";
+        btnView.setAttribute("data-action", "view-testimonial");
+        btnView.textContent = testimonialId
+          ? "View questionnaire"
+          : hasInvite
+            ? "View invite"
+            : "View questionnaire";
+        if (testimonialId) {
+          btnView.setAttribute("data-view-testimonial", testimonialId);
+        }
+        if (tokenId) {
+          btnView.setAttribute("data-view-testimonial-token", tokenId);
+        }
+        if (!testimonialId && tokenId && hasInvite) {
+          btnView.setAttribute("data-view-invite-only", "1");
+        }
+        if (!testimonialId && !tokenId) {
+          btnView.disabled = true;
+        }
         var btnDel = document.createElement("button");
         btnDel.type = "button";
         btnDel.className = "btn btn-secondary btn-sm";
@@ -6664,6 +6990,7 @@ window.addEventListener('load', function() {
           btnRem.disabled = true;
           btnRem.title = "No submission on the site for this invite yet";
         }
+        actions.appendChild(btnView);
         actions.appendChild(btnDel);
         actions.appendChild(btnRem);
         container.appendChild(actions);
@@ -6675,7 +7002,11 @@ window.addEventListener('load', function() {
         var used = dd.used === true;
         var sub = testimonialByToken[tokenId];
         var wrap = document.createElement("div");
-        wrap.className = "admin-testimonial-combined-row";
+        wrap.className = "admin-testimonial-combined-row admin-testimonial-combined-row--interactive";
+        wrap.setAttribute("data-testimonial-token", tokenId);
+        if (sub) {
+          wrap.setAttribute("data-testimonial-row", sub.id);
+        }
         var main = document.createElement("div");
         main.className = "admin-testimonial-combined-main";
         var subText = sub ? String(sub.data.text || "") : "";
@@ -6706,7 +7037,11 @@ window.addEventListener('load', function() {
         if (tid && tokenIdSet[tid]) return;
         var snippet = String(row.data.text || "");
         var wrap = document.createElement("div");
-        wrap.className = "admin-testimonial-combined-row";
+        wrap.className = "admin-testimonial-combined-row admin-testimonial-combined-row--interactive";
+        wrap.setAttribute("data-testimonial-row", row.id);
+        if (tid) {
+          wrap.setAttribute("data-testimonial-token", tid);
+        }
         var main = document.createElement("div");
         main.className = "admin-testimonial-combined-main";
         main.innerHTML =
@@ -6929,8 +7264,15 @@ window.addEventListener('load', function() {
   }
 
   // Setup admin event listeners
+  function ensureAdminContactDetailPortal() {
+    const root = document.getElementById('admin-contact-detail');
+    if (!root || root.parentNode === document.body) return;
+    document.body.appendChild(root);
+  }
+
   function setupAdminEventListeners() {
     ensureGlobalNavbarLogoutButtons();
+    ensureAdminContactDetailPortal();
 
     // admin-login-btn now has admin-google-signin-btn class — handled below
     if (adminLoginCloseBtn) {
@@ -7074,6 +7416,18 @@ window.addEventListener('load', function() {
       contactDetailBackdrop.dataset.contactDetailBound = '1';
       contactDetailBackdrop.addEventListener('click', function () {
         closeContactDetailDrawer();
+      });
+    }
+
+    const contactDetailFoot = document.getElementById('admin-contact-detail-foot');
+    if (contactDetailFoot && !contactDetailFoot.dataset.contactDetailDeleteBound) {
+      contactDetailFoot.dataset.contactDetailDeleteBound = '1';
+      contactDetailFoot.addEventListener('click', function (e) {
+        const delBtn = e.target.closest('.delete-message-btn');
+        if (!delBtn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        handleDeleteMessageBtnClick(e);
       });
     }
 
@@ -7223,6 +7577,26 @@ window.addEventListener('load', function() {
     if (combinedList && !combinedList.dataset.boundTestimonialActions) {
       combinedList.dataset.boundTestimonialActions = "1";
       combinedList.addEventListener("click", function (e) {
+        var viewBtn = e.target.closest("[data-action='view-testimonial']");
+        if (viewBtn && combinedList.contains(viewBtn) && !viewBtn.disabled) {
+          e.preventDefault();
+          openTestimonialDetailDrawer({
+            testimonialId: viewBtn.getAttribute("data-view-testimonial") || "",
+            tokenId: viewBtn.getAttribute("data-view-testimonial-token") || "",
+          });
+          return;
+        }
+        var mainEl = e.target.closest(".admin-testimonial-combined-main");
+        if (mainEl && combinedList.contains(mainEl) && !e.target.closest("button")) {
+          var row = mainEl.closest(".admin-testimonial-combined-row--interactive");
+          if (row) {
+            openTestimonialDetailDrawer({
+              testimonialId: row.getAttribute("data-testimonial-row") || "",
+              tokenId: row.getAttribute("data-testimonial-token") || "",
+            });
+            return;
+          }
+        }
         var delBtn = e.target.closest("[data-delete-testimonial-token]");
         if (delBtn && combinedList.contains(delBtn) && !delBtn.disabled) {
           var tid = delBtn.getAttribute("data-delete-testimonial-token");
@@ -7236,6 +7610,52 @@ window.addEventListener('load', function() {
           if (!pid || !window.db || !window.deleteDoc || !window.doc) return;
           openDeleteTestimonialConfirmModal("published", pid);
         }
+      });
+    }
+
+    var testimonialDetailClose = document.getElementById("admin-testimonial-detail-close");
+    var testimonialDetailBackdrop = document.getElementById("admin-testimonial-detail-backdrop");
+    var testimonialDetailFoot = document.getElementById("admin-testimonial-detail-foot");
+    if (testimonialDetailClose && !testimonialDetailClose.dataset.testimonialDetailBound) {
+      testimonialDetailClose.dataset.testimonialDetailBound = "1";
+      testimonialDetailClose.addEventListener("click", function () {
+        closeTestimonialDetailDrawer();
+      });
+    }
+    if (testimonialDetailBackdrop && !testimonialDetailBackdrop.dataset.testimonialDetailBound) {
+      testimonialDetailBackdrop.dataset.testimonialDetailBound = "1";
+      testimonialDetailBackdrop.addEventListener("click", function () {
+        closeTestimonialDetailDrawer();
+      });
+    }
+    if (testimonialDetailFoot && !testimonialDetailFoot.dataset.testimonialDetailBound) {
+      testimonialDetailFoot.dataset.testimonialDetailBound = "1";
+      testimonialDetailFoot.addEventListener("click", function (e) {
+        var footDel = e.target.closest("[data-delete-testimonial-token]");
+        if (footDel) {
+          var footTokenId = footDel.getAttribute("data-delete-testimonial-token");
+          if (!footTokenId) return;
+          closeTestimonialDetailDrawer();
+          openDeleteTestimonialConfirmModal("token", footTokenId);
+          return;
+        }
+        var footRem = e.target.closest("[data-delete-published-testimonial]");
+        if (footRem) {
+          var footPubId = footRem.getAttribute("data-delete-published-testimonial");
+          if (!footPubId) return;
+          closeTestimonialDetailDrawer();
+          openDeleteTestimonialConfirmModal("published", footPubId);
+        }
+      });
+    }
+    if (!document.documentElement.dataset.testimonialDetailEscapeBound) {
+      document.documentElement.dataset.testimonialDetailEscapeBound = "1";
+      document.addEventListener("keydown", function (ev) {
+        if (ev.key !== "Escape") return;
+        var td = document.getElementById("admin-testimonial-detail");
+        if (!td || !td.classList.contains("is-open")) return;
+        ev.preventDefault();
+        closeTestimonialDetailDrawer();
       });
     }
   }
@@ -11310,9 +11730,6 @@ window.addEventListener('load', function() {
     footEl.querySelectorAll('.mark-replied-btn').forEach(function (btn) {
       btn.addEventListener('click', handleMarkRepliedClick);
     });
-    footEl.querySelectorAll('.delete-message-btn').forEach(function (btn) {
-      btn.addEventListener('click', handleDeleteMessageBtnClick);
-    });
   }
 
   function openContactDetailDrawer(messageId) {
@@ -11357,7 +11774,11 @@ window.addEventListener('load', function() {
       contactMessagesSort.key = key;
       contactMessagesSort.dir = key === 'date' ? 'desc' : 'asc';
     }
-    renderMessages(lastContactFormMessages);
+    if (typeof window.portfolioSyncAdminMessagesView === 'function') {
+      window.portfolioSyncAdminMessagesView();
+    } else {
+      renderMessages(lastContactFormMessages);
+    }
     refreshContactDetailDrawerIfOpen();
     try {
       const active = messagesList && messagesList.querySelector('th[data-contact-sort="' + key + '"]');
@@ -11384,7 +11805,11 @@ window.addEventListener('load', function() {
     typeof window.matchMedia === 'function' ? window.matchMedia('(max-width: 767px)') : null;
   if (adminContactTableDateFmtMq && typeof adminContactTableDateFmtMq.addEventListener === 'function') {
     adminContactTableDateFmtMq.addEventListener('change', function () {
-      if (lastContactFormMessages.length) renderMessages(lastContactFormMessages);
+      if (typeof window.portfolioSyncAdminMessagesView === 'function') {
+        window.portfolioSyncAdminMessagesView();
+      } else if (lastContactFormMessages.length) {
+        renderMessages(lastContactFormMessages);
+      }
     });
   }
 
@@ -11765,6 +12190,7 @@ window.addEventListener('load', function() {
   window.sendReplyEmail = sendReplyEmail;
   window.closeAdminContactDetailDrawer = closeContactDetailDrawer;
   window.syncAdminContactTableScrollState = syncAdminContactTableScrollState;
+  window.ensureAdminContactDetailPortal = ensureAdminContactDetailPortal;
   window.renderAdminLegacyContactMessages = function () {
     if (typeof window.portfolioSyncAdminMessagesView === 'function') {
       window.portfolioSyncAdminMessagesView();
@@ -12677,6 +13103,60 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function closeDeleteDmConversationConfirmModal() {
+    const modal = document.getElementById('delete-dm-conversation-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    delete modal.dataset.pendingConversationId;
+    delete modal.dataset.pendingLabel;
+  }
+
+  function openDeleteDmConversationConfirmModal(conversationId, label) {
+    const modal = document.getElementById('delete-dm-conversation-confirm-modal');
+    const descEl = document.getElementById('delete-dm-conversation-confirm-desc');
+    if (!modal || !conversationId) return;
+    const safeLabel = String(label || 'this customer').trim() || 'this customer';
+    modal.dataset.pendingConversationId = String(conversationId);
+    modal.dataset.pendingLabel = safeLabel;
+    if (descEl) {
+      descEl.textContent =
+        'This permanently deletes the conversation with ' +
+        safeLabel +
+        ', including all messages. This cannot be undone.';
+    }
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    const cancelBtn = document.getElementById('delete-dm-conversation-confirm-cancel');
+    if (cancelBtn) {
+      setTimeout(function () {
+        cancelBtn.focus();
+      }, 40);
+    }
+  }
+
+  async function handleDeleteDmConversationConfirmClick() {
+    const modal = document.getElementById('delete-dm-conversation-confirm-modal');
+    const conversationId = modal && modal.dataset ? modal.dataset.pendingConversationId : '';
+    if (!conversationId || !hasDMDeps()) {
+      closeDeleteDmConversationConfirmModal();
+      return;
+    }
+    const deleteBtn = document.getElementById('delete-dm-conversation-confirm-delete');
+    if (deleteBtn) deleteBtn.disabled = true;
+    try {
+      await deleteConversationFromRtdb(conversationId);
+      closeDeleteDmConversationConfirmModal();
+      if (typeof window.closeAdminContactDetailDrawer === 'function') {
+        window.closeAdminContactDetailDrawer();
+      }
+    } catch (err) {
+      alert(formatRtdbPortalError(err));
+    } finally {
+      if (deleteBtn) deleteBtn.disabled = false;
+    }
+  }
+
   function openDmContactDetailDrawer(conversationId) {
     const conv =
       DM.conversations.find(function (c) { return c.id === conversationId; }) ||
@@ -12706,30 +13186,6 @@ document.addEventListener('DOMContentLoaded', function () {
             '</button>'
           ].join('')
         : '';
-      footEl.querySelectorAll('.dm-conversation-delete').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-          e.stopPropagation();
-          e.preventDefault();
-          if (!isAdmin()) return;
-          const id = btn.getAttribute('data-id');
-          if (!id || !hasDMDeps()) return;
-          const label = conv.customerName || id;
-          if (!window.confirm('Delete conversation with ' + label + '? This removes all messages and cannot be undone.')) {
-            return;
-          }
-          btn.disabled = true;
-          deleteConversationFromRtdb(id)
-            .then(function () {
-              if (typeof window.closeAdminContactDetailDrawer === 'function') {
-                window.closeAdminContactDetailDrawer();
-              }
-            })
-            .catch(function (err) {
-              alert(formatRtdbPortalError(err));
-              btn.disabled = false;
-            });
-        });
-      });
     }
     try {
       const closeBtn = document.getElementById('admin-contact-detail-close');
@@ -13346,6 +13802,53 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function bindAdminInboxEvents() {
+    const deleteDmModal = document.getElementById('delete-dm-conversation-confirm-modal');
+    const deleteDmOverlay = document.getElementById('delete-dm-conversation-confirm-overlay');
+    const deleteDmClose = document.getElementById('delete-dm-conversation-confirm-close');
+    const deleteDmCancel = document.getElementById('delete-dm-conversation-confirm-cancel');
+    const deleteDmDelete = document.getElementById('delete-dm-conversation-confirm-delete');
+    if (
+      deleteDmModal &&
+      !deleteDmModal.dataset.bound &&
+      deleteDmOverlay &&
+      deleteDmCancel &&
+      deleteDmDelete
+    ) {
+      deleteDmModal.dataset.bound = '1';
+      deleteDmOverlay.addEventListener('click', closeDeleteDmConversationConfirmModal);
+      if (deleteDmClose) {
+        deleteDmClose.addEventListener('click', closeDeleteDmConversationConfirmModal);
+      }
+      deleteDmCancel.addEventListener('click', closeDeleteDmConversationConfirmModal);
+      deleteDmDelete.addEventListener('click', handleDeleteDmConversationConfirmClick);
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key !== 'Escape') return;
+        if (!deleteDmModal.classList.contains('active')) return;
+        ev.preventDefault();
+        closeDeleteDmConversationConfirmModal();
+      });
+    }
+
+    const detailFoot = document.getElementById('admin-contact-detail-foot');
+    if (detailFoot && !detailFoot.dataset.dmConversationDeleteBound) {
+      detailFoot.dataset.dmConversationDeleteBound = '1';
+      detailFoot.addEventListener('click', function (e) {
+        const dmDel = e.target.closest('.dm-conversation-delete');
+        if (!dmDel) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isAdmin()) return;
+        const id = dmDel.getAttribute('data-id');
+        if (!id || !hasDMDeps()) return;
+        const conv =
+          DM.conversations.find(function (c) {
+            return c.id === id;
+          }) || DM.activeConversationData;
+        const label = (conv && conv.customerName) || id;
+        openDeleteDmConversationConfirmModal(id, label);
+      });
+    }
+
     const searchInput = document.getElementById('dm-search-input');
     if (searchInput) {
       searchInput.addEventListener('input', function () {
@@ -13489,8 +13992,103 @@ document.addEventListener('DOMContentLoaded', function () {
     );
   }
 
+  function readStoredCustomerDmSession() {
+    if (window.CustomerDmShared && window.CustomerDmShared.readCustomerSession) {
+      return window.CustomerDmShared.readCustomerSession();
+    }
+    try {
+      var saved = localStorage.getItem('customerDmSession');
+      if (!saved) return null;
+      var parsed = JSON.parse(saved);
+      if (!parsed || !parsed.conversationId) return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function isContactFormVisible() {
+    var formSection = document.querySelector(
+      '[data-page="contact"] section.contact-form:not(#customer-dm-portal)'
+    );
+    return !!(formSection && formSection.style.display !== 'none');
+  }
+
+  function syncContactFormExistingDmLink() {
+    var hint = document.getElementById('contact-form-dm-hint');
+    if (!hint) return;
+    var saved = readStoredCustomerDmSession();
+    var labelEl = hint.querySelector('.contact-form-dm-link__label');
+    var subEl = hint.querySelector('.contact-form-dm-link__sub');
+    if (saved && labelEl) {
+      labelEl.textContent = 'Continue your conversation';
+      if (subEl) {
+        var who = String(saved.customerName || saved.customerEmail || '').trim();
+        subEl.textContent = who ? 'Pick up as ' + who : 'Open your private thread';
+        subEl.hidden = !who;
+      }
+    }
+    hint.hidden = !(
+      isCustomerDmPortalEnabled() &&
+      isContactFormVisible() &&
+      !isCustomerDmPortalRevealed() &&
+      saved
+    );
+  }
+
+  function openContactFormExistingConversation() {
+    var saved = readStoredCustomerDmSession();
+    if (!saved) return;
+    DM.customerSession = saved;
+    if (window.CustomerDmShared && window.CustomerDmShared.writeCustomerSession) {
+      window.CustomerDmShared.writeCustomerSession(saved);
+    }
+    openCustomerPortalSession();
+    startCustomerThread(saved).catch(function () {});
+    revealCustomerDmPortal();
+  }
+
+  function injectContactFormExistingDmLink() {
+    if (!isCustomerDmPortalEnabled()) return;
+    if (document.getElementById('contact-form-dm-hint')) {
+      syncContactFormExistingDmLink();
+      return;
+    }
+    var formSection = document.querySelector(
+      '[data-page="contact"] section.contact-form:not(#customer-dm-portal)'
+    );
+    if (!formSection) return;
+    var hint = document.createElement('div');
+    hint.className = 'contact-form-dm-hint';
+    hint.id = 'contact-form-dm-hint';
+    hint.hidden = true;
+    hint.innerHTML = [
+      '<button type="button" class="contact-form-dm-link" id="contact-form-dm-link">',
+      '<span class="contact-form-dm-link__row">',
+      '<ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>',
+      '<span class="contact-form-dm-link__label">Continue your conversation</span>',
+      '</span>',
+      '<span class="contact-form-dm-link__sub" hidden></span>',
+      '</button>'
+    ].join('');
+    var form = formSection.querySelector('form[data-form]');
+    if (form) {
+      form.appendChild(hint);
+    } else {
+      formSection.appendChild(hint);
+    }
+    var btn = document.getElementById('contact-form-dm-link');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        openContactFormExistingConversation();
+      });
+    }
+    syncContactFormExistingDmLink();
+  }
+
   function setupCustomerPortalUI() {
     if (!isCustomerDmPortalEnabled()) return;
+    injectContactFormExistingDmLink();
     const portalHost = document.querySelector('article[data-page="contact"]');
     if (!portalHost || document.getElementById('customer-dm-portal')) return;
 
@@ -13930,6 +14528,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!successOnly) openCustomerPortalSession();
       portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    syncContactFormExistingDmLink();
   }
 
   function openCustomerPortalSession() {
@@ -13990,6 +14589,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!openedFromToken) {
         restoreCustomerPortalFromStorage();
       }
+      syncContactFormExistingDmLink();
     });
 
     var successContinueBtn = document.getElementById('dm-contact-success-continue');
@@ -14162,6 +14762,9 @@ document.addEventListener('DOMContentLoaded', function () {
     if (window.DM_FEATURE_FLAGS && window.DM_FEATURE_FLAGS.enableProfessionalInbox === false) return;
 
     installAdminDmFetchBridge();
+    if (typeof window.ensureAdminContactDetailPortal === 'function') {
+      window.ensureAdminContactDetailPortal();
+    }
 
     ensureAdminInboxUI();
 
@@ -14205,10 +14808,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  window.syncContactFormExistingDmLink = syncContactFormExistingDmLink;
+
   window.dismissCustomerDmSheetForNavigation = function () {
     const root = document.getElementById('dm-customer-sheet-root');
     if (!root || !root.classList.contains('is-open')) return;
     setCustomerPortalAuthVisible(true);
+  };
+
+  window.dismissContactDmForNavigation = function () {
+    var contactArticle = document.querySelector('article[data-page="contact"]');
+    if (contactArticle) contactArticle.classList.remove('contact-dm-active');
+    document.body.classList.remove('dm-customer-sheet-open');
+    var sheetRoot = document.getElementById('dm-customer-sheet-root');
+    if (sheetRoot) {
+      sheetRoot.classList.remove('is-open');
+      sheetRoot.setAttribute('aria-hidden', 'true');
+    }
   };
 
   window.customerDmApi = {

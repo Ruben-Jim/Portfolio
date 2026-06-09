@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="hsl(45, 100%, 72%)">
-  <title>Share a testimonial — Ruben Jimenez</title>
+  <title>Share a testimonial — CodeWithRuben</title>
   <link rel="shortcut icon" href="/assets/images/logo/logo.jpg" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-no-topbar-20260514">
+  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-choice-hover-20260608">
   <script>
     (function () {
       var saved = localStorage.getItem('portfolio-theme');
@@ -24,249 +24,557 @@
 
   <div class="testimonial-standalone-shell">
 
-    <h1 class="h2 testimonial-standalone-page-title">Share your testimonial</h1>
-    <p class="testimonial-standalone-lead" id="testimonial-lead">Loading…</p>
+    <!-- Brand -->
+    <div class="t-brand">
+      <a href="./" class="t-brand-link" aria-label="Back to CodeWithRuben portfolio">
+        <span class="t-brand-mark">CodeWith<span class="t-brand-accent">Ruben</span></span>
+        <span class="t-brand-sub">Web &amp; Mobile Dev Studio · Fresno, CA</span>
+      </a>
+    </div>
 
-    <div id="testimonial-state-loading" class="testimonial-standalone-card" hidden>
+    <!-- Loading state -->
+    <div id="t-state-loading" class="testimonial-standalone-card" hidden>
       <p style="margin:0;color:var(--light-gray-70);">Checking your invite link…</p>
     </div>
 
-    <div id="testimonial-state-error" class="testimonial-standalone-card" hidden>
-      <p id="testimonial-error-text" style="margin:0;color:var(--light-gray);"></p>
+    <!-- Error state -->
+    <div id="t-state-error" class="testimonial-standalone-card" hidden>
+      <p id="t-error-text" style="margin:0;color:var(--light-gray);"></p>
       <p style="margin-top:16px;margin-bottom:0;">
-        <a href="./" class="testimonial-standalone-text-link">Back to portfolio</a>
+        <a href="./" class="testimonial-standalone-text-link">← Back to portfolio</a>
       </p>
     </div>
 
-    <form id="testimonial-form" class="testimonial-standalone-card" hidden novalidate>
-      <div class="form-field">
-        <label class="form-label" for="t-name">Your name</label>
-        <input class="form-input" type="text" id="t-name" name="name" required maxlength="120" autocomplete="name">
-      </div>
-      <div class="form-field">
-        <label class="form-label" for="t-title">Job title</label>
-        <input class="form-input" type="text" id="t-title" name="title" required maxlength="120" autocomplete="organization-title">
-      </div>
-      <div class="form-field">
-        <label class="form-label" for="t-company">Company</label>
-        <input class="form-input" type="text" id="t-company" name="company" required maxlength="160" autocomplete="organization">
-      </div>
-      <div class="form-field">
-        <label class="form-label" for="t-product">Product you use</label>
-        <input class="form-input" type="text" id="t-product" name="product" required maxlength="200" readonly>
-      </div>
+    <!-- ── Multi-step wizard ── -->
+    <div id="t-wizard" hidden>
+      <div class="t-wizard-card">
 
-      <div class="form-field">
-        <span class="form-label" id="t-rating-legend">Rating</span>
-        <input type="hidden" id="t-rating" name="rating" value="" required>
-        <div class="testimonial-stars" id="t-stars" role="radiogroup" aria-labelledby="t-rating-legend" data-rating="0" aria-label="Star rating">
-          <button type="button" class="testimonial-star-btn" data-star="1" aria-label="1 star out of 5" title="1 star">&#9733;</button>
-          <button type="button" class="testimonial-star-btn" data-star="2" aria-label="2 stars out of 5" title="2 stars">&#9733;</button>
-          <button type="button" class="testimonial-star-btn" data-star="3" aria-label="3 stars out of 5" title="3 stars">&#9733;</button>
-          <button type="button" class="testimonial-star-btn" data-star="4" aria-label="4 stars out of 5" title="4 stars">&#9733;</button>
-          <button type="button" class="testimonial-star-btn" data-star="5" aria-label="5 stars out of 5" title="5 stars">&#9733;</button>
+        <!-- Progress bar -->
+        <div class="t-wizard-progress">
+          <div class="t-wizard-progress-track">
+            <div class="t-wizard-progress-fill" id="t-progress-fill" style="width:16.6%"></div>
+          </div>
+          <div class="t-wizard-progress-meta">
+            <span class="t-wizard-step-counter" id="t-step-counter">Step 1 of 6</span>
+            <span class="t-wizard-step-label" id="t-step-label">About you</span>
+          </div>
         </div>
+
+        <!-- Steps viewport -->
+        <div class="t-steps-viewport" id="t-steps-viewport" data-dir="fwd">
+
+          <!-- Step 0: About you -->
+          <div class="t-step t-step--active" id="t-step-0">
+            <p class="t-step-question">Let's start with you</p>
+            <p class="t-step-hint" id="t-intro-hint">You were invited to leave a testimonial. Fill in your details — all pre-filled fields can be edited.</p>
+            <div class="form-field">
+              <label class="form-label" for="t-name">Your name</label>
+              <input class="form-input" type="text" id="t-name" name="name" required maxlength="120" autocomplete="name">
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="t-title">Job title</label>
+              <input class="form-input" type="text" id="t-title" name="title" required maxlength="120" autocomplete="organization-title" placeholder="Owner, Manager, etc.">
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="t-company">Business name</label>
+              <input class="form-input" type="text" id="t-company" name="company" required maxlength="160" autocomplete="organization">
+            </div>
+            <input type="hidden" id="t-product" name="product">
+          </div>
+
+          <!-- Step 1: Communication -->
+          <div class="t-step" id="t-step-1">
+            <span class="t-step-badge t-step-badge--private">
+              <ion-icon name="lock-closed-outline"></ion-icon> Private — only Ruben sees this
+            </span>
+            <p class="t-step-question">How was communication throughout the project?</p>
+            <p class="t-step-hint">Think about response times, how questions were handled, and how clearly scope and progress were explained.</p>
+            <div class="t-stars-lg" id="t-comm-stars" role="radiogroup" aria-label="Communication rating" data-rating="0">
+              <button type="button" class="testimonial-star-btn" data-star="1" aria-label="1 — Poor" title="Poor">&#9733;</button>
+              <button type="button" class="testimonial-star-btn" data-star="2" aria-label="2 — Below average" title="Below average">&#9733;</button>
+              <button type="button" class="testimonial-star-btn" data-star="3" aria-label="3 — Average" title="Average">&#9733;</button>
+              <button type="button" class="testimonial-star-btn" data-star="4" aria-label="4 — Good" title="Good">&#9733;</button>
+              <button type="button" class="testimonial-star-btn" data-star="5" aria-label="5 — Excellent" title="Excellent">&#9733;</button>
+            </div>
+            <input type="hidden" id="t-comm-rating" value="">
+          </div>
+
+          <!-- Step 2: Timeline -->
+          <div class="t-step" id="t-step-2">
+            <span class="t-step-badge t-step-badge--private">
+              <ion-icon name="lock-closed-outline"></ion-icon> Private — only Ruben sees this
+            </span>
+            <p class="t-step-question">Did the project land on time?</p>
+            <p class="t-step-hint">Was delivery close to when you expected it, based on the timeline agreed at the start?</p>
+            <div class="t-choice-stack" id="t-timeline-group" role="group" aria-label="Timeline satisfaction">
+              <button type="button" class="t-choice-btn" data-choice="on_time">Yes — delivered on time</button>
+              <button type="button" class="t-choice-btn" data-choice="close">Close to it, minor delay</button>
+              <button type="button" class="t-choice-btn" data-choice="ran_over">It ran over significantly</button>
+            </div>
+            <input type="hidden" id="t-timeline" value="">
+          </div>
+
+          <!-- Step 3: Value vs price -->
+          <div class="t-step" id="t-step-3">
+            <span class="t-step-badge t-step-badge--private">
+              <ion-icon name="lock-closed-outline"></ion-icon> Private — only Ruben sees this
+            </span>
+            <p class="t-step-question">How does the price match the value?</p>
+            <p class="t-step-hint">Looking back at what was built and what you paid — does the investment feel right?</p>
+            <div class="t-choice-stack" id="t-value-group" role="group" aria-label="Value perception">
+              <button type="button" class="t-choice-btn" data-choice="worth_more">Worth even more than I paid</button>
+              <button type="button" class="t-choice-btn" data-choice="fair">Fair — exactly what it should cost</button>
+              <button type="button" class="t-choice-btn" data-choice="expected_less">Honestly expected to pay less</button>
+            </div>
+            <div class="t-price-row">
+              <span class="t-price-prefix">$</span>
+              <input class="form-input" type="number" id="t-value-amount" min="0" max="999999" placeholder="What feels like the right price? (optional)">
+            </div>
+          </div>
+
+          <!-- Step 4: Referral + source + private notes -->
+          <div class="t-step" id="t-step-4">
+            <span class="t-step-badge t-step-badge--private">
+              <ion-icon name="lock-closed-outline"></ion-icon> Private — only Ruben sees this
+            </span>
+            <p class="t-step-question">A few last private questions</p>
+            <p class="t-step-hint">None of this leaves the admin panel — it helps Ruben understand the full picture of working with you.</p>
+            <div class="form-field">
+              <span class="form-label">Would you refer CodeWithRuben to another business?</span>
+              <div class="t-choice-stack" id="t-referral-group" role="group" aria-label="Referral intent">
+                <button type="button" class="t-choice-btn" data-choice="yes">Yes — I already have or would</button>
+                <button type="button" class="t-choice-btn" data-choice="likely">Likely, in the right situation</button>
+                <button type="button" class="t-choice-btn" data-choice="not_yet">Not at this time</button>
+              </div>
+              <input type="hidden" id="t-referral" value="">
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="t-source">How did you hear about CodeWithRuben? <span class="t-optional">(optional)</span></label>
+              <select class="form-input" id="t-source">
+                <option value="">Select one…</option>
+                <option value="referral">Referral from someone I know</option>
+                <option value="google">Google search</option>
+                <option value="instagram">Instagram</option>
+                <option value="facebook">Facebook</option>
+                <option value="reached_out">Ruben reached out to me directly</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="t-private-notes">Anything else for Ruben only? <span class="t-optional">(optional)</span></label>
+              <textarea class="form-input" id="t-private-notes" rows="3" maxlength="2000" placeholder="What you'd change, what surprised you, or anything about the experience…"></textarea>
+            </div>
+          </div>
+
+          <!-- Step 5: Public testimonial -->
+          <div class="t-step" id="t-step-5">
+            <span class="t-step-badge t-step-badge--public">
+              <ion-icon name="eye-outline"></ion-icon> Published on the portfolio
+            </span>
+            <p class="t-step-question">Now the part that goes live</p>
+            <p class="t-step-hint">This is what visitors see on rubenjimenez.dev. Be as specific as you like — specific details make a stronger testimonial.</p>
+            <div class="form-field">
+              <span class="form-label" id="t-rating-legend">Overall rating</span>
+              <div class="t-stars-lg" id="t-stars" role="radiogroup" aria-labelledby="t-rating-legend" data-rating="0">
+                <button type="button" class="testimonial-star-btn" data-star="1" aria-label="1 star" title="1 star">&#9733;</button>
+                <button type="button" class="testimonial-star-btn" data-star="2" aria-label="2 stars" title="2 stars">&#9733;</button>
+                <button type="button" class="testimonial-star-btn" data-star="3" aria-label="3 stars" title="3 stars">&#9733;</button>
+                <button type="button" class="testimonial-star-btn" data-star="4" aria-label="4 stars" title="4 stars">&#9733;</button>
+                <button type="button" class="testimonial-star-btn" data-star="5" aria-label="5 stars" title="5 stars">&#9733;</button>
+              </div>
+              <input type="hidden" id="t-rating" value="" required>
+            </div>
+            <div class="form-field">
+              <label class="form-label" for="t-text">Your testimonial</label>
+              <textarea class="form-input" id="t-text" required rows="5" maxlength="5000" placeholder="What did we build for you? What worked well? Would you recommend working with Ruben?"></textarea>
+            </div>
+          </div>
+
+        </div><!-- end t-steps-viewport -->
+
+        <!-- Comm improvement (shown outside viewport to escape overflow:hidden) -->
+        <div class="t-improve-wrap" id="t-comm-improve-wrap">
+          <label class="form-label" for="t-comm-improve" style="display:flex;align-items:center;gap:6px;">
+            <ion-icon name="chatbubble-ellipses-outline" style="color:var(--orange-yellow-crayola);font-size:15px;flex-shrink:0;" aria-hidden="true"></ion-icon>
+            How could communication have been better?
+          </label>
+          <textarea class="form-input" id="t-comm-improve" rows="3" maxlength="1000" placeholder="Anything specific — response time, updates, clarity…"></textarea>
+        </div>
+
+        <!-- Inline error -->
+        <p class="t-wizard-error" id="t-form-error" hidden></p>
+
+        <!-- Navigation -->
+        <div class="t-wizard-nav" id="t-wizard-nav">
+          <button type="button" class="t-btn-back" id="t-nav-back" hidden>
+            <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+            Back
+          </button>
+          <button type="button" class="btn btn-primary t-btn-next" id="t-nav-next">
+            Continue
+            <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+      </div><!-- end t-wizard-card -->
+    </div><!-- end t-wizard -->
+
+    <!-- Thank you state -->
+    <div id="t-state-thanks" class="testimonial-standalone-card" hidden>
+      <div class="testimonial-success-icon" aria-hidden="true">
+        <ion-icon name="checkmark-outline"></ion-icon>
       </div>
-
-      <div class="form-field">
-        <label class="form-label" for="t-text">Your testimonial</label>
-        <textarea class="form-input" id="t-text" name="text" required rows="5" maxlength="5000" placeholder="What worked well? Would you recommend it?"></textarea>
-      </div>
-
-      <button type="submit" class="btn btn-primary" id="t-submit" style="margin-top:4px;">Submit testimonial</button>
-      <p class="testimonial-standalone-error" id="t-form-error" hidden></p>
-    </form>
-
-    <div id="testimonial-state-thanks" class="testimonial-standalone-card" hidden>
-      <div class="testimonial-success-icon" aria-hidden="true">&#10003;</div>
-      <h2 class="h3" style="margin:0 0 10px;">Thank you!</h2>
+      <h2 class="h3" style="margin:0 0 10px;">Thank You!</h2>
       <p class="testimonial-standalone-lead" style="margin-bottom:0;">
-        Your testimonial has been published. Ruben appreciates you taking the time.
+        Your testimonial has been published. Ruben appreciates you taking the time — it makes a real difference.
       </p>
       <p style="margin-top:20px;margin-bottom:0;">
-        <a href="./" class="testimonial-standalone-text-link">Back to portfolio</a>
+        <a href="./" class="testimonial-standalone-text-link">← Back to portfolio</a>
       </p>
     </div>
-  </div>
+
+  </div><!-- end shell -->
 
   <script src="./assets/js/config.js"></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import {
-      getFirestore,
-      doc,
-      getDoc,
-      collection,
-      runTransaction,
-      serverTimestamp,
+      getFirestore, doc, getDoc, collection, runTransaction, serverTimestamp,
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-    function show(el, on) {
-      if (!el) return;
-      el.hidden = !on;
-    }
+    /* ── helpers ── */
+    function show(el, on) { if (el) el.hidden = !on; }
 
-    const lead = document.getElementById('testimonial-lead');
-    const stateLoading = document.getElementById('testimonial-state-loading');
-    const stateError = document.getElementById('testimonial-state-error');
-    const errorText = document.getElementById('testimonial-error-text');
-    const form = document.getElementById('testimonial-form');
-    const stateThanks = document.getElementById('testimonial-state-thanks');
-    const formError = document.getElementById('t-form-error');
-    const submitBtn = document.getElementById('t-submit');
-    const ratingInput = document.getElementById('t-rating');
-    const starsEl = document.getElementById('t-stars');
+    /* ── element refs ── */
+    const stateLoading = document.getElementById('t-state-loading');
+    const stateError   = document.getElementById('t-state-error');
+    const errorText    = document.getElementById('t-error-text');
+    const wizard       = document.getElementById('t-wizard');
+    const stateThanks  = document.getElementById('t-state-thanks');
+    const formError    = document.getElementById('t-form-error');
+    const navBack      = document.getElementById('t-nav-back');
+    const navNext      = document.getElementById('t-nav-next');
+    const viewport     = document.getElementById('t-steps-viewport');
+    const progressFill = document.getElementById('t-progress-fill');
+    const stepCounter  = document.getElementById('t-step-counter');
+    const stepLabel    = document.getElementById('t-step-label');
 
-    const params = new URLSearchParams(window.location.search);
-    const tokenId = (params.get('token') || '').trim();
+    /* ── step config ── */
+    const STEP_LABELS = [
+      'About you',
+      'Communication',
+      'Timeline',
+      'Value',
+      'Private feedback',
+      'Your testimonial',
+    ];
+    const TOTAL = STEP_LABELS.length;
+    const steps = Array.from({ length: TOTAL }, (_, i) => document.getElementById('t-step-' + i));
+    let current = 0;
 
-    if (starsEl && ratingInput) {
-      starsEl.querySelectorAll('.testimonial-star-btn').forEach(function (btn) {
+    /* ── star rating setup ── */
+    function setupStars(containerId, hiddenId) {
+      const container = document.getElementById(containerId);
+      const hidden    = document.getElementById(hiddenId);
+      if (!container || !hidden) return;
+      container.querySelectorAll('.testimonial-star-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
           var n = parseInt(btn.getAttribute('data-star'), 10);
           if (n < 1 || n > 5) return;
-          ratingInput.value = String(n);
-          starsEl.setAttribute('data-rating', String(n));
+          hidden.value = String(n);
+          container.setAttribute('data-rating', String(n));
         });
       });
     }
 
-    function showError(msg) {
-      show(stateLoading, false);
-      show(form, false);
-      show(stateThanks, false);
-      errorText.textContent = msg;
-      show(stateError, true);
-      lead.textContent = 'This link is not valid or has expired.';
+    setupStars('t-comm-stars',  't-comm-rating');
+    setupStars('t-stars',       't-rating');
+
+    /* ── comm improvement reveal ── */
+    (function () {
+      var commContainer  = document.getElementById('t-comm-stars');
+      var commHidden     = document.getElementById('t-comm-rating');
+      var improveWrap    = document.getElementById('t-comm-improve-wrap');
+      if (!commContainer || !improveWrap) return;
+      commContainer.querySelectorAll('.testimonial-star-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var n = parseInt(btn.getAttribute('data-star'), 10);
+          if (n === 5) {
+            improveWrap.classList.remove('t-improve-wrap--visible');
+          } else {
+            improveWrap.classList.add('t-improve-wrap--visible');
+          }
+        });
+      });
+    })();
+
+    /* ── choice button setup ── */
+    function setupChoiceGroup(groupId, hiddenId) {
+      var group  = document.getElementById(groupId);
+      var hidden = hiddenId ? document.getElementById(hiddenId) : null;
+      if (!group) return;
+      group.querySelectorAll('.t-choice-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          group.querySelectorAll('.t-choice-btn').forEach(function (b) { b.classList.remove('is-selected'); });
+          btn.classList.add('is-selected');
+          if (hidden) hidden.value = btn.getAttribute('data-choice') || '';
+        });
+      });
     }
 
-    function showForm(prefill) {
-      show(stateLoading, false);
-      show(stateError, false);
-      show(stateThanks, false);
-      document.getElementById('t-name').value = prefill.name || '';
-      document.getElementById('t-product').value = prefill.product || '';
-      lead.textContent =
-        'You were invited to share feedback about ' +
-        (prefill.product ? '"' + prefill.product + '"' : 'Ruben\'s work') +
-        '. Fields from your invite are pre-filled; you can edit your name.';
-      show(form, true);
+    setupChoiceGroup('t-timeline-group', 't-timeline');
+    setupChoiceGroup('t-value-group',    null);
+    setupChoiceGroup('t-referral-group', 't-referral');
+
+    var brand = document.querySelector('.t-brand');
+
+    /* ── progress update ── */
+    function updateProgress() {
+      var pct = ((current + 1) / TOTAL) * 100;
+      progressFill.style.width = pct + '%';
+      stepCounter.textContent  = 'Step ' + (current + 1) + ' of ' + TOTAL;
+      stepLabel.textContent    = STEP_LABELS[current] || '';
+      show(navBack, current > 0);
+      navNext.innerHTML = current === TOTAL - 1
+        ? 'Submit <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>'
+        : 'Continue <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>';
+      // Show brand only on step 0
+      if (brand) brand.style.display = current === 0 ? '' : 'none';
+      // Show improve-wrap only on step 1 (comm) when rating < 5
+      var improveWrap  = document.getElementById('t-comm-improve-wrap');
+      var commRatingEl = document.getElementById('t-comm-rating');
+      if (improveWrap) {
+        var onCommStep  = current === 1;
+        var ratingVal   = commRatingEl ? parseInt(commRatingEl.value, 10) : 0;
+        var needReveal  = onCommStep && ratingVal > 0 && ratingVal < 5;
+        improveWrap.classList.toggle('t-improve-wrap--visible', needReveal);
+      }
     }
+
+    /* ── step transition ── */
+    function goTo(nextIdx, forward) {
+      if (nextIdx < 0 || nextIdx >= TOTAL) return;
+
+      var curr = steps[current];
+      var next = steps[nextIdx];
+      formError.hidden = true;
+
+      viewport.dataset.dir = forward ? 'fwd' : 'back';
+
+      curr.classList.add('t-step--exiting');
+      curr.classList.remove('t-step--active');
+
+      next.style.display = 'block';
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          next.classList.add('t-step--entering');
+          setTimeout(function () {
+            curr.classList.remove('t-step--exiting');
+            curr.style.display = '';
+            next.classList.remove('t-step--entering');
+            next.classList.add('t-step--active');
+            current = nextIdx;
+            updateProgress();
+            // Focus first focusable element in new step
+            var firstInput = next.querySelector('input:not([type=hidden]), textarea, select, .t-choice-btn, .testimonial-star-btn');
+            if (firstInput) firstInput.focus({ preventScroll: true });
+          }, 420);
+        });
+      });
+    }
+
+    /* ── per-step validation ── */
+    function validateStep(idx) {
+      switch (idx) {
+        case 0: {
+          var name    = document.getElementById('t-name').value.trim();
+          var title   = document.getElementById('t-title').value.trim();
+          var company = document.getElementById('t-company').value.trim();
+          if (!name)    return 'Please enter your name.';
+          if (!title)   return 'Please enter your job title.';
+          if (!company) return 'Please enter your business name.';
+          return null;
+        }
+        case 1: {
+          var commRating = document.getElementById('t-comm-rating').value;
+          if (!commRating) return 'Please rate the communication.';
+          return null;
+        }
+        case 2: {
+          var timeline = document.getElementById('t-timeline').value;
+          if (!timeline) return 'Please select a timeline option.';
+          return null;
+        }
+        case 3: {
+          var valueGroup   = document.getElementById('t-value-group');
+          var selected     = valueGroup && valueGroup.querySelector('.t-choice-btn.is-selected');
+          if (!selected) return 'Please select a value option.';
+          return null;
+        }
+        case 4: {
+          var referral = document.getElementById('t-referral').value;
+          if (!referral) return 'Please answer the referral question.';
+          return null;
+        }
+        case 5: {
+          var rating = document.getElementById('t-rating').value;
+          var text   = document.getElementById('t-text').value.trim();
+          if (!rating) return 'Please choose an overall star rating.';
+          if (!text)   return 'Please write your testimonial.';
+          return null;
+        }
+        default: return null;
+      }
+    }
+
+    /* ── next / submit ── */
+    navNext.addEventListener('click', async function () {
+      var err = validateStep(current);
+      if (err) {
+        formError.textContent = err;
+        formError.hidden = false;
+        return;
+      }
+
+      if (current < TOTAL - 1) {
+        goTo(current + 1, true);
+        return;
+      }
+
+      /* — submit — */
+      navNext.disabled = true;
+      navNext.textContent = 'Submitting…';
+
+      var name    = document.getElementById('t-name').value.trim();
+      var title   = document.getElementById('t-title').value.trim();
+      var company = document.getElementById('t-company').value.trim();
+      var product = document.getElementById('t-product').value.trim();
+      var text    = document.getElementById('t-text').value.trim();
+      var rating  = parseInt(document.getElementById('t-rating').value, 10);
+
+      var commRatingRaw    = document.getElementById('t-comm-rating').value;
+      var commRating       = commRatingRaw ? parseInt(commRatingRaw, 10) : null;
+      var commImprovement  = (document.getElementById('t-comm-improve') || {}).value || '';
+      commImprovement      = commImprovement.trim();
+      var timeline         = document.getElementById('t-timeline').value;
+      var referral      = document.getElementById('t-referral').value;
+      var source        = document.getElementById('t-source').value;
+      var privateNotes  = document.getElementById('t-private-notes').value.trim();
+
+      var valueGroup     = document.getElementById('t-value-group');
+      var selectedValue  = valueGroup ? valueGroup.querySelector('.t-choice-btn.is-selected') : null;
+      var valueSentiment = selectedValue ? (selectedValue.getAttribute('data-choice') || '') : '';
+      var valueAmountRaw = document.getElementById('t-value-amount').value;
+      var valueAmount    = valueAmountRaw ? parseInt(valueAmountRaw, 10) : null;
+
+      var payload = {
+        name: name, title: title, company: company, product: product,
+        text: text, rating: rating, token: tokenId,
+        createdAt: serverTimestamp(), avatar: 'avatar-1.png',
+        private: {
+          commRating: commRating, commImprovement: commImprovement || null, timeline: timeline,
+          valueSentiment: valueSentiment, valueAmount: valueAmount,
+          referral: referral, source: source, privateNotes: privateNotes,
+        },
+      };
+
+      try {
+        var tokenRef = doc(db, 'testimonialTokens', tokenId);
+        await runTransaction(db, async function (transaction) {
+          var tSnap = await transaction.get(tokenRef);
+          if (!tSnap.exists()) throw new Error('INVITE_GONE');
+          if (tSnap.data().used === true) throw new Error('ALREADY_USED');
+          var newRef = doc(collection(db, 'testimonials'));
+          transaction.set(newRef, payload);
+          transaction.update(tokenRef, { used: true });
+        });
+        show(wizard, false);
+        show(stateThanks, true);
+      } catch (e) {
+        console.error(e);
+        if (e && e.message === 'ALREADY_USED') {
+          formError.textContent = 'This link was already used. If you already submitted, thank you!';
+        } else if (e && e.message === 'INVITE_GONE') {
+          formError.textContent = 'This invite is no longer available.';
+        } else {
+          formError.textContent = e && e.code === 'permission-denied'
+            ? 'Permission denied — contact Ruben directly.'
+            : 'Something went wrong. Please try again.';
+        }
+        formError.hidden = false;
+        navNext.disabled = false;
+        updateProgress();
+      }
+    });
+
+    navBack.addEventListener('click', function () {
+      if (current > 0) goTo(current - 1, false);
+    });
+
+    /* ── token validation + init ── */
+    const params  = new URLSearchParams(window.location.search);
+    const tokenId = (params.get('token') || '').trim();
+    var db;
 
     async function main() {
       show(stateLoading, true);
-      lead.textContent = 'Checking your invite…';
 
       if (!tokenId || tokenId.length < 32) {
-        showError('Missing or invalid link. Open the full URL from your email.');
+        show(stateLoading, false);
+        errorText.textContent = 'Missing or invalid invite link. Open the full URL from your email.';
+        show(stateError, true);
         return;
       }
 
-      const cfg = window.FIREBASE_CONFIG;
+      var cfg = window.FIREBASE_CONFIG;
       if (!cfg) {
-        showError('Configuration error. Please try again later.');
+        show(stateLoading, false);
+        errorText.textContent = 'Configuration error. Please try again later.';
+        show(stateError, true);
         return;
       }
 
-      const app = initializeApp(cfg);
-      const db = getFirestore(app);
-      const tokenRef = doc(db, 'testimonialTokens', tokenId);
-      const snap = await getDoc(tokenRef);
+      var app  = initializeApp(cfg);
+      db       = getFirestore(app);
+      var snap = await getDoc(doc(db, 'testimonialTokens', tokenId));
 
       show(stateLoading, false);
 
       if (!snap.exists()) {
-        showError('We could not find this invite. It may have been mistyped or removed.');
+        errorText.textContent = 'We could not find this invite. It may have been removed or mistyped.';
+        show(stateError, true);
         return;
       }
 
-      const data = snap.data();
+      var data = snap.data();
       if (data.used === true) {
-        showError('This invite link was already used. Thank you — if you need to change something, contact Ruben directly.');
+        errorText.textContent = 'This invite link was already used. Thank you — if you need to edit anything, contact Ruben directly.';
+        show(stateError, true);
         return;
       }
 
-      showForm({ name: data.name || '', product: data.product || '' });
+      // Prefill
+      document.getElementById('t-name').value    = data.name    || '';
+      document.getElementById('t-product').value = data.product || '';
+      var hint = document.getElementById('t-intro-hint');
+      if (hint && data.product) {
+        hint.innerHTML = 'You were invited to leave a testimonial for <strong>' +
+          data.product.replace(/[<>]/g, '') + '</strong>. Fill in your details — pre-filled fields can be edited.';
+      }
 
-      form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        formError.hidden = true;
-        const name = document.getElementById('t-name').value.trim();
-        const title = document.getElementById('t-title').value.trim();
-        const company = document.getElementById('t-company').value.trim();
-        const product = document.getElementById('t-product').value.trim();
-        const text = document.getElementById('t-text').value.trim();
-        const rating = parseInt(ratingInput && ratingInput.value ? ratingInput.value : '', 10);
-
-        if (!name || !title || !company || !product || !text) {
-          formError.textContent = 'Please fill in all fields.';
-          formError.hidden = false;
-          return;
-        }
-        if (rating < 1 || rating > 5) {
-          formError.textContent = 'Please choose a star rating.';
-          formError.hidden = false;
-          return;
-        }
-
-        var payload = {
-          name: name,
-          title: title,
-          company: company,
-          product: product,
-          text: text,
-          rating: rating,
-          token: tokenId,
-          createdAt: serverTimestamp(),
-          avatar: 'avatar-1.png',
-        };
-
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Submitting…';
-
-        try {
-          await runTransaction(db, async function (transaction) {
-            const tSnap = await transaction.get(tokenRef);
-            if (!tSnap.exists()) {
-              throw new Error('INVITE_GONE');
-            }
-            const tData = tSnap.data();
-            if (tData.used === true) {
-              throw new Error('ALREADY_USED');
-            }
-            const newRef = doc(collection(db, 'testimonials'));
-            transaction.set(newRef, payload);
-            transaction.update(tokenRef, { used: true });
-          });
-
-          show(form, false);
-          show(stateThanks, true);
-          lead.textContent = 'All set!';
-        } catch (err) {
-          console.error(err);
-          if (err && err.message === 'ALREADY_USED') {
-            formError.textContent = 'This link was just used. Refresh the page if you already submitted.';
-          } else if (err && err.message === 'INVITE_GONE') {
-            formError.textContent = 'This invite is no longer available.';
-          } else {
-            formError.textContent =
-              err && err.code === 'permission-denied'
-                ? 'Permission denied. Deploy updated Firestore rules and try again.'
-                : 'Something went wrong. Please try again in a moment.';
-          }
-          formError.hidden = false;
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Submit testimonial';
-        }
-      });
+      updateProgress();
+      show(wizard, true);
     }
 
     main().catch(function (err) {
       console.error(err);
       show(stateLoading, false);
-      showError('Could not load this page. Check your connection and try again.');
+      errorText.textContent = 'Could not load this page. Check your connection and try again.';
+      show(stateError, true);
     });
   </script>
+
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
 </body>
 </html>

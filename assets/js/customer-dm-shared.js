@@ -43,6 +43,28 @@
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
 
+  /** Shorter timestamp for status pills on narrow screens */
+  function formatDMDateCompact(value) {
+    if (value == null || value === '') return '';
+    var date;
+    if (typeof value === 'number') {
+      date = new Date(value);
+    } else if (value && typeof value.toDate === 'function') {
+      date = value.toDate();
+    } else if (value && typeof value === 'object' && value.seconds != null) {
+      date = new Date(value.seconds * 1000);
+    } else {
+      date = new Date(value);
+    }
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+
   function normalizeDmAttachmentUrl(raw) {
     var url = String(raw || '').trim();
     if (!url) return '';
@@ -58,7 +80,7 @@
   }
 
   function renderContactFormSourceBadgeHtml(forAdmin) {
-    var label = forAdmin ? 'Contact form submission' : 'Sent via contact form';
+    var label = forAdmin ? 'Contact form submission' : 'Contact form';
     return (
       '<span class="dm-message-source-badge dm-message-source-badge--contact">' +
       '<ion-icon name="mail-outline" aria-hidden="true"></ion-icon>' +
@@ -222,7 +244,7 @@
   function renderStatusBadgesHtml(meta) {
     var status = String((meta && meta.status) || 'open').toLowerCase();
     var statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-    var updated = formatDMDate(meta && (meta.lastMessageAt || meta.updatedAt || meta.createdAt));
+    var updated = formatDMDateCompact(meta && (meta.lastMessageAt || meta.updatedAt || meta.createdAt));
     var unread = Number((meta && meta.unreadCustomer) || 0);
     return [
       '<span class="dm-customer-status-pill dm-customer-status-pill--' +
@@ -230,10 +252,14 @@
         '">Status: ' +
         escapeDmHtml(statusLabel) +
         '</span>',
-      updated ? '<span class="dm-customer-status-pill">Updated: ' + escapeDmHtml(updated) + '</span>' : '',
+      updated
+        ? '<span class="dm-customer-status-pill dm-customer-status-pill--updated">Updated ' +
+          escapeDmHtml(updated) +
+          '</span>'
+        : '',
       unread > 0
-        ? '<span class="dm-customer-status-pill">Unread: ' + unread + '</span>'
-        : '<span class="dm-customer-status-pill">Unread: 0</span>'
+        ? '<span class="dm-customer-status-pill dm-customer-status-pill--unread">Unread: ' + unread + '</span>'
+        : ''
     ].join('');
   }
 

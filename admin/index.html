@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=admin-mobile-tabbar-20260608">
+  <link rel="stylesheet" href="/assets/css/style.css?v=admin-dm-delete-modal-20260609">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -78,7 +78,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=cp-client-list-20260606">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=cp-sheet-compact-20260609">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3033,7 +3033,7 @@
                 </form>
 
                 <h4 class="h4 service-item-title" style="margin-top:24px;">Invites & submissions</h4>
-                <p class="admin-panel-lead" style="margin-top:4px;">Each row is one invite. Delete link removes the invite document (revoke unused links). Remove testimonial removes the customer’s published quote from the site; it does not reopen the invite.</p>
+                <p class="admin-panel-lead" style="margin-top:4px;">Each row is one invite. Use <strong>View questionnaire</strong> to read the full wizard (private answers + published quote). Delete link revokes unused invites. Remove testimonial unpublishes the quote from the site.</p>
                 <div class="blog-posts-list admin-testimonials-combined-list has-scrollbar" id="admin-testimonials-combined-list">
                   <div class="empty-item"><p>Open this tab while signed in to load invites and submissions.</p></div>
                 </div>
@@ -3549,6 +3549,26 @@
           </section>
         </div>
 
+        <!-- Delete DM conversation confirmation (admin Conversations drawer) -->
+        <div class="modal-container" id="delete-dm-conversation-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-dm-conversation-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-dm-conversation-confirm-title" aria-describedby="delete-dm-conversation-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-dm-conversation-confirm-title">Delete conversation?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-dm-conversation-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-dm-conversation-confirm-desc">This permanently deletes the conversation and all messages. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-dm-conversation-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-dm-conversation-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
         <!-- Delete blog post confirmation (admin blog management) -->
         <div class="modal-container" id="delete-blog-confirm-modal" aria-hidden="true">
           <div class="overlay" id="delete-blog-confirm-overlay"></div>
@@ -3687,6 +3707,21 @@
               <button type="button" class="btn btn-danger" id="delete-referral-confirm-delete">Delete</button>
             </div>
           </section>
+        </div>
+
+        <!-- Testimonial questionnaire detail (admin Testimonials tab) -->
+        <div id="admin-testimonial-detail" class="admin-testimonial-detail" aria-hidden="true">
+          <div class="admin-testimonial-detail__backdrop" id="admin-testimonial-detail-backdrop" tabindex="-1"></div>
+          <div class="admin-testimonial-detail__panel" role="dialog" aria-modal="true" aria-labelledby="admin-testimonial-detail-title" data-lenis-prevent>
+            <header class="admin-testimonial-detail__head">
+              <h4 id="admin-testimonial-detail-title" class="admin-testimonial-detail__title">Testimonial</h4>
+              <button type="button" class="admin-testimonial-detail__close" id="admin-testimonial-detail-close" aria-label="Close testimonial details">
+                <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+              </button>
+            </header>
+            <div class="admin-testimonial-detail__body has-scrollbar" id="admin-testimonial-detail-body"></div>
+            <footer class="admin-testimonial-detail__foot" id="admin-testimonial-detail-foot"></footer>
+          </div>
         </div>
 
         <!-- Delete testimonial invite / published quote (admin Testimonials tab) -->
@@ -5683,9 +5718,9 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/business-doc-shared.js?v=portal-maint-dm-20260605"></script>
   <script src="/assets/js/customer-dm-shared.js?v=portal-maint-dm-20260604"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
-  <script src="/assets/js/script.js?v=admin-inbox-init-20260608"></script>
+  <script src="/assets/js/script.js?v=admin-dm-delete-modal-20260609"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=cp-deposit-leads-20260530"></script>
+  <script src="/assets/js/agency-tools.js?v=cp-sheet-anchor-20260609"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
