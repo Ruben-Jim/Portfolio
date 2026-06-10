@@ -493,7 +493,6 @@ function isSlugUnique(slug, excludeId) {
 async function loadBlogPostsFromFirestore() {
   try {
     if (!window.db) {
-      console.log('Firebase not initialized, using default posts');
       blogPosts = defaultBlogPosts.map(function (p) { return normalizeBlogPostRecord(p, p.id); });
       return;
     }
@@ -537,7 +536,6 @@ async function loadBlogPostsFromFirestore() {
     }
 
     if (foundCollection) {
-      console.log('Loaded blog posts from Firestore collection:', foundCollection, 'count:', blogPosts.length);
     } else {
       console.warn('No blog documents found in Firestore collections:', collectionCandidates.join(', '));
     }
@@ -576,23 +574,15 @@ async function saveBlogPostToFirestore(postData) {
       throw error;
     }
 
-    console.log('Saving blog post to Firestore:', postData);
-    console.log('window.db:', window.db);
-    console.log('window.collection:', typeof window.collection);
-    console.log('window.addDoc:', typeof window.addDoc);
-    console.log('window.serverTimestamp:', typeof window.serverTimestamp);
     
     const cleanPost = normalizeBlogPostRecord(postData);
     const blogPostsRef = window.collection(window.db, 'blogPosts');
-    console.log('blogPostsRef created:', blogPostsRef);
     
     const docRef = await window.addDoc(blogPostsRef, {
       ...cleanPost,
       createdAt: window.serverTimestamp()
     });
 
-    console.log('Blog post saved successfully with ID:', docRef.id);
-    console.log('docRef:', docRef);
     
     if (!docRef || !docRef.id) {
       throw new Error('Failed to save post - no document ID returned from Firestore');
@@ -620,14 +610,12 @@ async function updateBlogPostInFirestore(postId, postData) {
     }
 
     const cleanPost = normalizeBlogPostRecord(postData, postId);
-    console.log('Updating blog post in Firestore:', postId, cleanPost);
     const postRef = window.doc(window.db, 'blogPosts', postId);
     await window.updateDoc(postRef, {
       ...cleanPost,
       updatedAt: window.serverTimestamp()
     });
 
-    console.log('Blog post updated successfully');
     return {
       ...cleanPost,
       id: postId
@@ -648,10 +636,8 @@ async function deleteBlogPostFromFirestore(postId) {
       return;
     }
 
-    console.log('Deleting blog post from Firestore:', postId);
     const postRef = window.doc(window.db, 'blogPosts', postId);
     await window.deleteDoc(postRef);
-    console.log('Blog post deleted successfully');
   } catch (error) {
     console.error('Error deleting blog post from Firestore:', error);
     console.error('Error details:', error.message, error.code);
@@ -698,7 +684,6 @@ function renderBlogPosts() {
     return;
   }
 
-  console.log('Rendering blog posts:', visiblePosts);
 
   visiblePosts.forEach(post => {
     const isPrivate = String(post.status || '').toLowerCase() === 'private';
@@ -750,7 +735,6 @@ function renderAdminBlogPosts() {
     return;
   }
 
-  console.log('Rendering blog posts in admin dashboard:', blogPosts);
 
   blogPosts.forEach(post => {
     const blogItem = document.createElement('li');
@@ -807,20 +791,16 @@ function attachBlogEventListeners() {
   // Get fresh references to blog items
   blogItems = document.querySelectorAll("[data-blog-item]");
   
-  console.log('Attaching event listeners to', blogItems.length, 'blog items');
   
   for (let i = 0; i < blogItems.length; i++) {
     blogItems[i].addEventListener("click", function (e) {
       e.preventDefault();
       
       const blogId = this.getAttribute('data-blog-id');
-      console.log('Clicked blog item with ID:', blogId);
-      console.log('Available blog posts:', blogPosts.map(p => ({ id: p.id, title: p.title })));
       
       const post = blogPosts.find(p => p.id === blogId);
       
       if (post) {
-        console.log('Found post:', post);
         const isPrivate = String(post.status || '').toLowerCase() === 'private';
         if (isPrivate && !isAdmin()) {
           openPrivatePostModal(post);
@@ -1434,15 +1414,12 @@ if (document.readyState === 'loading') {
 // Enhanced editor functionality with modern features
 class BlogEditor {
   constructor(container, isEdit = false) {
-    console.log('BlogEditor constructor called for', isEdit ? 'edit' : 'add', 'modal');
-    console.log('Container element:', container ? container.tagName + '.' + container.className : 'null');
 
     this.container = container;
     this.isEdit = isEdit;
 
     // Find the content-editor div within the modal
     const contentEditor = container.querySelector('.content-editor');
-    console.log('Content editor found:', !!contentEditor);
 
     if (contentEditor) {
       this.textarea = contentEditor.querySelector('.editor-textarea');
@@ -1455,7 +1432,6 @@ class BlogEditor {
       this.editorWrapper = contentEditor.querySelector('.editor-wrapper');
       this.previewContainer = contentEditor.querySelector('.editor-preview');
     } else {
-      console.log('Content editor not found, falling back to direct queries');
       this.textarea = container.querySelector('.editor-textarea');
       this.preview = container.querySelector('.preview-content');
       this.lineNumbers = container.querySelector('.editor-line-numbers');
@@ -1467,28 +1443,11 @@ class BlogEditor {
       this.previewContainer = container.querySelector('.editor-preview');
     }
 
-    console.log('BlogEditor elements found:', {
-      textarea: !!this.textarea,
-      preview: !!this.preview,
-      previewContainer: !!this.previewContainer,
-      editorWrapper: !!this.editorWrapper,
-      modeToggles: this.modeToggles.length,
-      charCount: !!this.charCount,
-      wordCount: !!this.wordCount,
-      lineCount: !!this.lineCount
-    });
 
     this.init();
   }
 
   init() {
-    console.log('BlogEditor: Initializing editor for', this.isEdit ? 'edit' : 'add', 'modal');
-    console.log('BlogEditor: Found elements:', {
-      textarea: !!this.textarea,
-      preview: !!this.preview,
-      previewContainer: !!this.previewContainer,
-      modeToggles: this.modeToggles.length
-    });
 
     this.setupToolbar();
     this.setupKeyboardShortcuts();
@@ -1531,20 +1490,16 @@ class BlogEditor {
       }
     });
 
-    console.log('BlogEditor: Initialization complete');
   }
 
   setupToolbar() {
     const buttons = this.container.querySelectorAll('.editor-btn');
-    console.log('BlogEditor: Found', buttons.length, 'toolbar buttons in', this.isEdit ? 'edit' : 'add', 'modal');
 
     buttons.forEach(btn => {
       const command = btn.getAttribute('data-command');
-      console.log('BlogEditor: Setting up button with command:', command);
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         const command = btn.getAttribute('data-command');
-        console.log('BlogEditor: Toolbar button clicked:', command);
 
         if (command === 'preview') {
           this.togglePreview();
@@ -1562,13 +1517,11 @@ class BlogEditor {
 
     // Setup dropdown menu items
     const dropdownItems = this.container.querySelectorAll('.dropdown-item');
-    console.log('BlogEditor: Found dropdown items:', dropdownItems.length);
     dropdownItems.forEach(item => {
       item.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         const command = item.getAttribute('data-command');
-        console.log('BlogEditor: Dropdown item clicked:', command);
         if (command && command.startsWith('h')) {
           this.insertHeading(command);
           this.closeAllDropdowns();
@@ -1602,12 +1555,10 @@ class BlogEditor {
   }
 
   executeCommand(command) {
-    console.log('BlogEditor: Executing command:', command);
     this.textarea.focus();
     const start = this.textarea.selectionStart;
     const end = this.textarea.selectionEnd;
     const selectedText = this.textarea.value.substring(start, end);
-    console.log('BlogEditor: Selected text length:', selectedText.length);
     let newText = '';
     let cursorPos = start;
 
@@ -1814,27 +1765,19 @@ class BlogEditor {
   }
 
   togglePreview() {
-    console.log('BlogEditor: Toggle preview called for', this.isEdit ? 'edit' : 'add', 'modal');
-    console.log('BlogEditor: previewContainer exists:', !!this.previewContainer);
     if (this.previewContainer) {
-      console.log('BlogEditor: previewContainer classList:', this.previewContainer.classList.toString());
     }
     const isPreview = this.previewContainer && this.previewContainer.classList.contains('show');
-    console.log('BlogEditor: Current preview state:', isPreview);
 
     if (isPreview) {
-      console.log('BlogEditor: Switching to write mode');
       this.setMode('write');
     } else {
-      console.log('BlogEditor: Switching to preview mode');
       this.setMode('preview');
     }
   }
 
   setMode(mode) {
-    console.log('BlogEditor: Setting mode to:', mode);
     if (mode === 'preview') {
-      console.log('BlogEditor: Activating preview mode');
       if (this.editorWrapper) {
         this.editorWrapper.style.display = 'none';
       }
@@ -1843,10 +1786,8 @@ class BlogEditor {
         this.previewContainer.classList.add('show');
         this.updatePreview();
       } else {
-        console.log('BlogEditor: Preview container not found');
       }
     } else {
-      console.log('BlogEditor: Activating write mode');
       if (this.editorWrapper) {
         this.editorWrapper.style.display = 'flex';
       }
@@ -1857,22 +1798,18 @@ class BlogEditor {
     }
 
     // Update toggle buttons
-    console.log('BlogEditor: Updating toggle buttons');
     this.modeToggles.forEach(toggle => {
       toggle.classList.toggle('active', toggle.getAttribute('data-mode') === mode);
     });
   }
 
   updatePreview() {
-    console.log('BlogEditor: Updating preview');
     if (!this.preview) {
-      console.log('BlogEditor: Preview element not found');
       return;
     }
 
     // Simple markdown-like preview (can be enhanced with a proper markdown parser)
     const content = this.textarea.value;
-    console.log('BlogEditor: Preview content length:', content.length);
     let html = content
       .replace(/\n/g, '<br>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -1928,25 +1865,18 @@ class BlogEditor {
 
 // Initialize editors when modals are opened
 function initializeEditor(modalId, isEdit = false) {
-  console.log('initializeEditor called for modal:', modalId, 'isEdit:', isEdit);
   const modal = document.getElementById(modalId);
   if (modal) {
-    console.log('Modal element found:', modalId, 'tagName:', modal.tagName, 'className:', modal.className);
     const editorKey = isEdit ? 'editEditor' : 'addEditor';
-    console.log('Using editor key:', editorKey);
 
     // Always reinitialize to ensure fresh state
     if (window[editorKey]) {
-      console.log('Cleaning up existing editor instance');
       delete window[editorKey];
     }
 
-    console.log('Creating new BlogEditor instance for modal:', modalId);
     window[editorKey] = new BlogEditor(modal, isEdit);
-    console.log('Editor initialized successfully:', editorKey);
     return window[editorKey];
   }
-  console.log('Modal element not found:', modalId);
   return null;
 }
 
@@ -1963,7 +1893,6 @@ function setupAddBlogFormListener() {
     return;
   }
   
-  console.log('Setting up add blog form listener');
   
   // Remove any existing listeners by cloning
   const newForm = form.cloneNode(true);
@@ -1982,7 +1911,6 @@ function setupAddBlogFormListener() {
     e.stopPropagation();
     e.stopImmediatePropagation();
     
-    console.log('Add blog form submitted - event caught!');
     
     // Security check: Only allow admin users to add blog posts
     if (!isAdmin()) {
@@ -1997,7 +1925,6 @@ function setupAddBlogFormListener() {
       return false;
     }
     
-    console.log('Submit button found:', submitBtn);
     const originalText = submitBtn.textContent;
     
     try {
@@ -2007,13 +1934,10 @@ function setupAddBlogFormListener() {
       
       const newPost = collectBlogPostFromForm(this, false);
       
-      console.log('New post data:', newPost);
       
       // Validate required fields
       // Save to Firestore
-      console.log('Saving to Firestore...');
       const savedPost = await saveBlogPostToFirestore(newPost);
-      console.log('Saved post:', savedPost);
       
       if (!savedPost || !savedPost.id) {
         throw new Error('Failed to save post - no ID returned from Firestore');
@@ -2062,7 +1986,6 @@ function setupAddBlogFormListener() {
     return false;
   });
   
-  console.log('Add blog form listener attached successfully');
 }
 
 // Make function globally accessible
@@ -2223,8 +2146,6 @@ function openEditBlogModal(postId) {
     return;
   }
 
-  console.log('Opening edit modal for post:', postId);
-  console.log('editBlogModal element:', editBlogModal);
 
   const post = blogPosts.find(p => p.id === postId);
   if (!post) {
@@ -2277,7 +2198,6 @@ function openEditBlogModal(postId) {
 
   // Open modal with forced visibility
   if (editBlogModal) {
-    console.log('Adding active class to edit modal');
     editBlogModal.classList.add('active');
     editBlogModal.style.display = 'flex';
     editBlogModal.style.visibility = 'visible';
@@ -2296,7 +2216,6 @@ function openEditBlogModal(postId) {
       editBlogOverlay.style.zIndex = '9998';
     }
 
-    console.log('Modal should be visible now');
   } else {
     console.error('editBlogModal not found!');
   }
@@ -2532,11 +2451,8 @@ function openAddBlogModal() {
     return;
   }
 
-  console.log('Opening add blog modal');
-  console.log('addBlogModal element:', addBlogModal);
 
   if (addBlogModal) {
-    console.log('Adding active class to add modal');
     addBlogModal.classList.add('active');
     addBlogModal.style.display = 'flex';
     addBlogModal.style.visibility = 'visible';
@@ -2555,7 +2471,6 @@ function openAddBlogModal() {
       addBlogOverlay.style.zIndex = '9998';
     }
 
-    console.log('Add modal should be visible now');
 
     // Re-attach form listener in case form was reset
     setTimeout(() => {
@@ -2602,14 +2517,12 @@ function openAddBlogModal() {
 function attachEditDeleteListeners() {
   // Security check: Only attach listeners if admin is logged in
   if (!isAdmin()) {
-    console.log('Skipping edit/delete listeners - admin not logged in');
     return;
   }
   
   // Only attach to buttons within admin dashboard
   const adminBlogPostsList = document.getElementById('admin-blog-posts-list');
   if (!adminBlogPostsList) {
-    console.log('Admin blog posts list not found - skipping edit/delete listeners');
     return;
   }
   
@@ -5051,7 +4964,6 @@ form.addEventListener("submit", async function(e) {
             ? { project_type: String(projectType), budget: String(budget) }
             : {})
         });
-        console.log('Message saved to Firestore');
       } catch (firestoreError) {
         console.error('Firestore save error:', firestoreError);
         // Don't fail the form submission if Firestore fails, just log it
@@ -5151,7 +5063,6 @@ async function saveMessageToFirestore(messageData) {
 
     const messagesRef = window.collection(window.db, 'messages');
     const docRef = await window.addDoc(messagesRef, messageData);
-    console.log('Message saved to Firestore successfully with ID:', docRef.id);
     return docRef;
   } catch (error) {
     console.error('Error saving message to Firestore:', error);
@@ -5198,7 +5109,6 @@ function trackEvent(eventName, eventLabel, eventValue) {
   
   // Also track project views
   if (eventName === 'project_view') {
-    console.log('Project viewed:', eventLabel);
   }
 }
 
@@ -6333,7 +6243,6 @@ window.addEventListener('load', function() {
         window.firebaseAuth = window.getAuth(app);
       }
 
-      console.log('Firebase initialized successfully | project:', firebaseConfig.projectId, '| host:', window.location.hostname);
 
       // Test Firestore connectivity
       testFirestoreConnection();
@@ -6344,26 +6253,6 @@ window.addEventListener('load', function() {
       return false;
     }
   }
-
-  // Debug: Log window resolution for testing responsive issues
-  function logWindowResolution() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    console.log(`🖥️ Window Resolution: ${width}px x ${height}px`);
-    
-    // Log which grid layout should be active
-    if (width >= 1250) {
-      console.log('📊 Grid Layout: 3 columns (large desktop)');
-    } else if (width >= 768) {
-      console.log('📊 Grid Layout: 2 columns (tablet/medium)');
-    } else {
-      console.log('📊 Grid Layout: 1 column (mobile)');
-    }
-  }
-
-  // Log on load and resize
-  window.addEventListener('load', logWindowResolution);
-  window.addEventListener('resize', logWindowResolution);
 
   // Initialize Firebase when DOM is ready (load portfolio from Realtime Database before admin session UI)
   document.addEventListener('DOMContentLoaded', async function() {
@@ -6434,9 +6323,6 @@ window.addEventListener('load', function() {
       setupAdminEventListeners();
       if (typeof updateAuthUI === 'function') updateAuthUI();
     }
-    
-    // Initial resolution log
-    logWindowResolution();
   });
 
   // Test Firestore connectivity (legacy contact submissions, blog, etc.)
@@ -6444,8 +6330,7 @@ window.addEventListener('load', function() {
     if (!window.db) return;
 
     try {
-      const testRef = window.collection(window.db, 'messages');
-      console.log('Firestore connection test: collection reference created');
+      window.collection(window.db, 'messages');
     } catch (error) {
       console.error('Firestore connection test failed:', error);
     }
@@ -7082,7 +6967,6 @@ window.addEventListener('load', function() {
       return;
     }
     window.rtdbGet(window.rtdbRef(window.rtdb, 'dm/meta')).then(function () {
-      console.log('Realtime Database connection test: reachable (read dm/meta)');
     }).catch(function (err) {
       console.error('Realtime Database connection test failed:', err);
     });
@@ -7313,7 +7197,6 @@ window.addEventListener('load', function() {
     const refreshBtn = document.getElementById('refresh-messages');
     if (refreshBtn) {
       refreshBtn.addEventListener('click', () => {
-        console.log('Manual refresh triggered');
         fetchMessages();
       });
     }
@@ -8058,7 +7941,6 @@ window.addEventListener('load', function() {
     }
     if (typeof renderAdminSnippets === 'function') renderAdminSnippets();
     
-    console.log('Admin logged out successfully');
   }
 
   // Handle filter button clicks (Firestore contact list only — DM filters live in the inbox sheet)
@@ -11410,7 +11292,6 @@ window.addEventListener('load', function() {
 
   // Fetch messages from Firestore
   function fetchMessages() {
-    console.log('fetchMessages called, db available:', !!window.db);
     if (!isAdmin()) {
       return;
     }
@@ -11431,7 +11312,6 @@ window.addEventListener('load', function() {
     }
 
     try {
-      console.log('Setting up Firestore listener...');
       if (typeof firestoreMessagesUnsubscribe === 'function') {
         try {
           firestoreMessagesUnsubscribe();
@@ -11445,15 +11325,12 @@ window.addEventListener('load', function() {
       const q = window.query(messagesRef, window.orderBy('timestamp', 'desc'));
 
       const snapUnsub = window.onSnapshot(q, (snapshot) => {
-        console.log('Firestore snapshot received, docs count:', snapshot.size);
         const messages = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
-          console.log('Message doc:', doc.id, data);
           messages.push({ id: doc.id, ...data });
         });
 
-        console.log('Total messages processed:', messages.length);
         lastContactFormMessages = messages.slice();
         if (typeof window.portfolioSyncAdminMessagesView === 'function') {
           window.portfolioSyncAdminMessagesView();
@@ -12219,12 +12096,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ─────────────────────────────────────────────
 function attachSubModalListeners() {
   if (window.subModalsAttached) {
-    console.log("Sub-modals already attached — skipping");
     return;
   }
   window.subModalsAttached = true;
 
-  console.log("Attaching sub-modal listeners now...");
 
   const subModals = [
     { trigger: 'open-sales-routine',   modal: 'sales-modal',    close: 'sales-close-btn',    overlay: 'sales-overlay'    },
@@ -12239,7 +12114,6 @@ function attachSubModalListeners() {
     const triggerEl = document.getElementById(config.trigger);
     const modalEl   = document.getElementById(config.modal);
 
-    console.log(`Checking ${config.trigger}: trigger found = ${!!triggerEl}, modal found = ${!!modalEl}`);
 
     if (!triggerEl || !modalEl) {
       console.warn(`Cannot attach listener for ${config.modal} — missing element`);
@@ -12247,7 +12121,6 @@ function attachSubModalListeners() {
     }
 
     triggerEl.addEventListener('click', () => {
-      console.log(`Trigger clicked: ${config.trigger} → opening ${config.modal}`);
       modalEl.classList.add('active');
       document.body.classList.add('modal-open');
       modalEl.querySelector('button')?.focus();
@@ -12273,7 +12146,6 @@ function attachSubModalListeners() {
     }
   });
 
-  console.log("Sub-modal listeners attached successfully");
 }
 
 // Template Outreach Scripts modal: exclusive accordion (one open details at a time)
