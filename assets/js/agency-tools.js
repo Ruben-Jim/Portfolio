@@ -662,6 +662,130 @@
     );
   }
 
+  function expandAllCpSectionsForHub(hubId) {
+    cpSectionCollapseByHub[hubId] = {
+      hub: true,
+      guide: true,
+      maintenance: true,
+      health: true,
+      pipeline: true,
+      docs: true,
+      portfolio: true
+    };
+  }
+
+  function buildNewClientHubPayload(clientName, title, leadId) {
+    return {
+      leadId: leadId || '',
+      clientName: String(clientName || '').trim(),
+      title: String(title || '').trim(),
+      repoUrl: '',
+      expoUrl: '',
+      firebaseProjectId: '',
+      businessDocId: '',
+      portfolioProjectId: '',
+      notes: '',
+      milestones: defaultMilestones(),
+      enabledModules: [],
+      showMaintenanceInPortal: true,
+      portalCanvasDocUrl: '',
+      portalCanvasDocTitle: 'Project guide',
+      updatedAt: ts()
+    };
+  }
+
+  function setNewClientFormError(message) {
+    var el = document.getElementById('new-client-form-error');
+    if (!el) return;
+    if (message) {
+      el.textContent = message;
+      el.hidden = false;
+    } else {
+      el.textContent = '';
+      el.hidden = true;
+    }
+  }
+
+  function openNewClientModal(options) {
+    options = options || {};
+    var leadEl = document.getElementById('new-client-lead-id');
+    var nameEl = document.getElementById('new-client-name');
+    var titleEl = document.getElementById('new-client-title');
+    if (!nameEl || !titleEl) return;
+    if (leadEl) leadEl.value = options.leadId || '';
+    nameEl.value = options.clientName || '';
+    titleEl.value = options.title || '';
+    setNewClientFormError('');
+    openModal('new-client-modal');
+    window.setTimeout(function () {
+      try {
+        if (options.clientName && !options.title) titleEl.focus();
+        else nameEl.focus();
+      } catch (fe) {}
+    }, 40);
+  }
+
+  async function createNewClientFromModal() {
+    if (!rtdbReady()) {
+      setNewClientFormError('Realtime Database is not ready. Try again in a moment.');
+      return;
+    }
+    var nameEl = document.getElementById('new-client-name');
+    var titleEl = document.getElementById('new-client-title');
+    var leadEl = document.getElementById('new-client-lead-id');
+    var createBtn = document.getElementById('new-client-create');
+    if (!nameEl || !titleEl) return;
+    var clientName = nameEl.value.trim();
+    var title = titleEl.value.trim();
+    var leadId = leadEl ? leadEl.value.trim() : '';
+    if (!clientName) {
+      setNewClientFormError('Enter a client name.');
+      nameEl.focus();
+      return;
+    }
+    if (!title) {
+      setNewClientFormError('Enter a project title.');
+      titleEl.focus();
+      return;
+    }
+    setNewClientFormError('');
+    if (createBtn) createBtn.disabled = true;
+    try {
+      var savedId = await saveProjectHubRecord('', buildNewClientHubPayload(clientName, title, leadId), false);
+      closeModal('new-client-modal');
+      if (savedId) {
+        expandAllCpSectionsForHub(savedId);
+        if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-projects');
+        openClientProjectWorkspace(savedId);
+        if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+      }
+    } catch (err) {
+      console.error(err);
+      setNewClientFormError((err && err.message) || 'Could not create client.');
+    } finally {
+      if (createBtn) createBtn.disabled = false;
+    }
+  }
+
+  function initNewClientModal() {
+    bindModalClose('new-client-modal', '.agency-modal-overlay', '.agency-modal-close');
+    var cancelBtn = document.getElementById('new-client-cancel');
+    if (cancelBtn && !cancelBtn.dataset.cpBound) {
+      cancelBtn.dataset.cpBound = '1';
+      cancelBtn.addEventListener('click', function () {
+        closeModal('new-client-modal');
+      });
+    }
+    var form = document.getElementById('new-client-form');
+    if (form && !form.dataset.cpBound) {
+      form.dataset.cpBound = '1';
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        createNewClientFromModal().catch(console.error);
+      });
+    }
+  }
+
   function openProjectHubEditor(id) {
     var p = agencyProjects.find(function (x) { return x.id === id; });
     if (!p && id !== 'new') return;
@@ -2279,6 +2403,24 @@
     return '';
   }
 
+  function renderCpShowMaintPortalHtml(hub) {
+    return (
+      '<div class="form-group form-group-checkbox-row">' +
+      '<label class="portfolio-project-checkbox">' +
+      '<input type="checkbox" id="cp-hub-show-maint-portal"' +
+      (hub.showMaintenanceInPortal !== false ? ' checked' : '') +
+      '>' +
+      '<span>Show maintenance &amp; support in client portal</span></label>' +
+      '<p class="form-hint">Uncheck when this client is not on maintenance billing — hides the plan upsell from their portal.</p></div>'
+    );
+  }
+
+  function readCpShowMaintPortalChecked(existing) {
+    var el = document.getElementById('cp-hub-show-maint-portal');
+    if (el) return !!el.checked;
+    return existing ? existing.showMaintenanceInPortal !== false : true;
+  }
+
   function renderCpHubPortalHtml(hub) {
     var token = hub && hub.portalToken;
     var expires = hub && hub.portalExpiresAt;
@@ -2452,13 +2594,6 @@
       '</div>' +
       '<div class="form-group"><label>Milestones</label><ul class="cp-milestones-list" id="cp-hub-milestones">' + renderCpMilestonesHtml(hub.milestones) + '</ul></div>' +
       '<div class="form-group form-group--full"><label>Client portal</label>' + renderCpHubPortalHtml(hub) + '</div>' +
-      '<div class="form-group form-group-checkbox-row">' +
-      '<label class="portfolio-project-checkbox">' +
-      '<input type="checkbox" id="cp-hub-show-maint-portal"' +
-      (hub.showMaintenanceInPortal !== false ? ' checked' : '') +
-      '>' +
-      '<span>Show maintenance &amp; support in client portal</span></label>' +
-      '<p class="form-hint">Uncheck when this client is not on maintenance billing — hides the plan upsell from their portal.</p></div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-hub">Save hub</button>' +
       '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-hub">Delete client</button>' +
@@ -2496,6 +2631,7 @@
     var maintBody = maint
       ? '<input type="hidden" id="cp-maint-id" value="' + esc(maint.id) + '">' +
         maintPendingBlock +
+        renderCpShowMaintPortalHtml(hub) +
         '<div class="cp-form-grid cp-form-grid--can-split">' +
         '<div class="form-group"><label for="cp-maint-hours-included">Hours included</label><input id="cp-maint-hours-included" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursIncluded)) + '"></div>' +
         '<div class="form-group"><label for="cp-maint-hours-used">Hours used</label><input id="cp-maint-hours-used" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursUsed)) + '"></div>' +
@@ -2507,7 +2643,11 @@
         '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint">Save maintenance</button>' +
         '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-maint">Delete maintenance</button>' +
         '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>'
-      : '<div class="cp-section-empty"><p>No maintenance record for this client yet.</p>' +
+      : renderCpShowMaintPortalHtml(hub) +
+        '<div class="cp-section-actions">' +
+        '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint-portal">Save portal visibility</button>' +
+        '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>' +
+        '<div class="cp-section-empty"><p>No maintenance record for this client yet.</p>' +
         '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="add-maint">Add maintenance →</button></div>';
 
     var healthWhen = health ? healthTimestampLabel(health.updatedAt) : '';
@@ -2664,7 +2804,7 @@
       notes: (document.getElementById('cp-hub-notes') || {}).value.trim(),
       milestones: root ? collectCpMilestonesFromWorkspace(root) : existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
-      showMaintenanceInPortal: !!(document.getElementById('cp-hub-show-maint-portal') || {}).checked,
+      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
       portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
       portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
       updatedAt: ts()
@@ -2716,6 +2856,43 @@
     }
   }
 
+  async function updateHubShowMaintenanceInPortal() {
+    var hubId = clientProjectsSelectedId;
+    if (!hubId || !rtdbReady()) return;
+    var existing = getHubById(hubId);
+    if (!existing || !document.getElementById('cp-hub-show-maint-portal')) return;
+    var payload = {
+      leadId: existing.leadId,
+      clientName: existing.clientName,
+      title: existing.title,
+      repoUrl: existing.repoUrl,
+      expoUrl: existing.expoUrl,
+      firebaseProjectId: existing.firebaseProjectId,
+      businessDocId: existing.businessDocId,
+      portfolioProjectId: existing.portfolioProjectId || '',
+      notes: existing.notes,
+      milestones: existing.milestones,
+      enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
+      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
+      portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
+      portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
+      updatedAt: ts()
+    };
+    await saveProjectHubRecord(hubId, payload, false);
+  }
+
+  async function saveMaintPortalVisibilityFromClientWorkspace() {
+    try {
+      await updateHubShowMaintenanceInPortal();
+      setCpFeedback('maint', 'Portal visibility saved.', false);
+      renderClientProjectsWorkspace();
+      if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+    } catch (err) {
+      console.error(err);
+      setCpFeedback('maint', (err && err.message) || 'Save failed.', true);
+    }
+  }
+
   async function saveMaintFromClientWorkspace() {
     if (!rtdbReady()) return;
     var maintId = (document.getElementById('cp-maint-id') || {}).value.trim();
@@ -2742,7 +2919,9 @@
     }
     try {
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
+      await updateHubShowMaintenanceInPortal();
       setCpFeedback('maint', 'Maintenance saved.', false);
+      renderClientProjectsWorkspace();
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
       console.error(err);
@@ -2961,7 +3140,7 @@
   function handleClientProjectsAction(action, el) {
     var hub = getHubById(clientProjectsSelectedId);
     if (action === 'new-client') {
-      openProjectHubEditor('new');
+      openNewClientModal();
       return;
     }
     if (action === 'toggle-section') {
@@ -3008,6 +3187,10 @@
     }
     if (action === 'save-maint') {
       saveMaintFromClientWorkspace().catch(console.error);
+      return;
+    }
+    if (action === 'save-maint-portal') {
+      saveMaintPortalVisibilityFromClientWorkspace().catch(console.error);
       return;
     }
     if (action === 'add-maint') {
@@ -3106,6 +3289,7 @@
   }
 
   function initClientProjects() {
+    initNewClientModal();
     setupCpClientDrawer();
 
     var search = document.getElementById('client-projects-search');
@@ -3121,7 +3305,7 @@
     if (addBtn && !addBtn.dataset.cpBound) {
       addBtn.dataset.cpBound = '1';
       addBtn.addEventListener('click', function () {
-        openProjectHubEditor('new');
+        openNewClientModal();
       });
     }
 
@@ -3174,12 +3358,13 @@
   // ——— Pipeline hook: open hub from lead ———
   function createHubFromLead(lead) {
     if (!lead) return;
-    openProjectHubEditor('new');
-    setTimeout(function () {
-      document.getElementById('hub-lead-id').value = lead.id || '';
-      document.getElementById('hub-client-name').value = lead.name || lead.company || '';
-      document.getElementById('hub-title').value = (lead.company || lead.name || '') + ' project';
-    }, 50);
+    var clientName = (lead.name || lead.company || '').trim();
+    var titleBase = (lead.company || lead.name || '').trim();
+    openNewClientModal({
+      leadId: lead.id || '',
+      clientName: clientName,
+      title: titleBase ? titleBase + ' project' : ''
+    });
   }
 
   function getOverviewSnapshot() {
@@ -3221,9 +3406,7 @@
         if (lead) createHubFromLead(lead);
       }
     },
-    openNewClient: function () {
-      openProjectHubEditor('new');
-    },
+    openNewClient: openNewClientModal,
     createHubFromLead: createHubFromLead,
     linkHubToPortfolio: linkHubToPortfolio
   };

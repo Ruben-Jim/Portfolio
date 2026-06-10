@@ -4579,7 +4579,7 @@ article {
 #delete-hub-confirm-modal.modal-container,
 #delete-referral-confirm-modal.modal-container,
 #delete-maint-confirm-modal.modal-container {
-  z-index: 10060;
+  z-index: 10085;
 }
 
 #delete-lead-confirm-modal.modal-container {
@@ -11304,6 +11304,12 @@ body.project-modal-open {
     background: hsla(240, 5%, 10%, 0.55);
   }
 
+  .cp-new-client-error {
+    margin: 4px 0 0;
+    font-size: var(--fs-6);
+    color: #e57373;
+  }
+
   .confirm-delete-modal__body {
     padding: 12px 16px;
   }
@@ -13892,6 +13898,9 @@ body.project-modal-open {
 #delete-document-confirm-modal,
 #delete-portfolio-confirm-modal,
 #delete-testimonial-confirm-modal,
+#delete-hub-confirm-modal,
+#delete-maint-confirm-modal,
+#delete-referral-confirm-modal,
 #delete-lead-confirm-modal {
   position: fixed;
   top: 0;
@@ -13931,8 +13940,14 @@ body.project-modal-open {
   z-index: 10075;
 }
 
+#delete-hub-confirm-modal,
+#delete-maint-confirm-modal,
+#delete-referral-confirm-modal {
+  z-index: 10085;
+}
+
 #delete-lead-confirm-modal {
-  z-index: 10080;
+  z-index: 10090;
 }
 
 #delete-contact-confirm-modal.active,

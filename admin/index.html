@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=admin-dm-delete-modal-20260609">
+  <link rel="stylesheet" href="/assets/css/style.css?v=delete-hub-above-drawer-20260609">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -5606,6 +5606,33 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     </div>
   </div>
 
+  <div class="agency-modal" id="new-client-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content">
+      <div class="agency-modal-header">
+        <h3>New client</h3>
+        <button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <form id="new-client-form" class="agency-modal-body">
+        <input type="hidden" id="new-client-lead-id" value="">
+        <p class="form-hint" style="margin-top:0;">Add a client name and project title. You&apos;ll set up links, docs, maintenance, and the rest in the workspace next.</p>
+        <div class="form-group">
+          <label for="new-client-name">Client name</label>
+          <input type="text" id="new-client-name" class="form-input" required autocomplete="organization" placeholder="Acme Co.">
+        </div>
+        <div class="form-group">
+          <label for="new-client-title">Project title</label>
+          <input type="text" id="new-client-title" class="form-input" required autocomplete="off" placeholder="e.g. Booking app rebuild">
+        </div>
+        <p id="new-client-form-error" class="cp-new-client-error" role="alert" hidden></p>
+      </form>
+      <div class="agency-modal-footer">
+        <button type="button" class="btn btn-secondary" id="new-client-cancel">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="new-client-create" form="new-client-form">Create &amp; open workspace</button>
+      </div>
+    </div>
+  </div>
+
   <div class="agency-modal" id="project-hub-editor-modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content agency-modal-content--wide">
@@ -5720,7 +5747,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/script.js?v=admin-dm-delete-modal-20260609"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=cp-sheet-anchor-20260609"></script>
+  <script src="/assets/js/agency-tools.js?v=cp-new-client-flow-20260609"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
