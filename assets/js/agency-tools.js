@@ -420,6 +420,7 @@
       id: id,
       leadId: String(row.leadId || ''),
       clientName: String(row.clientName || '').slice(0, 120),
+      clientEmail: String(row.clientEmail || '').slice(0, 180),
       title: String(row.title || '').slice(0, 200),
       repoUrl: String(row.repoUrl || '').slice(0, 500),
       expoUrl: String(row.expoUrl || '').slice(0, 500),
@@ -678,6 +679,7 @@
     return {
       leadId: leadId || '',
       clientName: String(clientName || '').trim(),
+      clientEmail: '',
       title: String(title || '').trim(),
       repoUrl: '',
       expoUrl: '',
@@ -808,6 +810,8 @@
     document.getElementById('hub-edit-id').value = p.id || '';
     document.getElementById('hub-lead-id').value = p.leadId || '';
     document.getElementById('hub-client-name').value = p.clientName || '';
+    var hubClientEmail = document.getElementById('hub-client-email');
+    if (hubClientEmail) hubClientEmail.value = p.clientEmail || '';
     document.getElementById('hub-title').value = p.title || '';
     document.getElementById('hub-repo-url').value = p.repoUrl || '';
     document.getElementById('hub-expo-url').value = p.expoUrl || '';
@@ -877,6 +881,7 @@
     var payload = {
       leadId: document.getElementById('hub-lead-id').value.trim(),
       clientName: document.getElementById('hub-client-name').value.trim(),
+      clientEmail: (document.getElementById('hub-client-email') || {}).value.trim(),
       title: document.getElementById('hub-title').value.trim(),
       repoUrl: document.getElementById('hub-repo-url').value.trim(),
       expoUrl: document.getElementById('hub-expo-url').value.trim(),
@@ -1067,13 +1072,66 @@
     out.innerHTML =
       '<span class="hub-portal-link-label">Client link' + (expiryLabel ? ' · expires ' + esc(expiryLabel) : ' (90 days)') + '</span>' +
       '<a class="hub-portal-link-url" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>' +
-      '<button type="button" class="btn btn-secondary btn-sm" id="hub-portal-copy-btn">Copy link</button>';
+      '<div class="cp-hub-portal-actions">' +
+      '<button type="button" class="btn btn-secondary btn-sm" id="hub-portal-copy-btn">Copy link</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" id="hub-portal-email-btn">Email portal link</button>' +
+      '</div>';
     var copyBtn = document.getElementById('hub-portal-copy-btn');
     if (copyBtn) {
       copyBtn.onclick = function () {
         navigator.clipboard.writeText(url).catch(function () {});
       };
     }
+    var emailBtn = document.getElementById('hub-portal-email-btn');
+    if (emailBtn) {
+      emailBtn.onclick = function () {
+        var hubId = (document.getElementById('hub-edit-id') || {}).value.trim();
+        var hub = hubId ? getHubById(hubId) : project;
+        if (hub) {
+          emailPortalLinkToClient(hub)
+            .then(function () {
+              alert('Portal link emailed to ' + (hub.clientEmail || 'client') + '.');
+            })
+            .catch(function (err) {
+              alert((err && err.message) || 'Could not send portal email.');
+            });
+        }
+      };
+    }
+  }
+
+  function isClientEmailValid(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim());
+  }
+
+  async function emailPortalLinkToClient(hub) {
+    if (!hub || !hub.portalToken) {
+      throw new Error('Generate a client portal link first.');
+    }
+    if (hub.portalExpiresAt && hub.portalExpiresAt < Date.now()) {
+      throw new Error('Portal link expired — regenerate the link first.');
+    }
+    var email = String(hub.clientEmail || '').trim();
+    if (!isClientEmailValid(email)) {
+      throw new Error('Add a valid client email on the hub, then save.');
+    }
+    if (typeof sendPortfolioEmailRequest !== 'function') {
+      throw new Error('Email API is not configured.');
+    }
+    var url = clientPortalUrl(hub.portalToken);
+    await sendPortfolioEmailRequest(
+      {
+        type: 'portal_invite',
+        payload: {
+          to_email: email,
+          to_name: String(hub.clientName || 'there').trim(),
+          portal_url: url,
+          project_title: String(hub.title || hub.clientName || 'your project').trim(),
+          from_name: 'Ruben Jimenez'
+        }
+      },
+      { requireAdmin: true }
+    );
   }
 
   async function generateClientPortalLink(projectId) {
@@ -2439,6 +2497,7 @@
       '<a class="hub-portal-link-url" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(url) + '</a>' +
       '<div class="cp-hub-portal-actions">' +
       '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="copy-portal">Copy link</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="email-portal">Email portal link</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="generate-portal">Regenerate link</button>' +
       '</div></div>'
     );
@@ -2584,6 +2643,7 @@
     var hubBody =
       '<div class="cp-form-grid cp-form-grid--can-split">' +
       '<div class="form-group"><label for="cp-hub-client">Client name</label><input id="cp-hub-client" class="form-input" type="text" value="' + esc(hub.clientName) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-client-email">Client email</label><input id="cp-hub-client-email" class="form-input" type="email" value="' + esc(hub.clientEmail || '') + '" placeholder="name@company.com" autocomplete="email"></div>' +
       '<div class="form-group"><label for="cp-hub-title">Project title</label><input id="cp-hub-title" class="form-input" type="text" value="' + esc(hub.title) + '"></div>' +
       '<div class="form-group"><label for="cp-hub-lead">Pipeline lead ID</label><input id="cp-hub-lead" class="form-input" type="text" value="' + esc(hub.leadId) + '" placeholder="Link to pipelineLeads id"></div>' +
       '<div class="form-group"><label for="cp-hub-firebase">Firebase project ID</label><input id="cp-hub-firebase" class="form-input" type="text" value="' + esc(hub.firebaseProjectId) + '"></div>' +
@@ -2795,6 +2855,7 @@
     var payload = {
       leadId: (document.getElementById('cp-hub-lead') || {}).value.trim(),
       clientName: (document.getElementById('cp-hub-client') || {}).value.trim(),
+      clientEmail: (document.getElementById('cp-hub-client-email') || {}).value.trim(),
       title: (document.getElementById('cp-hub-title') || {}).value.trim(),
       repoUrl: (document.getElementById('cp-hub-repo') || {}).value.trim(),
       expoUrl: (document.getElementById('cp-hub-expo') || {}).value.trim(),
@@ -2828,6 +2889,7 @@
     var payload = {
       leadId: existing.leadId,
       clientName: existing.clientName,
+      clientEmail: existing.clientEmail || '',
       title: existing.title,
       repoUrl: existing.repoUrl,
       expoUrl: existing.expoUrl,
@@ -2864,6 +2926,7 @@
     var payload = {
       leadId: existing.leadId,
       clientName: existing.clientName,
+      clientEmail: existing.clientEmail || '',
       title: existing.title,
       repoUrl: existing.repoUrl,
       expoUrl: existing.expoUrl,
@@ -3035,6 +3098,7 @@
     var payload = {
       leadId: existing.leadId,
       clientName: existing.clientName,
+      clientEmail: existing.clientEmail || '',
       title: existing.title,
       repoUrl: existing.repoUrl,
       expoUrl: existing.expoUrl,
@@ -3069,6 +3133,7 @@
     var payload = {
       leadId: existing.leadId,
       clientName: existing.clientName,
+      clientEmail: existing.clientEmail || '',
       title: existing.title,
       repoUrl: existing.repoUrl,
       expoUrl: existing.expoUrl,
@@ -3113,6 +3178,7 @@
     var payload = {
       leadId: existing.leadId,
       clientName: existing.clientName,
+      clientEmail: existing.clientEmail || '',
       title: existing.title,
       repoUrl: existing.repoUrl,
       expoUrl: existing.expoUrl,
@@ -3166,6 +3232,24 @@
       if (!hub || !hub.portalToken) return;
       navigator.clipboard.writeText(clientPortalUrl(hub.portalToken)).catch(function () {});
       setCpFeedback('hub', 'Portal link copied.', false);
+      return;
+    }
+    if (action === 'email-portal') {
+      if (!hub) return;
+      var emailHub = {
+        portalToken: hub.portalToken,
+        portalExpiresAt: hub.portalExpiresAt,
+        clientEmail: String((document.getElementById('cp-hub-client-email') || {}).value || hub.clientEmail || '').trim(),
+        clientName: String((document.getElementById('cp-hub-client') || {}).value || hub.clientName || '').trim(),
+        title: String((document.getElementById('cp-hub-title') || {}).value || hub.title || '').trim()
+      };
+      emailPortalLinkToClient(emailHub)
+        .then(function () {
+          setCpFeedback('hub', 'Portal link emailed to ' + emailHub.clientEmail + '.', false);
+        })
+        .catch(function (err) {
+          setCpFeedback('hub', (err && err.message) || 'Could not send portal email.', true);
+        });
       return;
     }
     if (action === 'delete-hub') {

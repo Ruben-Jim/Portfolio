@@ -1,8 +1,10 @@
 "use strict";
 
+const clientEmail = require("./email-templates-client.js");
+
 /**
- * HTML email bodies — colors and structure match templates/emails/*.html (portfolio reference).
- * Table layout + inline styles (light default) + <head> CSS for prefers-color-scheme: dark.
+ * HTML email bodies — admin notifications use gold-banner layout;
+ * client outbound emails use assets/js/email-templates-client.js (shared with browser preview).
  */
 
 /** Light palette (default inline styles) */
@@ -369,10 +371,17 @@ function messageBlock(messageText, variant, messageLabel) {
 /**
  * @param {"contact" | "hire"} variant
  */
-function emailHeader(variant, title) {
+function emailHeader(variant, title, subtitle) {
   const h = variant === "hire" ? T.hire : T.contact;
   const innerClass =
     variant === "hire" ? "email-header-inner--hire" : "email-header-inner--contact";
+  const subtitleRow = subtitle
+    ? '<p class="email-subtitle-text" style="margin:8px 0 0;font-size:13px;color:' +
+      T.subtitle +
+      ';font-weight:400;line-height:1.5;">' +
+      escapeHtml(subtitle) +
+      "</p>"
+    : "";
   return (
     '<tr><td style="padding:0;">' +
     '<table width="100%" cellpadding="0" cellspacing="0" role="presentation">' +
@@ -393,7 +402,9 @@ function emailHeader(variant, title) {
     h.title +
     ';text-transform:uppercase;letter-spacing:1px;line-height:1.3;">' +
     escapeHtml(title) +
-    "</h1></td></tr></table></td></tr></table></td></tr>"
+    "</h1>" +
+    subtitleRow +
+    "</td></tr></table></td></tr></table></td></tr>"
   );
 }
 
@@ -402,7 +413,7 @@ function emailHeader(variant, title) {
  * @param {string} innerRows
  * @param {string} footerNote
  */
-function wrapEmail(variant, title, innerRows, footerNote) {
+function wrapEmail(variant, title, innerRows, footerNote, headerSubtitle) {
   return (
     '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
     emailHeadStyles() +
@@ -431,7 +442,7 @@ function wrapEmail(variant, title, innerRows, footerNote) {
     ";overflow:hidden;box-shadow:" +
     T.cardShadow +
     ';">' +
-    emailHeader(variant, title) +
+    emailHeader(variant, title, headerSubtitle || "") +
     '<tr><td style="padding:40px 30px;">' +
     '<table width="100%" cellpadding="0" cellspacing="0">' +
     innerRows +
@@ -470,7 +481,8 @@ function buildContactNotificationHtml(p) {
     "contact",
     p.subject || "New Contact Form Submission",
     innerContact,
-    "Portfolio contact notification — Ruben Jimenez"
+    "Portfolio contact notification — Ruben Jimenez",
+    "New submission · rubenjimenez.dev"
   );
 }
 
@@ -495,366 +507,24 @@ function buildHireMeNotificationHtml(p) {
     "hire",
     p.subject || "New Hire Me Inquiry",
     innerHire,
-    "Portfolio Hire Me inquiry — Ruben Jimenez"
+    "Portfolio Hire Me inquiry — Ruben Jimenez",
+    "Hire inquiry · rubenjimenez.dev"
   );
 }
 
 /** Outbound invite: customer receives link to leave a testimonial. */
 function buildTestimonialRequestHtml(p) {
-  const accent = T.contact;
-  const name = escapeHtml(p.to_name || "there");
-  const product = escapeHtml(p.product || "my software");
-  const url = escapeHtml(p.testimonial_url || "");
-  const inner =
-    '<tr><td style="padding:0 0 20px 0;">' +
-    '<p class="email-info-value" style="margin:0;color:' +
-    T.infoValue +
-    ';font-size:16px;line-height:1.7;font-weight:400;">' +
-    "Hi " +
-    name +
-    ",</p></td></tr>" +
-    '<tr><td style="padding:0 0 20px 0;">' +
-    '<p class="email-info-value" style="margin:0;color:' +
-    T.infoValue +
-    ';font-size:16px;line-height:1.7;font-weight:400;">' +
-    "Ruben would love a short testimonial about <strong style=\"color:" +
-    accent.label +
-    ';\">' +
-    product +
-    "</strong>. It only takes a minute — your words help others decide if the product is a good fit.</p></td></tr>" +
-    '<tr><td style="padding:0 0 30px 0;text-align:center;">' +
-    '<a href="' +
-    url +
-    '" style="display:inline-block;padding:14px 28px;background:' +
-    accent.headerOuter +
-    ";color:#1a1a1a;font-weight:600;font-size:16px;text-decoration:none;border-radius:10px;letter-spacing:0.3px;\">" +
-    "Share your testimonial</a></td></tr>" +
-    '<tr><td style="padding:0 0 12px 0;">' +
-    '<p class="email-subtitle-text" style="margin:0;color:' +
-    T.subtitle +
-    ';font-size:13px;line-height:1.6;">' +
-    "If the button doesn’t work, copy and paste this link into your browser:</p></td></tr>" +
-    '<tr><td style="padding:0 0 30px 0;word-break:break-all;">' +
-    '<a href="' +
-    url +
-    '" style="color:' +
-    accent.link +
-    ';font-size:13px;">' +
-    url +
-    "</a></td></tr>" +
-    wrapPanel(
-      '<tr><td style="padding:0 0 15px 0;">' +
-      '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>' +
-      '<td style="vertical-align:top;width:90px;">' +
-      '<span style="color:' +
-      accent.label +
-      ';font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;">' +
-      "Product</span></td>" +
-      '<td style="vertical-align:top;padding-left:15px;">' +
-      '<span class="email-info-value" style="color:' +
-      T.infoValue +
-      ';font-size:16px;font-weight:500;line-height:1.6;word-break:break-word;">' +
-      product +
-      "</span></td></tr></table></td></tr>",
-      T.contact.panelBg,
-      "",
-      "email-panel--contact"
-    );
-  return wrapEmail(
-    "contact",
-    p.subject || "You’re invited to share a testimonial",
-    inner,
-    "Testimonial request — Ruben Jimenez"
-  );
+  return clientEmail.buildTestimonialRequestHtml(p);
 }
 
-const ADMIN_REPLY_LOGO = "https://rubenjimenez.dev/assets/images/logo/logo.jpg";
-const ADMIN_REPLY_SITE = "https://rubenjimenez.dev";
-
-/** Client email — modern light palette overrides */
-const ADMIN_REPLY = {
-  bodyBg: "#fffdf8",
-  cardShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
-  link: "#c9920a",
-  buttonBg: "#e6a800",
-  buttonText: "#1a1a1a",
-  footerText: "#888888",
-};
-
-function adminReplyHeadStyles() {
-  const d = T.dark;
-  return (
-    "<style>" +
-    ".email-admin-reply-card{box-shadow:" +
-    ADMIN_REPLY.cardShadow +
-    "!important;}" +
-    ".email-admin-reply-body{color:" +
-    T.infoValue +
-    "!important;}" +
-    ".email-admin-reply-subject{color:" +
-    T.subtitle +
-    "!important;}" +
-    ".email-admin-reply-footer-text{color:" +
-    ADMIN_REPLY.footerText +
-    "!important;}" +
-    "@media (prefers-color-scheme:dark){" +
-    ".email-admin-reply-outer,.email-admin-reply-outer>tbody>tr>td{background-color:" +
-    d.bodyBg +
-    "!important;}" +
-    ".email-admin-reply-card{background:" +
-    d.cardBg +
-    "!important;border-color:" +
-    d.cardBorder +
-    "!important;}" +
-    ".email-admin-reply-body{color:" +
-    d.infoValue +
-    "!important;}" +
-    ".email-admin-reply-subject{color:" +
-    d.subtitle +
-    "!important;}" +
-    ".email-admin-reply-footer{background:" +
-    d.footerBg +
-    "!important;border-top-color:" +
-    d.footerBorder +
-    "!important;}" +
-    ".email-admin-reply-footer-text{color:" +
-    d.footerText +
-    "!important;}" +
-    "}" +
-    "</style>"
-  );
+/** Outbound: client project portal link. */
+function buildPortalInviteHtml(p) {
+  return clientEmail.buildPortalInviteHtml(p);
 }
 
-/** @param {string} fromName @param {string} subject */
-function adminReplyHeader(fromName, subject) {
-  const subjectRow = subject
-    ? '<p class="email-admin-reply-subject" style="margin:6px 0 0;font-size:14px;font-weight:500;color:' +
-      T.subtitle +
-      ';line-height:1.4;">' +
-      escapeHtml(subject) +
-      "</p>"
-    : "";
-  return (
-    '<tr><td style="padding:0 0 28px 0;">' +
-    '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>' +
-    '<td width="56" style="width:56px;vertical-align:top;padding-top:2px;">' +
-    '<img src="' +
-    escapeHtml(ADMIN_REPLY_LOGO) +
-    '" alt="CodeWithRuben" width="48" height="48" style="display:block;border-radius:50%;object-fit:cover;" />' +
-    "</td>" +
-    '<td style="vertical-align:top;padding-left:14px;text-align:left;">' +
-    '<p style="margin:0;font-size:20px;font-weight:600;color:' +
-    T.infoValue +
-    ';line-height:1.3;">' +
-    escapeHtml(fromName) +
-    "</p>" +
-    '<p class="email-subtitle-text" style="margin:2px 0 0;font-size:13px;color:' +
-    T.subtitle +
-    ';">CodeWithRuben</p>' +
-    subjectRow +
-    "</td></tr></table></td></tr>"
-  );
-}
-
-/** @param {string} url */
-function adminReplyCtaButton(url) {
-  return (
-    '<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:20px 0 4px 0;">' +
-    '<tr><td align="center">' +
-    '<table role="presentation" cellpadding="0" cellspacing="0"><tr>' +
-    '<td align="center" bgcolor="' +
-    ADMIN_REPLY.buttonBg +
-    '" style="background-color:' +
-    ADMIN_REPLY.buttonBg +
-    ';border-radius:10px;">' +
-    '<a href="' +
-    escapeHtml(url) +
-    '" target="_blank" style="display:inline-block;padding:14px 28px;color:' +
-    ADMIN_REPLY.buttonText +
-    ';font-weight:600;font-size:15px;text-decoration:none;border-radius:10px;line-height:1.2;">' +
-    "Open your portal &#8594;" +
-    "</a></td></tr></table></td></tr></table>"
-  );
-}
-
-/** @param {string} line */
-function adminReplyLinkifyLine(line) {
-  const s = String(line || "");
-  const parts = [];
-  let last = 0;
-  const re = /https?:\/\/[^\s<]+[^\s<.,;:!?]/gi;
-  let m;
-  while ((m = re.exec(s)) !== null) {
-    parts.push(escapeHtml(s.slice(last, m.index)));
-    parts.push(
-      '<a href="' +
-        escapeHtml(m[0]) +
-        '" style="color:' +
-        ADMIN_REPLY.link +
-        ';text-decoration:underline;font-weight:500;">' +
-        escapeHtml(m[0]) +
-        "</a>"
-    );
-    last = m.index + m[0].length;
-  }
-  parts.push(escapeHtml(s.slice(last)));
-  return parts.join("");
-}
-
-/** @param {string} messageText */
-function buildAdminReplyMessageHtml(messageText) {
-  const lines = String(messageText || "").split(/\r?\n/);
-  const htmlParts = [];
-  const ctaUrls = [];
-  const seen = new Set();
-
-  function addCta(url) {
-    const u = String(url || "").trim();
-    if (!u || seen.has(u) || !/^https?:\/\//i.test(u)) return;
-    seen.add(u);
-    ctaUrls.push(u);
-  }
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const linkLine = line.match(/^Link:\s*(.+)$/i);
-    if (linkLine) {
-      const val = linkLine[1].trim();
-      if (!/^\(add your portal/i.test(val)) addCta(val);
-      continue;
-    }
-    const trimmed = line.trim();
-    if (/^https?:\/\/\S+$/i.test(trimmed)) {
-      addCta(trimmed);
-      continue;
-    }
-    htmlParts.push(adminReplyLinkifyLine(line));
-  }
-
-  const bodyHtml = htmlParts.join("<br />");
-  const buttons = ctaUrls.map(function (url) {
-    return adminReplyCtaButton(url);
-  }).join("");
-  return bodyHtml + buttons;
-}
-
-/** @param {string} messageHtml */
-function adminReplyMessageBlock(messageHtml) {
-  return (
-    '<tr><td style="padding:0;">' +
-    '<div class="email-admin-reply-body" style="color:' +
-    T.infoValue +
-    ';font-size:16px;line-height:1.6;font-weight:400;">' +
-    messageHtml +
-    "</div></td></tr>"
-  );
-}
-
-/** @param {string} raw — formatted in US Pacific (PST/PDT via America/Los_Angeles) */
-function formatEmailTimestamp(raw) {
-  if (!raw) return "";
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return String(raw);
-  try {
-    return d.toLocaleString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: "America/Los_Angeles",
-      timeZoneName: "short",
-    });
-  } catch (e) {
-    return d.toISOString();
-  }
-}
-
-/**
- * Client-facing admin reply — modern layout, CTA buttons, warm palette.
- * @param {string} innerRows
- * @param {string} footerNoteHtml — already escaped or safe HTML snippet
- * @param {string} preheader
- */
-function wrapAdminReplyEmail(innerRows, footerNoteHtml, preheader) {
-  const pre =
-    '<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;opacity:0;color:transparent;">' +
-    escapeHtml(preheader) +
-    "</div>";
-  return (
-    '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">' +
-    emailHeadStyles() +
-    adminReplyHeadStyles() +
-    "<title>Message from Ruben</title></head>" +
-    '<body class="email-body-outer email-admin-reply-outer" style="margin:0;padding:0;font-family:Poppins,-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;background-color:' +
-    ADMIN_REPLY.bodyBg +
-    ';color:' +
-    T.infoValue +
-    ';line-height:1.6;-webkit-font-smoothing:antialiased;">' +
-    pre +
-    '<table class="email-body-outer email-admin-reply-outer" role="presentation" cellpadding="0" cellspacing="0" width="100%" bgcolor="' +
-    ADMIN_REPLY.bodyBg +
-    '" style="padding:28px 16px;background-color:' +
-    ADMIN_REPLY.bodyBg +
-    ';">' +
-    '<tr><td align="center">' +
-    '<table class="email-card email-admin-reply-card" role="presentation" cellpadding="0" cellspacing="0" width="100%" bgcolor="' +
-    T.cardBg +
-    '" style="max-width:600px;background:' +
-    T.cardBg +
-    ";border:1px solid " +
-    T.cardBorder +
-    ";border-radius:" +
-    T.cardRadius +
-    ";overflow:hidden;box-shadow:" +
-    ADMIN_REPLY.cardShadow +
-    ';">' +
-    '<tr><td style="height:4px;background:' +
-    T.contact.headerOuter +
-    ';font-size:0;line-height:0;">&nbsp;</td></tr>' +
-    '<tr><td style="padding:36px 30px 28px 30px;">' +
-    '<table width="100%" cellpadding="0" cellspacing="0">' +
-    innerRows +
-    "</table></td></tr>" +
-    '<tr><td class="email-footer email-admin-reply-footer" style="padding:20px 30px;text-align:center;background:' +
-    T.footerBg +
-    ";border-top:1px solid " +
-    T.footerBorder +
-    ';">' +
-    '<p class="email-footer-text email-admin-reply-footer-text" style="margin:0;font-size:13px;color:' +
-    ADMIN_REPLY.footerText +
-    ';font-weight:400;line-height:1.5;">' +
-    footerNoteHtml +
-    "</p></td></tr></table></td></tr></table></body></html>"
-  );
-}
-
-/** @param {Record<string, string>} p */
+/** Client email sender / admin reply copy. */
 function buildAdminReplyHtml(p) {
-  const fromName = p.from_name || "Ruben Jimenez";
-  const subject = String(p.subject || "Message from Ruben").trim();
-  const message = String(p.message || "");
-  const preheader =
-    message
-      .split(/\r?\n/)
-      .map(function (line) {
-        return line.trim();
-      })
-      .find(Boolean) || subject;
-  const footerNoteHtml =
-    '<a href="' +
-    escapeHtml(ADMIN_REPLY_SITE) +
-    '" style="color:' +
-    ADMIN_REPLY.footerText +
-    ';text-decoration:none;font-weight:500;">rubenjimenez.dev</a>' +
-    ' <span style="color:' +
-    ADMIN_REPLY.footerText +
-    ';">&middot; Reply directly to this email</span>';
-  const inner =
-    adminReplyHeader(fromName, subject) +
-    adminReplyMessageBlock(buildAdminReplyMessageHtml(message));
-  return wrapAdminReplyEmail(inner, footerNoteHtml, preheader.slice(0, 140));
+  return clientEmail.buildAdminReplyHtml(p);
 }
 
 module.exports = {
@@ -862,5 +532,6 @@ module.exports = {
   buildContactNotificationHtml,
   buildHireMeNotificationHtml,
   buildTestimonialRequestHtml,
+  buildPortalInviteHtml,
   buildAdminReplyHtml,
 };

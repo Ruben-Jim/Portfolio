@@ -32,6 +32,7 @@ const {
   buildContactNotificationHtml,
   buildHireMeNotificationHtml,
   buildTestimonialRequestHtml,
+  buildPortalInviteHtml,
   buildAdminReplyHtml,
 } = require("./emailTemplates");
 
@@ -234,6 +235,47 @@ exports.sendPortfolioEmail = onRequest(
         });
         if (error) {
           console.error("Resend error (testimonial_request):", error);
+          res.status(502).json({ ok: false, error: error.message || "Resend failed" });
+          return;
+        }
+        res.status(200).json({ ok: true, id: data && data.id });
+        return;
+      }
+
+      if (type === "portal_invite") {
+        const adminUser = await verifyAdminBearer(req);
+        if (!adminUser) {
+          res.status(401).json({ ok: false, error: "Unauthorized" });
+          return;
+        }
+        const toEmail = String(payload.to_email || "").trim();
+        const toName = String(payload.to_name || "Customer").trim();
+        const portalUrl = String(payload.portal_url || "").trim();
+        const projectTitle = String(payload.project_title || "your project").trim();
+        const subject = String(payload.subject || "Your project portal is ready").trim();
+        if (!validEmail(toEmail) || !portalUrl || !/^https?:\/\//i.test(portalUrl)) {
+          res.status(400).json({
+            ok: false,
+            error: "Missing to_email or valid portal_url",
+          });
+          return;
+        }
+        const html = buildPortalInviteHtml({
+          to_name: toName,
+          to_email: toEmail,
+          portal_url: portalUrl,
+          project_title: projectTitle,
+          subject,
+          from_name: String(payload.from_name || "Ruben Jimenez"),
+        });
+        const { data, error } = await resend.emails.send({
+          from,
+          to: [toEmail],
+          subject,
+          html,
+        });
+        if (error) {
+          console.error("Resend error (portal_invite):", error);
           res.status(502).json({ ok: false, error: error.message || "Resend failed" });
           return;
         }

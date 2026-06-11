@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=delete-hub-above-drawer-20260609">
+  <link rel="stylesheet" href="/assets/css/style.css?v=about-intro-links-20260610">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -500,7 +500,7 @@
         <!-- Studio intro -->
         <section class="about-text">
           <p><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based dev studio</span> — we design, build, and ship <span class="highlight-accent">web and mobile apps</span> for local service businesses. Real software, not templates.</p>
-          <div class="bento-intro-links" style="margin-top: 16px;">
+          <div class="bento-intro-links">
             <a href="/portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Work</a>
             <a href="/services-pricing" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services</a>
             <a href="/contact" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Start a project</a>
@@ -5608,7 +5608,10 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
         <input type="hidden" id="hub-edit-id">
         <div class="form-row">
           <div class="form-group form-group-half"><label for="hub-client-name">Client name</label><input type="text" id="hub-client-name"></div>
-          <div class="form-group form-group-half"><label for="hub-title">Project title</label><input type="text" id="hub-title"></div>
+          <div class="form-group form-group-half"><label for="hub-client-email">Client email</label><input type="email" id="hub-client-email" placeholder="name@company.com" autocomplete="email"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-full"><label for="hub-title">Project title</label><input type="text" id="hub-title"></div>
         </div>
         <div class="form-group"><label for="hub-lead-id">Pipeline lead ID</label><input type="text" id="hub-lead-id" placeholder="Optional link to CRM lead"></div>
         <div class="form-row">
@@ -5709,9 +5712,10 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/business-doc-shared.js?v=portal-maint-dm-20260605"></script>
   <script src="/assets/js/customer-dm-shared.js?v=contact-dm-mobile-20260608"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
-  <script src="/assets/js/script.js?v=quiet-console-20260610"></script>
+  <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
+  <script src="/assets/js/script.js?v=client-email-preview-20260610"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=cp-new-client-flow-20260609"></script>
+  <script src="/assets/js/agency-tools.js?v=portal-email-invite-20260610"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

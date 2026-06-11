@@ -2148,23 +2148,43 @@ article.home .cwr-landing-testimonials .testimonials-item {
 .bento-intro-links {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 
 .bento-intro-link {
-  display: inline-block;
-  padding: 8px 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 38px;
+  padding: 10px 16px;
   background: hsla(45, 100%, 72%, 0.12);
   color: var(--orange-yellow-crayola);
   font-size: var(--fs-7);
   font-weight: var(--fw-500);
+  line-height: 1.2;
   border-radius: 8px;
-  transition: background 0.2s, transform 0.2s;
+  border: 1px solid transparent;
+  transition: background 0.2s, transform 0.2s, border-color 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.bento-intro-link:hover {
+.bento-intro-link:visited {
+  color: var(--orange-yellow-crayola);
+  background: hsla(45, 100%, 72%, 0.12);
+}
+
+.bento-intro-link:hover,
+.bento-intro-link:focus-visible {
   background: hsla(45, 100%, 72%, 0.2);
   transform: translateY(-1px);
+  border-color: hsla(45, 100%, 72%, 0.22);
+}
+
+.bento-intro-link:active {
+  transform: translateY(0);
+  background: hsla(45, 100%, 72%, 0.16);
 }
 
 .bento-latest-project { grid-area: latest; }
@@ -3442,9 +3462,19 @@ article {
   font-size: var(--fs-6);
   font-weight: var(--fw-300);
   line-height: 1.6;
+  margin-bottom: 32px;
 }
 
 .about-text p { margin-bottom: 15px; }
+
+article.about .bento-intro-links {
+  margin-top: 16px;
+  margin-bottom: 2px;
+}
+
+article.about .about-founder {
+  margin-top: 6px;
+}
 
 /* About section highlight colors */
 .highlight-primary,
@@ -3500,6 +3530,17 @@ article {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 10px;
+}
+
+@media (max-width: 579px) {
+  article.about .about-founder {
+    gap: 16px;
+  }
+
+  article.about .about-founder-avatar {
+    width: 64px;
+    height: 64px;
+  }
 }
 
 /* About — stat row */
@@ -22342,11 +22383,20 @@ body.admin-tab-reorder-active::before {
 }
 
 .admin-client-email-preview-box {
-  max-height: 220px;
+  max-height: 520px;
   overflow: auto;
   padding-right: 4px;
   color: var(--light-gray);
   line-height: 1.65;
+}
+
+.admin-client-email-preview-frame {
+  display: block;
+  width: 100%;
+  min-height: 420px;
+  border: 0;
+  background: #fffdf8;
+  border-radius: 12px;
 }
 
 .admin-client-email-message.has-scrollbar::-webkit-scrollbar-button,

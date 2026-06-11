@@ -7695,10 +7695,30 @@ window.addEventListener('load', function() {
     var vars = getAdminClientEmailVars(els);
     var subject = renderEmailTemplateText((els.subject && els.subject.value) || '', vars);
     var message = renderEmailTemplateText((els.message && els.message.value) || '', vars);
-    els.preview.innerHTML =
-      '<p><strong>Subject:</strong> ' + escHtml(subject) + '</p>' +
-      '<hr>' +
-      '<p>' + escHtml(message).replace(/\r?\n/g, '<br>') + '</p>';
+    var tpl = window.CwrClientEmailTemplates;
+    if (!tpl || typeof tpl.buildAdminReplyHtml !== 'function') {
+      els.preview.innerHTML =
+        '<p><strong>Subject:</strong> ' + escHtml(subject) + '</p>' +
+        '<hr>' +
+        '<p>' + escHtml(message).replace(/\r?\n/g, '<br>') + '</p>';
+      return;
+    }
+    var html = tpl.buildAdminReplyHtml({
+      from_name: 'Ruben Jimenez',
+      subject: subject,
+      message: message
+    });
+    els.preview.innerHTML = '';
+    var iframe = document.getElementById('admin-client-email-preview-frame');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'admin-client-email-preview-frame';
+      iframe.title = 'Email preview';
+      iframe.setAttribute('sandbox', 'allow-same-origin');
+      iframe.className = 'admin-client-email-preview-frame';
+      els.preview.appendChild(iframe);
+    }
+    iframe.srcdoc = html;
   }
 
   function saveAdminClientEmailDraft(els) {
