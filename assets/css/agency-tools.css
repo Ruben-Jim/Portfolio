@@ -1610,10 +1610,12 @@ body.cp-client-drawer-open {
   overflow: hidden;
 }
 
-body.cp-client-drawer-open article.admin[data-page="admin"],
-body.cp-client-drawer-open .main-content {
-  overflow: visible;
-  overflow-x: visible;
+@media (min-width: 768px) {
+  body.cp-client-drawer-open article.admin[data-page="admin"],
+  body.cp-client-drawer-open .main-content {
+    overflow: visible;
+    overflow-x: visible;
+  }
 }
 
 .cp-client-drawer-header {
@@ -2131,15 +2133,32 @@ body.cp-client-drawer-open .main-content {
     backdrop-filter: blur(3px);
   }
 
+  body.cp-client-drawer-open article.admin[data-page="admin"],
+  body.cp-client-drawer-open .main-content,
+  body.cp-client-drawer-open .client-projects-shell {
+    overflow: hidden;
+  }
+
+  body.cp-client-drawer-open .client-projects-shell.has-client-selected .cp-client-picker-list {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    margin: 0;
+    padding: 0;
+  }
+
   .cp-client-drawer {
+    --cp-sheet-max-vh: 90;
     top: auto;
     right: 0;
     left: 0;
     bottom: 0;
     width: 100%;
     max-width: 100%;
-    height: 100dvh;
-    max-height: 100dvh;
+    height: auto;
+    max-height: calc(var(--cp-sheet-max-vh) * 1vh);
+    max-height: calc(var(--cp-sheet-max-vh) * 1dvh);
     border-left: none;
     border-top: 1px solid hsla(45, 40%, 50%, 0.22);
     border-radius: 20px 20px 0 0;
@@ -2147,6 +2166,8 @@ body.cp-client-drawer-open .main-content {
     transform: translate3d(0, 100%, 0);
     transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
     padding-bottom: env(safe-area-inset-bottom, 0);
+    background: var(--eerie-black-1);
+    isolation: isolate;
   }
 
   .cp-client-drawer.is-open {
@@ -2168,8 +2189,11 @@ body.cp-client-drawer-open .main-content {
   }
 
   .cp-client-drawer-header {
-    padding: 2px 14px 10px;
+    position: relative;
+    z-index: 1;
+    padding: 2px 16px 12px;
     border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
+    background: var(--eerie-black-1);
   }
 
   .cp-client-drawer-header .h3 {
@@ -2177,6 +2201,7 @@ body.cp-client-drawer-open .main-content {
     font-size: var(--fs-3);
     font-weight: var(--fw-600);
     letter-spacing: 0.02em;
+    padding-right: 8px;
   }
 
   .cp-client-drawer-close {
@@ -2197,6 +2222,7 @@ body.cp-client-drawer-open .main-content {
 
   .cp-client-drawer-body {
     padding: 12px 16px max(16px, env(safe-area-inset-bottom));
+    background: var(--eerie-black-1);
   }
 
   .cp-client-drawer .cp-section--collapsible .cp-section-header {

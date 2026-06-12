@@ -8,10 +8,8 @@ All admin changes save to Firebase Realtime Database and take effect immediately
 
 ## How to Access Admin
 
-Navigate directly to `/admin` on your domain (or `localhost:8081/admin` during development).
+Navigate directly to `/admin` on your domain
 There is no link to admin from the public site — it is URL-only.
-
-If `EXPO_PUBLIC_ADMIN_SECRET` is configured in your environment, the app will prompt for the secret before allowing saves.
 
 ---
 
@@ -158,20 +156,6 @@ Tap **Delete** to permanently remove an order from the database. Use for test or
 
 ---
 
-### Push notifications
-
-**6. Enable order notifications**
-Click **Enable order notifications** (browser only). This:
-1. Requests browser notification permission.
-2. Registers a VAPID subscription via the `registerPushSubscription` Cloud Function.
-3. Stores the subscription in Firestore under `admin_push_subscriptions`.
-
-From that point on, every new order triggers a browser push notification — even when the admin tab is in the background or minimized.
-
-> **Prerequisites:** `EXPO_PUBLIC_VAPID_PUBLIC_KEY` must be set in your `.env`. The Cloud Functions must be deployed.
-
----
-
 ## Public Pages Reference
 
 These pages are fully CMS-driven. Every admin save reflects here immediately.
@@ -215,20 +199,6 @@ Customer-facing only. On submit:
 
 ---
 
-## Firebase Data Map
-
-| Database path | Tab that writes it |
-|---|---|
-| `content/site.lineup` | Lineups |
-| `content/site.youtube` | Content |
-| `content/site.linktree` | Content |
-| `content/site.instagram` | Content |
-| `content/site.productPrice` | Orders |
-| `orders/{orderId}` | Written by customers at Checkout |
-| `admin_push_subscriptions` (Firestore) | Orders (push enable) |
-| `lineup/players/{id}/` (Storage) | Lineups (player photos) |
-
----
 
 ## Quick Reference
 

@@ -2270,21 +2270,6 @@
     var overlay = document.getElementById('cp-client-drawer-overlay');
     if (!drawer || !overlay) return;
 
-    // On mobile: anchor sheet top to just below the selected picker card
-    if (window.innerWidth < 768) {
-      var selectedCard = document.querySelector('.cp-client-picker-card.is-selected');
-      var pickerShell  = document.querySelector('.client-projects-shell');
-      if (selectedCard) {
-        var cardRect = selectedCard.getBoundingClientRect();
-        var topOffset = Math.round(cardRect.bottom) + 6;
-        drawer.style.top       = topOffset + 'px';
-        drawer.style.maxHeight = 'calc(100dvh - ' + topOffset + 'px)';
-      }
-      // Lift the picker card above the overlay so it stays visible
-      if (pickerShell) pickerShell.style.position = 'relative';
-      if (pickerShell) pickerShell.style.zIndex   = '10062';
-    }
-
     drawer.hidden = false;
     drawer.setAttribute('aria-hidden', 'false');
     overlay.hidden = false;
@@ -2304,11 +2289,6 @@
     if (drawer) drawer.classList.remove('is-open');
     if (overlay) overlay.classList.remove('is-open');
     document.body.classList.remove('cp-client-drawer-open');
-
-    // Reset mobile inline positioning
-    if (drawer) { drawer.style.top = ''; drawer.style.maxHeight = ''; }
-    var pickerShell = document.querySelector('.client-projects-shell');
-    if (pickerShell) { pickerShell.style.position = ''; pickerShell.style.zIndex = ''; }
 
     function finishClose() {
       if (drawer) {
