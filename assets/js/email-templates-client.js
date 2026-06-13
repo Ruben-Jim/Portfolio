@@ -47,6 +47,7 @@
     buttonBg: "#e6a800",
     buttonText: "#1a1a1a",
     footerText: "#888888",
+    fieldsBg: "#f8f9fa",
   };
 
   function escapeHtml(s) {
@@ -78,6 +79,16 @@
       ".email-admin-reply-footer-text{color:" +
       ADMIN_REPLY.footerText +
       "!important;}" +
+      ".email-admin-notify-fields{background:" +
+      ADMIN_REPLY.fieldsBg +
+      "!important;}" +
+      ".email-admin-notify-message-box{background:" +
+      ADMIN_REPLY.fieldsBg +
+      "!important;color:" +
+      T.infoValue +
+      "!important;border-color:" +
+      T.cardBorder +
+      "!important;}" +
       "@media (prefers-color-scheme:dark){" +
       ".email-admin-reply-outer,.email-admin-reply-outer>tbody>tr>td{background-color:" +
       d.bodyBg +
@@ -100,6 +111,18 @@
       "!important;}" +
       ".email-admin-reply-footer-text{color:" +
       d.footerText +
+      "!important;}" +
+      ".email-admin-notify-fields{background:" +
+      d.footerBg +
+      "!important;border-color:" +
+      d.cardBorder +
+      "!important;}" +
+      ".email-admin-notify-message-box{background:" +
+      d.footerBg +
+      "!important;color:" +
+      d.infoValue +
+      "!important;border-color:" +
+      d.cardBorder +
       "!important;}" +
       "}" +
       "</style>"
@@ -316,6 +339,260 @@
     return (fromMsg || subject || "Message from Ruben").slice(0, 140);
   }
 
+  function adminNotificationHeader(title, subtitle) {
+    return (
+      '<tr><td style="padding:0 0 20px 0;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>' +
+      '<td width="56" style="width:56px;vertical-align:top;padding-top:2px;">' +
+      '<img src="' +
+      escapeHtml(ADMIN_REPLY_LOGO) +
+      '" alt="CodeWithRuben" width="48" height="48" style="display:block;border-radius:50%;object-fit:cover;" />' +
+      "</td>" +
+      '<td style="vertical-align:top;padding-left:14px;text-align:left;">' +
+      '<p style="margin:0;font-size:20px;font-weight:600;color:' +
+      T.infoValue +
+      ';line-height:1.3;">' +
+      escapeHtml(title) +
+      "</p>" +
+      '<p class="email-subtitle-text" style="margin:2px 0 0;font-size:13px;color:' +
+      T.subtitle +
+      ';">' +
+      escapeHtml(subtitle) +
+      "</p>" +
+      "</td></tr></table></td></tr>"
+    );
+  }
+
+  function adminNotificationPill(text) {
+    return (
+      '<tr><td style="padding:0 0 16px 0;">' +
+      '<span style="display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;color:' +
+      ADMIN_REPLY.link +
+      ";background:hsla(45,68%,56%,0.12);border:1px solid hsla(45,55%,52%,0.28);\">" +
+      escapeHtml(text) +
+      "</span></td></tr>"
+    );
+  }
+
+  function formatNotificationValue(raw) {
+    var trimmed = String(raw == null ? "" : raw).trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return (
+        '<a href="mailto:' +
+        escapeHtml(trimmed) +
+        '" style="color:' +
+        ADMIN_REPLY.link +
+        ';text-decoration:none;font-weight:500;">' +
+        escapeHtml(trimmed) +
+        "</a>"
+      );
+    }
+    if (/^https?:\/\//i.test(trimmed)) {
+      return (
+        '<a href="' +
+        escapeHtml(trimmed) +
+        '" style="color:' +
+        ADMIN_REPLY.link +
+        ';text-decoration:underline;font-weight:500;">' +
+        escapeHtml(trimmed) +
+        "</a>"
+      );
+    }
+    return escapeHtml(raw);
+  }
+
+  function formatNotificationDate(raw) {
+    if (!raw) return "—";
+    try {
+      var d = new Date(raw);
+      if (isNaN(d.getTime())) return escapeHtml(String(raw));
+      return escapeHtml(
+        d.toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })
+      );
+    } catch (e) {
+      return escapeHtml(String(raw));
+    }
+  }
+
+  function adminNotificationFieldRow(label, valueHtml, isFirst) {
+    var border = isFirst ? "" : "border-top:1px solid " + T.cardBorder + ";";
+    return (
+      '<tr><td style="padding:10px 0;' +
+      border +
+      '">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>' +
+      '<td width="88" style="width:88px;vertical-align:top;">' +
+      '<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:' +
+      ADMIN_REPLY.link +
+      ';">' +
+      escapeHtml(label) +
+      "</span></td>" +
+      '<td style="vertical-align:top;padding-left:12px;font-size:15px;line-height:1.5;color:' +
+      T.infoValue +
+      ';word-break:break-word;font-weight:400;">' +
+      valueHtml +
+      "</td></tr></table></td></tr>"
+    );
+  }
+
+  function adminNotificationFieldsPanel(rowsInner) {
+    return (
+      '<tr><td style="padding:0 0 20px 0;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0" role="presentation" class="email-admin-notify-fields" style="background:' +
+      ADMIN_REPLY.fieldsBg +
+      ";border:1px solid " +
+      T.cardBorder +
+      ';border-radius:12px;">' +
+      '<tr><td style="padding:14px 16px;">' +
+      '<table width="100%" cellpadding="0" cellspacing="0">' +
+      rowsInner +
+      "</table></td></tr></table></td></tr>"
+    );
+  }
+
+  function adminNotificationMessageBlock(message) {
+    return (
+      '<tr><td style="padding:0 0 16px 0;">' +
+      '<p style="margin:0 0 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:' +
+      ADMIN_REPLY.link +
+      ';">Message</p>' +
+      '<div class="email-admin-notify-message-box" style="padding:14px 16px;border-radius:10px;border:1px solid ' +
+      T.cardBorder +
+      ";background:" +
+      ADMIN_REPLY.fieldsBg +
+      ";font-size:15px;line-height:1.6;color:" +
+      T.infoValue +
+      ';white-space:pre-wrap;font-weight:400;">' +
+      escapeHtml(message) +
+      "</div></td></tr>"
+    );
+  }
+
+  function adminNotificationMetaHtml(website, userAgent) {
+    var parts = [];
+    if (website) {
+      parts.push(
+        '<span style="color:' +
+          T.subtitle +
+          ';">Website:</span> ' +
+          formatNotificationValue(website)
+      );
+    }
+    if (userAgent) {
+      var ua = String(userAgent).slice(0, 500);
+      parts.push(
+        '<span style="color:' +
+          T.subtitle +
+          ';">User agent:</span> ' +
+          escapeHtml(ua)
+      );
+    }
+    if (!parts.length) return "";
+    return (
+      '<tr><td style="padding:0 0 8px 0;">' +
+      '<p class="email-subtitle-text" style="margin:0;font-size:12px;color:' +
+      T.subtitle +
+      ';line-height:1.55;">' +
+      parts.join("<br />") +
+      "</p></td></tr>"
+    );
+  }
+
+  function adminNotificationFooter(note) {
+    return (
+      '<a href="' +
+      escapeHtml(ADMIN_REPLY_SITE) +
+      '" style="color:' +
+      ADMIN_REPLY.footerText +
+      ';text-decoration:none;font-weight:500;">rubenjimenez.dev</a>' +
+      ' <span style="color:' +
+      ADMIN_REPLY.footerText +
+      ';">&middot; ' +
+      escapeHtml(note) +
+      "</span>"
+    );
+  }
+
+  function buildReplyMailto(email, subject) {
+    var subj = "Re: " + String(subject || "Your inquiry").trim();
+    return (
+      "mailto:" +
+      encodeURIComponent(String(email || "").trim()) +
+      "?subject=" +
+      encodeURIComponent(subj)
+    );
+  }
+
+  /**
+   * Hybrid admin inbox notification — testimonial-style card + labeled form fields.
+   * @param {Record<string, string>} p
+   * @param {{ kind: "contact" | "hire_me", title: string, headerSubtitle: string, pill: string, footerNote: string }} config
+   */
+  function buildAdminFormNotificationHtml(p, config) {
+    var fullname = String(p.fullname || "").trim() || "Customer";
+    var email = String(p.email || "").trim();
+    var message = String(p.message || "");
+    var subject = String(p.subject || config.title || "Portfolio submission").trim();
+    var fieldRows =
+      adminNotificationFieldRow("Name", formatNotificationValue(fullname), true) +
+      adminNotificationFieldRow("Email", formatNotificationValue(email), false) +
+      adminNotificationFieldRow("Date", formatNotificationDate(p.timestamp), false);
+    if (config.kind === "hire_me") {
+      if (p.project_type) {
+        fieldRows += adminNotificationFieldRow(
+          "Project",
+          formatNotificationValue(p.project_type),
+          false
+        );
+      }
+      if (p.budget) {
+        fieldRows += adminNotificationFieldRow("Budget", formatNotificationValue(p.budget), false);
+      }
+    }
+    var inner =
+      adminNotificationHeader(config.title, config.headerSubtitle) +
+      adminNotificationPill(config.pill) +
+      adminNotificationFieldsPanel(fieldRows) +
+      adminNotificationMessageBlock(message) +
+      adminNotificationMetaHtml(p.website || "", p.user_agent || "") +
+      clientCtaButton(buildReplyMailto(email, subject), "Reply to " + fullname);
+    var preheader = String(message || subject)
+      .trim()
+      .slice(0, 140);
+    return wrapClientEmail(
+      inner,
+      adminNotificationFooter(config.footerNote),
+      preheader,
+      subject
+    );
+  }
+
+  function buildContactNotificationHtml(p) {
+    return buildAdminFormNotificationHtml(p, {
+      kind: "contact",
+      title: String(p.subject || "New Contact Form Submission").trim(),
+      headerSubtitle: "Portfolio · Contact form",
+      pill: "Contact form submission",
+      footerNote: "Portfolio contact notification",
+    });
+  }
+
+  function buildHireMeNotificationHtml(p) {
+    return buildAdminFormNotificationHtml(p, {
+      kind: "hire_me",
+      title: String(p.subject || "New Hire Me Inquiry").trim(),
+      headerSubtitle: "Portfolio · Hire inquiry",
+      pill: "Hire Me submission",
+      footerNote: "Portfolio Hire Me inquiry",
+    });
+  }
+
   function buildAdminReplyHtml(p) {
     var fromName = p.from_name || "Ruben Jimenez";
     var subject = String(p.subject || "Message from Ruben").trim();
@@ -378,6 +655,8 @@
 
   return {
     escapeHtml: escapeHtml,
+    buildContactNotificationHtml: buildContactNotificationHtml,
+    buildHireMeNotificationHtml: buildHireMeNotificationHtml,
     buildAdminReplyHtml: buildAdminReplyHtml,
     buildTestimonialRequestHtml: buildTestimonialRequestHtml,
     buildPortalInviteHtml: buildPortalInviteHtml,

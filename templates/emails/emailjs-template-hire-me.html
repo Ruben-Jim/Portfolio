@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Reference layout for Hire Me notifications. Live HTML is built in functions/emailTemplates.js (Resend). -->
+<!-- Reference layout for Hire Me notifications. Live HTML is built in functions/email-templates-client.js (hybrid admin layout). -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -25,9 +25,8 @@
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
         }
 
-        /* Slightly warmer header than contact template — Hire Me */
         .email-header {
-            background: linear-gradient(135deg, #ffb300 0%, #f57c00 100%);
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
             padding: 30px;
             text-align: center;
             position: relative;
@@ -37,7 +36,7 @@
             content: "";
             position: absolute;
             inset: 1px;
-            background: linear-gradient(135deg, #fffdf8 0%, #fff8e8 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             border-radius: 19px;
             z-index: 1;
         }
@@ -48,7 +47,7 @@
         }
 
         .email-title {
-            color: #e65100;
+            color: #ffc107;
             font-size: 24px;
             font-weight: 600;
             margin: 0 0 10px 0;
@@ -68,7 +67,7 @@
         }
 
         .contact-info {
-            background: linear-gradient(135deg, rgba(255, 179, 0, 0.12) 0%, rgba(245, 124, 0, 0.06) 100%);
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.05) 100%);
             border: 1px solid #e0e0e0;
             border-radius: 12px;
             padding: 25px;
@@ -86,7 +85,7 @@
         }
 
         .info-label {
-            color: #e65100;
+            color: #ffc107;
             font-weight: 600;
             font-size: 14px;
             min-width: 110px;
@@ -104,7 +103,7 @@
         }
 
         .message-section {
-            background: linear-gradient(135deg, rgba(255, 179, 0, 0.1) 0%, rgba(245, 124, 0, 0.05) 100%);
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 152, 0, 0.05) 100%);
             border: 1px solid #e0e0e0;
             border-radius: 12px;
             padding: 25px;
@@ -112,7 +111,7 @@
         }
 
         .message-label {
-            color: #e65100;
+            color: #ffc107;
             font-weight: 600;
             font-size: 14px;
             text-transform: uppercase;
@@ -142,7 +141,7 @@
         }
 
         .technical-info h4 {
-            color: #e65100;
+            color: #ffc107;
             font-size: 14px;
             margin: 0 0 15px 0;
             text-transform: uppercase;
@@ -189,7 +188,7 @@
 
         .cta-button {
             display: inline-block;
-            background: linear-gradient(135deg, #ffb300 0%, #f57c00 100%);
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
             color: #0a0a0a;
             padding: 12px 24px;
             border-radius: 8px;
@@ -233,7 +232,7 @@
         <div class="email-header">
             <div class="email-header-content">
                 <h1 class="email-title">New Hire Me Inquiry</h1>
-                <p class="email-subtitle">Portfolio · Hire Me · {{subject}}</p>
+                <p class="email-subtitle">Hire inquiry · rubenjimenez.dev</p>
             </div>
         </div>
 
@@ -262,7 +261,7 @@
             </div>
 
             <div class="message-section">
-                <span class="message-label">Full details:</span>
+                <span class="message-label">Message:</span>
                 <div class="message-content">{{message}}</div>
             </div>
 
@@ -276,10 +275,6 @@
                     <span class="tech-label">User Agent:</span>
                     <span class="tech-value">{{user_agent}}</span>
                 </div>
-                <div class="tech-row">
-                    <span class="tech-label">IP Address:</span>
-                    <span class="tech-value">{{ip_address}}</span>
-                </div>
             </div>
 
             <div style="text-align: center;">
@@ -291,8 +286,7 @@
 
         <div class="email-footer">
             <p class="footer-text">
-                This email was sent from your portfolio Hire Me form.<br>
-                Reply directly to discuss their project.
+                Portfolio Hire Me inquiry — Ruben Jimenez
             </p>
         </div>
     </div>

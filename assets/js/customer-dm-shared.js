@@ -79,11 +79,26 @@
     return !!(msg && String(msg.source || '').toLowerCase() === 'contact');
   }
 
+  function isHireMeFormMessage(msg) {
+    return !!(msg && String(msg.source || '').toLowerCase() === 'hire-me');
+  }
+
   function renderContactFormSourceBadgeHtml(forAdmin) {
     var label = forAdmin ? 'Contact form submission' : 'Contact form';
     return (
       '<span class="dm-message-source-badge dm-message-source-badge--contact">' +
       '<ion-icon name="mail-outline" aria-hidden="true"></ion-icon>' +
+      '<span>' +
+      escapeDmHtml(label) +
+      '</span></span>'
+    );
+  }
+
+  function renderHireMeSourceBadgeHtml(forAdmin) {
+    var label = forAdmin ? 'Hire Me inquiry' : 'Hire Me';
+    return (
+      '<span class="dm-message-source-badge dm-message-source-badge--hire-me">' +
+      '<ion-icon name="rocket-outline" aria-hidden="true"></ion-icon>' +
       '<span>' +
       escapeDmHtml(label) +
       '</span></span>'
@@ -178,6 +193,7 @@
       .map(function (msg) {
         var mine = msg.senderRole === 'customer';
         var fromContact = isContactFormMessage(msg);
+        var fromHireMe = isHireMeFormMessage(msg);
         var readBit =
           options.showReadState && !mine
             ? ' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')
@@ -186,11 +202,14 @@
           '<div class="dm-message-row ' +
           (mine ? 'dm-message-customer' : 'dm-message-admin') +
           (fromContact ? ' dm-message-row--from-contact-form' : '') +
+          (fromHireMe ? ' dm-message-row--from-hire-me' : '') +
           '">' +
           '<div class="dm-message-bubble' +
           (fromContact ? ' dm-message-bubble--from-contact-form' : '') +
+          (fromHireMe ? ' dm-message-bubble--from-hire-me' : '') +
           '">' +
           (fromContact ? renderContactFormSourceBadgeHtml(false) : '') +
+          (fromHireMe ? renderHireMeSourceBadgeHtml(false) : '') +
           '<p class="dm-message-author">' +
           (mine ? 'You' : 'Admin') +
           '</p>' +
@@ -210,17 +229,21 @@
   function renderAdminMessageRowHtml(msg) {
     var mine = msg.senderRole === 'admin';
     var fromContact = isContactFormMessage(msg);
+    var fromHireMe = isHireMeFormMessage(msg);
     var authorLabel = mine ? 'You' : 'Customer';
     var readBit = mine ? ' · Read: ' + (msg.readByCustomer ? 'yes' : 'no') : '';
     return (
       '<div class="dm-message-row ' +
       (mine ? 'dm-message-admin' : 'dm-message-customer') +
       (fromContact ? ' dm-message-row--from-contact-form' : '') +
+      (fromHireMe ? ' dm-message-row--from-hire-me' : '') +
       '">' +
       '<div class="dm-message-bubble' +
       (fromContact ? ' dm-message-bubble--from-contact-form' : '') +
+      (fromHireMe ? ' dm-message-bubble--from-hire-me' : '') +
       '">' +
       (fromContact ? renderContactFormSourceBadgeHtml(true) : '') +
+      (fromHireMe ? renderHireMeSourceBadgeHtml(true) : '') +
       '<p class="dm-message-author">' +
       escapeDmHtml(authorLabel) +
       '</p>' +
@@ -440,7 +463,9 @@
     renderDmMessageBodyHtml: renderDmMessageBodyHtml,
     renderDmAttachmentHtml: renderDmAttachmentHtml,
     isContactFormMessage: isContactFormMessage,
+    isHireMeFormMessage: isHireMeFormMessage,
     renderContactFormSourceBadgeHtml: renderContactFormSourceBadgeHtml,
+    renderHireMeSourceBadgeHtml: renderHireMeSourceBadgeHtml,
     renderAdminMessageRowHtml: renderAdminMessageRowHtml,
     rtdbThreadRef: rtdbThreadRef,
     rtdbMetaRef: rtdbMetaRef,

@@ -5004,33 +5004,37 @@ form.addEventListener("submit", async function(e) {
         // Don't fail the form submission if Firestore fails, just log it
       }
 
-      const hireArticle = form.closest('[data-page="hire-me"]');
-      const hireMain = hireArticle?.querySelector('[data-hire-main-content]');
-      const hirePanel = hireArticle?.querySelector('[data-hire-form-panel]');
-      const hireSubmitted = hireArticle?.querySelector('[data-hire-form-submitted]');
-      const showHireSuccessState = isHireMeForm && hireSubmitted && (hireMain || hirePanel);
-
-      if (showHireSuccessState) {
-        if (hireMain) hireMain.hidden = true;
-        else if (hirePanel) hirePanel.hidden = true;
-        hireSubmitted.classList.remove('hire-form-submitted--animating');
-        hireSubmitted.hidden = false;
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            hireSubmitted.classList.add('hire-form-submitted--animating');
-          });
-        });
-        hireSubmitted.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest'
-        });
-      } else {
-        showFormSuccess(formMessage, formError);
+      if (isHireMeForm) {
+        const inquiryData = {
+          name: String(fullname),
+          email: String(email).trim().toLowerCase(),
+          message: String(message),
+          project_type: String(projectType),
+          budget: String(budget),
+          submittedAt: new Date().toISOString()
+        };
+        try {
+          localStorage.setItem('hireme_inquiry', JSON.stringify(inquiryData));
+        } catch (storageErr) {}
+        try {
+          if (window.customerDmApi && typeof window.customerDmApi.sendFromHireMeForm === 'function') {
+            await window.customerDmApi.sendFromHireMeForm(inquiryData);
+          }
+        } catch (dmErr) {
+          console.error('Hire Me DM error:', dmErr);
+        }
+        if (typeof window.showHireMeSuccessCard === 'function') {
+          window.showHireMeSuccessCard();
+        }
+        form.reset();
+        formBtn.setAttribute('disabled', '');
+        return;
       }
 
+      showFormSuccess(formMessage, formError);
+
       form.reset();
-      formBtn.setAttribute("disabled", "");
+      formBtn.setAttribute('disabled', '');
     
   } catch (error) {
     console.error('Form submission error:', error);
@@ -5842,6 +5846,9 @@ function switchToPage(pageName, skipSave = false) {
         }
         if (typeof window.restoreCustomerPortalFromStorage === "function") {
           window.restoreCustomerPortalFromStorage();
+        }
+        if (typeof window.syncHireMeMessagesUI === "function") {
+          window.syncHireMeMessagesUI();
         }
       }
       if (typeof window.syncAdminMobileTabBarDock === 'function') {
@@ -12836,6 +12843,7 @@ document.addEventListener('DOMContentLoaded', function () {
   'use strict';
 
   const DM_CONTACT_GATE_KEY = 'customerDmContactGateCompleted';
+  const HIREME_INQUIRY_KEY = 'hireme_inquiry';
 
   function isCustomerDmContactGateCompleted() {
     return localStorage.getItem(DM_CONTACT_GATE_KEY) === '1';
@@ -14127,7 +14135,10 @@ document.addEventListener('DOMContentLoaded', function () {
       '<div class="dm-customer-sheet" role="dialog" aria-modal="true" aria-labelledby="dm-customer-sheet-title">',
       '<div class="dm-customer-sheet-grabber" id="dm-customer-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag up or down to resize" tabindex="0"></div>',
       '<div class="dm-customer-sheet-head">',
+      '<div class="dm-customer-sheet-head-title-row">',
       '<h3 id="dm-customer-sheet-title" class="dm-customer-sheet-title">Your conversation</h3>',
+      '<span id="dm-hireme-thread-badge" class="dm-hireme-thread-badge" hidden></span>',
+      '</div>',
       '<button type="button" class="dm-customer-commandk" id="dm-customer-commandk" aria-label="Open search shortcuts">',
       '<ion-icon name="search-outline" aria-hidden="true"></ion-icon>',
       '<span class="dm-customer-commandk-label">Search</span>',
@@ -14139,6 +14150,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '</div>',
       '<div id="dm-customer-status-badges" class="dm-customer-status-badges" role="status" aria-live="polite"></div>',
       '<section id="dm-customer-thread" class="dm-customer-thread">',
+      '<div id="dm-hireme-inquiry-summary" class="dm-hireme-inquiry-summary" hidden></div>',
       '<div id="dm-customer-message-list" class="dm-message-list has-scrollbar"></div>',
       '<form id="dm-customer-composer" class="dm-composer">',
       '<button type="button" id="dm-customer-attachment-toggle" class="dm-customer-attachment-toggle" aria-expanded="false" aria-controls="dm-customer-attachment-wrap" aria-label="Attach link">',
@@ -14504,6 +14516,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     if (sheetRoot) sheetRoot.hidden = false;
     openCustomerPortalSession();
+    syncHireMeMessagesUI();
     if (portal) portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -14541,6 +14554,99 @@ document.addEventListener('DOMContentLoaded', function () {
       portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     syncContactFormExistingDmLink();
+    syncHireMeMessagesUI();
+  }
+
+  function readHireMeInquiry() {
+    try {
+      var raw = localStorage.getItem(HIREME_INQUIRY_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || !parsed.message) return null;
+      return parsed;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function saveHireMeInquiryToStorage(data) {
+    try {
+      localStorage.setItem(HIREME_INQUIRY_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function renderHireMeInquirySummaryHtml(inquiry) {
+    var esc =
+      window.CustomerDmShared && window.CustomerDmShared.escapeDmHtml
+        ? window.CustomerDmShared.escapeDmHtml
+        : function (v) {
+            return String(v == null ? '' : v);
+          };
+    var projectType = inquiry.project_type || 'Not specified';
+    var budget = inquiry.budget || 'Not specified';
+    var message = inquiry.message || '';
+    var submitted = inquiry.submittedAt
+      ? new Date(inquiry.submittedAt).toLocaleString([], {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      : '';
+    return [
+      '<div class="dm-hireme-inquiry-summary-inner">',
+      '<div class="dm-hireme-inquiry-summary-head">',
+      '<span class="dm-conversation-source-badge dm-conversation-source-badge--hire-me">',
+      '<ion-icon name="rocket-outline" aria-hidden="true"></ion-icon>',
+      '<span>Hire Me inquiry</span>',
+      '</span>',
+      submitted
+        ? '<span class="dm-hireme-inquiry-summary-date">' + esc(submitted) + '</span>'
+        : '',
+      '</div>',
+      '<div class="dm-hireme-inquiry-summary-grid">',
+      '<div class="dm-hireme-inquiry-summary-field">',
+      '<span class="dm-hireme-inquiry-summary-label">Project type</span>',
+      '<span class="dm-hireme-inquiry-summary-value">' + esc(projectType) + '</span>',
+      '</div>',
+      '<div class="dm-hireme-inquiry-summary-field">',
+      '<span class="dm-hireme-inquiry-summary-label">Budget</span>',
+      '<span class="dm-hireme-inquiry-summary-value">' + esc(budget) + '</span>',
+      '</div>',
+      '</div>',
+      '<div class="dm-hireme-inquiry-summary-field dm-hireme-inquiry-summary-field--full">',
+      '<span class="dm-hireme-inquiry-summary-label">Your idea</span>',
+      '<p class="dm-hireme-inquiry-summary-message">' + esc(message).replace(/\n/g, '<br>') + '</p>',
+      '</div>',
+      '</div>'
+    ].join('');
+  }
+
+  function syncHireMeMessagesUI() {
+    var inquiry = readHireMeInquiry();
+    var summaryEl = document.getElementById('dm-hireme-inquiry-summary');
+    var badgeEl = document.getElementById('dm-hireme-thread-badge');
+    if (summaryEl) {
+      if (inquiry) {
+        summaryEl.innerHTML = renderHireMeInquirySummaryHtml(inquiry);
+        summaryEl.hidden = false;
+      } else {
+        summaryEl.innerHTML = '';
+        summaryEl.hidden = true;
+      }
+    }
+    if (badgeEl) {
+      if (inquiry) {
+        badgeEl.innerHTML =
+          '<span class="dm-conversation-source-badge dm-conversation-source-badge--hire-me">' +
+          '<ion-icon name="rocket-outline" aria-hidden="true"></ion-icon>' +
+          '<span>Hire Me</span></span>';
+        badgeEl.hidden = false;
+      } else {
+        badgeEl.innerHTML = '';
+        badgeEl.hidden = true;
+      }
+    }
   }
 
   function openCustomerPortalSession() {
@@ -14578,6 +14684,7 @@ document.addEventListener('DOMContentLoaded', function () {
     openCustomerPortalSession();
     startCustomerThread(DM.customerSession).catch(function () {});
     revealCustomerDmPortal();
+    syncHireMeMessagesUI();
     return true;
   }
 
@@ -14888,8 +14995,102 @@ document.addEventListener('DOMContentLoaded', function () {
       await startCustomerThread(DM.customerSession);
       showContactSuccessCard();
       return DM.customerSession;
+    },
+    sendFromHireMeForm: async function (payload) {
+      const name = String((payload && payload.name) || '').trim();
+      const email = String((payload && payload.email) || '').trim().toLowerCase();
+      const message = String((payload && payload.message) || '').trim();
+      const projectType = String((payload && payload.project_type) || 'Not specified').trim();
+      const budget = String((payload && payload.budget) || 'Not specified').trim();
+      if (!name || !email || !message) {
+        throw new Error('Please fill in all required fields');
+      }
+      if (!window.rtdb || !window.rtdbPush || !window.rtdbSet || !window.rtdbUpdate || !window.rtdbServerTimestamp) {
+        throw new Error('Realtime Database is not available.');
+      }
+      saveHireMeInquiryToStorage(
+        Object.assign({}, payload, {
+          name: name,
+          email: email,
+          message: message,
+          project_type: projectType,
+          budget: budget,
+          submittedAt: payload.submittedAt || new Date().toISOString()
+        })
+      );
+      const conv = await getOrCreateConversationForEmail(email, name);
+      DM.customerSession = {
+        conversationId: conv.id,
+        customerEmail: (conv.customerEmail || email).toLowerCase(),
+        customerName: conv.customerName || name
+      };
+      localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
+
+      const msgRef = window.rtdbPush(rtdbThreadRef(DM.customerSession.conversationId));
+      await window.rtdbSet(msgRef, {
+        senderRole: 'customer',
+        senderName: DM.customerSession.customerName || 'Customer',
+        body: message,
+        createdAt: window.rtdbServerTimestamp(),
+        readByAdmin: false,
+        readByCustomer: true,
+        type: 'text',
+        source: 'hire-me',
+        project_type: projectType,
+        budget: budget
+      });
+
+      const metaPatch = {
+        lastMessage: message,
+        lastMessageAt: window.rtdbServerTimestamp(),
+        status: 'open',
+        source: 'hire-me',
+        updatedAt: window.rtdbServerTimestamp()
+      };
+      if (window.rtdbIncrement) {
+        metaPatch.unreadAdmin = window.rtdbIncrement(1);
+      } else {
+        metaPatch.unreadAdmin = 1;
+      }
+      await window.rtdbUpdate(rtdbMetaRef(DM.customerSession.conversationId), metaPatch);
+      markCustomerDmContactGateCompleted();
+      await startCustomerThread(DM.customerSession);
+      syncHireMeMessagesUI();
+      return DM.customerSession;
     }
   };
+
+  function showHireMeSuccessCard() {
+    var hireArticle = document.querySelector('[data-page="hire-me"]');
+    if (!hireArticle) return;
+    var hireMain = hireArticle.querySelector('[data-hire-main-content]');
+    var hirePanel = hireArticle.querySelector('[data-hire-form-panel]');
+    var formSection = hireArticle.querySelector('[data-hireme-form-section]');
+    var successCard = hireArticle.querySelector('[data-hire-form-submitted]');
+    if (hireMain) hireMain.hidden = true;
+    else if (hirePanel) hirePanel.hidden = true;
+    if (formSection) formSection.style.display = 'none';
+    if (successCard) {
+      successCard.classList.remove('hire-form-submitted--animating');
+      successCard.hidden = false;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          successCard.classList.add('hire-form-submitted--animating');
+        });
+      });
+      successCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
+    var btn = document.getElementById('hire-success-go-messages');
+    if (btn && !btn._hireSuccessBound) {
+      btn._hireSuccessBound = true;
+      btn.addEventListener('click', function () {
+        if (typeof switchToPage === 'function') switchToPage('messages');
+      });
+    }
+  }
+
+  window.showHireMeSuccessCard = showHireMeSuccessCard;
+  window.syncHireMeMessagesUI = syncHireMeMessagesUI;
 
   function showContactSuccessCard() {
     var formSection = document.querySelector('[data-page="contact"] [data-contact-form-section]');

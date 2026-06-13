@@ -7444,6 +7444,14 @@ textarea.form-input::-webkit-resizer { display: none; }
   animation: hireSuccessFadeUp 0.56s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
 }
 
+.hire-form-submitted-btn {
+  margin: 14px auto 0;
+}
+
+.hire-form-submitted--animating .hire-form-submitted-btn {
+  animation: hireSuccessFadeUp 0.56s cubic-bezier(0.22, 1, 0.36, 1) 0.46s both;
+}
+
 .hire-form-submitted-text a {
   color: var(--orange-yellow-crayola);
   text-decoration: none;
@@ -7515,7 +7523,8 @@ textarea.form-input::-webkit-resizer { display: none; }
 
   .hire-form-submitted:not([hidden]) .hire-form-submitted-icon ion-icon,
   .hire-form-submitted:not([hidden]) .hire-form-submitted-title,
-  .hire-form-submitted:not([hidden]) .hire-form-submitted-text {
+  .hire-form-submitted:not([hidden]) .hire-form-submitted-text,
+  .hire-form-submitted:not([hidden]) .hire-form-submitted-btn {
     animation: none !important;
   }
 
@@ -15061,6 +15070,33 @@ body.project-modal-open {
   border: 1px solid hsla(45, 55%, 52%, 0.24);
 }
 
+.dm-conversation-source-badge--hire-me {
+  color: var(--orange-yellow-crayola);
+  background: hsla(45, 55%, 52%, 0.12);
+  border: 1px solid hsla(45, 55%, 52%, 0.24);
+}
+
+.dm-message-source-badge--hire-me {
+  color: var(--orange-yellow-crayola);
+  background: hsla(45, 55%, 52%, 0.12);
+  border: 1px solid hsla(45, 55%, 52%, 0.28);
+}
+
+.dm-message-bubble--from-hire-me {
+  border-style: dashed;
+  border-color: hsla(45, 55%, 52%, 0.42);
+  background: hsla(45, 28%, 18%, 0.35);
+}
+
+.dm-message-admin .dm-message-bubble--from-hire-me {
+  background: hsla(45, 28%, 18%, 0.35);
+  border-color: hsla(45, 55%, 52%, 0.42);
+}
+
+.dm-message-customer .dm-message-bubble--from-hire-me {
+  background: hsla(45, 24%, 16%, 0.5);
+}
+
 .dm-presence-row {
   display: flex;
   flex-wrap: wrap;
@@ -16006,6 +16042,91 @@ body.dm-customer-sheet-open:has(#customer-dm-portal.dm-portal--active) {
   padding: 0 16px 10px;
   border-bottom: 1px solid hsla(0, 0%, 100%, 0.08);
   flex-shrink: 0;
+}
+
+.dm-customer-sheet-head-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.dm-hireme-thread-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.dm-hireme-inquiry-summary {
+  margin: 0 12px 12px;
+  flex-shrink: 0;
+}
+
+.dm-hireme-inquiry-summary-inner {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid hsla(45, 55%, 52%, 0.24);
+  background: hsla(45, 24%, 16%, 0.45);
+}
+
+.dm-hireme-inquiry-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.dm-hireme-inquiry-summary-date {
+  font-size: 11px;
+  color: var(--light-gray-70);
+}
+
+.dm-hireme-inquiry-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dm-hireme-inquiry-summary-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dm-hireme-inquiry-summary-field--full {
+  margin-top: 2px;
+}
+
+.dm-hireme-inquiry-summary-label {
+  font-size: 10px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--light-gray-70);
+}
+
+.dm-hireme-inquiry-summary-value {
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+  color: var(--white-1);
+}
+
+.dm-hireme-inquiry-summary-message {
+  margin: 0;
+  font-size: var(--fs-7);
+  line-height: 1.6;
+  color: var(--light-gray);
+}
+
+@media (max-width: 520px) {
+  .dm-hireme-inquiry-summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dm-customer-commandk {
