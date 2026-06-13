@@ -1326,6 +1326,37 @@ if (cancelBlogBtn) {
   }
 }());
 
+// Services & Pricing — optional add-ons sheet/modal
+(function bindPricingAddonsModal() {
+  var modal = document.getElementById('pricing-addons-modal');
+  var trigger = document.getElementById('open-pricing-addons-modal');
+  if (!modal || !trigger) return;
+
+  var overlay = document.getElementById('pricing-addons-modal-overlay');
+  var closeBtn = document.getElementById('pricing-addons-modal-close');
+
+  function openPricingAddonsModal() {
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closePricingAddonsModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+    trigger.focus();
+  }
+
+  trigger.addEventListener('click', openPricingAddonsModal);
+  if (overlay) overlay.addEventListener('click', closePricingAddonsModal);
+  if (closeBtn) closeBtn.addEventListener('click', closePricingAddonsModal);
+
+  window.openPricingAddonsModal = openPricingAddonsModal;
+  window.closePricingAddonsModal = closePricingAddonsModal;
+}());
+
 // Prevent clicks inside modal content from closing the modal
 if (addBlogModal) {
   const addBlogContent = addBlogModal.querySelector('.add-blog-content');
@@ -5769,7 +5800,7 @@ function switchToPage(pageName, skipSave = false) {
   if (pageName !== 'messages' && typeof window.dismissCustomerDmSheetForNavigation === 'function') {
     window.dismissCustomerDmSheetForNavigation();
   }
-  if (pageName !== 'contact' && typeof window.dismissContactDmForNavigation === 'function') {
+  if (pageName !== 'messages' && typeof window.dismissContactDmForNavigation === 'function') {
     window.dismissContactDmForNavigation();
   }
   var wasHome = document.body.classList.contains('home-page-active');
@@ -5795,17 +5826,22 @@ function switchToPage(pageName, skipSave = false) {
         document.body.classList.add("home-page-active");
       }
       if (pageName === "contact") {
-        var contactPortal = document.getElementById("customer-dm-portal");
-        var contactArticleEl = pageArticles[i];
-        if (
-          contactPortal &&
-          contactPortal.classList.contains("dm-portal--active") &&
-          contactArticleEl
-        ) {
-          contactArticleEl.classList.add("contact-dm-active");
-        }
         if (typeof window.syncContactFormExistingDmLink === "function") {
           window.syncContactFormExistingDmLink();
+        }
+      }
+      if (pageName === "messages") {
+        var dmPortal = document.getElementById("customer-dm-portal");
+        var messagesArticleEl = pageArticles[i];
+        if (
+          dmPortal &&
+          dmPortal.classList.contains("dm-portal--active") &&
+          messagesArticleEl
+        ) {
+          messagesArticleEl.classList.add("messages-dm-active");
+        }
+        if (typeof window.restoreCustomerPortalFromStorage === "function") {
+          window.restoreCustomerPortalFromStorage();
         }
       }
       if (typeof window.syncAdminMobileTabBarDock === 'function') {
@@ -12164,9 +12200,13 @@ function attachSubModalListeners() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll(
-        '#sales-modal.active, #turnkey-modal.active, #endtoend-modal.active, #questions-modal.active, #components-modal.active, #template-scripts-modal.active'
+        '#sales-modal.active, #turnkey-modal.active, #endtoend-modal.active, #questions-modal.active, #components-modal.active, #template-scripts-modal.active, #pricing-addons-modal.active'
       ).forEach(modal => modal.classList.remove('active'));
       document.body.classList.remove('modal-open');
+      if (typeof window.closePricingAddonsModal === 'function') {
+        var pricingAddonsModal = document.getElementById('pricing-addons-modal');
+        if (pricingAddonsModal) pricingAddonsModal.setAttribute('aria-hidden', 'true');
+      }
     }
   });
 
@@ -14017,15 +14057,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function openContactFormExistingConversation() {
-    var saved = readStoredCustomerDmSession();
-    if (!saved) return;
-    DM.customerSession = saved;
-    if (window.CustomerDmShared && window.CustomerDmShared.writeCustomerSession) {
-      window.CustomerDmShared.writeCustomerSession(saved);
+    if (typeof switchToPage === 'function') {
+      switchToPage('messages');
     }
-    openCustomerPortalSession();
-    startCustomerThread(saved).catch(function () {});
-    revealCustomerDmPortal();
   }
 
   function injectContactFormExistingDmLink() {
@@ -14069,7 +14103,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function setupCustomerPortalUI() {
     if (!isCustomerDmPortalEnabled()) return;
     injectContactFormExistingDmLink();
-    const portalHost = document.querySelector('article[data-page="contact"]');
+    const portalHost = document.querySelector('article[data-page="messages"]');
     if (!portalHost || document.getElementById('customer-dm-portal')) return;
 
     const section = document.createElement('section');
@@ -14475,11 +14509,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function revealCustomerDmPortal(options) {
     options = options || {};
-    var contactArticle = document.querySelector('article[data-page="contact"]');
+    var messagesArticle = document.querySelector('article[data-page="messages"]');
     var portal = document.getElementById('customer-dm-portal');
-    var formSection = document.querySelector('[data-page="contact"] section.contact-form:not(#customer-dm-portal)');
-    if (formSection) formSection.style.display = 'none';
-    if (contactArticle) contactArticle.classList.add('contact-dm-active');
+    if (messagesArticle) messagesArticle.classList.add('messages-dm-active');
     if (portal) {
       portal.classList.remove('dm-portal-pending');
       portal.classList.add('dm-portal--active');
@@ -14789,6 +14821,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   window.syncContactFormExistingDmLink = syncContactFormExistingDmLink;
+  window.restoreCustomerPortalFromStorage = restoreCustomerPortalFromStorage;
 
   window.dismissCustomerDmSheetForNavigation = function () {
     const root = document.getElementById('dm-customer-sheet-root');
@@ -14797,8 +14830,8 @@ document.addEventListener('DOMContentLoaded', function () {
   };
 
   window.dismissContactDmForNavigation = function () {
-    var contactArticle = document.querySelector('article[data-page="contact"]');
-    if (contactArticle) contactArticle.classList.remove('contact-dm-active');
+    var messagesArticle = document.querySelector('article[data-page="messages"]');
+    if (messagesArticle) messagesArticle.classList.remove('messages-dm-active');
     document.body.classList.remove('dm-customer-sheet-open');
     var sheetRoot = document.getElementById('dm-customer-sheet-root');
     if (sheetRoot) {
@@ -14853,10 +14886,33 @@ document.addEventListener('DOMContentLoaded', function () {
       await window.rtdbUpdate(rtdbMetaRef(DM.customerSession.conversationId), metaPatch);
       markCustomerDmContactGateCompleted();
       await startCustomerThread(DM.customerSession);
-      revealCustomerDmPortal({ showSuccess: true });
+      showContactSuccessCard();
       return DM.customerSession;
     }
   };
+
+  function showContactSuccessCard() {
+    var formSection = document.querySelector('[data-page="contact"] [data-contact-form-section]');
+    var successCard = document.querySelector('[data-page="contact"] [data-contact-form-submitted]');
+    if (formSection) formSection.style.display = 'none';
+    if (successCard) {
+      successCard.classList.remove('contact-form-submitted--animating');
+      successCard.hidden = false;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          successCard.classList.add('contact-form-submitted--animating');
+        });
+      });
+      successCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
+    var btn = document.getElementById('contact-success-go-messages');
+    if (btn && !btn._contactSuccessBound) {
+      btn._contactSuccessBound = true;
+      btn.addEventListener('click', function () {
+        if (typeof switchToPage === 'function') switchToPage('messages');
+      });
+    }
+  }
 
   window.getDmInboxOverviewSnapshot = function () {
     return DM.conversations
