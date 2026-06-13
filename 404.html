@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=landing-offer-type-20260611">
+  <link rel="stylesheet" href="/assets/css/style.css?v=private-post-form-20260613">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -5494,20 +5494,23 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
       </div>
       <h3 class="h3" id="private-post-modal-title">Private Post</h3>
       <p class="private-post-hint">This post is password protected. Enter the password to read it.</p>
-      <div class="private-post-input-wrap">
-        <input
-          type="password"
-          id="private-post-password-input"
-          class="private-post-input"
-          placeholder="Enter password"
-          autocomplete="current-password"
-        >
-        <p class="private-post-error" id="private-post-error">Incorrect password. Please try again.</p>
-      </div>
-      <button class="btn btn-primary private-post-submit-btn" id="private-post-submit-btn">
-        <ion-icon name="lock-open-outline"></ion-icon>
-        Unlock
-      </button>
+      <form class="private-post-form" id="private-post-form" novalidate>
+        <div class="private-post-input-wrap">
+          <input
+            type="password"
+            id="private-post-password-input"
+            class="private-post-input"
+            placeholder="Enter password"
+            autocomplete="current-password"
+            required
+          >
+          <p class="private-post-error" id="private-post-error">Incorrect password. Please try again.</p>
+        </div>
+        <button type="submit" class="btn btn-primary private-post-submit-btn" id="private-post-submit-btn">
+          <ion-icon name="lock-open-outline"></ion-icon>
+          Unlock
+        </button>
+      </form>
     </div>
   </div>
 
@@ -5717,7 +5720,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/customer-dm-shared.js?v=contact-dm-mobile-20260608"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
-  <script src="/assets/js/script.js?v=landing-offer-type-20260611"></script>
+  <script src="/assets/js/script.js?v=private-post-form-20260613"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=cp-mobile-sheet-fix-20260611"></script>
   <script src="/assets/js/dm-migration.js"></script>

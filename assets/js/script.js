@@ -1305,15 +1305,19 @@ if (cancelBlogBtn) {
 
   const overlay = document.getElementById('private-post-overlay');
   const closeBtn = document.getElementById('private-post-close-btn');
-  const submitBtn = document.getElementById('private-post-submit-btn');
+  const form = document.getElementById('private-post-form');
   const input = document.getElementById('private-post-password-input');
 
   if (overlay) overlay.addEventListener('click', closePrivatePostModal);
   if (closeBtn) closeBtn.addEventListener('click', closePrivatePostModal);
-  if (submitBtn) submitBtn.addEventListener('click', submitPrivatePostPassword);
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      submitPrivatePostPassword();
+    });
+  }
   if (input) {
     input.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') submitPrivatePostPassword();
       if (e.key === 'Escape') closePrivatePostModal();
     });
     input.addEventListener('animationend', function () {
