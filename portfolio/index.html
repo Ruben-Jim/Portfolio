@@ -278,7 +278,7 @@
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link>Services & Pricing</button>
               </li>
-              <li class="navbar-item">
+              <li class="navbar-item" style="display: none;">
                 <button class="navbar-link" data-nav-link>What We Build</button>
               </li>
               <li class="navbar-item" style="display: none;">
@@ -478,7 +478,7 @@
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link>Services & Pricing</button>
               </li>
-              <li class="navbar-item">
+              <li class="navbar-item" style="display: none;">
                 <button class="navbar-link" data-nav-link>What We Build</button>
               </li>
               <li class="navbar-item" style="display: none;">
@@ -611,7 +611,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -1097,7 +1097,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -1268,7 +1268,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -1543,7 +1543,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -1580,7 +1580,7 @@
                   <li>Basic SEO + analytics so you know who visits</li>
                   <li>Launch + hosting setup support</li>
                 </ul>
-                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Starter Presence ($1,500)', 'Interested in the Starter Presence package at $1,500 (maintenance included for the first month only). I need a fast-launch site/store with core pages and setup support.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                <a href="#hire-me" class="enterprise-cta" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('starter'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                   Start at $1,500
                 </a>
@@ -1601,7 +1601,7 @@
                   <li>Login for you to review leads and update content</li>
                   <li>Automated notifications when someone inquires</li>
                 </ul>
-                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Growth Platform ($3,500)', 'Interested in the Growth Platform package at $3,500 (maintenance included for the first month only). I want stronger branding, up to 5 pages, and lead-focused setup.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                <a href="#hire-me" class="enterprise-cta" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('growth'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                   Choose $3,500 Package
                 </a>
@@ -1625,7 +1625,7 @@
                   <li>Job scheduling, assignments, and order history</li>
                   <li>Admin dashboard for quotes, bookings, and customers</li>
                 </ul>
-                <a href="#hire-me" class="enterprise-cta enterprise-cta--agency" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
+                <a href="#hire-me" class="enterprise-cta enterprise-cta--agency" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('agency'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
                   <ion-icon name="calendar-outline"></ion-icon>
                   Book Discovery Call
                 </a>
@@ -1651,7 +1651,7 @@
                   <li>Before/after portfolio with crew submit + owner approval</li>
                   <li>Multi-location customers, tax regions, tips, promo codes, iCal feeds</li>
                 </ul>
-                <a href="#hire-me" class="enterprise-cta enterprise-cta--agency" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
+                <a href="#hire-me" class="enterprise-cta enterprise-cta--agency" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('studio'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
                   <ion-icon name="calendar-outline"></ion-icon>
                   Start Discovery
                 </a>
@@ -1804,7 +1804,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -2286,7 +2286,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -2297,6 +2297,17 @@
 
         <div data-hire-main-content>
 
+        <div class="hire-package-banner" data-hire-package-banner hidden>
+          <div class="hire-package-banner-inner">
+            <div class="hire-package-banner-head">
+              <span class="hire-package-banner-pill" data-hire-package-pill></span>
+              <span class="hire-package-banner-price" data-hire-package-price></span>
+            </div>
+            <p class="hire-package-banner-note" data-hire-package-note></p>
+            <button type="button" class="hire-package-banner-clear" data-hire-package-clear>View all options</button>
+          </div>
+        </div>
+
         <!-- Hero -->
         <div class="hire-hero">
           <div class="hire-hero-badge">
@@ -2304,9 +2315,9 @@
           </div>
           <div class="hire-hero-label">
             <span class="avail-dot"></span>
-            Open to new projects
+            <span data-hire-hero-label-text>Open to new projects</span>
           </div>
-          <h2>Let's Build Something<br><span>Great Together</span></h2>
+          <h2 data-hire-hero-title>Let's Build Something<br><span>Great Together</span></h2>
           <p class="hire-hero-sub">I turn ideas into fast, polished products — from pixel-perfect web apps to full cross-platform mobile experiences. Let's make yours next.</p>
 
           <div class="hire-hero-stats">
@@ -2317,9 +2328,11 @@
         </div>
 
         <!-- How We Work Together -->
-        <div class="hire-section-label"><h3 class="h3">How We Work Together</h3></div>
+        <div class="hire-section-label"><h3 class="h3" data-hire-timeline-label>How We Work Together</h3></div>
 
-        <div class="hire-timeline">
+        <div class="hire-discovery-block" data-hire-discovery-block hidden></div>
+
+        <div class="hire-timeline" data-hire-timeline>
           <div class="hire-timeline-step">
             <div class="hire-timeline-node">1</div>
             <h4 class="hire-timeline-title">Share your idea</h4>
@@ -2351,8 +2364,8 @@
         <section class="contact-form" id="hire-form" data-hireme-form-section>
           <div data-hire-form-panel>
             <div class="hire-form-header">
-              <h3 class="h3 form-title">Start a Project</h3>
-              <p>Give me the details and I'll get back to you within 24 hours.</p>
+              <h3 class="h3 form-title" data-hire-form-title>Start a Project</h3>
+              <p data-hire-form-lead>Give me the details and I'll get back to you within 24 hours.</p>
             </div>
 
             <form class="form" data-form>
@@ -2423,7 +2436,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -2501,7 +2514,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
@@ -2532,7 +2545,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>

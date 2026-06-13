@@ -5745,16 +5745,27 @@ function getPageFromRedirectParam() {
   }
 }
 
-function updateUrlForPage(pageName, replace) {
+function updateUrlForPage(pageName, replace, queryParams) {
   // Only update URL on http(s); file:// would produce invalid URLs like file:///.../index.html/portfolio
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
     return;
   }
   var url = pageName === 'home' ? '/' : '/' + pageName + '/';
+  if (queryParams && typeof queryParams === 'object') {
+    var params = new URLSearchParams();
+    Object.keys(queryParams).forEach(function (key) {
+      var val = queryParams[key];
+      if (val != null && String(val).trim() !== '') {
+        params.set(key, String(val).trim());
+      }
+    });
+    var qs = params.toString();
+    if (qs) url += '?' + qs;
+  }
   if (replace) {
-    window.history.replaceState({ page: pageName }, '', url);
+    window.history.replaceState({ page: pageName, query: queryParams || null }, '', url);
   } else {
-    window.history.pushState({ page: pageName }, '', url);
+    window.history.pushState({ page: pageName, query: queryParams || null }, '', url);
   }
 }
 
@@ -5786,6 +5797,394 @@ function resolveNavPageName(navText) {
   return navPageName;
 }
 
+var HIRE_ME_PACKAGE_IDS = ['starter', 'growth', 'agency', 'studio'];
+
+var HIRE_ME_GENERIC = {
+  heroLabel: 'Open to new projects',
+  heroTitle: "Let's Build Something",
+  heroTitleAccent: 'Great Together',
+  heroSub:
+    'I turn ideas into fast, polished products — from pixel-perfect web apps to full cross-platform mobile experiences. Let\'s make yours next.',
+  timelineLabel: 'How We Work Together',
+  timelineSteps: [
+    { title: 'Share your idea', desc: 'Project goals, timeline, and budget.' },
+    { title: 'Discovery call', desc: '15–30 min to align on scope and approach.' },
+    { title: 'Proposal & kickoff', desc: 'Clear milestones and pricing, then we build.' },
+    { title: 'Build & review', desc: 'Check-ins and previews throughout.' },
+    { title: 'Launch & support', desc: 'Post-launch support after go-live.' }
+  ],
+  formTitle: 'Start a Project',
+  formLead: "Give me the details and I'll get back to you within 24 hours.",
+  messagePlaceholder:
+    'Walk me through your idea — what it does, who it\'s for, your rough timeline, and budget range.'
+};
+
+var HIRE_ME_PACKAGES = {
+  starter: {
+    id: 'starter',
+    pill: 'Starter Presence',
+    price: '$1,500 fixed',
+    bannerNote: '1–3 page site or starter storefront · ~2 weeks · 1 month maintenance included',
+    heroLabel: 'Starter Presence package',
+    heroTitle: 'Launch fast with',
+    heroTitleAccent: 'Starter Presence',
+    heroSub:
+      'A polished 1–3 page site or starter storefront so you look professional and start capturing inquiries within about two weeks.',
+    timelineLabel: 'Your starter launch path',
+    timelineSteps: [
+      { title: 'Quick intake', desc: 'Brand basics, pages, and inquiry flow.' },
+      { title: 'Design & build', desc: 'Core pages, forms, and contact links.' },
+      { title: 'Review & revise', desc: 'One focused feedback round before launch.' },
+      { title: 'Go live', desc: 'Hosting setup, SEO basics, and analytics.' },
+      { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
+    ],
+    formTitle: 'Start Starter Presence',
+    formLead: 'Tell me about your business and what pages you need — I\'ll confirm fit for the $1,500 package.',
+    projectType: 'Starter Presence — Web',
+    budget: '$1,500',
+    message:
+      'Interested in the Starter Presence package ($1,500). I need a fast-launch site/store with core pages, inquiry forms, and setup support.',
+    messagePlaceholder: 'What does your business do, and what should visitors do on the site?'
+  },
+  growth: {
+    id: 'growth',
+    pill: 'Growth Platform',
+    price: '$3,500 fixed',
+    bannerNote: 'Up to 5 pages + admin backend · 3–4 weeks · 1 month maintenance included',
+    heroLabel: 'Growth Platform package',
+    heroTitle: 'Grow with the',
+    heroTitleAccent: 'Growth Platform',
+    heroSub:
+      'Up to five pages plus a backend so leads and bookings land in one admin dashboard — not scattered texts and DMs.',
+    timelineLabel: 'Your growth platform path',
+    timelineSteps: [
+      { title: 'Scope & content', desc: 'Pages, lead flows, and admin needs.' },
+      { title: 'Design system', desc: 'Stronger branding across up to 5 pages.' },
+      { title: 'Build & integrate', desc: 'Forms, notifications, and admin login.' },
+      { title: 'Test & train', desc: 'Walkthrough so you can manage leads yourself.' },
+      { title: 'Launch + month 1', desc: 'Go live with maintenance included.' }
+    ],
+    formTitle: 'Start Growth Platform',
+    formLead: 'Share your lead flow and branding goals — I\'ll confirm scope for the $3,500 package.',
+    projectType: 'Growth Platform — Web + Admin',
+    budget: '$3,500',
+    message:
+      'Interested in the Growth Platform package ($3,500). I want up to 5 pages, lead capture, and an admin dashboard for inquiries.',
+    messagePlaceholder: 'Who are your customers and how should leads reach you?'
+  },
+  agency: {
+    id: 'agency',
+    pill: 'Agency Build',
+    price: '$6k – $12k',
+    bannerNote: 'Web + mobile · Scoped after discovery · 1 month maintenance included',
+    heroLabel: 'Agency Build · Discovery',
+    heroTitle: 'Book your',
+    heroTitleAccent: 'Discovery Call',
+    heroSub:
+      'Web plus iOS and Android for crews in the field — payments, job assignment, and day-to-day ops from one dashboard. Scope and exact investment confirmed after discovery.',
+    timelineLabel: 'After discovery — typical path',
+    timelineSteps: [
+      { title: 'Discovery call', desc: '15–30 min to map ops, users, and priorities.' },
+      { title: 'Scope & proposal', desc: 'Fixed milestones and investment range ($6k–$12k).' },
+      { title: 'Design & build', desc: 'Web + mobile with regular check-ins.' },
+      { title: 'Test with your team', desc: 'Crew workflows, payments, and admin review.' },
+      { title: 'Launch & support', desc: 'Go-live plus one month maintenance.' }
+    ],
+    formTitle: 'Book Discovery — Agency Build',
+    formLead: 'Share your operations and timeline — we\'ll use the discovery call to scope the Business Platform tier.',
+    projectType: 'Agency Build — Business Platform',
+    budget: '$6,000 – $12,000',
+    message:
+      'Interested in an Agency Build (Business Platform). I need web + mobile for field crews, payments, and admin — ready for a discovery call to scope investment.',
+    messagePlaceholder: 'Describe your team workflow, customers, and must-have features for day one.',
+    discoveryTitle: 'What we cover on discovery',
+    discoveryLead:
+      'Agency Build is scoped to your operations — the call aligns crew workflows, platforms, and a clear proposal before build.',
+    discoveryItems: [
+      { icon: 'people-outline', text: 'Who uses the app — owners, crews, and customers' },
+      { icon: 'card-outline', text: 'Payments, bookings, and job assignment flows' },
+      { icon: 'phone-portrait-outline', text: 'Web + iOS + Android from one shared codebase' },
+      { icon: 'calendar-outline', text: 'Timeline, milestones, and investment range ($6k–$12k)' }
+    ]
+  },
+  studio: {
+    id: 'studio',
+    pill: 'Studio Build',
+    price: '$15k – $40k',
+    bannerNote: 'Full field-service platform · Custom scope · 1 month maintenance included',
+    heroLabel: 'Studio Build · Discovery',
+    heroTitle: 'Scope your',
+    heroTitleAccent: 'Studio Build',
+    heroSub:
+      'A full field-service operations platform — crews, billing, back-office automation, and the tier we use for live production apps. Timeline and investment finalized after discovery.',
+    timelineLabel: 'Studio engagement — typical path',
+    timelineSteps: [
+      { title: 'Deep discovery', desc: 'Ops map, integrations, and phased rollout plan.' },
+      { title: 'Architecture & proposal', desc: 'Custom scope with milestone pricing ($15k–$40k).' },
+      { title: 'Phased build', desc: 'Core ops first, then billing, automation, and polish.' },
+      { title: 'UAT with your team', desc: 'Field testing, admin training, and data migration.' },
+      { title: 'Launch & hypercare', desc: 'Production cutover plus first month support.' }
+    ],
+    formTitle: 'Start Discovery — Studio Build',
+    formLead: 'Outline your field operations and scale — we\'ll shape a Studio Build proposal after discovery.',
+    projectType: 'Studio Build — Field Operations Platform',
+    budget: '$15,000 – $40,000',
+    message:
+      'Interested in a Studio Build. I need a full field-service platform (crews, quotes, invoicing, subscriptions, admin) — ready to start discovery for custom scope.',
+    messagePlaceholder: 'What operations do you run today, and what should the platform own end-to-end?',
+    discoveryTitle: 'Studio discovery focus',
+    discoveryLead:
+      'Studio Build is a custom engagement — discovery maps your quote-to-cash pipeline, crew workflows, and phased delivery before we commit to scope.',
+    discoveryItems: [
+      { icon: 'construct-outline', text: 'Field teams, job pipeline, and back-office automation' },
+      { icon: 'document-text-outline', text: 'Estimates, invoices, subscriptions, and customer comms' },
+      { icon: 'git-network-outline', text: 'Integrations, multi-location rules, and reporting needs' },
+      { icon: 'rocket-outline', text: 'Phased rollout, timeline, and investment range ($15k–$40k)' }
+    ]
+  }
+};
+
+function getHireMePackageFromSearch() {
+  try {
+    if (!window.location || !window.location.search) return null;
+    var raw = new URLSearchParams(window.location.search).get('package');
+    if (!raw) return null;
+    var id = String(raw).trim().toLowerCase();
+    return HIRE_ME_PACKAGES[id] ? id : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function escapeHireMeText(value) {
+  if (value == null) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function setHireMeHeroTitle(el, title, accent) {
+  if (!el) return;
+  if (accent) {
+    el.innerHTML = escapeHireMeText(title) + '<br><span>' + escapeHireMeText(accent) + '</span>';
+  } else {
+    el.textContent = title;
+  }
+}
+
+function renderHireMeTimelineSteps(container, steps) {
+  if (!container || !steps || !steps.length) return;
+  var stepsHtml = steps
+    .map(function (step, index) {
+      return (
+        '<div class="hire-timeline-step">' +
+        '<div class="hire-timeline-node">' +
+        (index + 1) +
+        '</div>' +
+        '<h4 class="hire-timeline-title">' +
+        escapeHireMeText(step.title) +
+        '</h4>' +
+        '<p class="hire-timeline-desc">' +
+        escapeHireMeText(step.desc) +
+        '</p></div>'
+      );
+    })
+    .join('');
+  container.innerHTML = stepsHtml;
+}
+
+function renderHireMeDiscoveryBlock(blockEl, pkg) {
+  if (!blockEl) return;
+  if (!pkg.discoveryItems || !pkg.discoveryItems.length) {
+    blockEl.hidden = true;
+    blockEl.innerHTML = '';
+    return;
+  }
+  var itemsHtml = pkg.discoveryItems
+    .map(function (item) {
+      return (
+        '<li><ion-icon name="' +
+        escapeHireMeText(item.icon) +
+        '" aria-hidden="true"></ion-icon><span>' +
+        escapeHireMeText(item.text) +
+        '</span></li>'
+      );
+    })
+    .join('');
+  blockEl.innerHTML =
+    '<h3 class="hire-discovery-block-title">' +
+    escapeHireMeText(pkg.discoveryTitle || 'Discovery focus') +
+    '</h3>' +
+    '<p class="hire-discovery-block-lead">' +
+    escapeHireMeText(pkg.discoveryLead || '') +
+    '</p>' +
+    '<ul class="hire-discovery-list">' +
+    itemsHtml +
+    '</ul>';
+  blockEl.hidden = false;
+}
+
+function resetHireMePageChrome() {
+  var article = document.querySelector('[data-page="hire-me"]');
+  if (!article) return;
+  var main = article.querySelector('[data-hire-main-content]');
+  var submitted = article.querySelector('[data-hire-form-submitted]');
+  var formSection = article.querySelector('[data-hireme-form-section]');
+  if (main) main.hidden = false;
+  if (submitted) submitted.hidden = true;
+  if (formSection) formSection.style.display = '';
+}
+
+function setHireMeFieldLocked(field, locked) {
+  if (!field) return;
+  if (locked) {
+    field.readOnly = true;
+    field.setAttribute('aria-readonly', 'true');
+    field.classList.add('is-hire-field-locked');
+  } else {
+    field.readOnly = false;
+    field.removeAttribute('aria-readonly');
+    field.classList.remove('is-hire-field-locked');
+  }
+}
+
+function prefillHireMeFormFields(values) {
+  values = values || {};
+  var form = document.querySelector('[data-page="hire-me"] [data-hire-form-panel] form[data-form]');
+  if (!form) return;
+  var projectType = form.querySelector('input[name="project-type"]');
+  var budget = form.querySelector('input[name="budget"]');
+  var message = form.querySelector('textarea[name="message"]');
+  var lockMeta = !!values.lockProjectAndBudget;
+  var messageAsPlaceholder = !!values.messageAsPlaceholder;
+
+  if (projectType) {
+    projectType.value = values.projectType || '';
+    setHireMeFieldLocked(projectType, lockMeta);
+    projectType.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  if (budget) {
+    budget.value = values.budget || '';
+    setHireMeFieldLocked(budget, lockMeta);
+    budget.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  if (message) {
+    setHireMeFieldLocked(message, false);
+    if (messageAsPlaceholder) {
+      message.value = '';
+      message.placeholder =
+        values.message || values.messagePlaceholder || HIRE_ME_GENERIC.messagePlaceholder;
+    } else {
+      message.value = values.message || '';
+      message.placeholder = values.messagePlaceholder || HIRE_ME_GENERIC.messagePlaceholder;
+    }
+    message.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+
+function applyHireMePackageView(packageId) {
+  var article = document.querySelector('[data-page="hire-me"]');
+  if (!article) return;
+  resetHireMePageChrome();
+
+  HIRE_ME_PACKAGE_IDS.forEach(function (id) {
+    article.classList.remove('hire-me--package-' + id);
+  });
+
+  var config = packageId && HIRE_ME_PACKAGES[packageId] ? HIRE_ME_PACKAGES[packageId] : null;
+  var view = config || HIRE_ME_GENERIC;
+  var isPackage = !!config;
+
+  if (isPackage) {
+    article.classList.add('hire-me--package-' + packageId);
+  }
+
+  var banner = article.querySelector('[data-hire-package-banner]');
+  var pill = article.querySelector('[data-hire-package-pill]');
+  var price = article.querySelector('[data-hire-package-price]');
+  var note = article.querySelector('[data-hire-package-note]');
+  if (banner) banner.hidden = !isPackage;
+  if (isPackage && pill) pill.textContent = config.pill;
+  if (isPackage && price) price.textContent = config.price;
+  if (isPackage && note) note.textContent = config.bannerNote;
+
+  var heroLabel = article.querySelector('[data-hire-hero-label-text]');
+  var heroTitle = article.querySelector('[data-hire-hero-title]');
+  var heroSub = article.querySelector('.hire-hero-sub');
+  if (heroLabel) heroLabel.textContent = view.heroLabel;
+  setHireMeHeroTitle(heroTitle, view.heroTitle, view.heroTitleAccent);
+  if (heroSub) heroSub.textContent = view.heroSub;
+
+  var timelineLabel = article.querySelector('[data-hire-timeline-label]');
+  if (timelineLabel) timelineLabel.textContent = view.timelineLabel;
+
+  var timeline = article.querySelector('[data-hire-timeline]');
+  renderHireMeTimelineSteps(timeline, view.timelineSteps);
+
+  renderHireMeDiscoveryBlock(article.querySelector('[data-hire-discovery-block]'), config || {});
+
+  var formTitle = article.querySelector('[data-hire-form-title]');
+  var formLead = article.querySelector('[data-hire-form-lead]');
+  if (formTitle) formTitle.textContent = view.formTitle;
+  if (formLead) formLead.textContent = view.formLead;
+
+  if (isPackage) {
+    prefillHireMeFormFields({
+      projectType: config.projectType,
+      budget: config.budget,
+      message: config.message,
+      messagePlaceholder: config.messagePlaceholder,
+      lockProjectAndBudget: true,
+      messageAsPlaceholder: true
+    });
+    if (typeof gtag !== 'undefined') {
+      gtag('event', 'hire_me_package_view', {
+        package_id: packageId,
+        event_category: 'engagement',
+        event_label: 'Services & Pricing → Hire Me'
+      });
+    }
+  } else {
+    prefillHireMeFormFields({
+      projectType: '',
+      budget: '',
+      message: '',
+      messagePlaceholder: HIRE_ME_GENERIC.messagePlaceholder,
+      lockProjectAndBudget: false,
+      messageAsPlaceholder: false
+    });
+  }
+}
+
+function switchToHireMePackage(packageId) {
+  var id = String(packageId || '').trim().toLowerCase();
+  if (!HIRE_ME_PACKAGES[id]) {
+    if (typeof switchToPage === 'function') switchToPage('hire-me');
+    return;
+  }
+  if (typeof switchToPage === 'function') {
+    switchToPage('hire-me', false, { package: id });
+  }
+}
+
+function initHireMePackageControls() {
+  document.querySelectorAll('[data-hire-package-clear]').forEach(function (btn) {
+    if (btn._hirePackageClearBound) return;
+    btn._hirePackageClearBound = true;
+    btn.addEventListener('click', function () {
+      if (typeof switchToPage === 'function') {
+        switchToPage('hire-me', false, { clearPackage: true });
+      }
+    });
+  });
+}
+
+window.switchToHireMePackage = switchToHireMePackage;
+window.applyHireMePackageView = applyHireMePackageView;
+window.getHireMePackageFromSearch = getHireMePackageFromSearch;
+
 function syncNavActiveForArticle(articleEl, pageName) {
   if (!articleEl) return;
   articleEl.querySelectorAll('[data-nav-link]').forEach(function (link) {
@@ -5797,7 +6196,12 @@ function syncNavActiveForArticle(articleEl, pageName) {
 }
 
 // Function to switch to a specific page
-function switchToPage(pageName, skipSave = false) {
+function switchToPage(pageName, skipSave, pageOptions) {
+  if (typeof skipSave === 'object' && skipSave !== null && pageOptions === undefined) {
+    pageOptions = skipSave;
+    skipSave = false;
+  }
+  pageOptions = pageOptions || {};
   if (!skipSave) {
     invalidateRestoreNavigationTimers();
   }
@@ -5851,6 +6255,19 @@ function switchToPage(pageName, skipSave = false) {
           window.syncHireMeMessagesUI();
         }
       }
+      if (pageName === "hire-me") {
+        var hirePackageId = null;
+        if (pageOptions.clearPackage) {
+          hirePackageId = null;
+        } else if (pageOptions.package && HIRE_ME_PACKAGES[pageOptions.package]) {
+          hirePackageId = pageOptions.package;
+        } else if (pageOptions.keepPackage || skipSave) {
+          hirePackageId = getHireMePackageFromSearch();
+        }
+        if (typeof applyHireMePackageView === "function") {
+          applyHireMePackageView(hirePackageId);
+        }
+      }
       if (typeof window.syncAdminMobileTabBarDock === 'function') {
         window.syncAdminMobileTabBarDock();
       }
@@ -5870,7 +6287,18 @@ function switchToPage(pageName, skipSave = false) {
       // Save to localStorage and update URL path (unless skipSave is true)
       if (!skipSave) {
         localStorage.setItem('activePage', pageName);
-        updateUrlForPage(pageName, false);
+        var urlQuery = null;
+        if (pageName === 'hire-me') {
+          if (pageOptions.clearPackage || (!pageOptions.package && !pageOptions.keepPackage)) {
+            urlQuery = {};
+          } else if (pageOptions.package && HIRE_ME_PACKAGES[pageOptions.package]) {
+            urlQuery = { package: pageOptions.package };
+          } else if (pageOptions.keepPackage) {
+            var pkgFromUrl = getHireMePackageFromSearch();
+            urlQuery = pkgFromUrl ? { package: pkgFromUrl } : {};
+          }
+        }
+        updateUrlForPage(pageName, false, urlQuery);
       }
 
       // Dynamic testimonials when Home (about) is shown
@@ -5886,10 +6314,13 @@ function switchToPage(pageName, skipSave = false) {
       }
 
       if (pageName === "home") {
+        if (typeof window.initLandingProjectMarquee === "function") {
+          window.initLandingProjectMarquee();
+        }
+        if (typeof window.initLandingOfferDots === "function") {
+          window.initLandingOfferDots(document.querySelector('article.home'));
+        }
         setTimeout(function () {
-          if (typeof window.initLandingProjectMarquee === "function") {
-            window.initLandingProjectMarquee();
-          }
           if (typeof window.loadDynamicTestimonials === "function") {
             window.loadDynamicTestimonials();
           }
@@ -5989,8 +6420,17 @@ function restoreActivePage() {
   }
 
   var sessionId = restoreNavigationSessionId;
-  switchToPage(targetPage, true);
-  updateUrlForPage(targetPage, true);
+  var restoreOptions = {};
+  if (targetPage === 'hire-me') {
+    restoreOptions.keepPackage = true;
+  }
+  switchToPage(targetPage, true, restoreOptions);
+  if (targetPage === 'hire-me') {
+    var restorePkg = getHireMePackageFromSearch();
+    updateUrlForPage(targetPage, true, restorePkg ? { package: restorePkg } : {});
+  } else {
+    updateUrlForPage(targetPage, true);
+  }
 
   restoreNavigationTimer = setTimeout(function () {
     if (sessionId !== restoreNavigationSessionId) return;
@@ -6006,17 +6446,27 @@ window.addEventListener('popstate', function(e) {
   invalidateRestoreNavigationTimers();
   var page = (e.state && e.state.page) ? e.state.page : getPageFromPath();
   if (page) {
-    switchToPage(page, true);
-    updateUrlForPage(page, true);
+    var popOptions = {};
+    if (page === 'hire-me') {
+      popOptions.package = getHireMePackageFromSearch();
+    }
+    switchToPage(page, true, popOptions);
+    if (page === 'hire-me') {
+      updateUrlForPage(page, true, popOptions.package ? { package: popOptions.package } : {});
+    } else {
+      updateUrlForPage(page, true);
+    }
   }
 });
 
 // Restore page on load
 document.addEventListener('DOMContentLoaded', function() {
+  initHireMePackageControls();
   setTimeout(restoreActivePage, 50);
 });
 
 if (document.readyState !== 'loading') {
+  initHireMePackageControls();
   setTimeout(restoreActivePage, 50);
 }
 
@@ -12603,10 +13053,37 @@ function observeEaseInSection(section) {
   }
 }
 
+function initLandingOfferDots(homeArticle) {
+  if (!homeArticle) homeArticle = document.querySelector('article.home');
+  if (!homeArticle) return;
+
+  homeArticle.querySelectorAll('.cwr-landing-offer-box').forEach(function (box, index) {
+    if (box.dataset.offerDotsReady === '1') return;
+    box.dataset.offerDotsReady = '1';
+
+    ['a', 'b'].forEach(function (suffix) {
+      var dot = document.createElement('span');
+      dot.className = 'cwr-landing-offer-dot cwr-landing-offer-dot--' + suffix;
+      dot.setAttribute('aria-hidden', 'true');
+      box.appendChild(dot);
+    });
+
+    if (index === 1) {
+      box.classList.add('cwr-landing-offer-box--alt');
+    }
+  });
+}
+
+window.initLandingOfferDots = initLandingOfferDots;
+
 function initLandingOfferTypewriter(homeArticle) {
   if (window.__cwrLandingOfferTyped) return;
   if (!homeArticle) homeArticle = document.querySelector('article.home');
   if (!homeArticle) return;
+
+  if (typeof initLandingOfferDots === 'function') {
+    initLandingOfferDots(homeArticle);
+  }
 
   var offer = homeArticle.querySelector('.cwr-landing-offer');
   if (!offer) return;
@@ -12682,6 +13159,14 @@ window.initLandingOfferTypewriter = initLandingOfferTypewriter;
 
 function initHomeHeroEaseIn(homeArticle) {
   if (!homeArticle || prefersReducedMotion()) return;
+
+  if (typeof initLandingProjectMarquee === 'function') {
+    initLandingProjectMarquee();
+  }
+
+  if (typeof initLandingOfferDots === 'function') {
+    initLandingOfferDots(homeArticle);
+  }
 
   var copy = homeArticle.querySelector('[data-cwr-landing-reveal]');
   if (copy) {

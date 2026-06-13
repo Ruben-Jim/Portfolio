@@ -1208,27 +1208,81 @@ article.home .cwr-landing-navbar .navbar-menu {
   border: 2px dashed hsla(0, 0%, 100%, 0.42);
   border-radius: 4px;
   background: hsla(0, 0%, 100%, 0.02);
+  overflow: visible;
 }
 
-.cwr-landing-offer-box::before,
-.cwr-landing-offer-box::after {
-  content: "";
+.cwr-landing-offer-dot {
   position: absolute;
   width: 7px;
   height: 7px;
   border: 1px solid hsla(0, 0%, 100%, 0.55);
   background: hsla(0, 0%, 8%, 0.9);
   box-sizing: border-box;
+  pointer-events: none;
+  z-index: 2;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  -webkit-offset-path: inset(0 round 4px);
+  offset-path: inset(0 round 4px);
+  -webkit-offset-distance: 0%;
+  offset-distance: 0%;
+  -webkit-offset-anchor: center;
+  offset-anchor: center;
+  -webkit-offset-rotate: 0deg;
+  offset-rotate: 0deg;
+  -webkit-animation: cwrOfferDotTrace 18s linear infinite;
+  animation: cwrOfferDotTrace 18s linear infinite;
 }
 
-.cwr-landing-offer-box::before {
-  top: -4px;
-  left: -4px;
+.cwr-landing-offer-dot--b {
+  -webkit-animation-delay: -9s;
+  animation-delay: -9s;
 }
 
-.cwr-landing-offer-box::after {
-  bottom: -4px;
-  right: -4px;
+.cwr-landing-offer-box--alt .cwr-landing-offer-dot {
+  -webkit-animation-direction: reverse;
+  animation-direction: reverse;
+}
+
+@keyframes cwrOfferDotTrace {
+  to {
+    -webkit-offset-distance: 100%;
+    offset-distance: 100%;
+  }
+}
+
+@supports not (offset-path: inset(0 round 0)) {
+  .cwr-landing-offer-dot {
+    left: -4px;
+    top: -4px;
+    -webkit-animation: cwrOfferDotTraceFallback 18s linear infinite;
+    animation: cwrOfferDotTraceFallback 18s linear infinite;
+  }
+
+  @keyframes cwrOfferDotTraceFallback {
+    0%,
+    100% {
+      left: -4px;
+      top: -4px;
+    }
+
+    25% {
+      left: calc(100% - 3px);
+      top: -4px;
+    }
+
+    50% {
+      left: calc(100% - 3px);
+      top: calc(100% - 3px);
+    }
+
+    75% {
+      left: -4px;
+      top: calc(100% - 3px);
+    }
+  }
 }
 
 .cwr-landing-offer-plus {
@@ -1299,6 +1353,22 @@ article.home .cwr-landing-navbar .navbar-menu {
     opacity: 1;
     transform: none;
     transition: none;
+  }
+
+  .cwr-landing-offer-dot {
+    animation: none !important;
+  }
+
+  .cwr-landing-offer-dot--a {
+    left: -4px;
+    top: -4px;
+  }
+
+  .cwr-landing-offer-dot--b {
+    left: auto;
+    top: auto;
+    right: -4px;
+    bottom: -4px;
   }
 }
 
@@ -1402,23 +1472,6 @@ article.home .cwr-landing-navbar .navbar-menu {
   min-height: clamp(320px, 50vh, 620px);
   transform: perspective(1000px) rotateY(-14deg) rotateX(8deg) rotateZ(3deg);
   transform-origin: center center;
-}
-
-/* Preserve 3D tilt when scroll-reveal classes are applied by JS */
-.cwr-landing-visual-stage.cwr-ease-in {
-  transform: perspective(1000px) rotateY(-14deg) rotateX(8deg) rotateZ(3deg) translateY(24px);
-}
-.cwr-landing-visual-stage.cwr-ease-in.is-visible {
-  transform: perspective(1000px) rotateY(-14deg) rotateX(8deg) rotateZ(3deg);
-}
-
-@media (min-width: 960px) {
-  .cwr-landing-visual-stage.cwr-ease-in {
-    transform: perspective(1100px) rotateY(-16deg) rotateX(9deg) rotateZ(3deg) translateY(24px);
-  }
-  .cwr-landing-visual-stage.cwr-ease-in.is-visible {
-    transform: perspective(1100px) rotateY(-16deg) rotateX(9deg) rotateZ(3deg);
-  }
 }
 
 .cwr-landing-marquee {
@@ -1751,7 +1804,7 @@ article.home .cwr-landing-navbar .navbar-menu {
 
 /* Section ease-in reveal (fade up on scroll) */
 @media (prefers-reduced-motion: no-preference) {
-  .cwr-ease-in {
+  .cwr-ease-in:not(.cwr-landing-visual-stage) {
     opacity: 0;
     transform: translate3d(0, 32px, 0);
     transition:
@@ -1759,9 +1812,35 @@ article.home .cwr-landing-navbar .navbar-menu {
       transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .cwr-ease-in.is-visible {
+  .cwr-ease-in:not(.cwr-landing-visual-stage).is-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0);
+  }
+
+  /* Hero marquee — fade only; keep 3D tilt from first paint (no transform transition) */
+  .cwr-landing-visual-stage.cwr-ease-in {
+    opacity: 0;
+    transform: perspective(1000px) rotateY(-14deg) rotateX(8deg) rotateZ(3deg);
+    transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cwr-landing-visual-stage.cwr-ease-in.is-visible {
+    opacity: 1;
+    transform: perspective(1000px) rotateY(-14deg) rotateX(8deg) rotateZ(3deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (min-width: 960px) {
+  .cwr-landing-visual-stage.cwr-ease-in,
+  .cwr-landing-visual-stage.cwr-ease-in.is-visible {
+    transform: perspective(1100px) rotateY(-16deg) rotateX(9deg) rotateZ(3deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (max-width: 959px) {
+  .cwr-landing-visual-stage.cwr-ease-in,
+  .cwr-landing-visual-stage.cwr-ease-in.is-visible {
+    transform: perspective(900px) rotateY(-12deg) rotateX(10deg) rotateZ(-6deg);
   }
 }
 
@@ -1777,7 +1856,7 @@ article.home .cwr-landing-navbar .navbar-menu {
     transform: none !important;
   }
 
-  .cwr-ease-in {
+  .cwr-ease-in:not(.cwr-landing-visual-stage) {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
@@ -7645,6 +7724,142 @@ article.messages.messages-dm-active > header {
 
 article.messages.messages-dm-active > header .article-title {
   font-size: var(--fs-3);
+}
+
+/* Hire Me — package-specific views from Services & Pricing */
+.hire-package-banner {
+  margin-bottom: 18px;
+}
+
+.hire-package-banner-inner {
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid hsla(45, 55%, 52%, 0.28);
+  background: hsla(45, 24%, 16%, 0.45);
+}
+
+.hire-package-banner-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.hire-package-banner-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--orange-yellow-crayola);
+  background: hsla(45, 55%, 52%, 0.12);
+  border: 1px solid hsla(45, 55%, 52%, 0.24);
+}
+
+.hire-package-banner-price {
+  font-size: var(--fs-6);
+  font-weight: var(--fw-600);
+  color: var(--white-1);
+}
+
+.hire-package-banner-note {
+  margin: 0 0 12px;
+  font-size: var(--fs-7);
+  line-height: 1.55;
+  color: var(--light-gray-70);
+}
+
+.hire-package-banner-clear {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  color: var(--orange-yellow-crayola);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hire-package-banner-clear:hover {
+  color: var(--white-2);
+}
+
+.hire-discovery-block {
+  margin-bottom: 22px;
+  padding: 18px 18px 16px;
+  border-radius: 14px;
+  border: 1px solid hsla(45, 40%, 50%, 0.22);
+  background: hsla(45, 18%, 14%, 0.55);
+}
+
+.hire-discovery-block-title {
+  margin: 0 0 8px;
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  color: var(--white-1);
+}
+
+.hire-discovery-block-lead {
+  margin: 0 0 14px;
+  font-size: var(--fs-7);
+  line-height: 1.6;
+  color: var(--light-gray-70);
+}
+
+.hire-discovery-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.hire-discovery-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: var(--fs-7);
+  line-height: 1.5;
+  color: var(--light-gray);
+}
+
+.hire-discovery-list li ion-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 18px;
+  color: var(--orange-yellow-crayola);
+}
+
+article.hire-me.hire-me--package-agency .hire-hero-badge ion-icon,
+article.hire-me.hire-me--package-studio .hire-hero-badge ion-icon {
+  transform: none;
+}
+
+article.hire-me.hire-me--package-agency .hire-package-banner-inner,
+article.hire-me.hire-me--package-studio .hire-package-banner-inner {
+  border-color: hsla(45, 55%, 52%, 0.34);
+  background: hsla(45, 28%, 18%, 0.5);
+}
+
+.hire-me .form-input.is-hire-field-locked,
+.hire-me textarea.form-input.is-hire-field-locked {
+  opacity: 0.88;
+  cursor: default;
+  color: var(--light-gray);
+  background: hsla(0, 0%, 100%, 0.04);
+  border-color: hsla(0, 0%, 100%, 0.08);
+}
+
+.hire-me .form-input.is-hire-field-locked:focus,
+.hire-me textarea.form-input.is-hire-field-locked:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Form Loading State */
