@@ -1638,7 +1638,15 @@ body.cp-client-drawer-open {
   white-space: nowrap;
 }
 
-.cp-client-drawer-close {
+.cp-client-drawer-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.cp-client-drawer-close,
+.cp-client-drawer-delete {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1655,6 +1663,15 @@ body.cp-client-drawer-open {
 .cp-client-drawer-close:hover {
   background: var(--orange-yellow-crayola);
   color: var(--smoky-black);
+}
+
+.cp-client-drawer-delete {
+  color: var(--bittersweet-shimmer);
+}
+
+.cp-client-drawer-delete:hover {
+  background: var(--bittersweet-shimmer);
+  color: var(--white-1);
 }
 
 .cp-client-drawer-body {
@@ -2046,6 +2063,53 @@ body.cp-client-drawer-open {
   flex-shrink: 0;
 }
 
+/* Email prefill block inside client project workspace */
+.cp-email-prefill {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: hsla(0, 0%, 100%, 0.04);
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+}
+
+.cp-email-prefill-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--fs-8, 13px);
+  line-height: 1.5;
+}
+
+.cp-email-prefill-label {
+  flex-shrink: 0;
+  min-width: 68px;
+  font-weight: 600;
+  color: var(--light-gray, hsl(0, 0%, 84%));
+}
+
+.cp-email-prefill-value {
+  color: var(--white-2, hsl(0, 0%, 98%));
+  word-break: break-all;
+}
+
+.cp-email-prefill-missing {
+  color: var(--light-gray, hsl(0, 0%, 70%));
+  font-style: italic;
+}
+
+.cp-email-prefill-link {
+  color: var(--orange-yellow-crayola, hsl(45, 100%, 72%));
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.cp-email-prefill-link:hover {
+  text-decoration: underline;
+}
+
 .cp-client-drawer .cp-section-feedback {
   font-size: var(--fs-8);
   margin: 0;
@@ -2204,7 +2268,8 @@ body.cp-client-drawer-open {
     padding-right: 8px;
   }
 
-  .cp-client-drawer-close {
+  .cp-client-drawer-close,
+  .cp-client-drawer-delete {
     width: 42px;
     height: 42px;
     border: 1px solid hsla(45, 48%, 52%, 0.38);
@@ -2214,10 +2279,21 @@ body.cp-client-drawer-open {
     color: var(--orange-yellow-crayola);
   }
 
+  .cp-client-drawer-delete {
+    border-color: hsla(0, 55%, 52%, 0.38);
+    color: var(--bittersweet-shimmer);
+  }
+
   .cp-client-drawer-close:hover {
     border-color: hsla(45, 85%, 68%, 0.55);
     background: hsla(45, 100%, 72%, 0.11);
     color: var(--orange-yellow-crayola);
+  }
+
+  .cp-client-drawer-delete:hover {
+    border-color: hsla(0, 75%, 62%, 0.6);
+    background: hsla(0, 80%, 55%, 0.14);
+    color: var(--bittersweet-shimmer);
   }
 
   .cp-client-drawer-body {

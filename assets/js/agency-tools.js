@@ -562,6 +562,9 @@
     }
     var modal = document.getElementById('delete-hub-confirm-modal');
     if (!modal) return;
+    if (modal.parentElement !== document.body) {
+      document.body.appendChild(modal);
+    }
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     var cancelBtn = document.getElementById('delete-hub-confirm-cancel');
@@ -2750,6 +2753,27 @@
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="link-portfolio">Save showcase link</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="portfolio" role="status"></p></div>';
 
+    var emailClientName = hub.clientName || '';
+    var emailClientEmail = hub.clientEmail || '';
+    var emailPortalLink = hub.portalToken ? clientPortalUrl(hub.portalToken) : '';
+    var emailBody =
+      '<div class="cp-email-prefill">' +
+      '<div class="cp-email-prefill-row"><span class="cp-email-prefill-label">To</span>' +
+      '<span class="cp-email-prefill-value">' +
+      (emailClientName ? esc(emailClientName) + (emailClientEmail ? ' &lt;' + esc(emailClientEmail) + '&gt;' : '') : '<em class="cp-email-prefill-missing">No client name or email saved in Project Hub</em>') +
+      '</span></div>' +
+      '<div class="cp-email-prefill-row"><span class="cp-email-prefill-label">Portal link</span>' +
+      '<span class="cp-email-prefill-value">' +
+      (emailPortalLink
+        ? '<a href="' + esc(emailPortalLink) + '" target="_blank" rel="noopener" class="cp-email-prefill-link">' + esc(emailPortalLink) + '</a>'
+        : '<em class="cp-email-prefill-missing">No portal link yet — generate one in Project Hub</em>') +
+      '</span></div>' +
+      '<p class="form-hint">Client name, email, and portal link will be pre-filled. You only need to choose a template and write the subject &amp; message.</p>' +
+      '</div>' +
+      '<div class="cp-section-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="open-email">Compose email →</button>' +
+      '</div>';
+
     workspace.innerHTML =
       buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub')) +
       buildCpCollapsibleSection('guide', 'Docs & guide', null, guideBody, cpSectionSummary('guide', sectionCtx), isCpSectionExpanded(hub.id, 'guide')) +
@@ -2757,7 +2781,8 @@
       buildCpCollapsibleSection('health', 'Firebase Health', null, healthBody, cpSectionSummary('health', sectionCtx), isCpSectionExpanded(hub.id, 'health')) +
       buildCpCollapsibleSection('pipeline', 'Pipeline & deal', 'pipeline', pipelineBody, cpSectionSummary('pipeline', sectionCtx), isCpSectionExpanded(hub.id, 'pipeline')) +
       buildCpCollapsibleSection('docs', 'Business documents', 'docs', docsHtml, cpSectionSummary('docs', sectionCtx), isCpSectionExpanded(hub.id, 'docs')) +
-      buildCpCollapsibleSection('portfolio', 'Portfolio project', 'portfolio', portfolioBody, cpSectionSummary('portfolio', sectionCtx), isCpSectionExpanded(hub.id, 'portfolio'));
+      buildCpCollapsibleSection('portfolio', 'Portfolio project', 'portfolio', portfolioBody, cpSectionSummary('portfolio', sectionCtx), isCpSectionExpanded(hub.id, 'portfolio')) +
+      buildCpCollapsibleSection('email', 'Send email', null, emailBody, cpSectionSummary('email', sectionCtx), isCpSectionExpanded(hub.id, 'email'));
   }
 
   function renderClientProjectsPickerList() {
@@ -3199,6 +3224,20 @@
       if (tab && typeof window.adminActivateTab === 'function') window.adminActivateTab(tab);
       return;
     }
+    if (action === 'open-email') {
+      if (!hub) return;
+      var emailName = String((document.getElementById('cp-hub-client') || {}).value || hub.clientName || '').trim();
+      var emailAddr = String((document.getElementById('cp-hub-client-email') || {}).value || hub.clientEmail || '').trim();
+      var emailLink = hub.portalToken ? clientPortalUrl(hub.portalToken) : '';
+      closeCpClientDrawer();
+      window.requestAnimationFrame(function () {
+        if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
+        if (typeof window.prefillAdminClientEmail === 'function') {
+          window.prefillAdminClientEmail({ name: emailName, email: emailAddr, link: emailLink });
+        }
+      });
+      return;
+    }
     if (action === 'generate-portal') {
       if (!clientProjectsSelectedId) return;
       generateClientPortalLink(clientProjectsSelectedId)
@@ -3341,10 +3380,17 @@
   function setupCpClientDrawer() {
     mountCpClientDrawerToBody();
     var closeBtn = document.getElementById('cp-client-drawer-close');
+    var deleteBtn = document.getElementById('cp-client-drawer-delete');
     var overlay = document.getElementById('cp-client-drawer-overlay');
     if (closeBtn && !closeBtn.dataset.cpBound) {
       closeBtn.dataset.cpBound = '1';
       closeBtn.addEventListener('click', closeCpClientDrawer);
+    }
+    if (deleteBtn && !deleteBtn.dataset.cpBound) {
+      deleteBtn.dataset.cpBound = '1';
+      deleteBtn.addEventListener('click', function () {
+        if (clientProjectsSelectedId) openDeleteHubConfirmModal(clientProjectsSelectedId);
+      });
     }
     if (overlay && !overlay.dataset.cpBound) {
       overlay.dataset.cpBound = '1';

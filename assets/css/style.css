@@ -354,6 +354,14 @@ body.admin-page-active .admin-mobile-tab-bar-root:not([hidden]) {
   display: block;
 }
 
+.admin-mobile-subtab-bar-root {
+  display: none;
+}
+
+body.admin-page-active .admin-mobile-subtab-bar-root:not([hidden]) {
+  display: block;
+}
+
 @media (max-width: 767px) {
   body.admin-page-active article.admin[data-page="admin"].active {
     animation: fade 0.5s ease backwards !important;
@@ -2117,6 +2125,161 @@ article.home .cwr-landing-navbar .navbar-menu {
   width: auto;
   opacity: 0.85;
   filter: grayscale(0.15);
+}
+
+/* Social proof — rotating client spotlight */
+.cwr-landing-spotlight {
+  max-width: 38rem;
+  margin-inline: auto;
+}
+
+.cwr-landing-spotlight-stage {
+  position: relative;
+  min-height: clamp(168px, 28vw, 228px);
+}
+
+.cwr-landing-spotlight-slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 18px);
+  padding: 0 clamp(8px, 2vw, 16px);
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.6s;
+  pointer-events: none;
+}
+
+.cwr-landing-spotlight-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.cwr-landing-spotlight-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(56px, 9vw, 96px);
+  width: 100%;
+}
+
+.cwr-landing-spotlight-logo img {
+  display: block;
+  height: auto;
+  width: auto;
+  max-height: clamp(52px, 7vw, 76px);
+  max-width: min(240px, 72vw);
+  object-fit: contain;
+  object-position: center;
+  opacity: 0.95;
+  filter: grayscale(0.08);
+  image-rendering: auto;
+}
+
+/* Tall stacked artwork — Rizo's Pizzeria */
+.cwr-landing-spotlight-logo img[src*="logo-2-color"] {
+  max-height: clamp(96px, 14vw, 140px);
+  max-width: min(220px, 62vw);
+}
+
+.cwr-landing-spotlight-logo img[src*="logo-1-color"] {
+  max-height: clamp(64px, 9vw, 96px);
+  max-width: min(128px, 36vw);
+}
+
+.cwr-landing-spotlight-logo img[src*="logo-3-color"] {
+  max-height: clamp(72px, 10vw, 108px);
+  max-width: min(280px, 78vw);
+}
+
+.cwr-landing-spotlight-quote {
+  margin: 0;
+  max-width: 32em;
+  font-size: clamp(var(--fs-7), 0.85vw + 0.55rem, var(--fs-6));
+  line-height: 1.65;
+  color: hsla(0, 0%, 100%, 0.72);
+  font-style: italic;
+}
+
+.cwr-landing-spotlight-quote::before {
+  content: "\201C";
+  color: hsla(45, 70%, 58%, 0.75);
+}
+
+.cwr-landing-spotlight-quote::after {
+  content: "\201D";
+  color: hsla(45, 70%, 58%, 0.75);
+}
+
+.cwr-landing-spotlight-meta {
+  margin: 0;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: hsla(0, 0%, 100%, 0.42);
+}
+
+.cwr-landing-spotlight-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: clamp(16px, 2.5vw, 22px);
+}
+
+.cwr-landing-spotlight-dot {
+  appearance: none;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: hsla(0, 0%, 100%, 0.22);
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.cwr-landing-spotlight-dot:hover,
+.cwr-landing-spotlight-dot:focus-visible {
+  background: hsla(45, 70%, 58%, 0.55);
+  outline: none;
+  transform: scale(1.15);
+}
+
+.cwr-landing-spotlight-dot.is-active {
+  background: var(--orange-yellow-crayola);
+  transform: scale(1.2);
+}
+
+.cwr-landing-spotlight.is-static .cwr-landing-spotlight-slide.is-active {
+  position: relative;
+  inset: auto;
+}
+
+.cwr-landing-spotlight.is-static .cwr-landing-spotlight-dots {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cwr-landing-spotlight-slide {
+    transition: none;
+  }
+
+  .cwr-landing-spotlight:not(.is-static) .cwr-landing-spotlight-slide:not(.is-active) {
+    display: none;
+  }
 }
 
 article.home .cwr-landing-testimonials {
@@ -4926,6 +5089,13 @@ article.about .about-founder {
 #delete-referral-confirm-modal.modal-container,
 #delete-maint-confirm-modal.modal-container {
   z-index: 10085;
+}
+
+#delete-hub-confirm-modal.modal-container.active,
+#delete-referral-confirm-modal.modal-container.active,
+#delete-maint-confirm-modal.modal-container.active {
+  visibility: visible;
+  pointer-events: auto;
 }
 
 #delete-lead-confirm-modal.modal-container {
@@ -11785,6 +11955,8 @@ body.project-modal-open {
   #delete-maint-confirm-modal.active .confirm-delete-modal,
   #delete-lead-confirm-modal.active .confirm-delete-modal {
     transform: translate3d(0, 0, 0);
+    visibility: visible;
+    pointer-events: auto;
   }
 
   /* Portfolio editor: beat legacy max-width:768px width rules (higher specificity) */
@@ -12918,6 +13090,109 @@ body.project-modal-open {
 
   body.admin-page-active .admin-tab-panels {
     padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.admin-page-active.admin-mobile-content-active .admin-tab-panels {
+    padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Content hub — mobile primary dock only */
+  .admin-tab--mobile-section {
+    display: inline-flex !important;
+  }
+
+  .admin-nav-group[data-nav-group="content"] .admin-tab[data-admin-content-sub] {
+    display: none !important;
+  }
+
+  .admin-mobile-subtab-bar-root {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    z-index: 41;
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    pointer-events: none;
+  }
+
+  .admin-mobile-subtab-bar-root[hidden] {
+    display: none !important;
+  }
+
+  .admin-mobile-subtab-bar {
+    pointer-events: auto;
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 12px;
+    background: hsla(240, 5%, 14%, 0.96);
+    border: 1px solid hsla(45, 100%, 72%, 0.16);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .admin-mobile-subtab {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 40px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: hsla(0, 0%, 100%, 0.62);
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: var(--fw-600);
+    line-height: 1.15;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .admin-mobile-subtab ion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .admin-mobile-subtab:hover,
+  .admin-mobile-subtab:focus-visible {
+    color: var(--white-2);
+    background: rgba(255, 255, 255, 0.05);
+    outline: none;
+  }
+
+  .admin-mobile-subtab.is-active {
+    color: var(--orange-yellow-crayola);
+    background: var(--border-gradient-onyx);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.06),
+      0 3px 10px rgba(0, 0, 0, 0.22);
+  }
+
+  body:has(.add-blog-modal.active) .admin-mobile-subtab-bar-root,
+  body:has(.business-doc-modal.active) .admin-mobile-subtab-bar-root,
+  body:has(.agency-modal.active) .admin-mobile-subtab-bar-root,
+  body:has(.project-detail-modal.active) .admin-mobile-subtab-bar-root,
+  body:has(.modal-container.active) .admin-mobile-subtab-bar-root,
+  body.project-modal-open .admin-mobile-subtab-bar-root,
+  body.cp-client-drawer-open .admin-mobile-subtab-bar-root,
+  body.lead-drawer-open .admin-mobile-subtab-bar-root,
+  body.admin-contact-detail-open .admin-mobile-subtab-bar-root,
+  body.admin-dm-sheet-open .admin-mobile-subtab-bar-root,
+  body:has(#admin-dm-sheet-root.is-open) .admin-mobile-subtab-bar-root,
+  body.admin-tab-reorder-active .admin-mobile-subtab-bar-root {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 
   /* Avoid collision between admin bottom tabs and global Search (Cmd/Ctrl+K) hint */
@@ -14630,6 +14905,8 @@ body.project-modal-open {
 #delete-lead-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .confirm-delete-modal__header {
@@ -22597,8 +22874,12 @@ body.lead-drawer-open {
 
 /* Mobile — hide overflow tabs, show More button */
 @media (max-width: 580px) {
-  .admin-tab-bar .admin-tab:not([data-mobile-primary]) {
+  .admin-tab-bar .admin-tab:not([data-mobile-primary]):not(.admin-tab--mobile-section) {
     display: none;
+  }
+
+  .admin-tab-bar .admin-tab--mobile-section {
+    display: inline-flex !important;
   }
 
   .admin-tab-more-wrap {
@@ -22830,6 +23111,12 @@ body.admin-tab-reorder-active::before {
    ADMIN — TWO-LEVEL SIDEBAR GROUPS (desktop)
    ============================================= */
 
+@media (min-width: 768px) {
+  .admin-tab--mobile-section {
+    display: none !important;
+  }
+}
+
 @media (max-width: 767px) {
   .admin-nav-group {
     display: contents;
@@ -22990,7 +23277,8 @@ body.admin-tab-reorder-active::before {
   }
 
   #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab.admin-tab--nav-hidden,
-  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab[hidden] {
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab[hidden],
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab.admin-tab--mobile-section {
     display: none !important;
   }
 

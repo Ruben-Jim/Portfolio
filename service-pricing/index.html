@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=pricing-addons-2col-20260613">
+  <link rel="stylesheet" href="/assets/css/style.css?v=confirm-modal-fix-20260613">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -78,7 +78,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=cp-mobile-sheet-fix-20260611">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=cp-drawer-delete-handle-20260613">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -295,7 +295,7 @@
               </li>
             </ul>
           </div>
-          <button type="button" class="btn btn-primary cwr-landing-nav-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get started</button>
+          <button type="button" class="btn btn-primary cwr-landing-nav-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
         </nav>
 
         <section class="cwr-landing-hero" aria-labelledby="cwr-landing-title">
@@ -316,7 +316,7 @@
               <p class="cwr-landing-price">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong></p>
               <p class="cwr-landing-proof"><span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards <span class="cwr-landing-stars" aria-hidden="true">★★★★★</span></p>
               <div class="cwr-landing-actions">
-                <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get started</button>
+                <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
                 <button type="button" class="btn cwr-landing-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
                 <button type="button" class="btn cwr-landing-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View work</button>
               </div>
@@ -407,11 +407,7 @@
               <p class="cwr-landing-band-kicker">Social proof</p>
               <h2 class="cwr-landing-band-title" id="cwr-proof-title">Trusted by local businesses</h2>
             </header>
-            <ul class="cwr-landing-clients" aria-label="Client logos">
-              <li><img src="/assets/images/logo/logo-1-color.png" alt="Client logo"></li>
-              <li><img src="/assets/images/logo/logo-2-color.png" alt="Client logo"></li>
-              <li><img src="/assets/images/logo/logo-3-color.png" alt="Client logo"></li>
-            </ul>
+            <div class="cwr-landing-spotlight" data-landing-spotlight aria-live="polite" aria-label="Featured clients"></div>
           </div>
         </section>
 
@@ -447,7 +443,7 @@
             <h2 class="cwr-landing-band-title" id="cwr-cta-title">Ready to run your business from your phone?</h2>
             <p class="cwr-landing-band-lead">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong> · Fresno-based studio</p>
             <div class="cwr-landing-cta-actions">
-              <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">Get started</button>
+              <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
               <button type="button" class="btn cwr-landing-btn-outline cwr-landing-btn-outline--on-dark" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
             </div>
           </div>
@@ -2655,15 +2651,15 @@
                 <ion-icon name="chevron-down-outline" class="admin-nav-group-chevron" aria-hidden="true"></ion-icon>
               </button>
               <div class="admin-nav-group-items" id="admin-nav-items-content" role="group" aria-labelledby="admin-nav-toggle-content">
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-portfolio" data-admin-tab="portfolio" aria-selected="false" aria-controls="admin-panel-portfolio" tabindex="-1" aria-label="Portfolio Projects">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-portfolio" data-admin-tab="portfolio" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-portfolio" tabindex="-1" aria-label="Portfolio Projects">
                   <ion-icon name="albums-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Portfolio Projects</span><span class="admin-tab-label-mobile">Portfolio</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-blog" data-admin-tab="blog" aria-selected="false" aria-controls="admin-panel-blog" tabindex="-1" aria-label="Blog Management">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-blog" data-admin-tab="blog" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-blog" tabindex="-1" aria-label="Blog Management">
                   <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Blog Management</span><span class="admin-tab-label-mobile">Blog</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-testimonials" data-admin-tab="testimonials" aria-selected="false" aria-controls="admin-panel-testimonials" tabindex="-1" aria-label="Testimonial requests">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-testimonials" data-admin-tab="testimonials" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-testimonials" tabindex="-1" aria-label="Testimonial requests">
                   <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Testimonials</span><span class="admin-tab-label-mobile">Reviews</span></span>
                 </button>
@@ -2673,6 +2669,12 @@
                 </button>
               </div>
             </div>
+
+
+            <button type="button" class="admin-tab admin-tab--mobile-section" id="admin-tab-content-hub" data-mobile-primary aria-selected="false" tabindex="-1" aria-label="Content">
+              <ion-icon name="folder-open-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Content</span><span class="admin-tab-label-mobile">Content</span></span>
+            </button>
 
             <!-- More overflow button — mobile only -->
             <div class="admin-tab-more-wrap" id="admin-tab-more-wrap">
@@ -3813,9 +3815,14 @@
         <aside class="cp-client-drawer" id="cp-client-drawer" hidden aria-hidden="true" aria-labelledby="cp-client-drawer-title" data-lenis-prevent>
           <div class="cp-client-drawer-header">
             <h3 class="h3" id="cp-client-drawer-title">Client workspace</h3>
-            <button type="button" class="cp-client-drawer-close" id="cp-client-drawer-close" aria-label="Close client workspace">
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
+            <div class="cp-client-drawer-header-actions">
+              <button type="button" class="cp-client-drawer-delete" id="cp-client-drawer-delete" aria-label="Delete client">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+              <button type="button" class="cp-client-drawer-close" id="cp-client-drawer-close" aria-label="Close client workspace">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
           </div>
           <div class="cp-client-drawer-body has-scrollbar client-projects-workspace" id="client-projects-workspace"></div>
         </aside>
