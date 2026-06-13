@@ -1238,6 +1238,70 @@ article.home .cwr-landing-navbar .navbar-menu {
   line-height: 1;
 }
 
+.cwr-landing-offer-type {
+  display: inline-block;
+  min-height: 1em;
+  white-space: nowrap;
+}
+
+.cwr-landing-offer-type[data-cwr-type-text="Website"] {
+  min-width: 7.5ch;
+}
+
+.cwr-landing-offer-type[data-cwr-type-text="Software"] {
+  min-width: 8.5ch;
+}
+
+.cwr-landing-offer-type.is-typing::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 0.82em;
+  margin-left: 3px;
+  vertical-align: -0.06em;
+  background: currentColor;
+  animation: cwr-offer-cursor 0.9s step-end infinite;
+}
+
+.cwr-landing-offer-plus--delayed {
+  opacity: 0;
+  transform: scale(0.88);
+  transition: opacity 0.32s ease, transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cwr-landing-offer-plus--delayed.is-visible,
+.cwr-landing-offer.is-typed-complete .cwr-landing-offer-plus--delayed {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.cwr-landing-offer.is-typed-complete .cwr-landing-offer-type.is-typing::after {
+  display: none;
+}
+
+@keyframes cwr-offer-cursor {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cwr-landing-offer-type.is-typing::after {
+    display: none;
+  }
+
+  .cwr-landing-offer-plus--delayed {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 .cwr-landing-price {
   margin: 0 0 14px;
   font-size: clamp(var(--fs-6), 1vw + 0.55rem, var(--fs-4));
