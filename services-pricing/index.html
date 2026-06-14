@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=confirm-modal-fix-20260613">
+  <link rel="stylesheet" href="/assets/css/style.css?v=price-nowrap-20260613">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -1553,7 +1553,7 @@
 
         <section class="about-text">
           <p>
-            Fixed packages for service businesses — booking, crews, payments, and admin in one place. Every build includes 1 month of maintenance. Add proven modules à la carte or scope a full Studio Build like our live field-ops reference app.
+            Fixed packages for service businesses — booking, crews, payments, and admin in one place. Every build includes 1 month of maintenance. Add proven modules à la carte, or go all-in with a Studio Build — the same platform we use for live field-service businesses today.
           </p>
         </section>
 
@@ -1572,7 +1572,11 @@
                 <ul class="enterprise-feature-list">
                   <li>Branded pages customers can browse on any device</li>
                   <li>Quote request + booking request forms</li>
-                  <li>Contact links (Instagram, WhatsApp, email)</li>
+                  <li>Work gallery with customer reviews and testimonials</li>
+                  <li>Live chat so customers can message you directly</li>
+                  <li>Bilingual customer-facing pages (English + one language)</li>
+                  <li>Calendar feed for appointments (Google, Apple, Outlook)</li>
+                  <li>Multiple service addresses per customer</li>
                   <li>Basic SEO + analytics so you know who visits</li>
                   <li>Launch + hosting setup support</li>
                 </ul>
@@ -1594,6 +1598,12 @@
                   <li>Everything in Starter + up to 5 pages</li>
                   <li>Online quote capture with customer details saved</li>
                   <li>Booking requests routed to your admin dashboard</li>
+                  <li>Card payments at checkout (Stripe)</li>
+                  <li>Tip collection at checkout</li>
+                  <li>PDF estimates &amp; invoices emailed to customers</li>
+                  <li>Crew assignment, scheduling, and hours per job</li>
+                  <li>Before/after portfolio — crew submits photos, you approve, published to your site</li>
+                  <li>Recurring subscription billing (weekly, monthly, custom)</li>
                   <li>Login for you to review leads and update content</li>
                   <li>Automated notifications when someone inquires</li>
                 </ul>
@@ -1604,7 +1614,7 @@
               </div>
 
               <div class="enterprise-card enterprise-card--agency">
-                <span class="enterprise-card-badge enterprise-card-badge--agency">Agency Build</span>
+                <span class="enterprise-card-badge enterprise-card-badge--agency">Field Ops</span>
                 <div class="enterprise-card-title">Business Platform</div>
                 <div class="enterprise-card-sub">
                   Web + mobile app for crews in the field — take payments, assign jobs, and run day-to-day ops from one dashboard.
@@ -1628,7 +1638,7 @@
               </div>
 
               <div class="enterprise-card enterprise-card--agency">
-                <span class="enterprise-card-badge enterprise-card-badge--agency">Studio Build</span>
+                <span class="enterprise-card-badge enterprise-card-badge--agency">Enterprise</span>
                 <div class="enterprise-card-title">Studio Build</div>
                 <div class="enterprise-card-sub">
                   Full field-service operations platform — the tier we use for live production apps with crews, billing, and back-office automation.
@@ -1655,31 +1665,13 @@
 
             </div>
 
-            <section class="pricing-addons-section" aria-labelledby="pricing-addons-heading">
-              <h3 class="h3 service-title standard-addons-heading" id="pricing-addons-heading">Optional add-ons</h3>
-              <p class="pricing-addons-lead">Stack proven modules on any package. Each add-on is scoped to your workflow — prices are starting ranges based on what we’ve already shipped in production.</p>
-              <div class="pricing-addons-summary">
-                <span class="pricing-addons-pill">11 modules</span>
-                <span class="pricing-addons-pill">From +$300</span>
-              </div>
-              <ul class="pricing-addons-teaser-list">
-                <li>Worker / field team management</li>
-                <li>PDF estimates &amp; invoices</li>
-                <li>Recurring subscription billing</li>
-                <li>Live chat, payments, portfolio, and more</li>
-              </ul>
-              <button type="button" class="enterprise-cta pricing-addons-open-btn" id="open-pricing-addons-modal" aria-haspopup="dialog" aria-controls="pricing-addons-modal">
-                <ion-icon name="layers-outline"></ion-icon>
-                View all optional add-ons
-              </button>
-            </section>
 
             <h3 class="h3 service-title standard-addons-heading">Maintenance Plans</h3>
             <p class="maintenance-billing-lead">After your first included month: pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
             <div class="enterprise-grid maintenance-tier-grid">
               <div class="enterprise-card">
                 <span class="enterprise-card-badge">Standard</span>
-                <div class="enterprise-card-title">Web + Mobile App</div>
+                <div class="enterprise-card-title">Standard Care</div>
                 <div class="enterprise-card-sub">
                   Ongoing support for hosting, updates, monitoring, and minor fixes across web and mobile (iOS &amp; Android) after your first included month.
                 </div>
@@ -1692,9 +1684,8 @@
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <p class="maintenance-price-compare">Was <s>$948</s>/yr at monthly rate</p>
                   <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note">~$44/mo equivalent · billed once per year</div>
+                  <div class="enterprise-price-note maintenance-billing-note">Same as ~$44/mo · billed once per year</div>
                 </div>
 
                 <ul class="enterprise-feature-list">
@@ -1707,9 +1698,9 @@
 
               <div class="enterprise-card">
                 <span class="enterprise-card-badge">Priority</span>
-                <div class="enterprise-card-title">Web + Mobile App</div>
+                <div class="enterprise-card-title">Priority Care</div>
                 <div class="enterprise-card-sub">
-                  Same coverage as Standard with faster response times and more frequent maintenance windows across web and mobile (iOS &amp; Android).
+                  Same coverage as Standard Care with faster response times and more frequent maintenance windows across web and mobile (iOS &amp; Android).
                 </div>
 
                 <div class="maintenance-billing-block">
@@ -1720,9 +1711,8 @@
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <p class="maintenance-price-compare">Was <s>$1,800</s>/yr at monthly rate</p>
                   <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note">~$83/mo equivalent · billed once per year</div>
+                  <div class="enterprise-price-note maintenance-billing-note">Same as ~$83/mo · billed once per year</div>
                 </div>
 
                 <ul class="enterprise-feature-list">
@@ -1756,18 +1746,18 @@
                 <span class="enterprise-card-badge">Optional</span>
                 <div class="enterprise-card-title">Ownership Upgrade (Buyout Option)</div>
                 <div class="enterprise-card-sub">
-                  Optional premium transfer path for full ownership rights, including source-code/IP transfer, repo handoff, and transition documentation.
+                  Want to fully own what we build? This one-time upgrade transfers everything — all files, code, and accounts — directly to you or your team.
                 </div>
                 <div class="enterprise-price">$8,000–$15,000</div>
-                <div class="enterprise-price-note">One-time buyout · Scope-based · Separate from fixed tiers</div>
+                <div class="enterprise-price-note">One-time fee · Scope-based · Separate from fixed tiers</div>
                 <ul class="enterprise-feature-list">
-                  <li>Full ownership rights with source-code/IP transfer</li>
-                  <li>Repository handoff + transition documentation</li>
-                  <li>Scoped separately from the fixed package tiers</li>
+                  <li>Full ownership of everything we built — yours to keep</li>
+                  <li>All files and code delivered to your team or developer</li>
+                  <li>Accounts, logins, and documentation handed over to you</li>
                 </ul>
                 <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Ownership Upgrade (Buyout Option)', 'Interested in Ownership Upgrade buyout ($8,000–$15,000 range). Please share what is included for source-code/IP transfer and handoff.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                   <ion-icon name="document-text-outline"></ion-icon>
-                  Discuss Buyout ($8k–$15k)
+                  Discuss Ownership Transfer
                 </a>
               </div>
             </div>
@@ -1775,7 +1765,7 @@
 
             <section class="about-text" style="margin-top: 30px;">
               <p>
-                <strong>Note:</strong> Final scope is confirmed after discovery; package pricing above includes maintenance for the first month only. Managed Turn-Key and Asset Buyout policies still apply where relevant.
+                <strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes maintenance for the first month only. Code ownership remains with the studio until an Ownership Upgrade is completed.
               </p>
             </section>
           </div>
@@ -5508,6 +5498,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
       <h3 class="h3" id="private-post-modal-title">Private Post</h3>
       <p class="private-post-hint">This post is password protected. Enter the password to read it.</p>
       <form class="private-post-form" id="private-post-form" novalidate>
+        <input type="text" name="username" autocomplete="username" aria-hidden="true" tabindex="-1" style="display:none;">
         <div class="private-post-input-wrap">
           <input
             type="password"
@@ -5527,96 +5518,6 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     </div>
   </div>
 
-  <!-- Services & Pricing — optional add-ons (mobile: bottom sheet / desktop: modal) -->
-  <div class="agency-modal pricing-addons-modal" id="pricing-addons-modal" role="dialog" aria-modal="true" aria-labelledby="pricing-addons-modal-title" aria-hidden="true">
-    <div class="agency-modal-overlay" id="pricing-addons-modal-overlay"></div>
-    <div class="agency-modal-content agency-modal-content--wide">
-      <div class="agency-modal-header">
-        <h3 id="pricing-addons-modal-title">Optional add-ons</h3>
-        <button type="button" class="agency-modal-close" id="pricing-addons-modal-close" aria-label="Close">
-          <ion-icon name="close-outline"></ion-icon>
-        </button>
-      </div>
-      <div class="agency-modal-body has-scrollbar" data-lenis-prevent>
-        <p class="pricing-addons-lead pricing-addons-lead--modal">Stack proven modules on any package. Each add-on is scoped to your workflow — prices are starting ranges based on what we’ve already shipped in production.</p>
-        <div class="enterprise-grid pricing-addon-grid">
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Worker / field team management</div>
-            <div class="enterprise-card-sub">Assign crews, team colors, clock in/out, hours per job, team calendar.</div>
-            <div class="enterprise-price pricing-addon-price">+$1,500–$2,000</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">PDF estimates &amp; invoices</div>
-            <div class="enterprise-card-sub">Line-item docs, tax/discounts, branded PDFs, email to customer, estimate → invoice flow.</div>
-            <div class="enterprise-price pricing-addon-price">+$1,000–$1,500</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Recurring subscription billing</div>
-            <div class="enterprise-card-sub">Weekly/monthly/custom schedules, auto-charges, pause/skip/cancel, visit generation.</div>
-            <div class="enterprise-price pricing-addon-price">+$1,500–$2,000</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Live chat / messaging</div>
-            <div class="enterprise-card-sub">Chat widget sitewide, admin inbox, threads, read status — replaces a separate helpdesk tool.</div>
-            <div class="enterprise-price pricing-addon-price">+$800–$1,200</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Card payments (Stripe)</div>
-            <div class="enterprise-card-sub">Checkout, deposits, saved cards, receipts — integrated into your booking flow.</div>
-            <div class="enterprise-price pricing-addon-price">+$800</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Before/after portfolio</div>
-            <div class="enterprise-card-sub">Crew submits job photos; you approve; published to a public “Our Work” gallery.</div>
-            <div class="enterprise-price pricing-addon-price">+$600–$800</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Multi-location customers</div>
-            <div class="enterprise-card-sub">Multiple service addresses per customer with labels (e.g. main home, rental).</div>
-            <div class="enterprise-price pricing-addon-price">+$400–$600</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Gallery + reviews</div>
-            <div class="enterprise-card-sub">Public work gallery plus customer testimonial capture and approval before publish.</div>
-            <div class="enterprise-price pricing-addon-price">+$400</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">iCal calendar feed</div>
-            <div class="enterprise-card-sub">Subscribe appointments to Google, Apple, or Outlook calendars.</div>
-            <div class="enterprise-price pricing-addon-price">+$300–$500</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Tip collection at checkout</div>
-            <div class="enterprise-card-sub">Preset tip amounts or custom tip — built into your payment screen.</div>
-            <div class="enterprise-price pricing-addon-price">+$300</div>
-          </div>
-
-          <div class="enterprise-card pricing-addon-card">
-            <div class="enterprise-card-title">Bilingual site</div>
-            <div class="enterprise-card-sub">Second language for customer-facing pages and key booking flows.</div>
-            <div class="enterprise-price pricing-addon-price">+$500</div>
-          </div>
-
-        </div>
-      </div>
-      <div class="agency-modal-footer">
-        <a href="#contact" class="btn btn-primary pricing-addons-discuss-btn" onclick="if(typeof closePricingAddonsModal === 'function') closePricingAddonsModal(); prefillContactForm('Pricing add-ons', 'Interested in add-on modules for my project. Please help me pick the right stack (worker management, subscriptions, chat, PDF invoices, etc.).'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
-          <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-          Discuss add-ons
-        </a>
-      </div>
-    </div>
-  </div>
 
   <!-- CodeWithRuben Agency Tools modals -->
   <div class="agency-modal" id="template-matcher-modal" aria-hidden="true">
