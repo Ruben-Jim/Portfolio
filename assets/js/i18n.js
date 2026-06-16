@@ -174,6 +174,12 @@
       'services.buyout_cta':    'Discuss Ownership Transfer',
       'services.note':          '<strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes maintenance for the first month only. Code ownership remains with the studio until an Ownership Upgrade is completed.',
 
+      /* ── Onboarding banners ─────────────────────────────── */
+      'cookie.title':   'We use analytics cookies',
+      'cookie.desc':    'Google Analytics helps us understand how visitors use this site. No personal data is sold or shared with advertisers.',
+      'cookie.decline': 'Decline',
+      'cookie.accept':  'Accept',
+
       /* ── Contact ────────────────────────────────────────── */
       'contact.title':          'Contact',
       'contact.form_title':     'Contact Form',
@@ -353,6 +359,12 @@
       'services.buyout_f3':     'Cuentas, accesos y documentaci\u00f3n entregados a ti',
       'services.buyout_cta':    'Hablar sobre la Transferencia',
       'services.note':          '<strong>Nota:</strong> El alcance final se confirma despu\u00e9s de una llamada de descubrimiento; el precio del paquete incluye mantenimiento solo el primer mes. La propiedad del c\u00f3digo permanece con el estudio hasta que se complete una Mejora de Propiedad.',
+
+      /* ── Onboarding banners ─────────────────────────────── */
+      'cookie.title':   'Usamos cookies de an\u00e1lisis',
+      'cookie.desc':    'Google Analytics nos ayuda a entender c\u00f3mo los visitantes usan este sitio. No se venden ni comparten datos personales con anunciantes.',
+      'cookie.decline': 'Rechazar',
+      'cookie.accept':  'Aceptar',
 
       /* ── Contact ────────────────────────────────────────── */
       'contact.title':          'Contacto',

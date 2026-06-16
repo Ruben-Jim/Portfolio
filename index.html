@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=i18n-toggle-20260615">
+  <link rel="stylesheet" href="/assets/css/style.css?v=onboard-banners-20260615">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -5482,12 +5482,11 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <!--
     - Google Analytics
   -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <!-- Google Analytics — loaded dynamically after cookie consent (see assets/js/onboard.js) -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-XXXXXXXXXX'); // Replace with your Google Analytics ID
+    window.CWR_GA_ID = 'G-XXXXXXXXXX'; // Replace with your real Google Analytics ID
   </script>
 
   <!--
@@ -5816,6 +5815,43 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   -->
   <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+  <!-- ─── Onboarding Banners ───────────────────────────────────── -->
+
+  <!-- Step 1: Language picker (shown when no lang preference is saved) -->
+  <div class="cwr-onboard-banner" id="cwr-lang-banner" aria-live="polite" aria-label="Language selection" hidden>
+    <div class="cwr-onboard-inner">
+      <div class="cwr-onboard-icon">&#127760;</div>
+      <div class="cwr-onboard-body">
+        <p class="cwr-onboard-heading">Choose your language &nbsp;/&nbsp; Elige tu idioma</p>
+      </div>
+      <div class="cwr-onboard-actions">
+        <button type="button" class="cwr-onboard-btn cwr-onboard-btn--lang" onclick="cwrOnboardPickLang('en')">
+          &#127482;&#127480; English
+        </button>
+        <button type="button" class="cwr-onboard-btn cwr-onboard-btn--lang" onclick="cwrOnboardPickLang('es')">
+          &#127474;&#127485; Espa&ntilde;ol
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Cookie consent (shown after language is picked, when no cookie choice is saved) -->
+  <div class="cwr-onboard-banner" id="cwr-cookie-banner" aria-live="polite" aria-label="Cookie consent" hidden>
+    <div class="cwr-onboard-inner">
+      <div class="cwr-onboard-icon">&#127850;</div>
+      <div class="cwr-onboard-body">
+        <p class="cwr-onboard-heading" data-i18n="cookie.title">We use analytics cookies</p>
+        <p class="cwr-onboard-desc" data-i18n="cookie.desc">Google Analytics helps us understand how visitors use this site. No personal data is sold or shared with advertisers.</p>
+      </div>
+      <div class="cwr-onboard-actions">
+        <button type="button" class="cwr-onboard-btn cwr-onboard-btn--decline" onclick="cwrOnboardCookieChoice(false)" data-i18n="cookie.decline">Decline</button>
+        <button type="button" class="cwr-onboard-btn cwr-onboard-btn--accept" onclick="cwrOnboardCookieChoice(true)" data-i18n="cookie.accept">Accept</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/onboard.js?v=1"></script>
 
 </body>
 
