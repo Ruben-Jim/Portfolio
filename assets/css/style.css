@@ -345,7 +345,9 @@ article.active:not(.home) {
   animation: cardReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Admin mobile bottom tab bar must anchor to the viewport, not the article */
+/* Admin mobile bottom tab bar — anchors to viewport, not the article.
+   When the Content subtab row is docked inside, the root becomes a
+   unified two-row column container. */
 .admin-mobile-tab-bar-root {
   display: none;
 }
@@ -360,6 +362,80 @@ body.admin-page-active .admin-mobile-tab-bar-root:not([hidden]) {
 
 body.admin-page-active .admin-mobile-subtab-bar-root:not([hidden]) {
   display: block;
+}
+
+@media (max-width: 767px) {
+  /* Root becomes the fixed anchor — primary bar + subtab row stack inside it */
+  body.admin-page-active .admin-mobile-tab-bar-root:not([hidden]) {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: 0;
+    z-index: 40;
+    border-radius: 14px;
+    overflow: hidden;
+    background: hsla(240, 5%, 12%, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow:
+      0 12px 36px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Primary bar inside the dock: static, no independent fixed position */
+  .admin-mobile-tab-bar-root .admin-tab-bar {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    z-index: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border-top: 1px solid hsla(0, 0%, 100%, 0.07);
+  }
+
+  /* Subtab row inside dock: static, no independent fixed position */
+  .admin-mobile-tab-bar-root .admin-mobile-subtab-bar-root {
+    position: static !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    padding: 0 !important;
+    pointer-events: auto;
+  }
+
+  /* Subtab bar itself: transparent bg, no separate radius/shadow — dock provides all */
+  .admin-mobile-tab-bar-root .admin-mobile-subtab-bar {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
+  }
+
+  /* Hide the whole dock when modals / sheets are open (consolidates both inner rules) */
+  body:has(.add-blog-modal.active) .admin-mobile-tab-bar-root,
+  body:has(.business-doc-modal.active) .admin-mobile-tab-bar-root,
+  body:has(.agency-modal.active) .admin-mobile-tab-bar-root,
+  body:has(.project-detail-modal.active) .admin-mobile-tab-bar-root,
+  body:has(.modal-container.active) .admin-mobile-tab-bar-root,
+  body.project-modal-open .admin-mobile-tab-bar-root,
+  body.cp-client-drawer-open .admin-mobile-tab-bar-root,
+  body.lead-drawer-open .admin-mobile-tab-bar-root,
+  body.admin-contact-detail-open .admin-mobile-tab-bar-root,
+  body.admin-dm-sheet-open .admin-mobile-tab-bar-root,
+  body:has(#admin-dm-sheet-root.is-open) .admin-mobile-tab-bar-root,
+  body.admin-tab-reorder-active .admin-mobile-tab-bar-root {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 }
 
 @media (max-width: 767px) {
@@ -3714,6 +3790,52 @@ article {
   align-items: stretch;
   padding: 0;
   gap: 2px;
+}
+
+/* ── Language toggle ─────────────────────────────────────────────────────── */
+.navbar-item--lang-toggle {
+  padding: 6px 0 4px;
+}
+
+.cwr-lang-toggle {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.cwr-lang-btn {
+  background: transparent;
+  border: 1px solid hsla(0, 0%, 100%, 0.18);
+  color: var(--light-gray);
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  line-height: 1.6;
+}
+
+.cwr-lang-btn.active {
+  background: var(--orange-yellow-crayola);
+  color: var(--smoky-black);
+  border-color: var(--orange-yellow-crayola);
+}
+
+.cwr-lang-btn:hover:not(.active) {
+  border-color: hsla(0, 0%, 100%, 0.4);
+  color: var(--white-2);
+}
+
+@media (min-width: 1250px) {
+  .navbar-item--lang-toggle {
+    padding: 0;
+    margin-left: 4px;
+  }
+  .cwr-lang-toggle {
+    gap: 3px;
+  }
 }
 
 .navbar-link {
@@ -13093,11 +13215,12 @@ body.project-modal-open {
     padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 
-  body.admin-page-active.admin-mobile-content-active .admin-tab-panels {
+  body.admin-page-active.admin-mobile-content-active .admin-tab-panels,
+  body.admin-page-active.admin-mobile-crm-active .admin-tab-panels {
     padding-bottom: calc(132px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Content hub — mobile primary dock only */
+  /* Hub buttons — always visible on mobile, sub-tabs hidden from primary bar */
   .admin-tab--mobile-section {
     display: inline-flex !important;
   }
@@ -13106,6 +13229,14 @@ body.project-modal-open {
     display: none !important;
   }
 
+  /* CRM sub-tabs are accessed through the CRM hub subtab row, not the primary bar */
+  .admin-nav-group[data-nav-group="agency"] .admin-tab[data-admin-crm-sub] {
+    display: none !important;
+  }
+
+  /* Standalone position — applies while the element lives at body level
+     (hidden state). The dock-specific rule overrides this when it's moved
+     inside .admin-mobile-tab-bar-root. */
   .admin-mobile-subtab-bar-root {
     position: fixed;
     left: 8px;
@@ -13281,6 +13412,11 @@ body.project-modal-open {
 }
 
 @media (max-width: 379px) {
+  body.admin-page-active .admin-mobile-tab-bar-root:not([hidden]) {
+    left: 6px;
+    right: 6px;
+  }
+
   body.admin-page-active .admin-tab-bar {
     padding: 3px;
     padding-bottom: max(3px, env(safe-area-inset-bottom, 0px));

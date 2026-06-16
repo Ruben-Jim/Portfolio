@@ -70,7 +70,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=price-nowrap-20260613">
+  <link rel="stylesheet" href="/assets/css/style.css?v=i18n-toggle-20260615">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -258,7 +258,7 @@
         <nav class="navbar cwr-landing-navbar" data-navbar>
           <a class="cwr-landing-brand" href="/" aria-label="CodeWithRuben home" onclick="if(typeof switchToPage === 'function') { switchToPage('home'); } return false;">
             <span class="cwr-landing-brand-mark">CodeWith<span class="cwr-landing-brand-accent">Ruben</span></span>
-            <span class="cwr-landing-brand-sub">Web &amp; Mobile Dev Studio</span>
+            <span class="cwr-landing-brand-sub" data-i18n="home.brand_sub">Web &amp; Mobile Dev Studio</span>
           </a>
           <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
             <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
@@ -267,35 +267,35 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Home</button>
+                <button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>About</button>
+                <button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Portfolio</button>
+                <button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Services & Pricing</button>
+                <button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button>
               </li>
               <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link>What We Build</button>
+                <button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button>
               </li>
               <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link>Hire Me</button>
+                <button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Contact</button>
+                <button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button>
               </li>
               <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link>Messages</button>
+                <button class="navbar-link" data-nav-link data-page-name="messages">Messages</button>
               </li>
               <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link>Admin</button>
+                <button class="navbar-link" data-nav-link data-page-name="admin">Admin</button>
               </li>
             </ul>
           </div>
-          <button type="button" class="btn btn-primary cwr-landing-nav-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
+          <button type="button" class="btn btn-primary cwr-landing-nav-cta" data-i18n="nav.get_started" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
         </nav>
 
         <section class="cwr-landing-hero" aria-labelledby="cwr-landing-title">
@@ -303,7 +303,7 @@
           <div class="cwr-landing-hero-noise" aria-hidden="true"></div>
           <div class="cwr-landing-hero-grid">
             <div class="cwr-landing-copy" data-cwr-landing-reveal>
-              <h1 class="cwr-landing-title" id="cwr-landing-title">Run your business<br>from your phone</h1>
+              <h1 class="cwr-landing-title" id="cwr-landing-title" data-i18n="home.hero_title">Run your business<br>from your phone</h1>
               <div class="cwr-landing-offer" aria-label="Website plus software">
                 <span class="cwr-landing-offer-box">
                   <span class="cwr-landing-offer-type" data-cwr-type-text="Website"></span>
@@ -313,12 +313,12 @@
                   <span class="cwr-landing-offer-type" data-cwr-type-text="Software"></span>
                 </span>
               </div>
-              <p class="cwr-landing-price">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong></p>
-              <p class="cwr-landing-proof"><span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards <span class="cwr-landing-stars" aria-hidden="true">★★★★★</span></p>
+              <p class="cwr-landing-price" data-i18n="home.price_line">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong></p>
+              <p class="cwr-landing-proof" data-i18n="home.proof_line"><span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards <span class="cwr-landing-stars" aria-hidden="true">★★★★★</span></p>
               <div class="cwr-landing-actions">
-                <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
-                <button type="button" class="btn cwr-landing-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
-                <button type="button" class="btn cwr-landing-btn-outline" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View work</button>
+                <button type="button" class="btn btn-primary cwr-landing-cta" data-i18n="home.cta_start" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
+                <button type="button" class="btn cwr-landing-btn-outline" data-i18n="home.cta_pricing" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
+                <button type="button" class="btn cwr-landing-btn-outline" data-i18n="home.cta_work" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View work</button>
               </div>
             </div>
             <div class="cwr-landing-visual" aria-hidden="true">
@@ -345,15 +345,15 @@
                 <img src="/assets/images/projects/project-lawncare.png" alt="" loading="lazy">
                 <img src="/assets/images/projects/project-rosasalon.png" alt="" loading="lazy">
               </div>
-              <span class="cwr-landing-demo-badge"><ion-icon name="play-circle-outline"></ion-icon> Live demos</span>
+              <span class="cwr-landing-demo-badge" data-i18n="home.demo_badge"><ion-icon name="play-circle-outline"></ion-icon> Live demos</span>
             </div>
             <div class="cwr-landing-demo-copy">
-              <p class="cwr-landing-band-kicker">Demo reel</p>
-              <h2 class="cwr-landing-band-title" id="cwr-demo-title">See what we ship for local businesses</h2>
-              <p class="cwr-landing-band-lead">Custom websites, booking flows, admin dashboards, and mobile apps — built for how service businesses actually run day to day.</p>
+              <p class="cwr-landing-band-kicker" data-i18n="home.demo_kicker">Demo reel</p>
+              <h2 class="cwr-landing-band-title" id="cwr-demo-title" data-i18n="home.demo_title">See what we ship for local businesses</h2>
+              <p class="cwr-landing-band-lead" data-i18n="home.demo_lead">Custom websites, booking flows, admin dashboards, and mobile apps — built for how service businesses actually run day to day.</p>
               <ul class="cwr-landing-demo-links">
                 <li><a href="https://tradeservice.expo.app" target="_blank" rel="noopener noreferrer">Trade Service demo</a></li>
-                <li><button type="button" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Full portfolio</button></li>
+                <li><button type="button" data-i18n="home.demo_link_full" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Full portfolio</button></li>
               </ul>
             </div>
           </div>
@@ -363,37 +363,37 @@
         <section class="cwr-landing-band cwr-landing-band--dark" aria-labelledby="cwr-process-title">
           <div class="cwr-landing-band-inner">
             <header class="cwr-landing-band-header">
-              <p class="cwr-landing-band-kicker">Process</p>
-              <h2 class="cwr-landing-band-title" id="cwr-process-title">How it works</h2>
-              <p class="cwr-landing-band-lead">From first message to launch — clear milestones, no surprises.</p>
+              <p class="cwr-landing-band-kicker" data-i18n="home.process_kicker">Process</p>
+              <h2 class="cwr-landing-band-title" id="cwr-process-title" data-i18n="home.process_title">How it works</h2>
+              <p class="cwr-landing-band-lead" data-i18n="home.process_lead">From first message to launch — clear milestones, no surprises.</p>
             </header>
             <ol class="cwr-landing-steps">
               <li class="cwr-landing-step">
                 <span class="cwr-landing-step-num">01</span>
                 <div class="cwr-landing-step-body">
-                  <h3>Share your idea</h3>
-                  <p>Tell us your goals, timeline, and what tools you want to replace.</p>
+                  <h3 data-i18n="home.step1_title">Share your idea</h3>
+                  <p data-i18n="home.step1_desc">Tell us your goals, timeline, and what tools you want to replace.</p>
                 </div>
               </li>
               <li class="cwr-landing-step">
                 <span class="cwr-landing-step-num">02</span>
                 <div class="cwr-landing-step-body">
-                  <h3>Discovery call</h3>
-                  <p>Quick call to align on scope, users, and the right stack.</p>
+                  <h3 data-i18n="home.step2_title">Discovery call</h3>
+                  <p data-i18n="home.step2_desc">Quick call to align on scope, users, and the right stack.</p>
                 </div>
               </li>
               <li class="cwr-landing-step">
                 <span class="cwr-landing-step-num">03</span>
                 <div class="cwr-landing-step-body">
-                  <h3>Build &amp; review</h3>
-                  <p>We design, develop, and QA with check-ins so you see progress early.</p>
+                  <h3 data-i18n="home.step3_title">Build &amp; review</h3>
+                  <p data-i18n="home.step3_desc">We design, develop, and QA with check-ins so you see progress early.</p>
                 </div>
               </li>
               <li class="cwr-landing-step">
                 <span class="cwr-landing-step-num">04</span>
                 <div class="cwr-landing-step-body">
-                  <h3>Launch &amp; support</h3>
-                  <p>Ship to web and app stores with docs, training, and 1 month of maintenance.</p>
+                  <h3 data-i18n="home.step4_title">Launch &amp; support</h3>
+                  <p data-i18n="home.step4_desc">Ship to web and app stores with docs, training, and 1 month of maintenance.</p>
                 </div>
               </li>
             </ol>
@@ -404,8 +404,8 @@
         <section class="cwr-landing-band cwr-landing-band--muted" aria-labelledby="cwr-proof-title">
           <div class="cwr-landing-band-inner">
             <header class="cwr-landing-band-header cwr-landing-band-header--center">
-              <p class="cwr-landing-band-kicker">Social proof</p>
-              <h2 class="cwr-landing-band-title" id="cwr-proof-title">Trusted by local businesses</h2>
+              <p class="cwr-landing-band-kicker" data-i18n="home.proof_kicker">Social proof</p>
+              <h2 class="cwr-landing-band-title" id="cwr-proof-title" data-i18n="home.proof_title">Trusted by local businesses</h2>
             </header>
             <div class="cwr-landing-spotlight" data-landing-spotlight aria-live="polite" aria-label="Featured clients"></div>
           </div>
@@ -415,8 +415,8 @@
         <section class="cwr-landing-band cwr-landing-band--dark" aria-labelledby="cwr-testimonials-title">
           <div class="cwr-landing-band-inner">
             <header class="cwr-landing-band-header cwr-landing-band-header--center">
-              <p class="cwr-landing-band-kicker">Testimonials</p>
-              <h2 class="cwr-landing-band-title" id="cwr-testimonials-title">What clients say</h2>
+              <p class="cwr-landing-band-kicker" data-i18n="home.testimonials_kicker">Testimonials</p>
+              <h2 class="cwr-landing-band-title" id="cwr-testimonials-title" data-i18n="home.testimonials_title">What clients say</h2>
             </header>
             <ul class="testimonials-list cwr-landing-testimonials has-scrollbar" data-home-testimonials aria-label="Client testimonials">
               <li class="testimonials-item">
@@ -432,7 +432,7 @@
               </li>
             </ul>
             <p class="cwr-landing-proof-link">
-              <button type="button" class="cwr-landing-text-link" onclick="if(typeof switchToPage === 'function') { switchToPage('about'); } return false;">Read more on About</button>
+              <button type="button" class="cwr-landing-text-link" data-i18n="home.testimonials_link" onclick="if(typeof switchToPage === 'function') { switchToPage('about'); } return false;">Read more on About</button>
             </p>
           </div>
         </section>
@@ -440,11 +440,11 @@
         <!-- Section 5: CTA band -->
         <section class="cwr-landing-band cwr-landing-band--cta" aria-labelledby="cwr-cta-title">
           <div class="cwr-landing-band-inner cwr-landing-cta-inner">
-            <h2 class="cwr-landing-band-title" id="cwr-cta-title">Ready to run your business from your phone?</h2>
-            <p class="cwr-landing-band-lead">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong> · Fresno-based studio</p>
+            <h2 class="cwr-landing-band-title" id="cwr-cta-title" data-i18n="home.cta_title">Ready to run your business from your phone?</h2>
+            <p class="cwr-landing-band-lead" data-i18n="home.cta_lead">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong> · Fresno-based studio</p>
             <div class="cwr-landing-cta-actions">
-              <button type="button" class="btn btn-primary cwr-landing-cta" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
-              <button type="button" class="btn cwr-landing-btn-outline cwr-landing-btn-outline--on-dark" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
+              <button type="button" class="btn btn-primary cwr-landing-cta" data-i18n="home.cta_start" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
+              <button type="button" class="btn cwr-landing-btn-outline cwr-landing-btn-outline--on-dark" data-i18n="home.cta_pricing" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
             </div>
           </div>
         </section>
@@ -463,47 +463,54 @@
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Home</button>
+                <button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>About</button>
+                <button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Portfolio</button>
+                <button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Services & Pricing</button>
+                <button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button>
               </li>
               <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link>What We Build</button>
+                <button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button>
               </li>
               <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link>Hire Me</button>
+                <button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button>
               </li>
               <li class="navbar-item">
-                <button class="navbar-link" data-nav-link>Contact</button>
+                <button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button>
               </li>
               <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link>Messages</button>
+                <button class="navbar-link" data-nav-link data-page-name="messages">Messages</button>
               </li>
               <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link>Admin</button>
+                <button class="navbar-link" data-nav-link data-page-name="admin">Admin</button>
               </li>
-            </ul>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
 
         <header>
-          <h2 class="h2 article-title">About</h2>
+          <h2 class="h2 article-title" data-i18n="about.title">About</h2>
         </header>
 
         <!-- Studio intro -->
         <section class="about-text">
-          <p><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based dev studio</span> — we design, build, and ship <span class="highlight-accent">web and mobile apps</span> for local service businesses. Real software, not templates.</p>
+          <p data-i18n="about.intro"><span class="highlight-primary">CodeWithRuben</span> is a <span class="highlight-secondary">Fresno-based dev studio</span> — we design, build, and ship <span class="highlight-accent">web and mobile apps</span> for local service businesses. Real software, not templates.</p>
           <div class="bento-intro-links">
-            <a href="/portfolio" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Work</a>
-            <a href="/services-pricing" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services</a>
-            <a href="/hire-me" class="bento-intro-link" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Start a project</a>
+            <a href="/portfolio" class="bento-intro-link" data-i18n="about.link_work" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Work</a>
+            <a href="/services-pricing" class="bento-intro-link" data-i18n="about.link_services" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Services</a>
+            <a href="/hire-me" class="bento-intro-link" data-i18n="about.link_start" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Start a project</a>
           </div>
         </section>
 
@@ -513,53 +520,53 @@
             <img src="/assets/images/avatar/my-avatar.png" alt="Ruben Jimenez" class="about-founder-avatar">
             <div>
               <p class="about-founder-name">Ruben Jimenez</p>
-              <p class="about-founder-role">Founder &amp; Developer</p>
-              <p>Self-taught developer based in Fresno, CA. I started CWR because local businesses deserve software built for how they actually operate — not generic tools that barely fit. I handle every project personally from first call to launch.</p>
+              <p class="about-founder-role" data-i18n="about.founder_role">Founder &amp; Developer</p>
+              <p data-i18n="about.founder_bio">Self-taught developer based in Fresno, CA. I started CWR because local businesses deserve software built for how they actually operate — not generic tools that barely fit. I handle every project personally from first call to launch.</p>
             </div>
           </div>
           <div class="about-stat-row">
             <div>
               <span class="about-stat-number">3+</span>
-              <span class="about-stat-label">Paid builds</span>
+              <span class="about-stat-label" data-i18n="about.stat_builds">Paid builds</span>
             </div>
             <div>
               <span class="about-stat-number">App Store</span>
-              <span class="about-stat-label">Live on iOS &amp; Android</span>
+              <span class="about-stat-label" data-i18n="about.stat_live">Live on iOS &amp; Android</span>
             </div>
             <div>
               <span class="about-stat-number">Fresno</span>
-              <span class="about-stat-label">Central Valley, CA</span>
+              <span class="about-stat-label" data-i18n="about.stat_location">Central Valley, CA</span>
             </div>
             <div>
               <span class="about-stat-number">2022</span>
-              <span class="about-stat-label">Founded</span>
+              <span class="about-stat-label" data-i18n="about.stat_founded">Founded</span>
             </div>
           </div>
         </section>
 
         <!-- Why CWR -->
         <section class="about-text">
-          <h3 class="h3" style="margin-bottom: 16px;">Why CWR</h3>
+          <h3 class="h3" style="margin-bottom: 16px;" data-i18n="about.why_title">Why CWR</h3>
           <ul class="about-why-list">
             <li class="about-why-item">
               <ion-icon name="location-outline" class="about-why-icon" aria-hidden="true"></ion-icon>
               <div>
-                <p class="about-why-title">Local, not outsourced</p>
-                <p>You talk directly to the person writing your code — not a project manager relaying messages to an overseas team. Fresno-based means fast responses and real accountability.</p>
+                <p class="about-why-title" data-i18n="about.why1_title">Local, not outsourced</p>
+                <p data-i18n="about.why1_desc">You talk directly to the person writing your code — not a project manager relaying messages to an overseas team. Fresno-based means fast responses and real accountability.</p>
               </div>
             </li>
             <li class="about-why-item">
               <ion-icon name="phone-portrait-outline" class="about-why-icon" aria-hidden="true"></ion-icon>
               <div>
-                <p class="about-why-title">Real apps in production</p>
-                <p>ProCleaning Seattle is live on the App Store — full booking system, Stripe payments, worker management. That's the standard we build to for every client.</p>
+                <p class="about-why-title" data-i18n="about.why2_title">Real apps in production</p>
+                <p data-i18n="about.why2_desc">ProCleaning Seattle is live on the App Store — full booking system, Stripe payments, worker management. That's the standard we build to for every client.</p>
               </div>
             </li>
             <li class="about-why-item">
               <ion-icon name="settings-outline" class="about-why-icon" aria-hidden="true"></ion-icon>
               <div>
-                <p class="about-why-title">Built for your operations</p>
-                <p>Every build includes a custom admin dashboard so you control bookings, messages, and content without calling a developer. Your business, your software.</p>
+                <p class="about-why-title" data-i18n="about.why3_title">Built for your operations</p>
+                <p data-i18n="about.why3_desc">Every build includes a custom admin dashboard so you control bookings, messages, and content without calling a developer. Your business, your software.</p>
               </div>
             </li>
           </ul>
@@ -567,7 +574,7 @@
 
         <!-- Testimonials -->
         <section class="testimonials" aria-labelledby="testimonials-heading">
-          <h3 class="h3 testimonials-title" id="testimonials-heading">What Clients Say</h3>
+          <h3 class="h3 testimonials-title" id="testimonials-heading" data-i18n="about.testimonials_title">What Clients Say</h3>
           <ul class="testimonials-list has-scrollbar">
             <li class="testimonials-item">
               <div class="content-card" data-testimonials-item>
@@ -585,9 +592,9 @@
 
         <!-- CTA -->
         <div class="about-cta-band">
-          <h3 class="about-cta-title">Ready to build something real?</h3>
-          <p class="about-cta-sub">Packages from <strong>$1,500</strong> · Web + iOS + Android · Fresno-based studio</p>
-          <button type="button" class="btn btn-primary" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Start a project</button>
+          <h3 class="about-cta-title" data-i18n="about.cta_title">Ready to build something real?</h3>
+          <p class="about-cta-sub" data-i18n="about.cta_lead">Packages from <strong>$1,500</strong> · Web + iOS + Android · Fresno-based studio</p>
+          <button type="button" class="btn btn-primary" data-i18n="about.cta_btn" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Start a project</button>
         </div>
 
       </article>
@@ -603,16 +610,23 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
-            </ul>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
         <header>
@@ -1089,36 +1103,43 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
               <li class="navbar-item">
                 <button type="button" class="navbar-link admin-navbar-logout" id="admin-logout-btn" style="display: none;" aria-label="Log out of admin">
                   <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
                   <span>Logout</span>
                 </button>
               </li>
-            </ul>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
         <header>
-          <h2 class="h2 article-title">Portfolio</h2>
+          <h2 class="h2 article-title" data-i18n="portfolio.title">Portfolio</h2>
         </header>
 
         <section class="projects">
 
           <div class="portfolio-filters" id="portfolio-filters" aria-label="Filter portfolio by industry">
             <div class="portfolio-filter-group portfolio-filter-group--niche">
-              <span class="portfolio-filter-label">Industry</span>
+              <span class="portfolio-filter-label" data-i18n="portfolio.industry">Industry</span>
               <div class="portfolio-niche-scroll-wrap">
                 <div class="portfolio-niche-scroll" id="portfolio-niche-filters" role="tablist" aria-label="Industry">
-                  <button type="button" class="portfolio-niche-text active" data-portfolio-niche="all" role="tab" aria-selected="true">All</button>
+                  <button type="button" class="portfolio-niche-text active" data-portfolio-niche="all" role="tab" aria-selected="true" data-i18n="portfolio.filter_all">All</button>
                 </div>
               </div>
             </div>
@@ -1127,7 +1148,7 @@
                 <ul class="project-list" id="portfolio-project-list">
           <li class="portfolio-projects-loading" aria-live="polite">
             <div class="project-card portfolio-projects-loading-card">
-              <p class="portfolio-projects-loading-text">Loading projects…</p>
+              <p class="portfolio-projects-loading-text" data-i18n="portfolio.loading">Loading projects…</p>
             </div>
           </li>
         </ul>
@@ -1260,16 +1281,23 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
-            </ul>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
         <header>
@@ -1535,16 +1563,23 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
-            </ul>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
         <header>
@@ -1552,7 +1587,7 @@
         </header>
 
         <section class="about-text">
-          <p>
+          <p data-i18n="services.intro">
             Fixed packages for service businesses — booking, crews, payments, and admin in one place. Every build includes 1 month of maintenance. Add proven modules à la carte, or go all-in with a Studio Build — the same platform we use for live field-service businesses today.
           </p>
         </section>
@@ -1563,163 +1598,163 @@
             <div class="enterprise-grid standard-bundles-grid">
 
               <div class="enterprise-card">
-                <div class="enterprise-card-title">Starter Presence</div>
-                <div class="enterprise-card-sub">
+                <div class="enterprise-card-title" data-i18n="services.starter_title">Starter Presence</div>
+                <div class="enterprise-card-sub" data-i18n="services.starter_sub">
                   1–3 page site or starter storefront for businesses that need to look professional and start taking inquiries fast.
                 </div>
                 <div class="enterprise-price">$1,500</div>
-                <div class="enterprise-price-note">Fixed package · ~2 weeks · Maintenance included · 1 month only</div>
+                <div class="enterprise-price-note" data-i18n="services.starter_note">Fixed package · ~2 weeks · Maintenance included · 1 month only</div>
                 <ul class="enterprise-feature-list">
-                  <li>Branded pages customers can browse on any device</li>
-                  <li>Quote request + booking request forms</li>
-                  <li>Work gallery with customer reviews and testimonials</li>
-                  <li>Live chat so customers can message you directly</li>
-                  <li>Bilingual customer-facing pages (English + one language)</li>
-                  <li>Calendar feed for appointments (Google, Apple, Outlook)</li>
-                  <li>Multiple service addresses per customer</li>
-                  <li>Basic SEO + analytics so you know who visits</li>
-                  <li>Launch + hosting setup support</li>
+                  <li data-i18n="services.starter_f1">Branded pages customers can browse on any device</li>
+                  <li data-i18n="services.starter_f2">Quote request + booking request forms</li>
+                  <li data-i18n="services.starter_f3">Work gallery with customer reviews and testimonials</li>
+                  <li data-i18n="services.starter_f4">Live chat so customers can message you directly</li>
+                  <li data-i18n="services.starter_f5">Bilingual customer-facing pages (English + one language)</li>
+                  <li data-i18n="services.starter_f6">Calendar feed for appointments (Google, Apple, Outlook)</li>
+                  <li data-i18n="services.starter_f7">Multiple service addresses per customer</li>
+                  <li data-i18n="services.starter_f8">Basic SEO + analytics so you know who visits</li>
+                  <li data-i18n="services.starter_f9">Launch + hosting setup support</li>
                 </ul>
                 <a href="#hire-me" class="enterprise-cta" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('starter'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Start at $1,500
+                  <span data-i18n="services.starter_cta">Start at $1,500</span>
                 </a>
               </div>
 
               <div class="enterprise-card featured-card">
-                <span class="enterprise-card-badge">Most Popular</span>
-                <div class="enterprise-card-title">Growth Platform</div>
-                <div class="enterprise-card-sub">
+                <span class="enterprise-card-badge" data-i18n="services.growth_badge">Most Popular</span>
+                <div class="enterprise-card-title" data-i18n="services.growth_title">Growth Platform</div>
+                <div class="enterprise-card-sub" data-i18n="services.growth_sub">
                   Up to 5 pages plus a backend so leads and bookings land in one admin — not scattered texts and DMs.
                 </div>
                 <div class="enterprise-price">$3,500</div>
-                <div class="enterprise-price-note">Fixed package · 3–4 weeks · Maintenance included · 1 month only</div>
+                <div class="enterprise-price-note" data-i18n="services.growth_note">Fixed package · 3–4 weeks · Maintenance included · 1 month only</div>
                 <ul class="enterprise-feature-list">
-                  <li>Everything in Starter + up to 5 pages</li>
-                  <li>Online quote capture with customer details saved</li>
-                  <li>Booking requests routed to your admin dashboard</li>
-                  <li>Card payments at checkout (Stripe)</li>
-                  <li>Tip collection at checkout</li>
-                  <li>PDF estimates &amp; invoices emailed to customers</li>
-                  <li>Crew assignment, scheduling, and hours per job</li>
-                  <li>Before/after portfolio — crew submits photos, you approve, published to your site</li>
-                  <li>Recurring subscription billing (weekly, monthly, custom)</li>
-                  <li>Login for you to review leads and update content</li>
-                  <li>Automated notifications when someone inquires</li>
+                  <li data-i18n="services.growth_f1">Everything in Starter + up to 5 pages</li>
+                  <li data-i18n="services.growth_f2">Online quote capture with customer details saved</li>
+                  <li data-i18n="services.growth_f3">Booking requests routed to your admin dashboard</li>
+                  <li data-i18n="services.growth_f4">Card payments at checkout (Stripe)</li>
+                  <li data-i18n="services.growth_f5">Tip collection at checkout</li>
+                  <li data-i18n="services.growth_f6">PDF estimates &amp; invoices emailed to customers</li>
+                  <li data-i18n="services.growth_f7">Crew assignment, scheduling, and hours per job</li>
+                  <li data-i18n="services.growth_f8">Before/after portfolio — crew submits photos, you approve, published to your site</li>
+                  <li data-i18n="services.growth_f9">Recurring subscription billing (weekly, monthly, custom)</li>
+                  <li data-i18n="services.growth_f10">Login for you to review leads and update content</li>
+                  <li data-i18n="services.growth_f11">Automated notifications when someone inquires</li>
                 </ul>
                 <a href="#hire-me" class="enterprise-cta" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('growth'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
                   <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                  Choose $3,500 Package
+                  <span data-i18n="services.growth_cta">Choose $3,500 Package</span>
                 </a>
               </div>
 
               <div class="enterprise-card enterprise-card--agency">
-                <span class="enterprise-card-badge enterprise-card-badge--agency">Field Ops</span>
-                <div class="enterprise-card-title">Business Platform</div>
-                <div class="enterprise-card-sub">
+                <span class="enterprise-card-badge enterprise-card-badge--agency" data-i18n="services.biz_badge">Field Ops</span>
+                <div class="enterprise-card-title" data-i18n="services.biz_title">Business Platform</div>
+                <div class="enterprise-card-sub" data-i18n="services.biz_sub">
                   Web + mobile app for crews in the field — take payments, assign jobs, and run day-to-day ops from one dashboard.
                 </div>
                 <div class="enterprise-agency-range">
-                  <span class="enterprise-agency-range-label">Investment</span>
+                  <span class="enterprise-agency-range-label" data-i18n="services.biz_inv_label">Investment</span>
                   <span class="enterprise-agency-range-value">$6k – $12k</span>
-                  <span class="enterprise-agency-range-note">Scoped after discovery · 1 month maintenance included</span>
+                  <span class="enterprise-agency-range-note" data-i18n="services.biz_inv_note">Scoped after discovery · 1 month maintenance included</span>
                 </div>
                 <ul class="enterprise-feature-list">
-                  <li>Web + iOS + Android — one app your customers and crew share</li>
-                  <li>Staff login with role-based access (owner vs. worker)</li>
-                  <li>Card payments at checkout (Stripe)</li>
-                  <li>Job scheduling, assignments, and order history</li>
-                  <li>Admin dashboard for quotes, bookings, and customers</li>
+                  <li data-i18n="services.biz_f1">Web + iOS + Android — one app your customers and crew share</li>
+                  <li data-i18n="services.biz_f2">Staff login with role-based access (owner vs. worker)</li>
+                  <li data-i18n="services.growth_f4">Card payments at checkout (Stripe)</li>
+                  <li data-i18n="services.biz_f4">Job scheduling, assignments, and order history</li>
+                  <li data-i18n="services.biz_f5">Admin dashboard for quotes, bookings, and customers</li>
                 </ul>
                 <a href="#hire-me" class="enterprise-cta enterprise-cta--agency" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('agency'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
                   <ion-icon name="calendar-outline"></ion-icon>
-                  Book Discovery Call
+                  <span data-i18n="services.biz_cta">Book Discovery Call</span>
                 </a>
               </div>
 
               <div class="enterprise-card enterprise-card--agency">
-                <span class="enterprise-card-badge enterprise-card-badge--agency">Enterprise</span>
-                <div class="enterprise-card-title">Studio Build</div>
-                <div class="enterprise-card-sub">
+                <span class="enterprise-card-badge enterprise-card-badge--agency" data-i18n="services.studio_badge">Enterprise</span>
+                <div class="enterprise-card-title" data-i18n="services.studio_title">Studio Build</div>
+                <div class="enterprise-card-sub" data-i18n="services.studio_sub">
                   Full field-service operations platform — the tier we use for live production apps with crews, billing, and back-office automation.
                 </div>
                 <div class="enterprise-agency-range">
-                  <span class="enterprise-agency-range-label">Investment</span>
+                  <span class="enterprise-agency-range-label" data-i18n="services.biz_inv_label">Investment</span>
                   <span class="enterprise-agency-range-value">$15k – $40k</span>
-                  <span class="enterprise-agency-range-note">Custom scope · Timeline after discovery · 1 month maintenance included</span>
+                  <span class="enterprise-agency-range-note" data-i18n="services.studio_inv_note">Custom scope · Timeline after discovery · 1 month maintenance included</span>
                 </div>
                 <ul class="enterprise-feature-list">
-                  <li>Field team management — assign crews, clock in/out, hours per job</li>
-                  <li>Quote → estimate → booked job → invoice pipeline</li>
-                  <li>PDF estimates &amp; invoices emailed to customers</li>
-                  <li>Recurring subscription billing (weekly, monthly, custom schedules)</li>
-                  <li>Live chat + admin inbox with full conversation history</li>
-                  <li>Before/after portfolio with crew submit + owner approval</li>
-                  <li>Multi-location customers, tax regions, tips, promo codes, iCal feeds</li>
+                  <li data-i18n="services.studio_f1">Field team management — assign crews, clock in/out, hours per job</li>
+                  <li data-i18n="services.studio_f2">Quote → estimate → booked job → invoice pipeline</li>
+                  <li data-i18n="services.growth_f6">PDF estimates &amp; invoices emailed to customers</li>
+                  <li data-i18n="services.studio_f4">Recurring subscription billing (weekly, monthly, custom schedules)</li>
+                  <li data-i18n="services.studio_f5">Live chat + admin inbox with full conversation history</li>
+                  <li data-i18n="services.studio_f6">Before/after portfolio with crew submit + owner approval</li>
+                  <li data-i18n="services.studio_f7">Multi-location customers, tax regions, tips, promo codes, iCal feeds</li>
                 </ul>
                 <a href="#hire-me" class="enterprise-cta enterprise-cta--agency" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('studio'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
                   <ion-icon name="calendar-outline"></ion-icon>
-                  Start Discovery
+                  <span data-i18n="services.studio_cta">Start Discovery</span>
                 </a>
               </div>
 
             </div>
 
 
-            <h3 class="h3 service-title standard-addons-heading">Maintenance Plans</h3>
-            <p class="maintenance-billing-lead">After your first included month: pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
+            <h3 class="h3 service-title standard-addons-heading" data-i18n="services.maint_title">Maintenance Plans</h3>
+            <p class="maintenance-billing-lead" data-i18n="services.maint_lead">After your first included month: pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
             <div class="enterprise-grid maintenance-tier-grid">
               <div class="enterprise-card">
                 <span class="enterprise-card-badge">Standard</span>
-                <div class="enterprise-card-title">Standard Care</div>
-                <div class="enterprise-card-sub">
+                <div class="enterprise-card-title" data-i18n="services.std_title">Standard Care</div>
+                <div class="enterprise-card-sub" data-i18n="services.std_sub">
                   Ongoing support for hosting, updates, monitoring, and minor fixes across web and mobile (iOS &amp; Android) after your first included month.
                 </div>
 
                 <div class="maintenance-billing-block">
-                  <span class="maintenance-billing-label">Monthly</span>
+                  <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$79<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note">72-hour response · 1 maintenance window/month</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_mo_note">72-hour response · 1 maintenance window/month</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
-                  <span class="maintenance-billing-label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
+                  <span class="maintenance-billing-label" data-i18n="services.std_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
                   <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note">Same as ~$44/mo · billed once per year</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_ann_note">Same as ~$44/mo · billed once per year</div>
                 </div>
 
                 <ul class="enterprise-feature-list">
-                  <li>Response within 72 business hours</li>
-                  <li>1 maintenance window per month</li>
-                  <li>Hosting, updates, monitoring, minor fixes</li>
-                  <li>Web + iOS + Android support</li>
+                  <li data-i18n="services.std_f1">Response within 72 business hours</li>
+                  <li data-i18n="services.std_f2">1 maintenance window per month</li>
+                  <li data-i18n="services.std_f3">Hosting, updates, monitoring, minor fixes</li>
+                  <li data-i18n="services.std_f4">Web + iOS + Android support</li>
                 </ul>
               </div>
 
               <div class="enterprise-card">
                 <span class="enterprise-card-badge">Priority</span>
-                <div class="enterprise-card-title">Priority Care</div>
-                <div class="enterprise-card-sub">
+                <div class="enterprise-card-title" data-i18n="services.pri_title">Priority Care</div>
+                <div class="enterprise-card-sub" data-i18n="services.pri_sub">
                   Same coverage as Standard Care with faster response times and more frequent maintenance windows across web and mobile (iOS &amp; Android).
                 </div>
 
                 <div class="maintenance-billing-block">
-                  <span class="maintenance-billing-label">Monthly</span>
+                  <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$150<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note">24-hour response · 2 maintenance windows/month</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">24-hour response · 2 maintenance windows/month</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
-                  <span class="maintenance-billing-label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
+                  <span class="maintenance-billing-label" data-i18n="services.pri_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
                   <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note">Same as ~$83/mo · billed once per year</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_ann_note">Same as ~$83/mo · billed once per year</div>
                 </div>
 
                 <ul class="enterprise-feature-list">
-                  <li>Response within 24 business hours</li>
-                  <li>2 maintenance windows per month</li>
-                  <li>Hosting, updates, monitoring, minor fixes</li>
-                  <li>Web + iOS + Android support</li>
+                  <li data-i18n="services.pri_f1">Response within 24 business hours</li>
+                  <li data-i18n="services.pri_f2">2 maintenance windows per month</li>
+                  <li data-i18n="services.std_f3">Hosting, updates, monitoring, minor fixes</li>
+                  <li data-i18n="services.std_f4">Web + iOS + Android support</li>
                 </ul>
               </div>
             </div>
@@ -1736,28 +1771,28 @@
             <div class="standard-addon-cta-wrap">
               <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month — Standard $79/mo or $522/yr (annual), or Priority $150/mo or $990/yr (annual, 45% off vs monthly).'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                 <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
-                Discuss Plan
+                <span data-i18n="services.maint_cta">Discuss Plan</span>
               </a>
             </div>
 
-            <h3 class="h3 service-title standard-addons-heading">Ownership Upgrade (Buyout)</h3>
+            <h3 class="h3 service-title standard-addons-heading" data-i18n="services.buyout_h3">Ownership Upgrade (Buyout)</h3>
             <div class="enterprise-grid standard-addons-grid">
               <div class="enterprise-card full-width">
-                <span class="enterprise-card-badge">Optional</span>
-                <div class="enterprise-card-title">Ownership Upgrade (Buyout Option)</div>
-                <div class="enterprise-card-sub">
+                <span class="enterprise-card-badge" data-i18n="services.buyout_badge">Optional</span>
+                <div class="enterprise-card-title" data-i18n="services.buyout_title">Ownership Upgrade (Buyout Option)</div>
+                <div class="enterprise-card-sub" data-i18n="services.buyout_sub">
                   Want to fully own what we build? This one-time upgrade transfers everything — all files, code, and accounts — directly to you or your team.
                 </div>
                 <div class="enterprise-price">$8,000–$15,000</div>
-                <div class="enterprise-price-note">One-time fee · Scope-based · Separate from fixed tiers</div>
+                <div class="enterprise-price-note" data-i18n="services.buyout_note">One-time fee · Scope-based · Separate from fixed tiers</div>
                 <ul class="enterprise-feature-list">
-                  <li>Full ownership of everything we built — yours to keep</li>
-                  <li>All files and code delivered to your team or developer</li>
-                  <li>Accounts, logins, and documentation handed over to you</li>
+                  <li data-i18n="services.buyout_f1">Full ownership of everything we built — yours to keep</li>
+                  <li data-i18n="services.buyout_f2">All files and code delivered to your team or developer</li>
+                  <li data-i18n="services.buyout_f3">Accounts, logins, and documentation handed over to you</li>
                 </ul>
                 <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Ownership Upgrade (Buyout Option)', 'Interested in Ownership Upgrade buyout ($8,000–$15,000 range). Please share what is included for source-code/IP transfer and handoff.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                   <ion-icon name="document-text-outline"></ion-icon>
-                  Discuss Ownership Transfer
+                  <span data-i18n="services.buyout_cta">Discuss Ownership Transfer</span>
                 </a>
               </div>
             </div>
@@ -1765,7 +1800,7 @@
 
             <section class="about-text" style="margin-top: 30px;">
               <p>
-                <strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes maintenance for the first month only. Code ownership remains with the studio until an Ownership Upgrade is completed.
+                <span data-i18n="services.note"><strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes maintenance for the first month only. Code ownership remains with the studio until an Ownership Upgrade is completed.</span>
               </p>
             </section>
           </div>
@@ -1786,16 +1821,23 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
-            </ul>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
         <header>
@@ -2268,16 +2310,23 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
-            </ul>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
 
@@ -2356,8 +2405,8 @@
 
             <form class="form" data-form>
               <div class="input-wrapper">
-                <input type="text" name="fullname" class="form-input" placeholder="Full name" required data-form-input>
-                <input type="email" name="email" class="form-input" placeholder="Email address" required data-form-input>
+                <input type="text" name="fullname" class="form-input" placeholder="Full name" data-i18n-ph="contact.ph_name" required data-form-input>
+                <input type="email" name="email" class="form-input" placeholder="Email address" data-i18n-ph="contact.ph_email" required data-form-input>
               </div>
               <div class="input-wrapper">
                 <input type="text" name="project-type" class="form-input" placeholder="Project type (Web, Mobile, etc.)" data-form-input>
@@ -2418,20 +2467,27 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
-            </ul>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
         <header>
-          <h2 class="h2 article-title">Contact</h2>
+          <h2 class="h2 article-title" data-i18n="contact.title">Contact</h2>
         </header>
 
         <section class="mapbox" data-mapbox>
@@ -2444,21 +2500,21 @@
 
         <section class="contact-form" data-contact-form-section>
 
-          <h3 class="h3 form-title">Contact Form</h3>
+          <h3 class="h3 form-title" data-i18n="contact.form_title">Contact Form</h3>
 
           <form class="form" data-form>
 
             <div class="input-wrapper">
-              <input type="text" name="fullname" class="form-input" placeholder="Full name" required data-form-input>
+              <input type="text" name="fullname" class="form-input" placeholder="Full name" data-i18n-ph="contact.ph_name" required data-form-input>
 
-              <input type="email" name="email" class="form-input" placeholder="Email address" required data-form-input>
+              <input type="email" name="email" class="form-input" placeholder="Email address" data-i18n-ph="contact.ph_email" required data-form-input>
             </div>
 
-            <textarea name="message" class="form-input" placeholder="Your Message" required data-form-input></textarea>
+            <textarea name="message" class="form-input" placeholder="Your Message" data-i18n-ph="contact.ph_message" required data-form-input></textarea>
 
             <button class="form-btn" type="submit" disabled data-form-btn>
               <ion-icon name="paper-plane"></ion-icon>
-              <span>Send Message</span>
+              <span data-i18n="contact.send_btn">Send Message</span>
             </button>
 
           </form>
@@ -2470,13 +2526,13 @@
             <div class="contact-form-submitted-icon">
               <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
             </div>
-            <h3 class="h3 contact-form-submitted-title">Message received</h3>
-            <p class="contact-form-submitted-text">
+            <h3 class="h3 contact-form-submitted-title" data-i18n="contact.success_title">Message received</h3>
+            <p class="contact-form-submitted-text" data-i18n="contact.success_text">
               Your message is saved — we typically reply within 24–72 hours. Open your private thread to keep the conversation going.
             </p>
             <button type="button" class="form-btn contact-form-submitted-btn" id="contact-success-go-messages">
               <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
-              <span>Open your conversation</span>
+              <span data-i18n="contact.success_btn">Open your conversation</span>
             </button>
           </div>
         </div>
@@ -2496,16 +2552,23 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
-            </ul>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
         <header>
@@ -2527,16 +2590,23 @@
           </button>
           <div class="navbar-menu" data-navbar-menu>
             <ul class="navbar-list">
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Home</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>About</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Portfolio</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Services & Pricing</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Hire Me</button></li>
-              <li class="navbar-item"><button class="navbar-link" data-nav-link>Contact</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Messages</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link>Admin</button></li>
-            </ul>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+            
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+</ul>
           </div>
         </nav>
         <!-- Admin guest gate (logged-out surface; hidden when signed in via CSS) -->
@@ -5725,7 +5795,8 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/customer-dm-shared.js?v=contact-dm-mobile-20260608"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
-  <script src="/assets/js/script.js?v=pricing-addons-sheet-20260613"></script>
+  <script src="/assets/js/i18n.js?v=1"></script>
+  <script src="/assets/js/script.js?v=crm-more-fix-20260615"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=cp-mobile-sheet-fix-20260611"></script>
   <script src="/assets/js/dm-migration.js"></script>

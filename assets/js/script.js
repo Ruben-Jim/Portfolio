@@ -3621,7 +3621,7 @@ async function deletePortfolioProjectDoc(id) {
 }
 
 const PORTFOLIO_CONTACT_ONCLICK =
-  'onclick="if(typeof switchToPage === \'function\') { switchToPage(\'contact\'); } else { var btn = Array.from(document.querySelectorAll(\'[data-nav-link]\')).find(function(b){ return b.textContent.trim() === \'Contact\'; }); if(btn) btn.click(); } return false;"';
+  'onclick="if(typeof switchToPage === \'function\') { switchToPage(\'contact\'); } else { var btn = Array.from(document.querySelectorAll(\'[data-nav-link]\')).find(function(b){ return b.dataset.pageName === \'contact\' || b.textContent.trim() === \'Contact\'; }); if(btn) btn.click(); } return false;"';
 
 function portfolioSafeProjectUrl(u) {
   const s = String(u || '').trim();
@@ -6368,7 +6368,10 @@ function syncNavActiveForArticle(articleEl, pageName) {
   if (!articleEl) return;
   articleEl.querySelectorAll('[data-nav-link]').forEach(function (link) {
     link.classList.remove('active');
-    if (resolveNavPageName(link.textContent.trim()) === pageName) {
+    var linkPage = link.dataset.pageName
+      ? resolveNavPageName(link.dataset.pageName)
+      : resolveNavPageName(link.textContent.trim());
+    if (linkPage === pageName) {
       link.classList.add('active');
     }
   });
@@ -6559,7 +6562,9 @@ function switchToPage(pageName, skipSave, pageOptions) {
 // add event to all nav link
 for (let i = 0; i < navigationLinks.length; i++) {
   navigationLinks[i].addEventListener("click", function () {
-    var pageName = resolveNavPageName(this.textContent.trim());
+    var pageName = this.dataset.pageName
+      ? resolveNavPageName(this.dataset.pageName)
+      : resolveNavPageName(this.textContent.trim());
     switchToPage(pageName);
     // close all hamburger menus after navigation
     document.querySelectorAll("[data-navbar]").forEach(function (nav) {
@@ -7781,7 +7786,7 @@ window.addEventListener('load', function() {
     var isSignedInAdmin = isAdmin();
 
     document.querySelectorAll('[data-nav-link]').forEach(function (link) {
-      if ((link.textContent || '').trim() !== 'Admin') return;
+      if ((link.dataset.pageName || (link.textContent || '').trim()) !== 'admin' && (link.textContent || '').trim() !== 'Admin') return;
       var item = link.closest('.navbar-item');
       if (item) {
         item.style.display = isSignedInAdmin ? '' : 'none';
@@ -9466,9 +9471,10 @@ window.addEventListener('load', function() {
     ];
     var VALID_TAB = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, pipeline: 1,
-      referrals: 1, ops: 1, 'content-hub': 1
+      referrals: 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, messages: 1, docs: 1, 'client-email': 1 };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
     if (!tabBar) return;
@@ -9550,7 +9556,7 @@ window.addEventListener('load', function() {
       return Array.prototype.slice.call(root.querySelectorAll('.admin-tab[data-admin-tab]')).filter(function (btn) {
         if (!isMobileBar()) return true;
         var id = btn.getAttribute('data-admin-tab');
-        return !CONTENT_SUB_TABS[id];
+        return !CONTENT_SUB_TABS[id] && !CRM_SUB_TABS[id];
       });
     }
 
@@ -10030,6 +10036,15 @@ window.addEventListener('load', function() {
         isSignedInAdmin() &&
         CONTENT_SUB_TAB_IDS.indexOf(activeTabId) >= 0;
 
+      // Physically dock subtab into / out of the primary bar container so
+      // they render as one unified two-row dock at the bottom of the screen.
+      var dockRoot = document.getElementById('admin-mobile-tab-bar-root');
+      if (show && dockRoot && subtabRoot.parentNode !== dockRoot) {
+        dockRoot.insertBefore(subtabRoot, dockRoot.firstChild);
+      } else if (!show && dockRoot && subtabRoot.parentNode === dockRoot) {
+        document.body.appendChild(subtabRoot);
+      }
+
       subtabRoot.hidden = !show;
       document.body.classList.toggle('admin-mobile-content-active', show);
 
@@ -10077,6 +10092,117 @@ window.addEventListener('load', function() {
     });
   })();
 
+  // Mobile admin — CRM section hub + docked subtab bar (Pipeline · Clients · Messages · Docs · Email)
+  (function initAdminMobileCRMSubtabBar() {
+    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'messages', 'docs', 'client-email'];
+    var CRM_SUB_META = {
+      pipeline:          { label: 'Pipeline', icon: 'git-network-outline' },
+      'client-projects': { label: 'Clients',  icon: 'briefcase-outline' },
+      messages:          { label: 'Messages', icon: 'mail-outline' },
+      docs:              { label: 'Docs',     icon: 'document-text-outline' },
+      'client-email':    { label: 'Email',    icon: 'send-outline' }
+    };
+    var LAST_CRM_KEY = 'adminLastCRMTab';
+    var crmSubtabRoot = null;
+    var crmSubtabBar  = null;
+    var crmHub = document.getElementById('admin-tab-crm-hub');
+
+    function isMobileBar() {
+      return window.matchMedia('(max-width: 767px)').matches;
+    }
+
+    function isSignedInAdmin() {
+      return typeof isAdmin === 'function' && isAdmin();
+    }
+
+    function ensureCRMSubtabBar() {
+      if (crmSubtabRoot) return crmSubtabRoot;
+      crmSubtabRoot = document.createElement('div');
+      crmSubtabRoot.id = 'admin-mobile-crm-subtab-bar-root';
+      crmSubtabRoot.className = 'admin-mobile-subtab-bar-root';
+      crmSubtabRoot.hidden = true;
+
+      crmSubtabBar = document.createElement('nav');
+      crmSubtabBar.className = 'admin-mobile-subtab-bar';
+      crmSubtabBar.setAttribute('aria-label', 'CRM sections');
+
+      CRM_SUB_TAB_IDS.forEach(function (tabId) {
+        var meta = CRM_SUB_META[tabId];
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'admin-mobile-subtab';
+        btn.setAttribute('data-admin-subtab', tabId);
+        btn.setAttribute('aria-label', meta.label);
+        btn.innerHTML =
+          '<ion-icon name="' + meta.icon + '" aria-hidden="true"></ion-icon>' +
+          '<span>' + meta.label + '</span>';
+        btn.addEventListener('click', function () {
+          if (window.AdminMobileTabOrder && window.AdminMobileTabOrder.isReorderActive()) return;
+          if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+        });
+        crmSubtabBar.appendChild(btn);
+      });
+
+      crmSubtabRoot.appendChild(crmSubtabBar);
+      document.body.appendChild(crmSubtabRoot);
+      return crmSubtabRoot;
+    }
+
+    function syncCRMSubtabBar(activeTabId) {
+      ensureCRMSubtabBar();
+      var show =
+        isMobileBar() &&
+        isSignedInAdmin() &&
+        CRM_SUB_TAB_IDS.indexOf(activeTabId) >= 0;
+
+      // Dock into / out of the unified primary bar container
+      var dockRoot = document.getElementById('admin-mobile-tab-bar-root');
+      if (show && dockRoot && crmSubtabRoot.parentNode !== dockRoot) {
+        dockRoot.insertBefore(crmSubtabRoot, dockRoot.firstChild);
+      } else if (!show && dockRoot && crmSubtabRoot.parentNode === dockRoot) {
+        document.body.appendChild(crmSubtabRoot);
+      }
+
+      crmSubtabRoot.hidden = !show;
+      document.body.classList.toggle('admin-mobile-crm-active', show);
+
+      if (crmHub) {
+        crmHub.classList.toggle('is-active', show);
+        crmHub.setAttribute('aria-selected', show ? 'true' : 'false');
+      }
+
+      if (!crmSubtabBar) return;
+      crmSubtabBar.querySelectorAll('.admin-mobile-subtab').forEach(function (btn) {
+        var id = btn.getAttribute('data-admin-subtab');
+        var on = show && id === activeTabId;
+        btn.classList.toggle('is-active', on);
+        btn.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+    }
+
+    if (crmHub) {
+      crmHub.addEventListener('click', function () {
+        if (window.AdminMobileTabOrder && window.AdminMobileTabOrder.isReorderActive()) return;
+        var last = 'pipeline';
+        try { last = sessionStorage.getItem(LAST_CRM_KEY) || 'pipeline'; } catch (e) {}
+        if (CRM_SUB_TAB_IDS.indexOf(last) < 0) last = 'pipeline';
+        if (typeof window.adminActivateTab === 'function') window.adminActivateTab(last);
+      });
+    }
+
+    window.syncAdminMobileCRMSubtabBar = syncCRMSubtabBar;
+    window.saveAdminLastCRMTab = function (tabId) {
+      if (CRM_SUB_TAB_IDS.indexOf(tabId) < 0) return;
+      try { sessionStorage.setItem(LAST_CRM_KEY, tabId); } catch (e) {}
+    };
+
+    window.addEventListener('resize', function () {
+      if (!isMobileBar()) { syncCRMSubtabBar(''); return; }
+      var active = document.querySelector('#admin-tabs .admin-tab[role="tab"].is-active');
+      syncCRMSubtabBar(active ? active.getAttribute('data-admin-tab') : '');
+    });
+  })();
+
   // Admin dashboard tabs (Business Documents | Contact Messages | Blog Management)
   function initAdminTabs() {
     var root = document.getElementById('admin-tabs');
@@ -10102,6 +10228,7 @@ window.addEventListener('load', function() {
       referrals: 1, ops: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, messages: 1, docs: 1, 'client-email': 1 };
     var AGENCY_TABS = { 'client-projects': 1, referrals: 1 };
     var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
     var navGroups = tabBar.querySelectorAll('.admin-nav-group');
@@ -10157,8 +10284,14 @@ window.addEventListener('load', function() {
       if (CONTENT_SUB_TABS[tabId] && typeof window.saveAdminLastContentTab === 'function') {
         window.saveAdminLastContentTab(tabId);
       }
+      if (CRM_SUB_TABS[tabId] && typeof window.saveAdminLastCRMTab === 'function') {
+        window.saveAdminLastCRMTab(tabId);
+      }
       if (typeof window.syncAdminMobileContentSubtabBar === 'function') {
         window.syncAdminMobileContentSubtabBar(tabId);
+      }
+      if (typeof window.syncAdminMobileCRMSubtabBar === 'function') {
+        window.syncAdminMobileCRMSubtabBar(tabId);
       }
       try {
         sessionStorage.setItem(STORAGE_KEY, tabId);
@@ -11529,7 +11662,7 @@ window.addEventListener('load', function() {
 
     function collectOverflowTabs() {
       return Array.prototype.slice.call(
-        bar.querySelectorAll('.admin-tab[data-admin-tab]:not([data-mobile-primary]):not([data-admin-content-sub])')
+        bar.querySelectorAll('.admin-tab[data-admin-tab]:not([data-mobile-primary]):not([data-admin-content-sub]):not([data-admin-crm-sub])')
       );
     }
 
