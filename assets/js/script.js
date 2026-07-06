@@ -7123,8 +7123,11 @@ window.addEventListener('load', function() {
           var text = escapeTestimonialHtml(textRaw).replace(/\n/g, "<br>");
           var rating = d.rating;
 
-          // Build highlight badges from structured private signals
+          // Pull private sub-document for badges + supplemental notes
           var priv = (d.private && typeof d.private === 'object') ? d.private : {};
+          // Show privateNotes as supplemental quote when the public text is short
+          var privNotesRaw = (priv.privateNotes && String(priv.privateNotes).trim()) || '';
+          var privNotes = privNotesRaw ? escapeTestimonialHtml(privNotesRaw).replace(/\n/g, '<br>') : '';
           var badges = [];
           if (priv.timeline === 'on_time')          badges.push('Delivered on time');
           if (priv.valueSentiment === 'worth_more') badges.push('Worth more than paid');
@@ -7172,6 +7175,7 @@ window.addEventListener('load', function() {
             "<p>" +
             text +
             "</p>" +
+            (privNotes ? '<p class="testimonials-private-notes">' + privNotes + '</p>' : '') +
             badgesHtml +
             "</div></div>";
           list.appendChild(li);

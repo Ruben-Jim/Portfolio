@@ -23750,3 +23750,14 @@ body.admin-tab-reorder-active::before {
   white-space: nowrap;
   line-height: 1.5;
 }
+
+/* Supplemental private-notes text on public testimonial cards */
+.testimonials-private-notes {
+  margin: 8px 0 0;
+  font-style: italic;
+  opacity: 0.78;
+  font-size: 0.88em;
+  line-height: 1.55;
+  border-left: 2px solid hsl(45, 54%, 58%);
+  padding-left: 10px;
+}
