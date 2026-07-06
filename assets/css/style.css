@@ -23724,3 +23724,29 @@ body.admin-tab-reorder-active::before {
     text-align: center;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Testimonial highlight badges (rendered from structured private data)
+═══════════════════════════════════════════════════════════════════ */
+
+.testimonials-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.testimonials-badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: hsl(45, 54%, 58%);
+  background: rgba(204, 163, 66, 0.08);
+  border: 1px solid rgba(204, 163, 66, 0.22);
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  line-height: 1.5;
+}

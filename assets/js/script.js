@@ -7122,6 +7122,24 @@ window.addEventListener('load', function() {
           var textRaw = d.text == null ? "" : String(d.text);
           var text = escapeTestimonialHtml(textRaw).replace(/\n/g, "<br>");
           var rating = d.rating;
+
+          // Build highlight badges from structured private signals
+          var priv = (d.private && typeof d.private === 'object') ? d.private : {};
+          var badges = [];
+          if (priv.timeline === 'on_time')          badges.push('Delivered on time');
+          if (priv.valueSentiment === 'worth_more') badges.push('Worth more than paid');
+          if (priv.valueSentiment === 'fair')       badges.push('Fair price');
+          if (priv.referral === 'yes')              badges.push('Would refer');
+          if (priv.referral === 'likely')           badges.push('Likely to refer');
+          var badgesHtml = '';
+          if (badges.length) {
+            badgesHtml = '<ul class="testimonials-badges" aria-label="Client highlights">' +
+              badges.map(function (b) {
+                return '<li class="testimonials-badge">&#10003; ' + escapeTestimonialHtml(b) + '</li>';
+              }).join('') +
+              '</ul>';
+          }
+
           var brand =
             (typeof window.TESTIMONIAL_BRAND_LOGO === "string" && window.TESTIMONIAL_BRAND_LOGO.trim()) ||
             "/assets/images/logo/logo.svg";
@@ -7154,6 +7172,7 @@ window.addEventListener('load', function() {
             "<p>" +
             text +
             "</p>" +
+            badgesHtml +
             "</div></div>";
           list.appendChild(li);
         });
