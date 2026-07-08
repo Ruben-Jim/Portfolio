@@ -7033,6 +7033,37 @@ window.addEventListener('load', function() {
       .replace(/'/g, "&#039;");
   }
 
+  // Resolve a stored avatar value to an absolute img src.
+  // Old docs stored bare filenames like "avatar-1.png"; new docs store full paths.
+  function resolveTestimonialAvatarSrc(avatar) {
+    if (!avatar || typeof avatar !== 'string') return '/assets/images/logo/logo.svg';
+    var s = avatar.trim();
+    if (!s) return '/assets/images/logo/logo.svg';
+    if (s.startsWith('http://') || s.startsWith('https://') || s.startsWith('/')) return s;
+    // Bare filename → assume avatar folder
+    return '/assets/images/avatar/' + s;
+  }
+
+  // Images available in-codebase for the admin avatar picker.
+  var ADMIN_TESTIMONIAL_AVATAR_PRESETS = [
+    { src: '/assets/images/avatar/avatar-1.png',     label: 'Avatar 1' },
+    { src: '/assets/images/avatar/avatar-2.png',     label: 'Avatar 2' },
+    { src: '/assets/images/avatar/avatar-3.png',     label: 'Avatar 3' },
+    { src: '/assets/images/avatar/avatar-4.png',     label: 'Avatar 4' },
+    { src: '/assets/images/avatar/avatar-5.png',     label: 'Avatar 5' },
+    { src: '/assets/images/avatar/avatar-6.png',     label: 'Avatar 6' },
+    { src: '/assets/images/logo/logo-1-color.png',   label: 'Logo 1' },
+    { src: '/assets/images/logo/logo-2-color.png',   label: 'Logo 2' },
+    { src: '/assets/images/logo/logo-3-color.png',   label: 'Logo 3' },
+    { src: '/assets/images/logo/logo-4-color.png',   label: 'Logo 4' },
+    { src: '/assets/images/logo/logo-5-color.png',   label: 'Logo 5' },
+    { src: '/assets/images/logo/logo-6-color.png',   label: 'Logo 6' },
+    { src: '/assets/images/logo/logo-7-color.png',   label: 'Logo 7' },
+    { src: '/assets/images/logo/logo-8-color.png',   label: 'Logo 8' },
+    { src: '/assets/images/logo/logo--3-color.png',  label: 'Logo alt' },
+    { src: '/assets/images/logo/logo.svg',           label: 'CWR default' },
+  ];
+
   function testimonialsStarHtml(rating) {
     var n = Math.max(0, Math.min(5, parseInt(rating, 10) || 0));
     var i;
@@ -7123,11 +7154,23 @@ window.addEventListener('load', function() {
           var text = escapeTestimonialHtml(textRaw).replace(/\n/g, "<br>");
           var rating = d.rating;
 
-          // Pull private sub-document for badges + supplemental notes
+          // Pull private sub-document for badges + extended notes
           var priv = (d.private && typeof d.private === 'object') ? d.private : {};
-          // Show privateNotes as supplemental quote when the public text is short
           var privNotesRaw = (priv.privateNotes && String(priv.privateNotes).trim()) || '';
           var privNotes = privNotesRaw ? escapeTestimonialHtml(privNotesRaw).replace(/\n/g, '<br>') : '';
+
+          // When the public quote is short (≤ 60 chars) and private notes exist,
+          // promote the public text to a service-type tag and use the richer private
+          // notes as the card quote. Otherwise use the public text as the card quote.
+          var isShortPublicQuote = textRaw.length > 0 && textRaw.length <= 60 && !!privNotes;
+          var typeTagHtml = isShortPublicQuote
+            ? '<span class="testimonials-type-tag">' +
+                escapeTestimonialHtml(textRaw.replace(/[.!?,;]+$/, '').trim()) +
+              '</span>'
+            : '';
+          // Card body quote: private notes when promoted, otherwise the public text
+          var cardQuote = isShortPublicQuote ? privNotes : text;
+
           var badges = [];
           if (priv.timeline === 'on_time')          badges.push('Delivered on time');
           if (priv.valueSentiment === 'worth_more') badges.push('Worth more than paid');
@@ -7143,10 +7186,7 @@ window.addEventListener('load', function() {
               '</ul>';
           }
 
-          var brand =
-            (typeof window.TESTIMONIAL_BRAND_LOGO === "string" && window.TESTIMONIAL_BRAND_LOGO.trim()) ||
-            "/assets/images/logo/logo.svg";
-          var imgSrc = brand.indexOf('"') === -1 ? brand : "/assets/images/logo/logo.svg";
+          var imgSrc = resolveTestimonialAvatarSrc(d.avatar);
           var li = document.createElement("li");
           li.className = "testimonials-item";
           li.setAttribute("data-dynamic-testimonial", "1");
@@ -7155,29 +7195,32 @@ window.addEventListener('load', function() {
             dateAttrs +
             '>' +
             '<figure class="testimonials-avatar-box">' +
-            '<img src="' +
-            imgSrc +
-            '" alt="' +
-            name +
-            '" width="60" data-testimonials-avatar>' +
-            "</figure>" +
-            '<h4 class="h4 testimonials-item-title" data-testimonials-title>' +
-            name +
-            "</h4>" +
+            '<img src="' + imgSrc + '" alt="' + name + '" width="60" data-testimonials-avatar>' +
+            '</figure>' +
+            '<h4 class="h4 testimonials-item-title" data-testimonials-title>' + name + '</h4>' +
             '<div class="testimonials-text" data-testimonials-text>' +
-            testimonialsStarHtml(rating) +
-            '<p class="testimonials-meta" style="font-size:12px;margin:0 0 10px 0;opacity:0.85;">' +
-            title +
-            " &middot; " +
-            company +
-            (product ? " &middot; " + product : "") +
-            "</p>" +
-            "<p>" +
-            text +
-            "</p>" +
-            (privNotes ? '<p class="testimonials-private-notes">' + privNotes + '</p>' : '') +
-            badgesHtml +
-            "</div></div>";
+              // Row 1: stars + service-type tag (flex row)
+              '<div class="testimonials-card-header">' +
+                testimonialsStarHtml(rating) +
+                typeTagHtml +
+              '</div>' +
+              // Row 2: role · company (compact meta)
+              (title || company
+                ? '<p class="testimonials-meta">' +
+                    (title ? title : '') +
+                    (title && company ? ' &middot; ' : '') +
+                    (company ? company : '') +
+                  '</p>'
+                : '') +
+              // Main body: the quote text, clamped in card, full in modal
+              '<p class="testimonials-quote">' + cardQuote + '</p>' +
+              // Modal-only: if short quote was promoted, also show it in modal as context
+              (isShortPublicQuote
+                ? ''  // type tag in header already surfaces it
+                : (privNotes ? '<p class="testimonials-private-notes">' + privNotes + '</p>' : '')) +
+              // Modal-only: highlight badges
+              badgesHtml +
+            '</div></div>';
           list.appendChild(li);
         });
       });
@@ -7403,14 +7446,53 @@ window.addEventListener('load', function() {
         d.rating != null && d.rating !== "" ? esc(String(d.rating)) + " / 5" : ""
       )
     );
+    // Editable quote field
+    var currentQuote = d.text ? String(d.text) : '';
     parts.push(
-      testimonialDetailField(
-        "Quote on site",
-        d.text ? esc(String(d.text)).replace(/\n/g, "<br>") : "",
-        { prose: !!d.text }
-      )
+      '<div class="admin-testimonial-detail__field admin-testimonial-detail__field--message">' +
+        '<dt>Quote on site</dt>' +
+        '<dd>' +
+          '<textarea id="admin-t-quote-input" class="form-input admin-t-quote-input" rows="4" maxlength="5000" data-quote-input>' +
+            esc(currentQuote) +
+          '</textarea>' +
+          '<div class="admin-t-quote-actions">' +
+            '<button type="button" class="btn btn-primary admin-t-quote-save-btn" data-quote-save style="margin-top:8px;font-size:13px;padding:7px 16px;">Save quote</button>' +
+            '<span class="admin-t-quote-save-status" id="admin-t-quote-save-status" style="display:none;margin-left:10px;font-size:12px;"></span>' +
+          '</div>' +
+        '</dd>' +
+      '</div>'
     );
     parts.push("</dl>");
+
+    // Avatar / profile image picker
+    var currentAvatarSrc = resolveTestimonialAvatarSrc(d.avatar);
+    var currentAvatarPath = (d.avatar && typeof d.avatar === 'string' && d.avatar.trim())
+      ? d.avatar.trim()
+      : '/assets/images/logo/logo.svg';
+    var presetThumbs = ADMIN_TESTIMONIAL_AVATAR_PRESETS.map(function (p) {
+      var isActive = resolveTestimonialAvatarSrc(d.avatar) === p.src;
+      return '<button type="button" class="admin-t-avatar-thumb' + (isActive ? ' is-active' : '') +
+        '" data-avatar-pick="' + esc(p.src) + '" title="' + esc(p.label) + '">' +
+        '<img src="' + esc(p.src) + '" alt="' + esc(p.label) + '" loading="lazy">' +
+        '</button>';
+    }).join('');
+
+    parts.push(testimonialDetailSectionTitle("Profile image", null));
+    parts.push(
+      '<div class="admin-t-avatar-editor">' +
+        '<div class="admin-t-avatar-current">' +
+          '<img class="admin-t-avatar-current-img" id="admin-t-avatar-preview-img" src="' + esc(currentAvatarSrc) + '" alt="Current profile image">' +
+          '<span class="admin-t-avatar-current-label" id="admin-t-avatar-preview-label">' + esc(currentAvatarPath) + '</span>' +
+        '</div>' +
+        '<div class="admin-t-avatar-grid">' + presetThumbs + '</div>' +
+        '<div class="admin-t-avatar-custom">' +
+          '<label class="admin-t-avatar-custom-label" for="admin-t-avatar-path-input">Custom path <span style="opacity:.55;font-weight:400;">(e.g. /assets/images/projects/project-procleaning.png)</span></label>' +
+          '<input type="text" id="admin-t-avatar-path-input" class="form-input admin-t-avatar-path-input" data-avatar-path-input placeholder="/assets/images/..." value="' + esc(currentAvatarPath) + '">' +
+        '</div>' +
+        '<button type="button" class="btn btn-primary admin-t-avatar-save-btn" data-avatar-save style="margin-top:10px;">Save image</button>' +
+        '<span class="admin-t-avatar-save-status" id="admin-t-avatar-save-status" style="display:none;margin-left:10px;font-size:12px;"></span>' +
+      '</div>'
+    );
 
     return parts.join("");
   }
@@ -8242,6 +8324,105 @@ window.addEventListener('load', function() {
         }
       });
     }
+    // Avatar picker — delegate on the stable panel element
+    var testimonialDetailPanel = document.querySelector('.admin-testimonial-detail__panel');
+    if (testimonialDetailPanel && !testimonialDetailPanel.dataset.avatarPickerBound) {
+      testimonialDetailPanel.dataset.avatarPickerBound = '1';
+      testimonialDetailPanel.addEventListener('click', function (e) {
+        // Thumbnail click → update path input + preview
+        var thumb = e.target.closest('[data-avatar-pick]');
+        if (thumb) {
+          var pickedSrc = thumb.getAttribute('data-avatar-pick');
+          var pathInput = document.getElementById('admin-t-avatar-path-input');
+          var previewImg = document.getElementById('admin-t-avatar-preview-img');
+          var previewLabel = document.getElementById('admin-t-avatar-preview-label');
+          if (pathInput) pathInput.value = pickedSrc;
+          if (previewImg) previewImg.src = pickedSrc;
+          if (previewLabel) previewLabel.textContent = pickedSrc;
+          // Highlight active thumb
+          document.querySelectorAll('.admin-t-avatar-thumb').forEach(function (b) {
+            b.classList.toggle('is-active', b === thumb);
+          });
+          return;
+        }
+        // Quote save button
+        var quoteSaveBtn = e.target.closest('[data-quote-save]');
+        if (quoteSaveBtn) {
+          var quoteInputEl = document.getElementById('admin-t-quote-input');
+          var quoteStatusEl = document.getElementById('admin-t-quote-save-status');
+          var newQuote = quoteInputEl ? quoteInputEl.value.trim() : '';
+          if (!newQuote) return;
+          var detailRootQ = document.getElementById('admin-testimonial-detail');
+          var testimonialDocIdQ = detailRootQ ? detailRootQ.dataset.testimonialDocId : '';
+          if (!testimonialDocIdQ || !window.db || !window.doc || !window.updateDoc) {
+            if (quoteStatusEl) { quoteStatusEl.textContent = 'Unable to save — no doc ID'; quoteStatusEl.style.display = 'inline'; quoteStatusEl.style.color = 'var(--light-gray)'; }
+            return;
+          }
+          quoteSaveBtn.disabled = true;
+          if (quoteStatusEl) { quoteStatusEl.textContent = 'Saving…'; quoteStatusEl.style.display = 'inline'; quoteStatusEl.style.color = 'var(--light-gray)'; }
+          window.updateDoc(window.doc(window.db, 'testimonials', testimonialDocIdQ), { text: newQuote })
+            .then(function () {
+              if (testimonialAdminCache.testimonials[testimonialDocIdQ]) {
+                testimonialAdminCache.testimonials[testimonialDocIdQ].data.text = newQuote;
+              }
+              if (typeof loadDynamicTestimonials === 'function') loadDynamicTestimonials();
+              quoteSaveBtn.disabled = false;
+              if (quoteStatusEl) { quoteStatusEl.textContent = '✓ Saved'; quoteStatusEl.style.display = 'inline'; quoteStatusEl.style.color = 'hsl(150,60%,55%)'; }
+              setTimeout(function () { if (quoteStatusEl) quoteStatusEl.style.display = 'none'; }, 3000);
+            })
+            .catch(function (err) {
+              console.error('quote save error', err);
+              quoteSaveBtn.disabled = false;
+              if (quoteStatusEl) { quoteStatusEl.textContent = 'Error — try again'; quoteStatusEl.style.display = 'inline'; quoteStatusEl.style.color = 'var(--light-gray)'; }
+            });
+          return;
+        }
+
+        // Path input change → update preview live
+        var saveBtn = e.target.closest('[data-avatar-save]');
+        if (!saveBtn) return;
+        var pathInputEl = document.getElementById('admin-t-avatar-path-input');
+        var statusEl = document.getElementById('admin-t-avatar-save-status');
+        var newPath = pathInputEl ? pathInputEl.value.trim() : '';
+        if (!newPath) return;
+        var detailRoot = document.getElementById('admin-testimonial-detail');
+        var testimonialDocId = detailRoot ? detailRoot.dataset.testimonialDocId : '';
+        if (!testimonialDocId || !window.db || !window.doc || !window.updateDoc) {
+          if (statusEl) { statusEl.textContent = 'Unable to save — no doc ID'; statusEl.style.display = 'inline'; statusEl.style.color = 'var(--light-gray)'; }
+          return;
+        }
+        saveBtn.disabled = true;
+        if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.style.display = 'inline'; statusEl.style.color = 'var(--light-gray)'; }
+        window.updateDoc(window.doc(window.db, 'testimonials', testimonialDocId), { avatar: newPath })
+          .then(function () {
+            // Update in-memory cache
+            if (testimonialAdminCache.testimonials[testimonialDocId]) {
+              testimonialAdminCache.testimonials[testimonialDocId].data.avatar = newPath;
+            }
+            // Refresh public testimonials list if loaded
+            if (typeof loadDynamicTestimonials === 'function') loadDynamicTestimonials();
+            saveBtn.disabled = false;
+            if (statusEl) { statusEl.textContent = '✓ Saved'; statusEl.style.display = 'inline'; statusEl.style.color = 'hsl(150,60%,55%)'; }
+            setTimeout(function () { if (statusEl) statusEl.style.display = 'none'; }, 3000);
+          })
+          .catch(function (err) {
+            console.error('avatar save error', err);
+            saveBtn.disabled = false;
+            if (statusEl) { statusEl.textContent = 'Error — try again'; statusEl.style.display = 'inline'; statusEl.style.color = 'var(--light-gray)'; }
+          });
+      });
+      // Live preview when typing in the path input
+      testimonialDetailPanel.addEventListener('input', function (e) {
+        var pathInput = e.target.closest('[data-avatar-path-input]');
+        if (!pathInput) return;
+        var val = pathInput.value.trim();
+        var previewImg = document.getElementById('admin-t-avatar-preview-img');
+        var previewLabel = document.getElementById('admin-t-avatar-preview-label');
+        if (previewImg && val) previewImg.src = val;
+        if (previewLabel) previewLabel.textContent = val;
+      });
+    }
+
     if (!document.documentElement.dataset.testimonialDetailEscapeBound) {
       document.documentElement.dataset.testimonialDetailEscapeBound = "1";
       document.addEventListener("keydown", function (ev) {

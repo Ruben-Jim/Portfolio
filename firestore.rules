@@ -114,7 +114,19 @@ service cloud.firestore {
         request.resource.data.token.size() <= 48 &&
         exists(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)) &&
         get(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)).data.used == false;
-      allow update: if false;
+      // Admin-only: update avatar (profile image) or text (public quote).
+      // Only those two fields may ever change in a single write.
+      allow update: if (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['avatar']) &&
+        request.resource.data.avatar is string &&
+        request.resource.data.avatar.size() > 0 &&
+        request.resource.data.avatar.size() <= 500
+      ) || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text']) &&
+        request.resource.data.text is string &&
+        request.resource.data.text.size() > 0 &&
+        request.resource.data.text.size() <= 5000
+      );
       allow delete: if true;
     }
   }

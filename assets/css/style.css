@@ -5173,11 +5173,41 @@ article.about .about-founder {
   font-size: var(--fs-6);
   font-weight: var(--fw-300);
   line-height: 1.6;
+}
+
+/* Clamp only the actual quote text in card context.
+   Targets the explicit .testimonials-quote class (dynamic cards)
+   and bare <p> tags as fallback (static cards like Roberto). */
+.testimonials-item .testimonials-quote,
+.testimonials-item .testimonials-text > p:not(.testimonials-meta):not(.testimonials-private-notes):not(.testimonials-rating) {
   display: -webkit-box;
-  line-clamp: 4;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Hide detail-level content in the card — shown in modal only */
+.testimonials-item .testimonials-badges,
+.testimonials-item .testimonials-private-notes,
+.testimonials-item .testimonials-type-tag { display: none; }
+
+/* Modal — remove all clamping, show everything */
+.testimonials-modal [data-modal-text] .testimonials-quote,
+.testimonials-modal [data-modal-text] > p,
+.testimonials-modal [data-modal-text] p {
+  display: block !important;
+  -webkit-line-clamp: unset !important;
+  overflow: visible !important;
+}
+.testimonials-modal [data-modal-text] .testimonials-type-tag {
+  display: inline-block !important;
+}
+.testimonials-modal [data-modal-text] .testimonials-badges {
+  display: flex !important;
+}
+.testimonials-modal [data-modal-text] .testimonials-private-notes {
+  display: block !important;
+  margin: 6px 0 0;
 }
 
 
@@ -8442,10 +8472,7 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
     margin-left: 95px;
   }
 
-  .testimonials-text {
-    line-clamp: 2;
-    -webkit-line-clamp: 2;
-  }
+  /* .testimonials-text clamp is now handled per-element (see .testimonials-quote rule) */
 
   /* testimonials modal */
 
@@ -23753,11 +23780,147 @@ body.admin-tab-reorder-active::before {
 
 /* Supplemental private-notes text on public testimonial cards */
 .testimonials-private-notes {
-  margin: 8px 0 0;
-  font-style: italic;
-  opacity: 0.78;
-  font-size: 0.88em;
-  line-height: 1.55;
-  border-left: 2px solid hsl(45, 54%, 58%);
-  padding-left: 10px;
+  margin: 6px 0 0;
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Admin testimonial — avatar / profile image picker
+═══════════════════════════════════════════════════════════════════ */
+
+.admin-t-avatar-editor {
+  padding: 12px 0 4px;
+}
+
+.admin-t-avatar-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-t-avatar-current-img {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+
+.admin-t-avatar-current-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  word-break: break-all;
+}
+
+/* Preset thumbnail grid */
+.admin-t-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.admin-t-avatar-thumb {
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 4px;
+  background: rgba(255,255,255,0.05);
+  transition: border-color 0.15s, background 0.15s;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.admin-t-avatar-thumb:hover {
+  border-color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.1);
+}
+
+.admin-t-avatar-thumb.is-active {
+  border-color: hsl(45, 54%, 58%);
+  background: rgba(204, 163, 66, 0.12);
+}
+
+.admin-t-avatar-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  display: block;
+}
+
+/* Custom path input */
+.admin-t-avatar-custom {
+  margin-bottom: 10px;
+}
+
+.admin-t-avatar-custom-label {
+  display: block;
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.admin-t-avatar-path-input {
+  font-size: 12px !important;
+  font-family: monospace;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Testimonial card — header row (stars + service-type tag)
+═══════════════════════════════════════════════════════════════════ */
+
+/* Flex row: stars on the left, type tag on the right */
+.testimonials-card-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.testimonials-card-header .testimonials-rating {
+  margin: 0 !important;
+  font-size: 13px !important;
+  letter-spacing: 2px !important;
+  flex-shrink: 0;
+}
+
+/* Service-type tag (e.g. "Website and App") */
+.testimonials-type-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(45, 54%, 58%);
+  background: rgba(204, 163, 66, 0.1);
+  border: 1px solid rgba(204, 163, 66, 0.22);
+  border-radius: 20px;
+  padding: 2px 9px;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+/* Role · Company meta line */
+.testimonials-meta {
+  font-size: 11px;
+  margin: 0 0 8px;
+  opacity: 0.65;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Main quote paragraph */
+.testimonials-quote {
+  margin: 0;
+  line-height: 1.6;
 }
