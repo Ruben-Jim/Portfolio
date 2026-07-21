@@ -225,11 +225,11 @@ exports.sendPortfolioEmail = onRequest(
           testimonial_url: testimonialUrl,
           subject,
         });
-        const replyTo = notifyToEmail.value().trim() || undefined;
+        const replyTo = notifyToEmail.value().trim() || ADMIN_ALLOWLIST_EMAILS[0];
         const { data, error } = await resend.emails.send({
           from,
           to: [toEmail],
-          ...(replyTo ? { replyTo } : {}),
+          replyTo,
           subject,
           html,
         });
@@ -271,6 +271,7 @@ exports.sendPortfolioEmail = onRequest(
         const { data, error } = await resend.emails.send({
           from,
           to: [toEmail],
+          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
           subject,
           html,
         });
@@ -311,6 +312,7 @@ exports.sendPortfolioEmail = onRequest(
         const { data, error } = await resend.emails.send({
           from,
           to: [toEmail],
+          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
           subject,
           html,
         });

@@ -5945,6 +5945,13 @@ function updateUrlForPage(pageName, replace, queryParams) {
     window.history.replaceState({ page: pageName, query: queryParams || null }, '', url);
   } else {
     window.history.pushState({ page: pageName, query: queryParams || null }, '', url);
+    // SPA navigations: send page_view so GA4/Ads see route changes (initial load already counted by gtag config)
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'page_view', {
+        page_path: url,
+        page_title: document.title
+      });
+    }
   }
 }
 
