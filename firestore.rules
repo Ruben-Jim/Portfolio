@@ -5,11 +5,6 @@ service cloud.firestore {
       return field is string && field.size() > 0 && field.size() <= maxLen;
     }
 
-    /**
-     * Admin UI uses local ADMIN_CREDENTIALS (config.js), not Firebase Auth.
-     * Open read/write on admin collections until Firebase admin sign-in is re-enabled.
-     * Re-tighten with isPortfolioAdmin() when using allowlisted Firebase users again.
-     */
     function isPortfolioAdmin() {
       return request.auth != null &&
         request.auth.token.email != null &&
@@ -27,7 +22,7 @@ service cloud.firestore {
         isValidString(request.resource.data.email, 160) &&
         isValidString(request.resource.data.subject, 200) &&
         isValidString(request.resource.data.message, 5000);
-      allow read, update, delete: if true;
+      allow read, update, delete: if isPortfolioAdmin();
     }
 
     // Professional DM moved to Realtime Database (dm/*). Deny all Firestore access under these paths.
@@ -42,8 +37,7 @@ service cloud.firestore {
     // Blog posts collection
     match /blogPosts/{postId} {
       allow read: if true;
-      allow create, update: if true;
-      allow delete: if false;
+      allow create, update, delete: if isPortfolioAdmin();
     }
 
     function isValidEmailField(field, maxLen) {
@@ -75,6 +69,7 @@ service cloud.firestore {
     match /testimonialTokens/{tokenId} {
       allow read: if true;
       allow create: if
+        isPortfolioAdmin() &&
         tokenId is string &&
         tokenId.size() >= 32 &&
         tokenId.size() <= 48 &&
@@ -90,7 +85,7 @@ service cloud.firestore {
         request.resource.data.email == resource.data.email &&
         request.resource.data.product == resource.data.product &&
         request.resource.data.createdAt == resource.data.createdAt;
-      allow delete: if true;
+      allow delete: if isPortfolioAdmin();
     }
 
     // Customer-submitted testimonials (create only when matching token exists and is unused).
@@ -116,18 +111,20 @@ service cloud.firestore {
         get(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)).data.used == false;
       // Admin-only: update avatar (profile image) or text (public quote).
       // Only those two fields may ever change in a single write.
-      allow update: if (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['avatar']) &&
-        request.resource.data.avatar is string &&
-        request.resource.data.avatar.size() > 0 &&
-        request.resource.data.avatar.size() <= 500
-      ) || (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text']) &&
-        request.resource.data.text is string &&
-        request.resource.data.text.size() > 0 &&
-        request.resource.data.text.size() <= 5000
+      allow update: if isPortfolioAdmin() && (
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['avatar']) &&
+          request.resource.data.avatar is string &&
+          request.resource.data.avatar.size() > 0 &&
+          request.resource.data.avatar.size() <= 500
+        ) || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text']) &&
+          request.resource.data.text is string &&
+          request.resource.data.text.size() > 0 &&
+          request.resource.data.text.size() <= 5000
+        )
       );
-      allow delete: if true;
+      allow delete: if isPortfolioAdmin();
     }
   }
 }

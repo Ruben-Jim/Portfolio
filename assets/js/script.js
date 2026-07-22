@@ -10971,8 +10971,18 @@ window.addEventListener('load', function() {
     if (leadIdInput) leadIdInput.value = '';
   }
 
+  function mountLeadDrawerToBody() {
+    if (leadDrawerOverlay && leadDrawerOverlay.parentElement !== document.body) {
+      document.body.appendChild(leadDrawerOverlay);
+    }
+    if (leadDrawer && leadDrawer.parentElement !== document.body) {
+      document.body.appendChild(leadDrawer);
+    }
+  }
+
   function openLeadDetail(lead) {
     if (!leadDrawer || !leadDrawerBody || !lead) return;
+    mountLeadDrawerToBody();
     pipelineDetailLeadId = lead.id;
     var dateMs = pipelineTimestampMs(lead.updatedAt || lead.createdAt);
     var dateLabel = dateMs ? formatDateDisplay(new Date(dateMs).toISOString()) : '—';

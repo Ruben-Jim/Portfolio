@@ -22601,6 +22601,15 @@ body.lead-drawer-open {
   overflow: hidden;
 }
 
+/* Escape article/main-content overflow + transform containing blocks */
+@media (min-width: 768px) {
+  body.lead-drawer-open article.admin[data-page="admin"],
+  body.lead-drawer-open .main-content {
+    overflow: visible;
+    overflow-x: visible;
+  }
+}
+
 .lead-drawer-header {
   display: flex;
   align-items: center;

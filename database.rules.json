@@ -34,41 +34,49 @@
     },
     "portfolioProjects": {
       ".read": true,
-      ".write": true
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     },
     "pipelineLeads": {
-      ".read": true,
-      ".write": true,
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       ".indexOn": ["stage", "updatedAt", "createdAt"]
     },
     "agencyProjects": {
-      ".read": true,
-      ".write": true,
-      ".indexOn": ["leadId", "updatedAt"]
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".indexOn": ["leadId", "updatedAt"],
+      "$projectId": {
+        ".read": true
+      }
     },
     "agencyMatcherSubmissions": {
-      ".read": true,
-      ".write": true
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      "$submissionId": {
+        ".write": "!data.exists()"
+      }
     },
     "agencyMaintenance": {
       ".read": true,
       ".write": true
     },
     "agencyReferrals": {
-      ".read": true,
-      ".write": true
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     },
     "agencyClientPortals": {
-      ".read": true,
-      ".write": true
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      "$token": {
+        ".read": true
+      }
     },
     "agencyBusinessDocuments": {
       ".read": true,
-      ".write": true
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     },
     "agencyFirebaseHealth": {
-      ".read": true,
-      ".write": true
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     }
   }
 }
