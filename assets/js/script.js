@@ -8952,6 +8952,13 @@ window.addEventListener('load', function() {
    * @property {string=} dueDate
    * @property {string=} notes
    * @property {string=} proposedSiteUrl
+   * @property {string=} foundationUrl
+   * @property {string=} proposalHeadline
+   * @property {string=} valueProposition
+   * @property {{ title: string, description?: string }[]=} coreFeatures
+   * @property {string=} includedItems
+   * @property {string=} whyDifferentIntro
+   * @property {string=} whyDifferent
    * @property {BusinessDocAddOn[]=} addOns
    * @property {string=} maintenancePlanId - 'standard' | 'priority' (estimate/invoice); proposals ignore and show all
    * @property {'monthly'|'annual'=} maintenanceBilling - estimate/invoice billing display preference
@@ -9002,6 +9009,27 @@ window.addEventListener('load', function() {
     };
     var site = String(doc.proposedSiteUrl || '').trim().slice(0, 500);
     if (site) out.proposedSiteUrl = site;
+    var foundation = String(doc.foundationUrl || '').trim().slice(0, 500);
+    if (foundation) out.foundationUrl = foundation;
+    var headline = String(doc.proposalHeadline || '').trim().slice(0, 200);
+    if (headline) out.proposalHeadline = headline;
+    var valueProp = String(doc.valueProposition || '').trim().slice(0, 4000);
+    if (valueProp) out.valueProposition = valueProp;
+    if (Array.isArray(doc.coreFeatures) && doc.coreFeatures.length) {
+      out.coreFeatures = doc.coreFeatures.slice(0, 4).map(function (f) {
+        return {
+          title: String((f && f.title) || '').slice(0, 120),
+          description: String((f && f.description) || '').slice(0, 500)
+        };
+      }).filter(function (f) { return f.title || f.description; });
+      if (!out.coreFeatures.length) delete out.coreFeatures;
+    }
+    var included = String(doc.includedItems || '').trim().slice(0, 4000);
+    if (included) out.includedItems = included;
+    var whyIntro = String(doc.whyDifferentIntro || '').trim().slice(0, 500);
+    if (whyIntro) out.whyDifferentIntro = whyIntro;
+    var whyDiff = String(doc.whyDifferent || '').trim().slice(0, 4000);
+    if (whyDiff) out.whyDifferent = whyDiff;
     if (Array.isArray(doc.addOns) && doc.addOns.length) out.addOns = doc.addOns;
     var planId = String(doc.maintenancePlanId || '').toLowerCase();
     if (planId === 'standard' || planId === 'priority') {
@@ -9085,6 +9113,15 @@ window.addEventListener('load', function() {
   const businessDocTotalInput = document.getElementById('business-doc-total');
   const businessDocDueDateInput = document.getElementById('business-doc-due-date');
   const businessDocNotesInput = document.getElementById('business-doc-notes');
+  const businessDocProposalHeadlineInput = document.getElementById('business-doc-proposal-headline');
+  const businessDocValuePropositionInput = document.getElementById('business-doc-value-proposition');
+  const businessDocIncludedItemsInput = document.getElementById('business-doc-included-items');
+  const businessDocWhyIntroInput = document.getElementById('business-doc-why-intro');
+  const businessDocWhyDifferentInput = document.getElementById('business-doc-why-different');
+  const businessDocFoundationInput = document.getElementById('business-doc-foundation-url');
+  const businessDocProposalFields = document.getElementById('business-doc-proposal-fields');
+  const businessDocScopeSection = document.getElementById('business-doc-scope-section');
+  const businessDocFoundationWrap = document.getElementById('business-doc-foundation-wrap');
   const businessDocProposedSiteInput = document.getElementById('business-doc-proposed-site');
   const businessDocProposedSiteWrap = document.getElementById('business-doc-proposed-site-wrap');
   const businessDocResetBtn = document.getElementById('business-doc-reset-btn');
@@ -9294,9 +9331,20 @@ window.addEventListener('load', function() {
    * @param {BusinessDocument} [doc] - If provided, fill form for edit; otherwise reset for create.
    */
   function updateBusinessDocProposedSiteVisibility() {
-    if (!businessDocProposedSiteWrap || !businessDocTypeInput) return;
-    businessDocProposedSiteWrap.style.display =
-      businessDocTypeInput.value === 'proposal' ? 'block' : 'none';
+    if (!businessDocTypeInput) return;
+    var isProposal = businessDocTypeInput.value === 'proposal';
+    if (businessDocProposedSiteWrap) {
+      businessDocProposedSiteWrap.style.display = isProposal ? 'block' : 'none';
+    }
+    if (businessDocFoundationWrap) {
+      businessDocFoundationWrap.style.display = isProposal ? 'block' : 'none';
+    }
+    if (businessDocProposalFields) {
+      businessDocProposalFields.hidden = !isProposal;
+    }
+    if (businessDocScopeSection) {
+      businessDocScopeSection.hidden = isProposal;
+    }
   }
 
   function updateBusinessDocMaintenanceVisibility() {
@@ -9310,9 +9358,36 @@ window.addEventListener('load', function() {
     }
     if (businessDocMaintenanceHint) {
       businessDocMaintenanceHint.textContent = isProposal
-        ? 'Proposals always include Standard and Priority with monthly and annual pricing.'
+        ? 'Proposals show Standard + Priority as compact cards beside the gold turn-key price.'
         : 'Pick one portal plan for this document. Monthly also shows annual so the client can see savings; annual shows annual only.';
     }
+  }
+
+  function collectBusinessDocCoreFeaturesFromForm() {
+    var list = [];
+    for (var i = 0; i < 4; i++) {
+      var titleEl = document.getElementById('business-doc-core-title-' + i);
+      var descEl = document.getElementById('business-doc-core-desc-' + i);
+      var title = titleEl ? String(titleEl.value || '').trim() : '';
+      var description = descEl ? String(descEl.value || '').trim() : '';
+      if (title || description) list.push({ title: title || 'Feature', description: description });
+    }
+    return list;
+  }
+
+  function fillBusinessDocCoreFeaturesUI(doc) {
+    var features = doc && Array.isArray(doc.coreFeatures) ? doc.coreFeatures : [];
+    for (var i = 0; i < 4; i++) {
+      var titleEl = document.getElementById('business-doc-core-title-' + i);
+      var descEl = document.getElementById('business-doc-core-desc-' + i);
+      var f = features[i] || {};
+      if (titleEl) titleEl.value = f.title || '';
+      if (descEl) descEl.value = f.description || '';
+    }
+  }
+
+  function clearBusinessDocCoreFeaturesUI() {
+    fillBusinessDocCoreFeaturesUI({ coreFeatures: [] });
   }
 
   function mountBusinessDocModalToBody() {
@@ -9350,8 +9425,16 @@ window.addEventListener('load', function() {
     if (businessDocTypeInput) businessDocTypeInput.value = 'proposal';
     if (businessDocStatusInput) businessDocStatusInput.value = 'draft';
     if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = '';
+    if (businessDocFoundationInput) businessDocFoundationInput.value = '';
+    if (businessDocProposalHeadlineInput) businessDocProposalHeadlineInput.value = '';
+    if (businessDocValuePropositionInput) businessDocValuePropositionInput.value = '';
+    if (businessDocIncludedItemsInput) businessDocIncludedItemsInput.value = '';
+    if (businessDocWhyIntroInput) businessDocWhyIntroInput.value = '';
+    if (businessDocWhyDifferentInput) businessDocWhyDifferentInput.value = '';
+    if (businessDocNotesInput) businessDocNotesInput.value = '';
     if (businessDocMaintenancePlanInput) businessDocMaintenancePlanInput.value = '';
     if (businessDocMaintenanceBillingInput) businessDocMaintenanceBillingInput.value = 'monthly';
+    clearBusinessDocCoreFeaturesUI();
     clearBusinessDocAddonsUI();
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
@@ -9371,6 +9454,16 @@ window.addEventListener('load', function() {
     if (businessDocDueDateInput) businessDocDueDateInput.value = doc.dueDate || '';
     if (businessDocNotesInput) businessDocNotesInput.value = doc.notes || '';
     if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = doc.proposedSiteUrl || '';
+    if (businessDocFoundationInput) businessDocFoundationInput.value = doc.foundationUrl || '';
+    if (businessDocProposalHeadlineInput) businessDocProposalHeadlineInput.value = doc.proposalHeadline || '';
+    if (businessDocValuePropositionInput) businessDocValuePropositionInput.value = doc.valueProposition || '';
+    if (businessDocIncludedItemsInput) {
+      businessDocIncludedItemsInput.value =
+        doc.includedItems || (doc.type === 'proposal' ? doc.notes || '' : '') || '';
+    }
+    if (businessDocWhyIntroInput) businessDocWhyIntroInput.value = doc.whyDifferentIntro || '';
+    if (businessDocWhyDifferentInput) businessDocWhyDifferentInput.value = doc.whyDifferent || '';
+    fillBusinessDocCoreFeaturesUI(doc);
     if (businessDocMaintenancePlanInput) {
       var planId = String(doc.maintenancePlanId || '').toLowerCase();
       businessDocMaintenancePlanInput.value =
@@ -9633,6 +9726,55 @@ window.addEventListener('load', function() {
         delete doc.proposedSiteUrl;
       }
 
+      if (isProposal) {
+        if (businessDocFoundationInput && businessDocFoundationInput.value.trim()) {
+          doc.foundationUrl = businessDocFoundationInput.value.trim();
+        } else {
+          delete doc.foundationUrl;
+        }
+        if (businessDocProposalHeadlineInput && businessDocProposalHeadlineInput.value.trim()) {
+          doc.proposalHeadline = businessDocProposalHeadlineInput.value.trim();
+        } else {
+          delete doc.proposalHeadline;
+        }
+        if (businessDocValuePropositionInput && businessDocValuePropositionInput.value.trim()) {
+          doc.valueProposition = businessDocValuePropositionInput.value.trim();
+        } else {
+          delete doc.valueProposition;
+        }
+        var cores = collectBusinessDocCoreFeaturesFromForm();
+        if (cores.length) doc.coreFeatures = cores;
+        else delete doc.coreFeatures;
+        if (businessDocIncludedItemsInput && businessDocIncludedItemsInput.value.trim()) {
+          doc.includedItems = businessDocIncludedItemsInput.value.trim();
+          // Keep notes in sync for older consumers / portal fallbacks
+          doc.notes = doc.includedItems;
+        } else {
+          delete doc.includedItems;
+          doc.notes = '';
+        }
+        if (businessDocWhyIntroInput && businessDocWhyIntroInput.value.trim()) {
+          doc.whyDifferentIntro = businessDocWhyIntroInput.value.trim();
+        } else {
+          delete doc.whyDifferentIntro;
+        }
+        if (businessDocWhyDifferentInput && businessDocWhyDifferentInput.value.trim()) {
+          doc.whyDifferent = businessDocWhyDifferentInput.value.trim();
+        } else {
+          delete doc.whyDifferent;
+        }
+        delete doc.maintenancePlanId;
+        delete doc.maintenanceBilling;
+      } else {
+        delete doc.foundationUrl;
+        delete doc.proposalHeadline;
+        delete doc.valueProposition;
+        delete doc.coreFeatures;
+        delete doc.includedItems;
+        delete doc.whyDifferentIntro;
+        delete doc.whyDifferent;
+      }
+
       if (collectedAddOns.length > 0) {
         doc.addOns = collectedAddOns;
       } else {
@@ -9655,9 +9797,6 @@ window.addEventListener('load', function() {
           delete doc.maintenancePlanId;
           delete doc.maintenanceBilling;
         }
-      } else {
-        delete doc.maintenancePlanId;
-        delete doc.maintenanceBilling;
       }
 
       if (!doc.clientName || isNaN(doc.total)) {

@@ -248,11 +248,8 @@
     var intro = '';
 
     if (type === 'proposal') {
-      intro =
-        'Ongoing care options for after launch—compare Standard and Priority, billed monthly or annually.';
-      for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
-        cards.push(buildMaintenancePlanCardHtml(MAINTENANCE_PLANS[i], 'both'));
-      }
+      // Proposal PDF embeds compact dual plans beside turn-key pricing.
+      return '';
     } else if (type === 'estimate' || type === 'invoice') {
       var plan = findMaintenancePlan(doc.maintenancePlanId);
       if (!plan) return '';
@@ -291,49 +288,82 @@
   /**
    * Builds optional add-ons block for PDF/print HTML (empty string if none).
    * @param {BusinessDocument} doc
+   * @param {{ compactSingle?: boolean }=} options - proposal: one upgrade → centered compact card
    */
-  function buildAddOnsPdfHtml(doc) {
+  function buildAddOnsPdfHtml(doc, options) {
     if (!doc || !doc.addOns || !Array.isArray(doc.addOns) || doc.addOns.length === 0) return '';
-    var parts = [];
+    var items = [];
     for (var i = 0; i < doc.addOns.length; i++) {
       var addon = doc.addOns[i];
       if (!addon || !addon.name) continue;
       var opts = addon.priceOptions && Array.isArray(addon.priceOptions) ? addon.priceOptions : [];
       if (!opts.length) continue;
-      var nameEsc = escapeHtml(addon.name);
-      var descInner = buildAddonDescriptionPdfHtml(addon.description || '');
+      items.push({
+        name: addon.name,
+        description: addon.description || '',
+        amounts: opts.map(function (o) {
+          return typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
+        })
+      });
+    }
+    if (!items.length) return '';
+    var compactSingle = !!(options && options.compactSingle && items.length === 1);
+    var parts = [];
+    for (var k = 0; k < items.length; k++) {
+      var it = items[k];
+      var nameEsc = escapeHtml(it.name);
+      var descInner = buildAddonDescriptionPdfHtml(it.description);
       var tierRows = '';
-      for (var j = 0; j < opts.length; j++) {
-        var o = opts[j];
-        var amt = typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
-        tierRows +=
-          '<div class="addon-tier-row addon-tier-only">' +
-          '<div class="addon-tier-solo">' +
-          '<span class="addon-tier-price">' +
-          escapeHtml(formatCurrency(amt)) +
-          '</span></div>' +
-          '</div>';
+      if (compactSingle) {
+        // S2: pill price instead of full-width bar
+        for (var p = 0; p < it.amounts.length; p++) {
+          tierRows +=
+            '<div class="addon-price-pill">' +
+            '<span class="addon-tier-price">' +
+            escapeHtml(formatCurrency(it.amounts[p])) +
+            '</span></div>';
+        }
+      } else {
+        for (var j = 0; j < it.amounts.length; j++) {
+          tierRows +=
+            '<div class="addon-tier-row addon-tier-only">' +
+            '<div class="addon-tier-solo">' +
+            '<span class="addon-tier-price">' +
+            escapeHtml(formatCurrency(it.amounts[j])) +
+            '</span></div>' +
+            '</div>';
+        }
       }
       parts.push(
-        '<div class="addon-card">' +
+        '<div class="addon-card' +
+          (compactSingle ? ' addon-card--compact' : '') +
+          '">' +
           '<div class="addon-card-title">' +
           nameEsc +
           '</div>' +
           (descInner
             ? '<div class="addon-card-desc">' + descInner + '</div>'
             : '') +
-          '<div class="addon-tier-rows">' +
+          '<div class="addon-tier-rows' +
+          (compactSingle ? ' addon-tier-rows--pill' : '') +
+          '">' +
           tierRows +
           '</div>' +
           '</div>'
       );
     }
-    if (!parts.length) return '';
+    var gridClass = 'addon-cards-grid' + (compactSingle ? ' addon-cards-grid--single' : '');
+    // S3: shorter / omit long intro when only one upgrade
+    var introHtml = compactSingle
+      ? ''
+      : '    <p class="addons-section-intro">Optional ways to enhance or extend the proposed build—your customer can choose any tier to upgrade beyond the base scope above.</p>\n';
     return (
       '    <hr class="divider">\n' +
       '    <div class="section-title">Optional upgrades for the proposed site</div>\n' +
-      '    <p class="addons-section-intro">Optional ways to enhance or extend the proposed build—your customer can choose any tier to upgrade beyond the base scope above.</p>\n' +
-      '    <div class="addon-cards-grid">' +
+      introHtml +
+      '    <div class="' +
+      gridClass +
+      '">' +
       parts.join('') +
       '</div>\n'
     );
@@ -515,19 +545,280 @@
       '  </div>\n</body>\n</html>';
   }
 
+  function jotLines(raw) {
+    if (raw == null || String(raw).trim() === '') return [];
+    var lines = String(raw).split(/\r?\n/);
+    var out = [];
+    for (var i = 0; i < lines.length; i++) {
+      var item = stripLeadingBulletMarker(lines[i]);
+      if (item) out.push(item);
+    }
+    return out;
+  }
+
+  function formatMoneyShort(amount) {
+    var n = Number(amount);
+    if (isNaN(n)) return '$0';
+    if (Math.abs(n - Math.round(n)) < 0.001) return '$' + Math.round(n).toLocaleString();
+    return formatCurrency(n);
+  }
+
+  function normalizeCoreFeatures(doc) {
+    var list = [];
+    if (doc && Array.isArray(doc.coreFeatures)) {
+      for (var i = 0; i < doc.coreFeatures.length && list.length < 4; i++) {
+        var f = doc.coreFeatures[i] || {};
+        var title = String(f.title || '').trim();
+        var description = String(f.description || '').trim();
+        if (title || description) list.push({ title: title || 'Feature', description: description });
+      }
+    }
+    return list;
+  }
+
+  function includedLinesForProposal(doc) {
+    var fromIncluded = jotLines(doc && doc.includedItems);
+    if (fromIncluded.length) return fromIncluded;
+    return jotLines(doc && doc.notes);
+  }
+
+  /** Compact dual maintenance cards for proposal pricing row. */
+  function buildProposalMaintCompactHtml() {
+    var cards = [];
+    for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
+      var plan = MAINTENANCE_PLANS[i];
+      var feat = (plan.features || []).slice(0, 3);
+      var lis = '';
+      for (var j = 0; j < feat.length; j++) {
+        lis += '<li>' + escapeHtml(feat[j]) + '</li>';
+      }
+      cards.push(
+        '<div class="pc-maint-card">' +
+          '<div class="pc-maint-badge">' + escapeHtml(plan.badge) + '</div>' +
+          '<div class="pc-maint-price">' + escapeHtml(plan.monthly) + '</div>' +
+          '<div class="pc-maint-annual">' + escapeHtml(plan.annual) + ' · ' + escapeHtml(plan.annualNote) + '</div>' +
+          '<ul class="pc-maint-feats">' + lis + '</ul>' +
+        '</div>'
+      );
+    }
+    return '<div class="pc-maint-dual">' + cards.join('') + '</div>';
+  }
+
+  /**
+   * Pro Cleaning–style one-page proposal layout.
+   */
+  function getProposalDocumentHtml(doc) {
+    var C = {
+      primary: '#eab308',
+      dark: { bg: '#0f172a', text: '#e8e6df', muted: '#94a3b8' }
+    };
+    var clientName = String((doc && doc.clientName) || 'Client').trim() || 'Client';
+    var headlineRaw = String((doc && doc.proposalHeadline) || '').trim();
+    if (!headlineRaw) {
+      headlineRaw = clientName.toUpperCase() + ': HIGH-PERFORMANCE TURN-KEY SYSTEM';
+    }
+    var headline = escapeHtml(headlineRaw.toUpperCase());
+    var valueProp = String((doc && doc.valueProposition) || '').trim();
+    if (!valueProp) {
+      valueProp =
+        'A fast, reliable system built for real-world use—clear workflows, branded client experience, and cloud-backed data without the friction of clunky generic tools.';
+    }
+    var cores = normalizeCoreFeatures(doc);
+    var coreHtml = '';
+    if (cores.length) {
+      var cols = '';
+      for (var c = 0; c < cores.length; c++) {
+        cols +=
+          '<div class="pc-core-col">' +
+          '<div class="pc-core-title">' + escapeHtml(cores[c].title) + '</div>' +
+          '<div class="pc-core-desc">' + escapeHtml(cores[c].description) + '</div>' +
+          '</div>';
+      }
+      coreHtml =
+        '    <hr class="divider">\n' +
+        '    <div class="section-title">System Core Features</div>\n' +
+        '    <div class="pc-core-grid pc-core-grid--' + cores.length + '">' + cols + '</div>\n';
+    }
+
+    var included = includedLinesForProposal(doc);
+    var includedLis = '';
+    if (!included.length) {
+      included = ['Full app deployment', 'Custom branding', 'Cloud integration', 'Admin workflows', '12 months technical support'];
+    }
+    for (var i = 0; i < included.length; i++) {
+      includedLis += '<li>' + escapeHtml(included[i]) + '</li>';
+    }
+
+    var totalFormatted = escapeHtml(formatMoneyShort(doc && doc.total));
+    var maintCompact = buildProposalMaintCompactHtml();
+
+    var whyIntro = String((doc && doc.whyDifferentIntro) || '').trim();
+    var whyLines = jotLines(doc && doc.whyDifferent);
+    if (!whyIntro && !whyLines.length) {
+      whyIntro = 'Built as a production-ready system—not a template with extras bolted on.';
+      whyLines = [
+        'Tech stack: modern web/mobile foundations with cloud sync and offline-friendly patterns where it matters.',
+        'Design standards: smooth motion and clear hierarchy so the product feels intentional in the field.',
+        'Speed: local-first patterns where useful, with reliable cloud backup for leads and ops data.'
+      ];
+    }
+    var whyLis = '';
+    for (var w = 0; w < whyLines.length; w++) {
+      whyLis += '<li>' + escapeHtml(whyLines[w]) + '</li>';
+    }
+    var whyHtml =
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">Why This Build Is Different</div>\n' +
+      (whyIntro ? '    <p class="pc-body">' + escapeHtml(whyIntro) + '</p>\n' : '') +
+      (whyLis ? '    <ul class="why-list">' + whyLis + '</ul>\n' : '');
+
+    var demoUrl = String((doc && doc.proposedSiteUrl) || '').trim();
+    var foundationUrl = String((doc && doc.foundationUrl) || '').trim();
+    var demoHref = demoUrl ? escapeHtml(normalizeProposedSiteHref(demoUrl)) : '';
+    var demoLabel = demoUrl ? escapeHtml(demoUrl.replace(/^https?:\/\//i, '')) : '';
+    var foundationHref = foundationUrl ? escapeHtml(normalizeProposedSiteHref(foundationUrl)) : '';
+    var foundationLabel = foundationUrl ? escapeHtml(foundationUrl.replace(/^https?:\/\//i, '')) : '';
+
+    var step1 =
+      '<div class="next-step"><div class="next-step-num">01</div><div class="next-step-title">View the Demo</div><span class="next-step-blurb">' +
+      (demoHref
+        ? 'Explore the proposed build at <a class="next-step-link" href="' + demoHref + '" target="_blank" rel="noopener noreferrer">' + demoLabel + '</a>.'
+        : 'Review the proposed experience and confirm it matches your workflow.') +
+      '</span></div>';
+    var stepLaunch =
+      '<div class="next-step"><div class="next-step-num">' +
+      (foundationHref ? '03' : '02') +
+      '</div><div class="next-step-title">Book a Launch Call</div><span class="next-step-blurb">Ready to proceed? Email <a class="next-step-link" href="mailto:Ruben.Jim.co@gmail.com">Ruben.Jim.co@gmail.com</a> to lock timeline and deposit.</span></div>';
+    var nextStepsInner = step1;
+    var nextStepsGridClass = 'next-steps-grid';
+    if (foundationHref) {
+      nextStepsInner +=
+        '<div class="next-step"><div class="next-step-num">02</div><div class="next-step-title">Review the Foundation</div><span class="next-step-blurb">' +
+        'Inspect the technical foundation at <a class="next-step-link" href="' +
+        foundationHref +
+        '" target="_blank" rel="noopener noreferrer">' +
+        foundationLabel +
+        '</a>.</span></div>';
+      nextStepsInner += stepLaunch;
+    } else {
+      // F1: no foundation URL → hide middle step and renumber launch to 02
+      nextStepsGridClass += ' next-steps-grid--two';
+      nextStepsInner += stepLaunch;
+    }
+
+    var footerDemo = demoHref
+      ? '      <a href="' + demoHref + '" class="btn-primary" target="_blank" rel="noopener noreferrer">View Demo</a>\n'
+      : '';
+
+    var addOnsBlockHtml = buildAddOnsPdfHtml(doc, { compactSingle: true });
+
+    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>PROPOSAL — ' + escapeHtml(clientName) + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
+      '@page { size: A4; margin: 10mm; }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 10px 14px !important; } .doc { page-break-inside: avoid; } .doc-title { font-size: 22px; } .section-title { font-size: 11px; margin-bottom: 8px; } .pc-body { font-size: 12px; margin-bottom: 0; } .pc-core-grid { gap: 12px; } .pc-core-title { font-size: 11px; } .pc-core-desc { font-size: 11px; } .pc-pricing-row { gap: 12px; } .pc-gold { padding: 14px 16px; } .pc-gold-amt { font-size: 28px; } .pc-gold-list li { font-size: 11px; } .pc-maint-card { padding: 10px 12px; } .pc-maint-price { font-size: 16px; } .pc-maint-feats li { font-size: 10px; } .why-list { font-size: 12px; } .next-steps-grid { gap: 12px; } .footer-buttons { margin-top: 14px; } .divider { margin: 12px 0 !important; } .addon-cards-grid--single .addon-card { padding: 12px 14px; } }\n' +
+      '* { box-sizing: border-box; }\n' +
+      'body { margin: 0; padding: 36px 28px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
+      '.doc { max-width: 820px; margin: 0 auto; }\n' +
+      '.header-tag { display: inline-block; padding: 5px 12px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; background: ' + C.primary + '; color: ' + C.dark.bg + '; margin-bottom: 14px; }\n' +
+      '.doc-title { font-family: \'Playfair Display\', serif; font-size: 26px; font-weight: 700; color: ' + C.primary + '; letter-spacing: 0.02em; text-transform: uppercase; line-height: 1.15; margin: 0 0 8px 0; }\n' +
+      '.doc-subtitle { font-size: 12px; color: ' + C.dark.muted + '; margin-bottom: 8px; }\n' +
+      '.doc-subtitle a { color: ' + C.primary + '; text-decoration: underline; }\n' +
+      '.divider { border: none; height: 1px; background: rgba(255,255,255,0.12); margin: 18px 0; }\n' +
+      '.section-title { font-family: \'Playfair Display\', serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: ' + C.primary + '; margin: 0 0 10px 0; }\n' +
+      '.pc-body { font-size: 13px; line-height: 1.65; color: ' + C.dark.text + '; margin: 0; max-width: 72ch; }\n' +
+      '.pc-core-grid { display: grid; gap: 18px; margin-top: 4px; }\n' +
+      '.pc-core-grid--1 { grid-template-columns: 1fr; }\n' +
+      '.pc-core-grid--2 { grid-template-columns: 1fr 1fr; }\n' +
+      '.pc-core-grid--3 { grid-template-columns: 1fr 1fr 1fr; }\n' +
+      '.pc-core-grid--4 { grid-template-columns: 1fr 1fr 1fr 1fr; }\n' +
+      '.pc-core-title { font-size: 12px; font-weight: 600; color: ' + C.primary + '; margin-bottom: 6px; line-height: 1.3; }\n' +
+      '.pc-core-desc { font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
+      '.pc-pricing-row { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: stretch; margin-top: 4px; }\n' +
+      '.pc-gold { background: ' + C.primary + '; color: ' + C.dark.bg + '; border-radius: 10px; padding: 18px 20px; }\n' +
+      '.pc-gold-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; margin-bottom: 6px; }\n' +
+      '.pc-gold-amt { font-family: \'Playfair Display\', serif; font-size: 34px; font-weight: 700; line-height: 1; margin-bottom: 12px; }\n' +
+      '.pc-gold-included { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }\n' +
+      '.pc-gold-list { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.45; }\n' +
+      '.pc-gold-list li { margin-bottom: 3px; }\n' +
+      '.pc-maint-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 100%; }\n' +
+      '.pc-maint-card { border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 12px 12px 10px; background: rgba(255,255,255,0.03); display: flex; flex-direction: column; }\n' +
+      '.pc-maint-badge { display: inline-block; align-self: flex-start; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' + C.dark.bg + '; background: ' + C.primary + '; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px; }\n' +
+      '.pc-maint-price { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; line-height: 1.1; }\n' +
+      '.pc-maint-annual { font-size: 10px; color: ' + C.dark.muted + '; margin: 4px 0 8px; line-height: 1.35; }\n' +
+      '.pc-maint-feats { list-style: none; margin: auto 0 0; padding: 0; }\n' +
+      '.pc-maint-feats li { position: relative; padding: 3px 0 3px 12px; font-size: 10px; line-height: 1.35; color: ' + C.dark.muted + '; }\n' +
+      '.pc-maint-feats li::before { content: \'\'; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: ' + C.primary + '; }\n' +
+      '.why-list { margin: 10px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.55; color: ' + C.dark.text + '; }\n' +
+      '.why-list li { margin-bottom: 6px; }\n' +
+      '.next-steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 6px; }\n' +
+      '.next-steps-grid--two { grid-template-columns: 1fr 1fr; max-width: none; width: 100%; }\n' +
+      '.next-step-num { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; margin-bottom: 6px; padding-bottom: 5px; border-bottom: 1px solid ' + C.primary + '; }\n' +
+      '.next-step-title { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 4px; }\n' +
+      '.next-step-blurb { font-size: 11px; line-height: 1.45; color: ' + C.dark.muted + '; display: block; }\n' +
+      '.next-step-link { color: ' + C.primary + '; text-decoration: underline; overflow-wrap: anywhere; word-break: normal; }\n' +
+      '.footer-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }\n' +
+      '.btn-primary { display: inline-block; padding: 10px 20px; background: ' + C.primary + '; color: ' + C.dark.bg + '; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; border-radius: 6px; }\n' +
+      '.btn-outline { display: inline-block; padding: 10px 20px; background: transparent; color: ' + C.primary + '; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; border-radius: 6px; border: 2px solid ' + C.primary + '; }\n' +
+      '.footer-meta { margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px; color: ' + C.dark.muted + '; }\n' +
+      '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }\n' +
+      '.addon-cards-grid--single { display: block; max-width: 280px; margin: 8px auto 0; }\n' +
+      '.addon-cards-grid--single .addon-card--compact { padding: 12px 14px 12px; text-align: left; }\n' +
+      '.addon-cards-grid--single .addon-card-title { font-size: 12px; margin-bottom: 6px; }\n' +
+      '.addon-cards-grid--single .addon-card-desc { font-size: 11px; margin-bottom: 10px; }\n' +
+      '.addon-tier-rows--pill { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }\n' +
+      '.addon-price-pill { display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(234,179,8,0.45); background: rgba(234,179,8,0.14); }\n' +
+      '.addon-price-pill .addon-tier-price { font-size: 15px; }\n' +
+      '.addons-section-intro { font-size: 11px; color: ' + C.dark.muted + '; margin: -2px 0 10px; }\n' +
+      '.addon-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; }\n' +
+      '.addon-card-title { font-size: 12px; font-weight: 600; color: ' + C.primary + '; margin-bottom: 8px; }\n' +
+      '.addon-tier-solo { display: flex; justify-content: center; padding: 10px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.12); border-radius: 8px; }\n' +
+      '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; }\n' +
+      '@media (max-width: 700px) { .pc-core-grid--3, .pc-core-grid--4 { grid-template-columns: 1fr 1fr; } .pc-pricing-row { grid-template-columns: 1fr; } .next-steps-grid, .next-steps-grid--two { grid-template-columns: 1fr; max-width: none; } }\n' +
+      '</style>\n</head>\n<body>\n  <div class="doc">\n' +
+      '    <div class="header-tag">PROFESSIONAL SYSTEM</div>\n' +
+      '    <h1 class="doc-title">' + headline + '</h1>\n' +
+      '    <div class="doc-subtitle">Designed & Built by Ruben Jimenez | <a href="https://rubenjimenez.dev">rubenjimenez.dev</a></div>\n' +
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">The Value Proposition</div>\n' +
+      '    <p class="pc-body">' + escapeHtml(valueProp) + '</p>\n' +
+      coreHtml +
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">Turn-Key Pricing</div>\n' +
+      '    <div class="pc-pricing-row">\n' +
+      '      <div class="pc-gold">\n' +
+      '        <div class="pc-gold-label">Base Turn-Key System</div>\n' +
+      '        <div class="pc-gold-amt">' + totalFormatted + '</div>\n' +
+      '        <div class="pc-gold-included">Included:</div>\n' +
+      '        <ul class="pc-gold-list">' + includedLis + '</ul>\n' +
+      '      </div>\n' +
+      maintCompact +
+      '    </div>\n' +
+      whyHtml +
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">The Next Steps</div>\n' +
+      '    <div class="' + nextStepsGridClass + '">' + nextStepsInner + '</div>\n' +
+      addOnsBlockHtml +
+      '    <hr class="divider">\n' +
+      '    <div class="footer-buttons">\n' +
+      footerDemo +
+      '      <a href="mailto:Ruben.Jim.co@gmail.com" class="btn-outline">Contact Me</a>\n' +
+      '    </div>\n' +
+      '    <div class="footer-meta">Generated from rubenjimenez.dev</div>\n' +
+      '  </div>\n</body>\n</html>';
+  }
+
   function buildBusinessDocHtml(doc) {
+    if (doc && String(doc.type || '').toLowerCase() === 'proposal') {
+      return getProposalDocumentHtml(doc);
+    }
     var created = formatDateDisplay(doc.createdAt);
     var due = doc.dueDate ? formatDateDisplay(doc.dueDate) : '—';
     var typeLabel =
-      doc.type === 'proposal' ? 'PROPOSAL' :
       doc.type === 'estimate' ? 'ESTIMATE' :
       doc.type === 'invoice' ? 'INVOICE' : 'DOCUMENT';
-    var items = [{ description: typeLabel + ' Total', amount: doc.total || 0 }];
     var addOnsBlockHtml = buildAddOnsPdfHtml(doc);
     var maintenanceBlockHtml = buildMaintenancePdfHtml(doc);
     return getBusinessDocumentHtml({
       customer: { name: doc.clientName || '', email: doc.clientEmail || '' },
-      items: items,
       typeLabel: typeLabel,
       created: created,
       due: due,

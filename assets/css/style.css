@@ -11089,6 +11089,50 @@ body.project-modal-open {
   font-weight: var(--fw-600);
 }
 
+.business-doc-proposal-fields[hidden],
+#business-doc-scope-section[hidden] {
+  display: none !important;
+}
+
+.business-doc-core-features-section {
+  margin-top: 4px;
+}
+
+.business-doc-core-features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.business-doc-core-feature-card {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--jet);
+  background: hsla(240, 2%, 12%, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.business-doc-core-feature-card label {
+  font-size: 11px;
+  color: var(--light-gray-70);
+  margin: 0;
+}
+
+.business-doc-core-feature-card input,
+.business-doc-core-feature-card textarea {
+  width: 100%;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .business-doc-core-features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Business doc modal: project scope / value proposition (PDF) */
 .business-doc-scope-section {
   margin-top: 4px;
