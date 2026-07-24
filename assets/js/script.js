@@ -8953,6 +8953,8 @@ window.addEventListener('load', function() {
    * @property {string=} notes
    * @property {string=} proposedSiteUrl
    * @property {BusinessDocAddOn[]=} addOns
+   * @property {string=} maintenancePlanId - 'standard' | 'priority' (estimate/invoice); proposals ignore and show all
+   * @property {'monthly'|'annual'=} maintenanceBilling - estimate/invoice billing display preference
    * @property {string} createdAt
    * @property {string} updatedAt
    */
@@ -9001,6 +9003,12 @@ window.addEventListener('load', function() {
     var site = String(doc.proposedSiteUrl || '').trim().slice(0, 500);
     if (site) out.proposedSiteUrl = site;
     if (Array.isArray(doc.addOns) && doc.addOns.length) out.addOns = doc.addOns;
+    var planId = String(doc.maintenancePlanId || '').toLowerCase();
+    if (planId === 'standard' || planId === 'priority') {
+      out.maintenancePlanId = planId;
+      var billing = String(doc.maintenanceBilling || 'monthly').toLowerCase();
+      out.maintenanceBilling = billing === 'annual' ? 'annual' : 'monthly';
+    }
     return out;
   }
 
@@ -9090,6 +9098,11 @@ window.addEventListener('load', function() {
   const businessDocAddonsList = document.getElementById('business-doc-addons-list');
   const businessDocAddAddonBtn = document.getElementById('business-doc-add-addon-btn');
   const businessDocsSummary = document.getElementById('business-docs-summary');
+  const businessDocMaintenancePlanInput = document.getElementById('business-doc-maintenance-plan');
+  const businessDocMaintenanceBillingInput = document.getElementById('business-doc-maintenance-billing');
+  const businessDocMaintenancePickers = document.getElementById('business-doc-maintenance-pickers');
+  const businessDocMaintenanceProposalNote = document.getElementById('business-doc-maintenance-proposal-note');
+  const businessDocMaintenanceHint = document.getElementById('business-doc-maintenance-hint');
 
   let businessDocs = loadBusinessDocs();
 
@@ -9286,6 +9299,22 @@ window.addEventListener('load', function() {
       businessDocTypeInput.value === 'proposal' ? 'block' : 'none';
   }
 
+  function updateBusinessDocMaintenanceVisibility() {
+    var type = businessDocTypeInput ? businessDocTypeInput.value : 'proposal';
+    var isProposal = type === 'proposal';
+    if (businessDocMaintenanceProposalNote) {
+      businessDocMaintenanceProposalNote.hidden = !isProposal;
+    }
+    if (businessDocMaintenancePickers) {
+      businessDocMaintenancePickers.hidden = isProposal;
+    }
+    if (businessDocMaintenanceHint) {
+      businessDocMaintenanceHint.textContent = isProposal
+        ? 'Proposals always include Standard and Priority with monthly and annual pricing.'
+        : 'Pick one portal plan for this document. Monthly also shows annual so the client can see savings; annual shows annual only.';
+    }
+  }
+
   function mountBusinessDocModalToBody() {
     if (businessDocModal && businessDocModal.parentElement !== document.body) {
       document.body.appendChild(businessDocModal);
@@ -9299,6 +9328,7 @@ window.addEventListener('load', function() {
       resetBusinessDocForm();
     }
     updateBusinessDocProposedSiteVisibility();
+    updateBusinessDocMaintenanceVisibility();
     mountBusinessDocModalToBody();
     if (businessDocModal) {
       businessDocModal.style.display = 'flex';
@@ -9320,8 +9350,11 @@ window.addEventListener('load', function() {
     if (businessDocTypeInput) businessDocTypeInput.value = 'proposal';
     if (businessDocStatusInput) businessDocStatusInput.value = 'draft';
     if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = '';
+    if (businessDocMaintenancePlanInput) businessDocMaintenancePlanInput.value = '';
+    if (businessDocMaintenanceBillingInput) businessDocMaintenanceBillingInput.value = 'monthly';
     clearBusinessDocAddonsUI();
     updateBusinessDocProposedSiteVisibility();
+    updateBusinessDocMaintenanceVisibility();
   }
 
   /**
@@ -9338,8 +9371,18 @@ window.addEventListener('load', function() {
     if (businessDocDueDateInput) businessDocDueDateInput.value = doc.dueDate || '';
     if (businessDocNotesInput) businessDocNotesInput.value = doc.notes || '';
     if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = doc.proposedSiteUrl || '';
+    if (businessDocMaintenancePlanInput) {
+      var planId = String(doc.maintenancePlanId || '').toLowerCase();
+      businessDocMaintenancePlanInput.value =
+        planId === 'standard' || planId === 'priority' ? planId : '';
+    }
+    if (businessDocMaintenanceBillingInput) {
+      businessDocMaintenanceBillingInput.value =
+        String(doc.maintenanceBilling || '').toLowerCase() === 'annual' ? 'annual' : 'monthly';
+    }
     fillBusinessDocAddonsUI(doc);
     updateBusinessDocProposedSiteVisibility();
+    updateBusinessDocMaintenanceVisibility();
   }
 
   function getBusinessDocsFilters() {
@@ -9596,6 +9639,27 @@ window.addEventListener('load', function() {
         delete doc.addOns;
       }
 
+      var docType = String(doc.type || '').toLowerCase();
+      if (docType === 'estimate' || docType === 'invoice') {
+        var planSel = businessDocMaintenancePlanInput
+          ? String(businessDocMaintenancePlanInput.value || '').toLowerCase()
+          : '';
+        if (planSel === 'standard' || planSel === 'priority') {
+          doc.maintenancePlanId = planSel;
+          doc.maintenanceBilling =
+            businessDocMaintenanceBillingInput &&
+            String(businessDocMaintenanceBillingInput.value || '').toLowerCase() === 'annual'
+              ? 'annual'
+              : 'monthly';
+        } else {
+          delete doc.maintenancePlanId;
+          delete doc.maintenanceBilling;
+        }
+      } else {
+        delete doc.maintenancePlanId;
+        delete doc.maintenanceBilling;
+      }
+
       if (!doc.clientName || isNaN(doc.total)) {
         alert('Client name and total amount are required.');
         return;
@@ -9632,8 +9696,12 @@ window.addEventListener('load', function() {
   }
 
   if (businessDocTypeInput) {
-    businessDocTypeInput.addEventListener('change', updateBusinessDocProposedSiteVisibility);
+    businessDocTypeInput.addEventListener('change', function () {
+      updateBusinessDocProposedSiteVisibility();
+      updateBusinessDocMaintenanceVisibility();
+    });
     updateBusinessDocProposedSiteVisibility();
+    updateBusinessDocMaintenanceVisibility();
   }
 
   if (businessDocCreateBtn) {

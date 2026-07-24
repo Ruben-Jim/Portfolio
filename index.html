@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=doc-drawer-viewport-20260723">
+  <link rel="stylesheet" href="/assets/css/style.css?v=doc-maint-scope-20260723">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -4005,6 +4005,38 @@
                   </div>
                 </div>
 
+                <div class="form-group business-doc-maintenance-section">
+                  <div class="business-doc-maintenance-header">
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-addons-label" id="business-doc-maintenance-label">Maintenance plan</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF section</span>
+                    </div>
+                    <p class="business-doc-addons-hint" id="business-doc-maintenance-hint">Proposals always include Standard and Priority with monthly and annual pricing.</p>
+                  </div>
+                  <div id="business-doc-maintenance-proposal-note" class="business-doc-maintenance-note">
+                    PDF will show <strong>all portal plans</strong> (Standard &amp; Priority) with monthly and annual options so the client can compare.
+                  </div>
+                  <div id="business-doc-maintenance-pickers" class="business-doc-maintenance-pickers" hidden>
+                    <div class="form-row">
+                      <div class="form-group form-group-half">
+                        <label for="business-doc-maintenance-plan">Plan</label>
+                        <select id="business-doc-maintenance-plan">
+                          <option value="">None — omit from PDF</option>
+                          <option value="standard">Standard · $150/mo · $990/yr</option>
+                          <option value="priority">Priority · $300/mo · $1,980/yr</option>
+                        </select>
+                      </div>
+                      <div class="form-group form-group-half">
+                        <label for="business-doc-maintenance-billing">Billing shown</label>
+                        <select id="business-doc-maintenance-billing">
+                          <option value="monthly">Monthly (also show annual savings)</option>
+                          <option value="annual">Annual only</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="form-group business-doc-addons-section">
                   <div class="business-doc-addons-header">
                     <label class="business-doc-addons-label">Optional upgrades for the proposed site</label>
@@ -5808,12 +5840,12 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
-  <script src="/assets/js/business-doc-shared.js?v=portal-maint-dm-20260605"></script>
+  <script src="/assets/js/business-doc-shared.js?v=doc-maint-scope-20260723"></script>
   <script src="/assets/js/customer-dm-shared.js?v=contact-dm-mobile-20260608"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
   <script src="/assets/js/i18n.js?v=1"></script>
-  <script src="/assets/js/script.js?v=doc-drawer-viewport-20260723"></script>
+  <script src="/assets/js/script.js?v=doc-maint-scope-20260723"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=cp-mobile-sheet-fix-20260611"></script>
   <script src="/assets/js/dm-migration.js"></script>

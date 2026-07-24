@@ -43,11 +43,52 @@
     return s.trim();
   }
 
+  /** Portal catalog — keep in sync with client-portal.js MAINTENANCE_PLANS. */
+  var MAINTENANCE_PLANS = [
+    {
+      id: 'standard',
+      badge: 'Standard',
+      title: 'Web + Mobile App',
+      monthly: '$150/mo',
+      annual: '$990/yr',
+      monthlyNote: 'Billed monthly',
+      annualNote: 'Save 45% vs monthly',
+      annualEquiv: '~$83/mo equivalent · billed once per year',
+      slaLabel: '72 business hours',
+      features: [
+        'Response within 72 business hours',
+        '1 maintenance window per month',
+        'Hosting, updates, monitoring, minor fixes',
+        'Web + iOS + Android support'
+      ]
+    },
+    {
+      id: 'priority',
+      badge: 'Priority',
+      title: 'Web + Mobile App',
+      monthly: '$300/mo',
+      annual: '$1,980/yr',
+      monthlyNote: 'Billed monthly',
+      annualNote: 'Save 45% vs monthly',
+      annualEquiv: '~$165/mo equivalent · billed once per year',
+      slaLabel: '24 business hours',
+      features: [
+        'Response within 24 business hours',
+        '2 maintenance windows per month',
+        'Hosting, updates, monitoring, minor fixes',
+        'Web + iOS + Android support'
+      ]
+    }
+  ];
+
+  var SCOPE_MULTI_COL_THRESHOLD = 8;
+
   /**
    * One list item per non-empty line (project scope & add-on descriptions are jot lists).
    * @param {string} listClass e.g. scope-feature-list | addon-desc-list
+   * @param {{ multiColThreshold?: number }=} options
    */
-  function linesToBulletListHtml(raw, listClass) {
+  function linesToBulletListHtml(raw, listClass, options) {
     if (raw == null || String(raw).trim() === '') return '';
     var lines = String(raw).split(/\r?\n/);
     var items = [];
@@ -56,7 +97,15 @@
       if (item) items.push(item);
     }
     if (!items.length) return '';
-    var html = '<ul class="' + listClass + '">';
+    var threshold =
+      options && typeof options.multiColThreshold === 'number'
+        ? options.multiColThreshold
+        : 0;
+    var className = listClass;
+    if (threshold > 0 && items.length >= threshold) {
+      className += ' is-multi-col';
+    }
+    var html = '<ul class="' + className + '">';
     for (var j = 0; j < items.length; j++) {
       html += '<li><span class="bullet-li-text">' + escapeHtml(items[j]) + '</span></li>';
     }
@@ -102,9 +151,137 @@
           '<li><span class="bullet-li-text">Outline the project scope, deliverables, and key terms here.</span></li>' +
           '</ul>'
       );
-    var inner = linesToBulletListHtml(raw, 'scope-feature-list');
+    var inner = linesToBulletListHtml(raw, 'scope-feature-list', {
+      multiColThreshold: SCOPE_MULTI_COL_THRESHOLD
+    });
     if (!inner) return emptyHint;
     return wrapScope(inner);
+  }
+
+  function findMaintenancePlan(planId) {
+    var id = String(planId || '').toLowerCase();
+    for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
+      if (MAINTENANCE_PLANS[i].id === id) return MAINTENANCE_PLANS[i];
+    }
+    return null;
+  }
+
+  /**
+   * @param {object} plan
+   * @param {'both'|'monthly'|'annual'} priceMode
+   *   both = monthly + annual (proposal, or estimate/invoice when monthly selected)
+   *   annual = annual only
+   */
+  function buildMaintenancePlanCardHtml(plan, priceMode) {
+    if (!plan) return '';
+    var featureLis = '';
+    var feats = plan.features || [];
+    for (var i = 0; i < feats.length; i++) {
+      featureLis +=
+        '<li><span class="bullet-li-text">' + escapeHtml(feats[i]) + '</span></li>';
+    }
+    var priceRows = '';
+    if (priceMode === 'annual') {
+      priceRows =
+        '<div class="maint-price-row maint-price-row--annual">' +
+        '<div class="maint-price-main">' +
+        escapeHtml(plan.annual) +
+        '</div>' +
+        '<div class="maint-price-note">' +
+        escapeHtml(plan.annualNote) +
+        '</div>' +
+        '<div class="maint-price-equiv">' +
+        escapeHtml(plan.annualEquiv) +
+        '</div></div>';
+    } else {
+      priceRows =
+        '<div class="maint-price-grid">' +
+        '<div class="maint-price-row">' +
+        '<div class="maint-price-label">Monthly</div>' +
+        '<div class="maint-price-main">' +
+        escapeHtml(plan.monthly) +
+        '</div>' +
+        '<div class="maint-price-note">' +
+        escapeHtml(plan.monthlyNote) +
+        '</div></div>' +
+        '<div class="maint-price-row maint-price-row--highlight">' +
+        '<div class="maint-price-label">Annual</div>' +
+        '<div class="maint-price-main">' +
+        escapeHtml(plan.annual) +
+        '</div>' +
+        '<div class="maint-price-note">' +
+        escapeHtml(plan.annualNote) +
+        '</div>' +
+        '<div class="maint-price-equiv">' +
+        escapeHtml(plan.annualEquiv) +
+        '</div></div></div>';
+    }
+    return (
+      '<div class="maint-plan-card">' +
+      '<div class="maint-plan-badge">' +
+      escapeHtml(plan.badge) +
+      '</div>' +
+      '<div class="maint-plan-title">' +
+      escapeHtml(plan.title) +
+      '</div>' +
+      '<div class="maint-plan-sla">Response target: ' +
+      escapeHtml(plan.slaLabel) +
+      '</div>' +
+      priceRows +
+      '<ul class="maint-feature-list">' +
+      featureLis +
+      '</ul></div>'
+    );
+  }
+
+  /**
+   * Separate PDF section for maintenance plans.
+   * Proposal → all plans, both monthly + annual.
+   * Estimate/invoice → selected plan; monthly billing shows both prices (savings);
+   * annual billing shows annual only. Empty if no plan selected.
+   * @param {BusinessDocument} doc
+   */
+  function buildMaintenancePdfHtml(doc) {
+    if (!doc) return '';
+    var type = String(doc.type || '').toLowerCase();
+    var cards = [];
+    var intro = '';
+
+    if (type === 'proposal') {
+      intro =
+        'Ongoing care options for after launch—compare Standard and Priority, billed monthly or annually.';
+      for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
+        cards.push(buildMaintenancePlanCardHtml(MAINTENANCE_PLANS[i], 'both'));
+      }
+    } else if (type === 'estimate' || type === 'invoice') {
+      var plan = findMaintenancePlan(doc.maintenancePlanId);
+      if (!plan) return '';
+      var billing = String(doc.maintenanceBilling || 'monthly').toLowerCase();
+      var priceMode = billing === 'annual' ? 'annual' : 'both';
+      intro =
+        priceMode === 'annual'
+          ? 'Selected maintenance plan for this ' +
+            type +
+            ' (annual billing).'
+          : 'Selected maintenance plan for this ' +
+            type +
+            '. Annual pricing is shown so you can see the savings vs monthly.';
+      cards.push(buildMaintenancePlanCardHtml(plan, priceMode));
+    } else {
+      return '';
+    }
+
+    if (!cards.length) return '';
+    return (
+      '    <hr class="divider">\n' +
+      '    <div class="section-title">Maintenance plans</div>\n' +
+      '    <p class="addons-section-intro">' +
+      escapeHtml(intro) +
+      '</p>\n' +
+      '    <div class="maint-plans-grid">' +
+      cards.join('') +
+      '</div>\n'
+    );
   }
 
   function buildAddonDescriptionPdfHtml(raw) {
@@ -164,7 +341,7 @@
 
   /**
    * HTML generator for business documents. Produces print-optimized HTML
-   * Params: { customer, typeLabel, created, due, scope, totalFormatted, proposedSiteUrl, addOnsBlockHtml }
+   * Params: { customer, typeLabel, created, due, scope, totalFormatted, proposedSiteUrl, addOnsBlockHtml, maintenanceBlockHtml }
    */
   function getBusinessDocumentHtml(params) {
     var customer = params.customer || {};
@@ -180,6 +357,7 @@
     var totalFormatted = escapeHtml(params.totalFormatted || '$0.00');
     var id = escapeHtml(params.id || '');
     var addOnsBlockHtml = params.addOnsBlockHtml || '';
+    var maintenanceBlockHtml = params.maintenanceBlockHtml || '';
     var proposedSiteCell = formatProposedSitePdfHtml(params.proposedSiteUrl || '');
     var proposedSiteFooterBtn = '';
     var proposalUrlTrim = (params.proposedSiteUrl || '').trim();
@@ -207,7 +385,7 @@
 
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
-      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .addons-section-intro { font-size: 10px; margin: -2px 0 10px 0; } .scope-frame { box-shadow: none !important; } .scope-frame-inner { padding: 10px 12px !important; } .scope-kicker { font-size: 12px !important; padding-bottom: 8px !important; margin-bottom: 10px !important; } .scope-feature-list li { font-size: 11px; padding: 6px 8px !important; margin-bottom: 4px !important; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 5px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-solo { padding: 10px 14px; } .addon-tier-price { font-size: 17px; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .addons-section-intro { font-size: 10px; margin: -2px 0 10px 0; } .scope-frame { box-shadow: none !important; } .scope-frame-inner { padding: 10px 12px !important; } .scope-kicker { font-size: 12px !important; padding-bottom: 8px !important; margin-bottom: 10px !important; } .scope-feature-list li { font-size: 11px; padding: 6px 8px !important; margin-bottom: 4px !important; } .scope-feature-list.is-multi-col { gap: 4px 8px; } .scope-feature-list.is-multi-col li { margin-bottom: 0 !important; padding: 5px 7px !important; font-size: 10px; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 5px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-solo { padding: 10px 14px; } .addon-tier-price { font-size: 17px; } .maint-plans-grid { gap: 10px; margin-top: 8px; } .maint-plan-card { padding: 12px 14px; } .maint-plan-badge { font-size: 9px; padding: 3px 8px; } .maint-plan-title { font-size: 12px; } .maint-plan-sla { font-size: 10px; margin-bottom: 8px; } .maint-price-main { font-size: 16px; } .maint-price-note, .maint-price-equiv { font-size: 10px; } .maint-feature-list li { font-size: 10px; padding: 4px 0; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
       '* { box-sizing: border-box; }\n' +
       'body { margin: 0; padding: 40px 32px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
       '.doc { max-width: 800px; margin: 0 auto; }\n' +
@@ -223,8 +401,12 @@
       '.scope-frame-inner { border-radius: 12px; padding: 18px 20px 16px; background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.2) 100%); border: 1px solid rgba(255,255,255,0.1); }\n' +
       '.scope-kicker { margin: 0 0 16px 0; padding: 0 0 12px 0; border-bottom: 1px solid rgba(234,179,8,0.45); font-family: \'Playfair Display\', serif; font-size: 15px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #facc15; text-shadow: 0 1px 2px rgba(0,0,0,0.45); }\n' +
       '.scope-feature-list { list-style: none; margin: 0; padding: 0; }\n' +
+      '.scope-feature-list.is-multi-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; align-items: stretch; }\n' +
+      '.scope-feature-list.is-multi-col li { margin-bottom: 0; height: 100%; }\n' +
+      '@media (max-width: 560px) { .scope-feature-list.is-multi-col { grid-template-columns: 1fr; } }\n' +
       '.scope-feature-list li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.18); font-size: 13px; line-height: 1.5; font-weight: 500; color: ' + C.dark.text + '; }\n' +
       '.scope-feature-list li:last-child { margin-bottom: 0; }\n' +
+      '.scope-feature-list.is-multi-col li:last-child { margin-bottom: 0; }\n' +
       '.scope-feature-list li::before { content: \'\'; flex-shrink: 0; width: 7px; height: 7px; margin-top: 6px; border-radius: 2px; background: linear-gradient(145deg, ' + C.primary + ', #ca8a04); box-shadow: 0 0 0 1px rgba(234,179,8,0.4); }\n' +
       '.bullet-li-text { flex: 1; min-width: 0; letter-spacing: 0.01em; }\n' +
       '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 12px; }\n' +
@@ -241,6 +423,23 @@
       '.addon-tier-row.addon-tier-only { display: block; }\n' +
       '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 14px 18px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.13); }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
+      '.maint-plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 12px; }\n' +
+      '.maint-plan-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 18px 18px 16px; display: flex; flex-direction: column; }\n' +
+      '.maint-plan-badge { display: inline-block; align-self: flex-start; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: ' + C.primary + '; color: ' + C.dark.bg + '; margin-bottom: 10px; }\n' +
+      '.maint-plan-title { font-size: 14px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 4px; }\n' +
+      '.maint-plan-sla { font-size: 11px; color: ' + C.dark.muted + '; margin-bottom: 14px; }\n' +
+      '.maint-price-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }\n' +
+      '.maint-price-row { border-radius: 10px; padding: 12px 12px 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.18); }\n' +
+      '.maint-price-row--highlight { border-color: rgba(234,179,8,0.45); background: rgba(234,179,8,0.12); }\n' +
+      '.maint-price-row--annual { margin-bottom: 14px; border-left: 3px solid ' + C.primary + '; }\n' +
+      '.maint-price-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: ' + C.primary + '; margin-bottom: 4px; }\n' +
+      '.maint-price-main { font-family: \'Playfair Display\', serif; font-size: 20px; font-weight: 700; color: ' + C.primary + '; line-height: 1.1; }\n' +
+      '.maint-price-note { font-size: 11px; color: ' + C.dark.muted + '; margin-top: 4px; }\n' +
+      '.maint-price-equiv { font-size: 11px; color: ' + C.dark.text + '; margin-top: 2px; opacity: 0.9; }\n' +
+      '.maint-feature-list { list-style: none; margin: 0; padding: 0; }\n' +
+      '.maint-feature-list li { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.45; color: ' + C.dark.muted + '; }\n' +
+      '.maint-feature-list li:last-child { border-bottom: none; padding-bottom: 0; }\n' +
+      '.maint-feature-list li::before { content: \'\'; flex-shrink: 0; width: 5px; height: 5px; margin-top: 6px; border-radius: 50%; background: ' + C.primary + '; }\n' +
       '.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
       '.feature-col { }\n' +
       '.feature-title { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 6px; }\n' +
@@ -296,6 +495,7 @@
       '        <div class="price-meta">' + created + '</div>\n' +
       '      </div>\n' +
       '    </div>\n' +
+      maintenanceBlockHtml +
       addOnsBlockHtml +
       '    <hr class="divider">\n' +
       '    <div class="section-title">Why This Document</div>\n' +
@@ -324,6 +524,7 @@
       doc.type === 'invoice' ? 'INVOICE' : 'DOCUMENT';
     var items = [{ description: typeLabel + ' Total', amount: doc.total || 0 }];
     var addOnsBlockHtml = buildAddOnsPdfHtml(doc);
+    var maintenanceBlockHtml = buildMaintenancePdfHtml(doc);
     return getBusinessDocumentHtml({
       customer: { name: doc.clientName || '', email: doc.clientEmail || '' },
       items: items,
@@ -334,7 +535,8 @@
       proposedSiteUrl: doc.proposedSiteUrl || '',
       totalFormatted: formatCurrency(doc.total || 0),
       id: doc.id || '',
-      addOnsBlockHtml: addOnsBlockHtml
+      addOnsBlockHtml: addOnsBlockHtml,
+      maintenanceBlockHtml: maintenanceBlockHtml
     });
   }
 
@@ -362,6 +564,7 @@
     formatDateDisplay: formatDateDisplay,
     typeLabelFor: typeLabelFor,
     buildPrintHtml: buildBusinessDocHtml,
-    openPrintWindow: openPrintWindow
+    openPrintWindow: openPrintWindow,
+    maintenancePlans: MAINTENANCE_PLANS
   };
 })(typeof window !== 'undefined' ? window : this);

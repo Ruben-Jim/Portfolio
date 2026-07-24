@@ -11200,6 +11200,42 @@ body.project-modal-open {
   box-shadow: 0 0 0 2px hsla(45, 100%, 50%, 0.22);
 }
 
+/* Business doc modal: maintenance plan (PDF section) */
+.business-doc-maintenance-section {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid hsla(45, 100%, 72%, 0.12);
+}
+
+.business-doc-maintenance-header {
+  margin-bottom: 10px;
+}
+
+.business-doc-maintenance-note {
+  margin: 0 0 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  background: hsla(45, 100%, 72%, 0.06);
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  line-height: 1.5;
+}
+
+.business-doc-maintenance-note[hidden],
+.business-doc-maintenance-pickers[hidden] {
+  display: none !important;
+}
+
+.business-doc-maintenance-note strong {
+  color: var(--orange-yellow-crayola);
+  font-weight: var(--fw-600);
+}
+
+.business-doc-maintenance-pickers .form-row {
+  margin-bottom: 0;
+}
+
 /* Business doc modal: optional add-ons / tiered pricing */
 .business-doc-addons-section {
   margin-top: 8px;
