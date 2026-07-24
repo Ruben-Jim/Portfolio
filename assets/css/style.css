@@ -18569,6 +18569,13 @@ article.contact[data-page="contact"] {
     min-width: 0;
     padding: 28px;
   }
+
+  /* Admin only: fill window when short; grow with content when long */
+  body.admin-page-active article.admin[data-page="admin"].active,
+  main:has(article.admin[data-page="admin"].active) article.admin {
+    min-height: calc(100vh - 75px);
+    min-height: calc(100dvh - 75px);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -18587,7 +18594,6 @@ article.contact[data-page="contact"] {
 @media (min-width: 1250px) {
   article.admin[data-page="admin"] {
     width: 100%;
-    min-height: 100%;
   }
   
   article.contact[data-page="contact"] {
