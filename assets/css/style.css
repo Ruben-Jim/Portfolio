@@ -8,9 +8,6 @@
  */
 
 
-
-
-
 /*-----------------------------------*\
   #CUSTOM PROPERTY
 \*-----------------------------------*/
@@ -173,7 +170,6 @@
 }
 
 
-
 /*-----------------------------------*\
   #RESET
 \*-----------------------------------*/
@@ -238,9 +234,6 @@ body::before {
 }
 
 body::-webkit-scrollbar { display: none; }
-
-
-
 
 
 /*-----------------------------------*\
@@ -408,6 +401,13 @@ body.admin-page-active .admin-mobile-subtab-bar-root:not([hidden]) {
     z-index: auto !important;
     padding: 0 !important;
     pointer-events: auto;
+    display: block !important;
+  }
+
+  /* Prefer the unified dock — hide a body-level subtab clone if dock already hosts one */
+  body.admin-page-active:has(.admin-mobile-tab-bar-root .admin-mobile-subtab-bar-root:not([hidden]))
+    > .admin-mobile-subtab-bar-root:not([hidden]) {
+    display: none !important;
   }
 
   /* Subtab bar itself: transparent bg, no separate radius/shadow — dock provides all */
@@ -429,8 +429,6 @@ body.admin-page-active .admin-mobile-subtab-bar-root:not([hidden]) {
   body.cp-client-drawer-open .admin-mobile-tab-bar-root,
   body.lead-drawer-open .admin-mobile-tab-bar-root,
   body.admin-contact-detail-open .admin-mobile-tab-bar-root,
-  body.admin-dm-sheet-open .admin-mobile-tab-bar-root,
-  body:has(#admin-dm-sheet-root.is-open) .admin-mobile-tab-bar-root,
   body.admin-tab-reorder-active .admin-mobile-tab-bar-root {
     visibility: hidden !important;
     opacity: 0 !important;
@@ -570,7 +568,6 @@ article.active:not(.home) > section:nth-of-type(5) {
   z-index: 1;
   border: 1px solid hsla(0, 0%, 100%, 0.07);
 }
-
 
 
 /* Home hero — modern split layout, restrained palette */
@@ -2460,7 +2457,6 @@ article.home .cwr-landing-testimonials .testimonials-item {
 }
 
 
-
 /*-----------------------------------*\
   #BENTO GRID
 \*-----------------------------------*/
@@ -2763,7 +2759,6 @@ article.home .cwr-landing-testimonials .testimonials-item {
 }
 
 
-
 /*-----------------------------------*\
   #WORK MARQUEE
 \*-----------------------------------*/
@@ -2870,7 +2865,6 @@ article.home .cwr-landing-testimonials .testimonials-item {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-
 
 
 /*-----------------------------------*\
@@ -3026,13 +3020,11 @@ body.admin-contact-detail-open #command-palette-hint,
 body.admin-testimonial-detail-open #command-palette-hint,
 body.cp-client-drawer-open #command-palette-hint,
 body.lead-drawer-open #command-palette-hint,
-body.admin-dm-sheet-open #command-palette-hint,
 body.dm-customer-sheet-open #command-palette-hint,
 body:has(article.contact.active.contact-dm-active #customer-dm-portal.dm-portal--conversation) #command-palette-hint,
 body:has(article.messages.active.messages-dm-active #customer-dm-portal.dm-portal--conversation) #command-palette-hint,
 body.project-modal-open #command-palette-hint,
 body.admin-tab-reorder-active #command-palette-hint,
-body:has(#admin-dm-sheet-root.is-open) #command-palette-hint,
 body:has(.agency-modal.active) #command-palette-hint,
 body:has(.business-doc-modal.active) #command-palette-hint,
 body:has(.add-blog-modal.active) #command-palette-hint,
@@ -3072,7 +3064,6 @@ body:has(.project-detail-modal.active) #command-palette-hint {
     padding: 10px 12px;
   }
 }
-
 
 
 /*-----------------------------------*\
@@ -3429,7 +3420,6 @@ body:has(.project-detail-modal.active) #command-palette-hint {
 }
 
 
-
 /*-----------------------------------*\
   #MAIN
 \*-----------------------------------*/
@@ -3447,9 +3437,6 @@ main::-webkit-scrollbar { display: none; }
 .main-content {
   position: relative;
 }
-
-
-
 
 
 /*-----------------------------------*\
@@ -3695,9 +3682,6 @@ main::-webkit-scrollbar { display: none; }
 .social-item .social-link:hover { color: var(--light-gray); }
 
 
-
-
-
 /*-----------------------------------*\
   #NAVBAR (hamburger)
 \*-----------------------------------*/
@@ -3875,9 +3859,6 @@ article {
   font-size: 16px;
   color: hsla(0, 75%, 65%, 0.9);
 }
-
-
-
 
 
 /*-----------------------------------*\
@@ -5128,7 +5109,6 @@ article.about .about-founder {
 }
 
 
-
 /**
  * #testimonials 
  */
@@ -5478,9 +5458,6 @@ article.about .about-founder {
 }
 
 
-
-
-
 /*-----------------------------------*\
   #RESUME
 \*-----------------------------------*/
@@ -5801,9 +5778,6 @@ article.about .about-founder {
   height: 100%;
   border-radius: inherit;
 }
-
-
-
 
 
 /*-----------------------------------*\
@@ -6517,9 +6491,6 @@ article.about .about-founder {
     padding: 25px;
   }
 }
-
-
-
 
 
 /*-----------------------------------*\
@@ -7472,9 +7443,6 @@ article.about .about-founder {
 }
 
 
-
-
-
 /*-----------------------------------*\
   #CONTACT
 \*-----------------------------------*/
@@ -8223,9 +8191,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
 }
 
 
-
-
-
 /*-----------------------------------*\
   #RESPONSIVE
 \*-----------------------------------*/
@@ -8246,7 +8211,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .clients-item { min-width: calc(33.33% - 8px); }
 
 
-
   /**
    * #PORTFOLIO, BLOG 
    */
@@ -8255,9 +8219,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .blog-banner-box { height: auto; }
 
 }
-
-
-
 
 
 /**
@@ -8293,7 +8254,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
     --fs-8: 12px;
 
   }
-
 
 
   /**
@@ -8332,7 +8292,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
 
 
-
   /**
    * #MAIN
    */
@@ -8341,7 +8300,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
     margin-top: 60px;
     margin-bottom: 100px;
   }
-
 
 
   /**
@@ -8394,7 +8352,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
 
 
-
   /**
    * #NAVBAR
    */
@@ -8412,7 +8369,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .navbar-list { gap: 4px; }
 
   .navbar-link { --fs-8: 14px; }
-
 
 
   /**
@@ -8541,7 +8497,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
 
 
-
   /**
    * #RESUME
    */
@@ -8581,7 +8536,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .skills-item:not(:last-child) { margin-bottom: 25px; }
 
 
-
   /**
    * #PORTFOLIO, BLOG
    */
@@ -8591,7 +8545,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .blog-posts-list { gap: 30px; }
 
   .blog-content { padding: 25px; }
-
 
 
   /**
@@ -8622,9 +8575,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
 }
 
 
-
-
-
 /**
  * responsive larger than 768px screen
  */
@@ -8643,7 +8593,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .has-scrollbar::-webkit-scrollbar-button { width: 100px; }
 
 
-
   /**
    * SIDEBAR
    */
@@ -8654,13 +8603,11 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
 
 
-
   /**
    * NAVBAR
    */
 
   .navbar-link { --fs-8: 15px; }
-
 
 
   /**
@@ -8675,7 +8622,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
 
   .modal-avatar-box img { width: 80px; }
-
 
 
   /**
@@ -8711,7 +8657,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .project-list, .blog-posts-list { grid-template-columns: 1fr 1fr; }
 
 
-
   /**
    * CONTACT
    */
@@ -8724,9 +8669,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
   
 }
-
-
-
 
 
 /**
@@ -8755,7 +8697,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
 
 
-
   /**
    * REUSED STYLE
    */
@@ -8764,7 +8705,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
     width: 950px;
     box-shadow: var(--shadow-5);
   }
-
 
 
   /**
@@ -8781,7 +8721,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
 
 
-
   /**
    * NAVBAR
    */
@@ -8789,7 +8728,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .navbar-list { gap: 6px; }
 
   .navbar-link { font-weight: var(--fw-500); }
-
 
 
   /**
@@ -8903,7 +8841,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   /* Portfolio layout stays single column for better project showcase */
 
 
-
   /**
    * BLOG
    */
@@ -8911,9 +8848,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .blog-banner-box { height: 230px; }
 
 }
-
-
-
 
 
 /**
@@ -8930,7 +8864,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   body { scrollbar-width: none; -ms-overflow-style: none; }
 
 
-
   /**
    * REUSED STYLE
    */
@@ -8938,7 +8871,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   .sidebar, article { width: auto; }
 
   article { min-height: 100%; }
-
 
 
   /**
@@ -8973,7 +8905,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
     max-width: 100%;
     min-width: 0;
   }
-
 
 
   /**
@@ -9037,7 +8968,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   }
 
   .social-list { justify-content: center; }
-
 
 
   /**
@@ -12119,44 +12049,38 @@ body.project-modal-open {
     font-size: 16px;
   }
 
-  /* Hosts: slide up from bottom (match .admin-dm-sheet-root) */
-  .add-blog-modal,
   .business-doc-modal,
-  .agency-modal,
-  #delete-hub-confirm-modal.modal-container,
-  #delete-referral-confirm-modal.modal-container,
-  #delete-maint-confirm-modal.modal-container,
-  #delete-lead-confirm-modal.modal-container {
+.agency-modal,
+#delete-hub-confirm-modal.modal-container,
+#delete-referral-confirm-modal.modal-container,
+#delete-maint-confirm-modal.modal-container,
+#delete-lead-confirm-modal.modal-container {
     align-items: flex-end;
     justify-content: flex-end;
     overflow: hidden;
     padding: 0;
   }
 
-  /* Backdrops (match .admin-dm-sheet-backdrop) */
-  .add-blog-modal.active .add-blog-overlay,
   .business-doc-modal.active .business-doc-modal-overlay,
-  .agency-modal.active .agency-modal-overlay,
-  #delete-hub-confirm-modal.active .overlay,
-  #delete-referral-confirm-modal.active .overlay,
-  #delete-maint-confirm-modal.active .overlay,
-  #delete-lead-confirm-modal.active .overlay {
+.agency-modal.active .agency-modal-overlay,
+#delete-hub-confirm-modal.active .overlay,
+#delete-referral-confirm-modal.active .overlay,
+#delete-maint-confirm-modal.active .overlay,
+#delete-lead-confirm-modal.active .overlay {
     background: rgba(0, 0, 0, 0.62);
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
     opacity: 1;
   }
 
-  /* Panels (match .admin-dm-sheet) */
-  .add-blog-content,
   .business-doc-modal-content,
-  .agency-modal-content,
-  .agency-modal-content--wide,
-  .agency-modal-content--full,
-  #delete-hub-confirm-modal .confirm-delete-modal,
-  #delete-referral-confirm-modal .confirm-delete-modal,
-  #delete-maint-confirm-modal .confirm-delete-modal,
-  #delete-lead-confirm-modal .confirm-delete-modal {
+.agency-modal-content,
+.agency-modal-content--wide,
+.agency-modal-content--full,
+#delete-hub-confirm-modal .confirm-delete-modal,
+#delete-referral-confirm-modal .confirm-delete-modal,
+#delete-maint-confirm-modal .confirm-delete-modal,
+#delete-lead-confirm-modal .confirm-delete-modal {
     display: flex;
     flex-direction: column;
     margin: 0;
@@ -12202,16 +12126,14 @@ body.project-modal-open {
     max-width: 100%;
   }
 
-  /* Grab handle (match .admin-dm-sheet-grabber::after) */
-  .add-blog-content::before,
   .business-doc-modal-content::before,
-  .agency-modal-content::before,
-  .agency-modal-content--wide::before,
-  .agency-modal-content--full::before,
-  #delete-hub-confirm-modal .confirm-delete-modal::before,
-  #delete-referral-confirm-modal .confirm-delete-modal::before,
-  #delete-maint-confirm-modal .confirm-delete-modal::before,
-  #delete-lead-confirm-modal .confirm-delete-modal::before {
+.agency-modal-content::before,
+.agency-modal-content--wide::before,
+.agency-modal-content--full::before,
+#delete-hub-confirm-modal .confirm-delete-modal::before,
+#delete-referral-confirm-modal .confirm-delete-modal::before,
+#delete-maint-confirm-modal .confirm-delete-modal::before,
+#delete-lead-confirm-modal .confirm-delete-modal::before {
     content: '';
     display: block;
     flex-shrink: 0;
@@ -12225,11 +12147,9 @@ body.project-modal-open {
       0 1px 3px hsla(0, 0%, 0%, 0.35);
   }
 
-  /* Headers (match .admin-dm-sheet-head) */
-  .add-blog-header,
   .business-doc-modal-header,
-  .agency-modal-header,
-  .confirm-delete-modal__header {
+.agency-modal-header,
+.confirm-delete-modal__header {
     flex-shrink: 0;
     padding: 2px 14px 14px;
     border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
@@ -12246,11 +12166,9 @@ body.project-modal-open {
     letter-spacing: 0.02em;
   }
 
-  /* Close buttons (match .admin-dm-sheet-close) */
-  .add-blog-close-btn,
   .business-doc-modal-close,
-  .agency-modal-close,
-  .confirm-delete-modal__close {
+.agency-modal-close,
+.confirm-delete-modal__close {
     width: 42px;
     height: 42px;
     padding: 0;
@@ -13332,11 +13250,13 @@ body.project-modal-open {
     display: inline-flex !important;
   }
 
+  .admin-tab-bar .admin-tab[data-admin-content-sub],
   .admin-nav-group[data-nav-group="content"] .admin-tab[data-admin-content-sub] {
     display: none !important;
   }
 
   /* CRM sub-tabs are accessed through the CRM hub subtab row, not the primary bar */
+  .admin-tab-bar .admin-tab[data-admin-crm-sub],
   .admin-nav-group[data-nav-group="agency"] .admin-tab[data-admin-crm-sub] {
     display: none !important;
   }
@@ -13426,8 +13346,6 @@ body.project-modal-open {
   body.cp-client-drawer-open .admin-mobile-subtab-bar-root,
   body.lead-drawer-open .admin-mobile-subtab-bar-root,
   body.admin-contact-detail-open .admin-mobile-subtab-bar-root,
-  body.admin-dm-sheet-open .admin-mobile-subtab-bar-root,
-  body:has(#admin-dm-sheet-root.is-open) .admin-mobile-subtab-bar-root,
   body.admin-tab-reorder-active .admin-mobile-subtab-bar-root {
     visibility: hidden !important;
     opacity: 0 !important;
@@ -13448,9 +13366,7 @@ body.project-modal-open {
   body.project-modal-open .admin-tab-bar,
   body.cp-client-drawer-open .admin-tab-bar,
   body.lead-drawer-open .admin-tab-bar,
-  body.admin-contact-detail-open .admin-tab-bar,
-  body.admin-dm-sheet-open .admin-tab-bar,
-  body:has(#admin-dm-sheet-root.is-open) .admin-tab-bar {
+  body.admin-contact-detail-open .admin-tab-bar {
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
@@ -15322,60 +15238,19 @@ body.project-modal-open {
 }
 
 /* Admin DM: inbox list only (no thread column) */
-#admin-dashboard-content .dm-layout.dm-layout--no-thread,
-#admin-dm-sheet-body .dm-layout.dm-layout--no-thread {
+#admin-dashboard-content .dm-layout.dm-layout--no-thread {
   grid-template-columns: 1fr;
 }
 
-/* Admin DM: conversation open — hide inbox toolbar + list (!important beats wide-screen grid rules).
-   :has(#dm-thread-panel:not([hidden])) mirrors JS classes so layout stays correct if dm-inbox--thread-open / dm-layout--thread-only lag or fail.
-   #dm-layout.dm-layout--thread-only does not rely on :has() on the thread (fixes browsers / cases where [hidden] is overridden by display:flex). */
-#admin-dm-sheet-body.dm-inbox--thread-open .dm-inbox-toolbar,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) .dm-inbox-toolbar,
-#admin-dm-sheet-body:has(#dm-layout.dm-layout--thread-only) .dm-inbox-toolbar {
-  display: none !important;
-}
-
-#admin-dm-sheet-body.dm-inbox--thread-open #dm-layout.dm-layout--thread-only .dm-conversation-list-wrap,
-#admin-dashboard-content #admin-dm-sheet-body.dm-inbox--thread-open #dm-layout.dm-layout--thread-only .dm-conversation-list-wrap,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only .dm-conversation-list-wrap,
-#admin-dashboard-content #admin-dm-sheet-body #dm-layout.dm-layout--thread-only .dm-conversation-list-wrap,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout .dm-conversation-list-wrap,
-#admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout .dm-conversation-list-wrap {
-  display: none !important;
-}
-
-#admin-dashboard-content .dm-layout.dm-layout--thread-only,
-#admin-dm-sheet-body .dm-layout.dm-layout--thread-only,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout,
-#admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout {
+#admin-dashboard-content .dm-layout.dm-layout--thread-only {
   grid-template-columns: 1fr !important;
   gap: 0;
 }
 
-#admin-dashboard-content .dm-layout.dm-layout--thread-only #dm-thread-panel,
-#admin-dm-sheet-body .dm-layout.dm-layout--thread-only #dm-thread-panel,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout #dm-thread-panel,
-#admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout #dm-thread-panel {
+#admin-dashboard-content .dm-layout.dm-layout--thread-only #dm-thread-panel {
   grid-column: 1 / -1;
   width: 100%;
   max-width: 100%;
-}
-
-/* Sheet chrome: conversation mode — tighter header, hide inbox stats row */
-#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-lead,
-#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-stats,
-#admin-dm-sheet-root:has(#dm-thread-panel:not([hidden])) #admin-dm-sheet .admin-dm-sheet-lead,
-#admin-dm-sheet-root:has(#dm-thread-panel:not([hidden])) #admin-dm-sheet .admin-dm-sheet-stats,
-#admin-dm-sheet-root:has(#dm-layout.dm-layout--thread-only) #admin-dm-sheet .admin-dm-sheet-lead,
-#admin-dm-sheet-root:has(#dm-layout.dm-layout--thread-only) #admin-dm-sheet .admin-dm-sheet-stats {
-  display: none !important;
-}
-
-#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-head,
-#admin-dm-sheet-root:has(#dm-thread-panel:not([hidden])) #admin-dm-sheet .admin-dm-sheet-head,
-#admin-dm-sheet-root:has(#dm-layout.dm-layout--thread-only) #admin-dm-sheet .admin-dm-sheet-head {
-  padding-bottom: 10px;
 }
 
 /* Admin inbox: wider list column so multiple compact cards fit (auto-fill grid) */
@@ -15393,19 +15268,13 @@ body.project-modal-open {
 }
 
 @media (min-width: 992px) {
-  #admin-dashboard-content .dm-layout.dm-layout--thread-only,
-  #admin-dm-sheet-body .dm-layout.dm-layout--thread-only,
-  #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout,
-  #admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout {
+  #admin-dashboard-content .dm-layout.dm-layout--thread-only {
     grid-template-columns: 1fr !important;
   }
 }
 
 @media (min-width: 1400px) {
-  #admin-dashboard-content .dm-layout.dm-layout--thread-only,
-  #admin-dm-sheet-body .dm-layout.dm-layout--thread-only,
-  #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout,
-  #admin-dashboard-content #admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-layout {
+  #admin-dashboard-content .dm-layout.dm-layout--thread-only {
     grid-template-columns: 1fr !important;
   }
 }
@@ -15856,23 +15725,11 @@ body.project-modal-open {
   gap: 14px;
 }
 
-/* Thread inside bottom sheet: avoid nested “card on card”; let the message list carry elevation. */
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel.dm-thread-panel {
-  padding: 8px 12px 16px;
-  gap: 12px;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
-}
 
 /* Minimal thread: back + message list + composer (no admin meta / presence / load-more / mail).
    :has(...) hides admin chrome whenever the thread is visible even if dm-thread-panel--minimal is missing.
    #dm-layout.dm-layout--thread-only … works without :has on #dm-thread-panel (see [hidden] vs display:flex note above). */
-#dm-thread-panel.dm-thread-panel--minimal,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel,
-#admin-dashboard-content #admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel {
+#dm-thread-panel.dm-thread-panel--minimal {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -15882,34 +15739,20 @@ body.project-modal-open {
 
 #dm-thread-panel.dm-thread-panel--minimal .dm-thread-admin-meta,
 #dm-thread-panel.dm-thread-panel--minimal .dm-presence-row,
-#dm-thread-panel.dm-thread-panel--minimal #dm-load-more,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel .dm-thread-admin-meta,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel .dm-presence-row,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-load-more,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel .dm-thread-admin-meta,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel .dm-presence-row,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-load-more {
+#dm-thread-panel.dm-thread-panel--minimal #dm-load-more {
   display: none !important;
 }
 
-#dm-thread-panel.dm-thread-panel--minimal #dm-send-reply-email,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-send-reply-email,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-send-reply-email {
+#dm-thread-panel.dm-thread-panel--minimal #dm-send-reply-email {
   display: none !important;
 }
 
-#dm-thread-panel.dm-thread-panel--minimal #dm-message-list.dm-message-list,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-message-list.dm-message-list,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-message-list.dm-message-list {
+#dm-thread-panel.dm-thread-panel--minimal #dm-message-list.dm-message-list {
   flex: 1 1 auto;
   min-height: min(200px, 28vh);
 }
 
-/* List-only inbox: never show the thread column (author .dm-thread-panel { display:flex } can defeat the [hidden] attribute). */
-#admin-dm-sheet-body #dm-layout.dm-layout--no-thread #dm-thread-panel,
-#admin-dashboard-content #admin-dm-sheet-body #dm-layout.dm-layout--no-thread #dm-thread-panel {
-  display: none !important;
-}
+/* List-only inbox: never show the thread column (author .dm-thread-panel { display:flex }
 
 #dm-thread-panel .dm-thread-header--admin {
   flex-direction: column;
@@ -17007,430 +16850,6 @@ body.dm-customer-sheet-open {
   color: var(--orange-yellow-crayola);
 }
 
-.admin-dm-sheet-root {
-  position: fixed;
-  inset: 0;
-  z-index: 10060;
-  pointer-events: none;
-  visibility: hidden;
-  transition: visibility 0.32s step-end;
-}
-
-.admin-dm-sheet-root.is-open {
-  pointer-events: auto;
-  visibility: visible;
-  transition: visibility 0s step-start;
-}
-
-.admin-dm-sheet-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.62);
-  opacity: 0;
-  transition: opacity 0.32s ease;
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-}
-
-.admin-dm-sheet-root.is-open .admin-dm-sheet-backdrop {
-  opacity: 1;
-}
-
-.admin-dm-sheet {
-  --dm-sheet-max-vh: 90;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  max-height: calc(var(--dm-sheet-max-vh) * 1vh);
-  max-height: calc(var(--dm-sheet-max-vh) * 1dvh);
-  padding-bottom: env(safe-area-inset-bottom, 0);
-  background: var(--eerie-black-1);
-  border: 1px solid hsla(45, 40%, 50%, 0.22);
-  border-bottom: none;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -18px 60px hsla(0, 0%, 0%, 0.55);
-  transform: translate3d(0, 100%, 0);
-  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), max-height 0.12s ease-out;
-  will-change: transform;
-}
-
-.admin-dm-sheet.is-resizing {
-  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1), max-height 0s;
-}
-
-.admin-dm-sheet-root.is-open .admin-dm-sheet {
-  transform: translate3d(0, 0, 0);
-}
-
-@media (min-width: 768px) {
-  .admin-dm-sheet {
-    --dm-sheet-max-vh: 100;
-    top: 0;
-    left: auto;
-    right: 0;
-    bottom: 0;
-    width: min(720px, 94vw);
-    max-height: 100vh;
-    max-height: 100dvh;
-    padding-bottom: 0;
-    border-radius: 0;
-    border-bottom: 1px solid hsla(45, 40%, 50%, 0.22);
-    border-left: 1px solid hsla(45, 40%, 50%, 0.22);
-    box-shadow: -12px 0 48px hsla(0, 0%, 0%, 0.5);
-    transform: translate3d(100%, 0, 0);
-  }
-
-  .admin-dm-sheet-root.is-open .admin-dm-sheet {
-    transform: translate3d(0, 0, 0);
-  }
-
-  .admin-dm-sheet-grabber {
-    display: none;
-  }
-}
-
-.admin-dm-sheet-grabber {
-  flex-shrink: 0;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 22px;
-  margin: 0;
-  padding: 4px 16px 6px;
-  padding-top: max(4px, env(safe-area-inset-top));
-  cursor: ns-resize;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  background: transparent;
-}
-
-.admin-dm-sheet-grabber::after {
-  content: '';
-  display: block;
-  width: 36px;
-  height: 4px;
-  border-radius: 999px;
-  background: hsla(0, 0%, 100%, 0.14);
-  box-shadow:
-    inset 0 1px 0 hsla(0, 0%, 100%, 0.12),
-    0 1px 3px hsla(0, 0%, 0%, 0.35);
-  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
-}
-
-.admin-dm-sheet-grabber:hover::after {
-  background: hsla(0, 0%, 100%, 0.2);
-}
-
-.admin-dm-sheet-grabber:focus-visible {
-  outline: 2px solid hsla(45, 100%, 72%, 0.45);
-  outline-offset: 2px;
-}
-
-.admin-dm-sheet-grabber.is-dragging::after {
-  background: hsla(45, 45%, 52%, 0.45);
-  box-shadow:
-    inset 0 1px 0 hsla(45, 90%, 75%, 0.2),
-    0 2px 8px hsla(0, 0%, 0%, 0.35);
-}
-
-.admin-dm-sheet-grabber.is-dragging {
-  opacity: 0.95;
-}
-
-.admin-dm-sheet-grabber[aria-grabbed='true'] {
-  cursor: grabbing;
-}
-
-.admin-dm-sheet-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 2px 14px 14px;
-  border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
-  flex-shrink: 0;
-}
-
-#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-head {
-  padding-top: 4px;
-  padding-bottom: 16px;
-  border-bottom-color: hsla(0, 0%, 100%, 0.055);
-  background: linear-gradient(180deg, hsla(240, 5%, 10%, 0.55) 0%, transparent 100%);
-}
-
-#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-head-main {
-  text-align: center;
-}
-
-#admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-title {
-  font-size: clamp(1.05rem, 3.2vw, 1.35rem);
-  font-weight: var(--fw-600);
-  letter-spacing: -0.025em;
-  line-height: 1.2;
-}
-
-.admin-dm-sheet-back[hidden] {
-  display: none !important;
-}
-
-.admin-dm-sheet-back {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  flex-shrink: 0;
-  border: 1px solid hsla(45, 48%, 52%, 0.38);
-  border-radius: 12px;
-  background: linear-gradient(165deg, hsla(0, 0%, 100%, 0.07) 0%, hsla(0, 0%, 100%, 0.02) 100%);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.08);
-  color: var(--orange-yellow-crayola);
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease;
-}
-
-.admin-dm-sheet-back:hover:not(:disabled) {
-  border-color: hsla(45, 85%, 68%, 0.55);
-  background: hsla(45, 100%, 72%, 0.11);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.1), 0 4px 18px hsla(0, 0%, 0%, 0.2);
-}
-
-.admin-dm-sheet-back:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.admin-dm-sheet-back:focus-visible {
-  outline: 2px solid hsla(45, 100%, 72%, 0.45);
-  outline-offset: 2px;
-}
-
-.admin-dm-sheet-back ion-icon {
-  font-size: 22px;
-}
-
-.admin-dm-sheet-head-main {
-  min-width: 0;
-  flex: 1;
-}
-
-.admin-dm-sheet-title {
-  margin: 0;
-  font-size: var(--fs-3);
-  font-weight: var(--fw-600);
-  color: var(--orange-yellow-crayola);
-  letter-spacing: 0.02em;
-}
-
-.admin-dm-sheet-lead {
-  margin: 4px 0 0;
-  font-size: var(--fs-8);
-  color: var(--light-gray-70);
-}
-
-.admin-dm-sheet-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  margin-top: 8px;
-  font-size: var(--fs-8);
-  color: var(--light-gray);
-}
-
-.admin-dm-sheet-stats strong {
-  color: var(--white-2);
-  font-weight: var(--fw-600);
-}
-
-.admin-dm-stat-new strong {
-  color: hsl(45, 85%, 72%);
-}
-
-.admin-dm-sheet-close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  flex-shrink: 0;
-  border: 1px solid hsla(45, 48%, 52%, 0.38);
-  border-radius: 12px;
-  background: linear-gradient(165deg, hsla(0, 0%, 100%, 0.07) 0%, hsla(0, 0%, 100%, 0.02) 100%);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.08);
-  color: var(--orange-yellow-crayola);
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease;
-}
-
-.admin-dm-sheet-close:hover {
-  border-color: hsla(45, 85%, 68%, 0.55);
-  background: hsla(45, 100%, 72%, 0.11);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.1), 0 4px 18px hsla(0, 0%, 0%, 0.2);
-}
-
-.admin-dm-sheet-close:active {
-  transform: scale(0.97);
-}
-
-.admin-dm-sheet-close:focus-visible {
-  outline: 2px solid hsla(45, 100%, 72%, 0.45);
-  outline-offset: 2px;
-}
-
-.admin-dm-sheet-close ion-icon {
-  font-size: 22px;
-}
-
-#admin-dm-sheet-body.admin-dm-sheet-body {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 12px 16px max(16px, env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-#admin-dm-sheet-body .dm-inbox-toolbar {
-  flex-shrink: 0;
-  margin-bottom: 12px;
-}
-
-.dm-inbox-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.dm-inbox-toolbar .dm-search-input {
-  flex: 1 1 200px;
-  min-width: 0;
-}
-
-.dm-inbox-toolbar .dm-inbox-filters {
-  display: flex;
-  flex-wrap: wrap;
-  width: 100%;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 6px 8px;
-}
-
-/* RTDB thread inbox: readable labels (not legacy “replied” / all-caps message filters). */
-.dm-inbox-toolbar .dm-inbox-filters .filter-btn {
-  padding: 7px 12px;
-  font-size: var(--fs-8);
-  font-weight: var(--fw-600);
-  text-transform: none;
-  letter-spacing: 0.02em;
-}
-
-#admin-dm-sheet-body .dm-layout {
-  flex: 1;
-  min-height: min(520px, 56vh);
-  margin-top: 0;
-}
-
-#admin-dm-sheet-body .dm-conversation-list-wrap {
-  position: relative;
-  z-index: 1;
-}
-
-#admin-dm-sheet-body #dm-thread-panel {
-  min-height: 0;
-}
-
-#admin-dm-sheet-body #dm-thread-panel #dm-message-list.dm-message-list {
-  flex: 1 1 auto;
-  min-height: min(200px, 28vh);
-  max-height: min(420px, 40vh);
-}
-
-#admin-dm-sheet-body.dm-inbox--thread-open #dm-thread-panel #dm-message-list.dm-message-list,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-message-list.dm-message-list,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-message-list.dm-message-list {
-  max-height: min(560px, 52vh);
-}
-
-#admin-dm-sheet-body.dm-inbox--thread-open #dm-thread-panel.dm-thread-panel--minimal #dm-message-list.dm-message-list,
-#admin-dm-sheet-body:has(#dm-thread-panel:not([hidden])) #dm-thread-panel #dm-message-list.dm-message-list,
-#admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-message-list.dm-message-list {
-  max-height: min(640px, 62vh);
-}
-
-/* Mobile / narrow sheet: list uses tall min-height; conversation mode should flex inside the sheet instead of forcing ~520px layout. */
-@media (max-width: 767px) {
-  /* DM inbox toolbar: stacked search + filters (16px+ on search avoids iOS input zoom). */
-  #admin-dm-sheet-body .dm-inbox-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  #admin-dm-sheet-body .dm-inbox-toolbar .dm-search-input {
-    flex: 0 0 auto;
-    width: 100%;
-    min-width: 0;
-    min-height: 48px;
-    padding: 12px 14px;
-    font-size: 16px;
-    border-radius: 12px;
-  }
-
-  #admin-dm-sheet-body .dm-inbox-toolbar .dm-inbox-filters {
-    width: 100%;
-  }
-
-  #admin-dm-sheet-body #dm-layout.dm-layout--thread-only {
-    min-height: 0;
-    flex: 1 1 auto;
-    align-self: stretch;
-  }
-
-  #admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel {
-    flex: 1 1 auto;
-    min-height: 0;
-    width: 100%;
-  }
-
-  #admin-dm-sheet-body #dm-layout.dm-layout--thread-only #dm-thread-panel #dm-message-list.dm-message-list {
-    max-height: min(58vh, 560px);
-    max-height: min(58dvh, 560px);
-    min-height: min(140px, 22vh);
-    min-height: min(140px, 22dvh);
-  }
-}
-
-body.admin-dm-sheet-open {
-  overflow: hidden;
-}
-
-[data-theme='light'] .admin-dm-sheet {
-  background: hsl(0, 0%, 99%);
-  border-color: hsla(0, 0%, 0%, 0.1);
-  box-shadow: 0 -12px 48px hsla(0, 0%, 0%, 0.12);
-}
-
-[data-theme='light'] .admin-dm-sheet-backdrop {
-  background: rgba(20, 20, 24, 0.38);
-}
 
 #customer-dm-portal .dm-customer-thread {
   margin-top: 0;
@@ -18780,51 +18199,6 @@ body.admin-page-active .main-content {
   background: hsla(0, 50%, 88%, 1);
 }
 
-[data-theme='light'] .admin-dm-sheet-grabber::after {
-  background: hsla(0, 0%, 0%, 0.12);
-  box-shadow:
-    inset 0 1px 0 hsla(0, 0%, 100%, 0.65),
-    0 1px 2px hsla(0, 0%, 0%, 0.1);
-}
-
-[data-theme='light'] .admin-dm-sheet-grabber:hover::after {
-  background: hsla(0, 0%, 0%, 0.18);
-}
-
-[data-theme='light'] .admin-dm-sheet-grabber.is-dragging::after {
-  background: hsla(45, 40%, 48%, 0.35);
-}
-
-[data-theme='light'] .admin-dm-sheet-back {
-  border-color: hsla(45, 35%, 48%, 0.4);
-  background: linear-gradient(165deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1);
-  color: hsla(45, 50%, 36%, 0.95);
-}
-
-[data-theme='light'] .admin-dm-sheet-back:hover:not(:disabled) {
-  border-color: hsla(45, 55%, 45%, 0.55);
-  background: hsl(45, 85%, 97%);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1), 0 4px 16px hsla(0, 0%, 0%, 0.08);
-}
-
-[data-theme='light'] #admin-dm-sheet.admin-dm-sheet--conversation-open .admin-dm-sheet-head {
-  background: linear-gradient(180deg, hsla(0, 0%, 100%, 0.92) 0%, transparent 100%);
-  border-bottom-color: hsla(0, 0%, 0%, 0.06);
-}
-
-[data-theme='light'] .admin-dm-sheet-close {
-  border-color: hsla(45, 35%, 48%, 0.4);
-  background: linear-gradient(165deg, hsl(0, 0%, 100%) 0%, hsl(0, 0%, 98%) 100%);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1);
-  color: hsla(45, 50%, 36%, 0.95);
-}
-
-[data-theme='light'] .admin-dm-sheet-close:hover {
-  border-color: hsla(45, 55%, 45%, 0.55);
-  background: hsl(45, 85%, 97%);
-  box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 1), 0 4px 16px hsla(0, 0%, 0%, 0.08);
-}
 
 #admin-dashboard-content .message-card-name,
 .messages-list .message-card-name {
@@ -21114,7 +20488,6 @@ body.admin-testimonial-detail-open {
   border: 1px solid hsla(45, 55%, 52%, 0.35);
 }
 
-#admin-dm-sheet-root {
   display: none !important;
 }
 

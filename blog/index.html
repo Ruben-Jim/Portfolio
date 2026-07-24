@@ -2614,19 +2614,19 @@
                 <ion-icon name="chevron-down-outline" class="admin-nav-group-chevron" aria-hidden="true"></ion-icon>
               </button>
               <div class="admin-nav-group-items" id="admin-nav-items-clients" role="group" aria-labelledby="admin-nav-toggle-clients">
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-pipeline" data-admin-tab="pipeline" data-mobile-primary aria-selected="false" aria-controls="admin-panel-pipeline" tabindex="-1" aria-label="Client Pipeline">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-pipeline" data-admin-tab="pipeline" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-pipeline" tabindex="-1" aria-label="Client Pipeline">
                   <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-projects" data-admin-tab="client-projects" data-mobile-primary aria-selected="false" aria-controls="admin-panel-client-projects" tabindex="-1" aria-label="Clients Projects">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-projects" data-admin-tab="client-projects" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-projects" tabindex="-1" aria-label="Clients Projects">
                   <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients Projects</span><span class="admin-tab-label-mobile">Clients</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-mobile-primary aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
                   <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-email" data-admin-tab="client-email" data-mobile-primary aria-selected="false" aria-controls="admin-panel-client-email" tabindex="-1" aria-label="Client Email Sender">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-email" data-admin-tab="client-email" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-email" tabindex="-1" aria-label="Client Email Sender">
                   <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Email</span><span class="admin-tab-label-mobile">Email</span></span>
                 </button>
@@ -2642,7 +2642,7 @@
                   <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Firebase Health</span><span class="admin-tab-label-mobile">Health</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" data-mobile-primary aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1" aria-label="Business Documents">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-docs" data-admin-tab="docs" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-docs" tabindex="-1" aria-label="Business Documents">
                   <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Business Documents</span><span class="admin-tab-label-mobile">Docs</span></span>
                 </button>
@@ -2678,6 +2678,11 @@
               </div>
             </div>
 
+
+            <button type="button" class="admin-tab admin-tab--mobile-section" id="admin-tab-crm-hub" data-mobile-primary aria-selected="false" tabindex="-1" aria-label="CRM">
+              <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
+              <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">CRM</span><span class="admin-tab-label-mobile">CRM</span></span>
+            </button>
 
             <button type="button" class="admin-tab admin-tab--mobile-section" id="admin-tab-content-hub" data-mobile-primary aria-selected="false" tabindex="-1" aria-label="Content">
               <ion-icon name="folder-open-outline" aria-hidden="true"></ion-icon>
@@ -3421,32 +3426,6 @@
           </div><!-- /admin-tab-panels -->
           </div><!-- /admin-tabs-body -->
         </div><!-- /admin-tabs -->
-
-        <!-- Legacy admin DM sheet (unused — conversations live in Messages tab) -->
-        <div id="admin-dm-sheet-root" class="admin-dm-sheet-root" aria-hidden="true" hidden>
-          <div class="admin-dm-sheet-backdrop" id="admin-dm-sheet-backdrop" tabindex="-1"></div>
-          <div class="admin-dm-sheet" id="admin-dm-sheet" role="dialog" aria-modal="true" aria-labelledby="admin-dm-sheet-title" data-lenis-prevent>
-            <div class="admin-dm-sheet-grabber" id="admin-dm-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag to resize inbox height" tabindex="0"></div>
-            <div class="admin-dm-sheet-head">
-              <button type="button" id="admin-dm-sheet-back" class="admin-dm-sheet-back btn-icon" aria-label="Back to inbox list" hidden>
-                <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
-              </button>
-              <div class="admin-dm-sheet-head-main">
-                <h3 id="admin-dm-sheet-title" class="admin-dm-sheet-title">DM inbox</h3>
-                <p class="admin-dm-sheet-lead">Realtime Database · threads &amp; replies</p>
-                <div class="admin-dm-sheet-stats" aria-label="Inbox summary">
-                  <span><strong id="dm-inbox-total">0</strong> conv.</span>
-                  <span class="admin-dm-stat-new"><strong id="dm-inbox-new">0</strong> unread</span>
-                  <span><strong id="dm-inbox-closed">0</strong> closed</span>
-                </div>
-              </div>
-              <button type="button" class="admin-dm-sheet-close" id="admin-dm-sheet-close" aria-label="Close DM inbox">
-                <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
-              </button>
-            </div>
-            <div id="admin-dm-sheet-body" class="admin-dm-sheet-body has-scrollbar"></div>
-          </div>
-        </div>
 
         </div> <!-- End admin-dashboard-content -->
 

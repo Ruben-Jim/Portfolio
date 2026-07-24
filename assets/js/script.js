@@ -8822,6 +8822,14 @@ window.addEventListener('load', function() {
     if (typeof window.subscribePipelineLeads === 'function') {
       window.subscribePipelineLeads();
     }
+    if (typeof window.hydrateBusinessDocsFromRtdb === 'function') {
+      window.hydrateBusinessDocsFromRtdb().catch(function (err) {
+        console.warn('Business docs hydrate failed', err);
+      });
+    }
+    if (typeof window.subscribeBusinessDocsFromRtdb === 'function') {
+      window.subscribeBusinessDocsFromRtdb();
+    }
     document.dispatchEvent(
       new CustomEvent('adminSessionReady', { detail: { isAdmin: true } })
     );
@@ -8846,6 +8854,9 @@ window.addEventListener('load', function() {
 
     if (typeof window.unsubscribePipelineLeads === 'function') {
       window.unsubscribePipelineLeads();
+    }
+    if (typeof window.unsubscribeBusinessDocsFromRtdb === 'function') {
+      window.unsubscribeBusinessDocsFromRtdb();
     }
     if (window.AgencyTools && typeof window.AgencyTools.unsubscribe === 'function') {
       window.AgencyTools.unsubscribe();
@@ -9064,7 +9075,7 @@ window.addEventListener('load', function() {
     try {
       var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH));
       var val = snap.val();
-      if (!val || typeof val !== 'object') return null;
+      if (!val || typeof val !== 'object') return [];
       return Object.keys(val).map(function (k) {
         return Object.assign({ id: k }, val[k]);
       });
@@ -9074,18 +9085,70 @@ window.addEventListener('load', function() {
     }
   }
 
-  async function migrateBusinessDocsToRtdbIfNeeded() {
-    var fromRtdb = await loadBusinessDocsFromRtdb();
-    if (fromRtdb && fromRtdb.length) {
-      businessDocs = fromRtdb;
-      saveBusinessDocs(businessDocs);
-      return;
+  function applyBusinessDocsList(list) {
+    businessDocs = Array.isArray(list) ? list : [];
+    saveBusinessDocs(businessDocs);
+    renderBusinessDocs();
+    if (typeof window.renderAdminOverview === 'function') {
+      window.renderAdminOverview();
     }
-    if (!businessDocs.length) return;
+  }
+
+  /**
+   * RTDB is source of truth when available. Must run after Firebase init —
+   * the old top-level call ran before window.rtdb existed, so other devices
+   * never hydrated and only showed empty localStorage.
+   */
+  async function migrateBusinessDocsToRtdbIfNeeded() {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) return false;
+    var fromRtdb = await loadBusinessDocsFromRtdb();
+    if (fromRtdb === null) return false;
+    if (fromRtdb.length) {
+      applyBusinessDocsList(fromRtdb);
+      return true;
+    }
+    if (!businessDocs.length) return true;
     for (var i = 0; i < businessDocs.length; i++) {
       await syncBusinessDocToRtdb(businessDocs[i]);
     }
+    return true;
   }
+
+  var businessDocsUnsub = null;
+
+  function subscribeBusinessDocsFromRtdb() {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
+    if (businessDocsUnsub) return;
+    var ref = window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH);
+    businessDocsUnsub = window.rtdbOnValue(
+      ref,
+      function (snap) {
+        var val = snap.val();
+        if (!val || typeof val !== 'object') return;
+        applyBusinessDocsList(
+          Object.keys(val).map(function (k) {
+            return Object.assign({ id: k }, val[k]);
+          })
+        );
+      },
+      function (err) {
+        console.warn('Business docs RTDB listen failed', err);
+      }
+    );
+  }
+
+  function unsubscribeBusinessDocsFromRtdb() {
+    if (typeof businessDocsUnsub === 'function') {
+      try {
+        businessDocsUnsub();
+      } catch (e) {}
+    }
+    businessDocsUnsub = null;
+  }
+
+  window.hydrateBusinessDocsFromRtdb = migrateBusinessDocsToRtdbIfNeeded;
+  window.subscribeBusinessDocsFromRtdb = subscribeBusinessDocsFromRtdb;
+  window.unsubscribeBusinessDocsFromRtdb = unsubscribeBusinessDocsFromRtdb;
 
   function generateBusinessDocId() {
     return 'doc_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
@@ -9861,13 +9924,9 @@ window.addEventListener('load', function() {
     }
   });
 
-  // Initial render on load
+  // Local cache first; RTDB hydrate + live subscribe run after admin session is ready
+  // (see afterAdminSessionReady) so window.rtdb exists.
   renderBusinessDocs();
-  migrateBusinessDocsToRtdbIfNeeded()
-    .then(function () {
-      renderBusinessDocs();
-    })
-    .catch(console.error);
 
   window.getBusinessDocsSnapshot = function () {
     return businessDocs.slice();
@@ -9891,8 +9950,7 @@ window.addEventListener('load', function() {
     var MOBILE_ORDER_KEY = 'adminMobileTabOrder';
     var PRIMARY_SLOT_COUNT = 4;
     var DEFAULT_ORDER = [
-      'overview', 'pipeline', 'client-projects', 'content-hub',
-      'messages', 'client-email', 'docs', 'ops', 'referrals'
+      'overview', 'crm-hub', 'content-hub', 'ops', 'referrals'
     ];
     var VALID_TAB = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, pipeline: 1,
@@ -9961,10 +10019,25 @@ window.addEventListener('load', function() {
         }
         dock.hidden = false;
         if (tabBar.parentNode !== dock) dock.appendChild(tabBar);
+        // Re-dock CRM/Content subtab rows into the unified shell after the primary bar moves.
+        var activeTab = document.querySelector('#admin-tabs .admin-tab[role="tab"].is-active');
+        var activeId = activeTab ? activeTab.getAttribute('data-admin-tab') : '';
+        if (typeof window.syncAdminMobileCRMSubtabBar === 'function') {
+          window.syncAdminMobileCRMSubtabBar(activeId || '');
+        }
+        if (typeof window.syncAdminMobileContentSubtabBar === 'function') {
+          window.syncAdminMobileContentSubtabBar(activeId || '');
+        }
       } else {
         if (reorderActive) exitReorderMode(true);
         restoreTabBarToDom();
         if (dock) dock.hidden = true;
+        if (typeof window.syncAdminMobileCRMSubtabBar === 'function') {
+          window.syncAdminMobileCRMSubtabBar('');
+        }
+        if (typeof window.syncAdminMobileContentSubtabBar === 'function') {
+          window.syncAdminMobileContentSubtabBar('');
+        }
       }
     }
 
@@ -9990,6 +10063,9 @@ window.addEventListener('load', function() {
       if (tabId === 'content-hub') {
         return document.getElementById('admin-tab-content-hub');
       }
+      if (tabId === 'crm-hub') {
+        return document.getElementById('admin-tab-crm-hub');
+      }
       if (reorderStrip) {
         var inStrip = reorderStrip.querySelector('.admin-tab[data-admin-tab="' + tabId + '"]');
         if (inStrip) return inStrip;
@@ -9997,25 +10073,35 @@ window.addEventListener('load', function() {
       return tabBar.querySelector('.admin-tab[data-admin-tab="' + tabId + '"]');
     }
 
-    function migrateContentHubSlot(order) {
-      if (order.indexOf('content-hub') < 0) {
-        order.splice(Math.min(3, order.length), 0, 'content-hub');
-      } else {
-        var hubIndex = order.indexOf('content-hub');
+    function migrateHubSlots(order) {
+      // CRM/Content destinations live in subtab rows — never keep them in the primary order.
+      order = order.filter(function (id) {
+        return !CONTENT_SUB_TABS[id] && !CRM_SUB_TABS[id];
+      });
+
+      function ensureHub(hubId, preferredIndex) {
+        var hubIndex = order.indexOf(hubId);
+        if (hubIndex < 0) {
+          order.splice(Math.min(preferredIndex, order.length), 0, hubId);
+          return;
+        }
         if (hubIndex >= PRIMARY_SLOT_COUNT) {
           order.splice(hubIndex, 1);
-          order.splice(Math.min(3, order.length), 0, 'content-hub');
+          order.splice(Math.min(preferredIndex, order.length), 0, hubId);
         }
       }
+
+      ensureHub('crm-hub', 1);
+      ensureHub('content-hub', 2);
       return order;
     }
 
     function loadOrder() {
       try {
         var raw = localStorage.getItem(MOBILE_ORDER_KEY);
-        if (!raw) return migrateContentHubSlot(DEFAULT_ORDER.slice());
+        if (!raw) return migrateHubSlots(DEFAULT_ORDER.slice());
         var parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed)) return migrateContentHubSlot(DEFAULT_ORDER.slice());
+        if (!Array.isArray(parsed)) return migrateHubSlots(DEFAULT_ORDER.slice());
         var seen = {};
         var out = [];
         parsed.forEach(function (id) {
@@ -10027,9 +10113,9 @@ window.addEventListener('load', function() {
         DEFAULT_ORDER.forEach(function (id) {
           if (!seen[id]) out.push(id);
         });
-        return migrateContentHubSlot(out);
+        return migrateHubSlots(out);
       } catch (e) {
-        return migrateContentHubSlot(DEFAULT_ORDER.slice());
+        return migrateHubSlots(DEFAULT_ORDER.slice());
       }
     }
 
@@ -10048,7 +10134,12 @@ window.addEventListener('load', function() {
       });
 
       order.forEach(function (id, index) {
-        var btn = id === 'content-hub' ? document.getElementById('admin-tab-content-hub') : byId[id];
+        var btn =
+          id === 'content-hub'
+            ? document.getElementById('admin-tab-content-hub')
+            : id === 'crm-hub'
+              ? document.getElementById('admin-tab-crm-hub')
+              : byId[id];
         if (!btn) return;
         if (isMobileBar()) {
           btn.style.order = String(index);
@@ -10064,6 +10155,13 @@ window.addEventListener('load', function() {
         }
       });
 
+      // CRM/Content destinations belong in subtab rows only — never pin them in the primary bar.
+      tabBar.querySelectorAll('.admin-tab[data-admin-crm-sub], .admin-tab[data-admin-content-sub]').forEach(function (btn) {
+        btn.removeAttribute('data-mobile-primary');
+        btn.classList.remove('is-mobile-primary-slot');
+        btn.style.order = '';
+      });
+
       if (moreWrap && isMobileBar()) {
         moreWrap.style.order = '1000';
       } else if (moreWrap) {
@@ -10074,18 +10172,20 @@ window.addEventListener('load', function() {
         window.rebuildAdminTabMoreDropdown();
       }
 
-      pinContentHubOnMobile();
+      pinMobileHubs();
     }
 
-    function pinContentHubOnMobile() {
+    function pinMobileHubs() {
       if (!isMobileBar()) return;
-      var hub = document.getElementById('admin-tab-content-hub');
-      if (!hub) return;
-      hub.setAttribute('data-mobile-primary', '');
-      hub.classList.add('is-mobile-primary-slot');
-      if (hub.style.order === '' || hub.style.order == null) {
-        hub.style.order = '3';
-      }
+      ['admin-tab-crm-hub', 'admin-tab-content-hub'].forEach(function (id, i) {
+        var hub = document.getElementById(id);
+        if (!hub) return;
+        hub.setAttribute('data-mobile-primary', '');
+        hub.classList.add('is-mobile-primary-slot');
+        if (hub.style.order === '' || hub.style.order == null) {
+          hub.style.order = String(i + 1);
+        }
+      });
     }
 
     function setReorderStep(text) {
@@ -10389,6 +10489,7 @@ window.addEventListener('load', function() {
     });
 
     applyOrder(currentOrder);
+    saveOrder(currentOrder);
     syncMobileTabBarDock();
 
     window.AdminMobileTabOrder = {
@@ -13765,9 +13866,6 @@ function toggleTheme() {
   function isAdminOverlayOpen() {
     if (document.body.classList.contains('admin-contact-detail-open')) return true;
     if (document.body.classList.contains('lead-drawer-open')) return true;
-    if (document.body.classList.contains('admin-dm-sheet-open')) return true;
-    var dmRoot = document.getElementById('admin-dm-sheet-root');
-    if (dmRoot && dmRoot.classList.contains('is-open')) return true;
     if (document.querySelector('.agency-modal.active')) return true;
     if (document.querySelector('.business-doc-modal.active')) return true;
     if (document.querySelector('.add-blog-modal.active')) return true;
@@ -13889,10 +13987,6 @@ function toggleTheme() {
       attributeFilter: ['class'],
       subtree: true,
       attributeOldValue: false
-    });
-    ['admin-dm-sheet-root'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) overlayObserver.observe(el, { attributes: true, attributeFilter: ['class'] });
     });
     document.querySelectorAll('.agency-modal, .business-doc-modal, .add-blog-modal, .modal-container').forEach(function (el) {
       overlayObserver.observe(el, { attributes: true, attributeFilter: ['class'] });
@@ -15322,15 +15416,6 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    const sheetBackBtn = document.getElementById('admin-dm-sheet-back');
-    if (sheetBackBtn) {
-      sheetBackBtn.addEventListener('click', function () {
-        if (typeof window.closeAdminContactDetailDrawer === 'function') {
-          window.closeAdminContactDetailDrawer();
-        }
-      });
-    }
-
     const saveMetaBtn = document.getElementById('dm-save-meta');
     if (saveMetaBtn) {
       saveMetaBtn.addEventListener('click', function () {
@@ -15724,118 +15809,6 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!isNaN(p)) return Math.max(DM_SHEET_MIN_VH, Math.min(DM_SHEET_MAX_VH_CAP, p));
     }
     return readStoredCustomerSheetMaxVh();
-  }
-
-  const ADMIN_DM_SHEET_MAX_VH_KEY = 'dmAdminSheetMaxHeightVh';
-  const ADMIN_DM_SHEET_DEFAULT_VH = 90;
-
-  function readStoredAdminSheetMaxVh() {
-    try {
-      const n = parseFloat(localStorage.getItem(ADMIN_DM_SHEET_MAX_VH_KEY));
-      if (!isNaN(n)) return Math.max(DM_SHEET_MIN_VH, Math.min(DM_SHEET_MAX_VH_CAP, n));
-    } catch (e) {}
-    return ADMIN_DM_SHEET_DEFAULT_VH;
-  }
-
-  function syncAdminSheetHeightFromStorage() {
-    const el = document.querySelector('#admin-dm-sheet-root .admin-dm-sheet');
-    if (el) applyCustomerSheetMaxVh(el, readStoredAdminSheetMaxVh());
-  }
-
-  function getAdminSheetMaxVhFromDom(sheetEl) {
-    if (!sheetEl) return readStoredAdminSheetMaxVh();
-    const raw = sheetEl.style.getPropertyValue('--dm-sheet-max-vh').trim();
-    if (raw) {
-      const p = parseFloat(raw);
-      if (!isNaN(p)) return Math.max(DM_SHEET_MIN_VH, Math.min(DM_SHEET_MAX_VH_CAP, p));
-    }
-    return readStoredAdminSheetMaxVh();
-  }
-
-  function initAdminDmSheetResize() {
-    const sheet = document.querySelector('#admin-dm-sheet-root .admin-dm-sheet');
-    const grabber = document.getElementById('admin-dm-sheet-grabber');
-    if (!sheet || !grabber) return;
-
-    syncAdminSheetHeightFromStorage();
-
-    let dragging = false;
-    let startY = 0;
-    let startVh = 0;
-
-    function endDrag(e) {
-      if (!dragging) return;
-      dragging = false;
-      grabber.removeAttribute('aria-grabbed');
-      grabber.classList.remove('is-dragging');
-      sheet.classList.remove('is-resizing');
-      try {
-        if (e && e.pointerId != null) grabber.releasePointerCapture(e.pointerId);
-      } catch (err) {}
-      try {
-        const raw = sheet.style.getPropertyValue('--dm-sheet-max-vh').trim();
-        const v = parseFloat(raw);
-        if (!isNaN(v)) localStorage.setItem(ADMIN_DM_SHEET_MAX_VH_KEY, String(v));
-      } catch (err) {}
-    }
-
-    function onPointerDown(e) {
-      if (e.button != null && e.button !== 0) return;
-      dragging = true;
-      startY = e.clientY;
-      startVh = getAdminSheetMaxVhFromDom(sheet);
-      grabber.setAttribute('aria-grabbed', 'true');
-      grabber.classList.add('is-dragging');
-      sheet.classList.add('is-resizing');
-      try {
-        grabber.setPointerCapture(e.pointerId);
-      } catch (err) {}
-      e.preventDefault();
-    }
-
-    function onPointerMove(e) {
-      if (!dragging) return;
-      const dy = e.clientY - startY;
-      const next = startVh - (dy / window.innerHeight) * 100;
-      applyCustomerSheetMaxVh(sheet, next);
-      e.preventDefault();
-    }
-
-    grabber.addEventListener('pointerdown', onPointerDown);
-    grabber.addEventListener('pointermove', onPointerMove);
-    grabber.addEventListener('pointerup', endDrag);
-    grabber.addEventListener('pointercancel', endDrag);
-  }
-
-  function setAdminDmSheetOpen(open) {
-    const root = document.getElementById('admin-dm-sheet-root');
-    if (!root) return;
-    if (open) {
-      root.classList.add('is-open');
-      root.setAttribute('aria-hidden', 'false');
-      document.body.classList.add('admin-dm-sheet-open');
-      syncAdminSheetHeightFromStorage();
-      applyConversationFilters();
-      renderConversationList();
-      syncAdminDmLayoutClass();
-      requestAnimationFrame(function () {
-        const search = document.getElementById('dm-search-input');
-        if (search) {
-          try {
-            search.focus();
-          } catch (e) {}
-        }
-      });
-    } else {
-      root.classList.remove('is-open');
-      root.setAttribute('aria-hidden', 'true');
-      document.body.classList.remove('admin-dm-sheet-open');
-      clearAdminThreadSelection();
-    }
-  }
-
-  function initAdminDmSheet() {
-    initAdminDmSheetResize();
   }
 
   function initCustomerSheetResize() {
@@ -16305,7 +16278,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     bindAdminInboxEvents();
-    initAdminDmSheet();
 
     if (isAdmin()) {
       ensureAdminInboxSubscriptions();
