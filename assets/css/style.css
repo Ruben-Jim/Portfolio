@@ -22604,7 +22604,9 @@ body.lead-drawer-open {
 /* Escape article/main-content overflow + transform containing blocks */
 @media (min-width: 768px) {
   body.lead-drawer-open article.admin[data-page="admin"],
-  body.lead-drawer-open .main-content {
+  body.lead-drawer-open .main-content,
+  body:has(.business-doc-modal.active) article.admin[data-page="admin"],
+  body:has(.business-doc-modal.active) .main-content {
     overflow: visible;
     overflow-x: visible;
   }

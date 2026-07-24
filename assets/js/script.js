@@ -9286,6 +9286,12 @@ window.addEventListener('load', function() {
       businessDocTypeInput.value === 'proposal' ? 'block' : 'none';
   }
 
+  function mountBusinessDocModalToBody() {
+    if (businessDocModal && businessDocModal.parentElement !== document.body) {
+      document.body.appendChild(businessDocModal);
+    }
+  }
+
   function openBusinessDocModal(doc) {
     if (doc) {
       fillBusinessDocForm(doc);
@@ -9293,6 +9299,7 @@ window.addEventListener('load', function() {
       resetBusinessDocForm();
     }
     updateBusinessDocProposedSiteVisibility();
+    mountBusinessDocModalToBody();
     if (businessDocModal) {
       businessDocModal.style.display = 'flex';
       businessDocModal.classList.add('active');
@@ -10922,6 +10929,9 @@ window.addEventListener('load', function() {
 
   function openLeadModal(lead) {
     if (!leadModal) return;
+    if (leadModal.parentElement !== document.body) {
+      document.body.appendChild(leadModal);
+    }
     var isEdit = !!(lead && lead.id);
     if (leadModalTitle) leadModalTitle.textContent = isEdit ? 'Edit Lead' : 'Add Lead';
     if (leadIdInput) leadIdInput.value = isEdit ? lead.id : '';
