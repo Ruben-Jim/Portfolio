@@ -413,7 +413,7 @@
       '      <div class="next-step"><div class="next-step-num">03</div><div class="next-step-title">Approve</div><span class="next-step-blurb">Confirm acceptance in writing so kickoff, timeline, and next milestones can be scheduled.</span></div>\n' +
       '    </div>\n';
 
-    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
+    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
       '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .addons-section-intro { font-size: 10px; margin: -2px 0 10px 0; } .scope-frame { box-shadow: none !important; } .scope-frame-inner { padding: 10px 12px !important; } .scope-kicker { font-size: 12px !important; padding-bottom: 8px !important; margin-bottom: 10px !important; } .scope-feature-list li { font-size: 11px; padding: 6px 8px !important; margin-bottom: 4px !important; } .scope-feature-list.is-multi-col { gap: 4px 8px; } .scope-feature-list.is-multi-col li { margin-bottom: 0 !important; padding: 5px 7px !important; font-size: 10px; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 5px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-solo { padding: 10px 14px; } .addon-tier-price { font-size: 17px; } .maint-plans-grid { gap: 10px; margin-top: 8px; } .maint-plan-card { padding: 12px 14px; } .maint-plan-badge { font-size: 9px; padding: 3px 8px; } .maint-plan-title { font-size: 12px; } .maint-plan-sla { font-size: 10px; margin-bottom: 8px; } .maint-price-main { font-size: 16px; } .maint-price-note, .maint-price-equiv { font-size: 10px; } .maint-feature-list li { font-size: 10px; padding: 4px 0; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
       '* { box-sizing: border-box; }\n' +
@@ -433,7 +433,7 @@
       '.scope-feature-list { list-style: none; margin: 0; padding: 0; }\n' +
       '.scope-feature-list.is-multi-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; align-items: stretch; }\n' +
       '.scope-feature-list.is-multi-col li { margin-bottom: 0; height: 100%; }\n' +
-      '@media (max-width: 560px) { .scope-feature-list.is-multi-col { grid-template-columns: 1fr; } }\n' +
+      '@media (max-width: 560px) { .scope-feature-list.is-multi-col { grid-template-columns: 1fr; } .pricing-grid { grid-template-columns: 1fr; } .maint-price-grid { grid-template-columns: 1fr; } .next-steps-grid { grid-template-columns: 1fr; } .features-grid { grid-template-columns: 1fr; } body { padding: 20px 16px; } }\n' +
       '.scope-feature-list li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.18); font-size: 13px; line-height: 1.5; font-weight: 500; color: ' + C.dark.text + '; }\n' +
       '.scope-feature-list li:last-child { margin-bottom: 0; }\n' +
       '.scope-feature-list.is-multi-col li:last-child { margin-bottom: 0; }\n' +
@@ -712,9 +712,9 @@
 
     var addOnsBlockHtml = buildAddOnsPdfHtml(doc, { compactSingle: true });
 
-    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <title>PROPOSAL — ' + escapeHtml(clientName) + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
+    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>PROPOSAL — ' + escapeHtml(clientName) + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 10mm; }\n' +
-      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 10px 14px !important; } .doc { page-break-inside: avoid; } .doc-title { font-size: 22px; } .section-title { font-size: 11px; margin-bottom: 8px; } .pc-body { font-size: 12px; margin-bottom: 0; } .pc-core-grid { gap: 12px; } .pc-core-title { font-size: 11px; } .pc-core-desc { font-size: 11px; } .pc-pricing-row { gap: 12px; } .pc-gold { padding: 14px 16px; } .pc-gold-amt { font-size: 28px; } .pc-gold-list li { font-size: 11px; } .pc-maint-card { padding: 10px 12px; } .pc-maint-price { font-size: 16px; } .pc-maint-feats li { font-size: 10px; } .why-list { font-size: 12px; } .next-steps-grid { gap: 12px; } .footer-buttons { margin-top: 14px; } .divider { margin: 12px 0 !important; } .addon-cards-grid--single .addon-card { padding: 12px 14px; } }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 10px 14px !important; } .doc { page-break-inside: avoid; } .doc-title { font-size: 22px; } .section-title { font-size: 11px; margin-bottom: 8px; } .pc-body { font-size: 12px; margin-bottom: 0; } .pc-core-grid { gap: 12px; } .pc-core-title { font-size: 11px; } .pc-core-desc { font-size: 11px; } .pc-pricing-row { gap: 12px; grid-template-columns: 1fr; } .pc-gold { padding: 14px 16px; } .pc-gold-amt { font-size: 28px; } .pc-gold-list { columns: 2; font-size: 11px; } .pc-maint-dual { grid-template-columns: 1fr 1fr; height: auto; } .pc-maint-card { padding: 10px 12px; } .pc-maint-price { font-size: 16px; } .pc-maint-feats li { font-size: 10px; } .why-list { font-size: 12px; } .next-steps-grid { gap: 12px; } .footer-buttons { margin-top: 14px; } .divider { margin: 12px 0 !important; } .addon-cards-grid--single .addon-card { padding: 12px 14px; } }\n' +
       '* { box-sizing: border-box; }\n' +
       'body { margin: 0; padding: 36px 28px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
       '.doc { max-width: 820px; margin: 0 auto; }\n' +
@@ -732,21 +732,21 @@
       '.pc-core-grid--4 { grid-template-columns: 1fr 1fr 1fr 1fr; }\n' +
       '.pc-core-title { font-size: 12px; font-weight: 600; color: ' + C.primary + '; margin-bottom: 6px; line-height: 1.3; }\n' +
       '.pc-core-desc { font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
-      '.pc-pricing-row { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; align-items: stretch; margin-top: 4px; }\n' +
+      '.pc-pricing-row { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: stretch; margin-top: 4px; }\n' +
       '.pc-gold { background: ' + C.primary + '; color: ' + C.dark.bg + '; border-radius: 10px; padding: 18px 20px; }\n' +
       '.pc-gold-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; margin-bottom: 6px; }\n' +
       '.pc-gold-amt { font-family: \'Playfair Display\', serif; font-size: 34px; font-weight: 700; line-height: 1; margin-bottom: 12px; }\n' +
       '.pc-gold-included { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }\n' +
-      '.pc-gold-list { margin: 0; padding-left: 18px; font-size: 12px; line-height: 1.45; }\n' +
-      '.pc-gold-list li { margin-bottom: 3px; }\n' +
-      '.pc-maint-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 100%; }\n' +
-      '.pc-maint-card { border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 12px 12px 10px; background: rgba(255,255,255,0.03); display: flex; flex-direction: column; }\n' +
+      '.pc-gold-list { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; columns: 2; column-gap: 28px; }\n' +
+      '.pc-gold-list li { margin-bottom: 5px; break-inside: avoid; }\n' +
+      '.pc-maint-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; height: auto; }\n' +
+      '.pc-maint-card { border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 16px 16px 14px; background: rgba(255,255,255,0.03); display: flex; flex-direction: column; min-height: 0; }\n' +
       '.pc-maint-badge { display: inline-block; align-self: flex-start; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' + C.dark.bg + '; background: ' + C.primary + '; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px; }\n' +
-      '.pc-maint-price { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; line-height: 1.1; }\n' +
-      '.pc-maint-annual { font-size: 10px; color: ' + C.dark.muted + '; margin: 4px 0 8px; line-height: 1.35; }\n' +
+      '.pc-maint-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; line-height: 1.1; }\n' +
+      '.pc-maint-annual { font-size: 12px; color: ' + C.dark.muted + '; margin: 6px 0 10px; line-height: 1.4; }\n' +
       '.pc-maint-feats { list-style: none; margin: auto 0 0; padding: 0; }\n' +
-      '.pc-maint-feats li { position: relative; padding: 3px 0 3px 12px; font-size: 10px; line-height: 1.35; color: ' + C.dark.muted + '; }\n' +
-      '.pc-maint-feats li::before { content: \'\'; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: ' + C.primary + '; }\n' +
+      '.pc-maint-feats li { position: relative; padding: 4px 0 4px 12px; font-size: 12px; line-height: 1.4; color: ' + C.dark.muted + '; }\n' +
+      '.pc-maint-feats li::before { content: \'\'; position: absolute; left: 0; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: ' + C.primary + '; }\n' +
       '.why-list { margin: 10px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.55; color: ' + C.dark.text + '; }\n' +
       '.why-list li { margin-bottom: 6px; }\n' +
       '.next-steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 6px; }\n' +
@@ -772,7 +772,36 @@
       '.addon-card-title { font-size: 12px; font-weight: 600; color: ' + C.primary + '; margin-bottom: 8px; }\n' +
       '.addon-tier-solo { display: flex; justify-content: center; padding: 10px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.12); border-radius: 8px; }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; }\n' +
-      '@media (max-width: 700px) { .pc-core-grid--3, .pc-core-grid--4 { grid-template-columns: 1fr 1fr; } .pc-pricing-row { grid-template-columns: 1fr; } .next-steps-grid, .next-steps-grid--two { grid-template-columns: 1fr; max-width: none; } }\n' +
+      '@media (max-width: 700px) {\n' +
+      '  body { padding: 20px 16px; font-size: 15px; }\n' +
+      '  .doc-title { font-size: 22px; line-height: 1.2; }\n' +
+      '  .doc-subtitle { font-size: 13px; }\n' +
+      '  .section-title { font-size: 13px; margin-bottom: 12px; }\n' +
+      '  .pc-body { font-size: 15px; line-height: 1.65; max-width: none; }\n' +
+      '  .pc-core-grid--2, .pc-core-grid--3, .pc-core-grid--4 { grid-template-columns: 1fr; gap: 14px; }\n' +
+      '  .pc-core-title { font-size: 14px; }\n' +
+      '  .pc-core-desc { font-size: 14px; line-height: 1.5; }\n' +
+      '  .pc-pricing-row { grid-template-columns: 1fr; gap: 14px; }\n' +
+      '  .pc-maint-dual { grid-template-columns: 1fr; height: auto; gap: 12px; }\n' +
+      '  .pc-gold { padding: 18px 16px; }\n' +
+      '  .pc-gold-amt { font-size: 36px; margin-bottom: 14px; }\n' +
+      '  .pc-gold-included { font-size: 12px; }\n' +
+      '  .pc-gold-list { columns: 1; font-size: 14px; line-height: 1.5; padding-left: 20px; }\n' +
+      '  .pc-gold-list li { margin-bottom: 6px; }\n' +
+      '  .pc-maint-card { padding: 16px; }\n' +
+      '  .pc-maint-badge { font-size: 10px; padding: 4px 10px; }\n' +
+      '  .pc-maint-price { font-size: 24px; }\n' +
+      '  .pc-maint-annual { font-size: 13px; margin: 6px 0 10px; }\n' +
+      '  .pc-maint-feats li { font-size: 14px; line-height: 1.45; padding: 5px 0 5px 14px; }\n' +
+      '  .pc-maint-feats li::before { top: 11px; }\n' +
+      '  .why-list { font-size: 15px; line-height: 1.55; padding-left: 20px; }\n' +
+      '  .next-steps-grid, .next-steps-grid--two { grid-template-columns: 1fr; max-width: none; gap: 16px; }\n' +
+      '  .next-step-title { font-size: 14px; }\n' +
+      '  .next-step-blurb { font-size: 13px; line-height: 1.5; }\n' +
+      '  .footer-buttons { flex-direction: column; }\n' +
+      '  .btn-primary, .btn-outline { text-align: center; width: 100%; }\n' +
+      '  .addon-cards-grid--single { max-width: none; }\n' +
+      '}\n' +
       '</style>\n</head>\n<body>\n  <div class="doc">\n' +
       '    <div class="header-tag">PROFESSIONAL SYSTEM</div>\n' +
       '    <h1 class="doc-title">' + headline + '</h1>\n' +
