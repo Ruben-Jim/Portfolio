@@ -687,32 +687,97 @@
     return loadPortfolioRecord(hubRow.portfolioProjectId);
   }
 
-  function renderBrandHeader(project) {
+  function normalizePortalUrl(url) {
+    return String(url || '')
+      .trim()
+      .replace(/\/+$/, '');
+  }
+
+  function ensureAbsolutePortalUrl(url) {
+    var u = normalizePortalUrl(url);
+    if (!u || u === '#') return '';
+    if (/^https?:\/\//i.test(u)) return u;
+    if (/^\/\//.test(u)) return 'https:' + u;
+    return 'https://' + u;
+  }
+
+  function isUsablePortalUrl(url) {
+    return !!ensureAbsolutePortalUrl(url);
+  }
+
+  function looksLikeDemoUrl(url) {
+    return /expo\.app|expo\.dev|web\.app|firebaseapp\.com|vercel\.app|netlify\.app|onrender\.com|\/demo\b/i.test(
+      String(url || '')
+    );
+  }
+
+  function collectProjectVisitLinks(project, detailRecord, options) {
+    options = options || {};
+    var demoUrl = ensureAbsolutePortalUrl(project && project.expoUrl);
+    var liveUrl = '';
+    if (window.PortfolioDetailShared && detailRecord) {
+      liveUrl = ensureAbsolutePortalUrl(
+        window.PortfolioDetailShared.resolveLiveUrl(detailRecord, options)
+      );
+    }
+
+    var links = [];
+    if (demoUrl && liveUrl && normalizePortalUrl(demoUrl) !== normalizePortalUrl(liveUrl)) {
+      links.push({ url: demoUrl, label: 'View demo', primary: true });
+      links.push({ url: liveUrl, label: 'View website', primary: false });
+      return links;
+    }
+
+    var only = demoUrl || liveUrl;
+    if (!only) return links;
+    links.push({
+      url: only,
+      label: looksLikeDemoUrl(only) ? 'View demo' : 'View website',
+      primary: true
+    });
+    return links;
+  }
+
+  function renderProjectVisitLinks(project, detailRecord, options) {
+    var links = collectProjectVisitLinks(project, detailRecord, options);
+    if (!links.length) return '';
+    return (
+      '<div class="client-portal-visit-links">' +
+      links
+        .map(function (link) {
+          return (
+            '<a class="btn ' +
+            (link.primary ? 'btn-primary' : 'btn-secondary') +
+            '" href="' +
+            esc(link.url) +
+            '" target="_blank" rel="noopener noreferrer">' +
+            esc(link.label) +
+            '</a>'
+          );
+        })
+        .join('') +
+      '</div>'
+    );
+  }
+
+  function renderBrandHeader(project, detailRecord, options) {
     return (
       '<div class="client-portal-brand">' +
       '<h1>' +
       esc(project.clientName || project.title || 'Your project') +
       '</h1>' +
-      '<p class="client-portal-tagline">CodeWithRuben client portal</p></div>'
+      '<p class="client-portal-tagline">CodeWithRuben client portal</p>' +
+      renderProjectVisitLinks(project, detailRecord, options) +
+      '</div>'
     );
   }
 
-  function renderStatusFooter(project, detailRecord, options) {
-    options = options || {};
+  function renderStatusFooter(project) {
     var done = project.milestones.filter(function (m) { return m.done; }).length;
     var total = project.milestones.length || 0;
-    var liveUrl =
-      window.PortfolioDetailShared && detailRecord
-        ? window.PortfolioDetailShared.resolveLiveUrl(detailRecord, options)
-        : '';
-    var expoUrl = String(project.expoUrl || '').trim();
-    var showPreview =
-      expoUrl &&
-      expoUrl !== '#' &&
-      (!liveUrl || expoUrl.replace(/\/+$/, '') !== liveUrl.replace(/\/+$/, ''));
 
     return (
-      '<details class="client-portal-status-footer">' +
+      '<details class="client-portal-status-footer" open>' +
       '<summary>Project status</summary>' +
       '<div class="client-portal-status-footer-body">' +
       '<p class="client-portal-status-meta">' +
@@ -733,11 +798,6 @@
           );
         })
         .join('') +
-      (showPreview
-        ? '<p class="client-portal-status-preview"><a class="btn btn-primary" href="' +
-          esc(expoUrl) +
-          '" target="_blank" rel="noopener">Open preview</a></p>'
-        : '') +
       '</div></details>'
     );
   }
@@ -815,10 +875,8 @@
   function renderBusinessDocumentsSection(docs) {
     if (!docs.length) return '';
     return (
-      '<details class="client-portal-docs-footer">' +
-      '<summary>Proposals &amp; billing (' +
-      docs.length +
-      ')</summary>' +
+      '<details class="client-portal-docs-footer" open>' +
+      '<summary>Proposals &amp; billing</summary>' +
       '<div class="client-portal-docs-footer-body has-scrollbar">' +
       '<ul class="client-portal-docs-list">' +
       docs
@@ -889,35 +947,43 @@
     });
   }
 
-  function renderNoShowcaseMessage() {
+  function renderNoShowcaseMessage(project, detailOptions) {
+    var visit = renderProjectVisitLinks(project, null, detailOptions || {});
     return (
       '<section class="client-portal-section client-portal-empty-showcase">' +
       '<h2>Project showcase</h2>' +
-      '<p>No client showcase is linked to this project yet. Your project contact will share the full detail page once it is ready.</p>' +
+      '<p><strong>No portfolio project is linked</strong> to this portal yet. The full showcase page will appear here once your project contact links one.</p>' +
+      (visit
+        ? '<p class="client-portal-empty-showcase-lead">You can still open the live demo or website:</p>' + visit
+        : '<p class="client-portal-empty-showcase-lead">A demo or website link will show here when it is added to your project.</p>') +
       '</section>'
     );
   }
 
-  function renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx) {
+  function renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase) {
     businessDocs = businessDocs || [];
     portalCtx = portalCtx || {};
     window.portalBusinessDocsById = {};
     businessDocs.forEach(function (d) {
       if (d && d.id) window.portalBusinessDocsById[d.id] = d;
     });
-    var brand = renderBrandHeader(project);
+    var brand = renderBrandHeader(project, detailRecord, detailOptions);
     var detailHtml = '';
-    if (detailRecord && window.PortfolioDetailShared) {
+    if (hasShowcase && detailRecord && window.PortfolioDetailShared) {
       detailHtml = window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, detailOptions);
+    } else if (detailRecord && detailOptions && detailOptions.guideOnly && window.PortfolioDetailShared) {
+      detailHtml =
+        renderNoShowcaseMessage(project, detailOptions) +
+        window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, detailOptions);
     } else {
-      detailHtml = renderNoShowcaseMessage();
+      detailHtml = renderNoShowcaseMessage(project, detailOptions);
     }
     var docsSection = renderBusinessDocumentsSection(businessDocs);
     var supportSection =
       project.showMaintenanceInPortal !== false
         ? renderMaintenanceSupportSection(maint, project)
         : '';
-    var footer = renderStatusFooter(project, detailRecord, detailOptions);
+    var footer = renderStatusFooter(project);
     inner.innerHTML = brand + detailHtml + docsSection + supportSection + footer;
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
@@ -989,7 +1055,7 @@
       var detailOptions = {
         hideBuyButtons: true,
         hideQuoteButton: true,
-        showLiveButton: !guideOnly,
+        showLiveButton: false,
         guideOnly: !!guideOnly,
         liveUrlFallback: project.expoUrl,
         adminSectionLabel: 'Admin dashboard'
@@ -1013,7 +1079,7 @@
         clientName: project.clientName || hubRow.clientName || '',
         maintId: maint ? maint.id : ''
       };
-      renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx);
+      renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase);
       document.title = (project.clientName || project.title || 'Your project') + ' — CodeWithRuben';
     } catch (err) {
       console.error(err);

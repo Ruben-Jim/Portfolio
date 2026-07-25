@@ -9077,7 +9077,7 @@ window.addEventListener('load', function() {
       var val = snap.val();
       if (!val || typeof val !== 'object') return [];
       return Object.keys(val).map(function (k) {
-        return Object.assign({ id: k }, val[k]);
+        return normalizeBusinessDocRecord(val[k], k);
       });
     } catch (e) {
       console.warn('Failed to load business docs from RTDB', e);
@@ -9085,8 +9085,99 @@ window.addEventListener('load', function() {
     }
   }
 
+  function businessDocTimestampMs(doc) {
+    var t = Date.parse((doc && (doc.updatedAt || doc.createdAt)) || '');
+    return isNaN(t) ? 0 : t;
+  }
+
+  /** Prefer docs that still carry proposal pitch fields when timestamps tie. */
+  function businessDocPitchScore(doc) {
+    if (!doc) return 0;
+    var score = 0;
+    if (String(doc.proposalHeadline || '').trim()) score += 1;
+    if (String(doc.valueProposition || '').trim()) score += 1;
+    if (String(doc.whyDifferent || '').trim() || String(doc.whyDifferentIntro || '').trim()) score += 1;
+    var cores = doc.coreFeatures;
+    if (Array.isArray(cores) ? cores.length : cores && typeof cores === 'object' && Object.keys(cores).length) {
+      score += 1;
+    }
+    if (String(doc.includedItems || '').trim()) score += 1;
+    return score;
+  }
+
+  function normalizeBusinessDocRecord(raw, fallbackId) {
+    var doc = Object.assign({}, raw || {});
+    if (fallbackId && !doc.id) doc.id = String(fallbackId);
+    if (doc.coreFeatures != null && !Array.isArray(doc.coreFeatures)) {
+      doc.coreFeatures = Object.keys(doc.coreFeatures)
+        .sort(function (a, b) {
+          return Number(a) - Number(b);
+        })
+        .map(function (k) {
+          return doc.coreFeatures[k];
+        })
+        .filter(function (f) {
+          return f && typeof f === 'object';
+        });
+    }
+    return doc;
+  }
+
+  function preferBusinessDoc(a, b) {
+    var ta = businessDocTimestampMs(a);
+    var tb = businessDocTimestampMs(b);
+    if (ta !== tb) return ta > tb ? a : b;
+    return businessDocPitchScore(a) >= businessDocPitchScore(b) ? a : b;
+  }
+
+  /**
+   * Merge local + remote by id. Keeps newer docs and avoids wiping proposal
+   * pitch fields when RTDB still has an older partial record.
+   */
+  function mergeBusinessDocLists(localList, remoteList) {
+    var map = {};
+    (localList || []).forEach(function (d) {
+      if (!d || !d.id) return;
+      map[d.id] = normalizeBusinessDocRecord(d);
+    });
+    var toPush = [];
+    (remoteList || []).forEach(function (d) {
+      if (!d || !d.id) return;
+      var remote = normalizeBusinessDocRecord(d);
+      var local = map[d.id];
+      if (!local) {
+        map[d.id] = remote;
+        return;
+      }
+      var winner = preferBusinessDoc(local, remote);
+      map[d.id] = winner;
+      if (
+        winner === local &&
+        (businessDocTimestampMs(local) > businessDocTimestampMs(remote) ||
+          businessDocPitchScore(local) > businessDocPitchScore(remote))
+      ) {
+        toPush.push(local);
+      }
+    });
+    (localList || []).forEach(function (d) {
+      if (!d || !d.id) return;
+      var existsRemote = (remoteList || []).some(function (r) {
+        return r && r.id === d.id;
+      });
+      if (!existsRemote) toPush.push(map[d.id] || normalizeBusinessDocRecord(d));
+    });
+    return {
+      docs: Object.keys(map).map(function (k) {
+        return map[k];
+      }),
+      toPush: toPush
+    };
+  }
+
   function applyBusinessDocsList(list) {
-    businessDocs = Array.isArray(list) ? list : [];
+    businessDocs = (Array.isArray(list) ? list : []).map(function (d) {
+      return normalizeBusinessDocRecord(d);
+    });
     saveBusinessDocs(businessDocs);
     renderBusinessDocs();
     if (typeof window.renderAdminOverview === 'function') {
@@ -9095,21 +9186,24 @@ window.addEventListener('load', function() {
   }
 
   /**
-   * RTDB is source of truth when available. Must run after Firebase init —
-   * the old top-level call ran before window.rtdb existed, so other devices
-   * never hydrated and only showed empty localStorage.
+   * Hydrate after Firebase init. Merge RTDB with local cache so newer local
+   * proposal pitch fields are not wiped by an older remote record.
    */
   async function migrateBusinessDocsToRtdbIfNeeded() {
     if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) return false;
     var fromRtdb = await loadBusinessDocsFromRtdb();
     if (fromRtdb === null) return false;
-    if (fromRtdb.length) {
-      applyBusinessDocsList(fromRtdb);
+    if (!fromRtdb.length) {
+      if (!businessDocs.length) return true;
+      for (var i = 0; i < businessDocs.length; i++) {
+        await syncBusinessDocToRtdb(businessDocs[i]);
+      }
       return true;
     }
-    if (!businessDocs.length) return true;
-    for (var i = 0; i < businessDocs.length; i++) {
-      await syncBusinessDocToRtdb(businessDocs[i]);
+    var merged = mergeBusinessDocLists(businessDocs, fromRtdb);
+    applyBusinessDocsList(merged.docs);
+    for (var p = 0; p < merged.toPush.length; p++) {
+      await syncBusinessDocToRtdb(merged.toPush[p]);
     }
     return true;
   }
@@ -9125,11 +9219,16 @@ window.addEventListener('load', function() {
       function (snap) {
         var val = snap.val();
         if (!val || typeof val !== 'object') return;
-        applyBusinessDocsList(
-          Object.keys(val).map(function (k) {
-            return Object.assign({ id: k }, val[k]);
-          })
-        );
+        var remote = Object.keys(val).map(function (k) {
+          return normalizeBusinessDocRecord(val[k], k);
+        });
+        var merged = mergeBusinessDocLists(businessDocs, remote);
+        applyBusinessDocsList(merged.docs);
+        merged.toPush.forEach(function (doc) {
+          syncBusinessDocToRtdb(doc).catch(function (err) {
+            console.warn('Failed to push newer local business doc to RTDB', err);
+          });
+        });
       },
       function (err) {
         console.warn('Business docs RTDB listen failed', err);
@@ -9439,7 +9538,8 @@ window.addEventListener('load', function() {
   }
 
   function fillBusinessDocCoreFeaturesUI(doc) {
-    var features = doc && Array.isArray(doc.coreFeatures) ? doc.coreFeatures : [];
+    var normalized = normalizeBusinessDocRecord(doc || {});
+    var features = Array.isArray(normalized.coreFeatures) ? normalized.coreFeatures : [];
     for (var i = 0; i < 4; i++) {
       var titleEl = document.getElementById('business-doc-core-title-' + i);
       var descEl = document.getElementById('business-doc-core-desc-' + i);
@@ -9461,7 +9561,7 @@ window.addEventListener('load', function() {
 
   function openBusinessDocModal(doc) {
     if (doc) {
-      fillBusinessDocForm(doc);
+      fillBusinessDocForm(normalizeBusinessDocRecord(doc));
     } else {
       resetBusinessDocForm();
     }
@@ -9508,9 +9608,16 @@ window.addEventListener('load', function() {
    */
   function fillBusinessDocForm(doc) {
     if (!doc) return;
-    if (businessDocIdInput) businessDocIdInput.value = doc.id;
-    if (businessDocTypeInput) businessDocTypeInput.value = doc.type;
-    if (businessDocStatusInput) businessDocStatusInput.value = doc.status;
+    doc = normalizeBusinessDocRecord(doc);
+    var headlineEl = document.getElementById('business-doc-proposal-headline') || businessDocProposalHeadlineInput;
+    var valueEl = document.getElementById('business-doc-value-proposition') || businessDocValuePropositionInput;
+    var includedEl = document.getElementById('business-doc-included-items') || businessDocIncludedItemsInput;
+    var whyIntroEl = document.getElementById('business-doc-why-intro') || businessDocWhyIntroInput;
+    var whyDiffEl = document.getElementById('business-doc-why-different') || businessDocWhyDifferentInput;
+
+    if (businessDocIdInput) businessDocIdInput.value = doc.id || '';
+    if (businessDocTypeInput) businessDocTypeInput.value = doc.type || 'proposal';
+    if (businessDocStatusInput) businessDocStatusInput.value = doc.status || 'draft';
     if (businessDocClientNameInput) businessDocClientNameInput.value = doc.clientName || '';
     if (businessDocClientEmailInput) businessDocClientEmailInput.value = doc.clientEmail || '';
     if (businessDocTotalInput) businessDocTotalInput.value = String(doc.total || '');
@@ -9518,14 +9625,14 @@ window.addEventListener('load', function() {
     if (businessDocNotesInput) businessDocNotesInput.value = doc.notes || '';
     if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = doc.proposedSiteUrl || '';
     if (businessDocFoundationInput) businessDocFoundationInput.value = doc.foundationUrl || '';
-    if (businessDocProposalHeadlineInput) businessDocProposalHeadlineInput.value = doc.proposalHeadline || '';
-    if (businessDocValuePropositionInput) businessDocValuePropositionInput.value = doc.valueProposition || '';
-    if (businessDocIncludedItemsInput) {
-      businessDocIncludedItemsInput.value =
+    if (headlineEl) headlineEl.value = doc.proposalHeadline || '';
+    if (valueEl) valueEl.value = doc.valueProposition || '';
+    if (includedEl) {
+      includedEl.value =
         doc.includedItems || (doc.type === 'proposal' ? doc.notes || '' : '') || '';
     }
-    if (businessDocWhyIntroInput) businessDocWhyIntroInput.value = doc.whyDifferentIntro || '';
-    if (businessDocWhyDifferentInput) businessDocWhyDifferentInput.value = doc.whyDifferent || '';
+    if (whyIntroEl) whyIntroEl.value = doc.whyDifferentIntro || '';
+    if (whyDiffEl) whyDiffEl.value = doc.whyDifferent || '';
     fillBusinessDocCoreFeaturesUI(doc);
     if (businessDocMaintenancePlanInput) {
       var planId = String(doc.maintenancePlanId || '').toLowerCase();
@@ -9652,7 +9759,11 @@ window.addEventListener('load', function() {
       editBtn.title = 'Edit';
       editBtn.innerHTML = '<ion-icon name="create-outline"></ion-icon>';
       editBtn.addEventListener('click', function() {
-        openBusinessDocModal(doc);
+        var latest =
+          businessDocs.find(function (d) {
+            return d && d.id === doc.id;
+          }) || doc;
+        openBusinessDocModal(latest);
       });
 
       var pdfBtn = document.createElement('button');
@@ -9937,7 +10048,7 @@ window.addEventListener('load', function() {
     });
     if (!doc) return;
     if (typeof window.adminActivateTab === 'function') window.adminActivateTab('docs');
-    openBusinessDocModal(doc);
+    openBusinessDocModal(normalizeBusinessDocRecord(doc));
   };
   window.openNewBusinessDocForClient = function (clientName) {
     if (typeof window.adminActivateTab === 'function') window.adminActivateTab('docs');
@@ -11366,12 +11477,12 @@ window.addEventListener('load', function() {
   if (leadDrawerHubBtn && !leadDrawerHubBtn.dataset.bound) {
     leadDrawerHubBtn.dataset.bound = '1';
     leadDrawerHubBtn.addEventListener('click', function () {
-      if (!pipelineDetailLeadId) return;
+      var leadId = pipelineDetailLeadId;
+      if (!leadId) return;
       closeLeadDetail();
-      if (typeof window.switchToPage === 'function') window.switchToPage('admin');
       window.setTimeout(function () {
         if (window.AgencyTools && typeof window.AgencyTools.openProjectHub === 'function') {
-          window.AgencyTools.openProjectHub(pipelineDetailLeadId);
+          window.AgencyTools.openProjectHub(leadId);
         }
       }, 120);
     });

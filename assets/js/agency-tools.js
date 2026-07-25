@@ -74,6 +74,22 @@
       .replace(/"/g, '&quot;');
   }
 
+  function cpFieldValue(id) {
+    var el = document.getElementById(id);
+    return el && el.value != null ? String(el.value).trim() : '';
+  }
+
+  function normalizeHubExternalUrl(raw) {
+    var u = String(raw || '').trim();
+    if (!u || u === '#') return '';
+    if (/^https?:\/\//i.test(u)) return u.slice(0, 500);
+    if (/^\/\//.test(u)) return ('https:' + u).slice(0, 500);
+    if (/^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}([/:?#].*)?$/i.test(u)) {
+      return ('https://' + u).slice(0, 500);
+    }
+    return u.slice(0, 500);
+  }
+
   function isAdmin() {
     if (typeof window.isAdminSession === 'function') return window.isAdminSession();
     return !!(window.currentUser && window.currentUser.role === 'admin');
@@ -2630,8 +2646,8 @@
       '<div class="form-group"><label for="cp-hub-title">Project title</label><input id="cp-hub-title" class="form-input" type="text" value="' + esc(hub.title) + '"></div>' +
       '<div class="form-group"><label for="cp-hub-lead">Pipeline lead ID</label><input id="cp-hub-lead" class="form-input" type="text" value="' + esc(hub.leadId) + '" placeholder="Link to pipelineLeads id"></div>' +
       '<div class="form-group"><label for="cp-hub-firebase">Firebase project ID</label><input id="cp-hub-firebase" class="form-input" type="text" value="' + esc(hub.firebaseProjectId) + '"></div>' +
-      '<div class="form-group"><label for="cp-hub-repo">Repo URL</label><input id="cp-hub-repo" class="form-input" type="url" value="' + esc(hub.repoUrl) + '"></div>' +
-      '<div class="form-group"><label for="cp-hub-expo">Expo / demo URL</label><input id="cp-hub-expo" class="form-input" type="url" value="' + esc(hub.expoUrl) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-repo">Repo URL</label><input id="cp-hub-repo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://…" value="' + esc(hub.repoUrl) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-expo">Expo / demo URL</label><input id="cp-hub-expo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://your-app.expo.app" value="' + esc(hub.expoUrl) + '"></div>' +
       '<div class="form-group"><label for="cp-hub-doc-id">Business doc ID</label><input id="cp-hub-doc-id" class="form-input" type="text" value="' + esc(hub.businessDocId) + '"></div>' +
       '<div class="form-group form-group--full"><label for="cp-hub-notes">Notes</label><textarea id="cp-hub-notes" class="form-input has-scrollbar" rows="3">' + esc(hub.notes) + '</textarea></div>' +
       '</div>' +
@@ -2858,16 +2874,16 @@
     if (!existing) return;
     var root = document.getElementById('client-projects-workspace');
     var payload = {
-      leadId: (document.getElementById('cp-hub-lead') || {}).value.trim(),
-      clientName: (document.getElementById('cp-hub-client') || {}).value.trim(),
-      clientEmail: (document.getElementById('cp-hub-client-email') || {}).value.trim(),
-      title: (document.getElementById('cp-hub-title') || {}).value.trim(),
-      repoUrl: (document.getElementById('cp-hub-repo') || {}).value.trim(),
-      expoUrl: (document.getElementById('cp-hub-expo') || {}).value.trim(),
-      firebaseProjectId: (document.getElementById('cp-hub-firebase') || {}).value.trim(),
-      businessDocId: (document.getElementById('cp-hub-doc-id') || {}).value.trim(),
+      leadId: cpFieldValue('cp-hub-lead'),
+      clientName: cpFieldValue('cp-hub-client'),
+      clientEmail: cpFieldValue('cp-hub-client-email'),
+      title: cpFieldValue('cp-hub-title'),
+      repoUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-repo')),
+      expoUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-expo')),
+      firebaseProjectId: cpFieldValue('cp-hub-firebase'),
+      businessDocId: cpFieldValue('cp-hub-doc-id'),
       portfolioProjectId: existing.portfolioProjectId || '',
-      notes: (document.getElementById('cp-hub-notes') || {}).value.trim(),
+      notes: cpFieldValue('cp-hub-notes'),
       milestones: root ? collectCpMilestonesFromWorkspace(root) : existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
@@ -3468,6 +3484,9 @@
   // ——— Pipeline hook: open hub from lead ———
   function createHubFromLead(lead) {
     if (!lead) return;
+    if (typeof window.adminActivateTab === 'function') {
+      window.adminActivateTab('client-projects');
+    }
     var clientName = (lead.name || lead.company || '').trim();
     var titleBase = (lead.company || lead.name || '').trim();
     openNewClientModal({

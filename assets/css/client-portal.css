@@ -91,6 +91,25 @@ body.client-portal-page {
   color: var(--light-gray-70);
 }
 
+.client-portal-visit-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.client-portal-empty-showcase-lead {
+  margin: 10px 0 0;
+  color: var(--light-gray-70);
+  font-size: var(--fs-8);
+}
+
+.client-portal-empty-showcase .client-portal-visit-links {
+  margin-top: 14px;
+  justify-content: flex-start;
+}
+
 .client-portal-section {
   margin-bottom: 20px;
   padding: 16px;

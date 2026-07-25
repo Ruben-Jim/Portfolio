@@ -1517,13 +1517,6 @@
   transform: translateX(2px);
 }
 
-.client-projects-shell.has-client-selected .cp-client-picker-list {
-  max-height: min(240px, 34vh);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding-right: 2px;
-}
-
 [data-theme="light"] .cp-client-picker-search {
   background: hsla(0, 0%, 100%, 0.85);
   border-color: hsla(45, 40%, 40%, 0.25);
@@ -1551,10 +1544,6 @@
 
   .cp-client-picker-progress-track {
     max-width: none;
-  }
-
-  .client-projects-shell.has-client-selected .cp-client-picker-list {
-    max-height: min(200px, 28vh);
   }
 
 }
