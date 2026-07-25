@@ -11354,6 +11354,56 @@ body.project-modal-open {
   background: hsla(0, 70%, 50%, 0.1);
 }
 
+.business-doc-addon-usage-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed hsla(45, 100%, 72%, 0.15);
+  font-size: var(--fs-8);
+  color: var(--white-2);
+  cursor: pointer;
+}
+
+.business-doc-addon-usage-toggle input {
+  margin: 0;
+  accent-color: var(--orange-yellow-crayola);
+}
+
+.business-doc-addon-usage {
+  margin-top: 10px;
+}
+
+.business-doc-addon-usage-hint {
+  margin: 0 0 8px;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  line-height: 1.4;
+}
+
+.business-doc-addon-usage-row {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr) auto;
+  gap: 8px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+
+.business-doc-addon-usage-row .form-group {
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .business-doc-addon-usage-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .business-doc-addon-usage-row .form-group:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+}
+
 .business-doc-add-price-option-btn {
   margin-top: 6px;
   font-size: var(--fs-8);

@@ -298,9 +298,18 @@
       if (!addon || !addon.name) continue;
       var opts = addon.priceOptions && Array.isArray(addon.priceOptions) ? addon.priceOptions : [];
       if (!opts.length) continue;
+      var includesUsage = !!addon.includesUsage;
+      var usageLimits =
+        includesUsage && Array.isArray(addon.usageLimits)
+          ? addon.usageLimits.filter(function (lim) {
+              return lim && (String(lim.label || '').trim() || String(lim.details || '').trim());
+            })
+          : [];
       items.push({
         name: addon.name,
         description: addon.description || '',
+        includesUsage: includesUsage,
+        usageLimits: usageLimits,
         amounts: opts.map(function (o) {
           return typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
         })
@@ -315,24 +324,49 @@
       var descInner = buildAddonDescriptionPdfHtml(it.description);
       var tierRows = '';
       if (compactSingle) {
-        // S2: pill price instead of full-width bar
         for (var p = 0; p < it.amounts.length; p++) {
+          var compactLabel =
+            formatCurrency(it.amounts[p]) + (it.includesUsage ? ' + usage' : '');
           tierRows +=
             '<div class="addon-price-pill">' +
             '<span class="addon-tier-price">' +
-            escapeHtml(formatCurrency(it.amounts[p])) +
+            escapeHtml(compactLabel) +
             '</span></div>';
         }
       } else {
         for (var j = 0; j < it.amounts.length; j++) {
+          var priceLabel =
+            formatCurrency(it.amounts[j]) + (it.includesUsage ? ' + usage' : '');
           tierRows +=
             '<div class="addon-tier-row addon-tier-only">' +
             '<div class="addon-tier-solo">' +
             '<span class="addon-tier-price">' +
-            escapeHtml(formatCurrency(it.amounts[j])) +
+            escapeHtml(priceLabel) +
             '</span></div>' +
             '</div>';
         }
+      }
+      var usageHtml = '';
+      if (it.includesUsage && it.usageLimits.length) {
+        usageHtml =
+          '<ul class="addon-usage-list">' +
+          it.usageLimits
+            .map(function (lim) {
+              var label = String((lim && lim.label) || '').trim();
+              var details = String((lim && lim.details) || '').trim();
+              if (!label && !details) return '';
+              return (
+                '<li><span class="addon-usage-label">' +
+                escapeHtml(label || 'Limit') +
+                '</span>' +
+                (details
+                  ? '<span class="addon-usage-details">' + escapeHtml(details) + '</span>'
+                  : '') +
+                '</li>'
+              );
+            })
+            .join('') +
+          '</ul>';
       }
       parts.push(
         '<div class="addon-card' +
@@ -349,11 +383,11 @@
           '">' +
           tierRows +
           '</div>' +
+          usageHtml +
           '</div>'
       );
     }
     var gridClass = 'addon-cards-grid' + (compactSingle ? ' addon-cards-grid--single' : '');
-    // S3: shorter / omit long intro when only one upgrade
     var introHtml = compactSingle
       ? ''
       : '    <p class="addons-section-intro">Optional ways to enhance or extend the proposed build—your customer can choose any tier to upgrade beyond the base scope above.</p>\n';
@@ -453,6 +487,11 @@
       '.addon-tier-row.addon-tier-only { display: block; }\n' +
       '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 14px 18px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.13); }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
+      '.addon-usage-list { list-style: none; margin: 12px 0 0; padding: 0; }\n' +
+      '.addon-usage-list li { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.45; }\n' +
+      '.addon-usage-list li:first-child { border-top: none; padding-top: 0; }\n' +
+      '.addon-usage-label { font-weight: 600; color: ' + C.dark.text + '; }\n' +
+      '.addon-usage-details { color: ' + C.dark.muted + '; }\n' +
       '.maint-plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 12px; }\n' +
       '.maint-plan-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 18px 18px 16px; display: flex; flex-direction: column; }\n' +
       '.maint-plan-badge { display: inline-block; align-self: flex-start; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: ' + C.primary + '; color: ' + C.dark.bg + '; margin-bottom: 10px; }\n' +
@@ -772,6 +811,11 @@
       '.addon-card-title { font-size: 12px; font-weight: 600; color: ' + C.primary + '; margin-bottom: 8px; }\n' +
       '.addon-tier-solo { display: flex; justify-content: center; padding: 10px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.12); border-radius: 8px; }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; }\n' +
+      '.addon-usage-list { list-style: none; margin: 10px 0 0; padding: 0; text-align: left; }\n' +
+      '.addon-usage-list li { display: flex; flex-direction: column; gap: 2px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; line-height: 1.45; }\n' +
+      '.addon-usage-list li:first-child { border-top: none; padding-top: 0; }\n' +
+      '.addon-usage-label { font-weight: 600; color: ' + C.dark.text + '; }\n' +
+      '.addon-usage-details { color: ' + C.dark.muted + '; }\n' +
       '@media (max-width: 700px) {\n' +
       '  body { padding: 20px 16px; font-size: 15px; }\n' +
       '  .doc-title { font-size: 22px; line-height: 1.2; }\n' +

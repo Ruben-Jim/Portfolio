@@ -8949,7 +8949,8 @@ window.addEventListener('load', function() {
 
   /**
    * @typedef {{ label: string, amount: number }} BusinessDocAddOnPriceOption
-   * @typedef {{ name: string, description?: string, priceOptions: BusinessDocAddOnPriceOption[] }} BusinessDocAddOn
+   * @typedef {{ label: string, details: string }} BusinessDocAddOnUsageLimit
+   * @typedef {{ name: string, description?: string, priceOptions: BusinessDocAddOnPriceOption[], includesUsage?: boolean, usageLimits?: BusinessDocAddOnUsageLimit[] }} BusinessDocAddOn
    */
 
   /**
@@ -9041,7 +9042,47 @@ window.addEventListener('load', function() {
     if (whyIntro) out.whyDifferentIntro = whyIntro;
     var whyDiff = String(doc.whyDifferent || '').trim().slice(0, 4000);
     if (whyDiff) out.whyDifferent = whyDiff;
-    if (Array.isArray(doc.addOns) && doc.addOns.length) out.addOns = doc.addOns;
+    if (Array.isArray(doc.addOns) && doc.addOns.length) {
+      out.addOns = doc.addOns
+        .slice(0, 24)
+        .map(function (addon) {
+          if (!addon || typeof addon !== 'object') return null;
+          var name = String(addon.name || '').trim().slice(0, 120);
+          if (!name) return null;
+          var priceOptions = Array.isArray(addon.priceOptions)
+            ? addon.priceOptions
+                .slice(0, 8)
+                .map(function (opt) {
+                  var amt = opt && typeof opt.amount === 'number' ? opt.amount : NaN;
+                  if (isNaN(amt) || amt < 0) return null;
+                  return { label: String((opt && opt.label) || '').slice(0, 80), amount: amt };
+                })
+                .filter(Boolean)
+            : [];
+          if (!priceOptions.length) return null;
+          var cleaned = { name: name, priceOptions: priceOptions };
+          var desc = String(addon.description || '').trim().slice(0, 2000);
+          if (desc) cleaned.description = desc;
+          if (addon.includesUsage) {
+            cleaned.includesUsage = true;
+            var limits = Array.isArray(addon.usageLimits)
+              ? addon.usageLimits
+                  .slice(0, 20)
+                  .map(function (lim) {
+                    var label = String((lim && lim.label) || '').trim().slice(0, 80);
+                    var details = String((lim && lim.details) || '').trim().slice(0, 240);
+                    if (!label && !details) return null;
+                    return { label: label || 'Limit', details: details };
+                  })
+                  .filter(Boolean)
+              : [];
+            if (limits.length) cleaned.usageLimits = limits;
+          }
+          return cleaned;
+        })
+        .filter(Boolean);
+      if (!out.addOns.length) delete out.addOns;
+    }
     var planId = String(doc.maintenancePlanId || '').toLowerCase();
     if (planId === 'standard' || planId === 'priority') {
       out.maintenancePlanId = planId;
@@ -9345,6 +9386,57 @@ window.addEventListener('load', function() {
     return row;
   }
 
+  /**
+   * @param {BusinessDocAddOnUsageLimit | null | undefined} lim
+   */
+  function createAddonUsageRowEl(lim) {
+    var row = document.createElement('div');
+    row.className = 'business-doc-addon-usage-row';
+    var labelFg = document.createElement('div');
+    labelFg.className = 'form-group';
+    var labelEl = document.createElement('label');
+    labelEl.textContent = 'Limit label';
+    var labelInput = document.createElement('input');
+    labelInput.type = 'text';
+    labelInput.className = 'business-doc-addon-usage-label';
+    labelInput.placeholder = 'e.g. Texts';
+    labelInput.setAttribute('aria-label', 'Usage limit label');
+    if (lim && lim.label) labelInput.value = lim.label;
+    labelFg.appendChild(labelEl);
+    labelFg.appendChild(labelInput);
+    var detailsFg = document.createElement('div');
+    detailsFg.className = 'form-group';
+    var detailsEl = document.createElement('label');
+    detailsEl.textContent = 'Details';
+    var detailsInput = document.createElement('input');
+    detailsInput.type = 'text';
+    detailsInput.className = 'business-doc-addon-usage-details';
+    detailsInput.placeholder = 'e.g. 500/mo included, then $0.02 each';
+    detailsInput.setAttribute('aria-label', 'Usage limit details');
+    if (lim && lim.details) detailsInput.value = lim.details;
+    detailsFg.appendChild(detailsEl);
+    detailsFg.appendChild(detailsInput);
+    var rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'business-doc-addon-price-remove';
+    rm.setAttribute('aria-label', 'Remove usage limit');
+    rm.innerHTML = '<ion-icon name="close-outline"></ion-icon>';
+    rm.addEventListener('click', function () {
+      var inner = row.parentElement;
+      if (!inner) return;
+      if (inner.querySelectorAll('.business-doc-addon-usage-row').length <= 1) {
+        labelInput.value = '';
+        detailsInput.value = '';
+        return;
+      }
+      row.remove();
+    });
+    row.appendChild(labelFg);
+    row.appendChild(detailsFg);
+    row.appendChild(rm);
+    return row;
+  }
+
   /** @param {BusinessDocAddOn | {}} data */
   function createAddonCardEl(data) {
     data = data || {};
@@ -9391,7 +9483,7 @@ window.addEventListener('load', function() {
     pricesWrap.className = 'business-doc-addon-prices';
     var pl = document.createElement('span');
     pl.className = 'business-doc-addon-prices-label';
-    pl.textContent = 'Price options';
+    pl.textContent = 'Price options (one-time)';
     var pricesInner = document.createElement('div');
     pricesInner.className = 'business-doc-addon-prices-inner';
     var po =
@@ -9411,10 +9503,60 @@ window.addEventListener('load', function() {
     pricesWrap.appendChild(pl);
     pricesWrap.appendChild(pricesInner);
     pricesWrap.appendChild(addPriceBtn);
+
+    var usageToggleWrap = document.createElement('label');
+    usageToggleWrap.className = 'business-doc-addon-usage-toggle';
+    var usageToggle = document.createElement('input');
+    usageToggle.type = 'checkbox';
+    usageToggle.className = 'business-doc-addon-includes-usage';
+    usageToggle.checked = !!data.includesUsage;
+    var usageToggleText = document.createElement('span');
+    usageToggleText.textContent = 'Price includes usage (+ usage on PDF)';
+    usageToggleWrap.appendChild(usageToggle);
+    usageToggleWrap.appendChild(usageToggleText);
+
+    var usageWrap = document.createElement('div');
+    usageWrap.className = 'business-doc-addon-usage';
+    usageWrap.hidden = !usageToggle.checked;
+    var usageLabel = document.createElement('span');
+    usageLabel.className = 'business-doc-addon-prices-label';
+    usageLabel.textContent = 'Usage limits';
+    var usageHint = document.createElement('p');
+    usageHint.className = 'business-doc-addon-usage-hint';
+    usageHint.textContent = 'Shown under “$amount + usage” on the PDF. Different add-ons can use different limits.';
+    var usageInner = document.createElement('div');
+    usageInner.className = 'business-doc-addon-usage-inner';
+    var limits =
+      data.usageLimits && Array.isArray(data.usageLimits) && data.usageLimits.length > 0
+        ? data.usageLimits
+        : [{}];
+    limits.forEach(function (lim) {
+      usageInner.appendChild(createAddonUsageRowEl(lim));
+    });
+    var addUsageBtn = document.createElement('button');
+    addUsageBtn.type = 'button';
+    addUsageBtn.className = 'btn btn-secondary business-doc-add-price-option-btn';
+    addUsageBtn.innerHTML = '<ion-icon name="add-outline"></ion-icon> Add usage limit';
+    addUsageBtn.addEventListener('click', function () {
+      usageInner.appendChild(createAddonUsageRowEl(null));
+    });
+    usageWrap.appendChild(usageLabel);
+    usageWrap.appendChild(usageHint);
+    usageWrap.appendChild(usageInner);
+    usageWrap.appendChild(addUsageBtn);
+    usageToggle.addEventListener('change', function () {
+      usageWrap.hidden = !usageToggle.checked;
+      if (usageToggle.checked && !usageInner.querySelector('.business-doc-addon-usage-row')) {
+        usageInner.appendChild(createAddonUsageRowEl(null));
+      }
+    });
+
     card.appendChild(header);
     card.appendChild(nameFg);
     card.appendChild(descFg);
     card.appendChild(pricesWrap);
+    card.appendChild(usageToggleWrap);
+    card.appendChild(usageWrap);
     return card;
   }
 
@@ -9446,8 +9588,10 @@ window.addEventListener('load', function() {
       var card = cards[i];
       var nameEl = card.querySelector('.business-doc-addon-name');
       var descEl = card.querySelector('.business-doc-addon-desc');
+      var usageToggle = card.querySelector('.business-doc-addon-includes-usage');
       var nameVal = nameEl ? nameEl.value.trim() : '';
       var descVal = descEl ? descEl.value.trim() : '';
+      var includesUsage = !!(usageToggle && usageToggle.checked);
       var priceRows = card.querySelectorAll('.business-doc-addon-price-row');
       var priceOptions = [];
       for (var j = 0; j < priceRows.length; j++) {
@@ -9462,7 +9606,36 @@ window.addEventListener('load', function() {
         }
         priceOptions.push({ label: '', amount: numVal });
       }
-      if (nameVal === '' && descVal === '' && priceOptions.length === 0) continue;
+      var usageLimits = [];
+      if (includesUsage) {
+        var usageRows = card.querySelectorAll('.business-doc-addon-usage-row');
+        for (var u = 0; u < usageRows.length; u++) {
+          var uRow = usageRows[u];
+          var labelEl = uRow.querySelector('.business-doc-addon-usage-label');
+          var detailsEl = uRow.querySelector('.business-doc-addon-usage-details');
+          var limLabel = labelEl ? labelEl.value.trim() : '';
+          var limDetails = detailsEl ? detailsEl.value.trim() : '';
+          if (!limLabel && !limDetails) continue;
+          if (!limLabel || !limDetails) {
+            alert(
+              'Upgrade option "' +
+                (nameVal || 'Untitled') +
+                '": each usage limit needs both a label and details.'
+            );
+            return null;
+          }
+          usageLimits.push({ label: limLabel, details: limDetails });
+        }
+        if (!usageLimits.length) {
+          alert(
+            'Upgrade option "' +
+              (nameVal || 'Untitled') +
+              '": add at least one usage limit, or turn off “Price includes usage”.'
+          );
+          return null;
+        }
+      }
+      if (nameVal === '' && descVal === '' && priceOptions.length === 0 && !includesUsage) continue;
       if (nameVal === '') {
         alert('Upgrade option name is required when details or prices are provided.');
         return null;
@@ -9474,6 +9647,10 @@ window.addEventListener('load', function() {
       /** @type {BusinessDocAddOn} */
       var o = { name: nameVal, priceOptions: priceOptions };
       if (descVal) o.description = descVal;
+      if (includesUsage) {
+        o.includesUsage = true;
+        o.usageLimits = usageLimits;
+      }
       result.push(o);
     }
     return result;
@@ -12647,19 +12824,45 @@ window.addEventListener('load', function() {
       if (!addon || !addon.name) continue;
       var opts = addon.priceOptions && Array.isArray(addon.priceOptions) ? addon.priceOptions : [];
       if (!opts.length) continue;
+      var includesUsage = !!addon.includesUsage;
+      var usageLimits =
+        includesUsage && Array.isArray(addon.usageLimits) ? addon.usageLimits : [];
       var nameEsc = escapeHtml(addon.name);
       var descInner = buildAddonDescriptionPdfHtml(addon.description || '');
       var tierRows = '';
       for (var j = 0; j < opts.length; j++) {
         var o = opts[j];
         var amt = typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
+        var priceLabel = formatCurrency(amt) + (includesUsage ? ' + usage' : '');
         tierRows +=
           '<div class="addon-tier-row addon-tier-only">' +
           '<div class="addon-tier-solo">' +
           '<span class="addon-tier-price">' +
-          escapeHtml(formatCurrency(amt)) +
+          escapeHtml(priceLabel) +
           '</span></div>' +
           '</div>';
+      }
+      var usageHtml = '';
+      if (includesUsage && usageLimits.length) {
+        usageHtml =
+          '<ul class="addon-usage-list">' +
+          usageLimits
+            .map(function (lim) {
+              var label = String((lim && lim.label) || '').trim();
+              var details = String((lim && lim.details) || '').trim();
+              if (!label && !details) return '';
+              return (
+                '<li><span class="addon-usage-label">' +
+                escapeHtml(label || 'Limit') +
+                '</span>' +
+                (details
+                  ? '<span class="addon-usage-details">' + escapeHtml(details) + '</span>'
+                  : '') +
+                '</li>'
+              );
+            })
+            .join('') +
+          '</ul>';
       }
       parts.push(
         '<div class="addon-card">' +
@@ -12672,6 +12875,7 @@ window.addEventListener('load', function() {
           '<div class="addon-tier-rows">' +
           tierRows +
           '</div>' +
+          usageHtml +
           '</div>'
       );
     }
@@ -12765,6 +12969,11 @@ window.addEventListener('load', function() {
       '.addon-tier-row.addon-tier-only { display: block; }\n' +
       '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 14px 18px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.13); }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
+      '.addon-usage-list { list-style: none; margin: 12px 0 0; padding: 0; }\n' +
+      '.addon-usage-list li { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.45; }\n' +
+      '.addon-usage-list li:first-child { border-top: none; padding-top: 0; }\n' +
+      '.addon-usage-label { font-weight: 600; color: ' + C.dark.text + '; }\n' +
+      '.addon-usage-details { color: ' + C.dark.muted + '; }\n' +
       '.features-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 12px; }\n' +
       '.feature-col { }\n' +
       '.feature-title { font-size: 12px; font-weight: 600; color: ' + C.dark.text + '; margin-bottom: 6px; }\n' +
