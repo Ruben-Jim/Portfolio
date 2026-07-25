@@ -12818,7 +12818,7 @@ window.addEventListener('load', function() {
    */
   function buildAddOnsPdfHtml(doc) {
     if (!doc || !doc.addOns || !Array.isArray(doc.addOns) || doc.addOns.length === 0) return '';
-    var parts = [];
+    var items = [];
     for (var i = 0; i < doc.addOns.length; i++) {
       var addon = doc.addOns[i];
       if (!addon || !addon.name) continue;
@@ -12827,26 +12827,38 @@ window.addEventListener('load', function() {
       var includesUsage = !!addon.includesUsage;
       var usageLimits =
         includesUsage && Array.isArray(addon.usageLimits) ? addon.usageLimits : [];
-      var nameEsc = escapeHtml(addon.name);
-      var descInner = buildAddonDescriptionPdfHtml(addon.description || '');
+      items.push({
+        name: addon.name,
+        description: addon.description || '',
+        includesUsage: includesUsage,
+        usageLimits: usageLimits,
+        amounts: opts.map(function (o) {
+          return typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
+        })
+      });
+    }
+    if (!items.length) return '';
+    var isSingle = items.length === 1;
+    var parts = [];
+    for (var k = 0; k < items.length; k++) {
+      var it = items[k];
+      var nameEsc = escapeHtml(it.name);
+      var descInner = buildAddonDescriptionPdfHtml(it.description);
       var tierRows = '';
-      for (var j = 0; j < opts.length; j++) {
-        var o = opts[j];
-        var amt = typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
-        var priceLabel = formatCurrency(amt) + (includesUsage ? ' + usage' : '');
+      for (var j = 0; j < it.amounts.length; j++) {
+        var priceLabel =
+          formatCurrency(it.amounts[j]) + (it.includesUsage ? ' + usage' : '');
         tierRows +=
-          '<div class="addon-tier-row addon-tier-only">' +
-          '<div class="addon-tier-solo">' +
+          '<div class="addon-price-pill">' +
           '<span class="addon-tier-price">' +
           escapeHtml(priceLabel) +
-          '</span></div>' +
-          '</div>';
+          '</span></div>';
       }
       var usageHtml = '';
-      if (includesUsage && usageLimits.length) {
+      if (it.includesUsage && it.usageLimits.length) {
         usageHtml =
           '<ul class="addon-usage-list">' +
-          usageLimits
+          it.usageLimits
             .map(function (lim) {
               var label = String((lim && lim.label) || '').trim();
               var details = String((lim && lim.details) || '').trim();
@@ -12865,26 +12877,38 @@ window.addEventListener('load', function() {
           '</ul>';
       }
       parts.push(
-        '<div class="addon-card">' +
+        '<div class="addon-card' +
+          (isSingle ? ' addon-card--compact' : '') +
+          '">' +
+          '<div class="addon-card-head">' +
           '<div class="addon-card-title">' +
           nameEsc +
           '</div>' +
+          '<div class="addon-tier-rows addon-tier-rows--pill">' +
+          tierRows +
+          '</div></div>' +
           (descInner
             ? '<div class="addon-card-desc">' + descInner + '</div>'
             : '') +
-          '<div class="addon-tier-rows">' +
-          tierRows +
-          '</div>' +
           usageHtml +
           '</div>'
       );
     }
-    if (!parts.length) return '';
+    var gridClass =
+      'addon-cards-grid' +
+      (isSingle ? ' addon-cards-grid--single' : ' addon-cards-grid--multi');
+    if (!isSingle && items.length === 2) gridClass += ' addon-cards-grid--two';
+    if (!isSingle && items.length >= 3) gridClass += ' addon-cards-grid--many';
+    var introHtml = isSingle
+      ? ''
+      : '    <p class="addons-section-intro">Optional ways to enhance or extend the proposed build—your customer can choose any tier to upgrade beyond the base scope above.</p>\n';
     return (
       '    <hr class="divider">\n' +
       '    <div class="section-title">Optional upgrades for the proposed site</div>\n' +
-      '    <p class="addons-section-intro">Optional ways to enhance or extend the proposed build—your customer can choose any tier to upgrade beyond the base scope above.</p>\n' +
-      '    <div class="addon-cards-grid">' +
+      introHtml +
+      '    <div class="' +
+      gridClass +
+      '">' +
       parts.join('') +
       '</div>\n'
     );
@@ -12955,21 +12979,28 @@ window.addEventListener('load', function() {
       '.scope-feature-list li:last-child { margin-bottom: 0; }\n' +
       '.scope-feature-list li::before { content: \'\'; flex-shrink: 0; width: 7px; height: 7px; margin-top: 6px; border-radius: 2px; background: linear-gradient(145deg, ' + C.primary + ', #ca8a04); box-shadow: 0 0 0 1px rgba(234,179,8,0.4); }\n' +
       '.bullet-li-text { flex: 1; min-width: 0; letter-spacing: 0.01em; }\n' +
-      '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 12px; }\n' +
+      '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px 32px; margin-top: 12px; align-items: start; }\n' +
+      '.addon-cards-grid--single { display: block; max-width: 320px; margin: 8px auto 0; }\n' +
+      '.addon-cards-grid--two { grid-template-columns: 1fr 1fr; }\n' +
+      '.addon-cards-grid--many { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }\n' +
       '.addon-desc-list { list-style: none; margin: 0; padding: 0; }\n' +
       '.addon-desc-list li { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
       '.addon-desc-list li:first-child { padding-top: 0; }\n' +
       '.addon-desc-list li:last-child { border-bottom: none; padding-bottom: 0; }\n' +
       '.addon-desc-list li::before { content: \'\'; flex-shrink: 0; width: 5px; height: 5px; margin-top: 6px; border-radius: 50%; background: ' + C.primary + '; opacity: 0.95; }\n' +
-      '.addon-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; min-height: 100%; }\n' +
-      '.addon-card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: ' + C.primary + '; margin-bottom: 10px; line-height: 1.35; }\n' +
-      '.addon-card-desc { font-size: 12px; color: ' + C.dark.muted + '; line-height: 1.55; margin-bottom: 14px; }\n' +
+      '.addon-card { background: transparent; border: none; border-radius: 0; padding: 0; display: flex; flex-direction: column; min-height: 0; }\n' +
+      '.addon-card-head { display: flex; align-items: center; justify-content: flex-start; gap: 8px 10px; flex-wrap: wrap; margin-bottom: 8px; }\n' +
+      '.addon-card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: ' + C.primary + '; margin: 0; line-height: 1.35; flex: 0 1 auto; min-width: 0; max-width: 100%; }\n' +
+      '.addon-card-desc { font-size: 12px; color: ' + C.dark.muted + '; line-height: 1.55; margin-bottom: 8px; }\n' +
       '.addon-tier-rows { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }\n' +
-      '.addon-tier-row { border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.22) 100%); }\n' +
+      '.addon-tier-rows--pill { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; flex: 0 0 auto; align-items: center; }\n' +
+      '.addon-price-pill { display: inline-flex; align-items: center; justify-content: center; padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(234,179,8,0.45); background: rgba(234,179,8,0.14); }\n' +
+      '.addon-price-pill .addon-tier-price { font-size: 14px; }\n' +
+      '.addon-tier-row { border-radius: 10px; overflow: hidden; border: none; background: rgba(234,179,8,0.12); }\n' +
       '.addon-tier-row.addon-tier-only { display: block; }\n' +
-      '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 14px 18px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.13); }\n' +
+      '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 12px 16px; border-left: 3px solid ' + C.primary + '; background: transparent; }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
-      '.addon-usage-list { list-style: none; margin: 12px 0 0; padding: 0; }\n' +
+      '.addon-usage-list { list-style: none; margin: 10px 0 0; padding: 0; }\n' +
       '.addon-usage-list li { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.45; }\n' +
       '.addon-usage-list li:first-child { border-top: none; padding-top: 0; }\n' +
       '.addon-usage-label { font-weight: 600; color: ' + C.dark.text + '; }\n' +

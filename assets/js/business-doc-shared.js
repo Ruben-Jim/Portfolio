@@ -288,7 +288,7 @@
   /**
    * Builds optional add-ons block for PDF/print HTML (empty string if none).
    * @param {BusinessDocument} doc
-   * @param {{ compactSingle?: boolean }=} options - proposal: one upgrade → centered compact card
+   * @param {{ compactSingle?: boolean }=} options - legacy; single add-on always uses compact layout
    */
   function buildAddOnsPdfHtml(doc, options) {
     if (!doc || !doc.addOns || !Array.isArray(doc.addOns) || doc.addOns.length === 0) return '';
@@ -316,35 +316,21 @@
       });
     }
     if (!items.length) return '';
-    var compactSingle = !!(options && options.compactSingle && items.length === 1);
+    var isSingle = items.length === 1;
     var parts = [];
     for (var k = 0; k < items.length; k++) {
       var it = items[k];
       var nameEsc = escapeHtml(it.name);
       var descInner = buildAddonDescriptionPdfHtml(it.description);
       var tierRows = '';
-      if (compactSingle) {
-        for (var p = 0; p < it.amounts.length; p++) {
-          var compactLabel =
-            formatCurrency(it.amounts[p]) + (it.includesUsage ? ' + usage' : '');
-          tierRows +=
-            '<div class="addon-price-pill">' +
-            '<span class="addon-tier-price">' +
-            escapeHtml(compactLabel) +
-            '</span></div>';
-        }
-      } else {
-        for (var j = 0; j < it.amounts.length; j++) {
-          var priceLabel =
-            formatCurrency(it.amounts[j]) + (it.includesUsage ? ' + usage' : '');
-          tierRows +=
-            '<div class="addon-tier-row addon-tier-only">' +
-            '<div class="addon-tier-solo">' +
-            '<span class="addon-tier-price">' +
-            escapeHtml(priceLabel) +
-            '</span></div>' +
-            '</div>';
-        }
+      for (var j = 0; j < it.amounts.length; j++) {
+        var priceLabel =
+          formatCurrency(it.amounts[j]) + (it.includesUsage ? ' + usage' : '');
+        tierRows +=
+          '<div class="addon-price-pill">' +
+          '<span class="addon-tier-price">' +
+          escapeHtml(priceLabel) +
+          '</span></div>';
       }
       var usageHtml = '';
       if (it.includesUsage && it.usageLimits.length) {
@@ -370,25 +356,28 @@
       }
       parts.push(
         '<div class="addon-card' +
-          (compactSingle ? ' addon-card--compact' : '') +
+          (isSingle ? ' addon-card--compact' : '') +
           '">' +
+          '<div class="addon-card-head">' +
           '<div class="addon-card-title">' +
           nameEsc +
           '</div>' +
+          '<div class="addon-tier-rows addon-tier-rows--pill">' +
+          tierRows +
+          '</div></div>' +
           (descInner
             ? '<div class="addon-card-desc">' + descInner + '</div>'
             : '') +
-          '<div class="addon-tier-rows' +
-          (compactSingle ? ' addon-tier-rows--pill' : '') +
-          '">' +
-          tierRows +
-          '</div>' +
           usageHtml +
           '</div>'
       );
     }
-    var gridClass = 'addon-cards-grid' + (compactSingle ? ' addon-cards-grid--single' : '');
-    var introHtml = compactSingle
+    var gridClass =
+      'addon-cards-grid' +
+      (isSingle ? ' addon-cards-grid--single' : ' addon-cards-grid--multi');
+    if (!isSingle && items.length === 2) gridClass += ' addon-cards-grid--two';
+    if (!isSingle && items.length >= 3) gridClass += ' addon-cards-grid--many';
+    var introHtml = isSingle
       ? ''
       : '    <p class="addons-section-intro">Optional ways to enhance or extend the proposed build—your customer can choose any tier to upgrade beyond the base scope above.</p>\n';
     return (
@@ -447,7 +436,7 @@
       '      <div class="next-step"><div class="next-step-num">03</div><div class="next-step-title">Approve</div><span class="next-step-blurb">Confirm acceptance in writing so kickoff, timeline, and next milestones can be scheduled.</span></div>\n' +
       '    </div>\n';
 
-    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
+    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>' + typeLabel + ' — ' + (customer.name || '') + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
       '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .doc { page-break-inside: avoid; transform-origin: top center; } .header-tag { padding: 4px 10px; font-size: 10px; margin-bottom: 8px; } .doc-title { font-size: 20px; margin-bottom: 4px; } .doc-subtitle { font-size: 11px; margin-bottom: 12px; } .divider { margin: 10px 0 !important; } .section-title { font-size: 11px; margin-bottom: 6px; } .addons-section-intro { font-size: 10px; margin: -2px 0 10px 0; } .scope-frame { box-shadow: none !important; } .scope-frame-inner { padding: 10px 12px !important; } .scope-kicker { font-size: 12px !important; padding-bottom: 8px !important; margin-bottom: 10px !important; } .scope-feature-list li { font-size: 11px; padding: 6px 8px !important; margin-bottom: 4px !important; } .scope-feature-list.is-multi-col { gap: 4px 8px; } .scope-feature-list.is-multi-col li { margin-bottom: 0 !important; padding: 5px 7px !important; font-size: 10px; } .scope-feature-list li::before { width: 5px; height: 5px; margin-top: 5px; } .addon-cards-grid { gap: 10px; margin-top: 8px; } .addon-card { padding: 12px 14px; } .addon-card-title { font-size: 12px; } .addon-card-desc { font-size: 11px; margin-bottom: 8px; } .addon-desc-list li { font-size: 11px; padding: 5px 0; } .addon-tier-solo { padding: 10px 14px; } .addon-tier-price { font-size: 17px; } .maint-plans-grid { gap: 10px; margin-top: 8px; } .maint-plan-card { padding: 12px 14px; } .maint-plan-badge { font-size: 9px; padding: 3px 8px; } .maint-plan-title { font-size: 12px; } .maint-plan-sla { font-size: 10px; margin-bottom: 8px; } .maint-price-main { font-size: 16px; } .maint-price-note, .maint-price-equiv { font-size: 10px; } .maint-feature-list li { font-size: 10px; padding: 4px 0; } .features-grid { gap: 12px; margin-top: 6px; } .feature-title { font-size: 11px; margin-bottom: 2px; } .feature-desc { font-size: 11px; line-height: 1.35; } .pricing-grid { gap: 12px; margin-top: 6px; } .price-card { padding: 12px 16px; } .price-card-primary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-primary .price-amt { font-size: 28px; } .price-card-primary .price-meta { font-size: 11px; margin-top: 8px; line-height: 1.35; } .price-card-secondary .price-label { font-size: 10px; margin-bottom: 4px; } .price-card-secondary .price-meta { font-size: 11px; line-height: 1.4; } .why-list { margin-top: 6px; padding-left: 16px; font-size: 12px; line-height: 1.45; } .why-list li { margin-bottom: 4px; } .next-steps-grid { gap: 12px; margin-top: 6px; } .next-step-num { font-size: 16px; margin-bottom: 4px; padding-bottom: 4px; } .next-step-title { font-size: 12px; margin-bottom: 2px; } .next-step-link { font-size: 11px; } .footer-buttons { margin-top: 12px; gap: 8px; } .btn-primary, .btn-outline { padding: 8px 16px; font-size: 11px; } .footer-meta { margin-top: 12px; padding-top: 10px; font-size: 10px; } }\n' +
       '* { box-sizing: border-box; }\n' +
@@ -467,27 +456,33 @@
       '.scope-feature-list { list-style: none; margin: 0; padding: 0; }\n' +
       '.scope-feature-list.is-multi-col { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; align-items: stretch; }\n' +
       '.scope-feature-list.is-multi-col li { margin-bottom: 0; height: 100%; }\n' +
-      '@media (max-width: 560px) { .scope-feature-list.is-multi-col { grid-template-columns: 1fr; } .pricing-grid { grid-template-columns: 1fr; } .maint-price-grid { grid-template-columns: 1fr; } .next-steps-grid { grid-template-columns: 1fr; } .features-grid { grid-template-columns: 1fr; } body { padding: 20px 16px; } }\n' +
       '.scope-feature-list li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; margin-bottom: 6px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.18); font-size: 13px; line-height: 1.5; font-weight: 500; color: ' + C.dark.text + '; }\n' +
       '.scope-feature-list li:last-child { margin-bottom: 0; }\n' +
       '.scope-feature-list.is-multi-col li:last-child { margin-bottom: 0; }\n' +
       '.scope-feature-list li::before { content: \'\'; flex-shrink: 0; width: 7px; height: 7px; margin-top: 6px; border-radius: 2px; background: linear-gradient(145deg, ' + C.primary + ', #ca8a04); box-shadow: 0 0 0 1px rgba(234,179,8,0.4); }\n' +
       '.bullet-li-text { flex: 1; min-width: 0; letter-spacing: 0.01em; }\n' +
-      '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 12px; }\n' +
+      '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 22px 32px; margin-top: 12px; align-items: start; }\n' +
+      '.addon-cards-grid--single { display: block; max-width: 320px; margin: 8px auto 0; }\n' +
+      '.addon-cards-grid--two { grid-template-columns: 1fr 1fr; }\n' +
+      '.addon-cards-grid--many { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }\n' +
       '.addon-desc-list { list-style: none; margin: 0; padding: 0; }\n' +
       '.addon-desc-list li { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.5; color: ' + C.dark.muted + '; }\n' +
       '.addon-desc-list li:first-child { padding-top: 0; }\n' +
       '.addon-desc-list li:last-child { border-bottom: none; padding-bottom: 0; }\n' +
       '.addon-desc-list li::before { content: \'\'; flex-shrink: 0; width: 5px; height: 5px; margin-top: 6px; border-radius: 50%; background: ' + C.primary + '; opacity: 0.95; }\n' +
-      '.addon-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; min-height: 100%; }\n' +
-      '.addon-card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: ' + C.primary + '; margin-bottom: 10px; line-height: 1.35; }\n' +
-      '.addon-card-desc { font-size: 12px; color: ' + C.dark.muted + '; line-height: 1.55; margin-bottom: 14px; }\n' +
+      '.addon-card { background: transparent; border: none; border-radius: 0; padding: 0; display: flex; flex-direction: column; min-height: 0; }\n' +
+      '.addon-card-head { display: flex; align-items: center; justify-content: flex-start; gap: 8px 10px; flex-wrap: wrap; margin-bottom: 8px; }\n' +
+      '.addon-card-title { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; color: ' + C.primary + '; margin: 0; line-height: 1.35; flex: 0 1 auto; min-width: 0; max-width: 100%; }\n' +
+      '.addon-card-desc { font-size: 12px; color: ' + C.dark.muted + '; line-height: 1.55; margin-bottom: 8px; }\n' +
       '.addon-tier-rows { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }\n' +
-      '.addon-tier-row { border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: linear-gradient(165deg, rgba(255,255,255,0.07) 0%, rgba(0,0,0,0.22) 100%); }\n' +
+      '.addon-tier-rows--pill { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; flex: 0 0 auto; align-items: center; }\n' +
+      '.addon-price-pill { display: inline-flex; align-items: center; justify-content: center; padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(234,179,8,0.45); background: rgba(234,179,8,0.14); }\n' +
+      '.addon-price-pill .addon-tier-price { font-size: 14px; }\n' +
+      '.addon-tier-row { border-radius: 10px; overflow: hidden; border: none; background: rgba(234,179,8,0.12); }\n' +
       '.addon-tier-row.addon-tier-only { display: block; }\n' +
-      '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 14px 18px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.13); }\n' +
+      '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 12px 16px; border-left: 3px solid ' + C.primary + '; background: transparent; }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
-      '.addon-usage-list { list-style: none; margin: 12px 0 0; padding: 0; }\n' +
+      '.addon-usage-list { list-style: none; margin: 10px 0 0; padding: 0; }\n' +
       '.addon-usage-list li { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.45; }\n' +
       '.addon-usage-list li:first-child { border-top: none; padding-top: 0; }\n' +
       '.addon-usage-label { font-weight: 600; color: ' + C.dark.text + '; }\n' +
@@ -751,9 +746,9 @@
 
     var addOnsBlockHtml = buildAddOnsPdfHtml(doc, { compactSingle: true });
 
-    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1">\n  <title>PROPOSAL — ' + escapeHtml(clientName) + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
+    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>PROPOSAL — ' + escapeHtml(clientName) + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 10mm; }\n' +
-      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 10px 14px !important; } .doc { page-break-inside: avoid; } .doc-title { font-size: 22px; } .section-title { font-size: 11px; margin-bottom: 8px; } .pc-body { font-size: 12px; margin-bottom: 0; } .pc-core-grid { gap: 12px; } .pc-core-title { font-size: 11px; } .pc-core-desc { font-size: 11px; } .pc-pricing-row { gap: 12px; grid-template-columns: 1fr; } .pc-gold { padding: 14px 16px; } .pc-gold-amt { font-size: 28px; } .pc-gold-list { columns: 2; font-size: 11px; } .pc-maint-dual { grid-template-columns: 1fr 1fr; height: auto; } .pc-maint-card { padding: 10px 12px; } .pc-maint-price { font-size: 16px; } .pc-maint-feats li { font-size: 10px; } .why-list { font-size: 12px; } .next-steps-grid { gap: 12px; } .footer-buttons { margin-top: 14px; } .divider { margin: 12px 0 !important; } .addon-cards-grid--single .addon-card { padding: 12px 14px; } }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 10px 14px !important; } .doc { page-break-inside: avoid; } .doc-title { font-size: 22px; } .section-title { font-size: 11px; margin-bottom: 8px; } .pc-body { font-size: 12px; margin-bottom: 0; } .pc-core-grid { gap: 12px; } .pc-core-title { font-size: 11px; } .pc-core-desc { font-size: 11px; } .pc-pricing-row { gap: 12px; grid-template-columns: 1fr; } .pc-gold { padding: 14px 16px; } .pc-gold-amt { font-size: 28px; } .pc-gold-list { columns: 2; font-size: 11px; } .pc-maint-dual { grid-template-columns: 1fr 1fr; height: auto; } .pc-maint-card { padding: 10px 12px; } .pc-maint-price { font-size: 16px; } .pc-maint-feats li { font-size: 10px; } .why-list { font-size: 12px; } .next-steps-grid { gap: 12px; } .footer-buttons { margin-top: 14px; } .divider { margin: 12px 0 !important; } .addon-cards-grid--single .addon-card { padding: 0; } }\n' +
       '* { box-sizing: border-box; }\n' +
       'body { margin: 0; padding: 36px 28px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
       '.doc { max-width: 820px; margin: 0 auto; }\n' +
@@ -798,17 +793,21 @@
       '.btn-primary { display: inline-block; padding: 10px 20px; background: ' + C.primary + '; color: ' + C.dark.bg + '; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; border-radius: 6px; }\n' +
       '.btn-outline { display: inline-block; padding: 10px 20px; background: transparent; color: ' + C.primary + '; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; border-radius: 6px; border: 2px solid ' + C.primary + '; }\n' +
       '.footer-meta { margin-top: 18px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px; color: ' + C.dark.muted + '; }\n' +
-      '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; }\n' +
-      '.addon-cards-grid--single { display: block; max-width: 280px; margin: 8px auto 0; }\n' +
-      '.addon-cards-grid--single .addon-card--compact { padding: 12px 14px 12px; text-align: left; }\n' +
-      '.addon-cards-grid--single .addon-card-title { font-size: 12px; margin-bottom: 6px; }\n' +
-      '.addon-cards-grid--single .addon-card-desc { font-size: 11px; margin-bottom: 10px; }\n' +
-      '.addon-tier-rows--pill { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }\n' +
-      '.addon-price-pill { display: inline-flex; align-items: center; justify-content: center; padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(234,179,8,0.45); background: rgba(234,179,8,0.14); }\n' +
-      '.addon-price-pill .addon-tier-price { font-size: 15px; }\n' +
+      '.addon-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px 28px; margin-top: 10px; align-items: start; }\n' +
+      '.addon-cards-grid--single { display: block; max-width: 300px; margin: 8px auto 0; }\n' +
+      '.addon-cards-grid--two { grid-template-columns: 1fr 1fr; }\n' +
+      '.addon-cards-grid--many { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }\n' +
+      '.addon-cards-grid--single .addon-card--compact { padding: 0; text-align: left; }\n' +
+      '.addon-cards-grid--single .addon-card-title { font-size: 12px; margin: 0; }\n' +
+      '.addon-cards-grid--single .addon-card-desc { font-size: 11px; margin-bottom: 8px; }\n' +
+      '.addon-tier-rows--pill { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; flex: 0 0 auto; align-items: center; }\n' +
+      '.addon-price-pill { display: inline-flex; align-items: center; justify-content: center; padding: 5px 12px; border-radius: 999px; border: 1px solid rgba(234,179,8,0.45); background: rgba(234,179,8,0.14); }\n' +
+      '.addon-price-pill .addon-tier-price { font-size: 13px; }\n' +
       '.addons-section-intro { font-size: 11px; color: ' + C.dark.muted + '; margin: -2px 0 10px; }\n' +
-      '.addon-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; }\n' +
-      '.addon-card-title { font-size: 12px; font-weight: 600; color: ' + C.primary + '; margin-bottom: 8px; }\n' +
+      '.addon-card { background: transparent; border: none; border-radius: 0; padding: 0; }\n' +
+      '.addon-card-head { display: flex; align-items: center; justify-content: flex-start; gap: 8px 10px; flex-wrap: wrap; margin-bottom: 8px; }\n' +
+      '.addon-card-title { font-size: 12px; font-weight: 600; color: ' + C.primary + '; margin: 0; line-height: 1.35; flex: 0 1 auto; min-width: 0; max-width: 100%; }\n' +
+      '.addon-card-desc { font-size: 11px; color: ' + C.dark.muted + '; margin-bottom: 8px; line-height: 1.5; }\n' +
       '.addon-tier-solo { display: flex; justify-content: center; padding: 10px; border-left: 3px solid ' + C.primary + '; background: rgba(234,179,8,0.12); border-radius: 8px; }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 18px; font-weight: 700; color: ' + C.primary + '; }\n' +
       '.addon-usage-list { list-style: none; margin: 10px 0 0; padding: 0; text-align: left; }\n' +
@@ -816,36 +815,6 @@
       '.addon-usage-list li:first-child { border-top: none; padding-top: 0; }\n' +
       '.addon-usage-label { font-weight: 600; color: ' + C.dark.text + '; }\n' +
       '.addon-usage-details { color: ' + C.dark.muted + '; }\n' +
-      '@media (max-width: 700px) {\n' +
-      '  body { padding: 20px 16px; font-size: 15px; }\n' +
-      '  .doc-title { font-size: 22px; line-height: 1.2; }\n' +
-      '  .doc-subtitle { font-size: 13px; }\n' +
-      '  .section-title { font-size: 13px; margin-bottom: 12px; }\n' +
-      '  .pc-body { font-size: 15px; line-height: 1.65; max-width: none; }\n' +
-      '  .pc-core-grid--2, .pc-core-grid--3, .pc-core-grid--4 { grid-template-columns: 1fr; gap: 14px; }\n' +
-      '  .pc-core-title { font-size: 14px; }\n' +
-      '  .pc-core-desc { font-size: 14px; line-height: 1.5; }\n' +
-      '  .pc-pricing-row { grid-template-columns: 1fr; gap: 14px; }\n' +
-      '  .pc-maint-dual { grid-template-columns: 1fr; height: auto; gap: 12px; }\n' +
-      '  .pc-gold { padding: 18px 16px; }\n' +
-      '  .pc-gold-amt { font-size: 36px; margin-bottom: 14px; }\n' +
-      '  .pc-gold-included { font-size: 12px; }\n' +
-      '  .pc-gold-list { columns: 1; font-size: 14px; line-height: 1.5; padding-left: 20px; }\n' +
-      '  .pc-gold-list li { margin-bottom: 6px; }\n' +
-      '  .pc-maint-card { padding: 16px; }\n' +
-      '  .pc-maint-badge { font-size: 10px; padding: 4px 10px; }\n' +
-      '  .pc-maint-price { font-size: 24px; }\n' +
-      '  .pc-maint-annual { font-size: 13px; margin: 6px 0 10px; }\n' +
-      '  .pc-maint-feats li { font-size: 14px; line-height: 1.45; padding: 5px 0 5px 14px; }\n' +
-      '  .pc-maint-feats li::before { top: 11px; }\n' +
-      '  .why-list { font-size: 15px; line-height: 1.55; padding-left: 20px; }\n' +
-      '  .next-steps-grid, .next-steps-grid--two { grid-template-columns: 1fr; max-width: none; gap: 16px; }\n' +
-      '  .next-step-title { font-size: 14px; }\n' +
-      '  .next-step-blurb { font-size: 13px; line-height: 1.5; }\n' +
-      '  .footer-buttons { flex-direction: column; }\n' +
-      '  .btn-primary, .btn-outline { text-align: center; width: 100%; }\n' +
-      '  .addon-cards-grid--single { max-width: none; }\n' +
-      '}\n' +
       '</style>\n</head>\n<body>\n  <div class="doc">\n' +
       '    <div class="header-tag">PROFESSIONAL SYSTEM</div>\n' +
       '    <h1 class="doc-title">' + headline + '</h1>\n' +
