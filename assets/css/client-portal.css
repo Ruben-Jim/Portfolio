@@ -673,6 +673,90 @@ body.client-portal-page {
   flex-shrink: 0;
 }
 
+.client-portal-doc-type--contract {
+  border-color: hsla(45, 100%, 72%, 0.35);
+  color: var(--orange-yellow-crayola);
+  background: hsla(45, 100%, 72%, 0.14);
+}
+
+.client-portal-sign-panel {
+  flex: 1 1 100%;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  background: hsla(240, 5%, 8%, 0.6);
+}
+
+.client-portal-sign-intro {
+  margin: 0 0 10px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.client-portal-sign-view-btn {
+  margin-bottom: 14px;
+}
+
+.client-portal-sign-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid hsla(45, 100%, 72%, 0.14);
+}
+
+.client-portal-sign-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  color: var(--light-gray-70);
+}
+
+.client-portal-sign-name {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 7px;
+  border: 1px solid hsla(45, 100%, 72%, 0.25);
+  background: hsla(240, 5%, 10%, 0.8);
+  color: var(--white-1);
+  font-size: var(--fs-7);
+}
+
+.client-portal-sign-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.client-portal-sign-check input {
+  margin-top: 3px;
+  accent-color: var(--orange-yellow-crayola);
+  flex-shrink: 0;
+}
+
+.client-portal-sign-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.client-portal-sign-feedback {
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.client-portal-sign-feedback.is-error {
+  color: hsl(0, 70%, 68%);
+}
+
 /* Maintenance & support */
 .client-portal-support-footer {
   margin: 0 0 20px;

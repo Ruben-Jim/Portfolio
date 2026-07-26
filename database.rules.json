@@ -74,6 +74,13 @@
       ".read": true,
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     },
+    "agencyContractSignatures": {
+      ".read": true,
+      "$docId": {
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['signedByName', 'agreedToTerms', 'signedAt'])"
+      }
+    },
     "agencyFirebaseHealth": {
       ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"

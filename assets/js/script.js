@@ -8830,6 +8830,9 @@ window.addEventListener('load', function() {
     if (typeof window.subscribeBusinessDocsFromRtdb === 'function') {
       window.subscribeBusinessDocsFromRtdb();
     }
+    if (typeof window.subscribeContractSignaturesFromRtdb === 'function') {
+      window.subscribeContractSignaturesFromRtdb();
+    }
     document.dispatchEvent(
       new CustomEvent('adminSessionReady', { detail: { isAdmin: true } })
     );
@@ -8857,6 +8860,9 @@ window.addEventListener('load', function() {
     }
     if (typeof window.unsubscribeBusinessDocsFromRtdb === 'function') {
       window.unsubscribeBusinessDocsFromRtdb();
+    }
+    if (typeof window.unsubscribeContractSignaturesFromRtdb === 'function') {
+      window.unsubscribeContractSignaturesFromRtdb();
     }
     if (window.AgencyTools && typeof window.AgencyTools.unsubscribe === 'function') {
       window.AgencyTools.unsubscribe();
@@ -8956,7 +8962,7 @@ window.addEventListener('load', function() {
   /**
    * @typedef {Object} BusinessDocument
    * @property {string} id
-   * @property {'proposal'|'estimate'|'invoice'} type
+   * @property {'proposal'|'estimate'|'invoice'|'contract'} type
    * @property {string} clientName
    * @property {string=} clientEmail
    * @property {number} total
@@ -8974,6 +8980,9 @@ window.addEventListener('load', function() {
    * @property {BusinessDocAddOn[]=} addOns
    * @property {string=} maintenancePlanId - 'standard' | 'priority' (estimate/invoice); proposals ignore and show all
    * @property {'monthly'|'annual'=} maintenanceBilling - estimate/invoice billing display preference
+   * @property {string=} sourceProposalId - contract only; id of the accepted proposal it was generated from
+   * @property {'license'|'buyout'=} ipTransferMode - contract only; defaults to 'license'
+   * @property {number=} revisionRounds - contract only; defaults to 2
    * @property {string} createdAt
    * @property {string} updatedAt
    */
@@ -9006,7 +9015,7 @@ window.addEventListener('load', function() {
     var status = String(doc.status || 'draft');
     if (['draft', 'sent', 'accepted', 'paid'].indexOf(status) < 0) status = 'draft';
     var type = String(doc.type || 'proposal');
-    if (['proposal', 'estimate', 'invoice'].indexOf(type) < 0) type = 'proposal';
+    if (['proposal', 'estimate', 'invoice', 'contract'].indexOf(type) < 0) type = 'proposal';
     var out = {
       id: String(doc.id).slice(0, 80),
       type: type,
@@ -9088,6 +9097,14 @@ window.addEventListener('load', function() {
       out.maintenancePlanId = planId;
       var billing = String(doc.maintenanceBilling || 'monthly').toLowerCase();
       out.maintenanceBilling = billing === 'annual' ? 'annual' : 'monthly';
+    }
+    var sourceProposalId = String(doc.sourceProposalId || '').trim().slice(0, 80);
+    if (sourceProposalId) out.sourceProposalId = sourceProposalId;
+    if (type === 'contract') {
+      var ipMode = String(doc.ipTransferMode || '').toLowerCase();
+      out.ipTransferMode = ipMode === 'buyout' ? 'buyout' : 'license';
+      var rounds = parseInt(doc.revisionRounds, 10);
+      out.revisionRounds = !isNaN(rounds) && rounds >= 1 && rounds <= 10 ? rounds : 2;
     }
     return out;
   }
@@ -9290,6 +9307,42 @@ window.addEventListener('load', function() {
   window.subscribeBusinessDocsFromRtdb = subscribeBusinessDocsFromRtdb;
   window.unsubscribeBusinessDocsFromRtdb = unsubscribeBusinessDocsFromRtdb;
 
+  // ----------------------------
+  // Contract signatures (read-only from admin — clients write via the portal)
+  // ----------------------------
+  const CONTRACT_SIGNATURES_RTD_PATH = 'agencyContractSignatures';
+  var contractSignaturesById = {};
+  var contractSignaturesUnsub = null;
+
+  function subscribeContractSignaturesFromRtdb() {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
+    if (contractSignaturesUnsub) return;
+    var ref = window.rtdbRef(window.rtdb, CONTRACT_SIGNATURES_RTD_PATH);
+    contractSignaturesUnsub = window.rtdbOnValue(
+      ref,
+      function (snap) {
+        var val = snap.val();
+        contractSignaturesById = val && typeof val === 'object' ? val : {};
+        renderBusinessDocs();
+      },
+      function (err) {
+        console.warn('Contract signatures RTDB listen failed', err);
+      }
+    );
+  }
+
+  function unsubscribeContractSignaturesFromRtdb() {
+    if (typeof contractSignaturesUnsub === 'function') {
+      try {
+        contractSignaturesUnsub();
+      } catch (e) {}
+    }
+    contractSignaturesUnsub = null;
+  }
+
+  window.subscribeContractSignaturesFromRtdb = subscribeContractSignaturesFromRtdb;
+  window.unsubscribeContractSignaturesFromRtdb = unsubscribeContractSignaturesFromRtdb;
+
   function generateBusinessDocId() {
     return 'doc_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
   }
@@ -9309,6 +9362,7 @@ window.addEventListener('load', function() {
   // DOM references for Business Docs
   const businessDocForm = document.getElementById('business-doc-form');
   const businessDocIdInput = document.getElementById('business-doc-id');
+  const businessDocSourceProposalIdInput = document.getElementById('business-doc-source-proposal-id');
   const businessDocTypeInput = document.getElementById('business-doc-type');
   const businessDocStatusInput = document.getElementById('business-doc-status');
   const businessDocClientNameInput = document.getElementById('business-doc-client-name');
@@ -9343,6 +9397,10 @@ window.addEventListener('load', function() {
   const businessDocMaintenancePickers = document.getElementById('business-doc-maintenance-pickers');
   const businessDocMaintenanceProposalNote = document.getElementById('business-doc-maintenance-proposal-note');
   const businessDocMaintenanceHint = document.getElementById('business-doc-maintenance-hint');
+  const businessDocMaintenanceSection = document.getElementById('business-doc-maintenance-section');
+  const businessDocContractFields = document.getElementById('business-doc-contract-fields');
+  const businessDocIpModeInput = document.getElementById('business-doc-ip-mode');
+  const businessDocRevisionRoundsInput = document.getElementById('business-doc-revision-rounds');
 
   let businessDocs = loadBusinessDocs();
 
@@ -9689,6 +9747,11 @@ window.addEventListener('load', function() {
   function updateBusinessDocMaintenanceVisibility() {
     var type = businessDocTypeInput ? businessDocTypeInput.value : 'proposal';
     var isProposal = type === 'proposal';
+    var isContract = type === 'contract';
+    if (businessDocMaintenanceSection) {
+      businessDocMaintenanceSection.hidden = isContract;
+    }
+    if (isContract) return;
     if (businessDocMaintenanceProposalNote) {
       businessDocMaintenanceProposalNote.hidden = !isProposal;
     }
@@ -9699,6 +9762,13 @@ window.addEventListener('load', function() {
       businessDocMaintenanceHint.textContent = isProposal
         ? 'Proposals show Standard + Priority as compact cards beside the gold turn-key price.'
         : 'Pick one portal plan for this document. Monthly also shows annual so the client can see savings; annual shows annual only.';
+    }
+  }
+
+  function updateBusinessDocContractVisibility() {
+    var type = businessDocTypeInput ? businessDocTypeInput.value : 'proposal';
+    if (businessDocContractFields) {
+      businessDocContractFields.hidden = type !== 'contract';
     }
   }
 
@@ -9744,6 +9814,7 @@ window.addEventListener('load', function() {
     }
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
+    updateBusinessDocContractVisibility();
     mountBusinessDocModalToBody();
     if (businessDocModal) {
       businessDocModal.style.display = 'flex';
@@ -9762,6 +9833,7 @@ window.addEventListener('load', function() {
     if (!businessDocForm) return;
     businessDocForm.reset();
     if (businessDocIdInput) businessDocIdInput.value = '';
+    if (businessDocSourceProposalIdInput) businessDocSourceProposalIdInput.value = '';
     if (businessDocTypeInput) businessDocTypeInput.value = 'proposal';
     if (businessDocStatusInput) businessDocStatusInput.value = 'draft';
     if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = '';
@@ -9774,10 +9846,13 @@ window.addEventListener('load', function() {
     if (businessDocNotesInput) businessDocNotesInput.value = '';
     if (businessDocMaintenancePlanInput) businessDocMaintenancePlanInput.value = '';
     if (businessDocMaintenanceBillingInput) businessDocMaintenanceBillingInput.value = 'monthly';
+    if (businessDocIpModeInput) businessDocIpModeInput.value = 'license';
+    if (businessDocRevisionRoundsInput) businessDocRevisionRoundsInput.value = '2';
     clearBusinessDocCoreFeaturesUI();
     clearBusinessDocAddonsUI();
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
+    updateBusinessDocContractVisibility();
   }
 
   /**
@@ -9793,6 +9868,7 @@ window.addEventListener('load', function() {
     var whyDiffEl = document.getElementById('business-doc-why-different') || businessDocWhyDifferentInput;
 
     if (businessDocIdInput) businessDocIdInput.value = doc.id || '';
+    if (businessDocSourceProposalIdInput) businessDocSourceProposalIdInput.value = doc.sourceProposalId || '';
     if (businessDocTypeInput) businessDocTypeInput.value = doc.type || 'proposal';
     if (businessDocStatusInput) businessDocStatusInput.value = doc.status || 'draft';
     if (businessDocClientNameInput) businessDocClientNameInput.value = doc.clientName || '';
@@ -9821,8 +9897,16 @@ window.addEventListener('load', function() {
         String(doc.maintenanceBilling || '').toLowerCase() === 'annual' ? 'annual' : 'monthly';
     }
     fillBusinessDocAddonsUI(doc);
+    if (businessDocIpModeInput) {
+      businessDocIpModeInput.value = String(doc.ipTransferMode || '').toLowerCase() === 'buyout' ? 'buyout' : 'license';
+    }
+    if (businessDocRevisionRoundsInput) {
+      var rounds = parseInt(doc.revisionRounds, 10);
+      businessDocRevisionRoundsInput.value = String(!isNaN(rounds) && rounds >= 1 && rounds <= 10 ? rounds : 2);
+    }
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
+    updateBusinessDocContractVisibility();
   }
 
   function getBusinessDocsFilters() {
@@ -9850,6 +9934,7 @@ window.addEventListener('load', function() {
     var proposalCount = allDocs.filter(function (d) { return d.type === 'proposal'; }).length;
     var estimateCount = allDocs.filter(function (d) { return d.type === 'estimate'; }).length;
     var invoiceCount = allDocs.filter(function (d) { return d.type === 'invoice'; }).length;
+    var contractCount = allDocs.filter(function (d) { return d.type === 'contract'; }).length;
     var paidCount = allDocs.filter(function (d) { return d.status === 'paid'; }).length;
     var visibleValue = filteredDocs.reduce(function (sum, d) {
       var n = Number(d.total || 0);
@@ -9866,6 +9951,7 @@ window.addEventListener('load', function() {
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Proposals</span><span class="business-docs-summary-value">' + proposalCount + '</span></div>',
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Estimates</span><span class="business-docs-summary-value">' + estimateCount + '</span></div>',
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Invoices</span><span class="business-docs-summary-value">' + invoiceCount + '</span></div>',
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Contracts</span><span class="business-docs-summary-value">' + contractCount + '</span></div>',
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Draft</span><span class="business-docs-summary-value">' + draftCount + '</span></div>',
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Open</span><span class="business-docs-summary-value">' + openCount + '</span></div>',
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Paid</span><span class="business-docs-summary-value">' + paidCount + '</span></div>',
@@ -9887,7 +9973,7 @@ window.addEventListener('load', function() {
         '<tr class="empty-row"><td colspan="6">' +
         '<div class="business-docs-empty-state">' +
         '<ion-icon name="document-outline" aria-hidden="true"></ion-icon>' +
-        '<p class="business-docs-empty-message">No proposals, estimates, or invoices yet.</p>' +
+        '<p class="business-docs-empty-message">No proposals, estimates, invoices, or contracts yet.</p>' +
         '<button type="button" class="btn btn-secondary" id="business-docs-empty-cta">Create Document</button>' +
         '</div></td></tr>';
       var cta = document.getElementById('business-docs-empty-cta');
@@ -9919,6 +10005,18 @@ window.addEventListener('load', function() {
       var statusTd = document.createElement('td');
       statusTd.setAttribute('data-label', 'Status');
       statusTd.innerHTML = '<span class="business-doc-badge business-doc-status-' + doc.status + '">' + doc.status.toUpperCase() + '</span>';
+      if (doc.type === 'contract') {
+        var signature = contractSignaturesById[doc.id];
+        var signedBadge = document.createElement('span');
+        signedBadge.className =
+          'business-doc-signed-badge ' +
+          (signature ? 'business-doc-signed-badge--signed' : 'business-doc-signed-badge--unsigned');
+        signedBadge.style.marginLeft = '6px';
+        signedBadge.textContent = signature
+          ? 'Signed · ' + formatDateDisplay(signature.signedAt)
+          : 'Awaiting signature';
+        statusTd.appendChild(signedBadge);
+      }
       tr.appendChild(statusTd);
 
       var createdTd = document.createElement('td');
@@ -9952,6 +10050,33 @@ window.addEventListener('load', function() {
         generateBusinessDocPdf(doc);
       });
 
+      var generateContractBtn = null;
+      if (doc.type === 'proposal' && doc.status === 'accepted') {
+        generateContractBtn = document.createElement('button');
+        generateContractBtn.type = 'button';
+        generateContractBtn.className = 'btn-icon';
+        generateContractBtn.title = 'Generate Contract';
+        generateContractBtn.innerHTML = '<ion-icon name="document-lock-outline"></ion-icon>';
+        generateContractBtn.addEventListener('click', function () {
+          var nowIso = new Date().toISOString();
+          openBusinessDocModal({
+            id: generateBusinessDocId(),
+            type: 'contract',
+            clientName: doc.clientName || '',
+            clientEmail: doc.clientEmail || '',
+            total: doc.total || 0,
+            status: 'draft',
+            dueDate: doc.dueDate || '',
+            notes: doc.includedItems || doc.notes || '',
+            sourceProposalId: doc.id,
+            ipTransferMode: 'license',
+            revisionRounds: 2,
+            createdAt: nowIso,
+            updatedAt: nowIso
+          });
+        });
+      }
+
       var deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
       deleteBtn.className = 'btn-icon';
@@ -9963,6 +10088,7 @@ window.addEventListener('load', function() {
 
       actionsTd.appendChild(editBtn);
       actionsTd.appendChild(pdfBtn);
+      if (generateContractBtn) actionsTd.appendChild(generateContractBtn);
       actionsTd.appendChild(deleteBtn);
 
       tr.appendChild(actionsTd);
@@ -10133,6 +10259,25 @@ window.addEventListener('load', function() {
       }
 
       var docType = String(doc.type || '').toLowerCase();
+
+      if (docType === 'contract') {
+        if (businessDocSourceProposalIdInput && businessDocSourceProposalIdInput.value.trim()) {
+          doc.sourceProposalId = businessDocSourceProposalIdInput.value.trim();
+        } else {
+          delete doc.sourceProposalId;
+        }
+        doc.ipTransferMode =
+          businessDocIpModeInput && String(businessDocIpModeInput.value || '').toLowerCase() === 'buyout'
+            ? 'buyout'
+            : 'license';
+        var roundsVal = businessDocRevisionRoundsInput ? parseInt(businessDocRevisionRoundsInput.value, 10) : NaN;
+        doc.revisionRounds = !isNaN(roundsVal) && roundsVal >= 1 && roundsVal <= 10 ? roundsVal : 2;
+      } else {
+        delete doc.sourceProposalId;
+        delete doc.ipTransferMode;
+        delete doc.revisionRounds;
+      }
+
       if (docType === 'estimate' || docType === 'invoice') {
         var planSel = businessDocMaintenancePlanInput
           ? String(businessDocMaintenancePlanInput.value || '').toLowerCase()
@@ -10189,9 +10334,11 @@ window.addEventListener('load', function() {
     businessDocTypeInput.addEventListener('change', function () {
       updateBusinessDocProposedSiteVisibility();
       updateBusinessDocMaintenanceVisibility();
+      updateBusinessDocContractVisibility();
     });
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
+    updateBusinessDocContractVisibility();
   }
 
   if (businessDocCreateBtn) {
@@ -13072,7 +13219,9 @@ window.addEventListener('load', function() {
   async function generateBusinessDocPdf(doc) {
     try {
       if (!doc) return;
-      if (window.BusinessDocShared && window.BusinessDocShared.openPrintWindow(doc)) return;
+      var signature =
+        doc.type === 'contract' ? contractSignaturesById[doc.id] : undefined;
+      if (window.BusinessDocShared && window.BusinessDocShared.openPrintWindow(doc, signature)) return;
       var html = buildBusinessDocHtml(doc);
       var win = window.open('', '_blank');
       if (!win) {

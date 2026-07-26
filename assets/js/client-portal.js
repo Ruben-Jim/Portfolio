@@ -9,6 +9,7 @@
   var PATH_PROJECTS = 'agencyProjects';
   var PATH_PORTFOLIO = 'portfolioProjects';
   var PATH_BUSINESS_DOCS = 'agencyBusinessDocuments';
+  var PATH_CONTRACT_SIGNATURES = 'agencyContractSignatures';
   var PATH_MAINTENANCE = 'agencyMaintenance';
 
   var MAINTENANCE_PLANS = [
@@ -872,16 +873,75 @@
     return docs;
   }
 
-  function renderBusinessDocumentsSection(docs) {
+  async function loadContractSignatures() {
+    if (!rtdbReady()) return {};
+    try {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_CONTRACT_SIGNATURES));
+      var val = snap.val();
+      return val && typeof val === 'object' ? val : {};
+    } catch (err) {
+      console.warn('Could not load contract signatures for portal:', err);
+      return {};
+    }
+  }
+
+  function renderContractSignPanelHtml(doc) {
+    var docId = esc(doc.id);
+    return (
+      '<div class="client-portal-sign-panel" data-portal-sign-panel="' + docId + '" hidden>' +
+      '<p class="client-portal-sign-intro">Read the full agreement, then sign below.</p>' +
+      '<button type="button" class="btn btn-secondary btn-sm client-portal-sign-view-btn" data-portal-view-doc="' +
+      docId +
+      '">Open full agreement</button>' +
+      '<form class="client-portal-sign-form" data-portal-sign-form="' + docId + '">' +
+      '<label class="client-portal-sign-label" for="portal-sign-name-' + docId + '">Type your full legal name</label>' +
+      '<input type="text" class="client-portal-sign-name" id="portal-sign-name-' + docId + '" autocomplete="name" required>' +
+      '<label class="client-portal-sign-check">' +
+      '<input type="checkbox" class="client-portal-sign-agree" required>' +
+      '<span>I have read and agree to the agreement above, and I’m authorized to sign on behalf of ' +
+      esc(doc.clientName || 'the client') +
+      '.</span></label>' +
+      '<div class="client-portal-sign-actions">' +
+      '<span class="client-portal-sign-feedback" data-portal-sign-feedback></span>' +
+      '<button type="submit" class="btn btn-primary btn-sm">Sign agreement</button>' +
+      '</div></form></div>'
+    );
+  }
+
+  function renderBusinessDocumentsSection(docs, signaturesById) {
     if (!docs.length) return '';
+    signaturesById = signaturesById || {};
     return (
       '<details class="client-portal-docs-footer" open>' +
-      '<summary>Proposals &amp; billing</summary>' +
+      '<summary>Proposals, billing &amp; contracts</summary>' +
       '<div class="client-portal-docs-footer-body has-scrollbar">' +
       '<ul class="client-portal-docs-list">' +
       docs
         .map(function (d) {
           var due = d.dueDate ? formatDocDate(d.dueDate) : '';
+          var isContract = String(d.type || '') === 'contract';
+          var signature = isContract ? signaturesById[d.id] : null;
+          var actionHtml;
+          var metaExtra = '';
+          if (isContract && signature) {
+            actionHtml =
+              '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-view-doc="' +
+              esc(d.id) +
+              '">View signed contract</button>';
+            metaExtra =
+              ' · Signed ' + esc(formatDocDate(signature.signedAt)) + ' by ' + esc(signature.signedByName || '');
+          } else if (isContract) {
+            actionHtml =
+              '<button type="button" class="btn btn-primary btn-sm client-portal-doc-sign-btn" data-portal-sign-doc="' +
+              esc(d.id) +
+              '">Review &amp; sign</button>';
+            metaExtra = ' · Awaiting your signature';
+          } else {
+            actionHtml =
+              '<button type="button" class="btn btn-primary btn-sm client-portal-doc-view-btn" data-portal-view-doc="' +
+              esc(d.id) +
+              '">View document</button>';
+          }
           return (
             '<li class="client-portal-doc-card">' +
             '<div class="client-portal-doc-card-main">' +
@@ -898,10 +958,11 @@
             ' · ' +
             esc(formatMoneyDetailed(d.total)) +
             (due ? ' · Due ' + esc(due) : '') +
+            metaExtra +
             '</p></div>' +
-            '<button type="button" class="btn btn-primary btn-sm client-portal-doc-view-btn" data-portal-view-doc="' +
-            esc(d.id) +
-            '">View document</button></li>'
+            actionHtml +
+            (isContract && !signature ? renderContractSignPanelHtml(d) : '') +
+            '</li>'
           );
         })
         .join('') +
@@ -919,11 +980,107 @@
         if (!docId || !window.portalBusinessDocsById) return;
         var doc = window.portalBusinessDocsById[docId];
         if (!doc) return;
+        var signature =
+          doc.type === 'contract' && window.portalContractSignaturesById
+            ? window.portalContractSignaturesById[docId]
+            : undefined;
         if (window.BusinessDocShared && window.BusinessDocShared.openPrintWindow) {
-          if (!window.BusinessDocShared.openPrintWindow(doc)) {
+          if (!window.BusinessDocShared.openPrintWindow(doc, signature)) {
             alert('Unable to open document. Please allow popups for this site.');
           }
         }
+      });
+    });
+  }
+
+  async function submitContractSignature(form, docId, portalCtx) {
+    var feedback = form.querySelector('[data-portal-sign-feedback]');
+    var nameInput = form.querySelector('.client-portal-sign-name');
+    var agreeInput = form.querySelector('.client-portal-sign-agree');
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var name = nameInput ? nameInput.value.trim() : '';
+    if (!name || !agreeInput || !agreeInput.checked) {
+      if (feedback) {
+        feedback.textContent = 'Enter your full legal name and check the agreement box.';
+        feedback.classList.add('is-error');
+      }
+      return;
+    }
+    if (!rtdbWriteReady()) {
+      if (feedback) {
+        feedback.textContent = 'Unable to sign right now. Please try again shortly.';
+        feedback.classList.add('is-error');
+      }
+      return;
+    }
+    if (submitBtn) submitBtn.disabled = true;
+    if (feedback) {
+      feedback.textContent = 'Signing…';
+      feedback.classList.remove('is-error');
+    }
+    var payload = {
+      docId: docId,
+      signedByName: name,
+      agreedToTerms: true,
+      signedAt: window.rtdbServerTimestamp(),
+      userAgent: (navigator && navigator.userAgent) || '',
+      portalToken: (portalCtx && portalCtx.token) || ''
+    };
+    try {
+      await window.rtdbSet(window.rtdbRef(window.rtdb, PATH_CONTRACT_SIGNATURES + '/' + docId), payload);
+      if (window.portalContractSignaturesById) window.portalContractSignaturesById[docId] = payload;
+      var card = form.closest('.client-portal-doc-card');
+      if (card) {
+        card.innerHTML =
+          '<div class="client-portal-doc-card-main">' +
+          '<span class="client-portal-doc-type client-portal-doc-type--contract">CONTRACT</span>' +
+          '<strong class="client-portal-doc-title">Signed</strong>' +
+          '<p class="client-portal-doc-meta">Signed just now by ' +
+          esc(name) +
+          '</p></div>' +
+          '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-view-doc="' +
+          esc(docId) +
+          '">View signed contract</button>';
+        bindPortalDocViewButtons(card);
+      }
+    } catch (err) {
+      console.error(err);
+      if (submitBtn) submitBtn.disabled = false;
+      var denied = err && (err.code === 'PERMISSION_DENIED' || /permission/i.test((err && err.message) || ''));
+      if (feedback) {
+        feedback.textContent = denied
+          ? 'This contract has already been signed.'
+          : (err && err.message) || 'Could not sign right now. Please try again.';
+        feedback.classList.add('is-error');
+      }
+      if (denied) {
+        var deniedCard = form.closest('.client-portal-doc-card');
+        if (deniedCard) {
+          var panel = deniedCard.querySelector('[data-portal-sign-panel]');
+          if (panel) panel.hidden = true;
+        }
+      }
+    }
+  }
+
+  function bindPortalSignButtons(root, portalCtx) {
+    if (!root) return;
+    root.querySelectorAll('[data-portal-sign-doc]').forEach(function (btn) {
+      if (btn.dataset.portalSignBound) return;
+      btn.dataset.portalSignBound = '1';
+      btn.addEventListener('click', function () {
+        var docId = btn.getAttribute('data-portal-sign-doc');
+        var panel = root.querySelector('[data-portal-sign-panel="' + docId + '"]');
+        if (panel) panel.hidden = !panel.hidden;
+      });
+    });
+    root.querySelectorAll('[data-portal-sign-form]').forEach(function (form) {
+      if (form.dataset.portalSignFormBound) return;
+      form.dataset.portalSignFormBound = '1';
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var docId = form.getAttribute('data-portal-sign-form');
+        submitContractSignature(form, docId, portalCtx);
       });
     });
   }
@@ -960,13 +1117,15 @@
     );
   }
 
-  function renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase) {
+  function renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase, contractSignatures) {
     businessDocs = businessDocs || [];
     portalCtx = portalCtx || {};
+    contractSignatures = contractSignatures || {};
     window.portalBusinessDocsById = {};
     businessDocs.forEach(function (d) {
       if (d && d.id) window.portalBusinessDocsById[d.id] = d;
     });
+    window.portalContractSignaturesById = contractSignatures;
     var brand = renderBrandHeader(project, detailRecord, detailOptions);
     var detailHtml = '';
     if (hasShowcase && detailRecord && window.PortfolioDetailShared) {
@@ -978,7 +1137,7 @@
     } else {
       detailHtml = renderNoShowcaseMessage(project, detailOptions);
     }
-    var docsSection = renderBusinessDocumentsSection(businessDocs);
+    var docsSection = renderBusinessDocumentsSection(businessDocs, contractSignatures);
     var supportSection =
       project.showMaintenanceInPortal !== false
         ? renderMaintenanceSupportSection(maint, project)
@@ -989,6 +1148,7 @@
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
     }
     bindPortalDocViewButtons(inner);
+    bindPortalSignButtons(inner, portalCtx);
     bindMaintenanceSupportSection(inner, portalCtx, project, maint);
     mountPortalDmChrome(project, portalCtx);
   }
@@ -1063,10 +1223,16 @@
 
       var businessDocs = [];
       var allMaint = [];
+      var contractSignatures = {};
       try {
         businessDocs = await loadBusinessDocumentsForHub(hubRow, project);
       } catch (err) {
         console.warn('Business documents skipped:', err);
+      }
+      try {
+        contractSignatures = await loadContractSignatures();
+      } catch (err) {
+        console.warn('Contract signatures skipped:', err);
       }
       try {
         allMaint = await loadAllMaintenanceRecords();
@@ -1077,9 +1243,10 @@
       var portalCtx = {
         projectId: link.projectId,
         clientName: project.clientName || hubRow.clientName || '',
-        maintId: maint ? maint.id : ''
+        maintId: maint ? maint.id : '',
+        token: token
       };
-      renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase);
+      renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase, contractSignatures);
       document.title = (project.clientName || project.title || 'Your project') + ' — CodeWithRuben';
     } catch (err) {
       console.error(err);

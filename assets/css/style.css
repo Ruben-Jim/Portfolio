@@ -14423,6 +14423,30 @@ body.project-modal-open {
   color: hsl(350, 100%, 80%);
 }
 
+.business-doc-type-contract {
+  background: hsla(45, 93%, 47%, 0.14);
+  color: var(--orange-yellow-crayola, #eab308);
+}
+
+.business-doc-signed-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: var(--fs-9, 11px);
+  font-weight: var(--fw-600);
+}
+
+.business-doc-signed-badge--signed {
+  background: hsla(145, 63%, 42%, 0.15);
+  color: #51cf66;
+}
+
+.business-doc-signed-badge--unsigned {
+  background: hsla(215, 15%, 25%, 0.5);
+  color: var(--light-gray);
+}
+
 .business-doc-status-draft {
   background: hsla(215, 15%, 25%, 0.5);
   color: var(--light-gray);

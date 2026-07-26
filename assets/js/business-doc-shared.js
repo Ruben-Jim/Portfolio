@@ -21,6 +21,7 @@
     if (doc.type === 'proposal') return 'PROPOSAL';
     if (doc.type === 'estimate') return 'ESTIMATE';
     if (doc.type === 'invoice') return 'INVOICE';
+    if (doc.type === 'contract') return 'CONTRACT';
     return 'DOCUMENT';
   }
 
@@ -848,9 +849,173 @@
       '  </div>\n</body>\n</html>';
   }
 
-  function buildBusinessDocHtml(doc) {
+  /** 50/25/25 deposit / milestone / launch split. Final absorbs rounding so the three lines always sum to total. */
+  function computeContractPaymentSplit(total) {
+    var t = Number(total) || 0;
+    var deposit = Math.round(t * 0.5 * 100) / 100;
+    var milestone = Math.round(t * 0.25 * 100) / 100;
+    var final = Math.round((t - deposit - milestone) * 100) / 100;
+    return { deposit: deposit, milestone: milestone, final: final };
+  }
+
+  function buildContractPaymentTableHtml(total) {
+    var split = computeContractPaymentSplit(total);
+    return (
+      '<table class="contract-pay-table">' +
+      '<thead><tr><th>Milestone</th><th class="amt">Amount</th></tr></thead>' +
+      '<tbody>' +
+      '<tr><td>Deposit — due on signing</td><td class="amt">' + escapeHtml(formatCurrency(split.deposit)) + '</td></tr>' +
+      '<tr><td>Milestone — due at build review</td><td class="amt">' + escapeHtml(formatCurrency(split.milestone)) + '</td></tr>' +
+      '<tr><td>Final — due at launch</td><td class="amt">' + escapeHtml(formatCurrency(split.final)) + '</td></tr>' +
+      '<tr class="contract-pay-total"><td>Total</td><td class="amt">' + escapeHtml(formatCurrency(total)) + '</td></tr>' +
+      '</tbody></table>'
+    );
+  }
+
+  function buildContractOwnershipClauseHtml(mode) {
+    if (String(mode || '').toLowerCase() === 'buyout') {
+      return (
+        '<p>Upon receipt of final payment in full, all ownership of the source code, design assets, and related ' +
+        'intellectual property developed under this Agreement transfers to Client. No license or ownership ' +
+        'interest transfers before final payment clears.</p>'
+      );
+    }
+    return (
+      '<p>CWR retains ownership of the underlying source code, design system, and reusable components. Upon final ' +
+      'payment, Client receives a perpetual, non-exclusive license to use the delivered application for its ' +
+      'business. Full ownership transfer of source code and design assets is available separately via CWR’s IP ' +
+      'Buyout add-on. In all cases, no license or ownership interest transfers until final payment has cleared in full.</p>'
+    );
+  }
+
+  function buildContractSignatureBlockHtml(signature) {
+    var clientLineHtml, clientSubHtml, clientProvHtml;
+    if (signature && signature.signedByName) {
+      clientLineHtml =
+        '<div class="contract-sig-line contract-sig-signed">' + escapeHtml(signature.signedByName) + '</div>';
+      clientSubHtml =
+        '<div class="contract-sig-sub">' + escapeHtml(formatDateDisplay(signature.signedAt)) + '</div>';
+      clientProvHtml =
+        '<div class="contract-sig-provenance">Signed electronically via CWR Client Portal' +
+        (signature.portalToken
+          ? ' &middot; token ' + escapeHtml(String(signature.portalToken).slice(0, 10)) + '&hellip;'
+          : '') +
+        '</div>';
+    } else {
+      clientLineHtml =
+        '<div class="contract-sig-line contract-sig-blank">This contract must be signed electronically via the ' +
+        'CWR Client Portal before work begins.</div>';
+      clientSubHtml = '';
+      clientProvHtml = '';
+    }
+    return (
+      '<div class="contract-sig-block">' +
+      '<div class="contract-sig-grid">' +
+      '<div><div class="contract-sig-title">Developer</div>' +
+      '<div class="contract-sig-line contract-sig-signed">Ruben Jimenez</div>' +
+      '<div class="contract-sig-sub">CodeWithRuben</div></div>' +
+      '<div><div class="contract-sig-title">Client</div>' + clientLineHtml + clientSubHtml + clientProvHtml + '</div>' +
+      '</div></div>'
+    );
+  }
+
+  /**
+   * CWR Service Agreement — legal contract layout with fees/payment schedule,
+   * IP/ownership, termination, and a signature block (unsigned or signed state).
+   * @param {BusinessDocument} doc
+   * @param {{signedByName: string, signedAt: string, portalToken?: string}=} signature
+   */
+  function getContractDocumentHtml(doc, signature) {
+    var C = {
+      primary: '#eab308',
+      dark: { bg: '#0f172a', text: '#e8e6df', muted: '#94a3b8' }
+    };
+    var clientName = String((doc && doc.clientName) || 'Client').trim() || 'Client';
+    var clientEmail = String((doc && doc.clientEmail) || '').trim();
+    var effectiveDate = formatDateDisplay(doc && doc.createdAt);
+    var targetDate = doc && doc.dueDate ? formatDateDisplay(doc.dueDate) : '';
+    var total = (doc && doc.total) || 0;
+    var revisionRounds = (doc && Number(doc.revisionRounds)) || 2;
+    var scopeHtml = buildScopeBodyHtml(doc && doc.notes);
+    var contractId = escapeHtml((doc && doc.id) || '');
+    var ownershipHtml = buildContractOwnershipClauseHtml(doc && doc.ipTransferMode);
+    var sigBlockHtml = buildContractSignatureBlockHtml(signature);
+
+    var timelineHtml = targetDate
+      ? '<p>Target completion date: <strong>' + escapeHtml(targetDate) + '</strong>. Delays caused by late Client ' +
+        'feedback, content, or approvals extend this date on a day-for-day basis and do not constitute a breach by CWR.</p>'
+      : '<p>Timeline is estimated from Client feedback and approval turnaround. Delays caused by late Client ' +
+        'feedback, content, or approvals extend the delivery date on a day-for-day basis and do not constitute a breach by CWR.</p>';
+
+    return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>CWR Service Agreement — ' + escapeHtml(clientName) + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
+      '@page { size: A4; margin: 12mm; }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } .contract-clause { page-break-inside: avoid; } }\n' +
+      '* { box-sizing: border-box; }\n' +
+      'body { margin: 0; padding: 40px 32px; font-family: \'Inter\', sans-serif; background: ' + C.dark.bg + '; color: ' + C.dark.text + '; font-size: 14px; }\n' +
+      '.doc { max-width: 800px; margin: 0 auto; }\n' +
+      '.contract-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 18px; border-bottom: 2px solid ' + C.primary + '; margin-bottom: 22px; }\n' +
+      '.contract-brand { font-family: \'Playfair Display\', serif; font-size: 17px; font-weight: 700; color: ' + C.dark.text + '; }\n' +
+      '.contract-brand span { color: ' + C.primary + '; }\n' +
+      '.contract-head-meta { text-align: right; font-size: 11px; color: ' + C.dark.muted + '; }\n' +
+      '.contract-head-meta div + div { margin-top: 2px; }\n' +
+      '.doc-title { font-family: \'Playfair Display\', serif; font-size: 26px; font-weight: 700; color: ' + C.primary + '; text-align: center; letter-spacing: 0.02em; margin: 0 0 6px 0; }\n' +
+      '.doc-subtitle { text-align: center; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: ' + C.dark.muted + '; margin-bottom: 28px; }\n' +
+      '.contract-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }\n' +
+      '.contract-party { padding: 14px 16px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }\n' +
+      '.contract-party-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' + C.primary + '; margin-bottom: 6px; }\n' +
+      '.contract-party-name { font-weight: 700; font-size: 14px; color: ' + C.dark.text + '; }\n' +
+      '.contract-party-detail { font-size: 12px; color: ' + C.dark.muted + '; margin-top: 2px; }\n' +
+      '.contract-clause { margin-bottom: 22px; }\n' +
+      '.contract-clause h3 { font-family: \'Playfair Display\', serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: ' + C.primary + '; margin: 0 0 8px 0; }\n' +
+      '.contract-clause p { margin: 0 0 8px 0; font-size: 13px; line-height: 1.65; color: ' + C.dark.text + '; }\n' +
+      '.contract-clause p:last-child { margin-bottom: 0; }\n' +
+      '.contract-pay-table { width: 100%; border-collapse: collapse; margin: 8px 0 10px; font-size: 13px; }\n' +
+      '.contract-pay-table th, .contract-pay-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }\n' +
+      '.contract-pay-table th { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: ' + C.dark.muted + '; font-weight: 700; }\n' +
+      '.contract-pay-table td.amt, .contract-pay-table th.amt { text-align: right; }\n' +
+      '.contract-pay-total td { border-bottom: none; font-weight: 700; color: ' + C.primary + '; }\n' +
+      '.contract-callout { padding: 10px 14px; background: rgba(234,179,8,0.1); border-left: 3px solid ' + C.primary + '; border-radius: 0 8px 8px 0; font-size: 12px; color: ' + C.dark.text + '; margin: 8px 0 10px; }\n' +
+      '.contract-sig-block { margin-top: 32px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.12); }\n' +
+      '.contract-sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }\n' +
+      '.contract-sig-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' + C.dark.muted + '; margin-bottom: 10px; }\n' +
+      '.contract-sig-line { font-family: \'Playfair Display\', serif; font-size: 17px; font-style: italic; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 8px; margin-bottom: 6px; min-height: 1.3em; }\n' +
+      '.contract-sig-signed { color: ' + C.dark.text + '; }\n' +
+      '.contract-sig-blank { color: ' + C.dark.muted + '; font-style: normal; font-family: \'Inter\', sans-serif; font-size: 12px; }\n' +
+      '.contract-sig-sub { font-size: 11px; color: ' + C.dark.muted + '; }\n' +
+      '.contract-sig-provenance { font-size: 10px; color: ' + C.dark.muted + '; margin-top: 4px; }\n' +
+      '.footer-meta { margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: ' + C.dark.muted + '; text-align: center; }\n' +
+      'a { color: ' + C.primary + '; }\n' +
+      '</style>\n</head>\n<body>\n  <div class="doc">\n' +
+      '    <div class="contract-head">\n' +
+      '      <div class="contract-brand">Code<span>With</span>Ruben</div>\n' +
+      '      <div class="contract-head-meta"><div>Contract No. ' + contractId + '</div><div>Effective Date: ' + escapeHtml(effectiveDate) + '</div></div>\n' +
+      '    </div>\n' +
+      '    <h1 class="doc-title">CWR Service Agreement</h1>\n' +
+      '    <div class="doc-subtitle">Web &amp; mobile application development</div>\n' +
+      '    <div class="contract-parties">\n' +
+      '      <div class="contract-party"><div class="contract-party-label">Developer</div><div class="contract-party-name">Ruben Jimenez, doing business as CodeWithRuben (&ldquo;CWR&rdquo;)</div><div class="contract-party-detail">Fresno, California</div></div>\n' +
+      '      <div class="contract-party"><div class="contract-party-label">Client</div><div class="contract-party-name">' + escapeHtml(clientName) + '</div>' + (clientEmail ? '<div class="contract-party-detail">' + escapeHtml(clientEmail) + '</div>' : '') + '</div>\n' +
+      '    </div>\n' +
+      '    <div class="contract-clause"><h3>1 &middot; Scope of work</h3>' + scopeHtml + '<p>Work not described above is out of scope and subject to a separate change order under Clause 4.</p></div>\n' +
+      '    <div class="contract-clause"><h3>2 &middot; Fees &amp; payment schedule</h3>' + buildContractPaymentTableHtml(total) + '<div class="contract-callout">No deposit, no start date. Milestone and final payments are due per this schedule regardless of delays caused by Client.</div></div>\n' +
+      '    <div class="contract-clause"><h3>3 &middot; Timeline</h3>' + timelineHtml + '</div>\n' +
+      '    <div class="contract-clause"><h3>4 &middot; Revisions</h3><p>' + revisionRounds + ' structured revision round' + (revisionRounds === 1 ? '' : 's') + ' ' + (revisionRounds === 1 ? 'is' : 'are') + ' included per milestone. Additional rounds, or changes outside the scope in Clause 1, are billed at CWR’s standard change-order rate before work begins on them.</p></div>\n' +
+      '    <div class="contract-clause"><h3>5 &middot; Ownership &amp; intellectual property</h3>' + ownershipHtml + '</div>\n' +
+      '    <div class="contract-clause"><h3>6 &middot; Termination</h3><p>Either party may terminate this Agreement in writing. If Client terminates before completion, the deposit is non-refundable, and Client owes for any milestone work completed beyond the deposit, pro-rated to work actually delivered.</p></div>\n' +
+      '    <div class="contract-clause"><h3>7 &middot; Confidentiality</h3><p>Each party will keep the other’s non-public business, technical, and financial information confidential, and use it only to perform this Agreement.</p></div>\n' +
+      '    <div class="contract-clause"><h3>8 &middot; Warranty &amp; liability</h3><p>CWR warrants the delivered work will substantially match the agreed scope and will correct material defects reported within 14 days of launch at no charge. Beyond that window, the work is provided as-is. CWR’s total liability under this Agreement is capped at the total fees paid by Client, and CWR is not liable for indirect or consequential damages.</p></div>\n' +
+      '    <div class="contract-clause"><h3>9 &middot; Governing law</h3><p>This Agreement is governed by the laws of the State of California. Any dispute will be resolved in the state or federal courts of Fresno County, California.</p></div>\n' +
+      sigBlockHtml + '\n' +
+      '    <div class="footer-meta">CWR-' + contractId + (doc && doc.sourceProposalId ? ' &middot; Generated from Proposal ' + escapeHtml(doc.sourceProposalId) : '') + '</div>\n' +
+      '  </div>\n</body>\n</html>';
+  }
+
+  function buildBusinessDocHtml(doc, signature) {
     if (doc && String(doc.type || '').toLowerCase() === 'proposal') {
       return getProposalDocumentHtml(doc);
+    }
+    if (doc && String(doc.type || '').toLowerCase() === 'contract') {
+      return getContractDocumentHtml(doc, signature);
     }
     var created = formatDateDisplay(doc.createdAt);
     var due = doc.dueDate ? formatDateDisplay(doc.dueDate) : '—';
@@ -873,9 +1038,9 @@
     });
   }
 
-  function openPrintWindow(doc) {
+  function openPrintWindow(doc, signature) {
     if (!doc) return;
-    var html = buildBusinessDocHtml(doc);
+    var html = buildBusinessDocHtml(doc, signature);
     var win = global.open('', '_blank');
     if (!win) return false;
     win.document.open();

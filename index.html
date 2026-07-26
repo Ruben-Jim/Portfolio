@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=addon-usage-20260725">
+  <link rel="stylesheet" href="/assets/css/style.css?v=contract-doc-type-20260726">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -2868,6 +2868,7 @@
                     <option value="proposal">Proposals</option>
                     <option value="estimate">Estimates</option>
                     <option value="invoice">Invoices</option>
+                    <option value="contract">Contracts</option>
                   </select>
                   <select id="business-doc-filter-status">
                     <option value="all">All Statuses</option>
@@ -3922,6 +3923,7 @@
               <p class="business-docs-form-hint">Create a document, save it, then click the PDF icon to open and use <strong>Print → Save as PDF</strong>.</p>
               <form id="business-doc-form">
                 <input type="hidden" id="business-doc-id">
+                <input type="hidden" id="business-doc-source-proposal-id">
                 <div class="form-row">
                   <div class="form-group form-group-half">
                     <label for="business-doc-type">Type</label>
@@ -3929,6 +3931,7 @@
                       <option value="proposal">Proposal</option>
                       <option value="estimate">Estimate</option>
                       <option value="invoice">Invoice</option>
+                      <option value="contract">Contract</option>
                     </select>
                   </div>
                   <div class="form-group form-group-half">
@@ -4064,7 +4067,25 @@
                   </div>
                 </div>
 
-                <div class="form-group business-doc-maintenance-section">
+                <!-- Contract-only fields -->
+                <div class="form-group business-doc-contract-section" id="business-doc-contract-fields" hidden>
+                  <div class="form-row">
+                    <div class="form-group form-group-half">
+                      <label for="business-doc-ip-mode">IP / ownership transfer</label>
+                      <select id="business-doc-ip-mode">
+                        <option value="license">License to use only (buyout sold separately)</option>
+                        <option value="buyout">Full IP transfer included (buyout)</option>
+                      </select>
+                    </div>
+                    <div class="form-group form-group-half">
+                      <label for="business-doc-revision-rounds">Revision rounds included</label>
+                      <input type="number" id="business-doc-revision-rounds" min="1" max="10" step="1" value="2">
+                    </div>
+                  </div>
+                  <p class="business-doc-scope-hint">Scope above becomes Clause 1 on the agreement; Due Date above becomes the target completion date in Clause 3.</p>
+                </div>
+
+                <div class="form-group business-doc-maintenance-section" id="business-doc-maintenance-section">
                   <div class="business-doc-maintenance-header">
                     <div class="business-doc-scope-title-row">
                       <label class="business-doc-addons-label" id="business-doc-maintenance-label">Maintenance plan</label>
@@ -5899,12 +5920,12 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
-  <script src="/assets/js/business-doc-shared.js?v=pdf-desktop-mobile-20260725"></script>
+  <script src="/assets/js/business-doc-shared.js?v=contract-doc-type-20260726"></script>
   <script src="/assets/js/customer-dm-shared.js?v=contact-dm-mobile-20260608"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
   <script src="/assets/js/i18n.js?v=1"></script>
-  <script src="/assets/js/script.js?v=addon-price-beside-20260725"></script>
+  <script src="/assets/js/script.js?v=contract-doc-type-20260726"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=portal-demo-link-20260724"></script>
   <script src="/assets/js/dm-migration.js"></script>
