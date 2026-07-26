@@ -2081,7 +2081,7 @@
   var clientProjectsPickerBound = false;
   var clientProjectsSortBound = false;
   var CP_CLIENT_SORT_KEY = 'cp-client-projects-sort';
-  var CP_CLIENT_SORT_OPTIONS = ['name', 'attention', 'milestones', 'maintenance'];
+  var CP_CLIENT_SORT_OPTIONS = ['name', 'attention', 'milestones', 'maintenance', 'added'];
   var clientProjectsSort = (function () {
     try {
       var saved = localStorage.getItem(CP_CLIENT_SORT_KEY);
@@ -2276,6 +2276,23 @@
     return String(hub.clientName || hub.title || '').trim();
   }
 
+  function clientHubCreatedMs(hub) {
+    var value = hub && hub.createdAt;
+    if (value == null || value === '') return 0;
+    if (typeof value === 'number' && isFinite(value)) return value;
+    if (typeof value === 'string') {
+      var asNum = Number(value);
+      if (isFinite(asNum) && asNum > 0) return asNum;
+      var parsed = Date.parse(value);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+    if (typeof value === 'object') {
+      if (typeof value.toMillis === 'function') return value.toMillis();
+      if (typeof value.seconds === 'number') return value.seconds * 1000;
+    }
+    return 0;
+  }
+
   function clientHubAttentionScore(hub) {
     var meta = getClientPickerMeta(hub);
     var score = 0;
@@ -2307,6 +2324,10 @@
         var pendingA = getClientPickerMeta(a).maintPending ? 0 : 1;
         var pendingB = getClientPickerMeta(b).maintPending ? 0 : 1;
         if (pendingA !== pendingB) return pendingA - pendingB;
+      } else if (mode === 'added') {
+        var ca = clientHubCreatedMs(a);
+        var cb = clientHubCreatedMs(b);
+        if (ca !== cb) return cb - ca;
       }
       return clientHubSortName(a).localeCompare(clientHubSortName(b), undefined, { sensitivity: 'base' });
     });
@@ -3570,6 +3591,82 @@
   }
 
   function getOverviewSnapshot() {
+    var now = Date.now();
+    var PORTAL_WARN_MS = 7 * 86400000;
+
+    var attention = [];
+    agencyProjects.forEach(function (p) {
+      var meta = getClientPickerMeta(p);
+      var reasons = [];
+      var priority = 9;
+      if (meta.maintPending) {
+        reasons.push('Plan pending');
+        priority = Math.min(priority, 0);
+      }
+      if (meta.healthClass !== 'is-good') {
+        var health = agencyHealthByProject[p.id];
+        var healthDone = health ? healthCheckedCount(health) : 0;
+        reasons.push('Health ' + healthDone + '/' + HEALTH_CHECK_KEYS.length);
+        priority = Math.min(priority, meta.healthClass === '' ? 1 : 2);
+      }
+      if (meta.milestonesTotal && meta.milestonesPct < 40) {
+        reasons.push('At risk · ' + meta.milestones + ' milestones');
+        priority = Math.min(priority, 3);
+      }
+      if (!reasons.length) return;
+      attention.push({
+        id: p.id,
+        clientName: p.clientName || p.title || 'Untitled',
+        meta: reasons.join(' · '),
+        priority: priority
+      });
+    });
+    attention.sort(function (a, b) {
+      if (a.priority !== b.priority) return a.priority - b.priority;
+      return String(a.clientName).localeCompare(String(b.clientName), undefined, { sensitivity: 'base' });
+    });
+
+    var depositLeads = getDepositLeadsWithoutHub().map(function (lead) {
+      var parts = [];
+      if (typeof window.formatPipelineMoney === 'function') {
+        parts.push(window.formatPipelineMoney(lead.value));
+      }
+      if (lead.company && lead.name && lead.company !== lead.name) parts.push(lead.company);
+      return {
+        id: lead.id,
+        label: lead.name || lead.company || 'Untitled lead',
+        meta: parts.length ? parts.join(' · ') : 'Ready to onboard',
+        value: lead.value || 0
+      };
+    });
+
+    var portals = [];
+    agencyProjects.forEach(function (p) {
+      var hasToken = !!(p.portalToken);
+      var expires = Number(p.portalExpiresAt) || 0;
+      var expired = hasToken && expires > 0 && expires < now;
+      var expiring = hasToken && expires > 0 && !expired && expires - now <= PORTAL_WARN_MS;
+      var status = !hasToken ? 'missing' : expired ? 'expired' : expiring ? 'expiring' : 'active';
+      if (status === 'active') return;
+      var meta =
+        status === 'missing'
+          ? 'No portal link'
+          : status === 'expired'
+            ? 'Link expired'
+            : 'Expires soon';
+      portals.push({
+        id: p.id,
+        clientName: p.clientName || p.title || 'Untitled',
+        status: status,
+        meta: meta,
+        priority: status === 'expired' ? 0 : status === 'missing' ? 1 : 2
+      });
+    });
+    portals.sort(function (a, b) {
+      if (a.priority !== b.priority) return a.priority - b.priority;
+      return String(a.clientName).localeCompare(String(b.clientName), undefined, { sensitivity: 'base' });
+    });
+
     return {
       projects: agencyProjects.map(function (p) {
         return {
@@ -3585,7 +3682,10 @@
           hoursIncluded: m.hoursIncluded,
           hoursUsed: m.hoursUsed
         };
-      })
+      }),
+      attention: attention,
+      depositLeads: depositLeads,
+      portals: portals
     };
   }
 

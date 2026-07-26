@@ -2814,28 +2814,12 @@
                   </h4>
                   <ul class="admin-overview-list" id="admin-cc-do-today-list" aria-live="polite"></ul>
                 </section>
-                <section class="admin-cc-card" aria-labelledby="admin-cc-pipeline-heading">
-                  <h4 class="admin-cc-card-title" id="admin-cc-pipeline-heading">
-                    <ion-icon name="funnel-outline" aria-hidden="true"></ion-icon>
-                    Pipeline
-                  </h4>
-                  <div class="admin-cc-pipeline-stats" id="admin-cc-pipeline-stats" aria-label="Pipeline by stage"></div>
-                  <p class="admin-cc-section-label">Stuck deals</p>
-                  <ul class="admin-overview-list" id="admin-cc-pipeline-stuck" aria-live="polite"></ul>
-                </section>
                 <section class="admin-cc-card" aria-labelledby="admin-cc-inbox-heading">
                   <h4 class="admin-cc-card-title" id="admin-cc-inbox-heading">
                     <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
                     Inbox
                   </h4>
                   <ul class="admin-overview-list" id="admin-cc-inbox-list" aria-live="polite"></ul>
-                </section>
-                <section class="admin-cc-card" aria-labelledby="admin-cc-delivery-heading">
-                  <h4 class="admin-cc-card-title" id="admin-cc-delivery-heading">
-                    <ion-icon name="construct-outline" aria-hidden="true"></ion-icon>
-                    Delivery
-                  </h4>
-                  <ul class="admin-overview-list" id="admin-cc-delivery-list" aria-live="polite"></ul>
                 </section>
                 <section class="admin-cc-card" aria-labelledby="admin-cc-retainers-heading">
                   <h4 class="admin-cc-card-title" id="admin-cc-retainers-heading">
@@ -2844,14 +2828,26 @@
                   </h4>
                   <ul class="admin-overview-list" id="admin-cc-retainers-list" aria-live="polite"></ul>
                 </section>
-                <section class="admin-cc-card admin-cc-card--span-full" aria-labelledby="admin-cc-cash-heading">
-                  <h4 class="admin-cc-card-title" id="admin-cc-cash-heading">
-                    <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
-                    Cash
+                <section class="admin-cc-card" aria-labelledby="admin-cc-attention-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-attention-heading">
+                    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+                    Clients needing attention
                   </h4>
-                  <div class="admin-cc-cash-stats" id="admin-cc-cash-stats" aria-label="Cash summary"></div>
-                  <p class="admin-cc-section-label">Follow-ups</p>
-                  <ul class="admin-overview-list" id="admin-cc-cash-list" aria-live="polite"></ul>
+                  <ul class="admin-overview-list" id="admin-cc-attention-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-cc-card" aria-labelledby="admin-cc-deposit-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-deposit-heading">
+                    <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
+                    Deposit → onboard
+                  </h4>
+                  <ul class="admin-overview-list" id="admin-cc-deposit-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-cc-card admin-cc-card--span-full" aria-labelledby="admin-cc-portal-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-portal-heading">
+                    <ion-icon name="link-outline" aria-hidden="true"></ion-icon>
+                    Portal status
+                  </h4>
+                  <ul class="admin-overview-list" id="admin-cc-portal-list" aria-live="polite"></ul>
                 </section>
               </div>
             </div>
@@ -3288,6 +3284,7 @@
                     <button type="button" class="cp-client-sort-chip" data-cp-sort="attention" aria-pressed="false">Needs attention</button>
                     <button type="button" class="cp-client-sort-chip" data-cp-sort="milestones" aria-pressed="false">Milestones</button>
                     <button type="button" class="cp-client-sort-chip" data-cp-sort="maintenance" aria-pressed="false">On maintenance</button>
+                    <button type="button" class="cp-client-sort-chip" data-cp-sort="added" aria-pressed="false">Date added</button>
                   </div>
                   <ul class="cp-client-picker-list" id="client-projects-picker-list" role="listbox" aria-label="Clients"></ul>
                 </div>

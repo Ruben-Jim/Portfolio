@@ -12037,13 +12037,32 @@ window.addEventListener('load', function() {
 
   function overviewListItem(opts) {
     var tab = opts.tab ? ' data-overview-tab="' + overviewEsc(opts.tab) + '"' : '';
+    var hub = opts.hubId ? ' data-overview-hub="' + overviewEsc(opts.hubId) + '"' : '';
+    var lead = opts.leadId ? ' data-overview-lead="' + overviewEsc(opts.leadId) + '"' : '';
     var meta = opts.meta ? '<span class="admin-overview-item-meta">' + overviewEsc(opts.meta) + '</span>' : '';
     return (
-      '<li class="admin-overview-item"' + tab + ' role="button" tabindex="0">' +
+      '<li class="admin-overview-item"' + tab + hub + lead + ' role="button" tabindex="0">' +
       '<span class="admin-overview-item-label">' + overviewEsc(opts.label) + '</span>' +
       meta +
       '</li>'
     );
+  }
+
+  function overviewActivateItem(item) {
+    if (!item) return;
+    var hubId = item.getAttribute('data-overview-hub');
+    var leadId = item.getAttribute('data-overview-lead');
+    var tabId = item.getAttribute('data-overview-tab');
+    if (hubId && window.AgencyTools && typeof window.AgencyTools.openClientProject === 'function') {
+      window.AgencyTools.openClientProject(hubId);
+      return;
+    }
+    if (leadId && window.AgencyTools && typeof window.AgencyTools.openProjectHub === 'function') {
+      if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+      window.AgencyTools.openProjectHub(leadId);
+      return;
+    }
+    if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
   }
 
   function overviewEmpty(text) {
@@ -12051,19 +12070,6 @@ window.addEventListener('load', function() {
   }
 
   var OVERVIEW_PIPELINE_STUCK_DAYS = 7;
-
-  function overviewIsThisMonth(value) {
-    if (value == null || value === '') return false;
-    var d;
-    if (typeof value === 'number') d = new Date(value);
-    else if (value && typeof value.toDate === 'function') d = value.toDate();
-    else if (value && typeof value === 'object' && value.seconds != null) {
-      d = new Date(value.seconds * 1000);
-    } else d = new Date(value);
-    if (isNaN(d.getTime())) return false;
-    var now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }
 
   function overviewLeadStuckDays(lead) {
     var ms = pipelineTimestampMs(lead.updatedAt || lead.createdAt);
@@ -12075,19 +12081,7 @@ window.addEventListener('load', function() {
     if (window.AgencyTools && typeof window.AgencyTools.getOverviewSnapshot === 'function') {
       return window.AgencyTools.getOverviewSnapshot();
     }
-    return { projects: [], maintenance: [] };
-  }
-
-  function overviewPipelineCounts() {
-    var counts = { lead: 0, proposal: 0, deposit: 0 };
-    var openValue = 0;
-    var wonValue = 0;
-    pipelineLeads.forEach(function (lead) {
-      if (counts[lead.stage] !== undefined) counts[lead.stage] += 1;
-      if (PIPELINE_OPEN_STAGES.indexOf(lead.stage) >= 0) openValue += lead.value || 0;
-      if (PIPELINE_WON_STAGES.indexOf(lead.stage) >= 0) wonValue += lead.value || 0;
-    });
-    return { counts: counts, openValue: openValue, wonValue: wonValue };
+    return { projects: [], maintenance: [], attention: [], depositLeads: [], portals: [] };
   }
 
   function overviewStuckLeads() {
@@ -12099,20 +12093,6 @@ window.addEventListener('load', function() {
       .sort(function (a, b) {
         return overviewLeadStuckDays(b) - overviewLeadStuckDays(a);
       });
-  }
-
-  function overviewProjectProgress(p) {
-    var milestones = p.milestones || [];
-    var total = milestones.length;
-    if (!total) return { done: 0, total: 0, ratio: 0, next: null };
-    var done = milestones.filter(function (m) { return m.done; }).length;
-    var next = milestones.find(function (m) { return !m.done; });
-    return {
-      done: done,
-      total: total,
-      ratio: done / total,
-      next: next ? next.label : null
-    };
   }
 
   function overviewBuildDoTodayQueue(agency) {
@@ -12230,73 +12210,21 @@ window.addEventListener('load', function() {
     return queue.slice(0, 12);
   }
 
-  function overviewRenderPipelineStats(container) {
-    if (!container) return;
-    var snap = overviewPipelineCounts();
-    var c = snap.counts;
-    container.innerHTML =
-      '<button type="button" class="admin-cc-stat" data-overview-tab="pipeline" title="Open pipeline">' +
-      '<span class="admin-cc-stat-value">' + c.lead + '</span>' +
-      '<span class="admin-cc-stat-label">Lead</span></button>' +
-      '<button type="button" class="admin-cc-stat" data-overview-tab="pipeline">' +
-      '<span class="admin-cc-stat-value">' + c.proposal + '</span>' +
-      '<span class="admin-cc-stat-label">Proposal sent</span></button>' +
-      '<button type="button" class="admin-cc-stat admin-cc-stat--highlight" data-overview-tab="pipeline">' +
-      '<span class="admin-cc-stat-value">' + c.deposit + '</span>' +
-      '<span class="admin-cc-stat-label">Deposit paid</span></button>' +
-      '<p class="admin-cc-pipeline-open">' +
-      'Open pipeline ' + formatPipelineMoney(snap.openValue) +
-      ' · Won ' + formatPipelineMoney(snap.wonValue) +
-      '</p>';
-  }
-
-  function overviewRenderCashStats(container) {
-    if (!container) return;
-    var now = new Date();
-    var bookedPipeline = 0;
-    pipelineLeads.forEach(function (lead) {
-      if (lead.stage !== 'deposit') return;
-      if (overviewIsThisMonth(lead.updatedAt || lead.createdAt)) bookedPipeline += lead.value || 0;
-    });
-    var bookedDocs = 0;
-    var outstanding = 0;
-    businessDocs.forEach(function (doc) {
-      var total = Number(doc.total) || 0;
-      if (doc.status === 'paid' && overviewIsThisMonth(doc.updatedAt || doc.createdAt)) {
-        bookedDocs += total;
-      }
-      if (doc.type === 'invoice' && (doc.status === 'sent' || doc.status === 'accepted')) {
-        outstanding += total;
-      }
-    });
-    var booked = bookedPipeline + bookedDocs;
-    container.innerHTML =
-      '<div class="admin-cc-stat admin-cc-stat--highlight" role="group">' +
-      '<span class="admin-cc-stat-value">' + formatPipelineMoney(booked) + '</span>' +
-      '<span class="admin-cc-stat-label">Booked ' + now.toLocaleString(undefined, { month: 'short' }) + '</span></div>' +
-      '<button type="button" class="admin-cc-stat" data-overview-tab="docs">' +
-      '<span class="admin-cc-stat-value">' + formatPipelineMoney(outstanding) + '</span>' +
-      '<span class="admin-cc-stat-label">Outstanding</span></button>' +
-      '<button type="button" class="admin-cc-stat" data-overview-tab="pipeline">' +
-      '<span class="admin-cc-stat-value">' + formatPipelineMoney(overviewPipelineCounts().openValue) + '</span>' +
-      '<span class="admin-cc-stat-label">In pipeline</span></button>';
-  }
-
   function bindOverviewListClicks(listEl) {
     if (!listEl || listEl.dataset.overviewBound) return;
     listEl.dataset.overviewBound = '1';
     listEl.addEventListener('click', function(e) {
-      var item = e.target.closest('[data-overview-tab]');
+      var item = e.target.closest('.admin-overview-item[data-overview-tab], .admin-overview-item[data-overview-hub], .admin-overview-item[data-overview-lead]');
       if (!item) return;
-      var tabId = item.getAttribute('data-overview-tab');
-      if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+      e.stopPropagation();
+      overviewActivateItem(item);
     });
     listEl.addEventListener('keydown', function(e) {
-      var item = e.target.closest('[data-overview-tab]');
+      var item = e.target.closest('.admin-overview-item[data-overview-tab], .admin-overview-item[data-overview-hub], .admin-overview-item[data-overview-lead]');
       if (!item || (e.key !== 'Enter' && e.key !== ' ')) return;
       e.preventDefault();
-      var tabId = item.getAttribute('data-overview-tab');
-      if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
+      e.stopPropagation();
+      overviewActivateItem(item);
     });
   }
 
@@ -12305,18 +12233,22 @@ window.addEventListener('load', function() {
     if (!root || root.dataset.overviewBound) return;
     root.dataset.overviewBound = '1';
     root.addEventListener('click', function (e) {
-      var btn = e.target.closest('[data-overview-tab]');
-      if (!btn || !root.contains(btn)) return;
-      var tabId = btn.getAttribute('data-overview-tab');
+      var item = e.target.closest('.admin-overview-item[data-overview-hub], .admin-overview-item[data-overview-lead], [data-overview-tab]');
+      if (!item || !root.contains(item)) return;
+      if (item.classList.contains('admin-overview-item')) {
+        overviewActivateItem(item);
+        return;
+      }
+      var tabId = item.getAttribute('data-overview-tab');
       if (tabId && typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
     });
     [
       'admin-cc-do-today-list',
-      'admin-cc-pipeline-stuck',
       'admin-cc-inbox-list',
-      'admin-cc-delivery-list',
       'admin-cc-retainers-list',
-      'admin-cc-cash-list'
+      'admin-cc-attention-list',
+      'admin-cc-deposit-list',
+      'admin-cc-portal-list'
     ].forEach(function (id) {
       bindOverviewListClicks(document.getElementById(id));
     });
@@ -12339,21 +12271,6 @@ window.addEventListener('load', function() {
     doTodayList.innerHTML = doToday.length
       ? doToday.map(overviewListItem).join('')
       : overviewEmpty("You're caught up — nothing urgent on your list today.");
-
-    overviewRenderPipelineStats(document.getElementById('admin-cc-pipeline-stats'));
-    var stuckList = document.getElementById('admin-cc-pipeline-stuck');
-    var stuck = overviewStuckLeads();
-    if (stuckList) {
-      stuckList.innerHTML = stuck.length
-        ? stuck.slice(0, 5).map(function (lead) {
-            return overviewListItem({
-              label: lead.name || lead.company || 'Untitled',
-              meta: pipelineStageLabel(lead.stage) + ' · ' + overviewLeadStuckDays(lead) + 'd idle',
-              tab: 'pipeline'
-            });
-          }).join('')
-        : overviewEmpty('No stuck deals — keep momentum in Pipeline.');
-    }
 
     var inboxList = document.getElementById('admin-cc-inbox-list');
     var inboxRows = [];
@@ -12378,35 +12295,6 @@ window.addEventListener('load', function() {
         : overviewEmpty('Inbox clear — no unread threads or new form messages.');
     }
 
-    var deliveryList = document.getElementById('admin-cc-delivery-list');
-    var deliveryItems = [];
-    (agency.projects || []).forEach(function (p) {
-      var prog = overviewProjectProgress(p);
-      if (prog.total && prog.done >= prog.total) return;
-      var label = p.clientName || p.title || 'Untitled project';
-      if (prog.total && prog.ratio < 0.4) {
-        deliveryItems.push({
-          label: label,
-          meta: 'At risk · ' + prog.done + '/' + prog.total + ' milestones',
-          tab: 'client-projects',
-          sort: 0
-        });
-      } else if (prog.next) {
-        deliveryItems.push({
-          label: label,
-          meta: 'Next: ' + prog.next,
-          tab: 'client-projects',
-          sort: 1
-        });
-      }
-    });
-    deliveryItems.sort(function (a, b) { return a.sort - b.sort; });
-    if (deliveryList) {
-      deliveryList.innerHTML = deliveryItems.length
-        ? deliveryItems.slice(0, 6).map(overviewListItem).join('')
-        : overviewEmpty('No active delivery — add a client in Clients Projects.');
-    }
-
     var retainersList = document.getElementById('admin-cc-retainers-list');
     var retainers = (agency.maintenance || []).slice();
     retainers.sort(function (a, b) {
@@ -12429,35 +12317,56 @@ window.addEventListener('load', function() {
               tab: 'client-projects'
             });
           }).join('')
-        : overviewEmpty('No maintenance clients — add retainers in Clients Projects.');
+        : overviewEmpty('No maintenance clients — add retainers in Clients.');
     }
 
-    overviewRenderCashStats(document.getElementById('admin-cc-cash-stats'));
-    var cashList = document.getElementById('admin-cc-cash-list');
-    var cashFollowUps = [];
-    businessDocs.filter(function (d) { return d.status === 'draft'; }).slice(0, 4).forEach(function (doc) {
-      cashFollowUps.push({
-        label: 'Draft ' + doc.type + ': ' + (doc.clientName || 'Client'),
-        meta: formatCurrency(Number(doc.total) || 0),
-        tab: 'docs'
-      });
-    });
-    businessDocs
-      .filter(function (d) {
-        return d.type === 'invoice' && (d.status === 'sent' || d.status === 'accepted');
-      })
-      .slice(0, 4)
-      .forEach(function (doc) {
-        cashFollowUps.push({
-          label: 'Collect: ' + (doc.clientName || 'Client'),
-          meta: formatCurrency(Number(doc.total) || 0) + (doc.dueDate ? ' · due ' + doc.dueDate : ''),
-          tab: 'docs'
-        });
-      });
-    if (cashList) {
-      cashList.innerHTML = cashFollowUps.length
-        ? cashFollowUps.map(overviewListItem).join('')
-        : overviewEmpty('No draft docs or open invoices to chase.');
+    var attentionList = document.getElementById('admin-cc-attention-list');
+    var attention = agency.attention || [];
+    if (attentionList) {
+      attentionList.innerHTML = attention.length
+        ? attention.slice(0, 6).map(function (row) {
+            return overviewListItem({
+              label: row.clientName || 'Client',
+              meta: row.meta || 'Needs attention',
+              tab: 'client-projects',
+              hubId: row.id
+            });
+          }).join('')
+        : overviewEmpty('All clients look healthy — nothing flagged.');
+    }
+
+    var depositList = document.getElementById('admin-cc-deposit-list');
+    var deposits = agency.depositLeads || [];
+    if (depositList) {
+      depositList.innerHTML = deposits.length
+        ? deposits.slice(0, 6).map(function (row) {
+            return overviewListItem({
+              label: row.label || 'Lead',
+              meta: row.meta || 'Ready to onboard',
+              tab: 'client-projects',
+              leadId: row.id
+            });
+          }).join('')
+        : overviewEmpty('No deposit-paid leads waiting to onboard.');
+    }
+
+    var portalList = document.getElementById('admin-cc-portal-list');
+    var portals = agency.portals || [];
+    if (portalList) {
+      if (!(agency.projects || []).length) {
+        portalList.innerHTML = overviewEmpty('No clients yet — add one in Clients.');
+      } else {
+        portalList.innerHTML = portals.length
+          ? portals.slice(0, 8).map(function (row) {
+              return overviewListItem({
+                label: row.clientName || 'Client',
+                meta: row.meta || 'Portal issue',
+                tab: 'client-projects',
+                hubId: row.id
+              });
+            }).join('')
+          : overviewEmpty('Every client has an active portal link.');
+      }
     }
 
     bindOverviewCommandCenterClicks();
