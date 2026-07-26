@@ -8967,6 +8967,7 @@ window.addEventListener('load', function() {
    * @property {string=} clientEmail
    * @property {number} total
    * @property {'draft'|'sent'|'accepted'|'paid'} status
+   * @property {string=} theme document accent palette (cwr|slate|ocean|forest|coral|violet|mono); light/dark follows viewer device theme
    * @property {string=} dueDate
    * @property {string=} notes
    * @property {string=} proposedSiteUrl
@@ -8982,7 +8983,9 @@ window.addEventListener('load', function() {
    * @property {'monthly'|'annual'=} maintenanceBilling - estimate/invoice billing display preference
    * @property {string=} sourceProposalId - contract only; id of the accepted proposal it was generated from
    * @property {'license'|'buyout'=} ipTransferMode - contract only; defaults to 'license'
-   * @property {number=} revisionRounds - contract only; defaults to 2
+   * @property {'onetime'|'deposit-final'|'deposit-milestone-final'|'custom'=} paymentScheduleType - contract only; defaults to 'deposit-milestone-final'
+   * @property {{ label: string, percent: number }[]=} paymentStages - contract only; percentages of `total` per stage
+   * @property {string=} paymentMethods - contract only; free text, e.g. "Bank transfer, credit/debit card"
    * @property {string} createdAt
    * @property {string} updatedAt
    */
@@ -9100,11 +9103,35 @@ window.addEventListener('load', function() {
     }
     var sourceProposalId = String(doc.sourceProposalId || '').trim().slice(0, 80);
     if (sourceProposalId) out.sourceProposalId = sourceProposalId;
+    var themeId = 'cwr';
+    if (window.BusinessDocShared && typeof window.BusinessDocShared.normalizeDocThemeId === 'function') {
+      themeId = window.BusinessDocShared.normalizeDocThemeId(doc.theme);
+    } else {
+      themeId = String(doc.theme || 'cwr').toLowerCase().trim() || 'cwr';
+    }
+    out.theme = themeId;
     if (type === 'contract') {
       var ipMode = String(doc.ipTransferMode || '').toLowerCase();
       out.ipTransferMode = ipMode === 'buyout' ? 'buyout' : 'license';
-      var rounds = parseInt(doc.revisionRounds, 10);
-      out.revisionRounds = !isNaN(rounds) && rounds >= 1 && rounds <= 10 ? rounds : 2;
+      var scheduleType = String(doc.paymentScheduleType || '').toLowerCase();
+      out.paymentScheduleType =
+        ['onetime', 'deposit-final', 'deposit-milestone-final', 'custom'].indexOf(scheduleType) >= 0
+          ? scheduleType
+          : 'deposit-milestone-final';
+      if (Array.isArray(doc.paymentStages) && doc.paymentStages.length) {
+        out.paymentStages = doc.paymentStages
+          .slice(0, 6)
+          .map(function (s) {
+            var pct = typeof s.percent === 'number' ? s.percent : parseFloat(s.percent);
+            if (isNaN(pct) || pct < 0) pct = 0;
+            if (pct > 100) pct = 100;
+            return { label: String((s && s.label) || '').trim().slice(0, 100), percent: pct };
+          })
+          .filter(function (s) { return s.label; });
+        if (!out.paymentStages.length) delete out.paymentStages;
+      }
+      var paymentMethods = String(doc.paymentMethods || '').trim().slice(0, 200);
+      if (paymentMethods) out.paymentMethods = paymentMethods;
     }
     return out;
   }
@@ -9178,7 +9205,68 @@ window.addEventListener('load', function() {
           return f && typeof f === 'object';
         });
     }
+    if (window.BusinessDocShared && typeof window.BusinessDocShared.normalizeDocThemeId === 'function') {
+      doc.theme = window.BusinessDocShared.normalizeDocThemeId(doc.theme);
+    } else if (!doc.theme) {
+      doc.theme = 'cwr';
+    }
     return doc;
+  }
+
+  function getBusinessDocThemeList() {
+    if (window.BusinessDocShared && typeof window.BusinessDocShared.listDocThemes === 'function') {
+      return window.BusinessDocShared.listDocThemes();
+    }
+    return [
+      { id: 'cwr', label: 'CWR', swatch: '#eab308' },
+      { id: 'slate', label: 'Slate', swatch: '#94a3b8' },
+      { id: 'ocean', label: 'Ocean', swatch: '#38bdf8' },
+      { id: 'forest', label: 'Forest', swatch: '#34d399' },
+      { id: 'coral', label: 'Coral', swatch: '#fb7185' },
+      { id: 'violet', label: 'Violet', swatch: '#a78bfa' },
+      { id: 'mono', label: 'Mono', swatch: '#a3a3a3' }
+    ];
+  }
+
+  function setBusinessDocTheme(themeId) {
+    var id = themeId || 'cwr';
+    if (window.BusinessDocShared && typeof window.BusinessDocShared.normalizeDocThemeId === 'function') {
+      id = window.BusinessDocShared.normalizeDocThemeId(id);
+    }
+    if (businessDocThemeInput) businessDocThemeInput.value = id;
+    if (!businessDocThemePicker) return;
+    businessDocThemePicker.querySelectorAll('[data-doc-theme]').forEach(function (btn) {
+      var active = btn.getAttribute('data-doc-theme') === id;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+  }
+
+  function initBusinessDocThemePicker() {
+    if (!businessDocThemePicker || businessDocThemePicker.dataset.themeBound === '1') return;
+    businessDocThemePicker.dataset.themeBound = '1';
+    businessDocThemePicker.innerHTML = getBusinessDocThemeList()
+      .map(function (theme) {
+        return (
+          '<button type="button" class="business-doc-theme-chip" role="radio" aria-checked="false" data-doc-theme="' +
+          escapeHtml(theme.id) +
+          '">' +
+          '<span class="business-doc-theme-swatch" style="background:' +
+          escapeHtml(theme.swatch) +
+          '" aria-hidden="true"></span>' +
+          '<span>' +
+          escapeHtml(theme.label) +
+          '</span></button>'
+        );
+      })
+      .join('');
+    businessDocThemePicker.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-doc-theme]');
+      if (!btn || !businessDocThemePicker.contains(btn)) return;
+      e.preventDefault();
+      setBusinessDocTheme(btn.getAttribute('data-doc-theme'));
+    });
+    setBusinessDocTheme((businessDocThemeInput && businessDocThemeInput.value) || 'cwr');
   }
 
   function preferBusinessDoc(a, b) {
@@ -9369,6 +9457,8 @@ window.addEventListener('load', function() {
   const businessDocClientEmailInput = document.getElementById('business-doc-client-email');
   const businessDocTotalInput = document.getElementById('business-doc-total');
   const businessDocDueDateInput = document.getElementById('business-doc-due-date');
+  const businessDocThemeInput = document.getElementById('business-doc-theme');
+  const businessDocThemePicker = document.getElementById('business-doc-theme-picker');
   const businessDocNotesInput = document.getElementById('business-doc-notes');
   const businessDocProposalHeadlineInput = document.getElementById('business-doc-proposal-headline');
   const businessDocValuePropositionInput = document.getElementById('business-doc-value-proposition');
@@ -9397,10 +9487,13 @@ window.addEventListener('load', function() {
   const businessDocMaintenancePickers = document.getElementById('business-doc-maintenance-pickers');
   const businessDocMaintenanceProposalNote = document.getElementById('business-doc-maintenance-proposal-note');
   const businessDocMaintenanceHint = document.getElementById('business-doc-maintenance-hint');
-  const businessDocMaintenanceSection = document.getElementById('business-doc-maintenance-section');
   const businessDocContractFields = document.getElementById('business-doc-contract-fields');
   const businessDocIpModeInput = document.getElementById('business-doc-ip-mode');
-  const businessDocRevisionRoundsInput = document.getElementById('business-doc-revision-rounds');
+  const businessDocPaymentScheduleTypeInput = document.getElementById('business-doc-payment-schedule-type');
+  const businessDocPaymentStagesList = document.getElementById('business-doc-payment-stages-list');
+  const businessDocAddPaymentStageBtn = document.getElementById('business-doc-add-payment-stage-btn');
+  const businessDocPaymentStagesTotal = document.getElementById('business-doc-payment-stages-total');
+  const businessDocPaymentMethodsInput = document.getElementById('business-doc-payment-methods');
 
   let businessDocs = loadBusinessDocs();
 
@@ -9724,6 +9817,274 @@ window.addEventListener('load', function() {
 
   initBusinessDocAddonsControls();
 
+  // ----------------------------
+  // Contract payment schedule (stages editor)
+  // ----------------------------
+
+  var PAYMENT_SCHEDULE_PRESETS = {
+    onetime: [{ label: 'Payment in full — due on signing', percent: 100 }],
+    'deposit-final': [
+      { label: 'Deposit — due on signing', percent: 50 },
+      { label: 'Final — due at launch', percent: 50 }
+    ],
+    'deposit-milestone-final': [
+      { label: 'Deposit — due on signing', percent: 50 },
+      { label: 'Milestone — due at build review', percent: 25 },
+      { label: 'Final — due at launch', percent: 25 }
+    ],
+    custom: [
+      { label: 'Stage 1', percent: 50 },
+      { label: 'Stage 2', percent: 50 }
+    ]
+  };
+
+  function generatePaymentStageDomId() {
+    return 'stage_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+  }
+
+  function createPaymentStageRowEl(data) {
+    data = data || {};
+    var card = document.createElement('div');
+    card.className = 'business-doc-addon-card business-doc-payment-stage-row';
+    card.setAttribute('data-stage-id', generatePaymentStageDomId());
+
+    var header = document.createElement('div');
+    header.className = 'business-doc-addon-card-header';
+    var title = document.createElement('span');
+    title.className = 'business-doc-addon-card-title';
+    title.textContent = 'Stage';
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'business-doc-addon-remove';
+    removeBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon> Remove';
+    removeBtn.addEventListener('click', function () {
+      card.remove();
+      updateBusinessDocPaymentStagesTotal();
+    });
+    header.appendChild(title);
+    header.appendChild(removeBtn);
+
+    var fields = document.createElement('div');
+    fields.className = 'business-doc-payment-stage-fields';
+
+    var labelFg = document.createElement('div');
+    labelFg.className = 'business-doc-addon-field';
+    var ll = document.createElement('label');
+    ll.textContent = 'Label';
+    var li = document.createElement('input');
+    li.type = 'text';
+    li.className = 'business-doc-payment-stage-label';
+    li.placeholder = 'Deposit — due on signing';
+    if (data.label) li.value = data.label;
+    labelFg.appendChild(ll);
+    labelFg.appendChild(li);
+
+    var percentFg = document.createElement('div');
+    percentFg.className = 'business-doc-addon-field business-doc-payment-stage-percent-field';
+    var pl = document.createElement('label');
+    pl.textContent = 'Percent (%)';
+    var pi = document.createElement('input');
+    pi.type = 'number';
+    pi.className = 'business-doc-payment-stage-percent';
+    pi.min = '0';
+    pi.max = '100';
+    pi.step = '1';
+    pi.value = typeof data.percent === 'number' && !isNaN(data.percent) ? String(data.percent) : '';
+    pi.addEventListener('input', updateBusinessDocPaymentStagesTotal);
+    percentFg.appendChild(pl);
+    percentFg.appendChild(pi);
+
+    fields.appendChild(labelFg);
+    fields.appendChild(percentFg);
+    card.appendChild(header);
+    card.appendChild(fields);
+    return card;
+  }
+
+  function updateBusinessDocPaymentStagesTotal() {
+    if (!businessDocPaymentStagesTotal || !businessDocPaymentStagesList) return;
+    var rows = businessDocPaymentStagesList.querySelectorAll('.business-doc-payment-stage-percent');
+    var total = 0;
+    rows.forEach(function (input) {
+      var n = parseFloat(input.value);
+      if (!isNaN(n)) total += n;
+    });
+    var rounded = Math.round(total * 100) / 100;
+    businessDocPaymentStagesTotal.textContent = 'Total: ' + rounded + '%';
+    businessDocPaymentStagesTotal.classList.toggle('is-off', Math.abs(rounded - 100) > 0.01);
+  }
+
+  function clearBusinessDocPaymentStagesUI() {
+    if (!businessDocPaymentStagesList) return;
+    businessDocPaymentStagesList.innerHTML = '';
+    updateBusinessDocPaymentStagesTotal();
+  }
+
+  function fillBusinessDocPaymentStagesUI(stages) {
+    clearBusinessDocPaymentStagesUI();
+    if (!businessDocPaymentStagesList) return;
+    var list = Array.isArray(stages) && stages.length ? stages : PAYMENT_SCHEDULE_PRESETS['deposit-milestone-final'];
+    list.forEach(function (s) {
+      businessDocPaymentStagesList.appendChild(createPaymentStageRowEl(s));
+    });
+    updateBusinessDocPaymentStagesTotal();
+  }
+
+  function collectBusinessDocPaymentStagesFromForm() {
+    if (!businessDocPaymentStagesList) return [];
+    var rows = businessDocPaymentStagesList.querySelectorAll('.business-doc-payment-stage-row');
+    var result = [];
+    rows.forEach(function (row) {
+      var labelEl = row.querySelector('.business-doc-payment-stage-label');
+      var percentEl = row.querySelector('.business-doc-payment-stage-percent');
+      var label = labelEl ? labelEl.value.trim() : '';
+      var percent = percentEl ? parseFloat(percentEl.value) : NaN;
+      if (!label && isNaN(percent)) return;
+      if (isNaN(percent) || percent < 0) percent = 0;
+      result.push({ label: label || 'Payment', percent: percent });
+    });
+    return result;
+  }
+
+  function initBusinessDocPaymentScheduleControls() {
+    if (businessDocAddPaymentStageBtn && businessDocPaymentStagesList) {
+      businessDocAddPaymentStageBtn.addEventListener('click', function () {
+        businessDocPaymentStagesList.appendChild(createPaymentStageRowEl(null));
+        updateBusinessDocPaymentStagesTotal();
+      });
+    }
+    if (businessDocPaymentScheduleTypeInput) {
+      businessDocPaymentScheduleTypeInput.addEventListener('change', function () {
+        var preset = PAYMENT_SCHEDULE_PRESETS[businessDocPaymentScheduleTypeInput.value];
+        fillBusinessDocPaymentStagesUI(preset || PAYMENT_SCHEDULE_PRESETS['deposit-milestone-final']);
+      });
+    }
+  }
+
+  initBusinessDocPaymentScheduleControls();
+
+  // ----------------------------
+  // Custom dropdown / toggle-group components (replace native <select> in the
+  // create/edit document form). Each wrapper holds a hidden <input> that stays
+  // the single source of truth other code reads/writes via `.value`, so the
+  // rest of the form logic doesn't need to know these aren't real <select>s.
+  // ----------------------------
+
+  function closeBusinessDocSelect(wrap) {
+    wrap.classList.remove('is-open');
+    var trigger = wrap.querySelector('.business-doc-select-trigger');
+    var menu = wrap.querySelector('.business-doc-select-menu');
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    if (menu) menu.setAttribute('aria-hidden', 'true');
+  }
+
+  function closeAllBusinessDocSelects(except) {
+    document.querySelectorAll('.business-doc-select.is-open').forEach(function (wrap) {
+      if (wrap !== except) closeBusinessDocSelect(wrap);
+    });
+  }
+
+  /** Re-renders a custom dropdown's trigger label + active option from its hidden input's current value. */
+  function syncBusinessDocSelectUI(hiddenInput) {
+    if (!hiddenInput) return;
+    var wrap = hiddenInput.closest('.business-doc-select');
+    if (!wrap) return;
+    var label = wrap.querySelector('.business-doc-select-trigger-label');
+    var options = wrap.querySelectorAll('.business-doc-select-option');
+    options.forEach(function (opt) {
+      var isActive = opt.getAttribute('data-value') === hiddenInput.value;
+      opt.classList.toggle('is-active', isActive);
+      opt.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      if (isActive && label) label.textContent = opt.textContent;
+    });
+  }
+
+  /** Re-renders a toggle group's active button from its hidden input's current value. */
+  function syncBusinessDocToggleUI(hiddenInput) {
+    if (!hiddenInput) return;
+    var wrap = hiddenInput.parentElement
+      ? hiddenInput.parentElement.querySelector('.business-doc-toggle-group')
+      : null;
+    if (!wrap) return;
+    wrap.querySelectorAll('.business-doc-toggle-btn').forEach(function (btn) {
+      var isActive = btn.getAttribute('data-value') === hiddenInput.value;
+      btn.classList.toggle('is-active', isActive);
+      btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    });
+  }
+
+  function setBusinessDocHiddenValue(hiddenInput, value) {
+    if (!hiddenInput) return;
+    hiddenInput.value = value;
+    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function initBusinessDocCustomSelects() {
+    document.querySelectorAll('.business-doc-select').forEach(function (wrap) {
+      var trigger = wrap.querySelector('.business-doc-select-trigger');
+      var menu = wrap.querySelector('.business-doc-select-menu');
+      var hiddenInput = wrap.querySelector('input[type="hidden"]');
+      if (!trigger || !menu || !hiddenInput) return;
+
+      trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var willOpen = !wrap.classList.contains('is-open');
+        closeAllBusinessDocSelects(wrap);
+        if (willOpen) {
+          wrap.classList.add('is-open');
+          trigger.setAttribute('aria-expanded', 'true');
+          menu.setAttribute('aria-hidden', 'false');
+        } else {
+          closeBusinessDocSelect(wrap);
+        }
+      });
+
+      menu.querySelectorAll('.business-doc-select-option').forEach(function (opt) {
+        opt.addEventListener('click', function () {
+          setBusinessDocHiddenValue(hiddenInput, opt.getAttribute('data-value') || '');
+          syncBusinessDocSelectUI(hiddenInput);
+          closeBusinessDocSelect(wrap);
+          trigger.focus();
+        });
+      });
+
+      syncBusinessDocSelectUI(hiddenInput);
+    });
+
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('.business-doc-select')) return;
+      closeAllBusinessDocSelects();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var openWrap = document.querySelector('.business-doc-select.is-open');
+      if (!openWrap) return;
+      closeBusinessDocSelect(openWrap);
+      var trigger = openWrap.querySelector('.business-doc-select-trigger');
+      if (trigger) trigger.focus();
+    });
+  }
+
+  function initBusinessDocToggleGroups() {
+    document.querySelectorAll('.business-doc-toggle-group').forEach(function (group) {
+      var hiddenInput = group.parentElement
+        ? group.parentElement.querySelector('input[type="hidden"]')
+        : null;
+      if (!hiddenInput) return;
+      group.querySelectorAll('.business-doc-toggle-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          setBusinessDocHiddenValue(hiddenInput, btn.getAttribute('data-value') || '');
+          syncBusinessDocToggleUI(hiddenInput);
+        });
+      });
+      syncBusinessDocToggleUI(hiddenInput);
+    });
+  }
+
+  initBusinessDocCustomSelects();
+  initBusinessDocToggleGroups();
+  initBusinessDocThemePicker();
+
   /**
    * @param {BusinessDocument} [doc] - If provided, fill form for edit; otherwise reset for create.
    */
@@ -9747,11 +10108,6 @@ window.addEventListener('load', function() {
   function updateBusinessDocMaintenanceVisibility() {
     var type = businessDocTypeInput ? businessDocTypeInput.value : 'proposal';
     var isProposal = type === 'proposal';
-    var isContract = type === 'contract';
-    if (businessDocMaintenanceSection) {
-      businessDocMaintenanceSection.hidden = isContract;
-    }
-    if (isContract) return;
     if (businessDocMaintenanceProposalNote) {
       businessDocMaintenanceProposalNote.hidden = !isProposal;
     }
@@ -9847,7 +10203,16 @@ window.addEventListener('load', function() {
     if (businessDocMaintenancePlanInput) businessDocMaintenancePlanInput.value = '';
     if (businessDocMaintenanceBillingInput) businessDocMaintenanceBillingInput.value = 'monthly';
     if (businessDocIpModeInput) businessDocIpModeInput.value = 'license';
-    if (businessDocRevisionRoundsInput) businessDocRevisionRoundsInput.value = '2';
+    if (businessDocPaymentScheduleTypeInput) businessDocPaymentScheduleTypeInput.value = 'deposit-milestone-final';
+    if (businessDocPaymentMethodsInput) businessDocPaymentMethodsInput.value = '';
+    setBusinessDocTheme('cwr');
+    syncBusinessDocSelectUI(businessDocTypeInput);
+    syncBusinessDocSelectUI(businessDocStatusInput);
+    syncBusinessDocSelectUI(businessDocIpModeInput);
+    syncBusinessDocSelectUI(businessDocMaintenancePlanInput);
+    syncBusinessDocSelectUI(businessDocPaymentScheduleTypeInput);
+    syncBusinessDocToggleUI(businessDocMaintenanceBillingInput);
+    fillBusinessDocPaymentStagesUI(PAYMENT_SCHEDULE_PRESETS['deposit-milestone-final']);
     clearBusinessDocCoreFeaturesUI();
     clearBusinessDocAddonsUI();
     updateBusinessDocProposedSiteVisibility();
@@ -9875,6 +10240,7 @@ window.addEventListener('load', function() {
     if (businessDocClientEmailInput) businessDocClientEmailInput.value = doc.clientEmail || '';
     if (businessDocTotalInput) businessDocTotalInput.value = String(doc.total || '');
     if (businessDocDueDateInput) businessDocDueDateInput.value = doc.dueDate || '';
+    setBusinessDocTheme(doc.theme || 'cwr');
     if (businessDocNotesInput) businessDocNotesInput.value = doc.notes || '';
     if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = doc.proposedSiteUrl || '';
     if (businessDocFoundationInput) businessDocFoundationInput.value = doc.foundationUrl || '';
@@ -9900,10 +10266,22 @@ window.addEventListener('load', function() {
     if (businessDocIpModeInput) {
       businessDocIpModeInput.value = String(doc.ipTransferMode || '').toLowerCase() === 'buyout' ? 'buyout' : 'license';
     }
-    if (businessDocRevisionRoundsInput) {
-      var rounds = parseInt(doc.revisionRounds, 10);
-      businessDocRevisionRoundsInput.value = String(!isNaN(rounds) && rounds >= 1 && rounds <= 10 ? rounds : 2);
-    }
+    var scheduleType = ['onetime', 'deposit-final', 'deposit-milestone-final', 'custom'].indexOf(doc.paymentScheduleType) >= 0
+      ? doc.paymentScheduleType
+      : 'deposit-milestone-final';
+    if (businessDocPaymentScheduleTypeInput) businessDocPaymentScheduleTypeInput.value = scheduleType;
+    if (businessDocPaymentMethodsInput) businessDocPaymentMethodsInput.value = doc.paymentMethods || '';
+    fillBusinessDocPaymentStagesUI(
+      Array.isArray(doc.paymentStages) && doc.paymentStages.length
+        ? doc.paymentStages
+        : PAYMENT_SCHEDULE_PRESETS[scheduleType]
+    );
+    syncBusinessDocSelectUI(businessDocTypeInput);
+    syncBusinessDocSelectUI(businessDocStatusInput);
+    syncBusinessDocSelectUI(businessDocIpModeInput);
+    syncBusinessDocSelectUI(businessDocMaintenancePlanInput);
+    syncBusinessDocSelectUI(businessDocPaymentScheduleTypeInput);
+    syncBusinessDocToggleUI(businessDocMaintenanceBillingInput);
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
     updateBusinessDocContractVisibility();
@@ -9936,14 +10314,6 @@ window.addEventListener('load', function() {
     var invoiceCount = allDocs.filter(function (d) { return d.type === 'invoice'; }).length;
     var contractCount = allDocs.filter(function (d) { return d.type === 'contract'; }).length;
     var paidCount = allDocs.filter(function (d) { return d.status === 'paid'; }).length;
-    var visibleValue = filteredDocs.reduce(function (sum, d) {
-      var n = Number(d.total || 0);
-      return sum + (isNaN(n) ? 0 : n);
-    }, 0);
-    var totalValue = allDocs.reduce(function (sum, d) {
-      var n = Number(d.total || 0);
-      return sum + (isNaN(n) ? 0 : n);
-    }, 0);
 
     businessDocsSummary.innerHTML = [
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Total docs</span><span class="business-docs-summary-value">' + allDocs.length + '</span></div>',
@@ -9954,9 +10324,7 @@ window.addEventListener('load', function() {
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Contracts</span><span class="business-docs-summary-value">' + contractCount + '</span></div>',
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Draft</span><span class="business-docs-summary-value">' + draftCount + '</span></div>',
       '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Open</span><span class="business-docs-summary-value">' + openCount + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Paid</span><span class="business-docs-summary-value">' + paidCount + '</span></div>',
-      '<div class="business-docs-summary-item business-docs-summary-item--value"><span class="business-docs-summary-label">Portfolio value</span><span class="business-docs-summary-value">$' + totalValue.toFixed(2) + '</span></div>',
-      '<div class="business-docs-summary-item business-docs-summary-item--value"><span class="business-docs-summary-label">Visible value</span><span class="business-docs-summary-value">$' + visibleValue.toFixed(2) + '</span></div>'
+      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Paid</span><span class="business-docs-summary-value">' + paidCount + '</span></div>'
     ].join('');
   }
 
@@ -9970,7 +10338,7 @@ window.addEventListener('load', function() {
 
     if (filtered.length === 0) {
       businessDocsTbody.innerHTML =
-        '<tr class="empty-row"><td colspan="6">' +
+        '<tr class="empty-row"><td colspan="5">' +
         '<div class="business-docs-empty-state">' +
         '<ion-icon name="document-outline" aria-hidden="true"></ion-icon>' +
         '<p class="business-docs-empty-message">No proposals, estimates, invoices, or contracts yet.</p>' +
@@ -9996,11 +10364,6 @@ window.addEventListener('load', function() {
       clientTd.setAttribute('data-label', 'Client');
       clientTd.textContent = doc.clientName || '—';
       tr.appendChild(clientTd);
-
-      var totalTd = document.createElement('td');
-      totalTd.setAttribute('data-label', 'Total');
-      totalTd.textContent = formatCurrency(doc.total || 0);
-      tr.appendChild(totalTd);
 
       var statusTd = document.createElement('td');
       statusTd.setAttribute('data-label', 'Status');
@@ -10068,9 +10431,9 @@ window.addEventListener('load', function() {
             status: 'draft',
             dueDate: doc.dueDate || '',
             notes: doc.includedItems || doc.notes || '',
+            theme: doc.theme || 'cwr',
             sourceProposalId: doc.id,
             ipTransferMode: 'license',
-            revisionRounds: 2,
             createdAt: nowIso,
             updatedAt: nowIso
           });
@@ -10191,6 +10554,7 @@ window.addEventListener('load', function() {
         total: businessDocTotalInput ? parseFloat(businessDocTotalInput.value || '0') : 0,
         status: businessDocStatusInput ? businessDocStatusInput.value : 'draft',
         dueDate: businessDocDueDateInput ? businessDocDueDateInput.value : '',
+        theme: businessDocThemeInput ? businessDocThemeInput.value : 'cwr',
         notes: businessDocNotesInput ? businessDocNotesInput.value.trim() : '',
         createdAt: nowIso,
         updatedAt: nowIso
@@ -10270,15 +10634,28 @@ window.addEventListener('load', function() {
           businessDocIpModeInput && String(businessDocIpModeInput.value || '').toLowerCase() === 'buyout'
             ? 'buyout'
             : 'license';
-        var roundsVal = businessDocRevisionRoundsInput ? parseInt(businessDocRevisionRoundsInput.value, 10) : NaN;
-        doc.revisionRounds = !isNaN(roundsVal) && roundsVal >= 1 && roundsVal <= 10 ? roundsVal : 2;
+        var scheduleTypeVal = businessDocPaymentScheduleTypeInput
+          ? String(businessDocPaymentScheduleTypeInput.value || '').toLowerCase()
+          : '';
+        doc.paymentScheduleType =
+          ['onetime', 'deposit-final', 'deposit-milestone-final', 'custom'].indexOf(scheduleTypeVal) >= 0
+            ? scheduleTypeVal
+            : 'deposit-milestone-final';
+        var stages = collectBusinessDocPaymentStagesFromForm();
+        if (stages.length) doc.paymentStages = stages;
+        else delete doc.paymentStages;
+        var paymentMethods = businessDocPaymentMethodsInput ? businessDocPaymentMethodsInput.value.trim() : '';
+        if (paymentMethods) doc.paymentMethods = paymentMethods;
+        else delete doc.paymentMethods;
       } else {
         delete doc.sourceProposalId;
         delete doc.ipTransferMode;
-        delete doc.revisionRounds;
+        delete doc.paymentScheduleType;
+        delete doc.paymentStages;
+        delete doc.paymentMethods;
       }
 
-      if (docType === 'estimate' || docType === 'invoice') {
+      if (docType === 'estimate' || docType === 'invoice' || docType === 'contract') {
         var planSel = businessDocMaintenancePlanInput
           ? String(businessDocMaintenancePlanInput.value || '').toLowerCase()
           : '';

@@ -885,14 +885,100 @@
     }
   }
 
+  function getPortalContractDoc(docId) {
+    if (!docId || !window.portalBusinessDocsById) return null;
+    return window.portalBusinessDocsById[docId] || null;
+  }
+
+  function getPortalContractSignature(docId) {
+    if (!docId || !window.portalContractSignaturesById) return undefined;
+    return window.portalContractSignaturesById[docId];
+  }
+
+  function buildPortalContractHtml(docId) {
+    var doc = getPortalContractDoc(docId);
+    if (!doc || !window.BusinessDocShared || !window.BusinessDocShared.buildPrintHtml) return '';
+    return window.BusinessDocShared.buildPrintHtml(doc, getPortalContractSignature(docId)) || '';
+  }
+
+  function mountPortalContractFrame(host, docId) {
+    if (!host || !docId) return false;
+    var html = buildPortalContractHtml(docId);
+    if (!html) return false;
+
+    var shadow;
+    try {
+      shadow = host.shadowRoot || host.attachShadow({ mode: 'open' });
+    } catch (err) {
+      console.warn('Contract preview shadow root failed', err);
+      return false;
+    }
+
+    var parsed = null;
+    try {
+      parsed = new DOMParser().parseFromString(html, 'text/html');
+    } catch (err2) {
+      console.warn('Contract preview parse failed', err2);
+      return false;
+    }
+    if (!parsed || !parsed.body) return false;
+
+    var headBits = [];
+    parsed.querySelectorAll('link[rel="stylesheet"]').forEach(function (node) {
+      headBits.push(node.outerHTML);
+    });
+    parsed.querySelectorAll('style').forEach(function (node) {
+      var css = String(node.textContent || '')
+        .replace(/\bhtml\b/g, ':host')
+        .replace(/\bbody\b/g, '.portal-contract-embed');
+      headBits.push('<style>' + css + '</style>');
+    });
+
+    shadow.innerHTML =
+      headBits.join('') +
+      '<style>' +
+      ':host { display: block; width: 100%; overflow: visible; }' +
+      '.portal-contract-embed { display: block; width: 100%; overflow: visible; box-sizing: border-box; }' +
+      '.portal-contract-embed .doc { max-width: 100%; }' +
+      '</style>' +
+      '<div class="portal-contract-embed">' +
+      parsed.body.innerHTML +
+      '</div>';
+
+    host.dataset.portalFrameMounted = '1';
+    host.removeAttribute('src');
+    host.style.height = 'auto';
+    host.style.minHeight = '0';
+    host.style.overflow = 'visible';
+    return true;
+  }
+
+  function ensurePortalContractFrame(panel, docId) {
+    if (!panel || !docId) return false;
+    var host = panel.querySelector('[data-portal-contract-frame="' + docId + '"]');
+    if (!host) return false;
+    if (host.dataset.portalFrameMounted === '1' && host.shadowRoot && host.shadowRoot.childNodes.length) {
+      return true;
+    }
+    return mountPortalContractFrame(host, docId);
+  }
+
+  function renderContractFrameHtml(docId) {
+    return (
+      '<div class="client-portal-contract-preview">' +
+      '<div class="client-portal-contract-frame" title="Contract agreement" data-portal-contract-frame="' +
+      esc(docId) +
+      '" role="region" aria-label="Contract agreement"></div>' +
+      '</div>'
+    );
+  }
+
   function renderContractSignPanelHtml(doc) {
     var docId = esc(doc.id);
     return (
       '<div class="client-portal-sign-panel" data-portal-sign-panel="' + docId + '" hidden>' +
+      renderContractFrameHtml(doc.id) +
       '<p class="client-portal-sign-intro">Read the full agreement, then sign below.</p>' +
-      '<button type="button" class="btn btn-secondary btn-sm client-portal-sign-view-btn" data-portal-view-doc="' +
-      docId +
-      '">Open full agreement</button>' +
       '<form class="client-portal-sign-form" data-portal-sign-form="' + docId + '">' +
       '<label class="client-portal-sign-label" for="portal-sign-name-' + docId + '">Type your full legal name</label>' +
       '<input type="text" class="client-portal-sign-name" id="portal-sign-name-' + docId + '" autocomplete="name" required>' +
@@ -908,13 +994,56 @@
     );
   }
 
+  function renderContractSignedPanelHtml(doc) {
+    var docId = esc(doc.id);
+    return (
+      '<div class="client-portal-sign-panel client-portal-signed-panel" data-portal-signed-panel="' +
+      docId +
+      '" hidden>' +
+      renderContractFrameHtml(doc.id) +
+      '<div class="client-portal-signed-actions">' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-portal-download-doc="' +
+      docId +
+      '">Download PDF</button>' +
+      '</div></div>'
+    );
+  }
+
+  function renderSignedContractCardHtml(doc, signature) {
+    var docId = esc(doc.id);
+    var signedName = (signature && signature.signedByName) || '';
+    var rawAt = signature && signature.signedAt;
+    var signedAtLabel = '';
+    if (rawAt != null && rawAt !== '') {
+      var formatted = formatDocDate(rawAt);
+      signedAtLabel = formatted && formatted !== '—' ? formatted : 'just now';
+    } else {
+      signedAtLabel = 'just now';
+    }
+    return (
+      '<div class="client-portal-doc-card-main">' +
+      '<span class="client-portal-doc-type client-portal-doc-type--contract">CONTRACT</span>' +
+      '<strong class="client-portal-doc-title">' +
+      esc(doc.clientName || 'Document') +
+      '</strong>' +
+      '<p class="client-portal-doc-meta">Signed ' +
+      esc(signedAtLabel) +
+      (signedName ? ' by ' + esc(signedName) : '') +
+      '</p></div>' +
+      '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
+      docId +
+      '">View signed contract</button>' +
+      renderContractSignedPanelHtml(doc)
+    );
+  }
+
   function renderBusinessDocumentsSection(docs, signaturesById) {
     if (!docs.length) return '';
     signaturesById = signaturesById || {};
     return (
       '<details class="client-portal-docs-footer" open>' +
       '<summary>Proposals, billing &amp; contracts</summary>' +
-      '<div class="client-portal-docs-footer-body has-scrollbar">' +
+      '<div class="client-portal-docs-footer-body">' +
       '<ul class="client-portal-docs-list">' +
       docs
         .map(function (d) {
@@ -923,19 +1052,22 @@
           var signature = isContract ? signaturesById[d.id] : null;
           var actionHtml;
           var metaExtra = '';
+          var panelHtml = '';
           if (isContract && signature) {
             actionHtml =
-              '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-view-doc="' +
+              '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
               esc(d.id) +
               '">View signed contract</button>';
             metaExtra =
               ' · Signed ' + esc(formatDocDate(signature.signedAt)) + ' by ' + esc(signature.signedByName || '');
+            panelHtml = renderContractSignedPanelHtml(d);
           } else if (isContract) {
             actionHtml =
               '<button type="button" class="btn btn-primary btn-sm client-portal-doc-sign-btn" data-portal-sign-doc="' +
               esc(d.id) +
               '">Review &amp; sign</button>';
             metaExtra = ' · Awaiting your signature';
+            panelHtml = renderContractSignPanelHtml(d);
           } else {
             actionHtml =
               '<button type="button" class="btn btn-primary btn-sm client-portal-doc-view-btn" data-portal-view-doc="' +
@@ -961,13 +1093,26 @@
             metaExtra +
             '</p></div>' +
             actionHtml +
-            (isContract && !signature ? renderContractSignPanelHtml(d) : '') +
+            panelHtml +
             '</li>'
           );
         })
         .join('') +
       '</ul></div></details>'
     );
+  }
+
+  function openPortalBusinessDoc(docId, options) {
+    if (!docId || !window.portalBusinessDocsById) return false;
+    var doc = window.portalBusinessDocsById[docId];
+    if (!doc) return false;
+    var signature =
+      doc.type === 'contract' && window.portalContractSignaturesById
+        ? window.portalContractSignaturesById[docId]
+        : undefined;
+    if (!window.BusinessDocShared || !window.BusinessDocShared.openPrintWindow) return false;
+    var opts = options && typeof options === 'object' ? options : { autoPrint: false };
+    return !!window.BusinessDocShared.openPrintWindow(doc, signature, opts);
   }
 
   function bindPortalDocViewButtons(root) {
@@ -977,17 +1122,37 @@
       btn.dataset.portalDocBound = '1';
       btn.addEventListener('click', function () {
         var docId = btn.getAttribute('data-portal-view-doc');
-        if (!docId || !window.portalBusinessDocsById) return;
-        var doc = window.portalBusinessDocsById[docId];
-        if (!doc) return;
-        var signature =
-          doc.type === 'contract' && window.portalContractSignaturesById
-            ? window.portalContractSignaturesById[docId]
-            : undefined;
-        if (window.BusinessDocShared && window.BusinessDocShared.openPrintWindow) {
-          if (!window.BusinessDocShared.openPrintWindow(doc, signature)) {
-            alert('Unable to open document. Please allow popups for this site.');
-          }
+        if (!openPortalBusinessDoc(docId, { autoPrint: false })) {
+          alert('Unable to open document. Please allow popups for this site.');
+        }
+      });
+    });
+  }
+
+  function bindPortalSignedViewButtons(root) {
+    if (!root) return;
+    root.querySelectorAll('[data-portal-signed-view]').forEach(function (btn) {
+      if (btn.dataset.portalSignedBound) return;
+      btn.dataset.portalSignedBound = '1';
+      btn.addEventListener('click', function () {
+        var docId = btn.getAttribute('data-portal-signed-view');
+        var panel = root.querySelector('[data-portal-signed-panel="' + docId + '"]');
+        if (!panel) return;
+        var opening = panel.hidden;
+        panel.hidden = !opening;
+        if (opening && !ensurePortalContractFrame(panel, docId)) {
+          alert('Unable to load the signed contract right now.');
+          panel.hidden = true;
+        }
+      });
+    });
+    root.querySelectorAll('[data-portal-download-doc]').forEach(function (btn) {
+      if (btn.dataset.portalDownloadBound) return;
+      btn.dataset.portalDownloadBound = '1';
+      btn.addEventListener('click', function () {
+        var docId = btn.getAttribute('data-portal-download-doc');
+        if (!openPortalBusinessDoc(docId, { autoPrint: true })) {
+          alert('Unable to download. Please allow popups for this site.');
         }
       });
     });
@@ -1030,18 +1195,15 @@
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATH_CONTRACT_SIGNATURES + '/' + docId), payload);
       if (window.portalContractSignaturesById) window.portalContractSignaturesById[docId] = payload;
       var card = form.closest('.client-portal-doc-card');
+      var doc = getPortalContractDoc(docId) || { id: docId, clientName: name, type: 'contract' };
       if (card) {
-        card.innerHTML =
-          '<div class="client-portal-doc-card-main">' +
-          '<span class="client-portal-doc-type client-portal-doc-type--contract">CONTRACT</span>' +
-          '<strong class="client-portal-doc-title">Signed</strong>' +
-          '<p class="client-portal-doc-meta">Signed just now by ' +
-          esc(name) +
-          '</p></div>' +
-          '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-view-doc="' +
-          esc(docId) +
-          '">View signed contract</button>';
-        bindPortalDocViewButtons(card);
+        card.innerHTML = renderSignedContractCardHtml(doc, payload);
+        bindPortalSignedViewButtons(card);
+        var signedPanel = card.querySelector('[data-portal-signed-panel="' + docId + '"]');
+        if (signedPanel) {
+          signedPanel.hidden = false;
+          ensurePortalContractFrame(signedPanel, docId);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -1071,7 +1233,13 @@
       btn.addEventListener('click', function () {
         var docId = btn.getAttribute('data-portal-sign-doc');
         var panel = root.querySelector('[data-portal-sign-panel="' + docId + '"]');
-        if (panel) panel.hidden = !panel.hidden;
+        if (!panel) return;
+        var opening = panel.hidden;
+        panel.hidden = !opening;
+        if (opening && !ensurePortalContractFrame(panel, docId)) {
+          alert('Unable to load the agreement right now.');
+          panel.hidden = true;
+        }
       });
     });
     root.querySelectorAll('[data-portal-sign-form]').forEach(function (form) {
@@ -1149,6 +1317,7 @@
     }
     bindPortalDocViewButtons(inner);
     bindPortalSignButtons(inner, portalCtx);
+    bindPortalSignedViewButtons(inner);
     bindMaintenanceSupportSection(inner, portalCtx, project, maint);
     mountPortalDmChrome(project, portalCtx);
   }

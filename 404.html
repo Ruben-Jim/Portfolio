@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=contract-doc-type-20260726">
+  <link rel="stylesheet" href="/assets/css/style.css?v=payment-schedule-20260726">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -2892,7 +2892,6 @@
                     <tr>
                       <th>Type</th>
                       <th>Client</th>
-                      <th>Total</th>
                       <th>Status</th>
                       <th>Created</th>
                       <th>Actions</th>
@@ -2900,7 +2899,7 @@
                   </thead>
                   <tbody id="business-docs-tbody">
                     <tr class="empty-row">
-                      <td colspan="6">
+                      <td colspan="5">
                         <p class="empty-text">No documents yet. Create your first proposal, estimate, or invoice in the form above.</p>
                       </td>
                     </tr>
@@ -3926,22 +3925,36 @@
                 <input type="hidden" id="business-doc-source-proposal-id">
                 <div class="form-row">
                   <div class="form-group form-group-half">
-                    <label for="business-doc-type">Type</label>
-                    <select id="business-doc-type" required>
-                      <option value="proposal">Proposal</option>
-                      <option value="estimate">Estimate</option>
-                      <option value="invoice">Invoice</option>
-                      <option value="contract">Contract</option>
-                    </select>
+                    <label id="business-doc-type-label">Type</label>
+                    <div class="business-doc-select" data-select-name="type">
+                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-type-label">
+                        <span class="business-doc-select-trigger-label">Proposal</span>
+                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                      </button>
+                      <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="proposal">Proposal</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="estimate">Estimate</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="invoice">Invoice</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="contract">Contract</button>
+                      </div>
+                      <input type="hidden" id="business-doc-type" value="proposal">
+                    </div>
                   </div>
                   <div class="form-group form-group-half">
-                    <label for="business-doc-status">Status</label>
-                    <select id="business-doc-status" required>
-                      <option value="draft">Draft</option>
-                      <option value="sent">Sent</option>
-                      <option value="accepted">Accepted</option>
-                      <option value="paid">Paid</option>
-                    </select>
+                    <label id="business-doc-status-label">Status</label>
+                    <div class="business-doc-select" data-select-name="status">
+                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-status-label">
+                        <span class="business-doc-select-trigger-label">Draft</span>
+                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                      </button>
+                      <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="draft">Draft</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="sent">Sent</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="accepted">Accepted</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="paid">Paid</button>
+                      </div>
+                      <input type="hidden" id="business-doc-status" value="draft">
+                    </div>
                   </div>
                 </div>
 
@@ -3976,6 +3989,13 @@
                     <label for="business-doc-due-date">Due Date (optional)</label>
                     <input type="date" id="business-doc-due-date">
                   </div>
+                </div>
+
+                <div class="form-group business-doc-theme-field">
+                  <label id="business-doc-theme-label">Document theme</label>
+                  <p class="business-doc-addons-hint" style="margin-top:0;margin-bottom:8px;">Accent palette for PDFs. Light/dark follows the viewer’s device theme.</p>
+                  <div class="business-doc-theme-picker" id="business-doc-theme-picker" role="radiogroup" aria-labelledby="business-doc-theme-label"></div>
+                  <input type="hidden" id="business-doc-theme" value="cwr">
                 </div>
 
                 <!-- Proposal-only pitch fields (Pro Cleaning–style PDF) -->
@@ -4069,23 +4089,55 @@
 
                 <!-- Contract-only fields -->
                 <div class="form-group business-doc-contract-section" id="business-doc-contract-fields" hidden>
-                  <div class="form-row">
-                    <div class="form-group form-group-half">
-                      <label for="business-doc-ip-mode">IP / ownership transfer</label>
-                      <select id="business-doc-ip-mode">
-                        <option value="license">License to use only (buyout sold separately)</option>
-                        <option value="buyout">Full IP transfer included (buyout)</option>
-                      </select>
+                  <label id="business-doc-ip-mode-label">IP / ownership transfer</label>
+                  <div class="business-doc-select" data-select-name="ip-mode">
+                    <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-ip-mode-label">
+                      <span class="business-doc-select-trigger-label">License to use only (buyout sold separately)</span>
+                      <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                    </button>
+                    <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                      <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="license">License to use only (buyout sold separately)</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="buyout">Full IP transfer included (buyout)</button>
                     </div>
-                    <div class="form-group form-group-half">
-                      <label for="business-doc-revision-rounds">Revision rounds included</label>
-                      <input type="number" id="business-doc-revision-rounds" min="1" max="10" step="1" value="2">
+                    <input type="hidden" id="business-doc-ip-mode" value="license">
+                  </div>
+
+                  <div class="business-doc-payment-schedule-section">
+                    <div class="business-doc-scope-title-row">
+                      <label id="business-doc-payment-schedule-type-label">Payment schedule</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">Clause 2</span>
+                    </div>
+                    <div class="business-doc-select" data-select-name="payment-schedule-type">
+                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-payment-schedule-type-label">
+                        <span class="business-doc-select-trigger-label">Deposit + Milestone + Final (50/25/25)</span>
+                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                      </button>
+                      <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="onetime">One-time (pay in full)</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="deposit-final">Deposit + Final (50/50)</button>
+                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="deposit-milestone-final">Deposit + Milestone + Final (50/25/25)</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="custom">Custom split</button>
+                      </div>
+                      <input type="hidden" id="business-doc-payment-schedule-type" value="deposit-milestone-final">
+                    </div>
+                    <p class="business-doc-addons-hint" style="margin-top:6px;">Picking a schedule refills the stages below — edit labels or percentages afterward if needed.</p>
+
+                    <div class="business-doc-payment-stages-list" id="business-doc-payment-stages-list"></div>
+                    <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="business-doc-add-payment-stage-btn">
+                      <ion-icon name="add-outline"></ion-icon> Add stage
+                    </button>
+                    <p class="business-doc-payment-stages-total" id="business-doc-payment-stages-total"></p>
+
+                    <div class="form-group business-doc-payment-methods-field">
+                      <label for="business-doc-payment-methods">Accepted payment methods</label>
+                      <input type="text" id="business-doc-payment-methods" placeholder="Bank transfer (ACH/Zelle), major credit/debit cards">
                     </div>
                   </div>
-                  <p class="business-doc-scope-hint">Scope above becomes Clause 1 on the agreement; Due Date above becomes the target completion date in Clause 3.</p>
+
+                  <p class="business-doc-scope-hint">Scope above becomes Clause 1 on the agreement; Due Date above becomes the target completion date in Clause 3. Pick a maintenance plan below to cover post-launch revisions &amp; support — Clause 4 references it automatically.</p>
                 </div>
 
-                <div class="form-group business-doc-maintenance-section" id="business-doc-maintenance-section">
+                <div class="form-group business-doc-maintenance-section">
                   <div class="business-doc-maintenance-header">
                     <div class="business-doc-scope-title-row">
                       <label class="business-doc-addons-label" id="business-doc-maintenance-label">Maintenance plan</label>
@@ -4099,19 +4151,28 @@
                   <div id="business-doc-maintenance-pickers" class="business-doc-maintenance-pickers" hidden>
                     <div class="form-row">
                       <div class="form-group form-group-half">
-                        <label for="business-doc-maintenance-plan">Plan</label>
-                        <select id="business-doc-maintenance-plan">
-                          <option value="">None — omit from PDF</option>
-                          <option value="standard">Standard · $150/mo · $990/yr</option>
-                          <option value="priority">Priority · $300/mo · $1,980/yr</option>
-                        </select>
+                        <label id="business-doc-maintenance-plan-label">Plan</label>
+                        <div class="business-doc-select" data-select-name="maintenance-plan">
+                          <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-maintenance-plan-label">
+                            <span class="business-doc-select-trigger-label">None — omit from PDF</span>
+                            <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                          </button>
+                          <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                            <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">None — omit from PDF</button>
+                            <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="standard">Standard · $150/mo · $990/yr</button>
+                            <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="priority">Priority · $300/mo · $1,980/yr</button>
+                          </div>
+                          <input type="hidden" id="business-doc-maintenance-plan" value="">
+                        </div>
                       </div>
                       <div class="form-group form-group-half">
-                        <label for="business-doc-maintenance-billing">Billing shown</label>
-                        <select id="business-doc-maintenance-billing">
-                          <option value="monthly">Monthly (also show annual savings)</option>
-                          <option value="annual">Annual only</option>
-                        </select>
+                        <label id="business-doc-maintenance-billing-label">Billing shown</label>
+                        <div class="business-doc-toggle-group" data-toggle-name="maintenance-billing" role="radiogroup" aria-labelledby="business-doc-maintenance-billing-label">
+                          <button type="button" class="business-doc-toggle-btn is-active" role="radio" aria-checked="true" data-value="monthly">Monthly</button>
+                          <button type="button" class="business-doc-toggle-btn" role="radio" aria-checked="false" data-value="annual">Annual</button>
+                        </div>
+                        <input type="hidden" id="business-doc-maintenance-billing" value="monthly">
+                        <p class="business-doc-scope-hint" id="business-doc-maintenance-billing-hint">Monthly also shows annual savings on the PDF.</p>
                       </div>
                     </div>
                   </div>
@@ -5920,12 +5981,12 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
 
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
-  <script src="/assets/js/business-doc-shared.js?v=contract-doc-type-20260726"></script>
+  <script src="/assets/js/business-doc-shared.js?v=cwr-theme-surfaces-20260726"></script>
   <script src="/assets/js/customer-dm-shared.js?v=contact-dm-mobile-20260608"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
   <script src="/assets/js/i18n.js?v=1"></script>
-  <script src="/assets/js/script.js?v=contract-doc-type-20260726"></script>
+  <script src="/assets/js/script.js?v=payment-schedule-20260726"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=portal-demo-link-20260724"></script>
   <script src="/assets/js/dm-migration.js"></script>

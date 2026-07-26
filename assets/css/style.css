@@ -11019,6 +11019,142 @@ body.project-modal-open {
   font-weight: var(--fw-600);
 }
 
+/* Custom dropdown (replaces native <select> in the create/edit document form) */
+.business-doc-select {
+  position: relative;
+}
+
+.business-doc-select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 12px 14px;
+  background: var(--onyx);
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  color: var(--white-1);
+  font-size: 14px;
+  font-family: var(--ff-poppins);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.business-doc-select-trigger:hover {
+  border-color: var(--vegas-gold);
+}
+
+.business-doc-select-trigger:focus-visible,
+.business-doc-select.is-open .business-doc-select-trigger {
+  outline: none;
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
+}
+
+.business-doc-select-trigger-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.business-doc-select-trigger-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--light-gray);
+  transition: transform 0.2s ease;
+}
+
+.business-doc-select.is-open .business-doc-select-trigger-icon {
+  transform: rotate(180deg);
+  color: var(--orange-yellow-crayola);
+}
+
+.business-doc-select-menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: none;
+  flex-direction: column;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--eerie-black-1);
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.business-doc-select.is-open .business-doc-select-menu {
+  display: flex;
+}
+
+.business-doc-select-option {
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--white-1);
+  font-size: 13px;
+  font-family: var(--ff-poppins);
+  text-align: left;
+  cursor: pointer;
+}
+
+.business-doc-select-option:hover,
+.business-doc-select-option:focus-visible {
+  background: rgba(255, 193, 7, 0.12);
+  outline: none;
+}
+
+.business-doc-select-option.is-active {
+  background: rgba(255, 193, 7, 0.16);
+  color: var(--orange-yellow-crayola);
+  font-weight: var(--fw-600);
+}
+
+/* Toggle / segmented control (replaces native <select> for a two-option field) */
+.business-doc-toggle-group {
+  display: inline-flex;
+  padding: 4px;
+  background: var(--onyx);
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  gap: 4px;
+}
+
+.business-doc-toggle-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--light-gray);
+  font-size: 13px;
+  font-weight: var(--fw-600);
+  font-family: var(--ff-poppins);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.business-doc-toggle-btn:hover {
+  color: var(--white-1);
+}
+
+.business-doc-toggle-btn:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.business-doc-toggle-btn.is-active {
+  background: var(--orange-yellow-crayola);
+  color: var(--eerie-black-1);
+}
+
 .business-doc-proposal-fields[hidden],
 #business-doc-scope-section[hidden] {
   display: none !important;
@@ -11414,6 +11550,51 @@ body.project-modal-open {
   width: 100%;
   justify-content: center;
   gap: 8px;
+}
+
+.business-doc-payment-schedule-section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--jet);
+}
+
+.business-doc-payment-stages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0 10px;
+}
+
+.business-doc-payment-stage-fields {
+  display: flex;
+  gap: 10px;
+}
+
+.business-doc-payment-stage-fields .business-doc-addon-field {
+  margin-bottom: 0;
+}
+
+.business-doc-payment-stage-fields .business-doc-addon-field:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.business-doc-payment-stage-percent-field {
+  flex: 0 0 92px;
+}
+
+.business-doc-payment-stages-total {
+  margin: 6px 0 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+}
+
+.business-doc-payment-stages-total.is-off {
+  color: hsl(0, 70%, 65%);
+}
+
+.business-doc-payment-methods-field {
+  margin-top: 14px;
 }
 
 .add-blog-form {
@@ -14293,6 +14474,70 @@ body.project-modal-open {
   color: var(--white-2);
   font-size: var(--fs-7);
   font-weight: var(--fw-600);
+}
+
+.business-doc-theme-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.business-doc-theme-chip {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--light-gray);
+  border-radius: 999px;
+  padding: 6px 10px 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  line-height: 1.2;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease;
+}
+
+.business-doc-theme-chip:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  color: var(--white-2);
+}
+
+.business-doc-theme-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.35);
+}
+
+.business-doc-theme-chip.is-active {
+  border-color: rgba(234, 179, 8, 0.55);
+  background: rgba(234, 179, 8, 0.12);
+  color: var(--white-2);
+}
+
+.business-doc-theme-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="light"] .business-doc-theme-chip {
+  border-color: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  color: hsla(0, 0%, 25%, 0.85);
+}
+
+[data-theme="light"] .business-doc-theme-chip:hover,
+[data-theme="light"] .business-doc-theme-chip.is-active {
+  color: hsla(0, 0%, 10%, 1);
+}
+
+[data-theme="light"] .business-doc-theme-chip.is-active {
+  border-color: rgba(202, 138, 4, 0.5);
+  background: rgba(234, 179, 8, 0.16);
 }
 
 .business-docs-filters select {
