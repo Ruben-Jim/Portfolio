@@ -2618,9 +2618,9 @@
                   <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-projects" data-admin-tab="client-projects" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-projects" tabindex="-1" aria-label="Clients Projects">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-projects" data-admin-tab="client-projects" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-projects" tabindex="-1" aria-label="Clients">
                   <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients Projects</span><span class="admin-tab-label-mobile">Clients</span></span>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients</span><span class="admin-tab-label-mobile">Clients</span></span>
                 </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
                   <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
@@ -3216,9 +3216,15 @@
                   </div>
                   <div class="cp-client-picker-search">
                     <ion-icon name="search-outline" class="cp-client-picker-search-icon" aria-hidden="true"></ion-icon>
-                    <input type="search" id="client-projects-search" class="cp-client-picker-search-input" placeholder="Search by client or project…" autocomplete="off" enterkeyhint="search">
+                    <input type="search" id="client-projects-search" class="cp-client-picker-search-input" placeholder="Search clients…" autocomplete="off" enterkeyhint="search">
                   </div>
-                  <ul class="cp-client-picker-list" id="client-projects-picker-list" role="listbox" aria-label="Project Hub clients"></ul>
+                  <div class="cp-client-picker-sort" id="client-projects-sort" role="group" aria-label="Sort clients">
+                    <button type="button" class="cp-client-sort-chip is-active" data-cp-sort="name" aria-pressed="true">Name</button>
+                    <button type="button" class="cp-client-sort-chip" data-cp-sort="attention" aria-pressed="false">Needs attention</button>
+                    <button type="button" class="cp-client-sort-chip" data-cp-sort="milestones" aria-pressed="false">Milestones</button>
+                    <button type="button" class="cp-client-sort-chip" data-cp-sort="maintenance" aria-pressed="false">On maintenance</button>
+                  </div>
+                  <ul class="cp-client-picker-list" id="client-projects-picker-list" role="listbox" aria-label="Clients"></ul>
                 </div>
               </div>
             </div>

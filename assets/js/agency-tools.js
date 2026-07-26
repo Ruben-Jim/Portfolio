@@ -2079,6 +2079,16 @@
   var clientProjectsSearchQuery = '';
   var clientProjectsBound = false;
   var clientProjectsPickerBound = false;
+  var clientProjectsSortBound = false;
+  var CP_CLIENT_SORT_KEY = 'cp-client-projects-sort';
+  var CP_CLIENT_SORT_OPTIONS = ['name', 'attention', 'milestones', 'maintenance'];
+  var clientProjectsSort = (function () {
+    try {
+      var saved = localStorage.getItem(CP_CLIENT_SORT_KEY);
+      if (CP_CLIENT_SORT_OPTIONS.indexOf(saved) >= 0) return saved;
+    } catch (e) { /* ignore */ }
+    return 'name';
+  })();
   var cpSectionCollapseByHub = {};
 
   function cpMoney(amount) {
@@ -2225,8 +2235,6 @@
 
   function renderCpHubPickerCard(p) {
     var title = (p.clientName || p.title || 'Untitled').trim();
-    var sub =
-      p.title && p.clientName && p.title !== p.clientName ? p.title : p.firebaseProjectId || 'Client project';
     var meta = getClientPickerMeta(p);
     var selected = clientProjectsSelectedId === p.id;
     var initials = clientPickerInitials(title);
@@ -2246,7 +2254,6 @@
       maintBadge +
       '<span class="cp-client-picker-badge ' + esc(meta.healthClass) + '">' + esc(meta.healthLabel) + '</span>' +
       '</span></span>' +
-      '<span class="cp-client-picker-card-sub">' + esc(sub) + '</span>' +
       (meta.milestonesTotal
         ? '<span class="cp-client-picker-progress" aria-label="' +
           esc(meta.milestones + ' milestones complete') +
@@ -2263,6 +2270,66 @@
       '<ion-icon name="chevron-forward-outline" class="cp-client-picker-chevron" aria-hidden="true"></ion-icon>' +
       '</button></li>'
     );
+  }
+
+  function clientHubSortName(hub) {
+    return String(hub.clientName || hub.title || '').trim();
+  }
+
+  function clientHubAttentionScore(hub) {
+    var meta = getClientPickerMeta(hub);
+    var score = 0;
+    if (meta.maintPending) score += 100;
+    if (meta.healthClass === '') score += 40;
+    else if (meta.healthClass === 'is-warn') score += 20;
+    if (!meta.milestonesTotal) score += 10;
+    else score += Math.max(0, 10 - Math.round(meta.milestonesPct / 10));
+    return score;
+  }
+
+  function sortClientHubs(hubs, sortMode) {
+    var mode = CP_CLIENT_SORT_OPTIONS.indexOf(sortMode) >= 0 ? sortMode : 'name';
+    return hubs.slice().sort(function (a, b) {
+      if (mode === 'attention') {
+        var sa = clientHubAttentionScore(a);
+        var sb = clientHubAttentionScore(b);
+        if (sa !== sb) return sb - sa;
+      } else if (mode === 'milestones') {
+        var ma = getClientPickerMeta(a);
+        var mb = getClientPickerMeta(b);
+        var pa = ma.milestonesTotal ? ma.milestonesPct : -1;
+        var pb = mb.milestonesTotal ? mb.milestonesPct : -1;
+        if (pa !== pb) return pa - pb;
+      } else if (mode === 'maintenance') {
+        var hasA = findMaintenanceForHub(a) ? 0 : 1;
+        var hasB = findMaintenanceForHub(b) ? 0 : 1;
+        if (hasA !== hasB) return hasA - hasB;
+        var pendingA = getClientPickerMeta(a).maintPending ? 0 : 1;
+        var pendingB = getClientPickerMeta(b).maintPending ? 0 : 1;
+        if (pendingA !== pendingB) return pendingA - pendingB;
+      }
+      return clientHubSortName(a).localeCompare(clientHubSortName(b), undefined, { sensitivity: 'base' });
+    });
+  }
+
+  function syncClientProjectsSortChips() {
+    var root = document.getElementById('client-projects-sort');
+    if (!root) return;
+    root.querySelectorAll('[data-cp-sort]').forEach(function (btn) {
+      var active = btn.getAttribute('data-cp-sort') === clientProjectsSort;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function setClientProjectsSort(sortMode) {
+    if (CP_CLIENT_SORT_OPTIONS.indexOf(sortMode) < 0) return;
+    clientProjectsSort = sortMode;
+    try {
+      localStorage.setItem(CP_CLIENT_SORT_KEY, sortMode);
+    } catch (e) { /* ignore */ }
+    syncClientProjectsSortChips();
+    renderClientProjectsPickerList();
   }
 
   var CP_DRAWER_TRANSITION_MS = 380;
@@ -2804,23 +2871,17 @@
   function renderClientProjectsPickerList() {
     var list = document.getElementById('client-projects-picker-list');
     if (!list) return;
+    syncClientProjectsSortChips();
     var query = clientProjectsSearchQuery.toLowerCase().trim();
     var depositLeads = getDepositLeadsWithoutHub().filter(function (lead) {
       return leadMatchesClientSearch(lead, query);
     });
-    var filtered = agencyProjects.filter(function (p) {
-      return hubMatchesClientSearch(p, query);
-    });
-    filtered.sort(function (a, b) {
-      var ma = findMaintenanceForHub(a);
-      var mb = findMaintenanceForHub(b);
-      var pa = ma && ma.effectivePlanStatus === 'pending' ? 0 : 1;
-      var pb = mb && mb.effectivePlanStatus === 'pending' ? 0 : 1;
-      if (pa !== pb) return pa - pb;
-      return String(a.clientName || a.title || '').localeCompare(String(b.clientName || b.title || ''), undefined, {
-        sensitivity: 'base'
-      });
-    });
+    var filtered = sortClientHubs(
+      agencyProjects.filter(function (p) {
+        return hubMatchesClientSearch(p, query);
+      }),
+      clientProjectsSort
+    );
     var html = '';
     var clientCount = filtered.length + depositLeads.length;
 
@@ -3426,6 +3487,18 @@
         renderClientProjectsPickerList();
       });
     }
+
+    var sortRoot = document.getElementById('client-projects-sort');
+    if (sortRoot && !clientProjectsSortBound) {
+      clientProjectsSortBound = true;
+      sortRoot.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-cp-sort]');
+        if (!btn || !sortRoot.contains(btn)) return;
+        e.preventDefault();
+        setClientProjectsSort(btn.getAttribute('data-cp-sort'));
+      });
+    }
+    syncClientProjectsSortChips();
 
     var addBtn = document.getElementById('client-projects-add-btn');
     if (addBtn && !addBtn.dataset.cpBound) {
