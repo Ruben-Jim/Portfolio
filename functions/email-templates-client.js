@@ -73,6 +73,9 @@
       ".email-admin-reply-body{color:" +
       T.infoValue +
       "!important;}" +
+      ".email-strong-text{color:" +
+      T.infoValue +
+      "!important;}" +
       ".email-subtitle-text{color:" +
       T.subtitle +
       "!important;}" +
@@ -99,6 +102,9 @@
       d.cardBorder +
       "!important;}" +
       ".email-admin-reply-body{color:" +
+      d.infoValue +
+      "!important;}" +
+      ".email-strong-text{color:" +
       d.infoValue +
       "!important;}" +
       ".email-subtitle-text{color:" +
@@ -129,7 +135,7 @@
     );
   }
 
-  function clientEmailHeader(fromName) {
+  function clientEmailHeader(fromName, subtitle) {
     return (
       '<tr><td style="padding:0 0 28px 0;">' +
       '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>' +
@@ -139,14 +145,16 @@
       '" alt="CodeWithRuben" width="48" height="48" style="display:block;border-radius:50%;object-fit:cover;" />' +
       "</td>" +
       '<td style="vertical-align:top;padding-left:14px;text-align:left;">' +
-      '<p style="margin:0;font-size:20px;font-weight:600;color:' +
+      '<p class="email-strong-text" style="margin:0;font-size:20px;font-weight:600;color:' +
       T.infoValue +
       ';line-height:1.3;">' +
       escapeHtml(fromName) +
       "</p>" +
       '<p class="email-subtitle-text" style="margin:2px 0 0;font-size:13px;color:' +
       T.subtitle +
-      ';">CodeWithRuben</p>' +
+      ';">' +
+      escapeHtml(subtitle || "CodeWithRuben") +
+      "</p>" +
       "</td></tr></table></td></tr>"
     );
   }
@@ -349,7 +357,7 @@
       '" alt="CodeWithRuben" width="48" height="48" style="display:block;border-radius:50%;object-fit:cover;" />' +
       "</td>" +
       '<td style="vertical-align:top;padding-left:14px;text-align:left;">' +
-      '<p style="margin:0;font-size:20px;font-weight:600;color:' +
+      '<p class="email-strong-text" style="margin:0;font-size:20px;font-weight:600;color:' +
       T.infoValue +
       ';line-height:1.3;">' +
       escapeHtml(title) +
@@ -433,7 +441,7 @@
       ';">' +
       escapeHtml(label) +
       "</span></td>" +
-      '<td style="vertical-align:top;padding-left:12px;font-size:15px;line-height:1.5;color:' +
+      '<td class="email-strong-text" style="vertical-align:top;padding-left:12px;font-size:15px;line-height:1.5;color:' +
       T.infoValue +
       ';word-break:break-word;font-weight:400;">' +
       valueHtml +
@@ -598,7 +606,7 @@
     var subject = String(p.subject || "Message from Ruben").trim();
     var message = String(p.message || "");
     var inner =
-      clientEmailHeader(fromName) +
+      clientEmailHeader(fromName, p.header_subtitle) +
       clientMessageBlock(
         buildMessageBodyHtml(message, {
           defaultCtaLabel: p.cta_label || "Open your portal &#8594;",
@@ -632,6 +640,54 @@
     );
   }
 
+  function buildBookingConfirmationHtml(p) {
+    var name = String(p.to_name || "there").trim();
+    var callTypeLabel = String(p.call_type_label || "your call").trim();
+    var startDisplay = String(p.start_display || "").trim();
+    var timezoneLabel = String(p.timezone_label || "").trim();
+    var subject = String(p.subject || "Your call with CWR is booked").trim();
+    var message =
+      "Hi " +
+      name +
+      ",\n\nYou're booked for a " +
+      callTypeLabel +
+      " with Ruben.\n\nWhen: " +
+      startDisplay +
+      (timezoneLabel ? " (" + timezoneLabel + ")" : "") +
+      "\n\nReply here if you need to reschedule.\n\nThanks,\nRuben";
+    return buildAdminReplyHtml({
+      from_name: "CodeWithRuben",
+      header_subtitle: "Discovery call confirmed",
+      subject: subject,
+      message: message,
+    });
+  }
+
+  function buildBookingAdminNotificationHtml(p) {
+    var name = String(p.name || "Someone").trim();
+    var email = String(p.email || "").trim();
+    var callTypeLabel = String(p.call_type_label || "").trim();
+    var startDisplay = String(p.start_display || "").trim();
+    var subject = String(p.subject || "New call booked: " + name).trim();
+    var fieldRows =
+      adminNotificationFieldRow("Name", formatNotificationValue(name), true) +
+      adminNotificationFieldRow("Email", formatNotificationValue(email), false) +
+      adminNotificationFieldRow("Call type", formatNotificationValue(callTypeLabel), false) +
+      adminNotificationFieldRow("When", formatNotificationValue(startDisplay), false);
+    var inner =
+      adminNotificationHeader("New call booked", "Portfolio · Discovery call") +
+      adminNotificationPill("Booking confirmed") +
+      adminNotificationFieldsPanel(fieldRows) +
+      clientCtaButton(buildReplyMailto(email, subject), "Email " + name);
+    var preheader = name + " booked a " + callTypeLabel;
+    return wrapClientEmail(
+      inner,
+      adminNotificationFooter("Portfolio booking notification"),
+      preheader,
+      subject
+    );
+  }
+
   function buildPortalInviteHtml(p) {
     var name = String(p.to_name || "there").trim();
     var projectTitle = String(p.project_title || "your project").trim();
@@ -660,5 +716,7 @@
     buildAdminReplyHtml: buildAdminReplyHtml,
     buildTestimonialRequestHtml: buildTestimonialRequestHtml,
     buildPortalInviteHtml: buildPortalInviteHtml,
+    buildBookingConfirmationHtml: buildBookingConfirmationHtml,
+    buildBookingAdminNotificationHtml: buildBookingAdminNotificationHtml,
   };
 });

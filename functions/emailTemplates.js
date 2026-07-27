@@ -31,6 +31,14 @@ function buildAdminReplyHtml(p) {
   return clientEmail.buildAdminReplyHtml(p);
 }
 
+function buildBookingConfirmationHtml(p) {
+  return clientEmail.buildBookingConfirmationHtml(p);
+}
+
+function buildBookingAdminNotificationHtml(p) {
+  return clientEmail.buildBookingAdminNotificationHtml(p);
+}
+
 module.exports = {
   escapeHtml,
   buildContactNotificationHtml,
@@ -38,4 +46,6 @@ module.exports = {
   buildTestimonialRequestHtml,
   buildPortalInviteHtml,
   buildAdminReplyHtml,
+  buildBookingConfirmationHtml,
+  buildBookingAdminNotificationHtml,
 };

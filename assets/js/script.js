@@ -4985,25 +4985,6 @@ form.addEventListener("submit", async function(e) {
       payload: emailPayload
     });
 
-      // Save to Firestore after successful email send
-      try {
-        await saveMessageToFirestore({
-          name: fullname,
-          email: email,
-          message: String(message),
-          subject,
-          timestamp: window.serverTimestamp(),
-          status: 'new',
-          source: isHireMeForm ? 'hire-me' : 'contact',
-          ...(isHireMeForm
-            ? { project_type: String(projectType), budget: String(budget) }
-            : {})
-        });
-      } catch (firestoreError) {
-        console.error('Firestore save error:', firestoreError);
-        // Don't fail the form submission if Firestore fails, just log it
-      }
-
       if (isHireMeForm) {
         const inquiryData = {
           name: String(fullname),
@@ -5026,13 +5007,16 @@ form.addEventListener("submit", async function(e) {
         if (typeof window.showHireMeSuccessCard === 'function') {
           window.showHireMeSuccessCard();
         }
+        if (typeof window.syncHireMeReturnBanner === 'function') {
+          window.syncHireMeReturnBanner();
+        }
         form.reset();
         formBtn.setAttribute('disabled', '');
         return;
       }
 
+      // Unreachable for Contact (returns earlier) and Hire Me (returns above).
       showFormSuccess(formMessage, formError);
-
       form.reset();
       formBtn.setAttribute('disabled', '');
     
@@ -6002,7 +5986,7 @@ var HIRE_ME_GENERIC = {
   formTitle: 'Start a Project',
   formLead: "Give me the details and I'll get back to you within 24 hours.",
   messagePlaceholder:
-    'Walk me through your idea — what it does, who it\'s for, your rough timeline, and budget range.'
+    'Walk me through your idea — what it does, who it\'s for, and your rough timeline.'
 };
 
 var HIRE_ME_PACKAGES = {
@@ -6212,6 +6196,147 @@ function renderHireMeDiscoveryBlock(blockEl, pkg) {
   blockEl.hidden = false;
 }
 
+function getSavedHireMeInquiry() {
+  try {
+    var raw = localStorage.getItem('hireme_inquiry');
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    return parsed && parsed.message ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function syncHireMeReturnBanner() {
+  var banner = document.getElementById('hire-inquiry-return-banner');
+  var home = document.querySelector('article[data-page="home"]');
+  var visible = !!getSavedHireMeInquiry();
+  if (banner) banner.hidden = !visible;
+  if (home) home.classList.toggle('has-hire-inquiry-banner', visible);
+  document.querySelectorAll('[data-hire-inquiry-recall]').forEach(function (el) {
+    el.hidden = visible;
+    if (visible) {
+      var form = el.querySelector('[data-hire-inquiry-recall-form]');
+      if (form) form.hidden = true;
+      var toggle = el.querySelector('[data-hire-inquiry-recall-toggle]');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    }
+  });
+}
+
+function initHireMeInquiryRecall() {
+  document.querySelectorAll('[data-hire-inquiry-recall-toggle]').forEach(function (toggle) {
+    if (toggle._hireRecallToggleBound) return;
+    toggle._hireRecallToggleBound = true;
+    toggle.addEventListener('click', function () {
+      var root = toggle.closest('[data-hire-inquiry-recall]');
+      var form = root && root.querySelector('[data-hire-inquiry-recall-form]');
+      if (!form) return;
+      var willShow = form.hidden;
+      form.hidden = !willShow;
+      toggle.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+      if (willShow) {
+        var emailInput = form.querySelector('input[type="email"]');
+        if (emailInput) {
+          try {
+            emailInput.focus({ preventScroll: true });
+          } catch (e) {
+            emailInput.focus();
+          }
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-hire-inquiry-recall-form]').forEach(function (form) {
+    if (form._hireRecallFormBound) return;
+    form._hireRecallFormBound = true;
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var root = form.closest('[data-hire-inquiry-recall]');
+      var statusEl = root && root.querySelector('[data-hire-inquiry-recall-status]');
+      var submitBtn = form.querySelector('[type="submit"]');
+      var emailInput = form.querySelector('input[type="email"]');
+      var nameInput = form.querySelector('input[type="text"]');
+      var email = emailInput ? emailInput.value : '';
+      var name = nameInput ? nameInput.value : '';
+      if (statusEl) {
+        statusEl.hidden = false;
+        statusEl.textContent = 'Looking up your inquiry…';
+        statusEl.classList.remove('hire-inquiry-recall-status--error');
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      var restore =
+        typeof window.restoreInquiryFromEmail === 'function'
+          ? window.restoreInquiryFromEmail(email, name)
+          : Promise.reject(new Error('Unable to open inquiry right now.'));
+      restore
+        .then(function () {
+          if (statusEl) {
+            statusEl.textContent = 'Found it — pick up below.';
+            statusEl.hidden = false;
+          }
+          form.hidden = true;
+          var toggle = root && root.querySelector('[data-hire-inquiry-recall-toggle]');
+          if (toggle) toggle.setAttribute('aria-expanded', 'false');
+          var hirePage = document.querySelector('[data-page="hire-me"]');
+          var onHireMe = hirePage && hirePage.classList.contains('active');
+          if (onHireMe && typeof window.showHireMeSuccessCard === 'function') {
+            window.showHireMeSuccessCard();
+            if (typeof window.restoreHireMeBookingConfirmedUI === 'function') {
+              window.restoreHireMeBookingConfirmedUI();
+            }
+          }
+        })
+        .catch(function (err) {
+          if (statusEl) {
+            statusEl.hidden = false;
+            statusEl.textContent =
+              (err && err.message) || 'No inquiry found for that email.';
+            statusEl.classList.add('hire-inquiry-recall-status--error');
+          }
+        })
+        .finally(function () {
+          if (submitBtn) submitBtn.disabled = false;
+        });
+    });
+  });
+}
+
+function initHireMeReturnBanner() {
+  syncHireMeReturnBanner();
+  var viewBtn = document.getElementById('hire-return-view-inquiry');
+  var scheduleBtn = document.getElementById('hire-return-schedule-call');
+  if (viewBtn && !viewBtn._hireReturnBound) {
+    viewBtn._hireReturnBound = true;
+    viewBtn.addEventListener('click', function () {
+      if (typeof switchToPage === 'function') {
+        switchToPage('hire-me');
+      }
+      setTimeout(function () {
+        if (typeof window.openHireMeInquiryOverlay === 'function') {
+          window.openHireMeInquiryOverlay();
+        }
+      }, 120);
+    });
+  }
+  if (scheduleBtn && !scheduleBtn._hireReturnBound) {
+    scheduleBtn._hireReturnBound = true;
+    scheduleBtn.addEventListener('click', function () {
+      if (typeof switchToPage === 'function') {
+        switchToPage('hire-me');
+      }
+      setTimeout(function () {
+        if (typeof window.openHireMeBookingStep === 'function') {
+          window.openHireMeBookingStep();
+        }
+      }, 150);
+    });
+  }
+}
+
+window.syncHireMeReturnBanner = syncHireMeReturnBanner;
+
 function resetHireMePageChrome() {
   var article = document.querySelector('[data-page="hire-me"]');
   if (!article) return;
@@ -6298,7 +6423,7 @@ function applyHireMePackageView(packageId) {
 
   var heroLabel = article.querySelector('[data-hire-hero-label-text]');
   var heroTitle = article.querySelector('[data-hire-hero-title]');
-  var heroSub = article.querySelector('.hire-hero-sub');
+  var heroSub = article.querySelector('[data-hire-hero-sub]') || article.querySelector('.hire-hero-sub');
   if (heroLabel) heroLabel.textContent = view.heroLabel;
   setHireMeHeroTitle(heroTitle, view.heroTitle, view.heroTitleAccent);
   if (heroSub) heroSub.textContent = view.heroSub;
@@ -6444,6 +6569,12 @@ function switchToPage(pageName, skipSave, pageOptions) {
           window.syncHireMeMessagesUI();
         }
       }
+      if (pageName === "home" && typeof window.syncHireMeReturnBanner === "function") {
+        window.syncHireMeReturnBanner();
+      }
+      if (pageName === "hire-me" && typeof window.syncHireMeReturnBanner === "function") {
+        window.syncHireMeReturnBanner();
+      }
       if (pageName === "hire-me") {
         var hirePackageId = null;
         if (pageOptions.clearPackage) {
@@ -6456,6 +6587,16 @@ function switchToPage(pageName, skipSave, pageOptions) {
         if (typeof applyHireMePackageView === "function") {
           applyHireMePackageView(hirePackageId);
         }
+        try {
+          var savedInquiryRaw = localStorage.getItem('hireme_inquiry');
+          var savedInquiry = savedInquiryRaw ? JSON.parse(savedInquiryRaw) : null;
+          if (savedInquiry && savedInquiry.message && typeof window.showHireMeSuccessCard === 'function') {
+            window.showHireMeSuccessCard();
+            if (typeof window.restoreHireMeBookingConfirmedUI === 'function') {
+              window.restoreHireMeBookingConfirmedUI();
+            }
+          }
+        } catch (e) {}
       }
       if (typeof window.syncAdminMobileTabBarDock === 'function') {
         window.syncAdminMobileTabBarDock();
@@ -6660,11 +6801,15 @@ window.addEventListener('popstate', function(e) {
 // Restore page on load
 document.addEventListener('DOMContentLoaded', function() {
   initHireMePackageControls();
+  initHireMeReturnBanner();
+  initHireMeInquiryRecall();
   setTimeout(restoreActivePage, 50);
 });
 
 if (document.readyState !== 'loading') {
   initHireMePackageControls();
+  initHireMeReturnBanner();
+  initHireMeInquiryRecall();
   setTimeout(restoreActivePage, 50);
 }
 
@@ -8833,6 +8978,12 @@ window.addEventListener('load', function() {
     if (typeof window.subscribeContractSignaturesFromRtdb === 'function') {
       window.subscribeContractSignaturesFromRtdb();
     }
+    if (typeof window.subscribeAgencyBookingsFromRtdb === 'function') {
+      window.subscribeAgencyBookingsFromRtdb();
+    }
+    if (typeof window.loadAgencySchedulingSettings === 'function') {
+      window.loadAgencySchedulingSettings();
+    }
     document.dispatchEvent(
       new CustomEvent('adminSessionReady', { detail: { isAdmin: true } })
     );
@@ -8863,6 +9014,9 @@ window.addEventListener('load', function() {
     }
     if (typeof window.unsubscribeContractSignaturesFromRtdb === 'function') {
       window.unsubscribeContractSignaturesFromRtdb();
+    }
+    if (typeof window.unsubscribeAgencyBookingsFromRtdb === 'function') {
+      window.unsubscribeAgencyBookingsFromRtdb();
     }
     if (window.AgencyTools && typeof window.AgencyTools.unsubscribe === 'function') {
       window.AgencyTools.unsubscribe();
@@ -9430,6 +9584,390 @@ window.addEventListener('load', function() {
 
   window.subscribeContractSignaturesFromRtdb = subscribeContractSignaturesFromRtdb;
   window.unsubscribeContractSignaturesFromRtdb = unsubscribeContractSignaturesFromRtdb;
+
+  // ----------------------------
+  // Discovery-call bookings (read-only from admin — visitors write via hire-me-booking.js)
+  // ----------------------------
+  const AGENCY_BOOKINGS_RTD_PATH = 'agencyBookings';
+  var agencyBookingsList = [];
+  var agencyBookingsUnsub = null;
+
+  function subscribeAgencyBookingsFromRtdb() {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
+    if (agencyBookingsUnsub) return;
+    var ref = window.rtdbRef(window.rtdb, AGENCY_BOOKINGS_RTD_PATH);
+    agencyBookingsUnsub = window.rtdbOnValue(
+      ref,
+      function (snap) {
+        var val = snap.val();
+        agencyBookingsList = val && typeof val === 'object'
+          ? Object.keys(val).map(function (k) { return Object.assign({ id: k }, val[k]); })
+          : [];
+        if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+      },
+      function (err) {
+        console.warn('Agency bookings RTDB listen failed', err);
+      }
+    );
+  }
+
+  function unsubscribeAgencyBookingsFromRtdb() {
+    if (typeof agencyBookingsUnsub === 'function') {
+      try {
+        agencyBookingsUnsub();
+      } catch (e) {}
+    }
+    agencyBookingsUnsub = null;
+  }
+
+  window.subscribeAgencyBookingsFromRtdb = subscribeAgencyBookingsFromRtdb;
+  window.unsubscribeAgencyBookingsFromRtdb = unsubscribeAgencyBookingsFromRtdb;
+
+  // ----------------------------
+  // Scheduling settings (Overview tab) — powers assets/js/hire-me-booking.js
+  // ----------------------------
+  const AGENCY_AVAILABILITY_RTD_PATH = 'agencyAvailability/config';
+  const SCHED_DAY_IDS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+  function generateSchedRowId(prefix) {
+    return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+  }
+
+  function schedPad2(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
+
+  var SCHED_DAY_LABELS = { sun: 'Sun', mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat' };
+
+  var SCHED_TIME_OPTIONS = (function () {
+    var opts = [];
+    for (var h = 0; h < 24; h++) {
+      for (var m = 0; m < 60; m += 30) {
+        var hour12 = h % 12 === 0 ? 12 : h % 12;
+        var ampm = h < 12 ? 'AM' : 'PM';
+        opts.push({ value: schedPad2(h) + ':' + schedPad2(m), label: hour12 + ':' + schedPad2(m) + ' ' + ampm });
+      }
+    }
+    return opts;
+  })();
+
+  /** A .business-doc-select instance — reuses the same custom-dropdown component/CSS as the document form. */
+  function createSchedTimeSelectEl(id, ariaLabel) {
+    var wrap = document.createElement('div');
+    wrap.className = 'business-doc-select admin-sched-time-select';
+
+    var trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'business-doc-select-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.setAttribute('aria-label', ariaLabel);
+    var triggerLabel = document.createElement('span');
+    triggerLabel.className = 'business-doc-select-trigger-label';
+    triggerLabel.textContent = 'Select time';
+    var triggerIcon = document.createElement('ion-icon');
+    triggerIcon.setAttribute('name', 'chevron-down-outline');
+    triggerIcon.className = 'business-doc-select-trigger-icon';
+    trigger.appendChild(triggerLabel);
+    trigger.appendChild(triggerIcon);
+
+    var menu = document.createElement('div');
+    menu.className = 'business-doc-select-menu';
+    menu.setAttribute('role', 'listbox');
+    menu.setAttribute('aria-hidden', 'true');
+    var placeholderOpt = document.createElement('button');
+    placeholderOpt.type = 'button';
+    placeholderOpt.className = 'business-doc-select-option';
+    placeholderOpt.setAttribute('role', 'option');
+    placeholderOpt.setAttribute('aria-selected', 'true');
+    placeholderOpt.setAttribute('data-value', '');
+    placeholderOpt.textContent = 'Select time';
+    menu.appendChild(placeholderOpt);
+    SCHED_TIME_OPTIONS.forEach(function (opt) {
+      var optEl = document.createElement('button');
+      optEl.type = 'button';
+      optEl.className = 'business-doc-select-option';
+      optEl.setAttribute('role', 'option');
+      optEl.setAttribute('aria-selected', 'false');
+      optEl.setAttribute('data-value', opt.value);
+      optEl.textContent = opt.label;
+      menu.appendChild(optEl);
+    });
+
+    var hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.id = id;
+
+    wrap.appendChild(trigger);
+    wrap.appendChild(menu);
+    wrap.appendChild(hidden);
+    return wrap;
+  }
+
+  function createSchedDayRowEl(dayId) {
+    var dayLabel = SCHED_DAY_LABELS[dayId] || dayId;
+    var row = document.createElement('div');
+    row.className = 'admin-sched-day-row';
+    row.setAttribute('data-sched-day', dayId);
+
+    var checkLabel = document.createElement('label');
+    checkLabel.className = 'admin-sched-day-check';
+    var checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = 'admin-sched-day-' + dayId + '-enabled';
+    checkbox.className = 'admin-sched-switch-input';
+    var switchEl = document.createElement('span');
+    switchEl.className = 'admin-sched-switch';
+    switchEl.setAttribute('aria-hidden', 'true');
+    var nameEl = document.createElement('span');
+    nameEl.className = 'admin-sched-day-name';
+    nameEl.textContent = dayLabel;
+    checkLabel.appendChild(checkbox);
+    checkLabel.appendChild(switchEl);
+    checkLabel.appendChild(nameEl);
+
+    var dash = document.createElement('span');
+    dash.className = 'admin-sched-day-dash';
+    dash.textContent = '–';
+
+    row.appendChild(checkLabel);
+    row.appendChild(createSchedTimeSelectEl('admin-sched-day-' + dayId + '-start', dayLabel + ' start time'));
+    row.appendChild(dash);
+    row.appendChild(createSchedTimeSelectEl('admin-sched-day-' + dayId + '-end', dayLabel + ' end time'));
+    return row;
+  }
+
+  function renderSchedDayRows() {
+    var container = document.getElementById('admin-sched-days');
+    if (!container) return;
+    container.innerHTML = '';
+    SCHED_DAY_IDS.forEach(function (dayId) {
+      container.appendChild(createSchedDayRowEl(dayId));
+    });
+    initBusinessDocCustomSelects();
+  }
+
+  function createSchedCallTypeRowEl(data) {
+    data = data || {};
+    var row = document.createElement('div');
+    row.className = 'admin-sched-call-type-row';
+    row.setAttribute('data-sched-call-type-id', data.id || generateSchedRowId('ct'));
+
+    var labelFg = document.createElement('div');
+    labelFg.className = 'form-group';
+    var labelInput = document.createElement('input');
+    labelInput.type = 'text';
+    labelInput.className = 'admin-sched-call-type-label';
+    labelInput.placeholder = 'e.g. 15-min Quick Intro';
+    if (data.label) labelInput.value = data.label;
+    labelFg.appendChild(labelInput);
+
+    var durationFg = document.createElement('div');
+    durationFg.className = 'form-group admin-sched-duration-field';
+    var durationInput = document.createElement('input');
+    durationInput.type = 'number';
+    durationInput.className = 'admin-sched-call-type-duration';
+    durationInput.min = '5';
+    durationInput.step = '5';
+    durationInput.placeholder = 'Minutes';
+    durationInput.value = data.durationMin ? String(data.durationMin) : '30';
+    durationFg.appendChild(durationInput);
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'business-doc-addon-price-remove';
+    removeBtn.innerHTML = '<ion-icon name="close-outline"></ion-icon>';
+    removeBtn.addEventListener('click', function () { row.remove(); });
+
+    row.appendChild(labelFg);
+    row.appendChild(durationFg);
+    row.appendChild(removeBtn);
+    return row;
+  }
+
+  function createSchedBlockedDateRowEl(value) {
+    var row = document.createElement('div');
+    row.className = 'admin-sched-blocked-date-row';
+    var input = document.createElement('input');
+    input.type = 'date';
+    input.className = 'admin-sched-blocked-date-input';
+    if (value) input.value = value;
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'business-doc-addon-price-remove';
+    removeBtn.innerHTML = '<ion-icon name="close-outline"></ion-icon>';
+    removeBtn.addEventListener('click', function () { row.remove(); });
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    return row;
+  }
+
+  function fillSchedSettingsForm(config) {
+    var tzInput = document.getElementById('admin-sched-timezone');
+    if (tzInput) tzInput.value = config.timezone || 'America/Los_Angeles';
+
+    var windowsByDay = {};
+    (Array.isArray(config.weeklyWindows) ? config.weeklyWindows : []).forEach(function (w) {
+      if (w && w.day) windowsByDay[w.day] = w;
+    });
+    SCHED_DAY_IDS.forEach(function (day) {
+      var enabledEl = document.getElementById('admin-sched-day-' + day + '-enabled');
+      var startEl = document.getElementById('admin-sched-day-' + day + '-start');
+      var endEl = document.getElementById('admin-sched-day-' + day + '-end');
+      var w = windowsByDay[day];
+      if (enabledEl) enabledEl.checked = !!w;
+      if (startEl) { startEl.value = w ? (w.start || '') : ''; syncBusinessDocSelectUI(startEl); }
+      if (endEl) { endEl.value = w ? (w.end || '') : ''; syncBusinessDocSelectUI(endEl); }
+    });
+
+    var callTypesList = document.getElementById('admin-sched-call-types');
+    if (callTypesList) {
+      callTypesList.innerHTML = '';
+      var callTypes = Array.isArray(config.callTypes) ? config.callTypes : [];
+      if (!callTypes.length) {
+        callTypesList.appendChild(createSchedCallTypeRowEl({ label: '30-min Discovery Call', durationMin: 30 }));
+      } else {
+        callTypes.forEach(function (ct) {
+          callTypesList.appendChild(createSchedCallTypeRowEl(ct));
+        });
+      }
+    }
+
+    var blockedList = document.getElementById('admin-sched-blocked-dates');
+    if (blockedList) {
+      blockedList.innerHTML = '';
+      var blockedDates = Array.isArray(config.blockedDates) ? config.blockedDates : [];
+      blockedDates.forEach(function (d) {
+        blockedList.appendChild(createSchedBlockedDateRowEl(d));
+      });
+    }
+  }
+
+  async function loadAgencySchedulingSettings() {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) return;
+    try {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, AGENCY_AVAILABILITY_RTD_PATH));
+      fillSchedSettingsForm(snap.val() || {});
+    } catch (e) {
+      console.warn('Failed to load scheduling settings', e);
+    }
+  }
+  window.loadAgencySchedulingSettings = loadAgencySchedulingSettings;
+
+  async function saveAgencySchedulingSettings() {
+    var statusEl = document.getElementById('admin-sched-save-status');
+    var saveBtn = document.getElementById('admin-sched-save-btn');
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbSet) return;
+
+    var tzEl = document.getElementById('admin-sched-timezone');
+    var timezone = tzEl && tzEl.value ? tzEl.value.trim() : 'America/Los_Angeles';
+
+    var weeklyWindows = [];
+    SCHED_DAY_IDS.forEach(function (day) {
+      var enabledEl = document.getElementById('admin-sched-day-' + day + '-enabled');
+      var startEl = document.getElementById('admin-sched-day-' + day + '-start');
+      var endEl = document.getElementById('admin-sched-day-' + day + '-end');
+      if (enabledEl && enabledEl.checked && startEl && startEl.value && endEl && endEl.value) {
+        weeklyWindows.push({ day: day, start: startEl.value, end: endEl.value });
+      }
+    });
+
+    var callTypes = [];
+    document.querySelectorAll('#admin-sched-call-types .admin-sched-call-type-row').forEach(function (row) {
+      var labelEl = row.querySelector('.admin-sched-call-type-label');
+      var durationEl = row.querySelector('.admin-sched-call-type-duration');
+      var label = labelEl ? labelEl.value.trim() : '';
+      var duration = durationEl ? parseInt(durationEl.value, 10) : NaN;
+      if (!label || isNaN(duration) || duration <= 0) return;
+      callTypes.push({
+        id: row.getAttribute('data-sched-call-type-id') || generateSchedRowId('ct'),
+        label: label,
+        durationMin: duration
+      });
+    });
+
+    var blockedDates = [];
+    document.querySelectorAll('#admin-sched-blocked-dates .admin-sched-blocked-date-input').forEach(function (input) {
+      if (input.value) blockedDates.push(input.value);
+    });
+
+    if (!weeklyWindows.length) {
+      alert('Turn on at least one weekday with a start and end time before saving.');
+      return;
+    }
+    if (!callTypes.length) {
+      alert('Add at least one call type before saving.');
+      return;
+    }
+
+    if (saveBtn) saveBtn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Saving…';
+    try {
+      await window.rtdbSet(window.rtdbRef(window.rtdb, AGENCY_AVAILABILITY_RTD_PATH), {
+        timezone: timezone,
+        weeklyWindows: weeklyWindows,
+        callTypes: callTypes,
+        blockedDates: blockedDates
+      });
+      if (statusEl) statusEl.textContent = 'Saved.';
+    } catch (e) {
+      console.error('Failed to save scheduling settings', e);
+      if (statusEl) statusEl.textContent = 'Failed to save — try again.';
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+      setTimeout(function () { if (statusEl) statusEl.textContent = ''; }, 4000);
+    }
+  }
+
+  function initSchedSettingsCollapse() {
+    var section = document.getElementById('admin-sched-section');
+    var toggle = document.getElementById('admin-sched-toggle');
+    var content = document.getElementById('admin-sched-content');
+    var OPEN_KEY = 'adminSchedSectionOpen';
+    if (!section || !toggle || !content) return;
+
+    function setOpen(open) {
+      try {
+        sessionStorage.setItem(OPEN_KEY, open ? '1' : '0');
+      } catch (e) {}
+      section.classList.toggle('admin-collapsible-open', !!open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    var stored = null;
+    try {
+      stored = sessionStorage.getItem(OPEN_KEY);
+    } catch (e) {}
+    setOpen(stored === '1');
+    toggle.addEventListener('click', function () {
+      setOpen(!section.classList.contains('admin-collapsible-open'));
+    });
+  }
+
+  function initSchedSettingsControls() {
+    initSchedSettingsCollapse();
+    renderSchedDayRows();
+    var addCallTypeBtn = document.getElementById('admin-sched-add-call-type-btn');
+    var callTypesList = document.getElementById('admin-sched-call-types');
+    if (addCallTypeBtn && callTypesList) {
+      addCallTypeBtn.addEventListener('click', function () {
+        callTypesList.appendChild(createSchedCallTypeRowEl(null));
+      });
+    }
+    var addBlockedBtn = document.getElementById('admin-sched-add-blocked-date-btn');
+    var blockedList = document.getElementById('admin-sched-blocked-dates');
+    if (addBlockedBtn && blockedList) {
+      addBlockedBtn.addEventListener('click', function () {
+        blockedList.appendChild(createSchedBlockedDateRowEl(''));
+      });
+    }
+    var saveBtn = document.getElementById('admin-sched-save-btn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', saveAgencySchedulingSettings);
+    }
+  }
+
+  initSchedSettingsControls();
 
   function generateBusinessDocId() {
     return 'doc_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
@@ -10019,12 +10557,20 @@ window.addEventListener('load', function() {
     hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
   }
 
+  var businessDocSelectsGloballyBound = false;
+
+  /** Safe to call repeatedly (e.g. after dynamically injecting more .business-doc-select nodes) — already-wired ones are skipped. */
   function initBusinessDocCustomSelects() {
     document.querySelectorAll('.business-doc-select').forEach(function (wrap) {
       var trigger = wrap.querySelector('.business-doc-select-trigger');
       var menu = wrap.querySelector('.business-doc-select-menu');
       var hiddenInput = wrap.querySelector('input[type="hidden"]');
       if (!trigger || !menu || !hiddenInput) return;
+      if (wrap.getAttribute('data-select-wired') === 'true') {
+        syncBusinessDocSelectUI(hiddenInput);
+        return;
+      }
+      wrap.setAttribute('data-select-wired', 'true');
 
       trigger.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -10051,26 +10597,35 @@ window.addEventListener('load', function() {
       syncBusinessDocSelectUI(hiddenInput);
     });
 
-    document.addEventListener('click', function (e) {
-      if (e.target.closest('.business-doc-select')) return;
-      closeAllBusinessDocSelects();
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape') return;
-      var openWrap = document.querySelector('.business-doc-select.is-open');
-      if (!openWrap) return;
-      closeBusinessDocSelect(openWrap);
-      var trigger = openWrap.querySelector('.business-doc-select-trigger');
-      if (trigger) trigger.focus();
-    });
+    if (!businessDocSelectsGloballyBound) {
+      businessDocSelectsGloballyBound = true;
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('.business-doc-select')) return;
+        closeAllBusinessDocSelects();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        var openWrap = document.querySelector('.business-doc-select.is-open');
+        if (!openWrap) return;
+        closeBusinessDocSelect(openWrap);
+        var trigger = openWrap.querySelector('.business-doc-select-trigger');
+        if (trigger) trigger.focus();
+      });
+    }
   }
 
+  /** Safe to call repeatedly — already-wired groups are skipped. */
   function initBusinessDocToggleGroups() {
     document.querySelectorAll('.business-doc-toggle-group').forEach(function (group) {
       var hiddenInput = group.parentElement
         ? group.parentElement.querySelector('input[type="hidden"]')
         : null;
       if (!hiddenInput) return;
+      if (group.getAttribute('data-toggle-wired') === 'true') {
+        syncBusinessDocToggleUI(hiddenInput);
+        return;
+      }
+      group.setAttribute('data-toggle-wired', 'true');
       group.querySelectorAll('.business-doc-toggle-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
           setBusinessDocHiddenValue(hiddenInput, btn.getAttribute('data-value') || '');
@@ -12642,18 +13197,22 @@ window.addEventListener('load', function() {
     }
 
     var newMsgCount = 0;
-    if (typeof lastContactFormMessages !== 'undefined' && lastContactFormMessages.length) {
-      newMsgCount = lastContactFormMessages.filter(function (m) {
-        return (m.status || 'new') === 'new';
-      }).length;
-    } else {
-      var newMsgEl = document.getElementById('kpi-new-messages');
+    if (typeof window.getDmInboxOverviewSnapshot === 'function') {
+      try {
+        var snapRows = window.getDmInboxOverviewSnapshot() || [];
+        newMsgCount = snapRows.length;
+      } catch (e) {
+        newMsgCount = 0;
+      }
+    }
+    if (!newMsgCount) {
+      var newMsgEl = document.getElementById('new-messages') || document.getElementById('kpi-new-messages');
       newMsgCount = newMsgEl ? parseInt(String(newMsgEl.textContent).replace(/\D/g, ''), 10) : 0;
       if (isNaN(newMsgCount)) newMsgCount = 0;
     }
     if (newMsgCount > 0) {
       push({
-        label: newMsgCount + ' new contact form message' + (newMsgCount === 1 ? '' : 's'),
+        label: newMsgCount + ' unread conversation' + (newMsgCount === 1 ? '' : 's'),
         meta: 'Reply in Messages',
         tab: 'messages',
         priority: 2
@@ -12801,22 +13360,10 @@ window.addEventListener('load', function() {
     if (typeof window.getDmInboxOverviewSnapshot === 'function') {
       inboxRows = window.getDmInboxOverviewSnapshot();
     }
-    if (!inboxRows.length && typeof lastContactFormMessages !== 'undefined') {
-      lastContactFormMessages
-        .filter(function (m) { return (m.status || 'new') === 'new'; })
-        .slice(0, 5)
-        .forEach(function (m) {
-          inboxRows.push({
-            label: m.name || m.fullname || 'Contact form',
-            meta: (m.subject || m.message || '').slice(0, 48) || 'New submission',
-            tab: 'messages'
-          });
-        });
-    }
     if (inboxList) {
       inboxList.innerHTML = inboxRows.length
         ? inboxRows.map(overviewListItem).join('')
-        : overviewEmpty('Inbox clear — no unread threads or new form messages.');
+        : overviewEmpty('Inbox clear — no unread conversations.');
     }
 
     var retainersList = document.getElementById('admin-cc-retainers-list');
@@ -12891,6 +13438,28 @@ window.addEventListener('load', function() {
             }).join('')
           : overviewEmpty('Every client has an active portal link.');
       }
+    }
+
+    var callsList = document.getElementById('admin-cc-calls-list');
+    if (callsList) {
+      var now = Date.now();
+      var upcoming = (agencyBookingsList || [])
+        .filter(function (b) { return b && b.startISO && Date.parse(b.startISO) >= now; })
+        .sort(function (a, b) { return Date.parse(a.startISO) - Date.parse(b.startISO); });
+      callsList.innerHTML = upcoming.length
+        ? upcoming.slice(0, 6).map(function (b) {
+            var when = formatDateDisplay(b.startISO);
+            try {
+              when = new Date(b.startISO).toLocaleString(undefined, {
+                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+              });
+            } catch (e) {}
+            return overviewListItem({
+              label: b.name || 'Booked call',
+              meta: (b.callTypeLabel || 'Call') + ' · ' + when
+            });
+          }).join('')
+        : overviewEmpty('No calls booked yet.');
     }
 
     bindOverviewCommandCenterClicks();
@@ -14403,13 +14972,11 @@ window.addEventListener('load', function() {
   window.renderAdminLegacyContactMessages = function () {
     if (typeof window.portfolioSyncAdminMessagesView === 'function') {
       window.portfolioSyncAdminMessagesView();
-      return;
     }
-    renderMessages(lastContactFormMessages);
-    updateStats(lastContactFormMessages);
   };
+  /** Conversations inbox is RTDB-only; Firestore contact submissions are not listed. */
   window.getAdminLegacyContactMessages = function () {
-    return lastContactFormMessages.slice();
+    return [];
   };
   window.getAdminContactTimestampMs = getContactTimestampMs;
   window.formatAdminContactTableDate = formatContactTableDate;
@@ -15385,6 +15952,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '<span id="dm-presence-customer" class="dm-presence-pill">Customer offline</span>',
         '<span id="dm-presence-typing" class="dm-presence-pill">Not typing</span>',
         '</div>',
+        '<div id="dm-admin-lead-meta" class="admin-dm-lead-meta-host" hidden></div>',
         '<div id="dm-message-list" class="dm-message-list has-scrollbar"></div>',
         '<button id="dm-load-more" type="button" class="btn btn-secondary btn-sm dm-load-more-btn">Load older messages</button>',
         '<form id="dm-admin-composer" class="dm-composer dm-admin-composer" autocomplete="off">',
@@ -15478,6 +16046,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  function syncAdminDmLeadMeta(conv) {
+    var host = document.getElementById('dm-admin-lead-meta');
+    if (!host) return;
+    var html = renderAdminDmLeadMetaHtml(conv);
+    if (html) {
+      host.innerHTML = html;
+      host.hidden = false;
+    } else {
+      host.innerHTML = '';
+      host.hidden = true;
+    }
+  }
+
   function openDmContactDetailDrawer(conversationId) {
     const conv =
       DM.conversations.find(function (c) { return c.id === conversationId; }) ||
@@ -15498,7 +16079,12 @@ document.addEventListener('DOMContentLoaded', function () {
     root.classList.add('is-open', 'admin-contact-detail--dm');
     root.setAttribute('aria-hidden', 'false');
     document.body.classList.add('admin-contact-detail-open');
-    if (titleEl) titleEl.textContent = conv.customerName || 'Conversation';
+    if (titleEl) {
+      titleEl.textContent = conv.subject
+        ? String(conv.subject)
+        : conv.customerName || 'Conversation';
+    }
+    syncAdminDmLeadMeta(conv);
     if (footEl) {
       footEl.innerHTML = isAdmin()
         ? [
@@ -15547,60 +16133,6 @@ document.addEventListener('DOMContentLoaded', function () {
     syncAdminDmLayoutClass();
   }
 
-  function getOrphanLegacyContactMessages() {
-    var legacy =
-      typeof window.getAdminLegacyContactMessages === 'function'
-        ? window.getAdminLegacyContactMessages()
-        : [];
-    var coveredConvIds = Object.create(null);
-    var coveredLegacyIds = Object.create(null);
-    DM.conversations.forEach(function (c) {
-      if (c.id) coveredConvIds[c.id] = true;
-      if (c.legacyMessageId) coveredLegacyIds[c.legacyMessageId] = true;
-    });
-    return legacy.filter(function (msg) {
-      if (msg.conversationId && coveredConvIds[msg.conversationId]) return false;
-      if (msg.id && coveredLegacyIds[msg.id]) return false;
-      return true;
-    });
-  }
-
-  function filterOrphanLegacyMessages(orphans) {
-    var searchInput = document.getElementById('dm-search-input');
-    var queryText = searchInput ? searchInput.value.trim().toLowerCase() : '';
-    var activeFilter = document.querySelector('#dm-inbox-filters .filter-btn.active');
-    var statusFilter = activeFilter ? activeFilter.dataset.filter : 'all';
-
-    return orphans.filter(function (msg) {
-      var st = String(msg.status || 'new').toLowerCase();
-      var statusMatch =
-        statusFilter === 'all'
-          ? true
-          : statusFilter === 'unread'
-            ? st === 'new'
-            : statusFilter === 'open'
-              ? st === 'new' || st === 'open'
-              : statusFilter === 'pending'
-                ? st === 'pending' || st === 'new'
-                : statusFilter === 'closed'
-                  ? st === 'replied' || st === 'closed'
-                  : st === statusFilter;
-      if (!statusMatch) return false;
-      if (!queryText) return true;
-      var haystack = [msg.name, msg.email, msg.message, msg.subject, msg.source]
-        .join(' ')
-        .toLowerCase();
-      return haystack.indexOf(queryText) !== -1;
-    });
-  }
-
-  function legacyContactSortMs(msg) {
-    if (typeof window.getAdminContactTimestampMs === 'function') {
-      return window.getAdminContactTimestampMs(msg);
-    }
-    return 0;
-  }
-
   function conversationSortMs(conv) {
     var v = conv.lastMessageAt || conv.updatedAt || conv.createdAt;
     if (typeof v === 'number') return v;
@@ -15609,41 +16141,41 @@ document.addEventListener('DOMContentLoaded', function () {
     return 0;
   }
 
-  function renderLegacyInboxRow(msg) {
-    var st = msg.status || 'new';
-    var safeSt = escapeDmHtml(st);
-    var em = escapeDmHtml(msg.email || '');
-    var src = msg.source ? escapeDmHtml(String(msg.source)) : 'contact form';
-    var dateLabel =
-      typeof window.formatAdminContactTableDate === 'function'
-        ? window.formatAdminContactTableDate(msg.timestamp)
-        : formatDMDate(msg.timestamp);
+  function formatAdminDmSourceLabel(raw) {
+    var s = String(raw || '')
+      .trim()
+      .toLowerCase();
+    if (s === 'hire-me') return 'hire-me';
+    if (s === 'contact') return 'contact';
+    if (s === 'client-portal') return 'client-portal';
+    if (s === 'portal') return 'portal';
+    return s || 'dm';
+  }
+
+  function renderAdminDmLeadMetaHtml(conv) {
+    if (!conv) return '';
+    var projectType = String(conv.projectType || conv.project_type || '').trim();
+    var budget = String(conv.budget || '').trim();
+    if (!projectType && !budget) return '';
     return [
-      '<tr class="message-item admin-contact-table__row admin-legacy-table__row" role="button" tabindex="0" aria-label="Open submission details" data-status="',
-      safeSt,
-      '" data-id="',
-      escapeDmHtml(msg.id),
-      '">',
-      '<td class="admin-contact-table__td admin-contact-table__td--muted" data-label="Date">',
-      escapeDmHtml(dateLabel || '—'),
-      '</td>',
-      '<td class="admin-contact-table__td admin-contact-table__td--status" data-label="Status"><span class="status-badge status-',
-      safeSt,
-      '">',
-      safeSt,
-      '</span></td>',
-      '<td class="admin-contact-table__td" data-label="From">',
-      escapeDmHtml(msg.name || 'Anonymous'),
-      '</td>',
-      '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" data-label="Email">',
-      em ? '<a href="mailto:' + em + '">' + em + '</a>' : '—',
-      '</td>',
-      '<td class="admin-contact-table__td admin-contact-table__td--ellipsis" data-label="Source" title="',
-      src,
-      '">',
-      src,
-      '</td>',
-      '</tr>'
+      '<div class="message-card-hire-meta admin-dm-lead-meta">',
+      projectType
+        ? '<div class="message-card-hire-section message-card-hire-section--project"><div class="message-card-hire-section-head">' +
+          '<span class="message-card-hire-icon-wrap"><ion-icon name="layers-outline" aria-hidden="true"></ion-icon></span>' +
+          '<span class="message-card-hire-section-label">Project type</span></div>' +
+          '<p class="message-card-hire-section-value">' +
+          escapeDmHtml(projectType) +
+          '</p></div>'
+        : '',
+      budget
+        ? '<div class="message-card-hire-section message-card-hire-section--budget"><div class="message-card-hire-section-head">' +
+          '<span class="message-card-hire-icon-wrap"><ion-icon name="wallet-outline" aria-hidden="true"></ion-icon></span>' +
+          '<span class="message-card-hire-section-label">Budget</span></div>' +
+          '<p class="message-card-hire-section-value">' +
+          escapeDmHtml(budget) +
+          '</p></div>'
+        : '',
+      '</div>'
     ].join('');
   }
 
@@ -15653,23 +16185,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     applyConversationFilters();
     const dmList = DM.filteredConversations.length ? DM.filteredConversations : DM.conversations;
-    const orphanLegacy = filterOrphanLegacyMessages(getOrphanLegacyContactMessages());
 
     const unreadSum =
       DM.conversations.reduce(function (acc, c) {
         return acc + (c.unreadAdmin || 0);
-      }, 0) +
-      orphanLegacy.filter(function (m) {
-        return (m.status || 'new') === 'new';
-      }).length;
+      }, 0);
     const closedCount =
       DM.conversations.filter(function (c) {
         return c.status === 'closed';
-      }).length +
-      orphanLegacy.filter(function (m) {
-        return m.status === 'replied' || m.status === 'closed';
       }).length;
-    const totalCount = DM.conversations.length + orphanLegacy.length;
+    const totalCount = DM.conversations.length;
 
     const totalMessagesEl = document.getElementById('total-messages');
     const newMessagesEl = document.getElementById('new-messages');
@@ -15688,7 +16213,7 @@ document.addEventListener('DOMContentLoaded', function () {
       window.renderAdminOverview();
     }
 
-    if (!dmList.length && !orphanLegacy.length) {
+    if (!dmList.length) {
       messagesListEl.innerHTML = [
         '<div class="no-messages">',
         '<ion-icon name="chatbubbles-outline"></ion-icon>',
@@ -15704,8 +16229,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const safeSt = escapeDmHtml(st);
       const em = escapeDmHtml(conv.customerEmail || '');
       const unread = conv.unreadAdmin || 0;
-      const fromContact = String(conv.source || '').toLowerCase() === 'contact';
-      const src = fromContact ? 'contact form' : 'dm';
+      const src = formatAdminDmSourceLabel(conv.source);
       const activeClass = DM.activeConversationId === conv.id ? ' admin-dm-table__row--active' : '';
       const statusLabel = unread > 0 ? 'unread' : safeSt;
       mergedRows.push({
@@ -15737,13 +16261,6 @@ document.addEventListener('DOMContentLoaded', function () {
           '</td>',
           '</tr>'
         ].join('')
-      });
-    });
-
-    orphanLegacy.forEach(function (msg) {
-      mergedRows.push({
-        sortMs: legacyContactSortMs(msg),
-        html: renderLegacyInboxRow(msg)
       });
     });
 
@@ -15878,13 +16395,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!title || !subtitle || !list) return;
 
     title.textContent = conversation.customerName || 'Customer';
-    var sourceNote =
-      String(conversation.source || '').toLowerCase() === 'contact' ? ' · Started via contact form' : '';
+    var srcLabel = formatAdminDmSourceLabel(conversation.source);
+    var sourceNote = srcLabel ? ' · ' + srcLabel : '';
     subtitle.textContent =
       (conversation.customerEmail || '') + ' · Assigned: ' + (conversation.assignee || 'unassigned') + sourceNote;
     if (statusSelect) statusSelect.value = conversation.status || 'open';
     if (prioritySelect) prioritySelect.value = conversation.priority || 'normal';
     if (tagInput) tagInput.value = Array.isArray(conversation.tags) ? conversation.tags.join(', ') : '';
+    syncAdminDmLeadMeta(conversation);
+
+    var detailTitle = document.getElementById('admin-contact-detail-title');
+    if (detailTitle && conversation.subject) {
+      detailTitle.textContent = String(conversation.subject);
+    }
 
     if (!messages.length) {
       list.innerHTML = [
@@ -16403,17 +16926,6 @@ document.addEventListener('DOMContentLoaded', function () {
     section.id = 'customer-dm-portal';
     section.innerHTML = [
       (!window.rtdb ? '<p class="dm-help-text dm-rtdb-unavailable" role="alert">Realtime Database is not connected. Add <code>databaseURL</code> in Firebase config, deploy <code>database.rules.json</code> (<code>firebase deploy --only database</code>), then reload.</p>' : ''),
-      '<div id="dm-contact-success" class="dm-contact-success" hidden role="status" aria-live="polite">',
-      '<span class="dm-contact-success-icon" aria-hidden="true"><ion-icon name="checkmark-circle"></ion-icon></span>',
-      '<div class="dm-contact-success-copy">',
-      '<p class="dm-contact-success-title">Message received</p>',
-      '<p class="dm-contact-success-lead">Your note is saved. Open your private thread to keep chatting — we typically reply within 24–72 business hours.</p>',
-      '<button type="button" id="dm-contact-success-continue" class="form-btn dm-contact-success-continue">',
-      '<ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>',
-      '<span>Open your conversation</span>',
-      '</button>',
-      '</div>',
-      '</div>',
       '<div id="dm-customer-sheet-root" class="dm-customer-sheet-root" aria-hidden="true">',
       '<div class="dm-customer-sheet-backdrop" id="dm-customer-sheet-backdrop"></div>',
       '<div class="dm-customer-sheet" role="dialog" aria-modal="true" aria-labelledby="dm-customer-sheet-title">',
@@ -16511,7 +17023,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!list) return;
     if (window.CustomerDmShared && window.CustomerDmShared.renderMessagesToElement) {
       window.CustomerDmShared.renderMessagesToElement(list, messages, { showReadState: true });
-      return;
+    }
+    if (
+      hireMeOverlayOpen &&
+      (!messages || !messages.length) &&
+      !list.children.length
+    ) {
+      list.innerHTML =
+        '<p class="dm-hireme-empty-hint">Your inquiry is in — send a follow-up here anytime.</p>';
     }
   }
 
@@ -16617,15 +17136,30 @@ document.addEventListener('DOMContentLoaded', function () {
       try {
         if (e && e.pointerId != null) grabber.releasePointerCapture(e.pointerId);
       } catch (err) {}
+      const raw = sheet.style.getPropertyValue('--dm-sheet-max-vh').trim();
+      const v = parseFloat(raw);
+      if (isHireMeInquiryOverlayOpen()) {
+        const draggedDown = startVh - (isNaN(v) ? startVh : v);
+        if ((!isNaN(v) && v <= 42) || draggedDown >= 22) {
+          applyCustomerSheetMaxVh(sheet, readStoredCustomerSheetMaxVh());
+          closeHireMeInquiryOverlay();
+          return;
+        }
+      }
       try {
-        const raw = sheet.style.getPropertyValue('--dm-sheet-max-vh').trim();
-        const v = parseFloat(raw);
         if (!isNaN(v)) localStorage.setItem(DM_SHEET_MAX_VH_KEY, String(v));
       } catch (err) {}
     }
 
     function onPointerDown(e) {
       if (e.button != null && e.button !== 0) return;
+      if (
+        isHireMeInquiryOverlayOpen() &&
+        window.matchMedia &&
+        window.matchMedia('(min-width: 900px)').matches
+      ) {
+        return;
+      }
       dragging = true;
       startY = e.clientY;
       startVh = getCustomerSheetMaxVhFromDom(sheet);
@@ -16677,52 +17211,23 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function revealCustomerDmConversation() {
-    var portal = document.getElementById('customer-dm-portal');
-    var successEl = document.getElementById('dm-contact-success');
-    var sheetRoot = document.getElementById('dm-customer-sheet-root');
-    if (successEl) successEl.hidden = true;
-    if (portal) {
-      portal.classList.remove('dm-portal--success-only', 'dm-portal--has-success');
-      portal.classList.add('dm-portal--conversation');
-    }
-    if (sheetRoot) sheetRoot.hidden = false;
-    openCustomerPortalSession();
-    syncHireMeMessagesUI();
-    if (portal) portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  function revealCustomerDmPortal(options) {
-    options = options || {};
+  function revealCustomerDmPortal() {
     var messagesArticle = document.querySelector('article[data-page="messages"]');
     var portal = document.getElementById('customer-dm-portal');
     if (messagesArticle) messagesArticle.classList.add('messages-dm-active');
     if (portal) {
       portal.classList.remove('dm-portal-pending');
-      portal.classList.add('dm-portal--active');
+      portal.classList.add('dm-portal--active', 'dm-portal--conversation');
       portal.querySelectorAll('.dm-help-text').forEach(function (el) {
         el.style.display = 'none';
       });
       var title = portal.querySelector('.dm-portal-heading');
       var sheetTitle = document.getElementById('dm-customer-sheet-title');
-      var successEl = document.getElementById('dm-contact-success');
       var sheetRoot = document.getElementById('dm-customer-sheet-root');
-      var successOnly = !!options.showSuccess;
       if (sheetTitle) sheetTitle.textContent = 'Your conversation';
       if (title) title.hidden = true;
-      portal.classList.toggle('dm-portal--success-only', successOnly);
-      portal.classList.toggle('dm-portal--conversation', !successOnly);
-      portal.classList.toggle('dm-portal--has-success', successOnly);
-      if (successEl) successEl.hidden = !successOnly;
-      if (sheetRoot) {
-        sheetRoot.hidden = successOnly;
-        if (successOnly) {
-          sheetRoot.classList.remove('is-open');
-          sheetRoot.setAttribute('aria-hidden', 'true');
-          document.body.classList.remove('dm-customer-sheet-open');
-        }
-      }
-      if (!successOnly) openCustomerPortalSession();
+      if (sheetRoot) sheetRoot.hidden = false;
+      openCustomerPortalSession();
       portal.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     syncContactFormExistingDmLink();
@@ -16745,6 +17250,89 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
       localStorage.setItem(HIREME_INQUIRY_KEY, JSON.stringify(data));
     } catch (e) {}
+  }
+
+  async function restoreInquiryFromEmail(email, name) {
+    email = String(email || '').trim().toLowerCase();
+    name = String(name || '').trim();
+    if (!email) {
+      throw new Error('Please enter your email.');
+    }
+    if (!window.rtdb) {
+      throw new Error('Unable to look up your inquiry right now. Please try again shortly.');
+    }
+    if (!window.CustomerDmShared || !window.CustomerDmShared.lookupConversationByEmail) {
+      throw new Error('Unable to look up your inquiry right now.');
+    }
+    var meta = await window.CustomerDmShared.lookupConversationByEmail(email);
+    if (!meta || !meta.id) {
+      throw new Error('No inquiry found for that email. Check the spelling or send a new inquiry.');
+    }
+    var openingMsg = null;
+    if (window.CustomerDmShared.fetchOpeningInquiryMessage) {
+      openingMsg = await window.CustomerDmShared.fetchOpeningInquiryMessage(meta.id);
+    }
+    var inquiry = window.CustomerDmShared.buildHireMeInquiryFromConversation(meta, openingMsg);
+    if (!inquiry.message) {
+      throw new Error('No inquiry found for that email. Check the spelling or send a new inquiry.');
+    }
+    if (name) {
+      inquiry.name = name;
+    } else if (!inquiry.name && meta.customerName) {
+      inquiry.name = String(meta.customerName).trim();
+    }
+    saveHireMeInquiryToStorage(inquiry);
+    DM.customerSession = {
+      conversationId: meta.id,
+      customerEmail: (meta.customerEmail || email).toLowerCase(),
+      customerName: inquiry.name || meta.customerName || ''
+    };
+    try {
+      localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
+    } catch (storageErr) {}
+    markCustomerDmContactGateCompleted();
+    await startCustomerThread(DM.customerSession);
+    syncHireMeMessagesUI();
+    if (typeof window.syncHireMeReturnBanner === 'function') {
+      window.syncHireMeReturnBanner();
+    }
+    syncContactFormExistingDmLink();
+    return { inquiry: inquiry, meta: meta };
+  }
+
+  function stripOpenInquiryQueryParams() {
+    try {
+      var url = new URL(window.location.href);
+      if (!url.searchParams.has('open') && !url.searchParams.has('email')) return;
+      url.searchParams.delete('open');
+      url.searchParams.delete('email');
+      var next = url.pathname + (url.search ? url.search : '') + url.hash;
+      window.history.replaceState({}, '', next);
+    } catch (e) {}
+  }
+
+  function tryOpenInquiryFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('open') !== 'inquiry') return Promise.resolve(false);
+    var email = String(params.get('email') || '').trim().toLowerCase();
+    if (!email) return Promise.resolve(false);
+    if (tryOpenInquiryFromUrl._started) return Promise.resolve(false);
+    tryOpenInquiryFromUrl._started = true;
+    stripOpenInquiryQueryParams();
+    return restoreInquiryFromEmail(email)
+      .then(function () {
+        var hireArticle = document.querySelector('[data-page="hire-me"]');
+        if (hireArticle && hireArticle.classList.contains('active')) {
+          showHireMeSuccessCard();
+          if (typeof window.restoreHireMeBookingConfirmedUI === 'function') {
+            window.restoreHireMeBookingConfirmedUI();
+          }
+        }
+        return true;
+      })
+      .catch(function () {
+        return false;
+      });
   }
 
   function renderHireMeInquirySummaryHtml(inquiry) {
@@ -16819,7 +17407,148 @@ document.addEventListener('DOMContentLoaded', function () {
         badgeEl.hidden = true;
       }
     }
+
+    // Belt-and-suspenders: whenever we know a real conversation is active, make sure the
+    // portal carries the classes its "active/conversation" styling depends on (hides the
+    // in-sheet ⌘K search trigger, etc.) — don't rely solely on restoreCustomerPortalFromStorage
+    // having successfully run first.
+    var portalEl = document.getElementById('customer-dm-portal');
+    if (portalEl && DM.customerSession && DM.customerSession.conversationId) {
+      portalEl.classList.remove('dm-portal-pending');
+      portalEl.classList.add('dm-portal--active', 'dm-portal--conversation');
+    }
+    syncMessagesNavVisibility();
   }
+
+  var hireMePortalHost = null;
+  var hireMeOverlayOpen = false;
+
+  function isHireMeInquiryOverlayOpen() {
+    return !!hireMeOverlayOpen;
+  }
+
+  function ensureCustomerDmSessionForHireMe() {
+    if (DM.customerSession && DM.customerSession.conversationId) return Promise.resolve(DM.customerSession);
+    var saved =
+      window.CustomerDmShared && window.CustomerDmShared.readCustomerSession
+        ? window.CustomerDmShared.readCustomerSession()
+        : null;
+    if (!saved || !saved.conversationId) {
+      try {
+        var raw = localStorage.getItem('customerDmSession');
+        if (raw) saved = JSON.parse(raw);
+      } catch (e) {
+        saved = null;
+      }
+    }
+    if (!saved || !saved.conversationId) {
+      var inquiry = readHireMeInquiry();
+      if (inquiry && inquiry.email) {
+        return restoreInquiryFromEmail(inquiry.email, inquiry.name)
+          .then(function () {
+            return DM.customerSession;
+          })
+          .catch(function () {
+            return null;
+          });
+      }
+      return Promise.resolve(null);
+    }
+    DM.customerSession = saved;
+    return startCustomerThread(DM.customerSession).then(function () {
+      return DM.customerSession;
+    });
+  }
+
+  function setHireMeOverlayCloseIcon(isOverlay) {
+    var closeBtn = document.getElementById('dm-customer-sheet-close');
+    if (!closeBtn) return;
+    var icon = closeBtn.querySelector('ion-icon');
+    if (!icon) return;
+    var desktop =
+      typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 900px)').matches;
+    if (isOverlay && desktop) {
+      icon.setAttribute('name', 'close-outline');
+      closeBtn.setAttribute('aria-label', 'Close inquiry');
+    } else {
+      icon.setAttribute('name', 'chevron-down-outline');
+      closeBtn.setAttribute('aria-label', 'Close conversation');
+    }
+  }
+
+  function openHireMeInquiryOverlay() {
+    if (!isCustomerDmPortalEnabled()) return;
+    if (!document.getElementById('customer-dm-portal')) {
+      setupCustomerPortalUI();
+    }
+    var portal = document.getElementById('customer-dm-portal');
+    var sheetRoot = document.getElementById('dm-customer-sheet-root');
+    if (!portal || !sheetRoot) return;
+
+    ensureCustomerDmSessionForHireMe()
+      .catch(function () {})
+      .then(function () {
+        syncHireMeMessagesUI();
+
+        if (portal.parentElement !== document.body) {
+          hireMePortalHost = portal.parentElement;
+          document.body.appendChild(portal);
+        }
+
+        portal.classList.remove('dm-portal-pending');
+        portal.classList.add(
+          'dm-portal--active',
+          'dm-portal--conversation',
+          'dm-portal--hireme-overlay'
+        );
+        sheetRoot.hidden = false;
+        sheetRoot.classList.add('is-open');
+        sheetRoot.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('dm-customer-sheet-open', 'hireme-inquiry-overlay-open');
+        hireMeOverlayOpen = true;
+        syncCustomerSheetHeightFromStorage();
+        setHireMeOverlayCloseIcon(true);
+
+        var list = document.getElementById('dm-customer-message-list');
+        if (list && !list.children.length) {
+          list.innerHTML =
+            '<p class="dm-hireme-empty-hint">Your inquiry is in — send a follow-up here anytime.</p>';
+        }
+
+        var closeBtn = document.getElementById('dm-customer-sheet-close');
+        if (closeBtn) {
+          try {
+            closeBtn.focus({ preventScroll: true });
+          } catch (e) {
+            closeBtn.focus();
+          }
+        }
+      });
+  }
+
+  function closeHireMeInquiryOverlay() {
+    if (!hireMeOverlayOpen) return;
+    var portal = document.getElementById('customer-dm-portal');
+    var sheetRoot = document.getElementById('dm-customer-sheet-root');
+    hireMeOverlayOpen = false;
+    document.body.classList.remove('hireme-inquiry-overlay-open', 'dm-customer-sheet-open');
+    setHireMeOverlayCloseIcon(false);
+
+    if (sheetRoot) {
+      sheetRoot.classList.remove('is-open');
+      sheetRoot.setAttribute('aria-hidden', 'true');
+    }
+    if (portal) {
+      portal.classList.remove('dm-portal--hireme-overlay');
+      if (hireMePortalHost) {
+        hireMePortalHost.appendChild(portal);
+        hireMePortalHost = null;
+      }
+    }
+  }
+
+  window.openHireMeInquiryOverlay = openHireMeInquiryOverlay;
+  window.closeHireMeInquiryOverlay = closeHireMeInquiryOverlay;
 
   function openCustomerPortalSession() {
     setCustomerPortalAuthVisible(false);
@@ -16845,18 +17574,33 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
+  function syncMessagesNavVisibility() {
+    document.querySelectorAll('[data-page-name="messages"]').forEach(function (btn) {
+      var item = btn.closest('li') || btn;
+      item.style.display = 'none';
+    });
+  }
+  window.syncMessagesNavVisibility = syncMessagesNavVisibility;
+
   function restoreCustomerPortalFromStorage() {
-    if (!isCustomerDmContactGateCompleted()) return false;
+    if (!isCustomerDmContactGateCompleted()) {
+      syncMessagesNavVisibility();
+      return false;
+    }
     const saved =
       window.CustomerDmShared && window.CustomerDmShared.readCustomerSession
         ? window.CustomerDmShared.readCustomerSession()
         : null;
-    if (!saved) return false;
+    if (!saved) {
+      syncMessagesNavVisibility();
+      return false;
+    }
     DM.customerSession = saved;
     openCustomerPortalSession();
     startCustomerThread(DM.customerSession).catch(function () {});
     revealCustomerDmPortal();
     syncHireMeMessagesUI();
+    syncMessagesNavVisibility();
     return true;
   }
 
@@ -16877,18 +17621,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     tryLegacyDmTokenFromUrl().then(function (openedFromToken) {
-      if (!openedFromToken) {
-        restoreCustomerPortalFromStorage();
+      if (openedFromToken) {
+        syncContactFormExistingDmLink();
+        return;
       }
-      syncContactFormExistingDmLink();
-    });
-
-    var successContinueBtn = document.getElementById('dm-contact-success-continue');
-    if (successContinueBtn) {
-      successContinueBtn.addEventListener('click', function () {
-        revealCustomerDmConversation();
+      return tryOpenInquiryFromUrl().then(function (openedFromUrl) {
+        if (!openedFromUrl) {
+          restoreCustomerPortalFromStorage();
+        }
+        syncContactFormExistingDmLink();
       });
-    }
+    });
 
     if (portalForm) {
       portalForm.addEventListener('submit', function (e) {
@@ -16929,6 +17672,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function closeCustomerSheetToPortal() {
+      if (isHireMeInquiryOverlayOpen()) {
+        closeHireMeInquiryOverlay();
+        return;
+      }
       if (isCustomerDmContactGateCompleted()) return;
       setCustomerPortalAuthVisible(true);
     }
@@ -17102,12 +17849,19 @@ document.addEventListener('DOMContentLoaded', function () {
   window.restoreCustomerPortalFromStorage = restoreCustomerPortalFromStorage;
 
   window.dismissCustomerDmSheetForNavigation = function () {
+    if (isHireMeInquiryOverlayOpen()) {
+      closeHireMeInquiryOverlay();
+      return;
+    }
     const root = document.getElementById('dm-customer-sheet-root');
     if (!root || !root.classList.contains('is-open')) return;
     setCustomerPortalAuthVisible(true);
   };
 
   window.dismissContactDmForNavigation = function () {
+    if (isHireMeInquiryOverlayOpen()) {
+      closeHireMeInquiryOverlay();
+    }
     var messagesArticle = document.querySelector('article[data-page="messages"]');
     if (messagesArticle) messagesArticle.classList.remove('messages-dm-active');
     document.body.classList.remove('dm-customer-sheet-open');
@@ -17129,7 +17883,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!window.rtdb || !window.rtdbPush || !window.rtdbSet || !window.rtdbUpdate || !window.rtdbServerTimestamp) {
         throw new Error('Realtime Database is not available.');
       }
-      const conv = await getOrCreateConversationForEmail(email, name);
+      const conv = await getOrCreateConversationForEmail(email, name, {
+        source: 'contact',
+        subject: 'Contact message',
+        tags: ['contact']
+      });
       DM.customerSession = {
         conversationId: conv.id,
         customerEmail: (conv.customerEmail || email).toLowerCase(),
@@ -17154,8 +17912,12 @@ document.addEventListener('DOMContentLoaded', function () {
         lastMessageAt: window.rtdbServerTimestamp(),
         status: 'open',
         source: 'contact',
+        subject: 'Contact message',
         updatedAt: window.rtdbServerTimestamp()
       };
+      if (!conv.originSource) {
+        metaPatch.originSource = 'contact';
+      }
       if (window.rtdbIncrement) {
         metaPatch.unreadAdmin = window.rtdbIncrement(1);
       } else {
@@ -17189,7 +17951,13 @@ document.addEventListener('DOMContentLoaded', function () {
           submittedAt: payload.submittedAt || new Date().toISOString()
         })
       );
-      const conv = await getOrCreateConversationForEmail(email, name);
+      const conv = await getOrCreateConversationForEmail(email, name, {
+        source: 'hire-me',
+        subject: 'New Hire Me Inquiry',
+        projectType: projectType,
+        budget: budget,
+        tags: ['hire-me']
+      });
       DM.customerSession = {
         conversationId: conv.id,
         customerEmail: (conv.customerEmail || email).toLowerCase(),
@@ -17216,8 +17984,14 @@ document.addEventListener('DOMContentLoaded', function () {
         lastMessageAt: window.rtdbServerTimestamp(),
         status: 'open',
         source: 'hire-me',
+        subject: 'New Hire Me Inquiry',
+        projectType: projectType,
+        budget: budget,
         updatedAt: window.rtdbServerTimestamp()
       };
+      if (!conv.originSource) {
+        metaPatch.originSource = 'hire-me';
+      }
       if (window.rtdbIncrement) {
         metaPatch.unreadAdmin = window.rtdbIncrement(1);
       } else {
@@ -17230,6 +18004,42 @@ document.addEventListener('DOMContentLoaded', function () {
       return DM.customerSession;
     }
   };
+
+  function clearHireMeSuccessState() {
+    try {
+      localStorage.removeItem(HIREME_INQUIRY_KEY);
+    } catch (e) {}
+    closeHireMeInquiryOverlay();
+    var hireArticle = document.querySelector('[data-page="hire-me"]');
+    if (!hireArticle) return;
+    var bookingStep = hireArticle.querySelector('[data-hire-booking-step]');
+    var savedBooking = null;
+    try {
+      var raw = localStorage.getItem('hireme_booking');
+      savedBooking = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      savedBooking = null;
+    }
+    if (bookingStep && !(savedBooking && savedBooking.callTypeLabel && savedBooking.startISO)) {
+      bookingStep.hidden = true;
+    }
+    if (typeof resetHireMePageChrome === 'function') {
+      resetHireMePageChrome();
+    }
+    if (typeof applyHireMePackageView === 'function') {
+      applyHireMePackageView(
+        typeof getHireMePackageFromSearch === 'function' ? getHireMePackageFromSearch() : null
+      );
+    }
+    syncHireMeMessagesUI();
+    if (typeof window.syncHireMeReturnBanner === 'function') {
+      window.syncHireMeReturnBanner();
+    }
+    var formSection = hireArticle.querySelector('[data-hireme-form-section]');
+    if (formSection) {
+      formSection.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+    }
+  }
 
   function showHireMeSuccessCard() {
     var hireArticle = document.querySelector('[data-page="hire-me"]');
@@ -17255,13 +18065,23 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btn && !btn._hireSuccessBound) {
       btn._hireSuccessBound = true;
       btn.addEventListener('click', function () {
-        if (typeof switchToPage === 'function') switchToPage('messages');
+        openHireMeInquiryOverlay();
+      });
+    }
+    var resetBtn = document.getElementById('hire-success-send-another');
+    if (resetBtn && !resetBtn._hireSuccessResetBound) {
+      resetBtn._hireSuccessResetBound = true;
+      resetBtn.addEventListener('click', function () {
+        clearHireMeSuccessState();
       });
     }
   }
 
   window.showHireMeSuccessCard = showHireMeSuccessCard;
+  window.clearHireMeSuccessState = clearHireMeSuccessState;
   window.syncHireMeMessagesUI = syncHireMeMessagesUI;
+  window.restoreInquiryFromEmail = restoreInquiryFromEmail;
+  window.tryOpenInquiryFromUrl = tryOpenInquiryFromUrl;
 
   function showContactSuccessCard() {
     var formSection = document.querySelector('[data-page="contact"] [data-contact-form-section]');

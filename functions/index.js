@@ -34,7 +34,46 @@ const {
   buildTestimonialRequestHtml,
   buildPortalInviteHtml,
   buildAdminReplyHtml,
+  buildBookingConfirmationHtml,
+  buildBookingAdminNotificationHtml,
 } = require("./emailTemplates");
+
+function icsEscapeText(s) {
+  return String(s || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r?\n/g, "\\n");
+}
+
+function icsDateStamp(isoOrDate) {
+  const d = isoOrDate instanceof Date ? isoOrDate : new Date(isoOrDate);
+  return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+function buildBookingIcs({ uid, startISO, endISO, summary, description, organizerEmail, attendeeName, attendeeEmail }) {
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//CodeWithRuben//Booking//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    "UID:" + uid + "@rubenjimenez.dev",
+    "DTSTAMP:" + icsDateStamp(new Date()),
+    "DTSTART:" + icsDateStamp(startISO),
+    "DTEND:" + icsDateStamp(endISO),
+    "SUMMARY:" + icsEscapeText(summary),
+    "DESCRIPTION:" + icsEscapeText(description),
+    "ORGANIZER;CN=CodeWithRuben:mailto:" + organizerEmail,
+    "ATTENDEE;CN=" + icsEscapeText(attendeeName) + ";RSVP=FALSE:mailto:" + attendeeEmail,
+    "STATUS:CONFIRMED",
+    "SEQUENCE:0",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  return lines.join("\r\n");
+}
 
 const resendApiKey = defineSecret("RESEND_API_KEY");
 const resendFrom = defineString("RESEND_FROM", {
@@ -195,6 +234,90 @@ exports.sendPortfolioEmail = onRequest(
           return;
         }
         res.status(200).json({ ok: true, id: data && data.id });
+        return;
+      }
+
+      if (type === "booking_confirmation") {
+        const name = String(payload.name || "").trim();
+        const email = String(payload.email || "").trim();
+        const callTypeLabel = String(payload.call_type_label || "").trim();
+        const startDisplay = String(payload.start_display || "").trim();
+        const timezoneLabel = String(payload.timezone_label || "").trim();
+        const startISO = String(payload.start_iso || "").trim();
+        const endISO = String(payload.end_iso || "").trim();
+        if (!name || !validEmail(email) || !callTypeLabel || !startDisplay) {
+          res.status(400).json({
+            ok: false,
+            error: "Missing name, email, call_type_label, or start_display",
+          });
+          return;
+        }
+
+        const clientHtml = buildBookingConfirmationHtml({
+          to_name: name,
+          to_email: email,
+          call_type_label: callTypeLabel,
+          start_display: startDisplay,
+          timezone_label: timezoneLabel,
+        });
+
+        let icsAttachment = null;
+        const startDate = new Date(startISO);
+        const endDate = new Date(endISO);
+        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+          const icsContent = buildBookingIcs({
+            uid: "booking-" + startDate.getTime(),
+            startISO: startDate,
+            endISO: endDate,
+            summary: callTypeLabel + " with CodeWithRuben",
+            description: "Discovery call with CodeWithRuben (" + callTypeLabel + ").",
+            organizerEmail: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+            attendeeName: name,
+            attendeeEmail: email,
+          });
+          icsAttachment = {
+            filename: "call-with-codewithruben.ics",
+            content: Buffer.from(icsContent, "utf-8"),
+          };
+        } else {
+          console.warn("booking_confirmation: missing/invalid start_iso or end_iso, skipping .ics attachment");
+        }
+
+        const { error: clientError } = await resend.emails.send({
+          from,
+          to: [email],
+          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+          subject: "Your call with CWR is booked",
+          html: clientHtml,
+          attachments: icsAttachment ? [icsAttachment] : undefined,
+        });
+        if (clientError) {
+          console.error("Resend error (booking_confirmation client):", clientError);
+          res.status(502).json({ ok: false, error: clientError.message || "Resend failed" });
+          return;
+        }
+
+        if (notifyTo) {
+          const adminHtml = buildBookingAdminNotificationHtml({
+            name,
+            email,
+            call_type_label: callTypeLabel,
+            start_display: startDisplay,
+          });
+          const { error: adminError } = await resend.emails.send({
+            from,
+            to: [notifyTo],
+            replyTo: email,
+            subject: "New call booked: " + name,
+            html: adminHtml,
+          });
+          if (adminError) {
+            console.error("Resend error (booking_confirmation admin):", adminError);
+            // Client confirmation already sent — don't fail the request over the admin copy.
+          }
+        }
+
+        res.status(200).json({ ok: true });
         return;
       }
 

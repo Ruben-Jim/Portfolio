@@ -1,18 +1,37 @@
 # Professional DM (Realtime Database)
 
-The inbox, thread messages, customer presence, and optional legacy magic-link tokens live under **`dm/`** in Firebase **Realtime Database** (not Firestore).
+The inbox, thread messages, and customer presence live under **`dm/`** in Firebase **Realtime Database** (not Firestore).
+
+**Contact form** and **Hire Me** write **RTDB only** (one conversation per email). Hire Me still sends a notification email via Resend; it does **not** create a Firestore `messages` inbox row.
 
 ## Paths
 
 | Path | Purpose |
 |------|---------|
-| `dm/meta/{conversationId}` | Conversation metadata (customer, status, `updatedAt`, unread counts, tags, …) |
+| `dm/meta/{conversationId}` | Conversation metadata (customer, status, intake fields, unread, tags, …) |
 | `dm/threadMessages/{conversationId}/{messageId}` | Thread messages (`push()` keys) |
 | `dm/presence/{conversationId}/admin` | Admin presence / typing |
 | `dm/presence/{conversationId}/customer` | Customer presence / typing |
 | `dm/magicLinks/{token}` | **Legacy** magic-link rows (old `?dm_token=` links only; the portal no longer creates new tokens) |
 
-Firestore **`messages`** (legacy contact form) and **`blogPosts`** are unchanged. Firestore **`conversations`** and **`magicLinks`** are **denied** in `firestore.rules`; use RTDB only for DM.
+Firestore **`blogPosts`** and other non-inbox collections are unchanged. Firestore **`conversations`** and **`magicLinks`** are **denied** in `firestore.rules`; use RTDB only for DM.
+
+## Conversation model
+
+- **One thread per email** — Contact, Hire Me, and client portal share the same timeline when the visitor uses the same email.
+- **`source`** — latest channel that wrote (`contact` \| `hire-me` \| `client-portal` \| `portal`).
+- **`originSource`** — first channel that created the thread (set once; never overwritten).
+- **Intake lead fields on meta** (Hire Me): `projectType`, `budget`, `subject`.
+- Contact sets `subject: "Contact message"`; Hire Me sets `subject: "New Hire Me Inquiry"` plus project/budget.
+- Client portal may set `agencyProjectId` and tags `client-portal`.
+
+### Meta fields (common)
+
+`customerName`, `customerEmail`, `source`, `originSource`, `subject`, `projectType`, `budget`, `status`, `priority`, `tags`, `assignee`, `agencyProjectId`, `unreadAdmin`, `unreadCustomer`, `lastMessage`, `lastMessageAt`, `createdAt`, `updatedAt`.
+
+### Message fields
+
+`senderRole`, `senderName`, `body`, `createdAt`, `type`, read flags, optional `attachmentUrl`, optional message `source` (`contact` / `hire-me`) for badges. Hire Me opening messages may also store `project_type` / `budget` for history; **admin drawer lead tiles read meta**.
 
 ## Deploy rules and indexes
 
@@ -41,18 +60,19 @@ Rules under `dm/` are permissive for development parity with the previous Firest
 
 ## Smoke tests
 
-- **Admin:** Log in, open Contact Messages tab: conversation list loads from `dm/meta`. Open a thread, send a message, optional “Send email copy”, save tags/status, load older messages if more than one page.
-- **Customer:** On the Messages page, enter name + email → **Open my conversation** → send and receive; presence updates; **Use different email** clears session. Reload: session restores from `localStorage` when present.
+- **Admin:** Log in, open Conversations: list loads from `dm/meta` with source labels `contact` / `hire-me` / `client-portal`. Open a Hire Me thread — Project type + Budget tiles appear from meta. Reply, optional email copy, save tags/status.
+- **Contact form:** Submit → RTDB thread only; admin source `contact`.
+- **Hire Me:** Submit → email notify + RTDB thread; meta has `projectType` / `budget`; **no** new Firestore inbox doc.
+- **Customer:** Messages page — name + email → open thread (unchanged).
+- **Client portal:** Open conversation with `source: client-portal`; same email merges into the existing thread.
 - **Legacy:** A bookmark with `?dm_token=` for a valid, unexpired `dm/magicLinks` row still opens once and strips the query param.
-- **Migration:** Shuffle migrate button: legacy Firestore `messages` rows without `conversationId` get `dm/meta` + `dm/threadMessages` entries and `conversationId` set on the legacy doc.
 
 ## Frontend
 
 - Firebase modular SDK is loaded once in [`index.html`](index.html) (and [`404.html`](404.html)): Firestore + Auth + Realtime Database helpers on `window` (`rtdbRef`, `rtdbOnValue`, `rtdbServerTimestamp`, …).
-- [`assets/js/script.js`](assets/js/script.js) initializes `window.rtdb` via `getDatabase(app)` when `databaseURL` is present.
-- [`assets/js/customer-dm-shared.js`](assets/js/customer-dm-shared.js) — customer thread open, subscribe, send (Messages page + client portal).
-- Optional standalone migration: [`assets/js/dm-migration.js`](assets/js/dm-migration.js) exposes `window.dmMigration.migrateLegacyMessagesToConversations()` (same RTDB layout as the admin migrate button).
-- Feature flags: [`assets/js/config.js`](assets/js/config.js) — `enableCustomerDmPortal` (preferred) and deprecated `enableCustomerMagicLinks` (both gate the customer portal when set to `false`).
+- [`assets/js/script.js`](assets/js/script.js) initializes `window.rtdb` via `getDatabase(app)` when `databaseURL` is present; admin Conversations + `customerDmApi.sendFromContactForm` / `sendFromHireMeForm`.
+- [`assets/js/customer-dm-shared.js`](assets/js/customer-dm-shared.js) — `getOrCreateConversationForEmail`, customer thread subscribe/send (Messages page + client portal).
+- Feature flags: [`assets/js/config.js`](assets/js/config.js) — `enableCustomerDmPortal` (preferred) and deprecated `enableCustomerMagicLinks`.
 
 ## How the DM system works (end-to-end)
 
@@ -65,17 +85,18 @@ Rules under `dm/` are permissive for development parity with the previous Firest
 
 ### Customer (client portal)
 
-1. On [`portal.html`](portal.html), the **Maintenance & support** section includes inline messaging when `enableCustomerDmPortal` is true in [`assets/js/config.js`](assets/js/config.js).
-2. Uses the same **`customerDmSession`** and **`getOrCreateConversationForEmail`** flow as the Messages page (one thread per email). Reloading the portal or Messages page restores the same conversation.
-3. New conversations opened from the portal may include `source: 'client-portal'`, tags `client-portal`, and optional **`agencyProjectId`** on **`dm/meta`** for admin context.
-4. Shared helpers live in [`assets/js/customer-dm-shared.js`](assets/js/customer-dm-shared.js) (loaded on the main site and portal).
+1. On [`portal.html`](portal.html), the **Maintenance & support** section includes inline messaging when `enableCustomerDmPortal` is true.
+2. Uses the same **`customerDmSession`** and **`getOrCreateConversationForEmail`** flow (one thread per email).
+3. Opens may include `source: 'client-portal'`, tags, and optional **`agencyProjectId`** on **`dm/meta`**.
 
-### Admin (Contact Messages tab, logged in)
+### Contact / Hire Me forms
 
-1. **`subscribeConversations`** listens to **`dm/meta`** ordered by **`updatedAt`** (latest conversations first).
-2. Selecting a conversation listens to **`dm/threadMessages/{id}`** (latest window + load older), marks messages read, and updates **`dm/presence/.../admin`** for typing/online hints.
-3. Replies **`push()`** admin messages, bump **`unreadCustomer`** on meta, and optionally trigger **`sendReplyEmail`** (Resend) for an email copy.
+1. **Contact** → `customerDmApi.sendFromContactForm` → RTDB message + meta (`source: contact`). Success UI on Contact page.
+2. **Hire Me** → Resend email notify → `customerDmApi.sendFromHireMeForm` → RTDB message + meta (`source: hire-me`, `projectType`, `budget`, `subject`). Success card + optional schedule call / View inquiry overlay.
+3. Same email → same conversation; `source` updates to the latest channel; `originSource` stays the first.
 
-### Legacy contact forms
+### Admin (Conversations tab)
 
-Public **Contact** / **Hire Me** submissions still save to Firestore **`messages`** for the classic admin grid. The optional **migrate** control copies those rows into **`dm/meta`** + **`dm/threadMessages`** and sets **`conversationId`** on the legacy doc.
+1. **`subscribeConversations`** listens to **`dm/meta`** ordered by **`updatedAt`**.
+2. Selecting a conversation opens the DM detail drawer, shows lead tiles from meta when present, listens to **`dm/threadMessages/{id}`**, marks read, updates presence.
+3. Replies **`push()`** admin messages, bump **`unreadCustomer`**, optional **`sendReplyEmail`**.

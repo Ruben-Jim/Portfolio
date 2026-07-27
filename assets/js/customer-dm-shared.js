@@ -286,6 +286,28 @@
     ].join('');
   }
 
+  function normalizeDmSource(raw) {
+    var s = String(raw || '')
+      .trim()
+      .toLowerCase();
+    if (s === 'hire-me' || s === 'contact' || s === 'client-portal' || s === 'portal') return s;
+    return '';
+  }
+
+  function defaultTagsForSource(source) {
+    if (source === 'client-portal') return ['client-portal'];
+    if (source === 'contact') return ['contact'];
+    if (source === 'hire-me') return ['hire-me'];
+    if (source === 'portal') return ['portal'];
+    return [];
+  }
+
+  /**
+   * Find or create one conversation per email.
+   * options: source, subject, projectType, budget, tags, agencyProjectId
+   * - source / lead fields update on existing threads
+   * - originSource is set once on create (or backfilled if missing) and never overwritten
+   */
   async function getOrCreateConversationForEmail(email, name, options) {
     options = options || {};
     var metaRoot = window.rtdbRef(window.rtdb, 'dm/meta');
@@ -297,18 +319,60 @@
     );
     var snap = await promiseWithTimeout(window.rtdbGet(q), 20000);
     var val = snap.val();
+    var source = normalizeDmSource(options.source) || 'portal';
+    var subject = options.subject != null ? String(options.subject).trim().slice(0, 160) : '';
+    var projectType =
+      options.projectType != null
+        ? String(options.projectType).trim().slice(0, 120)
+        : options.project_type != null
+          ? String(options.project_type).trim().slice(0, 120)
+          : '';
+    var budget = options.budget != null ? String(options.budget).trim().slice(0, 80) : '';
+
     if (val) {
       var id = Object.keys(val)[0];
       var existing = Object.assign({}, val[id], { id: id });
+      var patch = { updatedAt: window.rtdbServerTimestamp() };
+      var dirty = false;
+
       if (options.agencyProjectId && !existing.agencyProjectId) {
-        await promiseWithTimeout(
-          window.rtdbUpdate(rtdbMetaRef(id), {
-            agencyProjectId: options.agencyProjectId,
-            updatedAt: window.rtdbServerTimestamp()
-          }),
-          20000
-        ).catch(function () {});
+        patch.agencyProjectId = options.agencyProjectId;
         existing.agencyProjectId = options.agencyProjectId;
+        dirty = true;
+      }
+      if (name && name !== existing.customerName) {
+        patch.customerName = name;
+        existing.customerName = name;
+        dirty = true;
+      }
+      if (options.source != null && source) {
+        patch.source = source;
+        existing.source = source;
+        dirty = true;
+      }
+      if (!existing.originSource && source) {
+        patch.originSource = source;
+        existing.originSource = source;
+        dirty = true;
+      }
+      if (options.subject != null) {
+        patch.subject = subject;
+        existing.subject = subject;
+        dirty = true;
+      }
+      if (options.projectType != null || options.project_type != null) {
+        patch.projectType = projectType;
+        existing.projectType = projectType;
+        dirty = true;
+      }
+      if (options.budget != null) {
+        patch.budget = budget;
+        existing.budget = budget;
+        dirty = true;
+      }
+
+      if (dirty) {
+        await promiseWithTimeout(window.rtdbUpdate(rtdbMetaRef(id), patch), 20000).catch(function () {});
       }
       return existing;
     }
@@ -316,13 +380,16 @@
     var newRef = window.rtdbPush(metaRoot);
     var newId = newRef.key;
     var now = window.rtdbServerTimestamp();
-    var tags = Array.isArray(options.tags) ? options.tags.slice() : ['portal'];
-    if (tags.indexOf('portal') < 0) tags.push('portal');
+    var tags = Array.isArray(options.tags) ? options.tags.slice() : defaultTagsForSource(source);
     await promiseWithTimeout(
       window.rtdbSet(newRef, {
         customerName: name,
         customerEmail: email.toLowerCase(),
-        source: options.source || 'portal',
+        source: source,
+        originSource: source,
+        subject: subject,
+        projectType: projectType,
+        budget: budget,
         status: 'open',
         priority: 'normal',
         tags: tags,
@@ -336,7 +403,96 @@
       }),
       20000
     );
-    return { id: newId, customerName: name, customerEmail: email.toLowerCase() };
+    return {
+      id: newId,
+      customerName: name,
+      customerEmail: email.toLowerCase(),
+      source: source,
+      originSource: source,
+      subject: subject,
+      projectType: projectType,
+      budget: budget
+    };
+  }
+
+  function rtdbTimestampToIso(value) {
+    if (value == null || value === '') return new Date().toISOString();
+    if (typeof value === 'number') {
+      var fromNum = new Date(value);
+      return isNaN(fromNum.getTime()) ? new Date().toISOString() : fromNum.toISOString();
+    }
+    if (value && typeof value.toDate === 'function') {
+      return value.toDate().toISOString();
+    }
+    if (value && typeof value === 'object' && value.seconds != null) {
+      return new Date(value.seconds * 1000).toISOString();
+    }
+    var parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+  }
+
+  /**
+   * Read-only lookup: find existing conversation meta by email (does not create).
+   */
+  async function lookupConversationByEmail(email) {
+    email = String(email || '').trim().toLowerCase();
+    if (!email || !window.rtdb || !window.rtdbGet) return null;
+    var metaRoot = window.rtdbRef(window.rtdb, 'dm/meta');
+    var q = window.rtdbQuery(
+      metaRoot,
+      window.rtdbOrderByChild('customerEmail'),
+      window.rtdbEqualTo(email),
+      window.rtdbLimitToFirst(1)
+    );
+    var snap = await promiseWithTimeout(window.rtdbGet(q), 20000);
+    var val = snap.val();
+    if (!val) return null;
+    var id = Object.keys(val)[0];
+    return Object.assign({}, val[id], { id: id });
+  }
+
+  /**
+   * First hire-me (or customer) opening message for inquiry restore on a new device.
+   */
+  async function fetchOpeningInquiryMessage(conversationId) {
+    if (!conversationId || !window.rtdbGet) return null;
+    var threadRef = rtdbThreadRef(conversationId);
+    var q = window.rtdbQuery(threadRef, window.rtdbOrderByChild('createdAt'), window.rtdbLimitToFirst(200));
+    var snap = await promiseWithTimeout(window.rtdbGet(q), 20000);
+    var val = snap.val();
+    if (!val) return null;
+    var messages = Object.keys(val)
+      .map(function (k) {
+        return Object.assign({}, val[k], { id: k });
+      })
+      .sort(function (a, b) {
+        return (a.createdAt || 0) - (b.createdAt || 0);
+      });
+    for (var i = 0; i < messages.length; i++) {
+      if (String(messages[i].source || '').toLowerCase() === 'hire-me' && messages[i].body) {
+        return messages[i];
+      }
+    }
+    for (var j = 0; j < messages.length; j++) {
+      if (messages[j].body && String(messages[j].senderRole || '').toLowerCase() === 'customer') {
+        return messages[j];
+      }
+    }
+    return messages[0] || null;
+  }
+
+  function buildHireMeInquiryFromConversation(meta, openingMsg) {
+    meta = meta || {};
+    openingMsg = openingMsg || {};
+    var message = String(openingMsg.body || meta.lastMessage || '').trim();
+    return {
+      name: String(meta.customerName || '').trim(),
+      email: String(meta.customerEmail || '').trim().toLowerCase(),
+      message: message,
+      project_type: String(meta.projectType || openingMsg.project_type || 'Not specified').trim(),
+      budget: String(meta.budget || openingMsg.budget || 'Not specified').trim(),
+      submittedAt: rtdbTimestampToIso(openingMsg.createdAt || meta.createdAt || meta.lastMessageAt)
+    };
   }
 
   /**
@@ -479,6 +635,9 @@
     renderMessagesToElement: renderMessagesToElement,
     renderStatusBadgesHtml: renderStatusBadgesHtml,
     getOrCreateConversationForEmail: getOrCreateConversationForEmail,
+    lookupConversationByEmail: lookupConversationByEmail,
+    fetchOpeningInquiryMessage: fetchOpeningInquiryMessage,
+    buildHireMeInquiryFromConversation: buildHireMeInquiryFromConversation,
     subscribeCustomerThread: subscribeCustomerThread,
     sendCustomerMessage: sendCustomerMessage,
     setCustomerTyping: setCustomerTyping

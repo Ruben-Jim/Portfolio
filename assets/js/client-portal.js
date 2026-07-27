@@ -565,7 +565,8 @@
         setDmStatus('Opening…', false);
         DM.getOrCreateConversationForEmail(email, name, {
           source: 'client-portal',
-          tags: ['portal', 'client-portal'],
+          subject: 'Client portal message',
+          tags: ['client-portal'],
           agencyProjectId: activeCtx.projectId || ''
         })
           .then(function (conv) {

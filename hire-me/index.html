@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=payment-schedule-20260726">
+  <link rel="stylesheet" href="/assets/css/style.css?v=hireme-cross-device-20260727">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -315,6 +315,7 @@
         <section class="cwr-landing-hero" aria-labelledby="cwr-landing-title">
           <div class="cwr-landing-hero-bg" aria-hidden="true"></div>
           <div class="cwr-landing-hero-noise" aria-hidden="true"></div>
+
           <div class="cwr-landing-hero-grid">
             <div class="cwr-landing-copy" data-cwr-landing-reveal>
               <h1 class="cwr-landing-title" id="cwr-landing-title" data-i18n="home.hero_title">Run your business<br>from your phone</h1>
@@ -333,6 +334,34 @@
                 <button type="button" class="btn btn-primary cwr-landing-cta" data-i18n="home.cta_start" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
                 <button type="button" class="btn cwr-landing-btn-outline" data-i18n="home.cta_pricing" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
                 <button type="button" class="btn cwr-landing-btn-outline" data-i18n="home.cta_work" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View work</button>
+              </div>
+              <div class="hire-inquiry-return-banner" id="hire-inquiry-return-banner" hidden role="region" aria-label="Your open inquiry">
+                <span class="hire-inquiry-return-kicker">Your inquiry is open</span>
+                <p class="hire-inquiry-return-lead">Pick up where you left off or book a time to talk.</p>
+                <div class="hire-inquiry-return-actions">
+                  <button type="button" class="hire-inquiry-return-link" id="hire-return-view-inquiry">
+                    <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
+                    <span>View inquiry</span>
+                  </button>
+                  <button type="button" class="hire-inquiry-return-link" id="hire-return-schedule-call">
+                    <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+                    <span>Schedule a call</span>
+                  </button>
+                </div>
+              </div>
+              <div class="hire-inquiry-recall" id="hire-inquiry-recall" data-hire-inquiry-recall hidden>
+                <p class="hire-inquiry-recall-hint">
+                  Already submitted?
+                  <button type="button" class="hire-inquiry-recall-toggle" id="hire-inquiry-recall-toggle" data-hire-inquiry-recall-toggle aria-expanded="false">Open with your email</button>
+                </p>
+                <form class="hire-inquiry-recall-form" id="hire-inquiry-recall-form" data-hire-inquiry-recall-form hidden>
+                  <div class="hire-inquiry-recall-fields">
+                    <input type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
+                    <input type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
+                  </div>
+                  <p class="hire-inquiry-recall-status" id="hire-inquiry-recall-status" data-hire-inquiry-recall-status role="status" aria-live="polite" hidden></p>
+                  <button type="submit" class="hire-inquiry-recall-submit">Open my inquiry</button>
+                </form>
               </div>
             </div>
             <div class="cwr-landing-visual" aria-hidden="true">
@@ -1966,6 +1995,7 @@
             padding: 9px 18px; border-radius: 12px;
             border: none; cursor: pointer; text-decoration: none;
             z-index: 1;
+            margin-bottom: 4px;
             transition: color var(--transition-1), background var(--transition-1);
           }
           .hire-hero-cta::before {
@@ -2165,6 +2195,10 @@
           .hire-form-header p {
             font-size: var(--fs-7); color: var(--light-gray-70);
             line-height: 1.55; margin-top: 4px;
+          }
+
+          #hire-form {
+            scroll-margin-top: calc(24px + var(--article-navbar-extra-top, 56px) + env(safe-area-inset-top, 0px));
           }
 
           .hire-me .hire-form-submitted {
@@ -2367,7 +2401,7 @@
             <span data-hire-hero-label-text>Open to new projects</span>
           </div>
           <h2 data-hire-hero-title>Let's Build Something<br><span>Great Together</span></h2>
-          <p class="hire-hero-sub">I turn ideas into fast, polished products — from pixel-perfect web apps to full cross-platform mobile experiences. Let's make yours next.</p>
+          <p class="hire-hero-sub" data-hire-hero-sub>I turn ideas into fast, polished products — from pixel-perfect web apps to full cross-platform mobile experiences. Let's make yours next.</p>
 
           <div class="hire-hero-stats">
             <div class="hire-stat"><span class="hire-stat-num">3</span><span class="hire-stat-label">Apps shipped</span></div>
@@ -2417,6 +2451,21 @@
               <p data-hire-form-lead>Give me the details and I'll get back to you within 24 hours.</p>
             </div>
 
+            <div class="hire-inquiry-recall hire-inquiry-recall--hire" id="hire-inquiry-recall-hire" data-hire-inquiry-recall hidden>
+              <p class="hire-inquiry-recall-hint">
+                Already submitted on another device?
+                <button type="button" class="hire-inquiry-recall-toggle" data-hire-inquiry-recall-toggle aria-expanded="false">Open with your email</button>
+              </p>
+              <form class="hire-inquiry-recall-form" data-hire-inquiry-recall-form hidden>
+                <div class="hire-inquiry-recall-fields">
+                  <input type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
+                  <input type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
+                </div>
+                <p class="hire-inquiry-recall-status" data-hire-inquiry-recall-status role="status" aria-live="polite" hidden></p>
+                <button type="submit" class="hire-inquiry-recall-submit">Open my inquiry</button>
+              </form>
+            </div>
+
             <form class="form" data-form>
               <div class="input-wrapper">
                 <input type="text" name="fullname" class="form-input" placeholder="Full name" data-i18n-ph="contact.ph_name" required data-form-input>
@@ -2426,7 +2475,7 @@
                 <input type="text" name="project-type" class="form-input" placeholder="Project type (Web, Mobile, etc.)" data-form-input>
                 <input type="text" name="budget" class="form-input" placeholder="Budget range (optional)" data-form-input>
               </div>
-              <textarea name="message" class="form-input" placeholder="Tell me about your project — what it does, who it's for, and any deadlines..." required data-form-input></textarea>
+              <textarea name="message" class="form-input" placeholder="Walk me through your idea — what it does, who it's for, and your rough timeline." required data-form-input></textarea>
 
               <button class="form-btn" type="submit" disabled data-form-btn>
                 <ion-icon name="paper-plane-outline"></ion-icon>
@@ -2460,10 +2509,80 @@
             <p class="hire-form-submitted-text">
               Thanks for the details — I’ve received your message and will follow up within 24 hours. Open your private thread to keep the conversation going.
             </p>
-            <button type="button" class="form-btn hire-form-submitted-btn" id="hire-success-go-messages">
-              <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
-              <span>View your inquiry</span>
+            <div class="hire-form-submitted-actions">
+              <button type="button" class="form-btn hire-form-submitted-btn" id="hire-success-go-messages">
+                <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
+                <span>View your inquiry</span>
+              </button>
+              <button type="button" class="form-btn hire-form-submitted-btn" id="hire-success-schedule-btn">
+                <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+                <span>Schedule a call</span>
+              </button>
+            </div>
+            <button type="button" class="hire-form-submitted-reset" id="hire-success-send-another">
+              Send another inquiry
             </button>
+          </div>
+        </div>
+
+        <div class="hire-form-submitted hire-booking-step" data-hire-booking-step hidden role="status" aria-live="polite">
+          <div class="hire-form-submitted-inner" data-hire-booking-picker>
+            <div class="hire-form-submitted-icon">
+              <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="h3 hire-form-submitted-title">Pick a time to talk</h3>
+            <p class="hire-form-submitted-text">Choose whatever works best — you'll get an email confirmation right away.</p>
+
+            <div class="hire-booking-types" id="hire-booking-types" role="radiogroup" aria-label="Call type"></div>
+
+            <div class="hire-booking-selected-type" id="hire-booking-selected-type" hidden>
+              <span class="hire-booking-selected-type-label" id="hire-booking-selected-type-label"></span>
+              <button type="button" class="hire-booking-change-type-btn" id="hire-booking-change-type-btn">
+                <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                <span>Change</span>
+              </button>
+            </div>
+
+            <div class="hire-booking-slots" id="hire-booking-slots" hidden>
+              <div class="hire-booking-calendar" id="hire-booking-calendar">
+                <div class="hire-booking-cal-header">
+                  <button type="button" class="hire-booking-cal-nav" id="hire-booking-cal-prev" aria-label="Previous month">
+                    <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                  <span class="hire-booking-cal-month" id="hire-booking-cal-month" aria-live="polite"></span>
+                  <button type="button" class="hire-booking-cal-nav" id="hire-booking-cal-next" aria-label="Next month">
+                    <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                </div>
+                <div class="hire-booking-cal-weekdays">
+                  <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                </div>
+                <div class="hire-booking-cal-grid" id="hire-booking-cal-grid" role="grid" aria-label="Choose a date"></div>
+              </div>
+              <div class="hire-booking-slot-grid" id="hire-booking-slot-grid"></div>
+            </div>
+
+            <p class="hire-booking-empty" id="hire-booking-empty" hidden>No open times right now — no worries, I'll follow up by email.</p>
+
+            <div class="hire-booking-confirm-row" id="hire-booking-confirm-row" hidden>
+              <div class="hire-booking-confirm-row-inner">
+              <span class="hire-booking-selected-label" id="hire-booking-selected-label"></span>
+              <button type="button" class="form-btn hire-form-submitted-btn" id="hire-booking-confirm-btn">
+                <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
+                <span>Confirm booking</span>
+              </button>
+              </div>
+            </div>
+
+            <button type="button" class="hire-booking-skip-btn" id="hire-booking-skip-btn">Skip for now</button>
+          </div>
+
+          <div class="hire-form-submitted-inner hire-booking-confirmed" data-hire-booking-confirmed hidden>
+            <div class="hire-form-submitted-icon">
+              <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+            </div>
+            <h3 class="h3 hire-form-submitted-title">You're booked</h3>
+            <p class="hire-form-submitted-text" id="hire-booking-confirmed-text"></p>
           </div>
         </div>
 
@@ -2848,6 +2967,65 @@
                     Portal status
                   </h4>
                   <ul class="admin-overview-list" id="admin-cc-portal-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-cc-card" aria-labelledby="admin-cc-calls-heading">
+                  <h4 class="admin-cc-card-title" id="admin-cc-calls-heading">
+                    <ion-icon name="call-outline" aria-hidden="true"></ion-icon>
+                    Upcoming calls
+                  </h4>
+                  <ul class="admin-overview-list" id="admin-cc-calls-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-cc-card admin-cc-card--span-full admin-collapsible-section" id="admin-sched-section">
+                  <button type="button" class="admin-collapsible-header" id="admin-sched-toggle" aria-expanded="false" aria-controls="admin-sched-content">
+                    <span class="admin-collapsible-inner">
+                      <ion-icon name="time-outline" class="admin-collapsible-icon" aria-hidden="true"></ion-icon>
+                      <span class="admin-collapsible-text">
+                        <span class="admin-collapsible-title" id="admin-cc-scheduling-heading">Scheduling settings</span>
+                        <span class="admin-collapsible-subtitle">Weekly hours, call types &amp; blocked dates for “Schedule a call”</span>
+                      </span>
+                    </span>
+                    <ion-icon name="chevron-down-outline" class="admin-collapsible-chevron" aria-hidden="true"></ion-icon>
+                  </button>
+
+                  <div class="admin-collapsible-content" id="admin-sched-content">
+                    <div class="admin-collapsible-inner-content">
+                      <p class="business-doc-scope-hint">Powers the “Schedule a call” step on the Hire Me form. Times are shown as wall-clock hours with no timezone conversion — set the label to whatever zone you actually work in.</p>
+
+                      <div class="form-group form-group-half" style="max-width:320px;">
+                        <label for="admin-sched-timezone">Timezone label</label>
+                        <input type="text" id="admin-sched-timezone" placeholder="America/Los_Angeles" value="America/Los_Angeles">
+                      </div>
+
+                      <div class="admin-sched-days" id="admin-sched-days"></div>
+
+                      <div class="admin-sched-subsection">
+                        <div class="business-doc-scope-title-row">
+                          <label class="business-doc-addons-label">Call types</label>
+                        </div>
+                        <div class="admin-sched-call-types" id="admin-sched-call-types"></div>
+                        <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="admin-sched-add-call-type-btn">
+                          <ion-icon name="add-outline"></ion-icon> Add call type
+                        </button>
+                      </div>
+
+                      <div class="admin-sched-subsection">
+                        <div class="business-doc-scope-title-row">
+                          <label class="business-doc-addons-label">Blocked dates</label>
+                        </div>
+                        <div class="admin-sched-blocked-dates" id="admin-sched-blocked-dates"></div>
+                        <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="admin-sched-add-blocked-date-btn">
+                          <ion-icon name="add-outline"></ion-icon> Add blocked date
+                        </button>
+                      </div>
+
+                      <div class="form-actions">
+                        <button type="button" class="btn btn-primary" id="admin-sched-save-btn">
+                          <ion-icon name="save-outline"></ion-icon> Save scheduling settings
+                        </button>
+                        <span id="admin-sched-save-status" class="business-doc-scope-hint" style="margin-left:12px;"></span>
+                      </div>
+                    </div>
+                  </div>
                 </section>
               </div>
             </div>
@@ -5982,11 +6160,12 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/portfolio-built-in-data.js?v=portfolio-assets-20260518"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
   <script src="/assets/js/business-doc-shared.js?v=cwr-theme-surfaces-20260726"></script>
-  <script src="/assets/js/customer-dm-shared.js?v=contact-dm-mobile-20260608"></script>
+  <script src="/assets/js/hire-me-booking.js?v=hireme-return-banner-20260727"></script>
+  <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
   <script src="/assets/js/i18n.js?v=1"></script>
-  <script src="/assets/js/script.js?v=payment-schedule-20260726"></script>
+  <script src="/assets/js/script.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=portal-demo-link-20260724"></script>
   <script src="/assets/js/dm-migration.js"></script>
