@@ -2516,6 +2516,13 @@
       var total = hub.milestones ? hub.milestones.length : 0;
       return done + '/' + total + ' milestones';
     }
+    if (id === 'portal') {
+      var token = hub.portalToken;
+      var expires = hub.portalExpiresAt;
+      if (!token || (expires && expires < Date.now())) return 'No active link';
+      var expiry = formatPortalExpiry(expires);
+      return expiry ? 'Active · expires ' + expiry : 'Active';
+    }
     if (id === 'maintenance') {
       if (hub.showMaintenanceInPortal === false) return 'Hidden from portal';
       if (!maint) return 'No record';
@@ -2716,7 +2723,7 @@
     } else {
       portfolioHtml =
         '<div class="cp-section-empty">' +
-        '<p>No client showcase linked yet. Private showcases stay off the public Portfolio tab — share them using the client portal link in Project Hub.</p>' +
+        '<p>No client showcase linked yet. Private showcases stay off the public Portfolio tab — share them using the Client portal link.</p>' +
         '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="create-showcase">Create client showcase</button>' +
         '</div>';
     }
@@ -2740,11 +2747,16 @@
       '<div class="form-group form-group--full"><label for="cp-hub-notes">Notes</label><textarea id="cp-hub-notes" class="form-input has-scrollbar" rows="3">' + esc(hub.notes) + '</textarea></div>' +
       '</div>' +
       '<div class="form-group"><label>Milestones</label><ul class="cp-milestones-list" id="cp-hub-milestones">' + renderCpMilestonesHtml(hub.milestones) + '</ul></div>' +
-      '<div class="form-group form-group--full"><label>Client portal</label>' + renderCpHubPortalHtml(hub) + '</div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-hub">Save hub</button>' +
       '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-hub">Delete client</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="hub" role="status"></p></div>';
+
+    var portalBody =
+      '<p class="form-hint">Share a private link so this client can view project status, docs, and showcase.</p>' +
+      renderCpHubPortalHtml(hub) +
+      '<div class="cp-section-actions">' +
+      '<p class="cp-section-feedback" data-cp-feedback="portal" role="status"></p></div>';
 
     var guideBody =
       '<div class="form-group"><label for="cp-portal-canvas-doc">Guide file (private)</label>' +
@@ -2870,7 +2882,7 @@
       '<span class="cp-email-prefill-value">' +
       (emailPortalLink
         ? '<a href="' + esc(emailPortalLink) + '" target="_blank" rel="noopener" class="cp-email-prefill-link">' + esc(emailPortalLink) + '</a>'
-        : '<em class="cp-email-prefill-missing">No portal link yet — generate one in Project Hub</em>') +
+        : '<em class="cp-email-prefill-missing">No portal link yet — generate one in Client portal</em>') +
       '</span></div>' +
       '<p class="form-hint">Client name, email, and portal link will be pre-filled. You only need to choose a template and write the subject &amp; message.</p>' +
       '</div>' +
@@ -2880,6 +2892,7 @@
 
     workspace.innerHTML =
       buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub')) +
+      buildCpCollapsibleSection('portal', 'Client portal', null, portalBody, cpSectionSummary('portal', sectionCtx), isCpSectionExpanded(hub.id, 'portal')) +
       buildCpCollapsibleSection('guide', 'Docs & guide', null, guideBody, cpSectionSummary('guide', sectionCtx), isCpSectionExpanded(hub.id, 'guide')) +
       buildCpCollapsibleSection('maintenance', 'Maintenance & SLA', null, maintBody, cpSectionSummary('maintenance', sectionCtx), isCpSectionExpanded(hub.id, 'maintenance')) +
       buildCpCollapsibleSection('health', 'Firebase Health', null, healthBody, cpSectionSummary('health', sectionCtx), isCpSectionExpanded(hub.id, 'health')) +
@@ -3348,7 +3361,7 @@
     if (action === 'copy-portal') {
       if (!hub || !hub.portalToken) return;
       navigator.clipboard.writeText(clientPortalUrl(hub.portalToken)).catch(function () {});
-      setCpFeedback('hub', 'Portal link copied.', false);
+      setCpFeedback('portal', 'Portal link copied.', false);
       return;
     }
     if (action === 'email-portal') {
@@ -3362,10 +3375,10 @@
       };
       emailPortalLinkToClient(emailHub)
         .then(function () {
-          setCpFeedback('hub', 'Portal link emailed to ' + emailHub.clientEmail + '.', false);
+          setCpFeedback('portal', 'Portal link emailed to ' + emailHub.clientEmail + '.', false);
         })
         .catch(function (err) {
-          setCpFeedback('hub', (err && err.message) || 'Could not send portal email.', true);
+          setCpFeedback('portal', (err && err.message) || 'Could not send portal email.', true);
         });
       return;
     }

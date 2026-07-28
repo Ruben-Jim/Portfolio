@@ -254,8 +254,10 @@
       renderMaintenancePlanCards('standard') +
       '<fieldset class="client-portal-billing-pref">' +
       '<legend>Billing preference</legend>' +
-      '<label><input type="radio" name="portal-billing-pref" value="monthly" checked> Monthly</label>' +
-      '<label><input type="radio" name="portal-billing-pref" value="annual"> Annual (save 45%)</label>' +
+      '<div class="client-portal-billing-toggle">' +
+      '<label><input type="radio" name="portal-billing-pref" value="monthly" checked><span>Monthly</span></label>' +
+      '<label><input type="radio" name="portal-billing-pref" value="annual"><span>Annual <em class="client-portal-billing-save">Save 45%</em></span></label>' +
+      '</div>' +
       '</fieldset>' +
       '<button type="button" class="btn btn-primary" id="portal-request-plan-btn">Request this plan</button>' +
       '<p class="client-portal-maint-feedback" id="portal-maint-feedback" role="status"></p></div>'

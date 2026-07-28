@@ -1027,6 +1027,32 @@
     );
   }
 
+  function buildMaintenanceLapseClauseHtml(doc) {
+    var plan = findMaintenancePlan(doc && doc.maintenancePlanId);
+    if (!plan) {
+      return (
+        '<p>No maintenance plan is attached to this Agreement. CWR’s warranty support under Clause 9 covers defects ' +
+        'reported within 14 days of launch; beyond that window, CWR has no obligation to continue hosting, updating, ' +
+        'or supporting the delivered application unless Client purchases a maintenance plan separately.</p>'
+      );
+    }
+    return (
+      '<p>CWR hosts and maintains the delivered application under the maintenance plan selected above (' +
+      escapeHtml(plan.title) + ' &mdash; ' + escapeHtml(plan.badge) + '), billed on the cycle stated in that plan. ' +
+      'If a payment is not received by its due date, the following schedule applies:</p>' +
+      '<ul class="scope-feature-list">' +
+      '<li><span class="bullet-li-text"><strong>Days 1&ndash;14 (grace period):</strong> CWR notifies Client by email. Hosting and support continue uninterrupted.</span></li>' +
+      '<li><span class="bullet-li-text"><strong>Day 15:</strong> Support response times and scheduled maintenance windows under the plan above are paused until payment is received. The application remains live.</span></li>' +
+      '<li><span class="bullet-li-text"><strong>Day 30:</strong> Hosting is suspended and the application is taken offline until payment is received in full, plus a reactivation fee equal to one month of the plan above.</span></li>' +
+      '<li><span class="bullet-li-text"><strong>Day 60:</strong> If payment still has not been received, CWR may archive Client’s data, remove the application from CWR’s hosting, and close the account.</span></li>' +
+      '</ul>' +
+      '<p>Because Client holds a license to the delivered application under Clause 5 independent of maintenance status, Client ' +
+      'may at any time &mdash; including during or after a lapse &mdash; request an export of the application’s source code and ' +
+      'data to self-host or migrate to another provider, subject to CWR’s standard export/migration fee. If Client has separately ' +
+      'purchased the IP Buyout under Clause 5, no export fee applies.</p>'
+    );
+  }
+
   function buildContractSignatureBlockHtml(signature) {
     var clientLineHtml, clientSubHtml, clientProvHtml;
     if (signature && signature.signedByName) {
@@ -1076,6 +1102,7 @@
     var ownershipHtml = buildContractOwnershipClauseHtml(doc && doc.ipTransferMode);
     var sigBlockHtml = buildContractSignatureBlockHtml(signature);
     var maintenanceBlockHtml = buildMaintenancePdfHtml(doc);
+    var maintenanceLapseHtml = buildMaintenanceLapseClauseHtml(doc);
 
     var timelineHtml = targetDate
       ? '<p>Target completion date: <strong>' + escapeHtml(targetDate) + '</strong>. Delays caused by late Client ' +
@@ -1163,9 +1190,10 @@
       maintenanceBlockHtml +
       '    <div class="contract-clause"><h3>5 &middot; Ownership &amp; intellectual property</h3>' + ownershipHtml + '</div>\n' +
       '    <div class="contract-clause"><h3>6 &middot; Termination</h3><p>Either party may terminate this Agreement in writing. If Client terminates before completion, the deposit is non-refundable, and Client owes for any milestone work completed beyond the deposit, pro-rated to work actually delivered.</p></div>\n' +
-      '    <div class="contract-clause"><h3>7 &middot; Confidentiality</h3><p>Each party will keep the other’s non-public business, technical, and financial information confidential, and use it only to perform this Agreement.</p></div>\n' +
-      '    <div class="contract-clause"><h3>8 &middot; Warranty &amp; liability</h3><p>CWR warrants the delivered work will substantially match the agreed scope and will correct material defects reported within 14 days of launch at no charge. Beyond that window, the work is provided as-is. CWR’s total liability under this Agreement is capped at the total fees paid by Client, and CWR is not liable for indirect or consequential damages.</p></div>\n' +
-      '    <div class="contract-clause"><h3>9 &middot; Governing law</h3><p>This Agreement is governed by the laws of the State of California. Any dispute will be resolved in the state or federal courts of Fresno County, California.</p></div>\n' +
+      '    <div class="contract-clause"><h3>7 &middot; Maintenance &amp; hosting continuity</h3>' + maintenanceLapseHtml + '</div>\n' +
+      '    <div class="contract-clause"><h3>8 &middot; Confidentiality</h3><p>Each party will keep the other’s non-public business, technical, and financial information confidential, and use it only to perform this Agreement.</p></div>\n' +
+      '    <div class="contract-clause"><h3>9 &middot; Warranty &amp; liability</h3><p>CWR warrants the delivered work will substantially match the agreed scope and will correct material defects reported within 14 days of launch at no charge. Beyond that window, the work is provided as-is. CWR’s total liability under this Agreement is capped at the total fees paid by Client, and CWR is not liable for indirect or consequential damages.</p></div>\n' +
+      '    <div class="contract-clause"><h3>10 &middot; Governing law</h3><p>This Agreement is governed by the laws of the State of California. Any dispute will be resolved in the state or federal courts of Fresno County, California.</p></div>\n' +
       sigBlockHtml + '\n' +
       '    <div class="footer-meta">CWR-' + contractId + (doc && doc.sourceProposalId ? ' &middot; Generated from Proposal ' + escapeHtml(doc.sourceProposalId) : '') + '</div>\n' +
       '  </div>\n</body>\n</html>';
