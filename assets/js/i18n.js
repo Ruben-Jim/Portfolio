@@ -14,6 +14,7 @@
       'nav.services_pricing': 'Services &amp; Pricing',
       'nav.contact':          'Contact',
       'nav.get_started':      'Get started',
+      'nav.start_project':    'Start a project',
       'nav.toggle_aria':      'Switch language',
 
       /* ── Home ───────────────────────────────────────────── */
@@ -21,7 +22,7 @@
       'home.hero_title':      'Run your business<br>from your phone',
       'home.price_line':      'Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong>',
       'home.proof_line':      '<span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards <span class="cwr-landing-stars" aria-hidden="true">★★★★★</span>',
-      'home.cta_start':       'Get started',
+      'home.cta_start':       'Start a project',
       'home.cta_pricing':     'See pricing',
       'home.cta_work':        'View work',
       'home.demo_badge':      '<ion-icon name="play-circle-outline"></ion-icon> Live demos',
@@ -182,10 +183,13 @@
 
       /* ── Contact ────────────────────────────────────────── */
       'contact.title':          'Contact',
-      'contact.form_title':     'Contact Form',
+      'contact.page_lead':      'Quick questions, maintenance, or ownership \u2014 for a full project brief,',
+      'contact.page_lead_link': 'start a project',
+      'contact.form_title':     'Send a quick message',
+      'contact.form_lead':      'Ask anything short — I\u2019ll reply in your private thread.',
       'contact.ph_name':        'Full name',
       'contact.ph_email':       'Email address',
-      'contact.ph_message':     'Your Message',
+      'contact.ph_message':     'Your quick question or note',
       'contact.send_btn':       'Send Message',
       'contact.success_title':  'Message received',
       'contact.success_text':   'Your message is saved \u2014 we typically reply within 24\u201372 hours. Open your private thread to keep the conversation going.',
@@ -200,6 +204,7 @@
       'nav.services_pricing': 'Servicios y Precios',
       'nav.contact':          'Contacto',
       'nav.get_started':      'Comenzar',
+      'nav.start_project':    'Iniciar un proyecto',
       'nav.toggle_aria':      'Cambiar idioma',
 
       /* ── Home ───────────────────────────────────────────── */
@@ -207,7 +212,7 @@
       'home.hero_title':      'Administra tu negocio<br>desde tu tel\u00e9fono',
       'home.price_line':      'Paquetes desde <strong>$1,500</strong> \u00b7 Mantenimiento desde <strong>$44/mes</strong>',
       'home.proof_line':      '<span class="cwr-landing-proof-accent">Estudio en Fresno</span> \u00b7 Web + iOS + Android \u00b7 Paneles en tiempo real <span class="cwr-landing-stars" aria-hidden="true">\u2605\u2605\u2605\u2605\u2605</span>',
-      'home.cta_start':       'Comenzar',
+      'home.cta_start':       'Iniciar un proyecto',
       'home.cta_pricing':     'Ver precios',
       'home.cta_work':        'Ver trabajos',
       'home.demo_badge':      '<ion-icon name="play-circle-outline"></ion-icon> Demos en vivo',
@@ -368,10 +373,13 @@
 
       /* ── Contact ────────────────────────────────────────── */
       'contact.title':          'Contacto',
-      'contact.form_title':     'Formulario de Contacto',
+      'contact.page_lead':      'Preguntas r\u00e1pidas, mantenimiento o propiedad \u2014 para un brief completo,',
+      'contact.page_lead_link': 'iniciar un proyecto',
+      'contact.form_title':     'Env\u00eda un mensaje r\u00e1pido',
+      'contact.form_lead':      'Pregunta algo breve — te respondo en tu hilo privado.',
       'contact.ph_name':        'Nombre completo',
       'contact.ph_email':       'Correo electr\u00f3nico',
-      'contact.ph_message':     'Tu mensaje',
+      'contact.ph_message':     'Tu pregunta o nota breve',
       'contact.send_btn':       'Enviar mensaje',
       'contact.success_title':  'Mensaje recibido',
       'contact.success_text':   'Tu mensaje fue guardado \u2014 normalmente respondemos en 24 a 72 horas. Abre tu hilo privado para continuar la conversaci\u00f3n.',

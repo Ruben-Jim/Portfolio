@@ -227,7 +227,7 @@
         '<p>' + esc(String(p.description || '').slice(0, 220)) + (String(p.description || '').length > 220 ? '…' : '') + '</p>' +
         '<p class="matcher-price-band">' + esc(band) + '</p>' +
         (url.indexOf('contact') >= 0
-          ? '<a class="btn btn-secondary btn-sm" href="#contact" data-nav-link>Get a quote</a>'
+          ? '<a class="btn btn-secondary btn-sm" href="/hire-me" data-nav-link>Start a project</a>'
           : '<a class="btn btn-secondary btn-sm" href="' + esc(url) + '" target="_blank" rel="noopener">View demo</a>') +
         '</div>';
     });
@@ -298,7 +298,7 @@
         matcherState.email = emailIn ? emailIn.value.trim() : '';
         saveMatcherSubmission();
         closeModal('template-matcher-modal');
-        if (typeof window.switchToPage === 'function') window.switchToPage('contact');
+        if (typeof window.switchToPage === 'function') window.switchToPage('hire-me');
       });
     }
   }

@@ -5583,7 +5583,7 @@ function initPortfolioProjectModal() {
       event.preventDefault();
       closeProjectModal();
       if (typeof switchToPage === 'function') {
-        switchToPage('contact');
+        switchToPage('hire-me');
       }
     });
   }
@@ -5595,7 +5595,7 @@ function initPortfolioProjectModal() {
       event.preventDefault();
       closeProjectModal();
       if (typeof switchToPage === 'function') {
-        switchToPage('contact');
+        switchToPage('hire-me');
       }
     });
   }
@@ -5605,7 +5605,7 @@ function initPortfolioProjectModal() {
       event.preventDefault();
       closeProjectModal();
       if (typeof switchToPage === 'function') {
-        switchToPage('contact');
+        switchToPage('hire-me');
       }
     });
   }
@@ -6207,21 +6207,39 @@ function getSavedHireMeInquiry() {
   }
 }
 
+function hasStoredCustomerDmSession() {
+  try {
+    var raw = localStorage.getItem('customerDmSession');
+    if (!raw) return false;
+    var parsed = JSON.parse(raw);
+    return !!(parsed && parsed.conversationId);
+  } catch (e) {
+    return false;
+  }
+}
+
 function syncHireMeReturnBanner() {
   var banner = document.getElementById('hire-inquiry-return-banner');
+  var convBanner = document.getElementById('home-conversation-return-banner');
   var home = document.querySelector('article[data-page="home"]');
-  var visible = !!getSavedHireMeInquiry();
-  if (banner) banner.hidden = !visible;
-  if (home) home.classList.toggle('has-hire-inquiry-banner', visible);
+  var hasInquiry = !!getSavedHireMeInquiry();
+  var hasSession = hasStoredCustomerDmSession();
+  var showConv = !hasInquiry && hasSession;
+  if (banner) banner.hidden = !hasInquiry;
+  if (convBanner) convBanner.hidden = !showConv;
+  if (home) home.classList.toggle('has-hire-inquiry-banner', hasInquiry || showConv);
   document.querySelectorAll('[data-hire-inquiry-recall]').forEach(function (el) {
-    el.hidden = visible;
-    if (visible) {
+    el.hidden = hasInquiry;
+    if (hasInquiry) {
       var form = el.querySelector('[data-hire-inquiry-recall-form]');
       if (form) form.hidden = true;
       var toggle = el.querySelector('[data-hire-inquiry-recall-toggle]');
       if (toggle) toggle.setAttribute('aria-expanded', 'false');
     }
   });
+  if (typeof window.syncContactConversationRecall === 'function') {
+    window.syncContactConversationRecall();
+  }
 }
 
 function initHireMeInquiryRecall() {
@@ -6303,10 +6321,108 @@ function initHireMeInquiryRecall() {
   });
 }
 
+function syncContactConversationRecall() {
+  var root = document.getElementById('contact-conversation-recall');
+  if (!root) return;
+  var formVisible = false;
+  var formSection = document.querySelector(
+    '[data-page="contact"] [data-contact-form-section]'
+  );
+  if (formSection && formSection.style.display !== 'none') {
+    formVisible = true;
+  }
+  var show = formVisible && !hasStoredCustomerDmSession();
+  root.hidden = !show;
+  if (!show) {
+    var form = root.querySelector('[data-contact-conversation-recall-form]');
+    if (form) form.hidden = true;
+    var toggle = root.querySelector('[data-contact-conversation-recall-toggle]');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  }
+}
+
+function initContactConversationRecall() {
+  var toggle = document.querySelector('[data-contact-conversation-recall-toggle]');
+  if (toggle && !toggle._contactRecallToggleBound) {
+    toggle._contactRecallToggleBound = true;
+    toggle.addEventListener('click', function () {
+      var root = toggle.closest('[data-contact-conversation-recall]');
+      var form = root && root.querySelector('[data-contact-conversation-recall-form]');
+      if (!form) return;
+      var willShow = form.hidden;
+      form.hidden = !willShow;
+      toggle.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+      if (willShow) {
+        var emailInput = form.querySelector('input[type="email"]');
+        if (emailInput) {
+          try {
+            emailInput.focus({ preventScroll: true });
+          } catch (e) {
+            emailInput.focus();
+          }
+        }
+      }
+    });
+  }
+
+  var form = document.querySelector('[data-contact-conversation-recall-form]');
+  if (form && !form._contactRecallFormBound) {
+    form._contactRecallFormBound = true;
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var root = form.closest('[data-contact-conversation-recall]');
+      var statusEl = root && root.querySelector('[data-contact-conversation-recall-status]');
+      var submitBtn = form.querySelector('[type="submit"]');
+      var emailInput = form.querySelector('input[type="email"]');
+      var nameInput = form.querySelector('input[type="text"]');
+      var email = emailInput ? emailInput.value : '';
+      var name = nameInput ? nameInput.value : '';
+      if (statusEl) {
+        statusEl.hidden = false;
+        statusEl.textContent = 'Looking up your conversation…';
+        statusEl.classList.remove('hire-inquiry-recall-status--error');
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      var restore =
+        typeof window.restoreConversationFromEmail === 'function'
+          ? window.restoreConversationFromEmail(email, name)
+          : Promise.reject(new Error('Unable to open conversation right now.'));
+      restore
+        .then(function () {
+          if (statusEl) {
+            statusEl.textContent = 'Found it — opening…';
+            statusEl.hidden = false;
+          }
+          form.hidden = true;
+          if (toggle) toggle.setAttribute('aria-expanded', 'false');
+          syncContactConversationRecall();
+          if (typeof window.openCustomerConversationOverlay === 'function') {
+            window.openCustomerConversationOverlay();
+          }
+        })
+        .catch(function (err) {
+          if (statusEl) {
+            statusEl.hidden = false;
+            statusEl.textContent =
+              (err && err.message) || 'No conversation found for that email.';
+            statusEl.classList.add('hire-inquiry-recall-status--error');
+          }
+        })
+        .finally(function () {
+          if (submitBtn) submitBtn.disabled = false;
+        });
+    });
+  }
+  syncContactConversationRecall();
+}
+
+window.syncContactConversationRecall = syncContactConversationRecall;
+
 function initHireMeReturnBanner() {
   syncHireMeReturnBanner();
   var viewBtn = document.getElementById('hire-return-view-inquiry');
   var scheduleBtn = document.getElementById('hire-return-schedule-call');
+  var openConvBtn = document.getElementById('home-return-open-conversation');
   if (viewBtn && !viewBtn._hireReturnBound) {
     viewBtn._hireReturnBound = true;
     viewBtn.addEventListener('click', function () {
@@ -6331,6 +6447,16 @@ function initHireMeReturnBanner() {
           window.openHireMeBookingStep();
         }
       }, 150);
+    });
+  }
+  if (openConvBtn && !openConvBtn._homeConvBound) {
+    openConvBtn._homeConvBound = true;
+    openConvBtn.addEventListener('click', function () {
+      if (typeof window.openCustomerConversationOverlay === 'function') {
+        window.openCustomerConversationOverlay();
+      } else if (typeof window.openHireMeInquiryOverlay === 'function') {
+        window.openHireMeInquiryOverlay();
+      }
     });
   }
 }
@@ -6550,6 +6676,9 @@ function switchToPage(pageName, skipSave, pageOptions) {
       if (pageName === "contact") {
         if (typeof window.syncContactFormExistingDmLink === "function") {
           window.syncContactFormExistingDmLink();
+        }
+        if (typeof window.syncContactConversationRecall === "function") {
+          window.syncContactConversationRecall();
         }
       }
       if (pageName === "messages") {
@@ -6803,6 +6932,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initHireMePackageControls();
   initHireMeReturnBanner();
   initHireMeInquiryRecall();
+  initContactConversationRecall();
   setTimeout(restoreActivePage, 50);
 });
 
@@ -6810,6 +6940,7 @@ if (document.readyState !== 'loading') {
   initHireMePackageControls();
   initHireMeReturnBanner();
   initHireMeInquiryRecall();
+  initContactConversationRecall();
   setTimeout(restoreActivePage, 50);
 }
 
@@ -16869,9 +17000,20 @@ document.addEventListener('DOMContentLoaded', function () {
       !isCustomerDmPortalRevealed() &&
       saved
     );
+    if (typeof window.syncContactConversationRecall === 'function') {
+      window.syncContactConversationRecall();
+    }
   }
 
   function openContactFormExistingConversation() {
+    if (typeof window.openCustomerConversationOverlay === 'function') {
+      window.openCustomerConversationOverlay();
+      return;
+    }
+    if (typeof openHireMeInquiryOverlay === 'function') {
+      openHireMeInquiryOverlay();
+      return;
+    }
     if (typeof switchToPage === 'function') {
       switchToPage('messages');
     }
@@ -17252,40 +17394,59 @@ document.addEventListener('DOMContentLoaded', function () {
     } catch (e) {}
   }
 
-  async function restoreInquiryFromEmail(email, name) {
+  async function restoreConversationFromEmail(email, name, options) {
+    options = options || {};
     email = String(email || '').trim().toLowerCase();
     name = String(name || '').trim();
     if (!email) {
       throw new Error('Please enter your email.');
     }
     if (!window.rtdb) {
-      throw new Error('Unable to look up your inquiry right now. Please try again shortly.');
+      throw new Error('Unable to look up your conversation right now. Please try again shortly.');
     }
     if (!window.CustomerDmShared || !window.CustomerDmShared.lookupConversationByEmail) {
-      throw new Error('Unable to look up your inquiry right now.');
+      throw new Error('Unable to look up your conversation right now.');
     }
     var meta = await window.CustomerDmShared.lookupConversationByEmail(email);
     if (!meta || !meta.id) {
-      throw new Error('No inquiry found for that email. Check the spelling or send a new inquiry.');
+      throw new Error(
+        options.requireInquiry
+          ? 'No inquiry found for that email. Check the spelling or send a new inquiry.'
+          : 'No conversation found for that email. Check the spelling or send a new message.'
+      );
     }
     var openingMsg = null;
     if (window.CustomerDmShared.fetchOpeningInquiryMessage) {
       openingMsg = await window.CustomerDmShared.fetchOpeningInquiryMessage(meta.id);
     }
-    var inquiry = window.CustomerDmShared.buildHireMeInquiryFromConversation(meta, openingMsg);
-    if (!inquiry.message) {
+    var inquiry = window.CustomerDmShared.buildHireMeInquiryFromConversation
+      ? window.CustomerDmShared.buildHireMeInquiryFromConversation(meta, openingMsg)
+      : null;
+    var sourceHint = String(
+      (meta && (meta.originSource || meta.source)) ||
+        (openingMsg && openingMsg.source) ||
+        ''
+    ).toLowerCase();
+    var isHireMe = sourceHint === 'hire-me';
+    if (options.requireInquiry && (!inquiry || !inquiry.message)) {
       throw new Error('No inquiry found for that email. Check the spelling or send a new inquiry.');
     }
-    if (name) {
-      inquiry.name = name;
-    } else if (!inquiry.name && meta.customerName) {
-      inquiry.name = String(meta.customerName).trim();
+    if (inquiry && inquiry.message && (isHireMe || options.requireInquiry)) {
+      if (name) inquiry.name = name;
+      else if (!inquiry.name && meta.customerName) {
+        inquiry.name = String(meta.customerName).trim();
+      }
+      saveHireMeInquiryToStorage(inquiry);
     }
-    saveHireMeInquiryToStorage(inquiry);
+    var customerName =
+      name ||
+      (inquiry && inquiry.name) ||
+      String(meta.customerName || '').trim() ||
+      '';
     DM.customerSession = {
       conversationId: meta.id,
       customerEmail: (meta.customerEmail || email).toLowerCase(),
-      customerName: inquiry.name || meta.customerName || ''
+      customerName: customerName
     };
     try {
       localStorage.setItem('customerDmSession', JSON.stringify(DM.customerSession));
@@ -17297,7 +17458,14 @@ document.addEventListener('DOMContentLoaded', function () {
       window.syncHireMeReturnBanner();
     }
     syncContactFormExistingDmLink();
+    if (typeof window.syncContactConversationRecall === 'function') {
+      window.syncContactConversationRecall();
+    }
     return { inquiry: inquiry, meta: meta };
+  }
+
+  async function restoreInquiryFromEmail(email, name) {
+    return restoreConversationFromEmail(email, name, { requireInquiry: true });
   }
 
   function stripOpenInquiryQueryParams() {
@@ -17549,6 +17717,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   window.openHireMeInquiryOverlay = openHireMeInquiryOverlay;
   window.closeHireMeInquiryOverlay = closeHireMeInquiryOverlay;
+  window.openCustomerConversationOverlay = openHireMeInquiryOverlay;
 
   function openCustomerPortalSession() {
     setCustomerPortalAuthVisible(false);
@@ -18081,6 +18250,7 @@ document.addEventListener('DOMContentLoaded', function () {
   window.clearHireMeSuccessState = clearHireMeSuccessState;
   window.syncHireMeMessagesUI = syncHireMeMessagesUI;
   window.restoreInquiryFromEmail = restoreInquiryFromEmail;
+  window.restoreConversationFromEmail = restoreConversationFromEmail;
   window.tryOpenInquiryFromUrl = tryOpenInquiryFromUrl;
 
   function showContactSuccessCard() {
@@ -18097,11 +18267,18 @@ document.addEventListener('DOMContentLoaded', function () {
       });
       successCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
     }
+    if (typeof window.syncContactConversationRecall === 'function') {
+      window.syncContactConversationRecall();
+    }
     var btn = document.getElementById('contact-success-go-messages');
     if (btn && !btn._contactSuccessBound) {
       btn._contactSuccessBound = true;
       btn.addEventListener('click', function () {
-        if (typeof switchToPage === 'function') switchToPage('messages');
+        if (typeof window.openCustomerConversationOverlay === 'function') {
+          window.openCustomerConversationOverlay();
+        } else if (typeof switchToPage === 'function') {
+          switchToPage('messages');
+        }
       });
     }
   }

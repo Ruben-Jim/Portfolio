@@ -519,6 +519,26 @@
     var saved = DM.readCustomerSession();
     if (saved && saved.conversationId) {
       window.portalDmSession = saved;
+      // Belt-and-suspenders: a session restored from localStorage may predate this
+      // project, come from a flow that never captured a real name, or already carry
+      // the generic "Customer" placeholder — any of which bakes that same generic
+      // name into every message and into the admin's conversation "From" column.
+      // Self-heal it using the project's own client name whenever the stored name
+      // is missing or is itself just the literal word "Customer".
+      var storedName = String(saved.customerName || '').trim();
+      var nameLooksGeneric = !storedName || /^customer$/i.test(storedName);
+      if (nameLooksGeneric && prefillName && saved.customerEmail) {
+        DM.getOrCreateConversationForEmail(saved.customerEmail, prefillName, {
+          source: 'client-portal',
+          agencyProjectId: (ctx && ctx.projectId) || ''
+        })
+          .then(function (conv) {
+            var fixed = Object.assign({}, saved, { customerName: conv.customerName || prefillName });
+            DM.writeCustomerSession(fixed);
+            window.portalDmSession = fixed;
+          })
+          .catch(function () {});
+      }
     } else {
       window.portalDmSession = null;
     }
@@ -1274,13 +1294,13 @@
   }
 
   function renderNoShowcaseMessage(project, detailOptions) {
-    var visit = renderProjectVisitLinks(project, null, detailOptions || {});
+    var hasVisitLink = collectProjectVisitLinks(project, null, detailOptions || {}).length > 0;
     return (
       '<section class="client-portal-section client-portal-empty-showcase">' +
       '<h2>Project showcase</h2>' +
       '<p><strong>No portfolio project is linked</strong> to this portal yet. The full showcase page will appear here once your project contact links one.</p>' +
-      (visit
-        ? '<p class="client-portal-empty-showcase-lead">You can still open the live demo or website:</p>' + visit
+      (hasVisitLink
+        ? '<p class="client-portal-empty-showcase-lead">You can still open the live demo or website above.</p>'
         : '<p class="client-portal-empty-showcase-lead">A demo or website link will show here when it is added to your project.</p>') +
       '</section>'
     );

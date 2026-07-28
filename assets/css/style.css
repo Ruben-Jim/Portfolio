@@ -1336,6 +1336,35 @@ article.home.has-hire-inquiry-banner .cwr-landing-nav-cta {
   color: var(--light-gray-70);
 }
 
+.contact-page-lead {
+  margin: 0 0 18px;
+  max-width: 36rem;
+  font-size: var(--fs-6);
+  line-height: 1.55;
+  color: var(--light-gray-70);
+}
+
+.contact-page-lead-link {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--orange-yellow-crayola);
+  font: inherit;
+  font-weight: var(--fw-500);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.contact-form-lead {
+  margin: -4px 0 16px;
+  font-size: var(--fs-7);
+  line-height: 1.5;
+  color: var(--light-gray-70);
+}
+
 @media (max-width: 959px) {
   .cwr-landing-copy .hire-inquiry-recall {
     max-width: none;

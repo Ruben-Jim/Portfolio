@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=hireme-cross-device-20260727">
+  <link rel="stylesheet" href="/assets/css/style.css?v=cx-conversion-20260727">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -289,8 +289,8 @@
               <li class="navbar-item" style="display: none;">
                 <button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button>
               </li>
-              <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button>
               </li>
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button>
@@ -309,7 +309,7 @@
               </li>
             </ul>
           </div>
-          <button type="button" class="btn btn-primary cwr-landing-nav-cta" data-i18n="nav.get_started" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
+          <button type="button" class="btn btn-primary cwr-landing-nav-cta" data-i18n="nav.start_project" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Start a project</button>
         </nav>
 
         <section class="cwr-landing-hero" aria-labelledby="cwr-landing-title">
@@ -331,7 +331,7 @@
               <p class="cwr-landing-price" data-i18n="home.price_line">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong></p>
               <p class="cwr-landing-proof" data-i18n="home.proof_line"><span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards <span class="cwr-landing-stars" aria-hidden="true">★★★★★</span></p>
               <div class="cwr-landing-actions">
-                <button type="button" class="btn btn-primary cwr-landing-cta" data-i18n="home.cta_start" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
+                <button type="button" class="btn btn-primary cwr-landing-cta" data-i18n="home.cta_start" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Start a project</button>
                 <button type="button" class="btn cwr-landing-btn-outline" data-i18n="home.cta_pricing" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
                 <button type="button" class="btn cwr-landing-btn-outline" data-i18n="home.cta_work" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View work</button>
               </div>
@@ -349,19 +349,15 @@
                   </button>
                 </div>
               </div>
-              <div class="hire-inquiry-recall" id="hire-inquiry-recall" data-hire-inquiry-recall hidden>
-                <p class="hire-inquiry-recall-hint">
-                  Already submitted?
-                  <button type="button" class="hire-inquiry-recall-toggle" id="hire-inquiry-recall-toggle" data-hire-inquiry-recall-toggle aria-expanded="false">Open with your email</button>
-                </p>
-                <form class="hire-inquiry-recall-form" id="hire-inquiry-recall-form" data-hire-inquiry-recall-form hidden>
-                  <div class="hire-inquiry-recall-fields">
-                    <input type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
-                    <input type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
-                  </div>
-                  <p class="hire-inquiry-recall-status" id="hire-inquiry-recall-status" data-hire-inquiry-recall-status role="status" aria-live="polite" hidden></p>
-                  <button type="submit" class="hire-inquiry-recall-submit">Open my inquiry</button>
-                </form>
+              <div class="hire-inquiry-return-banner" id="home-conversation-return-banner" hidden role="region" aria-label="Your open conversation">
+                <span class="hire-inquiry-return-kicker">Your conversation is open</span>
+                <p class="hire-inquiry-return-lead">Continue where you left off — no need to dig for Messages.</p>
+                <div class="hire-inquiry-return-actions">
+                  <button type="button" class="hire-inquiry-return-link" id="home-return-open-conversation">
+                    <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
+                    <span>Open conversation</span>
+                  </button>
+                </div>
               </div>
             </div>
             <div class="cwr-landing-visual" aria-hidden="true">
@@ -486,7 +482,7 @@
             <h2 class="cwr-landing-band-title" id="cwr-cta-title" data-i18n="home.cta_title">Ready to run your business from your phone?</h2>
             <p class="cwr-landing-band-lead" data-i18n="home.cta_lead">Packages from <strong>$1,500</strong> · Maintenance starting as low as <strong>$44/mo</strong> · Fresno-based studio</p>
             <div class="cwr-landing-cta-actions">
-              <button type="button" class="btn btn-primary cwr-landing-cta" data-i18n="home.cta_start" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">Get started</button>
+              <button type="button" class="btn btn-primary cwr-landing-cta" data-i18n="home.cta_start" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Start a project</button>
               <button type="button" class="btn cwr-landing-btn-outline cwr-landing-btn-outline--on-dark" data-i18n="home.cta_pricing" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
             </div>
           </div>
@@ -520,8 +516,8 @@
               <li class="navbar-item" style="display: none;">
                 <button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button>
               </li>
-              <li class="navbar-item" style="display: none;">
-                <button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button>
+              <li class="navbar-item">
+                <button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button>
               </li>
               <li class="navbar-item">
                 <button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button>
@@ -658,7 +654,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -1151,7 +1147,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -1269,25 +1265,25 @@
 
             <div class="project-detail-cta-inline" id="project-detail-cta-inline" hidden>
               <p class="project-detail-cta-inline-hint">Want something like this for your business?</p>
-              <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote" id="project-detail-quote" href="#contact">
+              <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote" id="project-detail-quote" href="/hire-me">
                 <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
                 <span class="project-detail-btn-text">
-                  <span class="project-detail-btn-label project-detail-btn-label--long">Similar Project? Get a Quote</span>
-                  <span class="project-detail-btn-label project-detail-btn-label--short">Get a quote</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--long">Similar project? Start a project</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--short">Start a project</span>
                 </span>
               </a>
             </div>
             </div>
 
             <div class="project-detail-actions">
-              <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-now" href="#contact" hidden>
+              <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-now" href="/hire-me" hidden>
                 <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
                 <span class="project-detail-btn-text">
                   <span class="project-detail-btn-label project-detail-btn-label--long">Buy Now</span>
                   <span class="project-detail-btn-label project-detail-btn-label--short">Buy Now</span>
                 </span>
               </a>
-              <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-premium" href="#contact" hidden>
+              <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-premium" href="/hire-me" hidden>
                 <ion-icon name="star-outline" aria-hidden="true"></ion-icon>
                 <span class="project-detail-btn-text">
                   <span class="project-detail-btn-label project-detail-btn-label--long">Premium with Customizations</span>
@@ -1301,11 +1297,11 @@
                   <span class="project-detail-btn-label project-detail-btn-label--short">Live demo</span>
                 </span>
               </a>
-              <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote-footer" id="project-detail-quote-footer" href="#contact" hidden>
+              <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote-footer" id="project-detail-quote-footer" href="/hire-me" hidden>
                 <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
                 <span class="project-detail-btn-text">
-                  <span class="project-detail-btn-label project-detail-btn-label--long">Similar Project? Get a Quote</span>
-                  <span class="project-detail-btn-label project-detail-btn-label--short">Get a quote</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--long">Similar project? Start a project</span>
+                  <span class="project-detail-btn-label project-detail-btn-label--short">Start a project</span>
                 </span>
               </a>
             </div>
@@ -1329,7 +1325,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -1611,7 +1607,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -1869,7 +1865,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -2363,7 +2359,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -2605,7 +2601,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -2621,6 +2617,10 @@
         </nav>
         <header>
           <h2 class="h2 article-title" data-i18n="contact.title">Contact</h2>
+          <p class="contact-page-lead">
+            <span data-i18n="contact.page_lead">Quick questions, maintenance, or ownership — for a full project brief,</span>
+            <button type="button" class="contact-page-lead-link" data-i18n="contact.page_lead_link" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">start a project</button>.
+          </p>
         </header>
 
         <section class="mapbox" data-mapbox>
@@ -2633,7 +2633,23 @@
 
         <section class="contact-form" data-contact-form-section>
 
-          <h3 class="h3 form-title" data-i18n="contact.form_title">Contact Form</h3>
+          <h3 class="h3 form-title" data-i18n="contact.form_title">Send a quick message</h3>
+          <p class="contact-form-lead" data-i18n="contact.form_lead">Ask anything short — I’ll reply in your private thread.</p>
+
+          <div class="hire-inquiry-recall hire-inquiry-recall--hire" id="contact-conversation-recall" data-contact-conversation-recall hidden>
+            <p class="hire-inquiry-recall-hint">
+              Already messaged?
+              <button type="button" class="hire-inquiry-recall-toggle" data-contact-conversation-recall-toggle aria-expanded="false">Open with your email</button>
+            </p>
+            <form class="hire-inquiry-recall-form" data-contact-conversation-recall-form hidden>
+              <div class="hire-inquiry-recall-fields">
+                <input type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
+                <input type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
+              </div>
+              <p class="hire-inquiry-recall-status" data-contact-conversation-recall-status role="status" aria-live="polite" hidden></p>
+              <button type="submit" class="hire-inquiry-recall-submit">Open my conversation</button>
+            </form>
+          </div>
 
           <form class="form" data-form>
 
@@ -2643,7 +2659,7 @@
               <input type="email" name="email" class="form-input" placeholder="Email address" data-i18n-ph="contact.ph_email" required data-form-input>
             </div>
 
-            <textarea name="message" class="form-input" placeholder="Your Message" data-i18n-ph="contact.ph_message" required data-form-input></textarea>
+            <textarea name="message" class="form-input" placeholder="Your quick question or note" data-i18n-ph="contact.ph_message" required data-form-input></textarea>
 
             <button class="form-btn" type="submit" disabled data-form-btn>
               <ion-icon name="paper-plane"></ion-icon>
@@ -2690,7 +2706,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -2728,7 +2744,7 @@
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
-              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="hire-me">Hire Me</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
               <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
@@ -6164,10 +6180,10 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
-  <script src="/assets/js/i18n.js?v=1"></script>
-  <script src="/assets/js/script.js?v=hireme-cross-device-20260727"></script>
+  <script src="/assets/js/i18n.js?v=cx-conversion-20260727"></script>
+  <script src="/assets/js/script.js?v=cx-conversion-20260727"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=portal-demo-link-20260724"></script>
+  <script src="/assets/js/agency-tools.js?v=cx-conversion-20260727"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
