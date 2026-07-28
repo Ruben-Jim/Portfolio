@@ -3919,6 +3919,63 @@ main::-webkit-scrollbar { display: none; }
 
 .social-item .social-link:hover { color: var(--light-gray); }
 
+.client-portal-recovery {
+  margin-top: 14px;
+}
+
+.client-portal-recovery-lead {
+  margin: 0 0 8px;
+  color: var(--light-gray-70);
+  font-size: var(--fs-8);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.client-portal-recovery-open {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--orange-yellow-crayola);
+  font-family: var(--ff-poppins);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.client-portal-recovery-form {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.client-portal-recovery-input {
+  width: 100%;
+}
+
+.client-portal-recovery-status {
+  margin: 0;
+  color: var(--light-gray-70);
+  font-size: var(--fs-8);
+  line-height: 1.45;
+}
+
+.client-portal-recovery-status.is-error {
+  color: #ffb4b4;
+}
+
+.client-portal-recovery-submit {
+  justify-self: start;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  background: hsla(45, 100%, 72%, 0.08);
+  color: var(--white-2);
+  font-family: var(--ff-poppins);
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+}
+
 
 /*-----------------------------------*\
   #NAVBAR (hamburger)

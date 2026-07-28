@@ -105,6 +105,26 @@ function validEmail(v) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 }
 
+function normalizePublicOrigin(raw) {
+  const fallback = "https://rubenjimenez.dev";
+  const value = String(raw || "").trim();
+  if (!value) return fallback;
+  if (!/^https?:\/\//i.test(value)) return fallback;
+  try {
+    const parsed = new URL(value);
+    return parsed.origin.replace(/\/$/, "");
+  } catch (err) {
+    return fallback;
+  }
+}
+
+function isPortalTokenActive(row, nowMs) {
+  if (!row || typeof row !== "object") return false;
+  const expiresAt = Number(row.expiresAt || 0);
+  if (!expiresAt) return true;
+  return expiresAt > nowMs;
+}
+
 exports.sendPortfolioEmail = onRequest(
   {
     region: "us-central1",
@@ -400,6 +420,115 @@ exports.sendPortfolioEmail = onRequest(
         });
         if (error) {
           console.error("Resend error (portal_invite):", error);
+          res.status(502).json({ ok: false, error: error.message || "Resend failed" });
+          return;
+        }
+        res.status(200).json({ ok: true, id: data && data.id });
+        return;
+      }
+
+      if (type === "portal_recover") {
+        const email = String(payload.email || "")
+          .trim()
+          .toLowerCase();
+        if (!validEmail(email)) {
+          res.status(400).json({ ok: false, error: "Missing valid email" });
+          return;
+        }
+
+        const db = admin.database();
+        const now = Date.now();
+        const publicOrigin = normalizePublicOrigin(payload.origin);
+
+        let matchedHub = null;
+        let matchedProjectId = "";
+        try {
+          const projectSnap = await db.ref("agencyProjects").once("value");
+          const projects = projectSnap.val() || {};
+          Object.keys(projects).some((projectId) => {
+            const row = projects[projectId] || {};
+            const rowEmail = String(row.clientEmail || "")
+              .trim()
+              .toLowerCase();
+            if (!rowEmail || rowEmail !== email) return false;
+            matchedHub = row;
+            matchedProjectId = projectId;
+            return true;
+          });
+        } catch (err) {
+          console.error("portal_recover: load agencyProjects failed", err);
+        }
+
+        if (!matchedHub || !matchedProjectId) {
+          res.status(200).json({ ok: true });
+          return;
+        }
+
+        let token = "";
+        let tokenRow = null;
+        try {
+          const portalSnap = await db.ref("agencyClientPortals").once("value");
+          const portals = portalSnap.val() || {};
+
+          const hubToken = String(matchedHub.portalToken || "").trim();
+          if (
+            hubToken &&
+            portals[hubToken] &&
+            String(portals[hubToken].projectId || "") === matchedProjectId &&
+            isPortalTokenActive(portals[hubToken], now)
+          ) {
+            token = hubToken;
+            tokenRow = portals[hubToken];
+          } else {
+            let bestToken = "";
+            let bestExpires = 0;
+            Object.keys(portals).forEach((tok) => {
+              const row = portals[tok];
+              if (!row || String(row.projectId || "") !== matchedProjectId) return;
+              if (!isPortalTokenActive(row, now)) return;
+              const exp = Number(row.expiresAt || 0);
+              if (!bestToken || exp > bestExpires) {
+                bestToken = tok;
+                bestExpires = exp;
+              }
+            });
+            if (bestToken) {
+              token = bestToken;
+              tokenRow = portals[bestToken];
+            }
+          }
+        } catch (err) {
+          console.error("portal_recover: load agencyClientPortals failed", err);
+        }
+
+        if (!token || !tokenRow) {
+          res.status(200).json({ ok: true });
+          return;
+        }
+
+        const portalUrl = publicOrigin + "/portal.html?token=" + encodeURIComponent(token);
+        const toName = String(matchedHub.clientName || "there").trim();
+        const projectTitle = String(
+          matchedHub.title || matchedHub.clientName || "your project"
+        ).trim();
+        const subject = "Your client portal link";
+        const html = buildPortalInviteHtml({
+          to_name: toName,
+          to_email: email,
+          portal_url: portalUrl,
+          project_title: projectTitle,
+          subject,
+          from_name: "Ruben Jimenez",
+        });
+        const { data, error } = await resend.emails.send({
+          from,
+          to: [email],
+          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+          subject,
+          html,
+        });
+        if (error) {
+          console.error("Resend error (portal_recover):", error);
           res.status(502).json({ ok: false, error: error.message || "Resend failed" });
           return;
         }

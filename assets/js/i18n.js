@@ -16,6 +16,10 @@
       'nav.get_started':      'Get started',
       'nav.start_project':    'Start a project',
       'nav.toggle_aria':      'Switch language',
+      'portal.recovery_lead': 'Existing client?',
+      'portal.recovery_cta':  'Open your portal',
+      'portal.recovery_submit': 'Email me my portal link',
+      'portal.recovery_email_ph': 'Your client email',
 
       /* ── Home ───────────────────────────────────────────── */
       'home.brand_sub':       'Web &amp; Mobile Dev Studio',
@@ -206,6 +210,10 @@
       'nav.get_started':      'Comenzar',
       'nav.start_project':    'Iniciar un proyecto',
       'nav.toggle_aria':      'Cambiar idioma',
+      'portal.recovery_lead': '¿Ya eres cliente?',
+      'portal.recovery_cta':  'Abrir tu portal',
+      'portal.recovery_submit': 'Envíame mi enlace del portal',
+      'portal.recovery_email_ph': 'Tu correo de cliente',
 
       /* ── Home ───────────────────────────────────────────── */
       'home.brand_sub':       'Estudio de Desarrollo Web y M\u00f3vil',

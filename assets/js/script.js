@@ -4888,6 +4888,75 @@ async function sendPortfolioEmailRequest(body, options) {
   return data;
 }
 
+function initClientPortalRecovery() {
+  var root = document.getElementById('client-portal-recovery');
+  if (!root) return;
+  var toggle = document.getElementById('client-portal-recovery-open');
+  var form = document.getElementById('client-portal-recovery-form');
+  var emailInput = document.getElementById('client-portal-recovery-email');
+  var statusEl = document.getElementById('client-portal-recovery-status');
+  if (!toggle || !form || !emailInput || !statusEl) return;
+
+  function setStatus(message, isError) {
+    statusEl.hidden = !message;
+    statusEl.textContent = message || '';
+    statusEl.classList.toggle('is-error', !!isError);
+  }
+
+  function setExpanded(expanded) {
+    form.hidden = !expanded;
+    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    if (expanded) {
+      try {
+        emailInput.focus({ preventScroll: true });
+      } catch (e) {
+        emailInput.focus();
+      }
+    }
+  }
+
+  if (!toggle._portalRecoveryToggleBound) {
+    toggle._portalRecoveryToggleBound = true;
+    toggle.addEventListener('click', function () {
+      setExpanded(form.hidden);
+      if (!form.hidden) setStatus('', false);
+    });
+  }
+
+  if (!form._portalRecoverySubmitBound) {
+    form._portalRecoverySubmitBound = true;
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var email = String(emailInput.value || '').trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        setStatus('Enter a valid email.', true);
+        return;
+      }
+      var submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+      setStatus('Sending…', false);
+      try {
+        await sendPortfolioEmailRequest({
+          type: 'portal_recover',
+          payload: {
+            email: email,
+            origin: (window.PORTFOLIO_PUBLIC_ORIGIN || window.location.origin || '').toString()
+          }
+        });
+        setStatus(
+          'If we found an active client portal for that email, we just sent the link.',
+          false
+        );
+        form.reset();
+      } catch (err) {
+        setStatus((err && err.message) || 'Could not send right now. Please try again.', true);
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  }
+}
+
 // contact form variables
 const forms = document.querySelectorAll("[data-form]");
 
@@ -6933,6 +7002,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initHireMeReturnBanner();
   initHireMeInquiryRecall();
   initContactConversationRecall();
+  initClientPortalRecovery();
   setTimeout(restoreActivePage, 50);
 });
 
@@ -6941,6 +7011,7 @@ if (document.readyState !== 'loading') {
   initHireMeReturnBanner();
   initHireMeInquiryRecall();
   initContactConversationRecall();
+  initClientPortalRecovery();
   setTimeout(restoreActivePage, 50);
 }
 

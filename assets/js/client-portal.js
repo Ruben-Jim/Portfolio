@@ -1093,9 +1093,10 @@
             panelHtml = renderContractSignPanelHtml(d);
           } else {
             actionHtml =
-              '<button type="button" class="btn btn-primary btn-sm client-portal-doc-view-btn" data-portal-view-doc="' +
+              '<button type="button" class="btn btn-primary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
               esc(d.id) +
               '">View document</button>';
+            panelHtml = renderContractSignedPanelHtml(d);
           }
           return (
             '<li class="client-portal-doc-card">' +
@@ -1136,20 +1137,6 @@
     if (!window.BusinessDocShared || !window.BusinessDocShared.openPrintWindow) return false;
     var opts = options && typeof options === 'object' ? options : { autoPrint: false };
     return !!window.BusinessDocShared.openPrintWindow(doc, signature, opts);
-  }
-
-  function bindPortalDocViewButtons(root) {
-    if (!root) return;
-    root.querySelectorAll('[data-portal-view-doc]').forEach(function (btn) {
-      if (btn.dataset.portalDocBound) return;
-      btn.dataset.portalDocBound = '1';
-      btn.addEventListener('click', function () {
-        var docId = btn.getAttribute('data-portal-view-doc');
-        if (!openPortalBusinessDoc(docId, { autoPrint: false })) {
-          alert('Unable to open document. Please allow popups for this site.');
-        }
-      });
-    });
   }
 
   function bindPortalSignedViewButtons(root) {
@@ -1338,7 +1325,6 @@
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
     }
-    bindPortalDocViewButtons(inner);
     bindPortalSignButtons(inner, portalCtx);
     bindPortalSignedViewButtons(inner);
     bindMaintenanceSupportSection(inner, portalCtx, project, maint);
