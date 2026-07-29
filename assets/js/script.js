@@ -1422,6 +1422,11 @@ if (addBlogModal) {
 // ESC key to close modals
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' || e.keyCode === 27) {
+    const unsavedModal = document.getElementById('portfolio-unsaved-confirm-modal');
+    if (unsavedModal && unsavedModal.classList.contains('active')) {
+      closePortfolioUnsavedConfirmModal();
+      return;
+    }
     const portfolioModal = document.getElementById('portfolio-project-modal');
     if (portfolioModal && portfolioModal.classList.contains('active')) {
       closePortfolioProjectModal();
@@ -4481,11 +4486,125 @@ function syncPortfolioProjectImagePreview() {
   portfolioRenderCarousel(carousel, { urls: urls, altBase: alt });
 }
 
+function serializePortfolioProjectFormState() {
+  var form = document.getElementById('portfolio-project-form');
+  if (!form) return '';
+  var ids = [
+    'portfolio-project-edit-id',
+    'portfolio-project-title',
+    'portfolio-project-url',
+    'portfolio-project-image',
+    'portfolio-project-image-alt',
+    'portfolio-project-description',
+    'portfolio-project-tech',
+    'portfolio-project-outcome',
+    'portfolio-project-buy-now',
+    'portfolio-project-buy-premium',
+    'portfolio-project-admin-note',
+    'portfolio-project-canvas-doc',
+    'portfolio-project-canvas-title',
+    'portfolio-project-bestfor'
+  ];
+  var state = {
+    fields: {},
+    checks: {
+      showPublic: !!(document.getElementById('portfolio-project-show-public') &&
+        document.getElementById('portfolio-project-show-public').checked),
+      showQuote: !!(document.getElementById('portfolio-project-show-quote') &&
+        document.getElementById('portfolio-project-show-quote').checked)
+    },
+    images: typeof getPortfolioFormImageUrlsFromDom === 'function' ? getPortfolioFormImageUrlsFromDom() : [],
+    sections: typeof collectPortfolioDetailSectionsFromDom === 'function'
+      ? collectPortfolioDetailSectionsFromDom()
+      : []
+  };
+  ids.forEach(function (id) {
+    var el = document.getElementById(id);
+    state.fields[id] = el ? String(el.value || '') : '';
+  });
+  return JSON.stringify(state);
+}
+
+var portfolioProjectFormBaseline = '';
+
+function capturePortfolioProjectFormBaseline() {
+  portfolioProjectFormBaseline = serializePortfolioProjectFormState();
+}
+
+function isPortfolioProjectFormDirty() {
+  if (!document.getElementById('portfolio-project-form')) return false;
+  if (!portfolioProjectFormBaseline) return false;
+  return serializePortfolioProjectFormState() !== portfolioProjectFormBaseline;
+}
+
+function openPortfolioUnsavedConfirmModal() {
+  var modal = document.getElementById('portfolio-unsaved-confirm-modal');
+  if (!modal) return;
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  var saveBtn = document.getElementById('portfolio-unsaved-confirm-save');
+  if (saveBtn) {
+    setTimeout(function () {
+      saveBtn.focus();
+    }, 0);
+  }
+}
+
+function closePortfolioUnsavedConfirmModal() {
+  var modal = document.getElementById('portfolio-unsaved-confirm-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function setupPortfolioUnsavedConfirmModal() {
+  var modal = document.getElementById('portfolio-unsaved-confirm-modal');
+  if (!modal || modal.dataset.bound === '1') return;
+  modal.dataset.bound = '1';
+
+  function keepEditing() {
+    closePortfolioUnsavedConfirmModal();
+  }
+
+  function discardAndClose() {
+    closePortfolioUnsavedConfirmModal();
+    closePortfolioProjectModal({ force: true });
+  }
+
+  function saveAndClose() {
+    closePortfolioUnsavedConfirmModal();
+    var form = document.getElementById('portfolio-project-form');
+    var saveBtn = document.getElementById('portfolio-project-form-save');
+    if (saveBtn) {
+      saveBtn.click();
+      return;
+    }
+    if (form && typeof form.requestSubmit === 'function') {
+      form.requestSubmit();
+      return;
+    }
+    if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  }
+
+  var keepBtn = document.getElementById('portfolio-unsaved-confirm-keep');
+  var discardBtn = document.getElementById('portfolio-unsaved-confirm-discard');
+  var saveBtn = document.getElementById('portfolio-unsaved-confirm-save');
+  var closeBtn = document.getElementById('portfolio-unsaved-confirm-close');
+  var overlay = document.getElementById('portfolio-unsaved-confirm-overlay');
+
+  if (keepBtn) keepBtn.addEventListener('click', keepEditing);
+  if (closeBtn) closeBtn.addEventListener('click', keepEditing);
+  if (overlay) overlay.addEventListener('click', keepEditing);
+  if (discardBtn) discardBtn.addEventListener('click', discardAndClose);
+  if (saveBtn) saveBtn.addEventListener('click', saveAndClose);
+}
+
 function openPortfolioProjectModal(isNew, project) {
   const modal = document.getElementById('portfolio-project-modal');
   const titleEl = document.getElementById('portfolio-project-modal-title');
   const form = document.getElementById('portfolio-project-form');
   if (!modal || !form) return;
+  closePortfolioUnsavedConfirmModal();
   form.reset();
   document.getElementById('portfolio-project-edit-id').value = isNew ? '' : (project && project.id) || '';
   if (titleEl) titleEl.textContent = isNew ? 'New portfolio project' : 'Edit portfolio project';
@@ -4547,11 +4666,21 @@ function openPortfolioProjectModal(isNew, project) {
     ov.style.zIndex = '9998';
   }
   modal.setAttribute('aria-hidden', 'false');
+  // Capture after DOM lists/selects settle so reopen isn't marked dirty.
+  requestAnimationFrame(function () {
+    capturePortfolioProjectFormBaseline();
+  });
 }
 
-function closePortfolioProjectModal() {
+function closePortfolioProjectModal(options) {
+  options = options || {};
   const modal = document.getElementById('portfolio-project-modal');
   if (!modal) return;
+  if (!options.force && modal.classList.contains('active') && isPortfolioProjectFormDirty()) {
+    openPortfolioUnsavedConfirmModal();
+    return;
+  }
+  closePortfolioUnsavedConfirmModal();
   modal.classList.remove('active');
   modal.style.display = '';
   modal.style.visibility = '';
@@ -4569,6 +4698,7 @@ function closePortfolioProjectModal() {
     ov.style.zIndex = '';
   }
   modal.setAttribute('aria-hidden', 'true');
+  portfolioProjectFormBaseline = '';
 }
 
 window.openPortfolioProjectEditor = function (id) {
@@ -4597,6 +4727,7 @@ window.portfolioVideoPosterUrlBest = portfolioVideoPosterUrlBest;
 window.isPortfolioPublic = isPortfolioPublic;
 
 function setupPortfolioAdminControls() {
+  setupPortfolioUnsavedConfirmModal();
   const addBtn = document.getElementById('admin-add-portfolio-btn');
   const form = document.getElementById('portfolio-project-form');
   const cancelBtn = document.getElementById('portfolio-project-form-cancel');
@@ -4773,7 +4904,7 @@ function setupPortfolioAdminControls() {
           }
           window.__portfolioSaveLinkHubId = null;
         }
-        closePortfolioProjectModal();
+        closePortfolioProjectModal({ force: true });
         await loadPortfolioProjectsFromRtdb();
         renderPublicPortfolioProjects();
         applyCurrentPortfolioFilter();
