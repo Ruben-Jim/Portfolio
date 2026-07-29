@@ -5,9 +5,9 @@
 | Setting | Location | Audience |
 |---------|----------|----------|
 | **Canvas / case study file** | Portfolio project admin | Public portfolio modal (and portal if no hub override) |
-| **Client portal guide (private)** | Project Hub → Portfolio section | That client’s portal only |
+| **Client portal guides (private)** | Clients → Docs & guides | That client’s portal only — multiple guides supported |
 
-Use two `.md` files when the public site gets a short case study and the client gets a full feature guide.
+Use separate `.md` files when the public site gets a short case study and the client gets one or more private guides (admin walkthrough, features, onboarding, etc.).
 
 ## Formats
 
@@ -22,15 +22,15 @@ See [CANVAS-TO-MARKDOWN.md](./CANVAS-TO-MARKDOWN.md) for converting canvas → m
 ## Naming
 
 - Public: `project-<slug>.md`
-- Client-only: `project-<slug>-client.md` or `project-<slug>-guide.md`
+- Client-only: `project-<slug>-client.md`, `project-<slug>-guide.md`, or a folder per project with several guides
 - Screenshots: `assets/images/projects/<slug>-features/*.png`
 
 ## Admin paths
 
 ```
 /assets/docs/projects/project-rizopizzeria.md              ← public portfolio
-/assets/docs/projects/lawncare/admin-guide.md              ← hub Docs & guide
-/assets/docs/projects/rizo-pizzeria/rizo-features-guide.md ← hub Docs & guide
+/assets/docs/projects/lawncare/admin-guide.md              ← hub Docs & guides
+/assets/docs/projects/rizo-pizzeria/rizo-features-guide.md ← hub Docs & guides
 ```
 
-There is no file upload in admin — add the `.md` in the repo, then paste that path into Clients → Docs & guide → Guide file path → Save docs & guide. The guide appears in the portal under its own **Docs & guide** section (open by default), not inside collapsed Project showcase.
+There is no file upload in admin — add each `.md` in the repo, then in Clients → **Docs & guides** add a row per file (path + section title) → **Save docs & guides**. Each guide appears in the portal as its own open section (not inside collapsed Project showcase). Up to 8 guides per client.

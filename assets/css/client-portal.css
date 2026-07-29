@@ -191,8 +191,10 @@ body.client-portal-page {
   gap: 12px;
 }
 
-.client-portal-showcase summary::-webkit-details-marker {
+.client-portal-showcase summary::-webkit-details-marker,
+.client-portal-showcase summary::marker {
   display: none;
+  content: '';
 }
 
 .client-portal-showcase summary::after {
@@ -238,6 +240,10 @@ body.client-portal-page {
   overflow: hidden;
 }
 
+.client-portal-guide + .client-portal-guide {
+  margin-top: -4px;
+}
+
 .client-portal-guide summary {
   cursor: pointer;
   padding: 12px 16px;
@@ -250,8 +256,10 @@ body.client-portal-page {
   gap: 12px;
 }
 
-.client-portal-guide summary::-webkit-details-marker {
+.client-portal-guide summary::-webkit-details-marker,
+.client-portal-guide summary::marker {
   display: none;
+  content: '';
 }
 
 .client-portal-guide summary::after {
@@ -720,10 +728,33 @@ body.client-portal-page {
   color: var(--white-1);
   font-weight: var(--fw-600);
   list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.client-portal-status-footer summary::-webkit-details-marker {
+.client-portal-status-footer summary::-webkit-details-marker,
+.client-portal-status-footer summary::marker {
   display: none;
+  content: '';
+}
+
+.client-portal-status-footer summary::after {
+  content: '';
+  flex-shrink: 0;
+  width: 0.55em;
+  height: 0.55em;
+  border-right: 2px solid var(--orange-yellow-crayola);
+  border-bottom: 2px solid var(--orange-yellow-crayola);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  opacity: 0.9;
+}
+
+.client-portal-status-footer[open] summary::after {
+  transform: rotate(225deg);
+  margin-top: 0.25em;
 }
 
 .client-portal-status-footer-body {
@@ -788,10 +819,33 @@ body.client-portal-page {
   color: var(--white-1);
   font-weight: var(--fw-600);
   list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.client-portal-docs-footer summary::-webkit-details-marker {
+.client-portal-docs-footer summary::-webkit-details-marker,
+.client-portal-docs-footer summary::marker {
   display: none;
+  content: '';
+}
+
+.client-portal-docs-footer summary::after {
+  content: '';
+  flex-shrink: 0;
+  width: 0.55em;
+  height: 0.55em;
+  border-right: 2px solid var(--orange-yellow-crayola);
+  border-bottom: 2px solid var(--orange-yellow-crayola);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  opacity: 0.9;
+}
+
+.client-portal-docs-footer[open] summary::after {
+  transform: rotate(225deg);
+  margin-top: 0.25em;
 }
 
 .client-portal-docs-footer-body {
@@ -995,10 +1049,33 @@ body.client-portal-page {
   color: var(--white-1);
   font-weight: var(--fw-600);
   list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.client-portal-support-footer summary::-webkit-details-marker {
+.client-portal-support-footer summary::-webkit-details-marker,
+.client-portal-support-footer summary::marker {
   display: none;
+  content: '';
+}
+
+.client-portal-support-footer summary::after {
+  content: '';
+  flex-shrink: 0;
+  width: 0.55em;
+  height: 0.55em;
+  border-right: 2px solid var(--orange-yellow-crayola);
+  border-bottom: 2px solid var(--orange-yellow-crayola);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  opacity: 0.9;
+}
+
+.client-portal-support-footer[open] summary::after {
+  transform: rotate(225deg);
+  margin-top: 0.25em;
 }
 
 .client-portal-support-body {

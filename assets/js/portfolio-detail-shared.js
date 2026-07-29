@@ -539,7 +539,12 @@
     if (!url) return '';
     var title = String(record.canvasDocTitle || 'Project overview').trim().slice(0, 120);
     return (
-      '<section class="project-detail-section project-detail-canvas-doc" data-portfolio-canvas-doc>' +
+      '<section class="project-detail-section project-detail-canvas-doc" data-portfolio-canvas-doc' +
+      ' data-canvas-doc-url="' +
+      esc(url) +
+      '" data-canvas-doc-title="' +
+      esc(title) +
+      '">' +
       '<h4 class="project-detail-section-title">' +
       esc(title) +
       '</h4>' +
@@ -551,64 +556,74 @@
 
   function initCanvasDoc(rootEl, record) {
     if (!rootEl || !record) return;
-    var section =
-      rootEl.matches && rootEl.matches('[data-portfolio-canvas-doc]')
-        ? rootEl
-        : rootEl.querySelector('[data-portfolio-canvas-doc]');
-    if (!section) return;
-    var body = section.querySelector('[data-portfolio-canvas-body]');
-    var url = normalizeCanvasDocUrl(record.canvasDocUrl);
-    if (!body || !url) {
+    var sections = [];
+    if (rootEl.matches && rootEl.matches('[data-portfolio-canvas-doc]')) {
+      sections = [rootEl];
+    } else {
+      sections = Array.prototype.slice.call(rootEl.querySelectorAll('[data-portfolio-canvas-doc]'));
+    }
+    if (!sections.length) return;
+    sections.forEach(function (section) {
+      var body = section.querySelector('[data-portfolio-canvas-body]');
+      var url = normalizeCanvasDocUrl(
+        section.getAttribute('data-canvas-doc-url') || (record && record.canvasDocUrl)
+      );
+      if (!body || !url) {
+        section.hidden = true;
+        return;
+      }
+      section.hidden = false;
+      var src = displayCanvasDocSrc(url);
+      var docTitle = String(
+        section.getAttribute('data-canvas-doc-title') ||
+          (record && record.canvasDocTitle) ||
+          'Project document'
+      ).trim();
+      if (isCanvasTsxUrl(url)) {
+        body.innerHTML =
+          '<div class="project-detail-canvas-tsx-note">' +
+          '<p class="project-detail-canvas-tsx-lead">' +
+          'This file is a <strong>Cursor Canvas</strong> (<code>.canvas.tsx</code>). It opens interactively in Cursor IDE — it does not render in the browser like Markdown or PDF.</p>' +
+          '<p class="project-detail-canvas-tsx-hint">For portfolio visitors, add a <code>.md</code> or <code>.pdf</code> path here (or as a second doc) so the walkthrough shows on the site.</p>' +
+          '<a class="project-detail-canvas-pdf-link" href="' +
+          esc(src) +
+          '" download>Download canvas source</a></div>';
+        return;
+      }
+      if (isCanvasPdfUrl(url)) {
+        body.innerHTML =
+          '<a class="project-detail-canvas-pdf-link" href="' +
+          esc(src) +
+          '" target="_blank" rel="noopener noreferrer">Open project document (PDF)</a>' +
+          '<iframe class="project-detail-canvas-pdf-frame" src="' +
+          esc(src) +
+          '" title="' +
+          esc(docTitle) +
+          '"></iframe>';
+        return;
+      }
+      if (isCanvasMarkdownUrl(url)) {
+        fetch(src)
+          .then(function (res) {
+            if (!res.ok) throw new Error('Could not load document');
+            return res.text();
+          })
+          .then(function (text) {
+            body.innerHTML =
+              '<div class="project-detail-canvas-md portfolio-markdown">' +
+              renderMarkdownToHtml(text, url) +
+              '</div>';
+          })
+          .catch(function () {
+            body.innerHTML =
+              '<p class="project-detail-canvas-error">Could not load markdown file. Confirm <code>' +
+              esc(url) +
+              '</code> is deployed.</p>';
+          });
+        return;
+      }
       section.hidden = true;
-      return;
-    }
-    section.hidden = false;
-    var src = displayCanvasDocSrc(url);
-    var docTitle = String(record.canvasDocTitle || 'Project document').trim();
-    if (isCanvasTsxUrl(url)) {
-      body.innerHTML =
-        '<div class="project-detail-canvas-tsx-note">' +
-        '<p class="project-detail-canvas-tsx-lead">' +
-        'This file is a <strong>Cursor Canvas</strong> (<code>.canvas.tsx</code>). It opens interactively in Cursor IDE — it does not render in the browser like Markdown or PDF.</p>' +
-        '<p class="project-detail-canvas-tsx-hint">For portfolio visitors, add a <code>.md</code> or <code>.pdf</code> path here (or as a second doc) so the walkthrough shows on the site.</p>' +
-        '<a class="project-detail-canvas-pdf-link" href="' +
-        esc(src) +
-        '" download>Download canvas source</a></div>';
-      return;
-    }
-    if (isCanvasPdfUrl(url)) {
-      body.innerHTML =
-        '<a class="project-detail-canvas-pdf-link" href="' +
-        esc(src) +
-        '" target="_blank" rel="noopener noreferrer">Open project document (PDF)</a>' +
-        '<iframe class="project-detail-canvas-pdf-frame" src="' +
-        esc(src) +
-        '" title="' +
-        esc(docTitle) +
-        '"></iframe>';
-      return;
-    }
-    if (isCanvasMarkdownUrl(url)) {
-      fetch(src)
-        .then(function (res) {
-          if (!res.ok) throw new Error('Could not load document');
-          return res.text();
-        })
-        .then(function (text) {
-          body.innerHTML =
-            '<div class="project-detail-canvas-md portfolio-markdown">' +
-            renderMarkdownToHtml(text, url) +
-            '</div>';
-        })
-        .catch(function () {
-          body.innerHTML =
-            '<p class="project-detail-canvas-error">Could not load markdown file. Confirm <code>' +
-            esc(url) +
-            '</code> is deployed.</p>';
-        });
-      return;
-    }
-    section.hidden = true;
+    });
   }
 
   function normalizePortfolioDetailRecord(row, id) {

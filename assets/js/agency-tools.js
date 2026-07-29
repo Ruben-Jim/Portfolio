@@ -432,6 +432,7 @@
   function normalizeProject(id, row) {
     row = row || {};
     var milestones = Array.isArray(row.milestones) ? row.milestones : [];
+    var guideFields = portalGuideFieldsFromList(normalizePortalGuides(row));
     return {
       id: id,
       leadId: String(row.leadId || ''),
@@ -448,8 +449,9 @@
       portalToken: String(row.portalToken || '').replace(/[^a-f0-9]/gi, '').slice(0, 64),
       portalExpiresAt: Number(row.portalExpiresAt) || 0,
       showMaintenanceInPortal: row.showMaintenanceInPortal !== false,
-      portalCanvasDocUrl: String(row.portalCanvasDocUrl || '').slice(0, 500),
-      portalCanvasDocTitle: String(row.portalCanvasDocTitle || 'Project guide').slice(0, 120),
+      portalGuides: guideFields.portalGuides,
+      portalCanvasDocUrl: guideFields.portalCanvasDocUrl,
+      portalCanvasDocTitle: guideFields.portalCanvasDocTitle,
       milestones: milestones.map(function (m, i) {
         return {
           id: m.id || 'm' + i,
@@ -709,6 +711,7 @@
       milestones: defaultMilestones(),
       enabledModules: [],
       showMaintenanceInPortal: true,
+      portalGuides: [],
       portalCanvasDocUrl: '',
       portalCanvasDocTitle: 'Project guide',
       updatedAt: ts()
@@ -911,10 +914,9 @@
       milestones: collectHubMilestonesFromDom(),
       enabledModules: existing && Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       showMaintenanceInPortal: existing ? existing.showMaintenanceInPortal !== false : true,
-      portalCanvasDocUrl: existing ? existing.portalCanvasDocUrl || '' : '',
-      portalCanvasDocTitle: existing ? existing.portalCanvasDocTitle || 'Project guide' : 'Project guide',
       updatedAt: ts()
     };
+    Object.assign(payload, copyPortalGuideFields(existing));
     var savedId = await saveProjectHubRecord(id, payload, true);
     if (savedId) openClientProjectWorkspace(savedId);
   }
@@ -1034,6 +1036,46 @@
     if (match) return '/' + match[0].replace(/^\/+/, '');
     if (/^\.?\/?assets\//i.test(s)) return '/' + s.replace(/^\.?\//, '');
     return s;
+  }
+
+  var MAX_PORTAL_GUIDES = 8;
+
+  function normalizePortalGuides(row) {
+    row = row || {};
+    var out = [];
+    var seen = {};
+    function pushGuide(url, title) {
+      var normalized = normalizePortalCanvasDocUrl(url);
+      if (!normalized || seen[normalized]) return;
+      seen[normalized] = true;
+      out.push({
+        url: normalized.slice(0, 500),
+        title: String(title || 'Project guide').trim().slice(0, 120) || 'Project guide'
+      });
+    }
+    if (Array.isArray(row.portalGuides)) {
+      row.portalGuides.forEach(function (g) {
+        if (!g || typeof g !== 'object') return;
+        pushGuide(g.url || g.portalCanvasDocUrl, g.title || g.portalCanvasDocTitle);
+      });
+    }
+    if (!out.length && row.portalCanvasDocUrl) {
+      pushGuide(row.portalCanvasDocUrl, row.portalCanvasDocTitle);
+    }
+    return out.slice(0, MAX_PORTAL_GUIDES);
+  }
+
+  function portalGuideFieldsFromList(guides) {
+    var list = Array.isArray(guides) ? guides.slice(0, MAX_PORTAL_GUIDES) : [];
+    return {
+      portalGuides: list,
+      portalCanvasDocUrl: list[0] ? list[0].url : '',
+      portalCanvasDocTitle: list[0] ? list[0].title : 'Project guide'
+    };
+  }
+
+  function copyPortalGuideFields(existing) {
+    return portalGuideFieldsFromList(normalizePortalGuides(existing || {}));
   }
 
   function clientPortalUrl(token) {
@@ -2241,8 +2283,21 @@
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   }
 
+  function hubHasPortalGuide(hub) {
+    return normalizePortalGuides(hub).length > 0;
+  }
+
   function getClientPickerMeta(hub) {
-    if (!hub) return { milestones: '0/0', milestonesPct: 0, healthLabel: 'Health —', healthClass: '', maintPending: false };
+    if (!hub) {
+      return {
+        milestones: '0/0',
+        milestonesPct: 0,
+        healthLabel: 'Health —',
+        healthClass: '',
+        maintPending: false,
+        hasGuide: false
+      };
+    }
     var done = (hub.milestones || []).filter(function (m) {
       return m.done;
     }).length;
@@ -2260,7 +2315,8 @@
       healthLabel: 'Health ' + healthDone + '/' + HEALTH_CHECK_KEYS.length,
       healthClass: healthClass,
       maintPending: maintPending,
-      maintTier: maint && maint.planTier ? maint.planTier : ''
+      maintTier: maint && maint.planTier ? maint.planTier : '',
+      hasGuide: hubHasPortalGuide(hub)
     };
   }
 
@@ -2317,6 +2373,12 @@
     var maintBadge = meta.maintPending
       ? '<span class="cp-client-picker-badge is-pending">Plan pending</span>'
       : '';
+    var guideCount = normalizePortalGuides(p).length;
+    var guideBadge = meta.hasGuide
+      ? '<span class="cp-client-picker-badge is-guide">' +
+        (guideCount > 1 ? guideCount + ' guides' : 'Guide') +
+        '</span>'
+      : '';
     return (
       '<li role="presentation">' +
       '<button type="button" class="cp-client-picker-card cp-client-picker-row' + (selected ? ' is-selected' : '') + '" ' +
@@ -2328,6 +2390,7 @@
       '<span class="cp-client-picker-card-title">' + esc(title) + '</span>' +
       '<span class="cp-client-picker-row-badges">' +
       maintBadge +
+      guideBadge +
       '<span class="cp-client-picker-badge ' + esc(meta.healthClass) + '">' + esc(meta.healthLabel) + '</span>' +
       '</span></span>' +
       (meta.milestonesTotal
@@ -2633,8 +2696,13 @@
       return docs.length + (docs.length === 1 ? ' document' : ' documents');
     }
     if (id === 'guide') {
-      if (!hub.portalCanvasDocUrl) return 'No guide';
-      return hub.portalCanvasDocTitle || 'Guide set';
+      var guides = normalizePortalGuides(hub);
+      if (!guides.length) return 'No guide files';
+      if (guides.length === 1) {
+        var oneFile = String(guides[0].url || '').split('/').filter(Boolean).pop() || guides[0].url;
+        return '1 guide · ' + oneFile;
+      }
+      return guides.length + ' guides added';
     }
     if (id === 'portfolio') {
       if (!hub.portfolioProjectId && !portfolio) return 'Not linked';
@@ -2642,6 +2710,95 @@
       return 'Save link for portal';
     }
     return '';
+  }
+
+  function renderCpGuideRowHtml(guide, index) {
+    guide = guide || { url: '', title: 'Project guide' };
+    return (
+      '<div class="cp-guide-row" data-cp-guide-row>' +
+      '<div class="cp-guide-row-head">' +
+      '<strong>Guide ' +
+      (index + 1) +
+      '</strong>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="remove-guide-row">Remove</button>' +
+      '</div>' +
+      '<div class="form-group"><label>Guide file (private)</label>' +
+      '<input class="form-input" type="text" data-cp-guide-url value="' +
+      esc(guide.url || '') +
+      '" placeholder="/assets/docs/projects/lawncare/admin-guide.md">' +
+      '<p class="form-hint">Path to a <code>.md</code> or <code>.pdf</code> under <code>/assets/docs/projects/</code>.</p></div>' +
+      '<div class="form-group"><label>Guide section title</label>' +
+      '<input class="form-input" type="text" maxlength="120" data-cp-guide-title value="' +
+      esc(guide.title || 'Project guide') +
+      '" placeholder="Admin guide"></div></div>'
+    );
+  }
+
+  function renderCpGuidesListHtml(guides) {
+    var list = Array.isArray(guides) && guides.length ? guides : [{ url: '', title: 'Project guide' }];
+    return (
+      '<div class="cp-guides-list" id="cp-guides-list">' +
+      list
+        .map(function (g, i) {
+          return renderCpGuideRowHtml(g, i);
+        })
+        .join('') +
+      '</div>'
+    );
+  }
+
+  function collectPortalGuidesFromWorkspace() {
+    var root = document.getElementById('client-projects-workspace');
+    if (!root) return [];
+    var out = [];
+    root.querySelectorAll('[data-cp-guide-row]').forEach(function (row) {
+      var urlInput = row.querySelector('[data-cp-guide-url]');
+      var titleInput = row.querySelector('[data-cp-guide-title]');
+      var url = normalizePortalCanvasDocUrl(urlInput ? urlInput.value : '');
+      if (!url) return;
+      out.push({
+        url: url,
+        title: String((titleInput && titleInput.value) || 'Project guide').trim().slice(0, 120) || 'Project guide'
+      });
+    });
+    return out.slice(0, MAX_PORTAL_GUIDES);
+  }
+
+  function renumberCpGuideRows(listEl) {
+    if (!listEl) return;
+    listEl.querySelectorAll('[data-cp-guide-row]').forEach(function (row, i) {
+      var label = row.querySelector('.cp-guide-row-head strong');
+      if (label) label.textContent = 'Guide ' + (i + 1);
+    });
+  }
+
+  function addCpGuideRow() {
+    var list = document.getElementById('cp-guides-list');
+    if (!list) return;
+    if (list.querySelectorAll('[data-cp-guide-row]').length >= MAX_PORTAL_GUIDES) {
+      setCpFeedback('guide', 'Maximum ' + MAX_PORTAL_GUIDES + ' guides per client.', true);
+      return;
+    }
+    list.insertAdjacentHTML(
+      'beforeend',
+      renderCpGuideRowHtml({ url: '', title: 'Project guide' }, list.children.length)
+    );
+    renumberCpGuideRows(list);
+  }
+
+  function removeCpGuideRow(btn) {
+    var row = btn && btn.closest ? btn.closest('[data-cp-guide-row]') : null;
+    var list = document.getElementById('cp-guides-list');
+    if (!row || !list) return;
+    if (list.querySelectorAll('[data-cp-guide-row]').length <= 1) {
+      var urlInput = row.querySelector('[data-cp-guide-url]');
+      var titleInput = row.querySelector('[data-cp-guide-title]');
+      if (urlInput) urlInput.value = '';
+      if (titleInput) titleInput.value = 'Project guide';
+      return;
+    }
+    row.remove();
+    renumberCpGuideRows(list);
   }
 
   function renderCpShowMaintPortalHtml(hub) {
@@ -2686,7 +2843,7 @@
     );
   }
 
-  function buildCpCollapsibleSection(sectionId, title, tabId, bodyHtml, summary, expanded) {
+  function buildCpCollapsibleSection(sectionId, title, tabId, bodyHtml, summary, expanded, titleBadgeHtml) {
     var isOpen = expanded === true;
     var panelId = 'cp-section-panel-' + sectionId;
     var tabLink = tabId
@@ -2696,9 +2853,12 @@
       '<section class="cp-section cp-section--collapsible' + (isOpen ? ' is-expanded' : '') + '" data-cp-section="' + esc(sectionId) + '">' +
       '<div class="cp-section-header">' +
       '<button type="button" class="cp-section-toggle" data-cp-action="toggle-section" aria-expanded="' + (isOpen ? 'true' : 'false') + '" aria-controls="' + panelId + '">' +
-      '<ion-icon name="chevron-down-outline" class="cp-section-chevron" aria-hidden="true"></ion-icon>' +
+      '<span class="cp-section-chevron" aria-hidden="true"></span>' +
       '<span class="cp-section-toggle-text">' +
-      '<span class="cp-section-toggle-title">' + esc(title) + '</span>' +
+      '<span class="cp-section-toggle-title">' +
+      esc(title) +
+      (titleBadgeHtml || '') +
+      '</span>' +
       (summary ? '<span class="cp-section-toggle-summary">' + esc(summary) + '</span>' : '') +
       '</span></button>' +
       tabLink +
@@ -2847,20 +3007,43 @@
       '<div class="cp-section-actions">' +
       '<p class="cp-section-feedback" data-cp-feedback="portal" role="status"></p></div>';
 
+    var hubGuides = normalizePortalGuides(hub);
+    var guideStatus = hubGuides.length
+      ? '<div class="cp-guide-status is-set" role="status">' +
+        '<ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>' +
+        '<div><strong>' +
+        hubGuides.length +
+        (hubGuides.length === 1 ? ' guide linked' : ' guides linked') +
+        '</strong>' +
+        '<ul class="cp-guide-status-list">' +
+        hubGuides
+          .map(function (g) {
+            return (
+              '<li><span class="cp-guide-status-title">' +
+              esc(g.title || 'Project guide') +
+              '</span> · <code>' +
+              esc(g.url) +
+              '</code></li>'
+            );
+          })
+          .join('') +
+        '</ul>' +
+        '<p class="form-hint">Each guide appears as its own section in the client portal.</p></div></div>'
+      : '<div class="cp-guide-status is-empty" role="status">' +
+        '<ion-icon name="document-outline" aria-hidden="true"></ion-icon>' +
+        '<div><strong>No guide files yet</strong>' +
+        '<p class="form-hint">Add one or more paths below and click Save docs &amp; guides. There is no upload — each <code>.md</code> must already live in the repo.</p></div></div>';
     var guideBody =
-      '<div class="form-group"><label for="cp-portal-canvas-doc">Guide file (private)</label>' +
-      '<input id="cp-portal-canvas-doc" class="form-input" type="text" value="' +
-      esc(hub.portalCanvasDocUrl || '') +
-      '" placeholder="/assets/docs/projects/rizo-features-guide.md">' +
-      '<p class="form-hint">Path to a <code>.md</code> or <code>.pdf</code> in <code>/assets/docs/projects/</code>. Shown only in this client&apos;s portal — not on the public site. No portfolio link required.</p></div>' +
-      '<div class="form-group"><label for="cp-portal-canvas-title">Guide section title</label>' +
-      '<input id="cp-portal-canvas-title" class="form-input" type="text" maxlength="120" value="' +
-      esc(hub.portalCanvasDocTitle || 'Project guide') +
-      '" placeholder="New features guide">' +
-      '<p class="form-hint">Heading above the guide in the client portal (e.g. &ldquo;New features guide&rdquo;).</p></div>' +
+      guideStatus +
+      '<p class="form-hint">Private client-only docs under <code>/assets/docs/projects/</code>. Not shown on the public site. No portfolio link required.</p>' +
+      renderCpGuidesListHtml(hubGuides) +
       '<div class="cp-section-actions">' +
-      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-guide">Save docs &amp; guide</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="add-guide-row">Add another guide</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-guide">Save docs &amp; guides</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="guide" role="status"></p></div>';
+    var guideTitleBadge = hubGuides.length
+      ? '<span class="cp-section-status-pill is-set">' + hubGuides.length + ' added</span>'
+      : '<span class="cp-section-status-pill is-empty">Missing</span>';
 
     var maintPendingBlock =
       maint && maint.effectivePlanStatus === 'pending'
@@ -2982,7 +3165,7 @@
     workspace.innerHTML =
       buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub')) +
       buildCpCollapsibleSection('portal', 'Client portal', null, portalBody, cpSectionSummary('portal', sectionCtx), isCpSectionExpanded(hub.id, 'portal')) +
-      buildCpCollapsibleSection('guide', 'Docs & guide', null, guideBody, cpSectionSummary('guide', sectionCtx), isCpSectionExpanded(hub.id, 'guide')) +
+      buildCpCollapsibleSection('guide', 'Docs & guides', null, guideBody, cpSectionSummary('guide', sectionCtx), isCpSectionExpanded(hub.id, 'guide'), guideTitleBadge) +
       buildCpCollapsibleSection('maintenance', 'Maintenance & SLA', null, maintBody, cpSectionSummary('maintenance', sectionCtx), isCpSectionExpanded(hub.id, 'maintenance')) +
       buildCpCollapsibleSection('health', 'Firebase Health', null, healthBody, cpSectionSummary('health', sectionCtx), isCpSectionExpanded(hub.id, 'health')) +
       buildCpCollapsibleSection('pipeline', 'Pipeline & deal', 'pipeline', pipelineBody, cpSectionSummary('pipeline', sectionCtx), isCpSectionExpanded(hub.id, 'pipeline')) +
@@ -3071,10 +3254,9 @@
       milestones: root ? collectCpMilestonesFromWorkspace(root) : existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
-      portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
-      portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
       updatedAt: ts()
     };
+    Object.assign(payload, copyPortalGuideFields(existing));
     try {
       await saveProjectHubRecord(hubId, payload, false);
       setCpFeedback('hub', 'Hub saved.', false);
@@ -3091,6 +3273,7 @@
     if (!hubId || !rtdbReady()) return;
     var existing = getHubById(hubId);
     if (!existing) return;
+    var guideFields = portalGuideFieldsFromList(collectPortalGuidesFromWorkspace());
     var payload = {
       leadId: existing.leadId,
       clientName: existing.clientName,
@@ -3105,17 +3288,23 @@
       milestones: existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
-      portalCanvasDocUrl: normalizePortalCanvasDocUrl(
-        (document.getElementById('cp-portal-canvas-doc') || {}).value
-      ),
-      portalCanvasDocTitle: String(
-        (document.getElementById('cp-portal-canvas-title') || {}).value || 'Project guide'
-      ).trim().slice(0, 120),
+      portalGuides: guideFields.portalGuides,
+      portalCanvasDocUrl: guideFields.portalCanvasDocUrl,
+      portalCanvasDocTitle: guideFields.portalCanvasDocTitle,
       updatedAt: ts()
     };
     try {
       await saveProjectHubRecord(hubId, payload, false);
-      setCpFeedback('guide', 'Docs & guide saved — refresh the client portal to see changes.', false);
+      var n = guideFields.portalGuides.length;
+      setCpFeedback(
+        'guide',
+        (n === 0
+          ? 'Docs & guides cleared'
+          : n === 1
+            ? '1 guide saved'
+            : n + ' guides saved') + ' — refresh the client portal to see changes.',
+        false
+      );
       renderClientProjectsWorkspace();
     } catch (err) {
       console.error(err);
@@ -3142,10 +3331,9 @@
       milestones: existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
-      portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
-      portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
       updatedAt: ts()
     };
+    Object.assign(payload, copyPortalGuideFields(existing));
     await saveProjectHubRecord(hubId, payload, false);
   }
 
@@ -3314,10 +3502,9 @@
       milestones: existing.milestones,
       enabledModules: existing.enabledModules,
       showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
-      portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
-      portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
       updatedAt: ts()
     };
+    Object.assign(payload, copyPortalGuideFields(existing));
     await saveProjectHubRecord(hubId, payload, false);
     if (clientProjectsSelectedId === hubId) {
       setCpFeedback('portfolio', 'Client showcase created and linked.', false);
@@ -3349,10 +3536,9 @@
       milestones: existing.milestones,
       enabledModules: existing.enabledModules,
       showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
-      portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
-      portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
       updatedAt: ts()
     };
+    Object.assign(payload, copyPortalGuideFields(existing));
     try {
       await saveProjectHubRecord(hubId, payload, false);
       setCpFeedback('portfolio', 'Showcase link saved — refresh the client portal to see changes.', false);
@@ -3394,10 +3580,9 @@
       milestones: existing.milestones,
       enabledModules: existing.enabledModules,
       showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
-      portalCanvasDocUrl: existing.portalCanvasDocUrl || '',
-      portalCanvasDocTitle: existing.portalCanvasDocTitle || 'Project guide',
       updatedAt: ts()
     };
+    Object.assign(payload, copyPortalGuideFields(existing));
     try {
       await saveProjectHubRecord(hubId, payload, false);
       setCpFeedback('portfolio', 'Showcase unlinked — refresh the client portal to see changes.', false);
@@ -3486,6 +3671,14 @@
     }
     if (action === 'save-guide') {
       saveGuideFromClientWorkspace().catch(console.error);
+      return;
+    }
+    if (action === 'add-guide-row') {
+      addCpGuideRow();
+      return;
+    }
+    if (action === 'remove-guide-row') {
+      removeCpGuideRow(el);
       return;
     }
     if (action === 'save-maint') {

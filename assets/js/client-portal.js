@@ -663,9 +663,38 @@
     }
   }
 
+  function normalizePortalGuides(row) {
+    row = row || {};
+    var out = [];
+    var seen = {};
+    function pushGuide(url, title) {
+      var normalized =
+        window.PortfolioDetailShared && window.PortfolioDetailShared.normalizeCanvasDocUrl
+          ? window.PortfolioDetailShared.normalizeCanvasDocUrl(url)
+          : String(url || '').trim();
+      if (!normalized || seen[normalized]) return;
+      seen[normalized] = true;
+      out.push({
+        url: normalized.slice(0, 500),
+        title: String(title || 'Project guide').trim().slice(0, 120) || 'Project guide'
+      });
+    }
+    if (Array.isArray(row.portalGuides)) {
+      row.portalGuides.forEach(function (g) {
+        if (!g || typeof g !== 'object') return;
+        pushGuide(g.url || g.portalCanvasDocUrl, g.title || g.portalCanvasDocTitle);
+      });
+    }
+    if (!out.length && row.portalCanvasDocUrl) {
+      pushGuide(row.portalCanvasDocUrl, row.portalCanvasDocTitle);
+    }
+    return out.slice(0, 8);
+  }
+
   function normalizeProject(id, row) {
     row = row || {};
     var milestones = Array.isArray(row.milestones) ? row.milestones : [];
+    var guides = normalizePortalGuides(row);
     return {
       id: id,
       clientName: String(row.clientName || '').slice(0, 120),
@@ -673,8 +702,9 @@
       expoUrl: String(row.expoUrl || '').slice(0, 500),
       portfolioProjectId: String(row.portfolioProjectId || '').slice(0, 80),
       businessDocId: String(row.businessDocId || '').slice(0, 80),
-      portalCanvasDocUrl: String(row.portalCanvasDocUrl || '').slice(0, 500),
-      portalCanvasDocTitle: String(row.portalCanvasDocTitle || 'Project guide').slice(0, 120),
+      portalGuides: guides,
+      portalCanvasDocUrl: guides[0] ? guides[0].url : '',
+      portalCanvasDocTitle: guides[0] ? guides[0].title : 'Project guide',
       showMaintenanceInPortal: row.showMaintenanceInPortal !== false,
       milestones: milestones.map(function (m, i) {
         return {
@@ -1263,23 +1293,32 @@
     });
   }
 
-  function applyHubPortalCanvas(detailRecord, hubRow, project) {
-    if (!hubRow || !hubRow.portalCanvasDocUrl || !window.PortfolioDetailShared) {
-      return detailRecord;
+  function collectPortalGuides(hubRow, project) {
+    if (project && Array.isArray(project.portalGuides) && project.portalGuides.length) {
+      return project.portalGuides;
     }
-    var url = window.PortfolioDetailShared.normalizeCanvasDocUrl(hubRow.portalCanvasDocUrl);
-    if (!url) return detailRecord;
-    var base = detailRecord || {
-      title: (project && (project.title || project.clientName)) || 'Your project',
-      description: ''
-    };
-    return Object.assign({}, base, {
-      canvasDocUrl: url,
-      canvasDocTitle: String(hubRow.portalCanvasDocTitle || base.canvasDocTitle || 'Project guide').slice(
-        0,
-        120
-      )
-    });
+    return normalizePortalGuides(hubRow || project || {});
+  }
+
+  function renderGuideSectionsHtml(guides, baseRecord) {
+    if (!guides.length || !window.PortfolioDetailShared) return '';
+    return guides
+      .map(function (guide) {
+        var record = Object.assign({}, baseRecord || {}, {
+          canvasDocUrl: guide.url,
+          canvasDocTitle: guide.title
+        });
+        return wrapGuideSection(
+          window.PortfolioDetailShared.renderPortfolioDetailHtml(record, {
+            hideBuyButtons: true,
+            hideQuoteButton: true,
+            showLiveButton: false,
+            guideOnly: true
+          }),
+          guide.title
+        );
+      })
+      .join('');
   }
 
   function renderNoShowcaseMessage(project, detailOptions) {
@@ -1333,11 +1372,12 @@
     });
   }
 
-  function renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase, contractSignatures) {
+  function renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase, contractSignatures, portalGuides) {
     businessDocs = businessDocs || [];
     portalCtx = portalCtx || {};
     contractSignatures = contractSignatures || {};
     detailOptions = detailOptions || {};
+    portalGuides = Array.isArray(portalGuides) ? portalGuides : [];
     window.portalBusinessDocsById = {};
     businessDocs.forEach(function (d) {
       if (d && d.id) window.portalBusinessDocsById[d.id] = d;
@@ -1345,12 +1385,11 @@
     window.portalContractSignaturesById = contractSignatures;
     var brand = renderBrandHeader(project, detailRecord, detailOptions);
 
-    var guideUrl =
-      detailRecord && window.PortfolioDetailShared
-        ? window.PortfolioDetailShared.normalizeCanvasDocUrl(detailRecord.canvasDocUrl)
-        : '';
-    var hasGuide = !!guideUrl;
-    var guideTitle = (detailRecord && detailRecord.canvasDocTitle) || 'Docs & guide';
+    var hasGuide = portalGuides.length > 0;
+    var guideBase = detailRecord || {
+      title: (project && (project.title || project.clientName)) || 'Your project',
+      description: ''
+    };
 
     var showcaseOptions = Object.assign({}, detailOptions, {
       omitCanvasDoc: true,
@@ -1364,18 +1403,7 @@
     }
     showcaseHtml = wrapShowcaseSection(showcaseHtml);
 
-    var guideHtml = '';
-    if (hasGuide && detailRecord && window.PortfolioDetailShared) {
-      guideHtml = wrapGuideSection(
-        window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, {
-          hideBuyButtons: true,
-          hideQuoteButton: true,
-          showLiveButton: false,
-          guideOnly: true
-        }),
-        guideTitle
-      );
-    }
+    var guideHtml = renderGuideSectionsHtml(portalGuides, guideBase);
 
     var docsSection = renderBusinessDocumentsSection(businessDocs, contractSignatures);
     var supportSection =
@@ -1386,6 +1414,8 @@
     inner.innerHTML = brand + showcaseHtml + guideHtml + docsSection + supportSection + footer;
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
+    } else if (hasGuide && window.PortfolioDetailShared) {
+      window.PortfolioDetailShared.initPortfolioDetailPage(inner, guideBase, { guideOnly: true });
     }
     bindShowcaseCollapse(inner);
     bindPortalSignButtons(inner, portalCtx);
@@ -1448,11 +1478,8 @@
       var detailRecord = showcaseRaw
         ? window.PortfolioDetailShared.normalizePortfolioDetailRecord(showcaseRaw, showcaseRaw.id)
         : null;
-      detailRecord = applyHubPortalCanvas(detailRecord, hubRow, project);
-      var guideOnly =
-        !hasShowcase &&
-        detailRecord &&
-        window.PortfolioDetailShared.normalizeCanvasDocUrl(detailRecord.canvasDocUrl);
+      var portalGuides = collectPortalGuides(hubRow, project);
+      var guideOnly = !hasShowcase && portalGuides.length > 0;
       var detailOptions = {
         hideBuyButtons: true,
         hideQuoteButton: true,
@@ -1487,7 +1514,18 @@
         maintId: maint ? maint.id : '',
         token: token
       };
-      renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase, contractSignatures);
+      renderProjectPage(
+        inner,
+        project,
+        detailRecord,
+        detailOptions,
+        businessDocs,
+        maint,
+        portalCtx,
+        hasShowcase,
+        contractSignatures,
+        portalGuides
+      );
       document.title = (project.clientName || project.title || 'Your project') + ' — CodeWithRuben';
     } catch (err) {
       console.error(err);
