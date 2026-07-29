@@ -335,7 +335,12 @@ article.active {
 }
 
 article.active:not(.home) {
-  animation: cardReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* backwards (not both): once the entrance finishes, transform must drop back
+     to none. A lingering identity transform (matrix(1,0,0,1,0,0)) from a "both"
+     fill-mode makes this article the containing block for any position:fixed
+     descendant (blog modal, admin drawers, etc.), so those overlays end up
+     sized/positioned relative to the article's box instead of the viewport. */
+  animation: cardReveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 /* Admin mobile bottom tab bar — anchors to viewport, not the article.
