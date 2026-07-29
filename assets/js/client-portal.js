@@ -50,6 +50,7 @@
   ];
 
   var portalDmSubscription = null;
+  var portalDmFabMetaUnsub = null;
 
   function esc(s) {
     if (s == null) return '';
@@ -494,6 +495,21 @@
     grabber.addEventListener('pointercancel', endDrag);
   }
 
+  function updatePortalDmFabBadge(fab, count) {
+    if (!fab) return;
+    var badge = fab.querySelector('.portal-dm-fab-badge');
+    if (count > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'portal-dm-fab-badge';
+        fab.appendChild(badge);
+      }
+      badge.textContent = count > 9 ? '9+' : String(count);
+    } else if (badge) {
+      badge.remove();
+    }
+  }
+
   function mountPortalDmChrome(project, ctx) {
     if (!isPortalDmAvailable()) return;
     var existingFab = document.getElementById('portal-dm-fab');
@@ -501,6 +517,10 @@
     var existingRoot = document.getElementById('portal-dm-sheet-root');
     if (existingRoot) existingRoot.remove();
     stopPortalDmSubscription();
+    if (typeof portalDmFabMetaUnsub === 'function') {
+      portalDmFabMetaUnsub();
+      portalDmFabMetaUnsub = null;
+    }
 
     var prefillName = project.clientName || project.title || '';
     var fab = document.createElement('button');
@@ -521,6 +541,15 @@
     var saved = DM.readCustomerSession();
     if (saved && saved.conversationId) {
       window.portalDmSession = saved;
+      // Peek at unread count without subscribing to the thread itself — the thread
+      // subscription (see subscribeCustomerThread) marks messages as read as a side
+      // effect, which would clear the badge before the client ever opens the sheet.
+      if (window.rtdbOnValue && DM.rtdbMetaRef) {
+        portalDmFabMetaUnsub = window.rtdbOnValue(DM.rtdbMetaRef(saved.conversationId), function (snap) {
+          var meta = snap.val() || {};
+          updatePortalDmFabBadge(fab, Number(meta.unreadCustomer || 0));
+        });
+      }
       // Belt-and-suspenders: a session restored from localStorage may predate this
       // project, come from a flow that never captured a real name, or already carry
       // the generic "Customer" placeholder — any of which bakes that same generic
@@ -814,6 +843,40 @@
     );
   }
 
+  function renderStatusSummaryStrip(project) {
+    var milestones = project.milestones || [];
+    var total = milestones.length;
+    if (!total) return '';
+    var done = milestones.filter(function (m) { return m.done; }).length;
+    var pct = Math.round((done / total) * 100);
+    var next = milestones.find(function (m) { return !m.done; });
+    var isDone = done === total;
+    var phaseLabel = isDone ? 'Complete' : done === 0 ? 'Getting started' : 'In progress';
+
+    return (
+      '<div class="client-portal-summary">' +
+      '<div class="client-portal-summary-top">' +
+      '<span class="client-portal-summary-pill' +
+      (isDone ? ' client-portal-summary-pill--done' : '') +
+      '">' +
+      esc(phaseLabel) +
+      '</span>' +
+      '<span class="client-portal-summary-count">' +
+      done +
+      ' of ' +
+      total +
+      ' milestones</span>' +
+      '</div>' +
+      '<div class="client-portal-summary-bar"><div class="client-portal-summary-bar-fill" style="width:' +
+      pct +
+      '%"></div></div>' +
+      '<p class="client-portal-summary-next">' +
+      (next ? 'Next: ' + esc(next.label) : 'All milestones complete') +
+      '</p>' +
+      '</div>'
+    );
+  }
+
   function renderBrandHeader(project, detailRecord, options) {
     return (
       '<div class="client-portal-brand">' +
@@ -821,6 +884,7 @@
       esc(project.clientName || project.title || 'Your project') +
       '</h1>' +
       '<p class="client-portal-tagline">CodeWithRuben client portal</p>' +
+      renderStatusSummaryStrip(project) +
       renderProjectVisitLinks(project, detailRecord, options) +
       '</div>'
     );
@@ -1411,7 +1475,11 @@
         ? renderMaintenanceSupportSection(maint, project)
         : '';
     var footer = renderStatusFooter(project);
-    inner.innerHTML = brand + showcaseHtml + guideHtml + docsSection + supportSection + footer;
+    inner.innerHTML =
+      brand +
+      showcaseHtml +
+      guideHtml +
+      '<div class="client-portal-grid">' + docsSection + supportSection + footer + '</div>';
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
     } else if (hasGuide && window.PortfolioDetailShared) {

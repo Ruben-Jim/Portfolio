@@ -100,6 +100,69 @@ body.client-portal-page {
   margin-top: 16px;
 }
 
+/* Quick-glance status strip in the header */
+.client-portal-summary {
+  max-width: 420px;
+  margin: 16px auto 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  background: hsla(240, 2%, 14%, 0.85);
+  text-align: left;
+}
+
+.client-portal-summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.client-portal-summary-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--orange-yellow-crayola);
+  border: 1px solid hsla(45, 100%, 72%, 0.3);
+  background: hsla(45, 100%, 72%, 0.1);
+}
+
+.client-portal-summary-pill--done {
+  color: hsl(140, 55%, 65%);
+  border-color: hsla(140, 45%, 50%, 0.35);
+  background: hsla(140, 45%, 45%, 0.1);
+}
+
+.client-portal-summary-count {
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.client-portal-summary-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--jet);
+  overflow: hidden;
+}
+
+.client-portal-summary-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--orange-yellow-crayola);
+  transition: width 0.3s ease;
+}
+
+.client-portal-summary-next {
+  margin: 8px 0 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+}
+
 .client-portal-empty-showcase-lead {
   margin: 10px 0 0;
   color: var(--light-gray-70);
@@ -1315,6 +1378,25 @@ body.client-portal-page {
   outline-offset: 3px;
 }
 
+.portal-dm-fab-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 2px solid var(--smoky-black);
+  background: hsl(0, 72%, 58%);
+  color: var(--white-1);
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  line-height: 1;
+}
+
 body.portal-dm-sheet-open .portal-dm-fab {
   opacity: 0;
   pointer-events: none;
@@ -1829,5 +1911,26 @@ body.portal-dm-sheet-open {
 @media (min-width: 1400px) {
   .client-portal-inner {
     max-width: min(92vw, 1360px);
+  }
+}
+
+/* Secondary sections (docs, support, status) as a grid on wide screens
+   instead of one long stacked column */
+@media (min-width: 900px) {
+  .client-portal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 20px;
+  }
+
+  .client-portal-grid > .client-portal-docs-footer,
+  .client-portal-grid > .client-portal-support-footer,
+  .client-portal-grid > .client-portal-status-footer {
+    margin: 0;
+  }
+
+  .client-portal-grid > .client-portal-status-footer {
+    grid-column: 1 / -1;
   }
 }
