@@ -11128,6 +11128,24 @@ body.project-modal-open {
   transform: scale(1.02);
 }
 
+.blog-modal-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 28px 20px 10px;
+  background: linear-gradient(0deg, hsla(0, 0%, 0%, 0.65) 0%, hsla(0, 0%, 0%, 0) 100%);
+  color: var(--light-gray);
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.blog-modal-caption[hidden] {
+  display: none;
+}
+
 .blog-modal-content {
   padding: 40px;
   flex: 1;
@@ -11173,8 +11191,51 @@ body.project-modal-open {
   font-size: 32px;
   font-weight: 700;
   line-height: 1.2;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   letter-spacing: -0.025em;
+}
+
+.blog-modal-byline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  color: var(--light-gray);
+  font-size: 13px;
+}
+
+.blog-modal-byline .dot {
+  width: 4px;
+  height: 4px;
+  background: var(--light-gray);
+  border-radius: 50%;
+}
+
+.blog-modal-byline .dot[hidden] {
+  display: none;
+}
+
+.blog-modal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--jet);
+}
+
+.blog-modal-tags[hidden] {
+  display: none;
+}
+
+.blog-modal-tag {
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--onyx);
+  border: 1px solid var(--jet);
+  color: var(--light-gray);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .blog-modal-text {
@@ -12380,6 +12441,54 @@ body.project-modal-open {
   margin-bottom: 10px;
   font-size: 14px;
   letter-spacing: 0.02em;
+}
+
+/* Blog post editor: content + toolbar on the left, grouped settings in a sidebar.
+   Uses a container query (keyed to .blog-post-form's own rendered width) rather
+   than a viewport media query, since this modal renders as a fixed-width desktop
+   drawer, a viewport-relative drawer, or a mobile bottom sheet depending on
+   breakpoint — the two-column split should react to the space it actually has. */
+.blog-post-form {
+  container-type: inline-size;
+  container-name: blog-post-editor;
+}
+
+.blog-post-editor-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.blog-post-editor-main {
+  min-width: 0;
+}
+
+.blog-post-editor-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.blog-post-editor-sidebar .blog-editor-section {
+  margin-top: 0;
+}
+
+.blog-post-editor-sidebar .form-group:last-child {
+  margin-bottom: 0;
+}
+
+@container blog-post-editor (min-width: 760px) {
+  .blog-post-editor-layout {
+    grid-template-columns: minmax(0, 1fr) 300px;
+  }
+
+  .blog-post-editor-sidebar {
+    position: sticky;
+    top: 0;
+  }
 }
 
 .add-blog-modal .form-group label {
@@ -23688,6 +23797,10 @@ body.lead-drawer-open {
   #portfolio-project-modal.active .add-blog-content,
   .portfolio-project-modal-content.add-blog-content {
     width: min(720px, 94vw);
+  }
+
+  .blog-post-modal-content.add-blog-content {
+    width: min(1040px, 94vw);
   }
 
   .add-blog-modal.fullscreen-editor.active .add-blog-content {

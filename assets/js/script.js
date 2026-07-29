@@ -344,6 +344,11 @@ const blogModalCategory = document.querySelector("[data-blog-modal-category]");
 const blogModalDate = document.querySelector("[data-blog-modal-date]");
 const blogModalTitle = document.querySelector("[data-blog-modal-title]");
 const blogModalText = document.querySelector("[data-blog-modal-text]");
+const blogModalCaption = document.querySelector("[data-blog-modal-caption]");
+const blogModalAuthor = document.querySelector("[data-blog-modal-author]");
+const blogModalReadTime = document.querySelector("[data-blog-modal-readtime]");
+const blogModalBylineDot = document.querySelector("[data-blog-modal-byline-dot]");
+const blogModalTags = document.querySelector("[data-blog-modal-tags]");
 
 // blog modal toggle function
 const blogModalFunc = function () {
@@ -431,12 +436,43 @@ function isBlogPostVisible(post) {
 // Opens the blog reader modal with the given post's content
 function openBlogReader(post) {
   blogModalImage.src = post.image;
-  blogModalImage.alt = post.title;
+  blogModalImage.alt = post.imageAlt || post.title;
   blogModalCategory.innerHTML = post.category;
   blogModalDate.innerHTML = formatDate(post.date);
   blogModalDate.setAttribute('datetime', post.date);
   blogModalTitle.innerHTML = post.title;
   blogModalText.innerHTML = post.content;
+
+  if (blogModalCaption) {
+    var captionText = post.imageCaption || '';
+    blogModalCaption.textContent = captionText;
+    blogModalCaption.hidden = !captionText;
+  }
+
+  if (blogModalAuthor) {
+    blogModalAuthor.textContent = post.authorName || 'Ruben Jimenez';
+  }
+  var hasReadTime = !!post.readTimeMinutes;
+  if (blogModalReadTime) {
+    blogModalReadTime.textContent = hasReadTime ? (post.readTimeMinutes + ' min read') : '';
+    blogModalReadTime.hidden = !hasReadTime;
+  }
+  if (blogModalBylineDot) {
+    blogModalBylineDot.hidden = !hasReadTime;
+  }
+
+  if (blogModalTags) {
+    var tags = Array.isArray(post.tags) ? post.tags.filter(Boolean) : [];
+    blogModalTags.innerHTML = '';
+    tags.forEach(function (tag) {
+      var pill = document.createElement('span');
+      pill.className = 'blog-modal-tag';
+      pill.textContent = tag;
+      blogModalTags.appendChild(pill);
+    });
+    blogModalTags.hidden = tags.length === 0;
+  }
+
   blogModalFunc();
 }
 
