@@ -183,8 +183,32 @@ window.PORTFOLIO_ASSET_IMAGES = (function () {
     '/assets/images/projects/project-sheltonsprings1.png',
     '/assets/images/projects/project-rosasalon1.png',
     '/assets/images/projects/project-gadgetgarage2.png',
-    '/assets/images/projects/project-homeverse2.png'
-    // Add screen recordings here, e.g. '/assets/images/projects/project-lawncare-demo.mp4'
+    '/assets/images/projects/project-homeverse2.png',
+    // Project folders — add new files here so they appear in admin “From repo”
+    '/assets/images/projects/dls/dls-video.mp4',
+    '/assets/images/projects/realtor-template/admin-clients.png',
+    '/assets/images/projects/realtor-template/admin-dashboard.png',
+    '/assets/images/projects/realtor-template/admin-docs.png',
+    '/assets/images/projects/realtor-template/admin-leads.png',
+    '/assets/images/projects/realtor-template/admin-policies.png',
+    '/assets/images/projects/realtor-template/admin-properties-details.png',
+    '/assets/images/projects/realtor-template/admin-properties.png',
+    '/assets/images/projects/realtor-template/client-dashboard.png',
+    '/assets/images/projects/realtor-template/client-dm.png',
+    '/assets/images/projects/realtor-template/client-policies.png',
+    '/assets/images/projects/realtor-template/client-propeties.png',
+    '/assets/images/projects/realtor-template/clients-docs.png',
+    '/assets/images/projects/realtor-template/clients-payments.png',
+    '/assets/images/projects/realtor-template/home-desktop.png',
+    '/assets/images/projects/realtor-template/home-hero-desktop.png',
+    '/assets/images/projects/realtor-template/insurance-plans.png',
+    '/assets/images/projects/realtor-template/listing-desktop.png',
+    '/assets/images/projects/realtor-template/listing-details-desktop.png',
+    '/assets/images/projects/realtor-template/listing-details-mobile.png',
+    '/assets/images/projects/realtor-template/login.png',
+    '/assets/images/projects/realtor-template/quote-review.png',
+    '/assets/images/projects/realtor-template/quote-step1.png',
+    '/assets/images/projects/realtor-template/quote-success.png'
   ].forEach(add);
   return list.sort();
 })();

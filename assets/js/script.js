@@ -3036,7 +3036,10 @@ function portfolioExtractAssetImagePath(url) {
   var s = portfolioCleanImageUrlInput(url);
   if (!s) return '';
   var match = s.match(
-    new RegExp('assets/images/[A-Za-z0-9._-]+\\.' + PORTFOLIO_ASSET_MEDIA_EXT, 'i')
+    new RegExp(
+      'assets/images/(?:[A-Za-z0-9._-]+/)*[A-Za-z0-9._-]+\\.' + PORTFOLIO_ASSET_MEDIA_EXT,
+      'i'
+    )
   );
   if (!match) return '';
   var file = match[0].slice('assets/images/'.length).toLowerCase();

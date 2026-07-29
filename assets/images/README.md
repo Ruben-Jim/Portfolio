@@ -4,6 +4,7 @@ Use local image files under `assets/images` for all portfolio content.
 
 ## Folder structure
 - `assets/images/projects/` for project cards and gallery slides.
+- `assets/images/projects/<slug>/` optional per-project folder (screenshots + demos for one app).
 - `assets/images/blog/` for blog post cover images.
 - `assets/images/logo/` for favicon, brand logos, and client logos.
 - `assets/images/avatar/` for profile and testimonial avatars.
@@ -15,10 +16,25 @@ Use local image files under `assets/images` for all portfolio content.
 - Keep exact file casing in references (`logo.svg` vs `Logo.svg`).
 
 ## Naming convention
-- Projects: `project-<slug>.webp` (or `.png` if needed)
+- Projects (flat): `project-<slug>.webp` (or `.png` if needed)
+- Projects (folder): `assets/images/projects/<slug>/<screen>.png` — e.g. `realtor-template/login.png`, `dls/dls-video.mp4`
 - Blog: `blog-<number>.jpg` (or `.webp`)
 - Logos: `logo-<variant>.png` and `logo.svg`
 - Avatars: `avatar-<number>.png` or descriptive names like `my-avatar.png`
+
+## Admin “From repo” picker (required step)
+
+Putting files on disk is **not** enough for the Portfolio admin dropdown. Register each path in `PORTFOLIO_ASSET_IMAGES` inside [`assets/js/portfolio-built-in-data.js`](../js/portfolio-built-in-data.js).
+
+Example for a new folder `assets/images/projects/my-app/`:
+
+```js
+'/assets/images/projects/my-app/home.webp',
+'/assets/images/projects/my-app/admin.webp',
+'/assets/images/projects/my-app/demo.mp4',
+```
+
+Then hard-refresh `/admin/`, open **Add / Edit portfolio project**, and pick files under **From repo** (or paste the same path in **Custom URL**).
 
 ## Optimization targets
 - Card/thumb images: aim for `150-400 KB`
@@ -34,7 +50,7 @@ Use local image files under `assets/images` for all portfolio content.
 
 ## Screen recordings (portfolio slideshow)
 
-Store MP4 demos alongside project screenshots under `assets/images/projects/`.
+Store MP4 demos alongside project screenshots under `assets/images/projects/` or `assets/images/projects/<slug>/`.
 
 ### Record on Mac
 - **Cmd+Shift+5 → Record Selected Portion** — crop to the browser window, not full Retina desktop.
@@ -71,13 +87,13 @@ ffmpeg -i assets/images/projects/project-<slug>-demo.mp4 \
 - Poster: `project-<slug>-demo-poster.webp`
 - Admin path: `/assets/images/projects/project-<slug>-demo.mp4`
 
-Add new `.mp4` paths to `PORTFOLIO_ASSET_IMAGES` in [`assets/js/portfolio-built-in-data.js`](../js/portfolio-built-in-data.js) so they appear in the admin asset picker.
+Add new image/video paths to `PORTFOLIO_ASSET_IMAGES` in [`assets/js/portfolio-built-in-data.js`](../js/portfolio-built-in-data.js) so they appear in the admin asset picker.
 
 ## Upload checklist
-1. Put the file in the correct subfolder.
+1. Put the file in `assets/images/projects/` or `assets/images/projects/<slug>/`.
 2. Rename file to follow the naming pattern.
 3. Compress/optimize before committing.
-4. Reference with `/assets/images/...` path.
+4. Add the `/assets/images/...` path to `PORTFOLIO_ASSET_IMAGES` in `portfolio-built-in-data.js`.
 5. Verify media loads on:
    - `/` (public site)
    - `/admin/` (admin dashboard)
