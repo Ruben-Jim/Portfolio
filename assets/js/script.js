@@ -2227,7 +2227,11 @@ function openEditBlogModal(postId) {
   // Populate form fields
   document.getElementById('edit-blog-id').value = post.id;
   document.getElementById('edit-blog-title').value = post.title;
-  document.getElementById('edit-blog-category').value = post.category;
+  var editCategoryEl = document.getElementById('edit-blog-category');
+  if (editCategoryEl) {
+    editCategoryEl.value = post.category;
+    if (typeof window.syncBusinessDocSelectUI === 'function') window.syncBusinessDocSelectUI(editCategoryEl);
+  }
   document.getElementById('edit-blog-date').value = post.date;
   document.getElementById('edit-blog-image').value = post.image || '';
   document.getElementById('edit-blog-excerpt').value = post.excerpt;
@@ -2248,7 +2252,10 @@ function openEditBlogModal(postId) {
   var editTagsEl = document.getElementById('edit-blog-tags');
   if (editTagsEl) editTagsEl.value = Array.isArray(post.tags) ? post.tags.join(', ') : '';
   var editStatusEl = document.getElementById('edit-blog-status');
-  if (editStatusEl) editStatusEl.value = post.status || 'published';
+  if (editStatusEl) {
+    editStatusEl.value = post.status || 'published';
+    if (typeof window.syncBusinessDocSelectUI === 'function') window.syncBusinessDocSelectUI(editStatusEl);
+  }
   var editPublishAtEl = document.getElementById('edit-blog-publish-at');
   if (editPublishAtEl) editPublishAtEl.value = post.publishAt || '';
   
@@ -2561,7 +2568,14 @@ function openAddBlogModal() {
       dateInput.value = today;
     }
     var statusInput = document.getElementById('blog-status');
-    if (statusInput) statusInput.value = 'published';
+    if (statusInput) {
+      statusInput.value = 'published';
+      if (typeof window.syncBusinessDocSelectUI === 'function') window.syncBusinessDocSelectUI(statusInput);
+    }
+    var categoryInput = document.getElementById('blog-category');
+    if (categoryInput && typeof window.syncBusinessDocSelectUI === 'function') {
+      window.syncBusinessDocSelectUI(categoryInput);
+    }
     var authorInput = document.getElementById('blog-author');
     if (authorInput) authorInput.value = 'Ruben Jimenez';
     var slugInput = document.getElementById('blog-slug');
@@ -3328,7 +3342,18 @@ function populatePortfolioImageAssetSelect() {
   var select = document.getElementById('portfolio-project-image-asset');
   var datalist = document.getElementById('portfolio-project-image-options');
   var options = getPortfolioAssetImageOptions();
-  if (select) {
+  if (select && typeof window.setBusinessDocSelectOptions === 'function') {
+    window.setBusinessDocSelectOptions(
+      select,
+      options.map(function (path) {
+        return {
+          value: path,
+          label: path.replace(/^\/?assets\/images\//, '')
+        };
+      }),
+      { placeholder: 'Choose a file…', keepValue: true }
+    );
+  } else if (select) {
     var current = select.value;
     select.innerHTML =
       '<option value="">Choose a file…</option>' +
@@ -3361,10 +3386,11 @@ function syncPortfolioImageAssetSelectFromInput() {
   if (!select || !input) return;
   var normalized = portfolioNormalizeAssetImageUrl(input.value);
   var options = getPortfolioAssetImageOptions();
-  if (normalized && options.indexOf(normalized) >= 0) {
-    select.value = normalized;
+  var next = normalized && options.indexOf(normalized) >= 0 ? normalized : '';
+  if (typeof window.setBusinessDocSelectValue === 'function' && select.closest('.business-doc-select')) {
+    window.setBusinessDocSelectValue(select, next, true);
   } else {
-    select.value = '';
+    select.value = next;
   }
 }
 
@@ -9110,7 +9136,15 @@ window.addEventListener('load', function() {
     if (!els.form || els.form.dataset.boundClientEmail === '1') return;
     els.form.dataset.boundClientEmail = '1';
 
-    if (els.template) {
+    if (els.template && typeof window.setBusinessDocSelectOptions === 'function') {
+      window.setBusinessDocSelectOptions(
+        els.template,
+        ADMIN_CLIENT_EMAIL_TEMPLATES.map(function (tpl) {
+          return { value: tpl.id, label: tpl.label };
+        }),
+        { value: ADMIN_CLIENT_EMAIL_TEMPLATES[0].id, keepValue: false }
+      );
+    } else if (els.template) {
       els.template.innerHTML = ADMIN_CLIENT_EMAIL_TEMPLATES.map(function (tpl) {
         return '<option value="' + escHtml(tpl.id) + '">' + escHtml(tpl.label) + '</option>';
       }).join('');
@@ -9118,7 +9152,13 @@ window.addEventListener('load', function() {
 
     var draft = loadAdminClientEmailDraft();
     if (draft) {
-      if (els.template) els.template.value = draft.templateId || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
+      if (els.template) {
+        if (typeof window.setBusinessDocSelectValue === 'function') {
+          window.setBusinessDocSelectValue(els.template, draft.templateId || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id, true);
+        } else {
+          els.template.value = draft.templateId || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
+        }
+      }
       if (els.toName) els.toName.value = draft.toName || '';
       if (els.toEmail) els.toEmail.value = draft.toEmail || '';
       if (els.nextStep) els.nextStep.value = draft.nextStep || '';
@@ -10740,10 +10780,9 @@ window.addEventListener('load', function() {
   initBusinessDocPaymentScheduleControls();
 
   // ----------------------------
-  // Custom dropdown / toggle-group components (replace native <select> in the
-  // create/edit document form). Each wrapper holds a hidden <input> that stays
-  // the single source of truth other code reads/writes via `.value`, so the
-  // rest of the form logic doesn't need to know these aren't real <select>s.
+  // Custom dropdown / toggle-group components (replace native <select> across
+  // admin — same pattern as create/edit document). Each wrapper holds a hidden
+  // <input> that stays the source of truth via `.value` + change events.
   // ----------------------------
 
   function closeBusinessDocSelect(wrap) {
@@ -10767,12 +10806,19 @@ window.addEventListener('load', function() {
     if (!wrap) return;
     var label = wrap.querySelector('.business-doc-select-trigger-label');
     var options = wrap.querySelectorAll('.business-doc-select-option');
+    var matched = false;
     options.forEach(function (opt) {
       var isActive = opt.getAttribute('data-value') === hiddenInput.value;
       opt.classList.toggle('is-active', isActive);
       opt.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      if (isActive && label) label.textContent = opt.textContent;
+      if (isActive) {
+        matched = true;
+        if (label) label.textContent = opt.textContent;
+      }
     });
+    if (!matched && label && options.length) {
+      label.textContent = options[0].textContent;
+    }
   }
 
   /** Re-renders a toggle group's active button from its hidden input's current value. */
@@ -10791,8 +10837,86 @@ window.addEventListener('load', function() {
 
   function setBusinessDocHiddenValue(hiddenInput, value) {
     if (!hiddenInput) return;
-    hiddenInput.value = value;
+    hiddenInput.value = value == null ? '' : String(value);
     hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  /**
+   * Set value + sync trigger label. Use instead of assigning `.value` alone when
+   * the control is a .business-doc-select (safe no-op for native <select>).
+   */
+  function setBusinessDocSelectValue(hiddenInputOrId, value, silent) {
+    var hiddenInput =
+      typeof hiddenInputOrId === 'string'
+        ? document.getElementById(hiddenInputOrId)
+        : hiddenInputOrId;
+    if (!hiddenInput) return;
+    if (silent) {
+      hiddenInput.value = value == null ? '' : String(value);
+      syncBusinessDocSelectUI(hiddenInput);
+      return;
+    }
+    setBusinessDocHiddenValue(hiddenInput, value);
+    syncBusinessDocSelectUI(hiddenInput);
+  }
+
+  /**
+   * Rebuild menu options for a custom dropdown (dynamic lists: portfolio assets,
+   * case study projects, health hubs, email templates, etc.).
+   * @param {HTMLInputElement|string} hiddenInputOrId
+   * @param {{ value: string, label: string }[]} options
+   * @param {{ placeholder?: string, value?: string, keepValue?: boolean }} [opts]
+   */
+  function setBusinessDocSelectOptions(hiddenInputOrId, options, opts) {
+    opts = opts || {};
+    var hiddenInput =
+      typeof hiddenInputOrId === 'string'
+        ? document.getElementById(hiddenInputOrId)
+        : hiddenInputOrId;
+    if (!hiddenInput) return;
+    var wrap = hiddenInput.closest('.business-doc-select');
+    if (!wrap) return;
+    var menu = wrap.querySelector('.business-doc-select-menu');
+    if (!menu) return;
+    var list = Array.isArray(options) ? options : [];
+    var html = '';
+    if (opts.placeholder != null) {
+      html +=
+        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="">' +
+        String(opts.placeholder).replace(/</g, '&lt;') +
+        '</button>';
+    }
+    list.forEach(function (opt) {
+      var value = opt && opt.value != null ? String(opt.value) : '';
+      var label = opt && opt.label != null ? String(opt.label) : value;
+      html +=
+        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="' +
+        value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') +
+        '">' +
+        label.replace(/&/g, '&amp;').replace(/</g, '&lt;') +
+        '</button>';
+    });
+    menu.innerHTML = html;
+
+    var nextValue = '';
+    if (opts.value != null) {
+      nextValue = String(opts.value);
+    } else if (opts.keepValue !== false) {
+      nextValue = hiddenInput.value;
+      var stillValid =
+        (opts.placeholder != null && nextValue === '') ||
+        list.some(function (opt) {
+          return String(opt.value) === nextValue;
+        });
+      if (!stillValid) nextValue = opts.placeholder != null ? '' : list[0] ? String(list[0].value) : '';
+    } else if (opts.placeholder != null) {
+      nextValue = '';
+    } else if (list[0]) {
+      nextValue = String(list[0].value);
+    }
+    hiddenInput.value = nextValue;
+    syncBusinessDocSelectUI(hiddenInput);
+    initBusinessDocCustomSelects();
   }
 
   var businessDocSelectsGloballyBound = false;
@@ -10823,13 +10947,15 @@ window.addEventListener('load', function() {
         }
       });
 
-      menu.querySelectorAll('.business-doc-select-option').forEach(function (opt) {
-        opt.addEventListener('click', function () {
-          setBusinessDocHiddenValue(hiddenInput, opt.getAttribute('data-value') || '');
-          syncBusinessDocSelectUI(hiddenInput);
-          closeBusinessDocSelect(wrap);
-          trigger.focus();
-        });
+      // Delegate so setBusinessDocSelectOptions() can rebuild the menu without re-wiring.
+      menu.addEventListener('click', function (e) {
+        var opt = e.target.closest('.business-doc-select-option');
+        if (!opt || !menu.contains(opt)) return;
+        e.stopPropagation();
+        setBusinessDocHiddenValue(hiddenInput, opt.getAttribute('data-value') || '');
+        syncBusinessDocSelectUI(hiddenInput);
+        closeBusinessDocSelect(wrap);
+        trigger.focus();
       });
 
       syncBusinessDocSelectUI(hiddenInput);
@@ -10851,6 +10977,11 @@ window.addEventListener('load', function() {
       });
     }
   }
+
+  window.initBusinessDocCustomSelects = initBusinessDocCustomSelects;
+  window.syncBusinessDocSelectUI = syncBusinessDocSelectUI;
+  window.setBusinessDocSelectValue = setBusinessDocSelectValue;
+  window.setBusinessDocSelectOptions = setBusinessDocSelectOptions;
 
   /** Safe to call repeatedly — already-wired groups are skipped. */
   function initBusinessDocToggleGroups() {
@@ -12875,6 +13006,9 @@ window.addEventListener('load', function() {
       if (typeEl) typeEl.value = 'web';
       if (sourceEl) sourceEl.value = 'other';
     }
+    syncBusinessDocSelectUI(typeEl);
+    syncBusinessDocSelectUI(stageEl);
+    syncBusinessDocSelectUI(sourceEl);
 
     leadModal.style.display = '';
     leadModal.classList.add('active');
@@ -16174,12 +16308,30 @@ document.addEventListener('DOMContentLoaded', function () {
         '<div class="dm-thread-toolbar">',
         '<div class="dm-thread-actions">',
         '<input id="dm-tag-input" class="form-input dm-mini-input" type="text" placeholder="Tags (comma-separated)">',
-        '<select id="dm-status-select" class="form-input dm-mini-select" aria-label="Conversation status">',
-        '<option value="open">Open</option><option value="pending">Pending</option><option value="closed">Closed</option>',
-        '</select>',
-        '<select id="dm-priority-select" class="form-input dm-mini-select" aria-label="Priority">',
-        '<option value="normal">Normal</option><option value="high">High</option><option value="urgent">Urgent</option>',
-        '</select>',
+        '<div class="business-doc-select business-doc-select--compact dm-mini-select-wrap">',
+        '<button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Conversation status">',
+        '<span class="business-doc-select-trigger-label">Open</span>',
+        '<ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>',
+        '</button>',
+        '<div class="business-doc-select-menu" role="listbox" aria-hidden="true">',
+        '<button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="open">Open</button>',
+        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="pending">Pending</button>',
+        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="closed">Closed</button>',
+        '</div>',
+        '<input type="hidden" id="dm-status-select" value="open">',
+        '</div>',
+        '<div class="business-doc-select business-doc-select--compact dm-mini-select-wrap">',
+        '<button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Priority">',
+        '<span class="business-doc-select-trigger-label">Normal</span>',
+        '<ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>',
+        '</button>',
+        '<div class="business-doc-select-menu" role="listbox" aria-hidden="true">',
+        '<button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="normal">Normal</button>',
+        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="high">High</button>',
+        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="urgent">Urgent</button>',
+        '</div>',
+        '<input type="hidden" id="dm-priority-select" value="normal">',
+        '</div>',
         '<button id="dm-save-meta" type="button" class="btn btn-secondary btn-sm">Save</button>',
         '</div>',
         '</div>',
@@ -16214,6 +16366,9 @@ document.addEventListener('DOMContentLoaded', function () {
         '</form>'
       ].join('');
       dmHost.appendChild(thread);
+      if (typeof window.initBusinessDocCustomSelects === 'function') {
+        window.initBusinessDocCustomSelects();
+      }
     }
     upgradeDmInboxFilterStrip();
   }
@@ -16637,8 +16792,14 @@ document.addEventListener('DOMContentLoaded', function () {
     var sourceNote = srcLabel ? ' · ' + srcLabel : '';
     subtitle.textContent =
       (conversation.customerEmail || '') + ' · Assigned: ' + (conversation.assignee || 'unassigned') + sourceNote;
-    if (statusSelect) statusSelect.value = conversation.status || 'open';
-    if (prioritySelect) prioritySelect.value = conversation.priority || 'normal';
+    if (statusSelect) {
+      statusSelect.value = conversation.status || 'open';
+      if (typeof window.syncBusinessDocSelectUI === 'function') window.syncBusinessDocSelectUI(statusSelect);
+    }
+    if (prioritySelect) {
+      prioritySelect.value = conversation.priority || 'normal';
+      if (typeof window.syncBusinessDocSelectUI === 'function') window.syncBusinessDocSelectUI(prioritySelect);
+    }
     if (tagInput) tagInput.value = Array.isArray(conversation.tags) ? conversation.tags.join(', ') : '';
     syncAdminDmLeadMeta(conversation);
 

@@ -472,7 +472,7 @@
   }
 }
 
-.admin-inline-select {
+select.admin-inline-select {
   max-width: 220px;
   padding: 8px 12px;
   background: var(--onyx);
@@ -480,6 +480,10 @@
   border-radius: 6px;
   color: var(--white-1);
   font-size: var(--fs-8);
+}
+
+.business-doc-select.admin-inline-select {
+  max-width: 260px;
 }
 
 .agency-tool-card {

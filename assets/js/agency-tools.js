@@ -965,11 +965,21 @@
 
     function fillSelect() {
       var list = getPortfolioList();
-      select.innerHTML =
-        '<option value="">Choose a portfolio project…</option>' +
-        list.map(function (p) {
-          return '<option value="' + esc(p.id) + '">' + esc(p.title || p.id) + '</option>';
-        }).join('');
+      if (typeof window.setBusinessDocSelectOptions === 'function') {
+        window.setBusinessDocSelectOptions(
+          select,
+          list.map(function (p) {
+            return { value: p.id, label: p.title || p.id };
+          }),
+          { placeholder: 'Choose a portfolio project…', keepValue: true }
+        );
+      } else {
+        select.innerHTML =
+          '<option value="">Choose a portfolio project…</option>' +
+          list.map(function (p) {
+            return '<option value="' + esc(p.id) + '">' + esc(p.title || p.id) + '</option>';
+          }).join('');
+      }
     }
     fillSelect();
     window.addEventListener('portfolioProjectsLoaded', fillSelect);
@@ -1445,11 +1455,21 @@
 
     async function fill() {
       var posts = await fetchBlogPostsForRepurpose();
-      select.innerHTML =
-        '<option value="">Select blog post…</option>' +
-        posts.map(function (p) {
-          return '<option value="' + esc(p.id) + '" data-title="' + esc(p.title) + '">' + esc(p.title) + '</option>';
-        }).join('');
+      if (typeof window.setBusinessDocSelectOptions === 'function') {
+        window.setBusinessDocSelectOptions(
+          select,
+          posts.map(function (p) {
+            return { value: p.id, label: p.title };
+          }),
+          { placeholder: 'Select blog post…', keepValue: true }
+        );
+      } else {
+        select.innerHTML =
+          '<option value="">Select blog post…</option>' +
+          posts.map(function (p) {
+            return '<option value="' + esc(p.id) + '" data-title="' + esc(p.title) + '">' + esc(p.title) + '</option>';
+          }).join('');
+      }
       select._posts = posts;
     }
     fill();
@@ -1782,7 +1802,7 @@
         var sel = document.getElementById('health-project-select');
         if (sel) {
           ensureHealthSelectOption(pid);
-          sel.value = pid;
+          setHealthSelectValue(sel, pid);
         }
         loadHealthForProject(pid);
       });
@@ -1798,7 +1818,7 @@
       var autoId = pickAutoHealthProjectId();
       if (autoId) {
         ensureHealthSelectOption(autoId);
-        sel.value = autoId;
+        setHealthSelectValue(sel, autoId);
         healthSelectedProjectId = autoId;
       }
     }
@@ -1915,7 +1935,25 @@
     }
   }
 
+  function setHealthSelectValue(sel, value) {
+    if (!sel) return;
+    if (typeof window.setBusinessDocSelectValue === 'function' && sel.closest('.business-doc-select')) {
+      window.setBusinessDocSelectValue(sel, value || '', true);
+    } else {
+      sel.value = value || '';
+    }
+  }
+
   function healthSelectHasOption(sel, projectId) {
+    if (!sel || !projectId) return false;
+    var wrap = sel.closest('.business-doc-select');
+    if (wrap) {
+      var found = false;
+      wrap.querySelectorAll('.business-doc-select-option').forEach(function (opt) {
+        if (opt.getAttribute('data-value') === projectId) found = true;
+      });
+      return found;
+    }
     var i;
     for (i = 0; i < sel.options.length; i++) {
       if (sel.options[i].value === projectId) return true;
@@ -1926,6 +1964,28 @@
   function ensureHealthSelectOption(projectId) {
     var sel = document.getElementById('health-project-select');
     if (!sel || !projectId || healthSelectHasOption(sel, projectId)) return;
+    var wrap = sel.closest('.business-doc-select');
+    if (wrap && typeof window.setBusinessDocSelectOptions === 'function') {
+      var menu = wrap.querySelector('.business-doc-select-menu');
+      var existing = [];
+      if (menu) {
+        menu.querySelectorAll('.business-doc-select-option').forEach(function (opt) {
+          var v = opt.getAttribute('data-value') || '';
+          if (!v) return;
+          existing.push({ value: v, label: opt.textContent || v });
+        });
+      }
+      existing.push({
+        value: projectId,
+        label: healthProjectLabel(projectId) + ' (saved in Firebase)'
+      });
+      window.setBusinessDocSelectOptions(sel, existing, {
+        placeholder: 'Select project hub…',
+        value: sel.value || '',
+        keepValue: true
+      });
+      return;
+    }
     var opt = document.createElement('option');
     opt.value = projectId;
     opt.textContent = healthProjectLabel(projectId) + ' (saved in Firebase)';
@@ -1936,6 +1996,22 @@
     var sel = document.getElementById('health-project-select');
     if (!sel) return;
     var previous = healthSelectedProjectId || sel.value || '';
+    var options = agencyProjects.map(function (p) {
+      return { value: p.id, label: p.clientName || p.title || p.id };
+    });
+    if (typeof window.setBusinessDocSelectOptions === 'function') {
+      var next =
+        previous && agencyProjects.some(function (p) { return p.id === previous; })
+          ? previous
+          : '';
+      window.setBusinessDocSelectOptions(sel, options, {
+        placeholder: 'Select project hub…',
+        value: next,
+        keepValue: false
+      });
+      healthSelectedProjectId = next;
+      return;
+    }
     sel.innerHTML =
       '<option value="">Select project hub…</option>' +
       agencyProjects

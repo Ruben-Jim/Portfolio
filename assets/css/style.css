@@ -10359,6 +10359,7 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
 }
 
 .portfolio-slides-add-row select,
+.portfolio-slides-add-row .business-doc-select,
 .portfolio-slides-add-row input[type="text"] {
   flex: 1 1 0;
   min-width: 0;
@@ -11777,6 +11778,46 @@ body.project-modal-open {
   color: var(--orange-yellow-crayola);
 }
 
+.business-doc-select--compact {
+  min-width: 140px;
+}
+
+.business-doc-select--compact .business-doc-select-trigger {
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: var(--fs-7);
+}
+
+.business-docs-filters .business-doc-select {
+  min-width: 148px;
+}
+
+.admin-inline-select.business-doc-select,
+.business-doc-select.admin-inline-select {
+  min-width: 200px;
+  flex: 1 1 180px;
+}
+
+.portfolio-slides-add-row .business-doc-select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dm-mini-select-wrap.business-doc-select {
+  min-width: 110px;
+  flex: 0 1 auto;
+}
+
+.dm-mini-select-wrap .business-doc-select-trigger {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: var(--fs-8);
+}
+
+.agency-health-select.business-doc-select {
+  width: 100%;
+}
+
 .business-doc-select-menu {
   position: absolute;
   z-index: 40;
@@ -13073,6 +13114,7 @@ body.project-modal-open {
   }
 
   .portfolio-slides-add-row select,
+  .portfolio-slides-add-row .business-doc-select,
   .portfolio-slides-add-row input[type="text"] {
     flex: none;
     width: 100%;
@@ -13147,6 +13189,7 @@ body.project-modal-open {
   .business-doc-modal-body .form-group select,
   .business-doc-modal-body .form-group textarea,
   .portfolio-slides-add-row select,
+  .portfolio-slides-add-row .business-doc-select,
   .portfolio-slides-add-row input[type="text"],
   .portfolio-project-images-url-input,
   .login-form .form-group input {
@@ -15413,18 +15456,12 @@ body.project-modal-open {
   background: rgba(234, 179, 8, 0.16);
 }
 
-.business-docs-filters select {
-  background: var(--eerie-black-1);
-  border-radius: 10px;
-  border: 1px solid var(--jet);
-  padding: 8px 12px;
-  min-height: 40px;
-  color: var(--light-gray);
-  font-size: var(--fs-7);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+.business-docs-filters .business-doc-select {
+  min-width: 148px;
 }
 
-.business-docs-filters select:focus {
+.business-docs-filters .business-doc-select-trigger:focus-visible,
+.business-docs-filters .business-doc-select.is-open .business-doc-select-trigger {
   border-color: var(--orange-yellow-crayola);
   box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.2);
   outline: none;
@@ -15641,7 +15678,7 @@ body.project-modal-open {
     gap: 10px;
   }
 
-  .business-docs-filters select {
+  .business-docs-filters .business-doc-select {
     min-width: 0;
   }
 

@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=modal-transform-fix-20260729b">
+  <link rel="stylesheet" href="/assets/css/style.css?v=admin-custom-selects-20260729">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -86,7 +86,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=cp-list-keep-visible-20260724">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=admin-custom-selects-20260729">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3080,20 +3080,34 @@
                 <h4 class="h4 service-item-title">Documents</h4>
                 <div class="business-docs-header-actions">
                   <div class="business-docs-filters">
-                  <select id="business-doc-filter-type">
-                    <option value="all">All Types</option>
-                    <option value="proposal">Proposals</option>
-                    <option value="estimate">Estimates</option>
-                    <option value="invoice">Invoices</option>
-                    <option value="contract">Contracts</option>
-                  </select>
-                  <select id="business-doc-filter-status">
-                    <option value="all">All Statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="sent">Sent</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="paid">Paid</option>
-                  </select>
+                  <div class="business-doc-select business-doc-select--compact" data-select-name="filter-type">
+                    <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filter by document type">
+                      <span class="business-doc-select-trigger-label">All Types</span>
+                      <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                    </button>
+                    <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                      <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="all">All Types</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="proposal">Proposals</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="estimate">Estimates</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="invoice">Invoices</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="contract">Contracts</button>
+                    </div>
+                    <input type="hidden" id="business-doc-filter-type" value="all">
+                  </div>
+                  <div class="business-doc-select business-doc-select--compact" data-select-name="filter-status">
+                    <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filter by document status">
+                      <span class="business-doc-select-trigger-label">All Statuses</span>
+                      <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                    </button>
+                    <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                      <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="all">All Statuses</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="draft">Draft</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="sent">Sent</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="accepted">Accepted</button>
+                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="paid">Paid</button>
+                    </div>
+                    <input type="hidden" id="business-doc-filter-status" value="all">
+                  </div>
                   </div>
                   <button type="button" class="btn btn-primary" id="business-doc-create-btn">
                     <ion-icon name="add-outline"></ion-icon>
@@ -3228,8 +3242,15 @@
                       <input class="form-input" type="email" id="admin-client-email-to-email" maxlength="180" placeholder="jane@company.com" autocomplete="email" required>
                     </div>
                     <div class="form-group admin-client-email-grid-full">
-                      <label class="form-label" for="admin-client-email-template">Template</label>
-                      <select class="form-input" id="admin-client-email-template" aria-label="Email template"></select>
+                      <label class="form-label" id="admin-client-email-template-label" for="admin-client-email-template">Template</label>
+                      <div class="business-doc-select" data-select-name="client-email-template">
+                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="admin-client-email-template-label">
+                          <span class="business-doc-select-trigger-label">Choose template…</span>
+                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                        </button>
+                        <div class="business-doc-select-menu" role="listbox" aria-hidden="true"></div>
+                        <input type="hidden" id="admin-client-email-template" value="" aria-label="Email template">
+                      </div>
                     </div>
                     <div class="form-group admin-client-email-grid-full">
                       <label class="form-label" for="admin-client-email-next-step">Next step</label>
@@ -3350,7 +3371,16 @@
                   <ion-icon name="add-outline"></ion-icon>
                   Add New Post
                 </button>
-                <select id="content-repurpose-select" class="admin-inline-select" aria-label="Blog post to repurpose"></select>
+                <div class="business-doc-select business-doc-select--compact admin-inline-select" data-select-name="content-repurpose">
+                  <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Blog post to repurpose">
+                    <span class="business-doc-select-trigger-label">Select blog post…</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Select blog post…</button>
+                  </div>
+                  <input type="hidden" id="content-repurpose-select" value="">
+                </div>
                 <button type="button" class="btn btn-secondary" id="content-repurpose-btn">
                   <ion-icon name="share-social-outline"></ion-icon>
                   Repurpose content
@@ -3386,7 +3416,16 @@
                     <ion-icon name="document-text-outline"></ion-icon>
                     Case study
                   </button>
-                  <select id="case-study-project-select" class="admin-inline-select" aria-label="Project for case study"></select>
+                  <div class="business-doc-select business-doc-select--compact admin-inline-select" data-select-name="case-study-project">
+                    <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Project for case study">
+                      <span class="business-doc-select-trigger-label">Choose a portfolio project…</span>
+                      <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                    </button>
+                    <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                      <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Choose a portfolio project…</button>
+                    </div>
+                    <input type="hidden" id="case-study-project-select" value="">
+                  </div>
                 </div>
               </div>
               <div class="blog-posts-list admin-portfolio-list-panel" id="admin-portfolio-projects-list">
@@ -3589,8 +3628,17 @@
               <div class="admin-collapsible-inner-content agency-health-panel">
                 <div class="agency-health-toolbar">
                   <div class="form-group agency-health-project-field">
-                    <label for="health-project-select">Project hub</label>
-                    <select id="health-project-select" class="agency-health-select"></select>
+                    <label id="health-project-select-label" for="health-project-select">Project hub</label>
+                    <div class="business-doc-select agency-health-select" data-select-name="health-project">
+                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="health-project-select-label">
+                        <span class="business-doc-select-trigger-label">Select project hub…</span>
+                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                      </button>
+                      <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Select project hub…</button>
+                      </div>
+                      <input type="hidden" id="health-project-select" value="">
+                    </div>
                   </div>
                   <p class="health-status-meta" id="health-status-meta" hidden aria-live="polite"></p>
                 </div>
@@ -4027,13 +4075,20 @@
                 </div>
                 <div class="form-row">
                   <div class="form-group form-group-half">
-                    <label for="lead-project-type">Project type</label>
-                    <select id="lead-project-type">
-                      <option value="web">Website</option>
-                      <option value="app">Mobile app</option>
-                      <option value="both">Web + app</option>
-                      <option value="other">Other</option>
-                    </select>
+                    <label id="lead-project-type-label" for="lead-project-type">Project type</label>
+                    <div class="business-doc-select" data-select-name="lead-project-type">
+                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="lead-project-type-label">
+                        <span class="business-doc-select-trigger-label">Website</span>
+                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                      </button>
+                      <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="web">Website</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="app">Mobile app</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="both">Web + app</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="other">Other</button>
+                      </div>
+                      <input type="hidden" id="lead-project-type" value="web">
+                    </div>
                   </div>
                   <div class="form-group form-group-half">
                     <label for="lead-value">Estimated value ($)</label>
@@ -4042,23 +4097,37 @@
                 </div>
                 <div class="form-row">
                   <div class="form-group form-group-half">
-                    <label for="lead-stage">Stage</label>
-                    <select id="lead-stage" required>
-                      <option value="lead">Lead</option>
-                      <option value="proposal">Proposal Sent</option>
-                      <option value="deposit">Deposit Paid</option>
-                    </select>
+                    <label id="lead-stage-label" for="lead-stage">Stage</label>
+                    <div class="business-doc-select" data-select-name="lead-stage">
+                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="lead-stage-label">
+                        <span class="business-doc-select-trigger-label">Lead</span>
+                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                      </button>
+                      <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="lead">Lead</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="proposal">Proposal Sent</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="deposit">Deposit Paid</button>
+                      </div>
+                      <input type="hidden" id="lead-stage" value="lead" required>
+                    </div>
                   </div>
                   <div class="form-group form-group-half">
-                    <label for="lead-source">Source</label>
-                    <select id="lead-source">
-                      <option value="dm">DM / Messages</option>
-                      <option value="email">Email</option>
-                      <option value="referral">Referral</option>
-                      <option value="social">Social</option>
-                      <option value="cold">Cold outreach</option>
-                      <option value="other">Other</option>
-                    </select>
+                    <label id="lead-source-label" for="lead-source">Source</label>
+                    <div class="business-doc-select" data-select-name="lead-source">
+                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="lead-source-label">
+                        <span class="business-doc-select-trigger-label">DM / Messages</span>
+                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                      </button>
+                      <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="dm">DM / Messages</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="email">Email</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="referral">Referral</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="social">Social</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="cold">Cold outreach</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="other">Other</button>
+                      </div>
+                      <input type="hidden" id="lead-source" value="dm">
+                    </div>
                   </div>
                 </div>
                 <div class="form-group">
@@ -4649,12 +4718,19 @@
             <section class="blog-editor-section blog-editor-section-glass">
               <h4 class="h4">Publishing</h4>
               <div class="form-group">
-                <label for="blog-status">Status</label>
-                <select id="blog-status" name="status" required>
-                  <option value="published">Published</option>
-                  <option value="draft">Draft</option>
-                  <option value="private">Private</option>
-                </select>
+                <label id="blog-status-label" for="blog-status">Status</label>
+                <div class="business-doc-select" data-select-name="blog-status">
+                  <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="blog-status-label">
+                    <span class="business-doc-select-trigger-label">Published</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="published">Published</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="draft">Draft</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="private">Private</button>
+                  </div>
+                  <input type="hidden" id="blog-status" name="status" value="published" required>
+                </div>
               </div>
               <div class="form-group">
                 <label for="blog-date">
@@ -4672,21 +4748,28 @@
             <section class="blog-editor-section blog-editor-section-glass">
               <h4 class="h4">Organize</h4>
               <div class="form-group">
-                <label for="blog-category">
+                <label id="blog-category-label" for="blog-category">
                   <ion-icon name="pricetag-outline"></ion-icon>
                   Category
                 </label>
-                <select id="blog-category" name="category" required>
-                  <option value="Web Development">Web Development</option>
-                  <option value="Software Engineering">Software Engineering</option>
-                  <option value="Full-Stack">Full-Stack</option>
-                  <option value="Frontend">Frontend</option>
-                  <option value="Backend">Backend</option>
-                  <option value="Learning Journey">Learning Journey</option>
-                  <option value="Projects">Projects</option>
-                  <option value="Tutorial">Tutorial</option>
-                  <option value="Tech Stack">Tech Stack</option>
-                </select>
+                <div class="business-doc-select" data-select-name="blog-category">
+                  <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="blog-category-label">
+                    <span class="business-doc-select-trigger-label">Web Development</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="Web Development">Web Development</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Software Engineering">Software Engineering</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Full-Stack">Full-Stack</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Frontend">Frontend</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Backend">Backend</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Learning Journey">Learning Journey</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Projects">Projects</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Tutorial">Tutorial</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Tech Stack">Tech Stack</button>
+                  </div>
+                  <input type="hidden" id="blog-category" name="category" value="Web Development" required>
+                </div>
               </div>
               <div class="form-group">
                 <label for="blog-slug">Slug</label>
@@ -4933,12 +5016,19 @@
             <section class="blog-editor-section blog-editor-section-glass">
               <h4 class="h4">Publishing</h4>
               <div class="form-group">
-                <label for="edit-blog-status">Status</label>
-                <select id="edit-blog-status" name="status" required>
-                  <option value="published">Published</option>
-                  <option value="draft">Draft</option>
-                  <option value="private">Private</option>
-                </select>
+                <label id="edit-blog-status-label" for="edit-blog-status">Status</label>
+                <div class="business-doc-select" data-select-name="edit-blog-status">
+                  <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="edit-blog-status-label">
+                    <span class="business-doc-select-trigger-label">Published</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="published">Published</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="draft">Draft</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="private">Private</button>
+                  </div>
+                  <input type="hidden" id="edit-blog-status" name="status" value="published" required>
+                </div>
               </div>
               <div class="form-group">
                 <label for="edit-blog-date">
@@ -4956,21 +5046,28 @@
             <section class="blog-editor-section blog-editor-section-glass">
               <h4 class="h4">Organize</h4>
               <div class="form-group">
-                <label for="edit-blog-category">
+                <label id="edit-blog-category-label" for="edit-blog-category">
                   <ion-icon name="pricetag-outline"></ion-icon>
                   Category
                 </label>
-                <select id="edit-blog-category" name="category" required>
-                  <option value="Web Development">Web Development</option>
-                  <option value="Software Engineering">Software Engineering</option>
-                  <option value="Full-Stack">Full-Stack</option>
-                  <option value="Frontend">Frontend</option>
-                  <option value="Backend">Backend</option>
-                  <option value="Learning Journey">Learning Journey</option>
-                  <option value="Projects">Projects</option>
-                  <option value="Tutorial">Tutorial</option>
-                  <option value="Tech Stack">Tech Stack</option>
-                </select>
+                <div class="business-doc-select" data-select-name="edit-blog-category">
+                  <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="edit-blog-category-label">
+                    <span class="business-doc-select-trigger-label">Web Development</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="Web Development">Web Development</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Software Engineering">Software Engineering</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Full-Stack">Full-Stack</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Frontend">Frontend</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Backend">Backend</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Learning Journey">Learning Journey</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Projects">Projects</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Tutorial">Tutorial</button>
+                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="Tech Stack">Tech Stack</button>
+                  </div>
+                  <input type="hidden" id="edit-blog-category" name="category" value="Web Development" required>
+                </div>
               </div>
               <div class="form-group">
                 <label for="edit-blog-slug">Slug</label>
@@ -5071,11 +5168,18 @@
           <p class="form-hint">First slide is the portfolio card thumbnail. Add screenshots or screen recordings (MP4) from <code>assets/images</code> or paste a URL — drag slides to reorder.</p>
           <div class="portfolio-slides-add-bar">
             <div class="portfolio-slides-add-field">
-              <label for="portfolio-project-image-asset">From repo</label>
+              <label id="portfolio-project-image-asset-label" for="portfolio-project-image-asset">From repo</label>
               <div class="portfolio-slides-add-row">
-                <select id="portfolio-project-image-asset">
-                  <option value="">Choose a file…</option>
-                </select>
+                <div class="business-doc-select" data-select-name="portfolio-image-asset">
+                  <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="portfolio-project-image-asset-label">
+                    <span class="business-doc-select-trigger-label">Choose a file…</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Choose a file…</button>
+                  </div>
+                  <input type="hidden" id="portfolio-project-image-asset" value="">
+                </div>
                 <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-from-asset" title="Add selected file">Add</button>
               </div>
             </div>
@@ -6186,9 +6290,9 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/portfolio-detail-shared.js?v=guide-center-20260609"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
   <script src="/assets/js/i18n.js?v=portal-recover-20260728"></script>
-  <script src="/assets/js/script.js?v=modal-transform-fix-20260729b"></script>
+  <script src="/assets/js/script.js?v=admin-custom-selects-20260729"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=cp-portal-section-20260727"></script>
+  <script src="/assets/js/agency-tools.js?v=admin-custom-selects-20260729"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
