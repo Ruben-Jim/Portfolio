@@ -3052,21 +3052,55 @@ function portfolioIsVideoUrl(url) {
   return /\.(?:mp4|webm|mov)(?:\?|$)/i.test(normalized);
 }
 
-/** Optional poster path: project-foo-demo.mp4 → project-foo-demo-poster.jpg */
+/** Optional poster path helper: video.mp4 → video-poster.<ext> */
 function portfolioVideoPosterUrl(url, ext) {
   var normalized = portfolioNormalizeAssetImageUrl(url);
   if (!normalized || !portfolioIsVideoUrl(normalized)) return '';
   return normalized.replace(/\.(mp4|webm|mov)$/i, '-poster.' + (ext || 'jpg'));
 }
 
+/** Candidate poster URLs for a video (sibling .webp and classic -poster.*). */
+function portfolioVideoPosterCandidates(url) {
+  var normalized = portfolioNormalizeAssetImageUrl(url);
+  if (!normalized || !portfolioIsVideoUrl(normalized)) return [];
+  return [
+    normalized.replace(/\.(mp4|webm|mov)$/i, '.webp'),
+    portfolioVideoPosterUrl(normalized, 'webp'),
+    portfolioVideoPosterUrl(normalized, 'jpg'),
+    portfolioVideoPosterUrl(normalized, 'jpeg'),
+    portfolioVideoPosterUrl(normalized, 'png')
+  ].filter(Boolean);
+}
+
 /**
  * Poster for a video slide.
- * Prefers sibling `.webp` (e.g. dls-video.mp4 → dls-video.webp), then `-poster.webp` / `-poster.jpg`.
+ * Supports both conventions:
+ * - sibling still: dls-video.mp4 → dls-video.webp
+ * - classic poster: video-home.mp4 → video-home-poster.webp
+ * Picks the first candidate that is registered in the asset list (or already used on a project).
  */
 function portfolioVideoPosterUrlBest(url) {
-  var normalized = portfolioNormalizeAssetImageUrl(url);
-  if (!normalized || !portfolioIsVideoUrl(normalized)) return '';
-  return normalized.replace(/\.(mp4|webm|mov)$/i, '.webp');
+  var candidates = portfolioVideoPosterCandidates(url);
+  if (!candidates.length) return '';
+  var known = {};
+  function mark(u) {
+    var n = portfolioNormalizeAssetImageUrl(u);
+    if (n) known[n] = true;
+  }
+  if (Array.isArray(window.PORTFOLIO_ASSET_IMAGES)) {
+    window.PORTFOLIO_ASSET_IMAGES.forEach(mark);
+  }
+  if (typeof getPortfolioAssetImageOptions === 'function') {
+    try {
+      getPortfolioAssetImageOptions().forEach(mark);
+    } catch (e) { /* ignore */ }
+  }
+  var i;
+  for (i = 0; i < candidates.length; i++) {
+    if (known[candidates[i]]) return candidates[i];
+  }
+  // Sensible default when nothing is registered yet (prefer -poster.webp).
+  return portfolioVideoPosterUrl(url, 'webp') || candidates[0];
 }
 
 /** Canonical storage path: /assets/images/... (root-relative, works on /admin, /portfolio, etc.). */
@@ -4575,6 +4609,7 @@ window.openPortfolioProjectModalForClientShowcase = function (hubId, prefill) {
 window.getPortfolioProjectsSnapshot = function () {
   return portfolioProjectsRtdb.slice();
 };
+window.portfolioVideoPosterUrlBest = portfolioVideoPosterUrlBest;
 window.isPortfolioPublic = isPortfolioPublic;
 
 function setupPortfolioAdminControls() {

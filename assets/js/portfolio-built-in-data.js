@@ -187,6 +187,11 @@ window.PORTFOLIO_ASSET_IMAGES = (function () {
     // Project folders — add new files here so they appear in admin “From repo”
     '/assets/images/projects/dls/dls-video.mp4',
     '/assets/images/projects/dls/dls-video.webp',
+    // Realtor template hero/listing demos (classic -poster.jpg naming)
+    '/assets/images/projects/video-home.mp4',
+    '/assets/images/projects/video-home-poster.webp',
+    '/assets/images/projects/video-listing.mp4',
+    '/assets/images/projects/video-listing-poster.webp',
     '/assets/images/projects/realtor-template/admin-clients.png',
     '/assets/images/projects/realtor-template/admin-dashboard.png',
     '/assets/images/projects/realtor-template/admin-docs.png',

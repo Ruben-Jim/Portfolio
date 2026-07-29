@@ -83,9 +83,13 @@ ffmpeg -i assets/images/projects/project-<slug>-demo.mp4 \
 ```
 
 ### Naming
-- Video: `project-<slug>-demo.mp4`
-- Poster: `project-<slug>-demo-poster.webp`
-- Admin path: `/assets/images/projects/project-<slug>-demo.mp4`
+- Video: `project-<slug>-demo.mp4` (or any clear name, e.g. `video-home.mp4`)
+- Poster (pick **one** convention — both work in the portfolio player):
+  - **Sibling still:** `dls-video.mp4` → `dls-video.webp` (good when the still is also a slide by itself)
+  - **Classic poster:** `video-home.mp4` → `video-home-poster.webp` (prefer WebP; `.jpg` still works as fallback)
+- Admin path: `/assets/images/projects/...`
+
+If you only need a still (no playback), add just the `.webp` / `.jpg` and skip the `.mp4`.
 
 Add new image/video paths to `PORTFOLIO_ASSET_IMAGES` in [`assets/js/portfolio-built-in-data.js`](../js/portfolio-built-in-data.js) so they appear in the admin asset picker.
 
