@@ -1295,11 +1295,25 @@
   }
 
   function wrapShowcaseSection(innerHtml) {
+    if (!innerHtml) return '';
     return (
       '<details class="client-portal-showcase">' +
       '<summary>Project showcase</summary>' +
       '<div class="client-portal-showcase-body">' +
-      (innerHtml || '') +
+      innerHtml +
+      '</div></details>'
+    );
+  }
+
+  function wrapGuideSection(innerHtml, title) {
+    if (!innerHtml) return '';
+    return (
+      '<details class="client-portal-guide" open>' +
+      '<summary>' +
+      esc(title || 'Docs & guide') +
+      '</summary>' +
+      '<div class="client-portal-guide-body">' +
+      innerHtml +
       '</div></details>'
     );
   }
@@ -1323,30 +1337,53 @@
     businessDocs = businessDocs || [];
     portalCtx = portalCtx || {};
     contractSignatures = contractSignatures || {};
+    detailOptions = detailOptions || {};
     window.portalBusinessDocsById = {};
     businessDocs.forEach(function (d) {
       if (d && d.id) window.portalBusinessDocsById[d.id] = d;
     });
     window.portalContractSignaturesById = contractSignatures;
     var brand = renderBrandHeader(project, detailRecord, detailOptions);
-    var detailHtml = '';
+
+    var guideUrl =
+      detailRecord && window.PortfolioDetailShared
+        ? window.PortfolioDetailShared.normalizeCanvasDocUrl(detailRecord.canvasDocUrl)
+        : '';
+    var hasGuide = !!guideUrl;
+    var guideTitle = (detailRecord && detailRecord.canvasDocTitle) || 'Docs & guide';
+
+    var showcaseOptions = Object.assign({}, detailOptions, {
+      omitCanvasDoc: true,
+      guideOnly: false
+    });
+    var showcaseHtml = '';
     if (hasShowcase && detailRecord && window.PortfolioDetailShared) {
-      detailHtml = window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, detailOptions);
-    } else if (detailRecord && detailOptions && detailOptions.guideOnly && window.PortfolioDetailShared) {
-      detailHtml =
-        renderNoShowcaseMessage(project, detailOptions) +
-        window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, detailOptions);
-    } else {
-      detailHtml = renderNoShowcaseMessage(project, detailOptions);
+      showcaseHtml = window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, showcaseOptions);
+    } else if (!hasGuide) {
+      showcaseHtml = renderNoShowcaseMessage(project, detailOptions);
     }
-    detailHtml = wrapShowcaseSection(detailHtml);
+    showcaseHtml = wrapShowcaseSection(showcaseHtml);
+
+    var guideHtml = '';
+    if (hasGuide && detailRecord && window.PortfolioDetailShared) {
+      guideHtml = wrapGuideSection(
+        window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, {
+          hideBuyButtons: true,
+          hideQuoteButton: true,
+          showLiveButton: false,
+          guideOnly: true
+        }),
+        guideTitle
+      );
+    }
+
     var docsSection = renderBusinessDocumentsSection(businessDocs, contractSignatures);
     var supportSection =
       project.showMaintenanceInPortal !== false
         ? renderMaintenanceSupportSection(maint, project)
         : '';
     var footer = renderStatusFooter(project);
-    inner.innerHTML = brand + detailHtml + docsSection + supportSection + footer;
+    inner.innerHTML = brand + showcaseHtml + guideHtml + docsSection + supportSection + footer;
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
     }

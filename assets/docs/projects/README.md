@@ -28,6 +28,9 @@ See [CANVAS-TO-MARKDOWN.md](./CANVAS-TO-MARKDOWN.md) for converting canvas → m
 ## Admin paths
 
 ```
-/assets/docs/projects/project-rizopizzeria.md          ← public
-/assets/docs/projects/project-rizopizzeria-client.md   ← hub private guide
+/assets/docs/projects/project-rizopizzeria.md              ← public portfolio
+/assets/docs/projects/lawncare/admin-guide.md              ← hub Docs & guide
+/assets/docs/projects/rizo-pizzeria/rizo-features-guide.md ← hub Docs & guide
 ```
+
+There is no file upload in admin — add the `.md` in the repo, then paste that path into Clients → Docs & guide → Guide file path → Save docs & guide. The guide appears in the portal under its own **Docs & guide** section (open by default), not inside collapsed Project showcase.

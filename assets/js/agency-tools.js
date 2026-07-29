@@ -1031,7 +1031,7 @@
     var s = String(url || '').trim();
     if (!s) return '';
     var match = s.match(/assets\/(?:docs\/)?[A-Za-z0-9._/-]+\.(?:md|pdf|canvas\.tsx)/i);
-    if (match) return '/' + match[0].toLowerCase();
+    if (match) return '/' + match[0].replace(/^\/+/, '');
     if (/^\.?\/?assets\//i.test(s)) return '/' + s.replace(/^\.?\//, '');
     return s;
   }

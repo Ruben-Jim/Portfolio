@@ -205,7 +205,8 @@
       /assets\/(?:docs\/)?[A-Za-z0-9._/-]+\.(?:md|pdf|canvas\.tsx)/i
     );
     if (!match) return '';
-    return '/' + match[0].toLowerCase();
+    // Preserve path case — hosting (Linux) is case-sensitive.
+    return '/' + match[0].replace(/^\/+/, '');
   }
 
   function normalizeCanvasDocUrl(url) {
@@ -681,7 +682,7 @@
           '</p></section>'
         : '';
 
-    var canvasDocHtml = renderCanvasDocSectionHtml(record);
+    var canvasDocHtml = options.omitCanvasDoc ? '' : renderCanvasDocSectionHtml(record);
 
     var accordionHtml = detailSections.length
       ? '<section class="project-detail-section project-detail-extra-sections">' +
@@ -849,11 +850,22 @@
   function initPortfolioDetailPage(rootEl, record, options) {
     if (!rootEl) return;
     options = options || {};
-    var detailRoot = rootEl.querySelector('[data-portfolio-detail-root]') || rootEl;
-    if (!options.guideOnly) {
-      initPortfolioDetailCarousel(detailRoot, record, options);
+    var roots = rootEl.querySelectorAll('[data-portfolio-detail-root]');
+    if (!roots.length) {
+      var single = rootEl.matches && rootEl.matches('[data-portfolio-detail-root]') ? rootEl : rootEl;
+      if (!options.guideOnly) {
+        initPortfolioDetailCarousel(single, record, options);
+      }
+      initCanvasDoc(single, record);
+      return;
     }
-    initCanvasDoc(detailRoot, record);
+    Array.prototype.forEach.call(roots, function (detailRoot) {
+      var isGuideOnly = detailRoot.classList.contains('portfolio-detail-page--guide-only');
+      if (!isGuideOnly && !options.guideOnly) {
+        initPortfolioDetailCarousel(detailRoot, record, options);
+      }
+      initCanvasDoc(detailRoot, record);
+    });
   }
 
   global.PortfolioDetailShared = {
