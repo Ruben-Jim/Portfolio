@@ -11504,6 +11504,11 @@ body.project-modal-open {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Above client workspace drawer (10060/10061) when opened from Create client showcase */
+#portfolio-project-modal.add-blog-modal {
+  z-index: 10070;
+}
+
 .add-blog-modal.active {
   pointer-events: all;
   visibility: visible;
@@ -16486,6 +16491,11 @@ body.project-modal-open {
 
 #delete-dm-conversation-confirm-modal {
   z-index: 10075;
+}
+
+/* Above portfolio project editor (10070) and client drawer (10061) */
+#portfolio-unsaved-confirm-modal {
+  z-index: 10078;
 }
 
 #delete-hub-confirm-modal,
