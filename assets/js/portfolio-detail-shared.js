@@ -48,7 +48,8 @@
   function videoPosterUrl(url) {
     var normalized = normalizeAssetImageUrl(url);
     if (!normalized || !isVideoUrl(normalized)) return '';
-    return normalized.replace(/\.(mp4|webm|mov)$/i, '-poster.webp');
+    // Prefer sibling .webp (dls-video.mp4 → dls-video.webp)
+    return normalized.replace(/\.(mp4|webm|mov)$/i, '.webp');
   }
 
   function displayImageSrc(url) {

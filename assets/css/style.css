@@ -11833,6 +11833,23 @@ body.project-modal-open {
   border: 1px solid var(--jet);
   border-radius: 10px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  scrollbar-width: thin;
+  scrollbar-color: var(--orange-yellow-crayola) var(--onyx);
+}
+
+.business-doc-select-menu::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.business-doc-select-menu::-webkit-scrollbar-track {
+  background: var(--onyx);
+  border-radius: 5px;
+}
+
+.business-doc-select-menu::-webkit-scrollbar-thumb {
+  background: var(--orange-yellow-crayola);
+  border-radius: 5px;
 }
 
 .business-doc-select.is-open .business-doc-select-menu {

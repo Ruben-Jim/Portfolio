@@ -3052,16 +3052,21 @@ function portfolioIsVideoUrl(url) {
   return /\.(?:mp4|webm|mov)(?:\?|$)/i.test(normalized);
 }
 
-/** Optional poster path: project-foo-demo.mp4 → project-foo-demo-poster.jpg (falls back from .webp) */
+/** Optional poster path: project-foo-demo.mp4 → project-foo-demo-poster.jpg */
 function portfolioVideoPosterUrl(url, ext) {
   var normalized = portfolioNormalizeAssetImageUrl(url);
   if (!normalized || !portfolioIsVideoUrl(normalized)) return '';
   return normalized.replace(/\.(mp4|webm|mov)$/i, '-poster.' + (ext || 'jpg'));
 }
 
-/** Returns the best available poster URL, trying jpg then webp. */
+/**
+ * Poster for a video slide.
+ * Prefers sibling `.webp` (e.g. dls-video.mp4 → dls-video.webp), then `-poster.webp` / `-poster.jpg`.
+ */
 function portfolioVideoPosterUrlBest(url) {
-  return portfolioVideoPosterUrl(url, 'jpg') || portfolioVideoPosterUrl(url, 'webp');
+  var normalized = portfolioNormalizeAssetImageUrl(url);
+  if (!normalized || !portfolioIsVideoUrl(normalized)) return '';
+  return normalized.replace(/\.(mp4|webm|mov)$/i, '.webp');
 }
 
 /** Canonical storage path: /assets/images/... (root-relative, works on /admin, /portfolio, etc.). */
@@ -9953,7 +9958,7 @@ window.addEventListener('load', function() {
     trigger.appendChild(triggerIcon);
 
     var menu = document.createElement('div');
-    menu.className = 'business-doc-select-menu';
+    menu.className = 'business-doc-select-menu has-scrollbar';
     menu.setAttribute('role', 'listbox');
     menu.setAttribute('aria-hidden', 'true');
     var placeholderOpt = document.createElement('button');
@@ -16316,7 +16321,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '<span class="business-doc-select-trigger-label">Open</span>',
         '<ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>',
         '</button>',
-        '<div class="business-doc-select-menu" role="listbox" aria-hidden="true">',
+        '<div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">',
         '<button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="open">Open</button>',
         '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="pending">Pending</button>',
         '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="closed">Closed</button>',
@@ -16328,7 +16333,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '<span class="business-doc-select-trigger-label">Normal</span>',
         '<ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>',
         '</button>',
-        '<div class="business-doc-select-menu" role="listbox" aria-hidden="true">',
+        '<div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">',
         '<button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="normal">Normal</button>',
         '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="high">High</button>',
         '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="urgent">Urgent</button>',

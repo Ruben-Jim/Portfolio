@@ -186,6 +186,7 @@ window.PORTFOLIO_ASSET_IMAGES = (function () {
     '/assets/images/projects/project-homeverse2.png',
     // Project folders — add new files here so they appear in admin “From repo”
     '/assets/images/projects/dls/dls-video.mp4',
+    '/assets/images/projects/dls/dls-video.webp',
     '/assets/images/projects/realtor-template/admin-clients.png',
     '/assets/images/projects/realtor-template/admin-dashboard.png',
     '/assets/images/projects/realtor-template/admin-docs.png',
