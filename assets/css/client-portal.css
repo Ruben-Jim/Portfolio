@@ -162,7 +162,7 @@ body.client-portal-page {
 
 /* Full portfolio detail page (portal) */
 .portfolio-detail-page {
-  margin-bottom: 20px;
+  margin-bottom: 0;
   border-radius: 18px;
   border: 1px solid hsla(45, 100%, 72%, 0.2);
   background: linear-gradient(150deg, hsl(240, 2%, 16%) 0%, hsl(240, 2%, 12%) 100%);
@@ -170,27 +170,107 @@ body.client-portal-page {
   overflow: hidden;
 }
 
+/* Project showcase — collapsed by default */
+.client-portal-showcase {
+  margin: 0 0 20px;
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  border-radius: 12px;
+  background: hsla(240, 2%, 14%, 0.85);
+  overflow: hidden;
+}
+
+.client-portal-showcase summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  color: var(--white-1);
+  font-weight: var(--fw-600);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.client-portal-showcase summary::-webkit-details-marker {
+  display: none;
+}
+
+.client-portal-showcase summary::after {
+  content: '';
+  flex-shrink: 0;
+  width: 0.55em;
+  height: 0.55em;
+  border-right: 2px solid var(--orange-yellow-crayola);
+  border-bottom: 2px solid var(--orange-yellow-crayola);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  opacity: 0.9;
+}
+
+.client-portal-showcase[open] summary::after {
+  transform: rotate(225deg);
+  margin-top: 0.25em;
+}
+
+.client-portal-showcase-body {
+  padding: 0 12px 12px;
+  border-top: 1px solid hsla(45, 100%, 72%, 0.1);
+}
+
+.client-portal-showcase-body .portfolio-detail-page {
+  border-radius: 14px;
+}
+
+.client-portal-showcase-body .client-portal-empty-showcase {
+  margin: 0;
+  padding: 12px 4px 4px;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
 .project-detail-media {
   margin: 0;
-  padding: 16px;
+  width: 100%;
+  height: auto;
+  min-height: 220px;
+  max-height: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 18px 12px;
+  position: relative;
+  overflow: hidden;
   background:
     radial-gradient(circle at 15% 10%, hsla(45, 100%, 72%, 0.14), transparent 46%),
     linear-gradient(145deg, hsla(45, 100%, 72%, 0.1), hsla(240, 2%, 14%, 0.95));
   border-bottom: 1px solid hsla(45, 100%, 72%, 0.12);
+  box-sizing: border-box;
 }
 
 .project-detail-media .portfolio-carousel,
 .project-detail-media .project-detail-carousel {
   position: relative;
   width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  overflow: visible;
 }
 
 .project-detail-media .portfolio-carousel-track {
   position: relative;
+  flex: 1 1 auto;
   width: 100%;
   min-height: 180px;
   aspect-ratio: 16 / 10;
-  max-height: min(52vh, 420px);
+  max-height: min(48vh, 420px);
+  overflow: hidden;
   padding-bottom: 28px;
   box-sizing: border-box;
 }
@@ -201,33 +281,87 @@ body.client-portal-page {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
+  padding: 0 8px;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.35s ease, visibility 0.35s ease;
   pointer-events: none;
+  box-sizing: border-box;
+  z-index: 0;
 }
 
 .project-detail-media .portfolio-carousel-slide.is-active {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  z-index: 1;
 }
 
+/* Match portfolio page: keep intrinsic ratio so video letterboxing matches images */
 .project-detail-media .portfolio-carousel-slide img,
 .project-detail-media .portfolio-carousel-slide video {
   display: block;
   width: auto;
-  max-width: min(100%, 360px);
+  max-width: 100%;
   height: auto;
-  max-height: min(48vh, 400px);
-  margin-inline: auto;
+  max-height: 100%;
+  min-height: 0;
+  margin: auto;
   object-fit: contain;
   object-position: center center;
   border-radius: 14px;
   border: 1px solid hsla(45, 100%, 72%, 0.14);
-  box-shadow: 0 18px 42px hsla(0, 0%, 0%, 0.38);
+  box-shadow:
+    0 18px 42px hsla(0, 0%, 0%, 0.38),
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.06);
   background: hsla(240, 2%, 8%, 0.88);
+}
+
+/* Desktop: tall media band; media scales up inside it (same rules for img + video) */
+@media (min-width: 901px) {
+  .project-detail-media {
+    height: min(52vh, 560px);
+    min-height: 320px;
+    max-height: min(52vh, 560px);
+    padding: 16px 24px 12px;
+  }
+
+  .project-detail-media .portfolio-carousel,
+  .project-detail-media .project-detail-carousel {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+    position: relative;
+  }
+
+  .project-detail-media .portfolio-carousel-track {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: unset;
+    max-height: none;
+    overflow: hidden;
+    padding-bottom: 36px;
+    box-sizing: border-box;
+  }
+
+  .project-detail-media .portfolio-carousel-slide {
+    padding: 0 12px 4px;
+  }
+
+  .project-detail-media .portfolio-carousel-slide img,
+  .project-detail-media .portfolio-carousel-slide video {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
+    margin: auto;
+    object-fit: contain;
+    object-position: center center;
+  }
 }
 
 .project-detail-canvas-pdf-link {
@@ -266,7 +400,7 @@ body.client-portal-page {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 2;
+  z-index: 3;
   width: 40px;
   height: 40px;
   display: grid;
@@ -293,26 +427,38 @@ body.client-portal-page {
   right: 8px;
 }
 
+/* Overlay dots on the slideshow (match portfolio project detail) */
+.project-detail-media .portfolio-carousel-dots,
 .portfolio-carousel-dots {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 12px;
+  z-index: 5;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
   gap: 8px;
-  padding: 0 4px;
+  margin: 0;
+  padding: 0 8px;
+  pointer-events: none;
 }
 
+.project-detail-media .portfolio-carousel-dot,
 .portfolio-carousel-dot {
-  width: 9px;
-  height: 9px;
+  pointer-events: auto;
+  width: 10px;
+  height: 10px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid hsla(45, 100%, 72%, 0.45);
-  background: hsla(240, 2%, 18%, 0.9);
+  border: 1.5px solid hsla(45, 100%, 72%, 0.8);
+  background: hsla(240, 2%, 8%, 0.55);
+  box-shadow:
+    0 0 0 1px hsla(0, 0%, 0%, 0.45),
+    0 1px 3px hsla(0, 0%, 0%, 0.55);
   cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .portfolio-carousel-dot.is-active,
@@ -1448,24 +1594,34 @@ body.portal-dm-sheet-open {
   }
 
   .project-detail-media {
-    padding: 8px 8px 4px;
+    padding: 12px 14px 10px;
+    min-height: clamp(168px, 34vw, 260px);
+    max-height: none;
+  }
+
+  .project-detail-media .portfolio-carousel,
+  .project-detail-media .project-detail-carousel {
+    min-height: clamp(168px, 34vw, 260px);
+    max-height: min(40vh, 300px);
   }
 
   .project-detail-media .portfolio-carousel-track {
-    aspect-ratio: unset;
-    min-height: clamp(160px, 32vh, 240px);
-    max-height: clamp(200px, 38vh, 300px);
-    padding-bottom: 30px;
+    aspect-ratio: 16 / 10;
+    min-height: clamp(168px, 34vw, 260px);
+    max-height: min(40vh, 300px);
+    padding-bottom: 28px;
   }
 
   .project-detail-media .portfolio-carousel-slide {
-    padding: 0 34px;
+    padding: 0 4px;
   }
 
   .project-detail-media .portfolio-carousel-slide img,
   .project-detail-media .portfolio-carousel-slide video {
-    max-width: min(58vw, 200px);
-    max-height: min(34vh, 260px);
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 100%;
     border-radius: 12px;
     box-shadow: 0 10px 24px hsla(0, 0%, 0%, 0.32);
   }
@@ -1476,6 +1632,7 @@ body.portal-dm-sheet-open {
     font-size: 18px;
     border-color: hsla(45, 100%, 72%, 0.28);
     background: hsla(240, 2%, 10%, 0.92);
+    z-index: 3;
   }
 
   .portfolio-carousel-prev {
@@ -1486,14 +1643,17 @@ body.portal-dm-sheet-open {
     right: 2px;
   }
 
+  .project-detail-media .portfolio-carousel-dots,
   .portfolio-carousel-dots {
-    bottom: 2px;
-    gap: 6px;
+    bottom: 10px;
+    z-index: 5;
+    gap: 7px;
   }
 
+  .project-detail-media .portfolio-carousel-dot,
   .portfolio-carousel-dot {
-    width: 7px;
-    height: 7px;
+    width: 9px;
+    height: 9px;
   }
 
   .project-detail-scroll {

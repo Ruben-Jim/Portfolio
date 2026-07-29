@@ -2467,6 +2467,19 @@
   }
 
   function closeCpClientDrawer() {
+    var portfolioModal = document.getElementById('portfolio-project-modal');
+    if (portfolioModal && portfolioModal.classList.contains('active')) {
+      if (typeof window.closePortfolioProjectModal === 'function') {
+        window.closePortfolioProjectModal();
+      } else if (typeof closePortfolioProjectModal === 'function') {
+        closePortfolioProjectModal();
+      }
+      return;
+    }
+    var unsavedModal = document.getElementById('portfolio-unsaved-confirm-modal');
+    if (unsavedModal && unsavedModal.classList.contains('active')) {
+      return;
+    }
     var drawer = document.getElementById('cp-client-drawer');
     var overlay = document.getElementById('cp-client-drawer-overlay');
     if (drawer) drawer.classList.remove('is-open');

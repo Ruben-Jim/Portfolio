@@ -1286,13 +1286,37 @@
     var hasVisitLink = collectProjectVisitLinks(project, null, detailOptions || {}).length > 0;
     return (
       '<section class="client-portal-section client-portal-empty-showcase">' +
-      '<h2>Project showcase</h2>' +
       '<p><strong>No portfolio project is linked</strong> to this portal yet. The full showcase page will appear here once your project contact links one.</p>' +
       (hasVisitLink
         ? '<p class="client-portal-empty-showcase-lead">You can still open the live demo or website above.</p>'
         : '<p class="client-portal-empty-showcase-lead">A demo or website link will show here when it is added to your project.</p>') +
       '</section>'
     );
+  }
+
+  function wrapShowcaseSection(innerHtml) {
+    return (
+      '<details class="client-portal-showcase">' +
+      '<summary>Project showcase</summary>' +
+      '<div class="client-portal-showcase-body">' +
+      (innerHtml || '') +
+      '</div></details>'
+    );
+  }
+
+  function bindShowcaseCollapse(root) {
+    if (!root) return;
+    var details = root.querySelector('details.client-portal-showcase');
+    if (!details || details.dataset.showcaseCollapseBound === '1') return;
+    details.dataset.showcaseCollapseBound = '1';
+    details.addEventListener('toggle', function () {
+      if (details.open) return;
+      details.querySelectorAll('video').forEach(function (video) {
+        try {
+          video.pause();
+        } catch (err) {}
+      });
+    });
   }
 
   function renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase, contractSignatures) {
@@ -1315,6 +1339,7 @@
     } else {
       detailHtml = renderNoShowcaseMessage(project, detailOptions);
     }
+    detailHtml = wrapShowcaseSection(detailHtml);
     var docsSection = renderBusinessDocumentsSection(businessDocs, contractSignatures);
     var supportSection =
       project.showMaintenanceInPortal !== false
@@ -1325,6 +1350,7 @@
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
     }
+    bindShowcaseCollapse(inner);
     bindPortalSignButtons(inner, portalCtx);
     bindPortalSignedViewButtons(inner);
     bindMaintenanceSupportSection(inner, portalCtx, project, maint);

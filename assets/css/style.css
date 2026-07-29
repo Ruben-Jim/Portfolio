@@ -11504,9 +11504,18 @@ body.project-modal-open {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Above client workspace drawer (10060/10061) when opened from Create client showcase */
+/* Above client workspace drawer (10060/10061) when opened from Create client showcase.
+   Note: openPortfolioProjectModal also sets inline z-index (must stay >= 10100). */
 #portfolio-project-modal.add-blog-modal {
-  z-index: 10070;
+  z-index: 10100;
+}
+
+body.portfolio-project-modal-open .cp-client-drawer-overlay {
+  z-index: 10040;
+}
+
+body.portfolio-project-modal-open .cp-client-drawer {
+  z-index: 10041;
 }
 
 .add-blog-modal.active {
@@ -16493,9 +16502,41 @@ body.project-modal-open {
   z-index: 10075;
 }
 
-/* Above portfolio project editor (10070) and client drawer (10061) */
+/* Body-level confirm — must beat portfolio editor inline z-index (10100) */
 #portfolio-unsaved-confirm-modal {
-  z-index: 10078;
+  z-index: 10150;
+}
+
+#portfolio-unsaved-confirm-modal.active {
+  pointer-events: all;
+  visibility: visible;
+}
+
+#portfolio-unsaved-confirm-modal .overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: hsl(0, 0%, 5%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 1;
+  transition: var(--transition-1);
+}
+
+#portfolio-unsaved-confirm-modal.active .overlay {
+  opacity: 0.85;
+  visibility: visible;
+  pointer-events: all;
+}
+
+#portfolio-unsaved-confirm-modal.active .confirm-delete-modal {
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 #delete-hub-confirm-modal,

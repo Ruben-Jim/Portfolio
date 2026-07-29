@@ -4540,12 +4540,21 @@ function isPortfolioProjectFormDirty() {
 function openPortfolioUnsavedConfirmModal() {
   var modal = document.getElementById('portfolio-unsaved-confirm-modal');
   if (!modal) return;
+  // Keep at body root so z-index can beat the portfolio editor (inline 10100).
+  if (modal.parentElement !== document.body) {
+    document.body.appendChild(modal);
+  }
   modal.classList.add('active');
   modal.setAttribute('aria-hidden', 'false');
-  var saveBtn = document.getElementById('portfolio-unsaved-confirm-save');
-  if (saveBtn) {
+  modal.style.zIndex = '10150';
+  modal.style.position = 'fixed';
+  modal.style.pointerEvents = 'all';
+  modal.style.visibility = 'visible';
+  // Focus Keep editing — never auto-focus Save (Enter would create/update the project).
+  var keepBtn = document.getElementById('portfolio-unsaved-confirm-keep');
+  if (keepBtn) {
     setTimeout(function () {
-      saveBtn.focus();
+      keepBtn.focus();
     }, 0);
   }
 }
@@ -4555,6 +4564,10 @@ function closePortfolioUnsavedConfirmModal() {
   if (!modal) return;
   modal.classList.remove('active');
   modal.setAttribute('aria-hidden', 'true');
+  modal.style.zIndex = '';
+  modal.style.position = '';
+  modal.style.pointerEvents = '';
+  modal.style.visibility = '';
 }
 
 function setupPortfolioUnsavedConfirmModal() {
@@ -4653,27 +4666,38 @@ function openPortfolioProjectModal(isNew, project) {
   modal.style.display = 'flex';
   modal.style.visibility = 'visible';
   modal.style.opacity = '1';
-  modal.style.zIndex = '9999';
+  // Must beat .cp-client-drawer (10061); inline styles override stylesheet z-index.
+  modal.style.zIndex = '10100';
   modal.style.position = 'fixed';
   modal.style.top = '0';
   modal.style.left = '0';
   modal.style.width = '100%';
   modal.style.height = '100%';
+  document.body.classList.add('portfolio-project-modal-open');
   const ov = document.getElementById('portfolio-project-modal-overlay');
   if (ov) {
     ov.style.opacity = '0.8';
     ov.style.visibility = 'visible';
-    ov.style.zIndex = '9998';
+    ov.style.zIndex = '10099';
+    ov.style.pointerEvents = 'auto';
   }
+  const panel = modal.querySelector('.portfolio-project-modal-content');
+  if (panel) panel.style.zIndex = '10101';
   modal.setAttribute('aria-hidden', 'false');
-  // Capture after DOM lists/selects settle so reopen isn't marked dirty.
+  // Baseline immediately so outside-click before rAF isn't treated as "clean".
+  capturePortfolioProjectFormBaseline();
   requestAnimationFrame(function () {
-    capturePortfolioProjectFormBaseline();
+    requestAnimationFrame(function () {
+      capturePortfolioProjectFormBaseline();
+    });
   });
 }
 
 function closePortfolioProjectModal(options) {
-  options = options || {};
+  // Click/keyboard handlers pass an Event — never treat that as { force: true }.
+  if (!options || typeof options !== 'object' || options instanceof Event) {
+    options = {};
+  }
   const modal = document.getElementById('portfolio-project-modal');
   if (!modal) return;
   if (!options.force && modal.classList.contains('active') && isPortfolioProjectFormDirty()) {
@@ -4682,6 +4706,7 @@ function closePortfolioProjectModal(options) {
   }
   closePortfolioUnsavedConfirmModal();
   modal.classList.remove('active');
+  document.body.classList.remove('portfolio-project-modal-open');
   modal.style.display = '';
   modal.style.visibility = '';
   modal.style.opacity = '';
@@ -4696,10 +4721,15 @@ function closePortfolioProjectModal(options) {
     ov.style.opacity = '';
     ov.style.visibility = '';
     ov.style.zIndex = '';
+    ov.style.pointerEvents = '';
   }
+  const panel = modal.querySelector('.portfolio-project-modal-content');
+  if (panel) panel.style.zIndex = '';
   modal.setAttribute('aria-hidden', 'true');
   portfolioProjectFormBaseline = '';
 }
+
+window.closePortfolioProjectModal = closePortfolioProjectModal;
 
 window.openPortfolioProjectEditor = function (id) {
   var p = portfolioProjectsRtdb.find(function (x) {
@@ -4840,6 +4870,14 @@ function setupPortfolioAdminControls() {
 
   if (form && !form.dataset.bound) {
     form.dataset.bound = '1';
+    // Enter in a single-line field must not silently create/update the project.
+    form.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter') return;
+      var tag = (e.target && e.target.tagName) || '';
+      if (tag === 'TEXTAREA') return;
+      if (e.target && e.target.closest('button')) return;
+      e.preventDefault();
+    });
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       if (!isAdmin()) {
@@ -4921,15 +4959,33 @@ function setupPortfolioAdminControls() {
   }
   if (cancelBtn && !cancelBtn.dataset.bound) {
     cancelBtn.dataset.bound = '1';
-    cancelBtn.addEventListener('click', closePortfolioProjectModal);
+    cancelBtn.addEventListener('click', function () {
+      closePortfolioProjectModal();
+    });
   }
   if (closeBtn && !closeBtn.dataset.bound) {
     closeBtn.dataset.bound = '1';
-    closeBtn.addEventListener('click', closePortfolioProjectModal);
+    closeBtn.addEventListener('click', function () {
+      closePortfolioProjectModal();
+    });
   }
   if (overlay && !overlay.dataset.bound) {
     overlay.dataset.bound = '1';
-    overlay.addEventListener('click', closePortfolioProjectModal);
+    overlay.addEventListener('click', function () {
+      closePortfolioProjectModal();
+    });
+  }
+  var portfolioModalRoot = document.getElementById('portfolio-project-modal');
+  if (portfolioModalRoot && !portfolioModalRoot.dataset.backdropBound) {
+    portfolioModalRoot.dataset.backdropBound = '1';
+    portfolioModalRoot.addEventListener('click', function (e) {
+      // Click dimmed area / outside the drawer panel → same as overlay dismiss.
+      var panel = portfolioModalRoot.querySelector('.portfolio-project-modal-content');
+      if (panel && panel.contains(e.target)) return;
+      if (e.target === portfolioModalRoot || e.target.id === 'portfolio-project-modal-overlay') {
+        closePortfolioProjectModal();
+      }
+    });
   }
 
   const listEl = document.getElementById('admin-portfolio-projects-list');

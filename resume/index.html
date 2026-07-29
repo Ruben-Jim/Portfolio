@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=portfolio-stack-20260729">
+  <link rel="stylesheet" href="/assets/css/style.css?v=portfolio-unsaved-visible-20260729">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -3905,27 +3905,6 @@
           </section>
         </div>
 
-        <!-- Unsaved portfolio project changes -->
-        <div class="modal-container" id="portfolio-unsaved-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="portfolio-unsaved-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="portfolio-unsaved-confirm-title" aria-describedby="portfolio-unsaved-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="portfolio-unsaved-confirm-title">Save changes?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="portfolio-unsaved-confirm-close" aria-label="Keep editing">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="portfolio-unsaved-confirm-desc">You have unsaved edits on this portfolio project. Save before closing, discard changes, or keep editing.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="portfolio-unsaved-confirm-discard">Discard</button>
-              <button type="button" class="btn btn-secondary" id="portfolio-unsaved-confirm-keep">Keep editing</button>
-              <button type="button" class="btn btn-primary" id="portfolio-unsaved-confirm-save">Save</button>
-            </div>
-          </section>
-        </div>
-
         <!-- Delete business document confirmation -->
         <div class="modal-container" id="delete-document-confirm-modal" aria-hidden="true">
           <div class="overlay" id="delete-document-confirm-overlay"></div>
@@ -5144,6 +5123,27 @@
     </div>
   </div>
 
+  <!-- Unsaved portfolio project changes (body-level so it stacks above the project editor) -->
+  <div class="modal-container" id="portfolio-unsaved-confirm-modal" aria-hidden="true">
+    <div class="overlay" id="portfolio-unsaved-confirm-overlay"></div>
+    <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="portfolio-unsaved-confirm-title" aria-describedby="portfolio-unsaved-confirm-desc">
+      <div class="confirm-delete-modal__header">
+        <h3 id="portfolio-unsaved-confirm-title">Save changes?</h3>
+        <button type="button" class="confirm-delete-modal__close" id="portfolio-unsaved-confirm-close" aria-label="Keep editing">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="confirm-delete-modal__body">
+        <p id="portfolio-unsaved-confirm-desc">You have unsaved edits on this portfolio project. Save before closing, discard changes, or keep editing.</p>
+      </div>
+      <div class="confirm-delete-modal__actions">
+        <button type="button" class="btn btn-secondary" id="portfolio-unsaved-confirm-discard">Discard</button>
+        <button type="button" class="btn btn-secondary" id="portfolio-unsaved-confirm-keep">Keep editing</button>
+        <button type="button" class="btn btn-primary" id="portfolio-unsaved-confirm-save">Save</button>
+      </div>
+    </section>
+  </div>
+
   <!-- Portfolio project create / edit (admin) -->
   <div class="add-blog-modal" id="portfolio-project-modal" aria-hidden="true">
     <div class="add-blog-overlay" id="portfolio-project-modal-overlay"></div>
@@ -6298,9 +6298,9 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
   <script src="/assets/js/i18n.js?v=portal-recover-20260728"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=portfolio-unsaved-20260729"></script>
+  <script src="/assets/js/script.js?v=portfolio-unsaved-visible-20260729"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=admin-custom-selects-20260729"></script>
+  <script src="/assets/js/agency-tools.js?v=portfolio-unsaved-visible-20260729"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
