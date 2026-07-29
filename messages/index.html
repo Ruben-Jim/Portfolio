@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=hide-desktop-tab-reorder-20260729">
+  <link rel="stylesheet" href="/assets/css/style.css?v=tiptap-blog-20260729">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -4574,21 +4574,22 @@
               <label for="blog-content">
                 <ion-icon name="code-slash-outline"></ion-icon>
                 Content Editor
-                <span class="editor-hint">Rich text with HTML & Markdown support</span>
+                <span class="editor-hint">Visual editor · type / for blocks · autosaves locally</span>
               </label>
-              <div class="content-editor">
+              <div class="content-editor blog-tiptap-editor">
+                <div class="blog-tiptap-draft-banner" hidden></div>
                 <div class="editor-toolbar">
                   <!-- Text Formatting -->
                   <div class="toolbar-group">
-                    <button type="button" class="editor-btn" data-command="bold" title="Bold (Ctrl+B)">
+                    <button type="button" class="editor-btn" data-command="bold" title="Bold (Ctrl/Cmd+B)">
                       <ion-icon name="text-outline"></ion-icon>
                       <span class="btn-label">Bold</span>
                     </button>
-                    <button type="button" class="editor-btn" data-command="italic" title="Italic (Ctrl+I)">
+                    <button type="button" class="editor-btn" data-command="italic" title="Italic (Ctrl/Cmd+I)">
                       <ion-icon name="text-outline"></ion-icon>
                       <span class="btn-label">Italic</span>
                     </button>
-                    <button type="button" class="editor-btn" data-command="underline" title="Underline (Ctrl+U)">
+                    <button type="button" class="editor-btn" data-command="underline" title="Underline (Ctrl/Cmd+U)">
                       <ion-icon name="text-outline"></ion-icon>
                       <span class="btn-label">Underline</span>
                     </button>
@@ -4653,7 +4654,7 @@
                       <ion-icon name="code-slash-outline"></ion-icon>
                       <span class="btn-label">Code Block</span>
                     </button>
-                    <button type="button" class="editor-btn" data-command="insertLink" title="Insert Link">
+                    <button type="button" class="editor-btn" data-command="insertLink" title="Insert Link (Ctrl/Cmd+K)">
                       <ion-icon name="link-outline"></ion-icon>
                       <span class="btn-label">Link</span>
                     </button>
@@ -4683,13 +4684,13 @@
                 </div>
 
                 <div class="editor-container">
-                  <div class="editor-wrapper" id="editor-wrapper">
-                    <div class="editor-line-numbers" id="editor-line-numbers"></div>
-                    <textarea id="blog-content" name="content" class="editor-textarea" placeholder="Start writing your blog post here...&#10;&#10;💡 Pro Tips:&#10;• Use Ctrl+B for bold, Ctrl+I for italic&#10;• Press Tab for indentation&#10;• Ctrl+Shift+7 for ordered lists&#10;• Ctrl+Shift+8 for unordered lists&#10;• Ctrl+Shift+` for code blocks"></textarea>
+                  <div class="blog-tiptap-wrap">
+                    <div class="blog-tiptap-surface" id="blog-tiptap-add" aria-label="Post content editor"></div>
+                    <textarea id="blog-content" name="content" class="blog-tiptap-hidden" hidden aria-hidden="true"></textarea>
                   </div>
 
                   <div class="editor-preview" id="editor-preview" style="display: none;">
-                    <div class="preview-content"></div>
+                    <div class="preview-content blog-modal-text"></div>
                   </div>
                 </div>
 
@@ -4872,21 +4873,21 @@
               <label for="edit-blog-content">
                 <ion-icon name="code-slash-outline"></ion-icon>
                 Content Editor
-                <span class="editor-hint">Rich text with HTML & Markdown support</span>
+                <span class="editor-hint">Visual editor · type / for blocks · autosaves locally</span>
               </label>
-              <div class="content-editor">
+              <div class="content-editor blog-tiptap-editor">
+                <div class="blog-tiptap-draft-banner" hidden></div>
                 <div class="editor-toolbar">
-                  <!-- Text Formatting -->
                   <div class="toolbar-group">
-                    <button type="button" class="editor-btn" data-command="bold" title="Bold">
+                    <button type="button" class="editor-btn" data-command="bold" title="Bold (Ctrl/Cmd+B)">
                       <ion-icon name="text-outline"></ion-icon>
                       <span class="btn-label">Bold</span>
                     </button>
-                    <button type="button" class="editor-btn" data-command="italic" title="Italic">
+                    <button type="button" class="editor-btn" data-command="italic" title="Italic (Ctrl/Cmd+I)">
                       <ion-icon name="text-outline"></ion-icon>
                       <span class="btn-label">Italic</span>
                     </button>
-                    <button type="button" class="editor-btn" data-command="underline" title="Underline">
+                    <button type="button" class="editor-btn" data-command="underline" title="Underline (Ctrl/Cmd+U)">
                       <ion-icon name="text-outline"></ion-icon>
                       <span class="btn-label">Underline</span>
                     </button>
@@ -4895,10 +4896,7 @@
                       <span class="btn-label">Strike</span>
                     </button>
                   </div>
-
                   <div class="toolbar-separator"></div>
-
-                  <!-- Headings & Structure -->
                   <div class="toolbar-group">
                     <div class="dropdown-container">
                       <button type="button" class="editor-btn dropdown-trigger" data-command="heading" title="Headings">
@@ -4916,10 +4914,7 @@
                       </div>
                     </div>
                   </div>
-
                   <div class="toolbar-separator"></div>
-
-                  <!-- Lists & Structure -->
                   <div class="toolbar-group">
                     <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Bullet List">
                       <ion-icon name="list-outline"></ion-icon>
@@ -4938,10 +4933,7 @@
                       <span class="btn-label">Outdent</span>
                     </button>
                   </div>
-
                   <div class="toolbar-separator"></div>
-
-                  <!-- Code & Links -->
                   <div class="toolbar-group">
                     <button type="button" class="editor-btn" data-command="insertCode" title="Inline Code">
                       <ion-icon name="code-outline"></ion-icon>
@@ -4951,7 +4943,7 @@
                       <ion-icon name="code-slash-outline"></ion-icon>
                       <span class="btn-label">Code Block</span>
                     </button>
-                    <button type="button" class="editor-btn" data-command="insertLink" title="Insert Link">
+                    <button type="button" class="editor-btn" data-command="insertLink" title="Insert Link (Ctrl/Cmd+K)">
                       <ion-icon name="link-outline"></ion-icon>
                       <span class="btn-label">Link</span>
                     </button>
@@ -4960,10 +4952,7 @@
                       <span class="btn-label">Quote</span>
                     </button>
                   </div>
-
                   <div class="toolbar-separator"></div>
-
-                  <!-- Media & Preview -->
                   <div class="toolbar-group">
                     <button type="button" class="editor-btn" data-command="insertImage" title="Insert Image">
                       <ion-icon name="image-outline"></ion-icon>
@@ -4979,18 +4968,15 @@
                     </button>
                   </div>
                 </div>
-
                 <div class="editor-container">
-                  <div class="editor-wrapper" id="edit-editor-wrapper">
-                    <div class="editor-line-numbers" id="edit-editor-line-numbers"></div>
-                    <textarea id="edit-blog-content" name="content" class="editor-textarea has-scrollbar" placeholder="Start writing your blog post here...&#10;&#10;💡 Pro Tips:&#10;• Press Tab for indentation&#10;• Use markdown formatting for better results"></textarea>
+                  <div class="blog-tiptap-wrap">
+                    <div class="blog-tiptap-surface" id="blog-tiptap-edit" aria-label="Post content editor"></div>
+                    <textarea id="edit-blog-content" name="content" class="blog-tiptap-hidden" hidden aria-hidden="true"></textarea>
                   </div>
-
                   <div class="editor-preview" id="edit-editor-preview" style="display: none;">
-                    <div class="preview-content"></div>
+                    <div class="preview-content blog-modal-text"></div>
                   </div>
                 </div>
-
                 <div class="editor-footer">
                   <div class="editor-stats">
                     <span class="char-count"><ion-icon name="text-outline"></ion-icon> 0 characters</span>
@@ -6290,7 +6276,8 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/portfolio-detail-shared.js?v=poster-webp-20260729"></script>
   <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
   <script src="/assets/js/i18n.js?v=portal-recover-20260728"></script>
-  <script src="/assets/js/script.js?v=hide-desktop-tab-reorder-20260729"></script>
+  <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
+  <script src="/assets/js/script.js?v=tiptap-blog-20260729"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=admin-custom-selects-20260729"></script>
   <script src="/assets/js/dm-migration.js"></script>

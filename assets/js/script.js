@@ -1171,6 +1171,7 @@ function markBlogFormDirty(type) {
   if (type === 'add') addBlogDirty = true;
   if (type === 'edit') editBlogDirty = true;
 }
+window.markBlogFormDirty = markBlogFormDirty;
 
 function resetBlogFormDirty(type) {
   if (type === 'add') addBlogDirty = false;
@@ -1184,6 +1185,9 @@ function ensureBlogFormCanClose(type) {
 }
 
 function collectBlogPostFromForm(form, isEdit) {
+  if (typeof window.syncBlogTipTapToForm === 'function') {
+    window.syncBlogTipTapToForm(!!isEdit);
+  }
   const formData = new FormData(form);
   const id = isEdit ? String(formData.get('id') || '').trim() : '';
   const title = String(formData.get('title') || '').trim();
@@ -1934,21 +1938,13 @@ class BlogEditor {
   }
 }
 
-// Initialize editors when modals are opened
-function initializeEditor(modalId, isEdit = false) {
-  const modal = document.getElementById(modalId);
-  if (modal) {
-    const editorKey = isEdit ? 'editEditor' : 'addEditor';
-
-    // Always reinitialize to ensure fresh state
-    if (window[editorKey]) {
-      delete window[editorKey];
-    }
-
-    window[editorKey] = new BlogEditor(modal, isEdit);
-    return window[editorKey];
+// Initialize TipTap editors when modals are opened
+function initializeEditor(modalId, isEdit = false, initialHtml) {
+  if (typeof window.createBlogTipTapEditor !== 'function') {
+    console.error('TipTap blog editor is not loaded');
+    return null;
   }
-  return null;
+  return window.createBlogTipTapEditor(modalId, isEdit, initialHtml);
 }
 
 // Initialize on DOM ready
@@ -1965,19 +1961,14 @@ function setupAddBlogFormListener() {
   }
   
   
-  // Remove any existing listeners by cloning
-  const newForm = form.cloneNode(true);
-  form.parentNode.replaceChild(newForm, form);
-  
-  // Get the new form reference
-  const freshForm = document.getElementById('add-blog-form');
-  
-  // Add onsubmit attribute as backup
-  freshForm.setAttribute('onsubmit', 'event.preventDefault(); return false;');
-  freshForm.setAttribute('action', 'javascript:void(0);');
-  
-  // Attach submit listener
-  freshForm.addEventListener('submit', async function(e) {
+  // Do not cloneNode — TipTap mounts into this form DOM.
+  if (form.dataset.submitBound === '1') return;
+  form.dataset.submitBound = '1';
+
+  form.setAttribute('onsubmit', 'event.preventDefault(); return false;');
+  form.setAttribute('action', 'javascript:void(0);');
+
+  form.addEventListener('submit', async function(e) {
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
@@ -2003,10 +1994,9 @@ function setupAddBlogFormListener() {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Creating...';
       
+      if (typeof window.syncBlogTipTapToForm === 'function') window.syncBlogTipTapToForm(false);
       const newPost = collectBlogPostFromForm(this, false);
-      
-      
-      // Validate required fields
+
       // Save to Firestore
       const savedPost = await saveBlogPostToFirestore(newPost);
       
@@ -2035,7 +2025,7 @@ function setupAddBlogFormListener() {
         // Continue anyway since we already updated locally
       });
       
-      // Close modal
+      if (typeof window.clearBlogTipTapDraft === 'function') window.clearBlogTipTapDraft(false);
       resetBlogFormDirty('add');
       closeAddBlogModal();
       
@@ -2199,16 +2189,13 @@ if (document.readyState === 'loading') {
 }
 
 // Open edit modal with post data
-function openEditBlogModal(postId) {
+async function openEditBlogModal(postId) {
   // Security check: Only allow admin users to edit blog posts
   if (!isAdmin()) {
     showErrorMessage('Access denied. Admin privileges required to edit blog posts.');
     return;
   }
 
-  // Initialize editor for edit blog modal
-  initializeEditor('edit-blog-modal', true);
-  
   // Additional check: Ensure we're in admin context (not public blog page)
   const adminBlogPostsList = document.getElementById('admin-blog-posts-list');
   if (!adminBlogPostsList) {
@@ -2216,7 +2203,6 @@ function openEditBlogModal(postId) {
     showErrorMessage('Blog management is only available in the admin dashboard.');
     return;
   }
-
 
   const post = blogPosts.find(p => p.id === postId);
   if (!post) {
@@ -2259,18 +2245,14 @@ function openEditBlogModal(postId) {
   var editPublishAtEl = document.getElementById('edit-blog-publish-at');
   if (editPublishAtEl) editPublishAtEl.value = post.publishAt || '';
   
-  // Set content using editor instance if available
   const editTextarea = document.getElementById('edit-blog-content');
-  if (editTextarea) {
-    editTextarea.value = post.content;
-    
-    // Update editor stats if editor is initialized
-    if (window.editEditor) {
-      setTimeout(() => {
-        window.editEditor.updateStats();
-        window.editEditor.updateLineNumbers();
-      }, 100);
-    }
+  if (editTextarea) editTextarea.value = post.content || '';
+
+  try {
+    await initializeEditor('edit-blog-modal', true, post.content || '');
+  } catch (err) {
+    console.error('TipTap edit editor failed to load', err);
+    showErrorMessage('Could not load the content editor. Check your network and try again.');
   }
   resetBlogFormDirty('edit');
 
@@ -2369,7 +2351,8 @@ if (editBlogForm) {
     try {
       submitBtn.disabled = true;
       submitBtn.textContent = 'Updating...';
-      
+
+      if (typeof window.syncBlogTipTapToForm === 'function') window.syncBlogTipTapToForm(true);
       const updatedPost = collectBlogPostFromForm(this, true);
       
       if (!postId) {
@@ -2392,11 +2375,10 @@ if (editBlogForm) {
         renderAdminBlogPosts();
       }
       
-      // Close modal
+      if (typeof window.clearBlogTipTapDraft === 'function') window.clearBlogTipTapDraft(true);
       resetBlogFormDirty('edit');
       closeEditBlogModal();
-      
-      // Show success message
+
       showSuccessMessage('Blog post updated successfully!');
       
     } catch (error) {
@@ -2518,9 +2500,6 @@ function openAddBlogModal() {
     return;
   }
 
-  // Initialize editor for add blog modal
-  initializeEditor('add-blog-modal', false);
-  
   // Additional check: Ensure we're in admin context (not public blog page)
   const adminBlogPostsList = document.getElementById('admin-blog-posts-list');
   if (!adminBlogPostsList) {
@@ -2595,6 +2574,11 @@ function openAddBlogModal() {
       if (typeof updateCounts === 'function') updateCounts();
     }, 100);
     resetBlogFormDirty('add');
+
+    initializeEditor('add-blog-modal', false, '').catch(function (err) {
+      console.error('TipTap add editor failed to load', err);
+      showErrorMessage('Could not load the content editor. Check your network and try again.');
+    });
   }
 }
 
