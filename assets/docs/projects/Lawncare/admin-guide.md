@@ -1,6 +1,5 @@
 # DLS Lawn Services Admin Guide
 
-**DLS Lawn Services** · Expo web app · Admin at `/admin`
 
 All admin changes save to Firebase Realtime Database and update the live app immediately.
 

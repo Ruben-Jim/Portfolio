@@ -4179,6 +4179,130 @@ function syncAdminPortfolioLocalBanner() {
   banner.hidden = !empty || !window.rtdb;
 }
 
+function getAdminPortfolioVisibilityGroups() {
+  const sorted = portfolioProjectsRtdb.slice().sort(comparePortfolioProjectsByOrder);
+  return {
+    publicProjects: sorted.filter(isPortfolioPublic),
+    privateProjects: sorted.filter(function (p) {
+      return !isPortfolioPublic(p);
+    })
+  };
+}
+
+function buildAdminPortfolioRowHtml(p, listPosition, groupKey) {
+  const cat = String(p.category || 'professional').toLowerCase();
+  const catClass =
+    cat === 'templates' || cat === 'creative' || cat === 'professional' ? cat : 'professional';
+  const thumb = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(p) || p.imageUrl);
+  const catLabel =
+    catClass === 'templates' ? 'Templates' : catClass === 'creative' ? 'Creative' : 'Professional';
+  const isPublic = groupKey === 'public';
+  const orderTitle = isPublic
+    ? 'Position on the public portfolio page'
+    : 'Position among private projects';
+  const orderLabel = isPublic ? '#' + String(listPosition) : 'P' + String(listPosition);
+  return (
+    '<div class="admin-portfolio-row admin-portfolio-row--' +
+    catClass +
+    '" data-portfolio-visibility="' +
+    (isPublic ? 'public' : 'private') +
+    '">' +
+    '<div class="admin-portfolio-row-main">' +
+    '<div class="admin-portfolio-thumb-wrap">' +
+    '<img class="admin-portfolio-thumb" src="' +
+    portfolioEscapeHtml(thumb) +
+    '" alt="" loading="lazy" onerror="portfolioHandleImageError(this)">' +
+    '</div>' +
+    '<div class="admin-portfolio-row-text">' +
+    '<span class="admin-portfolio-title">' +
+    portfolioEscapeHtml(p.title || 'Untitled') +
+    '</span>' +
+    '<div class="admin-portfolio-meta-row">' +
+    '<span class="admin-portfolio-badge admin-portfolio-badge--' +
+    catClass +
+    '">' +
+    portfolioEscapeHtml(catLabel) +
+    '</span>' +
+    (isPublic
+      ? '<span class="admin-portfolio-badge admin-portfolio-badge--public">Public</span>'
+      : '<span class="admin-portfolio-badge admin-portfolio-badge--private">Private</span>') +
+    '<span class="admin-portfolio-order" title="' +
+    portfolioEscapeHtml(orderTitle) +
+    '">' +
+    orderLabel +
+    '</span>' +
+    '</div></div></div>' +
+    '<div class="admin-portfolio-row-actions">' +
+    '<div class="admin-portfolio-actions-grid" role="group" aria-label="Project actions">' +
+    '<button type="button" class="blog-action-btn edit-btn admin-portfolio-action-btn admin-portfolio-action-btn--edit" data-edit-portfolio="' +
+    portfolioEscapeHtml(p.id) +
+    '" title="Edit project"><ion-icon name="create-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Edit</span></button>' +
+    '<button type="button" class="blog-action-btn delete-btn admin-portfolio-action-btn admin-portfolio-action-btn--delete" data-delete-portfolio="' +
+    portfolioEscapeHtml(p.id) +
+    '" title="Delete project"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Delete</span></button>' +
+    '<button type="button" class="blog-action-btn admin-portfolio-order-btn admin-portfolio-action-btn admin-portfolio-action-btn--order" data-portfolio-order-up="' +
+    portfolioEscapeHtml(p.id) +
+    '" data-portfolio-order-group="' +
+    (isPublic ? 'public' : 'private') +
+    '" title="Move up in this list"' +
+    (listPosition <= 1 ? ' disabled' : '') +
+    '><ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Up</span></button>' +
+    '<button type="button" class="blog-action-btn admin-portfolio-order-btn admin-portfolio-action-btn admin-portfolio-action-btn--order" data-portfolio-order-down="' +
+    portfolioEscapeHtml(p.id) +
+    '" data-portfolio-order-group="' +
+    (isPublic ? 'public' : 'private') +
+    '" title="Move down in this list"><ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Down</span></button>' +
+    '</div></div></div>'
+  );
+}
+
+function renderAdminPortfolioSectionHtml(title, hint, projects, groupKey) {
+  const count = projects.length;
+  const empty =
+    '<p class="admin-portfolio-section-empty">' +
+    (groupKey === 'public'
+      ? 'No public projects yet. Toggle “Show on public portfolio” when editing a project.'
+      : 'No private projects. Client-only showcases stay here.') +
+    '</p>';
+  const rows = projects
+    .map(function (p, index) {
+      return buildAdminPortfolioRowHtml(p, index + 1, groupKey);
+    })
+    .join('');
+  // Disable Down on last row via a second pass in HTML is awkward; handle in click + mark last in build
+  // Fix last-row Down disabled: rebuild with length awareness
+  const rowsFixed = projects
+    .map(function (p, index) {
+      let html = buildAdminPortfolioRowHtml(p, index + 1, groupKey);
+      if (index === projects.length - 1) {
+        html = html.replace(
+          /data-portfolio-order-down="[^"]+"([^>]*)>/,
+          function (match) {
+            if (/\sdisabled/.test(match)) return match;
+            return match.replace('>', ' disabled>');
+          }
+        );
+      }
+      return html;
+    })
+    .join('');
+  return (
+    '<section class="admin-portfolio-list-section" data-portfolio-list-section="' +
+    groupKey +
+    '">' +
+    '<div class="admin-portfolio-list-section-head">' +
+    '<h4 class="admin-portfolio-list-section-title">' +
+    portfolioEscapeHtml(title) +
+    ' <span class="admin-portfolio-list-section-count">' +
+    String(count) +
+    '</span></h4>' +
+    (hint ? '<p class="admin-portfolio-list-section-hint">' + portfolioEscapeHtml(hint) + '</p>' : '') +
+    '</div>' +
+    (count ? '<div class="admin-portfolio-list-section-rows">' + rowsFixed + '</div>' : empty) +
+    '</section>'
+  );
+}
+
 function renderAdminPortfolioProjects() {
   const listEl = document.getElementById('admin-portfolio-projects-list');
   if (!listEl) return;
@@ -4192,59 +4316,20 @@ function renderAdminPortfolioProjects() {
       '<div class="empty-item"><p>No projects in Realtime Database yet. The public portfolio still shows the built-in list until you add one below.</p></div>';
     return;
   }
-  portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
-  listEl.innerHTML = '';
-  portfolioProjectsRtdb.forEach(function (p, index) {
-    const row = document.createElement('div');
-    const cat = String(p.category || 'professional').toLowerCase();
-    const catClass =
-      cat === 'templates' || cat === 'creative' || cat === 'professional' ? cat : 'professional';
-    row.className = 'admin-portfolio-row admin-portfolio-row--' + catClass;
-    const thumb = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(p) || p.imageUrl);
-    const listPosition = index + 1;
-    const catLabel =
-      catClass === 'templates' ? 'Templates' : catClass === 'creative' ? 'Creative' : 'Professional';
-    row.innerHTML =
-      '<div class="admin-portfolio-row-main">' +
-      '<div class="admin-portfolio-thumb-wrap">' +
-      '<img class="admin-portfolio-thumb" src="' +
-      portfolioEscapeHtml(thumb) +
-      '" alt="" loading="lazy" onerror="portfolioHandleImageError(this)">' +
-      '</div>' +
-      '<div class="admin-portfolio-row-text">' +
-      '<span class="admin-portfolio-title">' +
-      portfolioEscapeHtml(p.title || 'Untitled') +
-      '</span>' +
-      '<div class="admin-portfolio-meta-row">' +
-      '<span class="admin-portfolio-badge admin-portfolio-badge--' +
-      catClass +
-      '">' +
-      portfolioEscapeHtml(catLabel) +
-      '</span>' +
-      (!isPortfolioPublic(p)
-        ? '<span class="admin-portfolio-badge admin-portfolio-badge--private">Private</span>'
-        : '') +
-      '<span class="admin-portfolio-order" title="Position on the public portfolio page">#' +
-      String(listPosition) +
-      '</span>' +
-      '</div></div></div>' +
-      '<div class="admin-portfolio-row-actions">' +
-      '<div class="admin-portfolio-actions-grid" role="group" aria-label="Project actions">' +
-      '<button type="button" class="blog-action-btn edit-btn admin-portfolio-action-btn admin-portfolio-action-btn--edit" data-edit-portfolio="' +
-      portfolioEscapeHtml(p.id) +
-      '" title="Edit project"><ion-icon name="create-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Edit</span></button>' +
-      '<button type="button" class="blog-action-btn delete-btn admin-portfolio-action-btn admin-portfolio-action-btn--delete" data-delete-portfolio="' +
-      portfolioEscapeHtml(p.id) +
-      '" title="Delete project"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Delete</span></button>' +
-      '<button type="button" class="blog-action-btn admin-portfolio-order-btn admin-portfolio-action-btn admin-portfolio-action-btn--order" data-portfolio-order-up="' +
-      portfolioEscapeHtml(p.id) +
-      '" title="Move up"><ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Up</span></button>' +
-      '<button type="button" class="blog-action-btn admin-portfolio-order-btn admin-portfolio-action-btn admin-portfolio-action-btn--order" data-portfolio-order-down="' +
-      portfolioEscapeHtml(p.id) +
-      '" title="Move down"><ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon><span class="admin-portfolio-action-label">Down</span></button>' +
-      '</div></div>';
-    listEl.appendChild(row);
-  });
+  const groups = getAdminPortfolioVisibilityGroups();
+  listEl.innerHTML =
+    renderAdminPortfolioSectionHtml(
+      'Public on site',
+      'Shown on the Portfolio page. Up/Down only reorder this group.',
+      groups.publicProjects,
+      'public'
+    ) +
+    renderAdminPortfolioSectionHtml(
+      'Private / client-only',
+      'Hidden from the public Portfolio page. Share via a client portal link.',
+      groups.privateProjects,
+      'private'
+    );
 }
 
 let portfolioModalHandlersBound = false;
@@ -5005,15 +5090,22 @@ function setupPortfolioAdminControls() {
           showErrorMessage('Realtime Database is not initialized.');
           return;
         }
+        const btn = orderUpBtn || orderDownBtn;
+        if (btn.disabled) return;
         const attr = orderUpBtn ? 'data-portfolio-order-up' : 'data-portfolio-order-down';
-        const id = (orderUpBtn || orderDownBtn).getAttribute(attr);
-        portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
-        const currentIndex = portfolioProjectsRtdb.findIndex(function (x) { return x.id === id; });
+        const id = btn.getAttribute(attr);
+        const groupKey = btn.getAttribute('data-portfolio-order-group') || '';
+        const groups = getAdminPortfolioVisibilityGroups();
+        const groupList =
+          groupKey === 'private' ? groups.privateProjects : groups.publicProjects;
+        const currentIndex = groupList.findIndex(function (x) {
+          return x.id === id;
+        });
         if (currentIndex < 0) return;
         const targetIndex = orderUpBtn ? currentIndex - 1 : currentIndex + 1;
-        if (targetIndex < 0 || targetIndex >= portfolioProjectsRtdb.length) return;
-        const current = portfolioProjectsRtdb[currentIndex];
-        const neighbor = portfolioProjectsRtdb[targetIndex];
+        if (targetIndex < 0 || targetIndex >= groupList.length) return;
+        const current = groupList[currentIndex];
+        const neighbor = groupList[targetIndex];
         const currentPayload = Object.assign({}, current, { order: portfolioNumericOrder(neighbor) });
         const neighborPayload = Object.assign({}, neighbor, { order: portfolioNumericOrder(current) });
         try {
@@ -5914,7 +6006,11 @@ function initPortfolioProjectModal() {
 
   if (closeBtn && !closeBtn.dataset.portfolioDetailBound) {
     closeBtn.dataset.portfolioDetailBound = '1';
-    closeBtn.addEventListener('click', closeProjectModal);
+    closeBtn.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeProjectModal();
+    });
   }
   if (overlay && !overlay.dataset.portfolioDetailBound) {
     overlay.dataset.portfolioDetailBound = '1';
@@ -11235,6 +11331,10 @@ window.addEventListener('load', function() {
     if (businessDocFoundationWrap) {
       businessDocFoundationWrap.style.display = isProposal ? 'block' : 'none';
     }
+    var businessDocLinksSection = document.getElementById('business-doc-links-section');
+    if (businessDocLinksSection) {
+      businessDocLinksSection.hidden = !isProposal;
+    }
     if (businessDocProposalFields) {
       businessDocProposalFields.hidden = !isProposal;
     }
@@ -11531,8 +11631,9 @@ window.addEventListener('load', function() {
 
       var editBtn = document.createElement('button');
       editBtn.type = 'button';
-      editBtn.className = 'btn-icon';
+      editBtn.className = 'btn-icon edit-btn';
       editBtn.title = 'Edit';
+      editBtn.setAttribute('aria-label', 'Edit document');
       editBtn.innerHTML = '<ion-icon name="create-outline"></ion-icon>';
       editBtn.addEventListener('click', function() {
         var latest =
@@ -11546,6 +11647,7 @@ window.addEventListener('load', function() {
       pdfBtn.type = 'button';
       pdfBtn.className = 'btn-icon';
       pdfBtn.title = 'Generate PDF';
+      pdfBtn.setAttribute('aria-label', 'Generate PDF');
       pdfBtn.innerHTML = '<ion-icon name="document-text-outline"></ion-icon>';
       pdfBtn.addEventListener('click', function() {
         generateBusinessDocPdf(doc);
@@ -11555,8 +11657,9 @@ window.addEventListener('load', function() {
       if (doc.type === 'proposal' && doc.status === 'accepted') {
         generateContractBtn = document.createElement('button');
         generateContractBtn.type = 'button';
-        generateContractBtn.className = 'btn-icon';
+        generateContractBtn.className = 'btn-icon contract-btn';
         generateContractBtn.title = 'Generate Contract';
+        generateContractBtn.setAttribute('aria-label', 'Generate contract from this proposal');
         generateContractBtn.innerHTML = '<ion-icon name="document-lock-outline"></ion-icon>';
         generateContractBtn.addEventListener('click', function () {
           var nowIso = new Date().toISOString();
@@ -11580,8 +11683,9 @@ window.addEventListener('load', function() {
 
       var deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
-      deleteBtn.className = 'btn-icon';
+      deleteBtn.className = 'btn-icon delete-btn';
       deleteBtn.title = 'Delete';
+      deleteBtn.setAttribute('aria-label', 'Delete document');
       deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
       deleteBtn.addEventListener('click', function () {
         openDeleteDocumentConfirmModal(doc.id);
@@ -15605,10 +15709,19 @@ function attachSubModalListeners() {
       return;
     }
 
-    triggerEl.addEventListener('click', () => {
+    const openFn = () => {
       modalEl.classList.add('active');
       document.body.classList.add('modal-open');
       modalEl.querySelector('button')?.focus();
+    };
+
+    // Launcher tiles are plain divs (role="button"), so clicks and
+    // keyboard activation (Enter/Space) both need explicit wiring.
+    triggerEl.addEventListener('click', openFn);
+    triggerEl.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+      e.preventDefault();
+      openFn();
     });
 
     const closeFn = () => {
@@ -15622,11 +15735,10 @@ function attachSubModalListeners() {
   });
 
   // ESC handler
+  const activeModalSelector = subModals.map(config => `#${config.modal}.active`).join(', ') + ', #pricing-addons-modal.active';
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      document.querySelectorAll(
-        '#sales-modal.active, #turnkey-modal.active, #endtoend-modal.active, #questions-modal.active, #components-modal.active, #template-scripts-modal.active, #pricing-addons-modal.active'
-      ).forEach(modal => modal.classList.remove('active'));
+      document.querySelectorAll(activeModalSelector).forEach(modal => modal.classList.remove('active'));
       document.body.classList.remove('modal-open');
       if (typeof window.closePricingAddonsModal === 'function') {
         var pricingAddonsModal = document.getElementById('pricing-addons-modal');

@@ -2605,15 +2605,41 @@
     el.classList.toggle('is-error', !!message && !!isError);
   }
 
+  function renderMilestonesStatusPillHtml(milestones) {
+    var total = Array.isArray(milestones) ? milestones.length : 0;
+    if (!total) return '<span class="cp-section-status-pill is-empty">No milestones</span>';
+    var done = milestones.filter(function (m) { return m && m.done; }).length;
+    return '<span class="cp-section-status-pill is-set">' + done + '/' + total + ' done</span>';
+  }
+
+  function renderCpMilestoneRowHtml(milestone) {
+    milestone = milestone || { label: '', done: false };
+    return (
+      '<li class="hub-milestone cp-hub-milestone" data-cp-milestone-row>' +
+      '<input type="checkbox"' + (milestone.done ? ' checked' : '') + '>' +
+      '<input type="text" class="form-input hub-milestone-label" value="' + esc(milestone.label || '') + '" placeholder="Milestone label">' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="remove-milestone">Remove</button>' +
+      '</li>'
+    );
+  }
+
   function renderCpMilestonesHtml(milestones) {
-    return (milestones || []).map(function (m, i) {
-      return (
-        '<li class="hub-milestone cp-hub-milestone">' +
-        '<input type="checkbox" data-cp-milestone-done="' + i + '" ' + (m.done ? 'checked' : '') + '>' +
-        '<input type="text" class="form-input hub-milestone-label" data-cp-milestone-label="' + i + '" value="' + esc(m.label) + '">' +
-        '</li>'
-      );
-    }).join('');
+    return (Array.isArray(milestones) ? milestones : []).map(renderCpMilestoneRowHtml).join('');
+  }
+
+  function addCpMilestoneRow() {
+    var list = document.getElementById('cp-hub-milestones');
+    if (!list) return;
+    list.insertAdjacentHTML('beforeend', renderCpMilestoneRowHtml({ label: '', done: false }));
+    var rows = list.querySelectorAll('[data-cp-milestone-row]');
+    var last = rows[rows.length - 1];
+    var lastInput = last ? last.querySelector('.hub-milestone-label') : null;
+    if (lastInput) lastInput.focus();
+  }
+
+  function removeCpMilestoneRow(btn) {
+    var row = btn && btn.closest ? btn.closest('[data-cp-milestone-row]') : null;
+    if (row) row.remove();
   }
 
   function snapshotCpSectionCollapse(hubId) {
@@ -2662,11 +2688,15 @@
     var docs = ctx.docs;
     var portfolio = ctx.portfolio;
     if (id === 'hub') {
-      var done = (hub.milestones || []).filter(function (m) {
+      return hub.title || hub.clientName || '';
+    }
+    if (id === 'milestones') {
+      var mDone = (hub.milestones || []).filter(function (m) {
         return m.done;
       }).length;
-      var total = hub.milestones ? hub.milestones.length : 0;
-      return done + '/' + total + ' milestones';
+      var mTotal = hub.milestones ? hub.milestones.length : 0;
+      if (!mTotal) return 'No milestones yet';
+      return mDone + '/' + mTotal + ' complete';
     }
     if (id === 'portal') {
       var token = hub.portalToken;
@@ -2869,13 +2899,16 @@
   }
 
   function collectCpMilestonesFromWorkspace(root) {
-    var labels = root.querySelectorAll('[data-cp-milestone-label]');
+    var rows = root.querySelectorAll('#cp-hub-milestones [data-cp-milestone-row]');
     var out = [];
-    labels.forEach(function (inp, i) {
-      var chk = root.querySelector('[data-cp-milestone-done="' + i + '"]');
+    rows.forEach(function (row) {
+      var label = row.querySelector('.hub-milestone-label');
+      var text = label ? label.value.trim() : '';
+      if (!text) return;
+      var chk = row.querySelector('input[type="checkbox"]');
       out.push({
-        id: 'm' + i,
-        label: inp.value.trim(),
+        id: 'm' + out.length,
+        label: text,
         done: chk ? chk.checked : false
       });
     });
@@ -2995,11 +3028,18 @@
       '<div class="form-group"><label for="cp-hub-doc-id">Business doc ID</label><input id="cp-hub-doc-id" class="form-input" type="text" value="' + esc(hub.businessDocId) + '"></div>' +
       '<div class="form-group form-group--full"><label for="cp-hub-notes">Notes</label><textarea id="cp-hub-notes" class="form-input has-scrollbar" rows="3">' + esc(hub.notes) + '</textarea></div>' +
       '</div>' +
-      '<div class="form-group"><label>Milestones</label><ul class="cp-milestones-list" id="cp-hub-milestones">' + renderCpMilestonesHtml(hub.milestones) + '</ul></div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-hub">Save hub</button>' +
       '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-hub">Delete client</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="hub" role="status"></p></div>';
+
+    var milestonesBody =
+      '<div class="form-group"><ul class="cp-milestones-list" id="cp-hub-milestones">' + renderCpMilestonesHtml(hub.milestones) + '</ul>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="add-milestone">Add milestone</button></div>' +
+      '<div class="cp-section-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-milestones">Save milestones</button>' +
+      '<p class="cp-section-feedback" data-cp-feedback="milestones" role="status"></p></div>';
+    var milestonesTitleBadge = renderMilestonesStatusPillHtml(hub.milestones);
 
     var portalBody =
       '<p class="form-hint">Share a private link so this client can view project status, docs, and showcase.</p>' +
@@ -3164,6 +3204,7 @@
 
     workspace.innerHTML =
       buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub')) +
+      buildCpCollapsibleSection('milestones', 'Milestones', null, milestonesBody, cpSectionSummary('milestones', sectionCtx), isCpSectionExpanded(hub.id, 'milestones'), milestonesTitleBadge) +
       buildCpCollapsibleSection('portal', 'Client portal', null, portalBody, cpSectionSummary('portal', sectionCtx), isCpSectionExpanded(hub.id, 'portal')) +
       buildCpCollapsibleSection('guide', 'Docs & guides', null, guideBody, cpSectionSummary('guide', sectionCtx), isCpSectionExpanded(hub.id, 'guide'), guideTitleBadge) +
       buildCpCollapsibleSection('maintenance', 'Maintenance & SLA', null, maintBody, cpSectionSummary('maintenance', sectionCtx), isCpSectionExpanded(hub.id, 'maintenance')) +
@@ -3234,7 +3275,8 @@
     renderClientProjectsPickerList();
   }
 
-  async function saveHubFromClientWorkspace() {
+  async function saveHubFromClientWorkspace(feedbackSection) {
+    feedbackSection = feedbackSection || 'hub';
     var hubId = clientProjectsSelectedId;
     if (!hubId || !rtdbReady()) return;
     var existing = getHubById(hubId);
@@ -3259,12 +3301,12 @@
     Object.assign(payload, copyPortalGuideFields(existing));
     try {
       await saveProjectHubRecord(hubId, payload, false);
-      setCpFeedback('hub', 'Hub saved.', false);
+      setCpFeedback(feedbackSection, feedbackSection === 'milestones' ? 'Milestones saved.' : 'Hub saved.', false);
       renderClientProjectsWorkspace();
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
       console.error(err);
-      setCpFeedback('hub', (err && err.message) || 'Save failed.', true);
+      setCpFeedback(feedbackSection, (err && err.message) || 'Save failed.', true);
     }
   }
 
@@ -3666,7 +3708,11 @@
       return;
     }
     if (action === 'save-hub') {
-      saveHubFromClientWorkspace().catch(console.error);
+      saveHubFromClientWorkspace('hub').catch(console.error);
+      return;
+    }
+    if (action === 'save-milestones') {
+      saveHubFromClientWorkspace('milestones').catch(console.error);
       return;
     }
     if (action === 'save-guide') {
@@ -3679,6 +3725,14 @@
     }
     if (action === 'remove-guide-row') {
       removeCpGuideRow(el);
+      return;
+    }
+    if (action === 'add-milestone') {
+      addCpMilestoneRow();
+      return;
+    }
+    if (action === 'remove-milestone') {
+      removeCpMilestoneRow(el);
       return;
     }
     if (action === 'save-maint') {

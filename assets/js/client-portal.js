@@ -877,7 +877,7 @@
     );
   }
 
-  function renderBrandHeader(project, detailRecord, options) {
+  function renderBrandHeader(project, detailRecord, options, hasShowcase) {
     return (
       '<div class="client-portal-brand">' +
       '<h1>' +
@@ -886,6 +886,9 @@
       '<p class="client-portal-tagline">CodeWithRuben client portal</p>' +
       renderStatusSummaryStrip(project) +
       renderProjectVisitLinks(project, detailRecord, options) +
+      (hasShowcase
+        ? '<p class="client-portal-demo-hint"><button type="button" class="client-portal-demo-hint-link" data-cp-scroll-showcase>See full project details &amp; screenshots below ↓</button></p>'
+        : '') +
       '</div>'
     );
   }
@@ -1436,6 +1439,17 @@
     });
   }
 
+  function bindDemoHintScroll(root) {
+    if (!root) return;
+    var hint = root.querySelector('[data-cp-scroll-showcase]');
+    var details = root.querySelector('details.client-portal-showcase');
+    if (!hint || !details) return;
+    hint.addEventListener('click', function () {
+      details.open = true;
+      details.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
   function renderProjectPage(inner, project, detailRecord, detailOptions, businessDocs, maint, portalCtx, hasShowcase, contractSignatures, portalGuides) {
     businessDocs = businessDocs || [];
     portalCtx = portalCtx || {};
@@ -1447,7 +1461,8 @@
       if (d && d.id) window.portalBusinessDocsById[d.id] = d;
     });
     window.portalContractSignaturesById = contractSignatures;
-    var brand = renderBrandHeader(project, detailRecord, detailOptions);
+    var showcaseWillRender = !!(hasShowcase && detailRecord && window.PortfolioDetailShared);
+    var brand = renderBrandHeader(project, detailRecord, detailOptions, showcaseWillRender);
 
     var hasGuide = portalGuides.length > 0;
     var guideBase = detailRecord || {
@@ -1486,6 +1501,7 @@
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, guideBase, { guideOnly: true });
     }
     bindShowcaseCollapse(inner);
+    bindDemoHintScroll(inner);
     bindPortalSignButtons(inner, portalCtx);
     bindPortalSignedViewButtons(inner);
     bindMaintenanceSupportSection(inner, portalCtx, project, maint);

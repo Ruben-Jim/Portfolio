@@ -163,6 +163,31 @@ body.client-portal-page {
   color: var(--light-gray);
 }
 
+.client-portal-demo-hint {
+  margin: 12px 0 0;
+  text-align: center;
+}
+
+.client-portal-demo-hint-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--orange-yellow-crayola);
+  font-family: inherit;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-500);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.client-portal-demo-hint-link:hover {
+  filter: brightness(1.1);
+}
+
 .client-portal-empty-showcase-lead {
   margin: 10px 0 0;
   color: var(--light-gray-70);
