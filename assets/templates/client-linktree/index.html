@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Valley Green Lawn Care — Links</title>
+  <meta name="description" content="Book lawn care, get a quote, or follow Valley Green Lawn Care." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Client theme — swap these per brand ── */
+    :root {
+      --bg: #0f1a12;
+      --bg-accent: #162318;
+      --text: #f4f7f4;
+      --text-muted: rgba(244, 247, 244, 0.68);
+      --brand: #6fbf73;
+      --brand-soft: rgba(111, 191, 115, 0.14);
+      --link-bg: rgba(255, 255, 255, 0.06);
+      --link-bg-hover: rgba(255, 255, 255, 0.11);
+      --link-border: rgba(255, 255, 255, 0.1);
+      --radius: 14px;
+      --ff: 'DM Sans', system-ui, sans-serif;
+      --max: 420px;
+      --ease: 0.22s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: var(--ff);
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -10%, var(--brand-soft), transparent 55%),
+        linear-gradient(180deg, var(--bg-accent), var(--bg) 40%);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 28px 18px 40px;
+    }
+
+    .page {
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      animation: rise 0.45s ease both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .profile {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      margin: 0 auto 14px;
+      overflow: hidden;
+      border: 2px solid var(--brand);
+      box-shadow: 0 0 0 6px var(--brand-soft);
+      background: var(--link-bg);
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .avatar-fallback {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--brand);
+      letter-spacing: 0.02em;
+    }
+
+    .name {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .bio {
+      font-size: 0.95rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+      max-width: 34ch;
+      margin: 0 auto;
+    }
+
+    .socials {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 18px 0 0;
+      list-style: none;
+    }
+
+    .socials a {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      background: var(--link-bg);
+      border: 1px solid var(--link-border);
+      transition: background var(--ease), transform var(--ease), border-color var(--ease);
+    }
+
+    .socials a:hover,
+    .socials a:focus-visible {
+      background: var(--link-bg-hover);
+      border-color: var(--brand);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .socials svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      list-style: none;
+    }
+
+    .links a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: var(--radius);
+      background: var(--link-bg);
+      border: 1px solid var(--link-border);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: background var(--ease), border-color var(--ease), transform var(--ease);
+    }
+
+    .links a:hover,
+    .links a:focus-visible {
+      background: var(--link-bg-hover);
+      border-color: var(--brand);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .links a:active {
+      transform: translateY(0) scale(0.99);
+    }
+
+    .link-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      background: var(--brand-soft);
+      color: var(--brand);
+    }
+
+    .link-icon svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .link-label {
+      flex: 1;
+      text-align: left;
+    }
+
+    .link-arrow {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      line-height: 1;
+    }
+
+    .footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .footer a {
+      color: var(--brand);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .page { animation: none; }
+      .links a,
+      .socials a { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="profile">
+      <div class="avatar" aria-hidden="true">
+        <!-- Replace with client logo/photo, or keep initials fallback -->
+        <!-- <img src="avatar.jpg" alt="" /> -->
+        <div class="avatar-fallback">VG</div>
+      </div>
+      <h1 class="name">Valley Green Lawn Care</h1>
+      <p class="bio">Fresno lawn care · Weekly mows, cleanups &amp; curb appeal that shows.</p>
+
+      <ul class="socials" aria-label="Social links">
+        <li>
+          <a href="https://instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm6.5-.9a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2z"/></svg>
+          </a>
+        </li>
+        <li>
+          <a href="https://facebook.com/" target="_blank" rel="noopener" aria-label="Facebook">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H9v3h2v7h3v-7h2.5l.5-3H14V9z"/></svg>
+          </a>
+        </li>
+        <li>
+          <a href="mailto:hello@example.com" aria-label="Email">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5L4 8V6l8 5 8-5v2z"/></svg>
+          </a>
+        </li>
+      </ul>
+    </header>
+
+    <ul class="links">
+      <li>
+        <a href="https://example.com/book">
+          <span class="link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </span>
+          <span class="link-label">Book a visit</span>
+          <span class="link-arrow" aria-hidden="true">→</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://example.com/quote">
+          <span class="link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </span>
+          <span class="link-label">Get a free quote</span>
+          <span class="link-arrow" aria-hidden="true">→</span>
+        </a>
+      </li>
+      <li>
+        <a href="tel:+15555550100">
+          <span class="link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.81.36 1.6.68 2.34a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.74.32 1.53.55 2.34.68A2 2 0 0 1 22 16.92z"/></svg>
+          </span>
+          <span class="link-label">Call us</span>
+          <span class="link-arrow" aria-hidden="true">→</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://example.com" target="_blank" rel="noopener">
+          <span class="link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </span>
+          <span class="link-label">Visit our website</span>
+          <span class="link-arrow" aria-hidden="true">→</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://example.com/gallery" target="_blank" rel="noopener">
+          <span class="link-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </span>
+          <span class="link-label">Before &amp; after gallery</span>
+          <span class="link-arrow" aria-hidden="true">→</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- Optional credit — remove for white-label / buyout clients -->
+    <p class="footer">
+      Built by <a href="https://rubenjimenez.dev" target="_blank" rel="noopener">CodeWithRuben</a>
+    </p>
+  </main>
+</body>
+</html>

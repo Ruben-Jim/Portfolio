@@ -16,6 +16,13 @@
 
   var MICRO_SAAS_MODULES = [
     {
+      id: 'link-tree',
+      name: 'Link Tree',
+      price: '$99+',
+      industries: ['lawn', 'landscaping', 'home-service', 'barber', 'salon', 'beauty', 'ecommerce', 'retail', 'shop'],
+      description: 'Branded Instagram/TikTok bio link page with stacked action links and social icons.'
+    },
+    {
       id: 'route-planner',
       name: 'Route Planner',
       price: '$400+',

@@ -6408,7 +6408,7 @@ function resolveNavPageName(navText) {
   return navPageName;
 }
 
-var HIRE_ME_PACKAGE_IDS = ['starter', 'growth', 'agency', 'studio'];
+var HIRE_ME_PACKAGE_IDS = ['linktree', 'starter', 'growth', 'agency', 'studio'];
 
 var HIRE_ME_GENERIC = {
   heroLabel: 'Open to new projects',
@@ -6431,68 +6431,93 @@ var HIRE_ME_GENERIC = {
 };
 
 var HIRE_ME_PACKAGES = {
+  linktree: {
+    id: 'linktree',
+    pill: 'Link Tree',
+    price: '$99 – $199',
+    bannerNote: 'Branded bio link · ~3–5 days · One revision round · Hosting setup help',
+    heroLabel: 'Link Tree package',
+    heroTitle: 'Your one link for',
+    heroTitleAccent: 'Instagram & TikTok',
+    heroSub:
+      'A polished link-in-bio page with your brand — avatar, bio, stacked action links, and social icons. Ideal when you only need the bio link.',
+    timelineLabel: 'Your Link Tree path',
+    timelineSteps: [
+      { title: 'Share brand & links', desc: 'Logo, colors, and the links you want on the page.' },
+      { title: 'Design & build', desc: 'Branded page with stacked links and social icons.' },
+      { title: 'One revision round', desc: 'Tweaks to copy, order, or colors before launch.' },
+      { title: 'Go live', desc: 'Shareable URL plus hosting setup help.' }
+    ],
+    formTitle: 'Start Link Tree',
+    formLead: 'Tell me about your business and which links matter most — I\'ll confirm fit for the $99–$199 range.',
+    projectType: 'Link Tree — Bio link page',
+    budget: '$99 – $199',
+    message:
+      'Interested in a Link Tree ($99–$199). I need a branded bio link page for Instagram/TikTok with my links and brand colors.',
+    messagePlaceholder: 'What should visitors do from your bio link, and which links belong on the page?'
+  },
   starter: {
     id: 'starter',
-    pill: 'Starter Presence',
+    pill: 'Starter Presence · Website + App',
     price: '$1,500 fixed',
-    bannerNote: '1–3 page site or starter storefront · ~2 weeks · 1 month maintenance included',
-    heroLabel: 'Starter Presence package',
-    heroTitle: 'Launch fast with',
-    heroTitleAccent: 'Starter Presence',
+    bannerNote: 'Website + iOS/Android · 1–3 pages · ~2–3 weeks · 1 month maintenance included',
+    heroLabel: 'Starter Presence · Website + App',
+    heroTitle: 'Launch with',
+    heroTitleAccent: 'Website + App',
     heroSub:
-      'A polished 1–3 page site or starter storefront so you look professional and start capturing inquiries within about two weeks.',
+      'A polished 1–3 page website or starter storefront plus a branded iOS and Android app so customers can find you and inquire from either place — within about two to three weeks.',
     timelineLabel: 'Your starter launch path',
     timelineSteps: [
-      { title: 'Quick intake', desc: 'Brand basics, pages, and inquiry flow.' },
-      { title: 'Design & build', desc: 'Core pages, forms, and contact links.' },
+      { title: 'Quick intake', desc: 'Brand basics, pages, app screens, and inquiry flow.' },
+      { title: 'Design & build', desc: 'Website pages, phone app, forms, and alerts.' },
       { title: 'Review & revise', desc: 'One focused feedback round before launch.' },
-      { title: 'Go live', desc: 'Hosting setup, SEO basics, and analytics.' },
+      { title: 'Go live', desc: 'Hosting, store setup support, SEO basics, and analytics.' },
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
     formTitle: 'Start Starter Presence',
-    formLead: 'Tell me about your business and what pages you need — I\'ll confirm fit for the $1,500 package.',
-    projectType: 'Starter Presence — Web',
+    formLead: 'Tell me about your business and what you need on web and in the app — I\'ll confirm fit for the $1,500 Website + App package.',
+    projectType: 'Starter Presence — Website + App',
     budget: '$1,500',
     message:
-      'Interested in the Starter Presence package ($1,500). I need a fast-launch site/store with core pages, inquiry forms, and setup support.',
-    messagePlaceholder: 'What does your business do, and what should visitors do on the site?'
+      'Interested in Starter Presence ($1,500) — Website + App. I need a fast-launch site/store plus iOS/Android app with inquiry forms and setup support.',
+    messagePlaceholder: 'What does your business do, and what should customers do on the website and in the app?'
   },
   growth: {
     id: 'growth',
-    pill: 'Growth Platform',
+    pill: 'Growth Platform · Website + App',
     price: '$3,500 fixed',
-    bannerNote: 'Up to 5 pages + admin backend · 3–4 weeks · 1 month maintenance included',
-    heroLabel: 'Growth Platform package',
-    heroTitle: 'Grow with the',
-    heroTitleAccent: 'Growth Platform',
+    bannerNote: 'Website + iOS/Android + admin · 3–4 weeks · 1 month maintenance included',
+    heroLabel: 'Growth Platform · Website + App',
+    heroTitle: 'Grow with',
+    heroTitleAccent: 'Website + App',
     heroSub:
-      'Up to five pages plus a backend so leads and bookings land in one admin dashboard — not scattered texts and DMs.',
+      'Up to five website pages plus an iOS and Android app and an admin so leads and bookings land in one dashboard — not scattered texts and DMs.',
     timelineLabel: 'Your growth platform path',
     timelineSteps: [
-      { title: 'Scope & content', desc: 'Pages, lead flows, and admin needs.' },
-      { title: 'Design system', desc: 'Stronger branding across up to 5 pages.' },
-      { title: 'Build & integrate', desc: 'Forms, notifications, and admin login.' },
+      { title: 'Scope & content', desc: 'Website pages, app flows, and admin needs.' },
+      { title: 'Design system', desc: 'Branding across web and mobile.' },
+      { title: 'Build & integrate', desc: 'Forms, notifications, payments, and admin login.' },
       { title: 'Test & train', desc: 'Walkthrough so you can manage leads yourself.' },
       { title: 'Launch + month 1', desc: 'Go live with maintenance included.' }
     ],
     formTitle: 'Start Growth Platform',
-    formLead: 'Share your lead flow and branding goals — I\'ll confirm scope for the $3,500 package.',
-    projectType: 'Growth Platform — Web + Admin',
+    formLead: 'Share your lead flow and branding goals — I\'ll confirm scope for the $3,500 Website + App package.',
+    projectType: 'Growth Platform — Website + App',
     budget: '$3,500',
     message:
-      'Interested in the Growth Platform package ($3,500). I want up to 5 pages, lead capture, and an admin dashboard for inquiries.',
-    messagePlaceholder: 'Who are your customers and how should leads reach you?'
+      'Interested in the Growth Platform package ($3,500) — Website + App. I want up to 5 pages, iOS/Android app, lead capture, and an admin dashboard.',
+    messagePlaceholder: 'Who are your customers and how should leads reach you on web and in the app?'
   },
   agency: {
     id: 'agency',
-    pill: 'Agency Build',
+    pill: 'Agency Build · Website + App',
     price: '$6k – $12k',
-    bannerNote: 'Web + mobile · Scoped after discovery · 1 month maintenance included',
+    bannerNote: 'Website + mobile · Scoped after discovery · 1 month maintenance included',
     heroLabel: 'Agency Build · Discovery',
     heroTitle: 'Book your',
     heroTitleAccent: 'Discovery Call',
     heroSub:
-      'Web plus iOS and Android for crews in the field — payments, job assignment, and day-to-day ops from one dashboard. Scope and exact investment confirmed after discovery.',
+      'Website plus iOS and Android for crews in the field — payments, job assignment, and day-to-day ops from one dashboard. Scope and exact investment confirmed after discovery.',
     timelineLabel: 'After discovery — typical path',
     timelineSteps: [
       { title: 'Discovery call', desc: '15–30 min to map ops, users, and priorities.' },
@@ -6503,10 +6528,10 @@ var HIRE_ME_PACKAGES = {
     ],
     formTitle: 'Book Discovery — Agency Build',
     formLead: 'Share your operations and timeline — we\'ll use the discovery call to scope the Business Platform tier.',
-    projectType: 'Agency Build — Business Platform',
+    projectType: 'Agency Build — Business Platform (Website + App)',
     budget: '$6,000 – $12,000',
     message:
-      'Interested in an Agency Build (Business Platform). I need web + mobile for field crews, payments, and admin — ready for a discovery call to scope investment.',
+      'Interested in an Agency Build (Business Platform — Website + App). I need web + mobile for field crews, payments, and admin — ready for a discovery call to scope investment.',
     messagePlaceholder: 'Describe your team workflow, customers, and must-have features for day one.',
     discoveryTitle: 'What we cover on discovery',
     discoveryLead:
@@ -6520,14 +6545,14 @@ var HIRE_ME_PACKAGES = {
   },
   studio: {
     id: 'studio',
-    pill: 'Studio Build',
+    pill: 'Studio Build · Website + App',
     price: '$15k – $40k',
     bannerNote: 'Full field-service platform · Custom scope · 1 month maintenance included',
     heroLabel: 'Studio Build · Discovery',
     heroTitle: 'Scope your',
     heroTitleAccent: 'Studio Build',
     heroSub:
-      'A full field-service operations platform — crews, billing, back-office automation, and the tier we use for live production apps. Timeline and investment finalized after discovery.',
+      'A full field-service operations platform (website + app) — crews, billing, back-office automation, and the tier we use for live production apps. Timeline and investment finalized after discovery.',
     timelineLabel: 'Studio engagement — typical path',
     timelineSteps: [
       { title: 'Deep discovery', desc: 'Ops map, integrations, and phased rollout plan.' },
@@ -6538,10 +6563,10 @@ var HIRE_ME_PACKAGES = {
     ],
     formTitle: 'Start Discovery — Studio Build',
     formLead: 'Outline your field operations and scale — we\'ll shape a Studio Build proposal after discovery.',
-    projectType: 'Studio Build — Field Operations Platform',
+    projectType: 'Studio Build — Field Operations (Website + App)',
     budget: '$15,000 – $40,000',
     message:
-      'Interested in a Studio Build. I need a full field-service platform (crews, quotes, invoicing, subscriptions, admin) — ready to start discovery for custom scope.',
+      'Interested in a Studio Build (Website + App). I need a full field-service platform (crews, quotes, invoicing, subscriptions, admin) — ready to start discovery for custom scope.',
     messagePlaceholder: 'What operations do you run today, and what should the platform own end-to-end?',
     discoveryTitle: 'Studio discovery focus',
     discoveryLead:
@@ -6928,29 +6953,44 @@ function setHireMeFieldLocked(field, locked) {
   }
 }
 
+var _hireMePackageSelectSyncing = false;
+
+function syncHireMePackageSelect(packageId) {
+  var input = document.querySelector('[data-page="hire-me"] [data-hire-package-input]');
+  if (!input) return;
+  var value = packageId && HIRE_ME_PACKAGES[packageId] ? packageId : '';
+  _hireMePackageSelectSyncing = true;
+  try {
+    if (typeof window.setBusinessDocSelectValue === 'function') {
+      window.setBusinessDocSelectValue(input, value, true);
+    } else {
+      input.value = value;
+      if (typeof window.syncBusinessDocSelectUI === 'function') {
+        window.syncBusinessDocSelectUI(input);
+      }
+    }
+  } finally {
+    _hireMePackageSelectSyncing = false;
+  }
+}
+
 function prefillHireMeFormFields(values) {
   values = values || {};
   var form = document.querySelector('[data-page="hire-me"] [data-hire-form-panel] form[data-form]');
   if (!form) return;
-  var projectType = form.querySelector('input[name="project-type"]');
-  var budget = form.querySelector('input[name="budget"]');
+  var projectType = form.querySelector('[data-hire-project-type], input[name="project-type"]');
+  var budget = form.querySelector('[data-hire-budget], input[name="budget"]');
   var message = form.querySelector('textarea[name="message"]');
-  var lockMeta = !!values.lockProjectAndBudget;
-  var messageAsPlaceholder = !!values.messageAsPlaceholder;
 
   if (projectType) {
     projectType.value = values.projectType || '';
-    setHireMeFieldLocked(projectType, lockMeta);
-    projectType.dispatchEvent(new Event('input', { bubbles: true }));
   }
   if (budget) {
     budget.value = values.budget || '';
-    setHireMeFieldLocked(budget, lockMeta);
-    budget.dispatchEvent(new Event('input', { bubbles: true }));
   }
   if (message) {
     setHireMeFieldLocked(message, false);
-    if (messageAsPlaceholder) {
+    if (values.messageAsPlaceholder) {
       message.value = '';
       message.placeholder =
         values.message || values.messagePlaceholder || HIRE_ME_GENERIC.messagePlaceholder;
@@ -7008,13 +7048,14 @@ function applyHireMePackageView(packageId) {
   if (formTitle) formTitle.textContent = view.formTitle;
   if (formLead) formLead.textContent = view.formLead;
 
+  syncHireMePackageSelect(isPackage ? packageId : '');
+
   if (isPackage) {
     prefillHireMeFormFields({
       projectType: config.projectType,
       budget: config.budget,
       message: config.message,
       messagePlaceholder: config.messagePlaceholder,
-      lockProjectAndBudget: true,
       messageAsPlaceholder: true
     });
     if (typeof gtag !== 'undefined') {
@@ -7030,7 +7071,6 @@ function applyHireMePackageView(packageId) {
       budget: '',
       message: '',
       messagePlaceholder: HIRE_ME_GENERIC.messagePlaceholder,
-      lockProjectAndBudget: false,
       messageAsPlaceholder: false
     });
   }
@@ -7047,6 +7087,26 @@ function switchToHireMePackage(packageId) {
   }
 }
 
+function onHireMePackageSelectChange() {
+  if (_hireMePackageSelectSyncing) return;
+  var input = document.querySelector('[data-page="hire-me"] [data-hire-package-input]');
+  if (!input) return;
+  var id = String(input.value || '').trim().toLowerCase();
+  if (id && HIRE_ME_PACKAGES[id]) {
+    if (typeof switchToPage === 'function') {
+      switchToPage('hire-me', false, { package: id });
+    } else {
+      applyHireMePackageView(id);
+    }
+    return;
+  }
+  if (typeof switchToPage === 'function') {
+    switchToPage('hire-me', false, { clearPackage: true });
+  } else {
+    applyHireMePackageView(null);
+  }
+}
+
 function initHireMePackageControls() {
   document.querySelectorAll('[data-hire-package-clear]').forEach(function (btn) {
     if (btn._hirePackageClearBound) return;
@@ -7057,6 +7117,22 @@ function initHireMePackageControls() {
       }
     });
   });
+
+  function wireHireMePackageSelect() {
+    if (typeof window.initBusinessDocCustomSelects === 'function') {
+      window.initBusinessDocCustomSelects();
+    }
+    var packageInput = document.querySelector('[data-page="hire-me"] [data-hire-package-input]');
+    if (packageInput && !packageInput._hirePackageChangeBound) {
+      packageInput._hirePackageChangeBound = true;
+      packageInput.addEventListener('change', onHireMePackageSelectChange);
+    }
+  }
+
+  wireHireMePackageSelect();
+  if (typeof window.initBusinessDocCustomSelects !== 'function') {
+    setTimeout(wireHireMePackageSelect, 0);
+  }
 }
 
 window.switchToHireMePackage = switchToHireMePackage;
@@ -11318,6 +11394,9 @@ window.addEventListener('load', function() {
   initBusinessDocCustomSelects();
   initBusinessDocToggleGroups();
   initBusinessDocThemePicker();
+  if (typeof initHireMePackageControls === 'function') {
+    initHireMePackageControls();
+  }
 
   /**
    * @param {BusinessDocument} [doc] - If provided, fill form for edit; otherwise reset for create.

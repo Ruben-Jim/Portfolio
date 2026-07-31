@@ -50,8 +50,16 @@
               id: 'website-presence',
               title: 'Website & online presence',
               summary:
-                'A professional site or simple storefront so people can find you, request a quote, or ask to book — with your branding and contact channels.',
+                'A professional site or simple storefront so people can find you, request a quote, or ask to book — with your branding and contact channels. Every build package pairs the website with a phone app.',
               tags: ['Website', 'Get found', 'Quotes'],
+              demoUrl: ''
+            },
+            {
+              id: 'link-tree',
+              title: 'Link Tree for Instagram & TikTok',
+              summary:
+                'One branded bio link — avatar, short bio, stacked buttons for book/call/website, and social icons. Included with builds, or standalone from $99.',
+              tags: ['Bio link', 'Social', 'Fast launch'],
               demoUrl: ''
             },
             {
@@ -126,7 +134,7 @@
               id: 'phone-apps',
               title: 'Phone apps for customers & staff',
               summary:
-                'iPhone and Android apps alongside your website — for booking, payments, and day-to-day operations on the go.',
+                'iPhone and Android apps paired with your website from Starter through Studio — for booking, payments, and day-to-day operations on the go.',
               tags: ['iPhone', 'Android', 'Operations'],
               demoUrl: ''
             },

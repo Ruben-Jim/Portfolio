@@ -110,24 +110,37 @@ Primary: **local / service businesses** that need booking, crews, payments, admi
 
 Every package includes **1 month of maintenance** after launch unless otherwise agreed. Final scope is confirmed on a discovery call.
 
-| Package | Price | Typical fit | Timeline (marketing) |
-|---------|-------|-------------|----------------------|
-| **Starter Presence** | $1,500 fixed | 1–3 page site / starter storefront; inquiries & light booking | ~2 weeks |
-| **Growth Platform** | $3,500 fixed (Most Popular) | Up to ~5 pages + admin for leads / bookings | 3–4 weeks |
-| **Business Platform** | $6k – $12k (scoped) | Web + mobile for crews; payments, jobs, ops dashboard | After discovery |
-| **Studio Build** | $15k – $40k (custom) | Full field-service ops platform | After discovery |
+| Package | Platform | Price | Typical fit | Timeline (marketing) |
+|---------|----------|-------|-------------|----------------------|
+| **Starter Presence** | Website + App | $1,500 fixed | 1–3 page site + iOS/Android; inquiries & light booking | ~2–3 weeks |
+| **Growth Platform** | Website + App | $3,500 fixed (Most Popular) | Up to ~5 pages + iOS/Android + admin for leads / bookings | 3–4 weeks |
+| **Business Platform** | Website + App | $6k – $12k (scoped) | Web + mobile for crews; payments, jobs, ops dashboard | After discovery |
+| **Studio Build** | Website + App | $15k – $40k (custom) | Full field-service ops platform | After discovery |
+
+Every build package includes a **branded Link Tree** (Instagram / TikTok bio link page) pointing into the product. **All build packages are Website + App** (Starter through Studio); Link Tree remains bio-link only.
 
 **Home price line:** Packages from **$1,500** · Maintenance from about **$44/mo** (annual Standard Care).
 
 ### 5.2 Typical package themes
 
-**Starter** — Branded pages, quote/booking forms, gallery/reviews, chat, bilingual option, calendar feeds, basic SEO/analytics, launch + hosting setup.
+**Starter Presence (Website + App)** — Branded website (1–3 pages) + iOS/Android app, quote/booking forms on web and in-app, gallery/reviews, chat, bilingual option, push/in-app alerts, store setup support, basic SEO/analytics, launch + hosting, branded Link Tree.
 
-**Growth** — Online quote capture, booking → admin, Stripe cards/tips, PDF estimates/invoices, crew scheduling, before/after portfolio approval, recurring billing, owner login, inquiry notifications.
+**Growth (Website + App)** — Website (up to 5 pages) + iOS/Android, online quote capture, booking → admin, Stripe cards/tips, PDF estimates/invoices, crew scheduling, before/after portfolio approval, recurring billing, owner login, inquiry notifications, Link Tree.
 
-**Business Platform** — Shared web + iOS + Android app, staff roles, Stripe, job scheduling/history, admin for quotes/bookings/customers.
+**Business Platform (Website + App)** — Shared web + iOS + Android app, staff roles, Stripe, job scheduling/history, admin for quotes/bookings/customers, branded Link Tree.
 
-**Studio Build** — Field team management (clock in/out), quote → estimate → job → invoice, PDFs, recurring billing, live chat + inbox, portfolio workflow, multi-location / tax / tips / promos / iCal-class ops.
+**Studio Build (Website + App)** — Field team management (clock in/out), quote → estimate → job → invoice, PDFs, recurring billing, live chat + inbox, portfolio workflow, multi-location / tax / tips / promos / iCal-class ops, branded Link Tree.
+
+### 5.2b Standalone Link Tree
+
+| | |
+|--|--|
+| Offer | **Link Tree** (bio link only) |
+| Price | **$99 – $199** one-time (scoped by brand / link count) |
+| Fit | Creators and businesses that only need Instagram/TikTok bio link — no full site |
+| Deliverable | ink.bio-style page: avatar, bio, brand colors, stacked action links, social icons |
+| Timeline | ~3–5 days · one revision round · hosting setup help |
+| Template | `assets/templates/client-linktree/` |
 
 ### 5.3 Maintenance plans (public site)
 
@@ -156,6 +169,7 @@ Used in matching / upsell conversations (starting prices):
 
 | Module | From | Fit |
 |--------|------|-----|
+| Link Tree | $99+ | Instagram / TikTok bio link only |
 | Route Planner | $400+ | Lawn / landscaping / home service |
 | Appointment Deposits | $350+ | Barber / salon / beauty |
 | HOA Dues & Announcements | $500+ | HOA / community |
@@ -166,6 +180,7 @@ Broader “What we build” catalog also covers booking apps, dashboards, quotes
 ### 5.6 Capability stack (product language)
 
 - Custom websites & booking flows  
+- Link Tree / link-in-bio pages  
 - Admin dashboards (owner-run)  
 - Mobile apps (iOS & Android)  
 - Payments (Stripe), tips, recurring billing  
