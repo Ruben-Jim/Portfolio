@@ -1035,7 +1035,10 @@
     wrap.innerHTML = (milestones || []).map(function (m, i) {
       return (
         '<li class="hub-milestone">' +
-        '<input type="checkbox" data-milestone-idx="' + i + '" ' + (m.done ? 'checked' : '') + '>' +
+        '<label class="custom-switch-label">' +
+        '<input type="checkbox" class="custom-switch-input" data-milestone-idx="' + i + '" ' + (m.done ? 'checked' : '') + '>' +
+        '<span class="custom-switch" aria-hidden="true"></span>' +
+        '</label>' +
         '<input type="text" class="form-input hub-milestone-label" data-milestone-label-idx="' + i + '" value="' + esc(m.label) + '">' +
         '</li>'
       );
@@ -2875,7 +2878,10 @@
     milestone = milestone || { label: '', done: false };
     return (
       '<li class="hub-milestone cp-hub-milestone" data-cp-milestone-row>' +
-      '<input type="checkbox"' + (milestone.done ? ' checked' : '') + '>' +
+      '<label class="custom-switch-label">' +
+      '<input type="checkbox" class="custom-switch-input"' + (milestone.done ? ' checked' : '') + '>' +
+      '<span class="custom-switch" aria-hidden="true"></span>' +
+      '</label>' +
       '<input type="text" class="form-input hub-milestone-label" value="' + esc(milestone.label || '') + '" placeholder="Milestone label">' +
       '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="remove-milestone">Remove</button>' +
       '</li>'
@@ -3107,9 +3113,10 @@
     return (
       '<div class="form-group form-group-checkbox-row">' +
       '<label class="portfolio-project-checkbox">' +
-      '<input type="checkbox" id="cp-hub-show-maint-portal"' +
+      '<input type="checkbox" id="cp-hub-show-maint-portal" class="custom-switch-input"' +
       (hub.showMaintenanceInPortal !== false ? ' checked' : '') +
       '>' +
+      '<span class="custom-switch" aria-hidden="true"></span>' +
       '<span>Show maintenance &amp; support in client portal</span></label>' +
       '<p class="form-hint">Uncheck when this client is not on maintenance billing — hides the plan upsell from their portal.</p></div>'
     );
@@ -3507,8 +3514,10 @@
         };
         return (
           '<li class="health-check-row">' +
-          '<input type="checkbox" id="cp-health-' + key + '" name="cp-health-' + key + '" ' + (health && health[key] ? 'checked' : '') + '>' +
-          '<label for="cp-health-' + key + '">' + esc(labels[key] || key) + '</label></li>'
+          '<label class="custom-switch-label">' +
+          '<input type="checkbox" id="cp-health-' + key + '" name="cp-health-' + key + '" class="custom-switch-input" ' + (health && health[key] ? 'checked' : '') + '>' +
+          '<span class="custom-switch" aria-hidden="true"></span>' +
+          '<span>' + esc(labels[key] || key) + '</span></label></li>'
         );
       }).join('') +
       '</ul></fieldset>' +

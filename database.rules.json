@@ -63,6 +63,11 @@
       ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     },
+    "agencyStudioCosts": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".indexOn": ["renewalDate", "order", "status"]
+    },
     "agencyClientPortals": {
       ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",

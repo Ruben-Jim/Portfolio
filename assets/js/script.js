@@ -4800,6 +4800,15 @@ function setupPortfolioUnsavedConfirmModal() {
   if (saveBtn) saveBtn.addEventListener('click', saveAndClose);
 }
 
+function syncPortfolioTemplateFieldsVisibility() {
+  var checkbox = document.getElementById('portfolio-project-is-template');
+  var fields = document.getElementById('portfolio-editor-template-fields');
+  var section = document.getElementById('portfolio-editor-section-template');
+  var on = !!(checkbox && checkbox.checked);
+  if (fields) fields.hidden = !on;
+  if (section && on) section.open = true;
+}
+
 function openPortfolioProjectModal(isNew, project) {
   const modal = document.getElementById('portfolio-project-modal');
   const titleEl = document.getElementById('portfolio-project-modal-title');
@@ -4858,6 +4867,16 @@ function openPortfolioProjectModal(isNew, project) {
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
   }
+  // Keep primary sections open for both quick edits and brochure work.
+  form.querySelectorAll('.portfolio-editor-section[data-portfolio-editor-section]').forEach(function (section) {
+    var key = section.getAttribute('data-portfolio-editor-section');
+    if (key === 'template') {
+      section.open = !!(project && project.isTemplate === true);
+    } else {
+      section.open = true;
+    }
+  });
+  syncPortfolioTemplateFieldsVisibility();
   populatePortfolioImageAssetSelect();
   syncPortfolioImageAssetSelectFromInput();
   resetPortfolioSlidesPreviewDetails();
@@ -4979,6 +4998,13 @@ function setupPortfolioAdminControls() {
     });
   }
   populatePortfolioImageAssetSelect();
+
+  var isTemplateToggle = document.getElementById('portfolio-project-is-template');
+  if (isTemplateToggle && !isTemplateToggle.dataset.templateFieldsBound) {
+    isTemplateToggle.dataset.templateFieldsBound = '1';
+    isTemplateToggle.addEventListener('change', syncPortfolioTemplateFieldsVisibility);
+  }
+  syncPortfolioTemplateFieldsVisibility();
 
   var detailSectionsList = document.getElementById('portfolio-detail-sections-list');
   var detailSectionsAdd = document.getElementById('portfolio-detail-section-add');
@@ -10503,9 +10529,9 @@ window.addEventListener('load', function() {
     var checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.id = 'admin-sched-day-' + dayId + '-enabled';
-    checkbox.className = 'admin-sched-switch-input';
+    checkbox.className = 'custom-switch-input';
     var switchEl = document.createElement('span');
-    switchEl.className = 'admin-sched-switch';
+    switchEl.className = 'custom-switch';
     switchEl.setAttribute('aria-hidden', 'true');
     var nameEl = document.createElement('span');
     nameEl.className = 'admin-sched-day-name';
@@ -10985,11 +11011,15 @@ window.addEventListener('load', function() {
     usageToggleWrap.className = 'business-doc-addon-usage-toggle';
     var usageToggle = document.createElement('input');
     usageToggle.type = 'checkbox';
-    usageToggle.className = 'business-doc-addon-includes-usage';
+    usageToggle.className = 'business-doc-addon-includes-usage custom-switch-input';
     usageToggle.checked = !!data.includesUsage;
+    var usageToggleSwitch = document.createElement('span');
+    usageToggleSwitch.className = 'custom-switch';
+    usageToggleSwitch.setAttribute('aria-hidden', 'true');
     var usageToggleText = document.createElement('span');
     usageToggleText.textContent = 'Price includes usage (+ usage on PDF)';
     usageToggleWrap.appendChild(usageToggle);
+    usageToggleWrap.appendChild(usageToggleSwitch);
     usageToggleWrap.appendChild(usageToggleText);
 
     var usageWrap = document.createElement('div');

@@ -1102,8 +1102,9 @@
       '<form class="client-portal-sign-form" data-portal-sign-form="' + docId + '">' +
       '<label class="client-portal-sign-label" for="portal-sign-name-' + docId + '">Type your full legal name</label>' +
       '<input type="text" class="client-portal-sign-name" id="portal-sign-name-' + docId + '" autocomplete="name" required>' +
-      '<label class="client-portal-sign-check">' +
-      '<input type="checkbox" class="client-portal-sign-agree" required>' +
+      '<label class="client-portal-sign-check custom-switch-label">' +
+      '<input type="checkbox" class="client-portal-sign-agree custom-switch-input" required>' +
+      '<span class="custom-switch" aria-hidden="true"></span>' +
       '<span>I have read and agree to the agreement above, and I’m authorized to sign on behalf of ' +
       esc(doc.clientName || 'the client') +
       '.</span></label>' +

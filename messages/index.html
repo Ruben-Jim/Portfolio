@@ -2951,6 +2951,10 @@
                   <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Referrals</span><span class="admin-tab-label-mobile">Referrals</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-studio-costs" data-admin-tab="studio-costs" aria-selected="false" aria-controls="admin-panel-studio-costs" tabindex="-1" aria-label="Studio Costs">
+                  <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Studio Costs</span><span class="admin-tab-label-mobile">Costs</span></span>
+                </button>
               </div>
             </div>
 
@@ -3006,6 +3010,13 @@
                 <div>
                   <span class="admin-kpi-value" id="kpi-pending-reviews">—</span>
                   <span class="admin-kpi-label">Pending Reviews</span>
+                </div>
+              </div>
+              <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="studio-costs" title="Go to studio costs">
+                <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
+                <div>
+                  <span class="admin-kpi-value" id="kpi-studio-costs">—</span>
+                  <span class="admin-kpi-label">Studio costs / mo</span>
                 </div>
               </div>
             </div>
@@ -3669,6 +3680,54 @@
           </section>
           </div><!-- /admin-panel-referrals -->
 
+          <!-- Studio Costs (what CWR pays) -->
+          <div id="admin-panel-studio-costs" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-studio-costs" data-admin-tab="studio-costs" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Studio Costs</h3>
+                <p class="admin-panel-lead">What CWR pays — EAS, domains, App Store, Play. Links only; no passwords.</p>
+              </div>
+              <button type="button" class="btn btn-primary" id="studio-cost-add-btn">
+                <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                Add service
+              </button>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <div class="studio-costs-summary" id="studio-costs-summary" aria-live="polite">
+                  <div class="studio-costs-summary-card">
+                    <span class="studio-costs-summary-value" id="studio-costs-monthly">$0</span>
+                    <span class="studio-costs-summary-label">Est. monthly</span>
+                  </div>
+                  <div class="studio-costs-summary-card">
+                    <span class="studio-costs-summary-value" id="studio-costs-active-count">0</span>
+                    <span class="studio-costs-summary-label">Active</span>
+                  </div>
+                  <div class="studio-costs-summary-card">
+                    <span class="studio-costs-summary-value" id="studio-costs-renewals-count">0</span>
+                    <span class="studio-costs-summary-label">Renew in 30d</span>
+                  </div>
+                </div>
+                <div class="referral-table-wrap has-scrollbar">
+                  <table class="referral-table studio-costs-table">
+                    <thead>
+                      <tr>
+                        <th>Service</th>
+                        <th>Amount</th>
+                        <th>Renewal</th>
+                        <th>Status</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="studio-costs-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-studio-costs -->
+
           <!-- Firebase Health -->
           <div id="admin-panel-health" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-health" data-admin-tab="health" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
@@ -3702,24 +3761,39 @@
                   <legend class="health-checklist-legend">Pre-renewal checklist</legend>
                   <ul class="health-checklist">
                     <li class="health-check-row">
-                      <input type="checkbox" id="health-rulesOk" name="health-rulesOk">
-                      <label for="health-rulesOk">Rules deployed</label>
+                      <label class="custom-switch-label">
+                        <input type="checkbox" id="health-rulesOk" name="health-rulesOk" class="custom-switch-input">
+                        <span class="custom-switch" aria-hidden="true"></span>
+                        <span>Rules deployed</span>
+                      </label>
                     </li>
                     <li class="health-check-row">
-                      <input type="checkbox" id="health-authOk" name="health-authOk">
-                      <label for="health-authOk">Auth configured</label>
+                      <label class="custom-switch-label">
+                        <input type="checkbox" id="health-authOk" name="health-authOk" class="custom-switch-input">
+                        <span class="custom-switch" aria-hidden="true"></span>
+                        <span>Auth configured</span>
+                      </label>
                     </li>
                     <li class="health-check-row">
-                      <input type="checkbox" id="health-functionsOk" name="health-functionsOk">
-                      <label for="health-functionsOk">Functions healthy</label>
+                      <label class="custom-switch-label">
+                        <input type="checkbox" id="health-functionsOk" name="health-functionsOk" class="custom-switch-input">
+                        <span class="custom-switch" aria-hidden="true"></span>
+                        <span>Functions healthy</span>
+                      </label>
                     </li>
                     <li class="health-check-row">
-                      <input type="checkbox" id="health-rtdbOk" name="health-rtdbOk">
-                      <label for="health-rtdbOk">RTDB within limits</label>
+                      <label class="custom-switch-label">
+                        <input type="checkbox" id="health-rtdbOk" name="health-rtdbOk" class="custom-switch-input">
+                        <span class="custom-switch" aria-hidden="true"></span>
+                        <span>RTDB within limits</span>
+                      </label>
                     </li>
                     <li class="health-check-row">
-                      <input type="checkbox" id="health-hostingOk" name="health-hostingOk">
-                      <label for="health-hostingOk">Hosting live</label>
+                      <label class="custom-switch-label">
+                        <input type="checkbox" id="health-hostingOk" name="health-hostingOk" class="custom-switch-input">
+                        <span class="custom-switch" aria-hidden="true"></span>
+                        <span>Hosting live</span>
+                      </label>
                     </li>
                   </ul>
                 </fieldset>
@@ -5230,154 +5304,213 @@
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
-      <form class="add-blog-form has-scrollbar" id="portfolio-project-form" onsubmit="event.preventDefault(); return false;">
+      <form class="add-blog-form portfolio-editor-form" id="portfolio-project-form" onsubmit="event.preventDefault(); return false;">
         <input type="hidden" id="portfolio-project-edit-id" value="">
-        <div class="form-group">
-          <label for="portfolio-project-title">Title</label>
-          <input type="text" id="portfolio-project-title" required maxlength="200" placeholder="Project name">
-        </div>
-        <div class="form-group">
-          <label for="portfolio-project-url">Live project URL</label>
-          <input type="url" id="portfolio-project-url" inputmode="url" placeholder="https:// or leave empty / #">
-        </div>
-        <div class="form-group portfolio-project-images-group">
-          <div class="portfolio-slides-header">
-            <label>Project media (slideshow)</label>
-            <span class="portfolio-slides-count" id="portfolio-slides-count" hidden></span>
-          </div>
-          <p class="form-hint">First slide is the portfolio card thumbnail. Add screenshots or screen recordings (MP4) from <code>assets/images</code> or paste a URL — drag slides to reorder.</p>
-          <div class="portfolio-slides-add-bar">
-            <div class="portfolio-slides-add-field">
-              <label id="portfolio-project-image-asset-label" for="portfolio-project-image-asset">From repo</label>
-              <div class="portfolio-slides-add-row">
-                <div class="business-doc-select" data-select-name="portfolio-image-asset">
-                  <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="portfolio-project-image-asset-label">
-                    <span class="business-doc-select-trigger-label">Choose a file…</span>
-                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
-                  </button>
-                  <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
-                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Choose a file…</button>
-                  </div>
-                  <input type="hidden" id="portfolio-project-image-asset" value="">
-                </div>
-                <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-from-asset" title="Add selected file">Add</button>
-              </div>
-            </div>
-            <div class="portfolio-slides-add-field">
-              <label for="portfolio-project-image">Custom URL</label>
-              <div class="portfolio-slides-add-row">
-                <input type="text" id="portfolio-project-image" list="portfolio-project-image-options" placeholder="/assets/images/projects/project-lawncare-demo.mp4">
-                <datalist id="portfolio-project-image-options"></datalist>
-                <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-image-btn" title="Add URL (Enter)">Add</button>
-              </div>
-            </div>
-          </div>
-          <div class="form-group portfolio-slides-alt-row">
-            <label for="portfolio-project-image-alt">Alt text (all slides)</label>
-            <input type="text" id="portfolio-project-image-alt" maxlength="200" placeholder="e.g. Lawn care app homepage and admin dashboard">
-          </div>
-          <ul class="portfolio-project-images-list" id="portfolio-project-images-list" aria-label="Slideshow slides"></ul>
-          <p class="portfolio-project-images-empty" id="portfolio-project-images-empty">No slides yet — choose a file from the repo or add a custom URL.</p>
-        </div>
-        <div class="portfolio-project-image-preview-wrap" id="portfolio-project-image-preview-wrap" hidden>
-          <details class="portfolio-slides-preview-details" id="portfolio-slides-preview-details">
-            <summary class="portfolio-slides-preview-summary">
-              <span class="portfolio-slides-preview-summary-text">Slideshow preview</span>
-              <span class="portfolio-slides-preview-summary-hint" id="portfolio-slides-preview-hint">Expand to preview carousel</span>
+        <div class="portfolio-editor-scroll has-scrollbar">
+
+          <details class="portfolio-editor-section" open data-portfolio-editor-section="basics">
+            <summary class="portfolio-editor-summary">
+              <span class="portfolio-editor-summary-title">Basics</span>
+              <span class="portfolio-editor-summary-hint">Title, URL, visibility</span>
             </summary>
-            <div class="portfolio-slides-preview-panel">
-              <div class="portfolio-carousel portfolio-project-admin-carousel" id="portfolio-project-admin-carousel" aria-roledescription="carousel">
-                <div class="portfolio-carousel-track" id="portfolio-project-admin-carousel-track" aria-live="polite"></div>
-                <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="portfolio-project-admin-carousel-prev" aria-label="Previous slide" hidden>
-                  <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
-                </button>
-                <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="portfolio-project-admin-carousel-next" aria-label="Next slide" hidden>
-                  <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-                </button>
-                <div class="portfolio-carousel-dots" id="portfolio-project-admin-carousel-dots" role="tablist" aria-label="Slideshow slides"></div>
+            <div class="portfolio-editor-section-body">
+              <div class="form-row">
+                <div class="form-group form-group-half">
+                  <label for="portfolio-project-title">Title</label>
+                  <input type="text" id="portfolio-project-title" required maxlength="200" placeholder="Project name">
+                </div>
+                <div class="form-group form-group-half">
+                  <label for="portfolio-project-url">Live project URL</label>
+                  <input type="url" id="portfolio-project-url" inputmode="url" placeholder="https:// or leave empty / #">
+                </div>
               </div>
-              <p class="portfolio-project-image-preview-error" id="portfolio-project-image-preview-error" hidden>
-                Could not load one or more images. Confirm files exist under <code>assets/images/</code> and are deployed.
-              </p>
+              <div class="portfolio-editor-toggles">
+                <div class="form-group form-group-checkbox-row">
+                  <label class="portfolio-project-checkbox">
+                    <input type="checkbox" id="portfolio-project-show-public" class="custom-switch-input" checked>
+                    <span class="custom-switch" aria-hidden="true"></span>
+                    <span>Show on public Portfolio page</span>
+                  </label>
+                  <p class="form-hint">Off = client-only showcase (portal link). Hidden from the public Portfolio tab.</p>
+                </div>
+                <div class="form-group form-group-checkbox-row">
+                  <label class="portfolio-project-checkbox">
+                    <input type="checkbox" id="portfolio-project-show-quote" class="custom-switch-input" checked>
+                    <span class="custom-switch" aria-hidden="true"></span>
+                    <span>Show “Similar project? Get a quote”</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </details>
+
+          <details class="portfolio-editor-section" open data-portfolio-editor-section="media">
+            <summary class="portfolio-editor-summary">
+              <span class="portfolio-editor-summary-title">Media</span>
+              <span class="portfolio-editor-summary-hint">Slideshow &amp; card thumbnail</span>
+            </summary>
+            <div class="portfolio-editor-section-body">
+              <div class="form-group portfolio-project-images-group">
+                <div class="portfolio-slides-header">
+                  <label>Project media (slideshow)</label>
+                  <span class="portfolio-slides-count" id="portfolio-slides-count" hidden></span>
+                </div>
+                <p class="form-hint">First slide is the card thumbnail. Add images or MP4 from <code>assets/images</code>, or paste a URL — drag to reorder.</p>
+                <div class="portfolio-slides-add-bar">
+                  <div class="portfolio-slides-add-field">
+                    <label id="portfolio-project-image-asset-label" for="portfolio-project-image-asset">From repo</label>
+                    <div class="portfolio-slides-add-row">
+                      <div class="business-doc-select" data-select-name="portfolio-image-asset">
+                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="portfolio-project-image-asset-label">
+                          <span class="business-doc-select-trigger-label">Choose a file…</span>
+                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                        </button>
+                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                          <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Choose a file…</button>
+                        </div>
+                        <input type="hidden" id="portfolio-project-image-asset" value="">
+                      </div>
+                      <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-from-asset" title="Add selected file">Add</button>
+                    </div>
+                  </div>
+                  <div class="portfolio-slides-add-field">
+                    <label for="portfolio-project-image">Custom URL</label>
+                    <div class="portfolio-slides-add-row">
+                      <input type="text" id="portfolio-project-image" list="portfolio-project-image-options" placeholder="/assets/images/projects/project-lawncare-demo.mp4">
+                      <datalist id="portfolio-project-image-options"></datalist>
+                      <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-image-btn" title="Add URL (Enter)">Add</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group portfolio-slides-alt-row">
+                  <label for="portfolio-project-image-alt">Alt text (all slides)</label>
+                  <input type="text" id="portfolio-project-image-alt" maxlength="200" placeholder="e.g. Lawn care app homepage and admin dashboard">
+                </div>
+                <ul class="portfolio-project-images-list" id="portfolio-project-images-list" aria-label="Slideshow slides"></ul>
+                <p class="portfolio-project-images-empty" id="portfolio-project-images-empty">No slides yet — choose a file from the repo or add a custom URL.</p>
+              </div>
+              <div class="portfolio-project-image-preview-wrap" id="portfolio-project-image-preview-wrap" hidden>
+                <details class="portfolio-slides-preview-details" id="portfolio-slides-preview-details">
+                  <summary class="portfolio-slides-preview-summary">
+                    <span class="portfolio-slides-preview-summary-text">Slideshow preview</span>
+                    <span class="portfolio-slides-preview-summary-hint" id="portfolio-slides-preview-hint">Expand to preview carousel</span>
+                  </summary>
+                  <div class="portfolio-slides-preview-panel">
+                    <div class="portfolio-carousel portfolio-project-admin-carousel" id="portfolio-project-admin-carousel" aria-roledescription="carousel">
+                      <div class="portfolio-carousel-track" id="portfolio-project-admin-carousel-track" aria-live="polite"></div>
+                      <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="portfolio-project-admin-carousel-prev" aria-label="Previous slide" hidden>
+                        <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                      </button>
+                      <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="portfolio-project-admin-carousel-next" aria-label="Next slide" hidden>
+                        <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                      </button>
+                      <div class="portfolio-carousel-dots" id="portfolio-project-admin-carousel-dots" role="tablist" aria-label="Slideshow slides"></div>
+                    </div>
+                    <p class="portfolio-project-image-preview-error" id="portfolio-project-image-preview-error" hidden>
+                      Could not load one or more images. Confirm files exist under <code>assets/images/</code> and are deployed.
+                    </p>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <details class="portfolio-editor-section" open data-portfolio-editor-section="copy">
+            <summary class="portfolio-editor-summary">
+              <span class="portfolio-editor-summary-title">Public copy</span>
+              <span class="portfolio-editor-summary-hint">Card &amp; brochure text</span>
+            </summary>
+            <div class="portfolio-editor-section-body">
+              <div class="form-group">
+                <label for="portfolio-project-description">Description</label>
+                <textarea id="portfolio-project-description" class="has-scrollbar" rows="4" required placeholder="Short summary for the card and detail modal."></textarea>
+              </div>
+              <div class="form-group">
+                <label for="portfolio-project-tech">Tech stack (comma or line separated)</label>
+                <textarea id="portfolio-project-tech" class="has-scrollbar" rows="2" placeholder="React Native, Expo, Firebase"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="portfolio-project-outcome">Outcome (optional)</label>
+                <textarea id="portfolio-project-outcome" class="has-scrollbar" rows="2" placeholder="Result or impact (shown under Outcome:)."></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group form-group-half">
+                  <label for="portfolio-project-buy-now">Buy now label (optional)</label>
+                  <input type="text" id="portfolio-project-buy-now" maxlength="120" placeholder="Buy Now: $500">
+                </div>
+                <div class="form-group form-group-half">
+                  <label for="portfolio-project-buy-premium">Premium label (optional)</label>
+                  <input type="text" id="portfolio-project-buy-premium" maxlength="160" placeholder="Premium: $750 - $1,000">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="portfolio-project-bestfor">“Best for” lines (optional, one per line)</label>
+                <textarea id="portfolio-project-bestfor" class="has-scrollbar" rows="3" placeholder="Barbershops&#10;Studios with appointments"></textarea>
+              </div>
+            </div>
+          </details>
+
+          <details class="portfolio-editor-section" open data-portfolio-editor-section="detail">
+            <summary class="portfolio-editor-summary">
+              <span class="portfolio-editor-summary-title">Detail page</span>
+              <span class="portfolio-editor-summary-hint">Admin focus, canvas, sections</span>
+            </summary>
+            <div class="portfolio-editor-section-body">
+              <div class="form-group">
+                <label for="portfolio-project-admin-note">Admin focus (optional)</label>
+                <textarea id="portfolio-project-admin-note" class="has-scrollbar" rows="2" placeholder="Custom text for the admin section in the project detail modal."></textarea>
+              </div>
+              <div class="form-row">
+                <div class="form-group form-group-half">
+                  <label for="portfolio-project-canvas-doc">Canvas / case study file (optional)</label>
+                  <input type="text" id="portfolio-project-canvas-doc" placeholder="/assets/docs/projects/project-lawncare.md">
+                </div>
+                <div class="form-group form-group-half">
+                  <label for="portfolio-project-canvas-title">Canvas section title</label>
+                  <input type="text" id="portfolio-project-canvas-title" maxlength="120" placeholder="Project overview">
+                </div>
+              </div>
+              <p class="form-hint">Public <code>.md</code> renders inline. Client-only guides live on Project Hub → Docs &amp; guides.</p>
+              <div class="form-group" id="portfolio-detail-sections-group">
+                <label>Detail sections (optional)</label>
+                <p class="form-hint">Accordion blocks on the public detail modal and client portal.</p>
+                <ul class="portfolio-detail-sections-list" id="portfolio-detail-sections-list"></ul>
+                <button type="button" class="btn btn-secondary btn-sm" id="portfolio-detail-section-add">Add section</button>
+              </div>
+            </div>
+          </details>
+
+          <details class="portfolio-editor-section" data-portfolio-editor-section="template" id="portfolio-editor-section-template">
+            <summary class="portfolio-editor-summary">
+              <span class="portfolio-editor-summary-title">Starter template</span>
+              <span class="portfolio-editor-summary-hint">Lead assign / demo Firebase</span>
+            </summary>
+            <div class="portfolio-editor-section-body">
+              <div class="form-group form-group-checkbox-row">
+                <label class="portfolio-project-checkbox">
+                  <input type="checkbox" id="portfolio-project-is-template" class="custom-switch-input">
+                  <span class="custom-switch" aria-hidden="true"></span>
+                  <span>Starter template (assignable to leads)</span>
+                </label>
+                <p class="form-hint">Base product you branch from for demos. Shows in Project Hub → Assign template.</p>
+              </div>
+              <div class="portfolio-editor-template-fields" id="portfolio-editor-template-fields" hidden>
+                <div class="form-row">
+                  <div class="form-group form-group-half">
+                    <label for="portfolio-project-template-repo">Template repo URL</label>
+                    <input type="url" id="portfolio-project-template-repo" maxlength="500" placeholder="https://github.com/…/templates">
+                  </div>
+                  <div class="form-group form-group-half">
+                    <label for="portfolio-project-demo-firebase">Demo Firebase project ID</label>
+                    <input type="text" id="portfolio-project-demo-firebase" maxlength="120" placeholder="Shared demo backend for this template">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </details>
+
         </div>
-        <div class="form-group">
-          <label for="portfolio-project-description">Description</label>
-          <textarea id="portfolio-project-description" class="has-scrollbar" rows="4" required placeholder="Short summary for the card and detail modal."></textarea>
-        </div>
-        <div class="form-group">
-          <label for="portfolio-project-tech">Tech stack (comma or line separated)</label>
-          <textarea id="portfolio-project-tech" class="has-scrollbar" rows="2" placeholder="React Native, Expo, Firebase"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="portfolio-project-outcome">Outcome (optional)</label>
-          <textarea id="portfolio-project-outcome" class="has-scrollbar" rows="2" placeholder="Result or impact (shown under Outcome:)."></textarea>
-        </div>
-        <div class="form-row">
-          <div class="form-group form-group-half">
-            <label for="portfolio-project-buy-now">Buy now label (optional)</label>
-            <input type="text" id="portfolio-project-buy-now" maxlength="120" placeholder="Buy Now: $500">
-          </div>
-          <div class="form-group form-group-half">
-            <label for="portfolio-project-buy-premium">Premium label (optional)</label>
-            <input type="text" id="portfolio-project-buy-premium" maxlength="160" placeholder="Premium: $750 - $1,000">
-          </div>
-        </div>
-        <div class="form-group form-group-checkbox-row">
-          <label class="portfolio-project-checkbox">
-            <input type="checkbox" id="portfolio-project-show-public" checked>
-            <span>Show on public Portfolio page</span>
-          </label>
-          <p class="form-hint">Uncheck for client-only showcases. Share those via the client portal link — they stay hidden from the public Portfolio tab.</p>
-        </div>
-        <div class="form-group form-group-checkbox-row">
-          <label class="portfolio-project-checkbox">
-            <input type="checkbox" id="portfolio-project-show-quote" checked>
-            <span>Show “Similar project? Get a quote”</span>
-          </label>
-        </div>
-        <div class="form-group">
-          <label for="portfolio-project-admin-note">Detail modal — admin focus (optional)</label>
-          <textarea id="portfolio-project-admin-note" class="has-scrollbar" rows="2" placeholder="Custom text for the admin section in the project detail modal."></textarea>
-        </div>
-        <div class="form-group">
-          <label for="portfolio-project-canvas-doc">Canvas / case study file (optional)</label>
-          <input type="text" id="portfolio-project-canvas-doc" placeholder="/assets/docs/projects/project-lawncare.md">
-          <p class="form-hint"><strong>Public portfolio</strong> — <code>.md</code> renders inline for all visitors. For a <strong>client-only</strong> guide, set the path under Project Hub → Portfolio → Client portal guide (private). See <code>assets/docs/projects/CANVAS-TO-MARKDOWN.md</code>.</p>
-        </div>
-        <div class="form-group">
-          <label for="portfolio-project-canvas-title">Canvas section title</label>
-          <input type="text" id="portfolio-project-canvas-title" maxlength="120" placeholder="Project overview">
-        </div>
-        <div class="form-group" id="portfolio-detail-sections-group">
-          <label>Detail sections (optional, for client portal)</label>
-          <p class="form-hint">Shown as accordion blocks on the public portfolio detail modal and the client portal full detail page.</p>
-          <ul class="portfolio-detail-sections-list" id="portfolio-detail-sections-list"></ul>
-          <button type="button" class="btn btn-secondary btn-sm" id="portfolio-detail-section-add">Add section</button>
-        </div>
-        <div class="form-group">
-          <label for="portfolio-project-bestfor">“Best for” lines (optional, one per line)</label>
-          <textarea id="portfolio-project-bestfor" class="has-scrollbar" rows="3" placeholder="Barbershops&#10;Studios with appointments"></textarea>
-        </div>
-        <div class="form-group form-group-checkbox-row">
-          <label class="portfolio-project-checkbox">
-            <input type="checkbox" id="portfolio-project-is-template">
-            <span>Starter template (assignable to leads)</span>
-          </label>
-          <p class="form-hint">Mark as a base product you branch from for lead demos. Shows up in Project Hub → Assign template.</p>
-        </div>
-        <div class="form-row">
-          <div class="form-group form-group-half">
-            <label for="portfolio-project-template-repo">Template repo URL</label>
-            <input type="url" id="portfolio-project-template-repo" maxlength="500" placeholder="https://github.com/…/templates">
-          </div>
-          <div class="form-group form-group-half">
-            <label for="portfolio-project-demo-firebase">Demo Firebase project ID</label>
-            <input type="text" id="portfolio-project-demo-firebase" maxlength="120" placeholder="Shared demo backend for this template">
-          </div>
-        </div>
-        <div class="form-actions">
+        <div class="portfolio-editor-footer form-actions">
           <button type="button" class="btn btn-secondary" id="portfolio-project-form-cancel">Cancel</button>
           <button type="submit" class="btn btn-primary" id="portfolio-project-form-save">Save project</button>
         </div>
@@ -6403,6 +6536,75 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     </div>
   </div>
 
+  <div class="agency-modal" id="studio-cost-editor-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content">
+      <div class="agency-modal-header">
+        <h3 id="studio-cost-modal-title">Studio cost</h3>
+        <button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <div class="agency-modal-body has-scrollbar">
+        <input type="hidden" id="studio-cost-edit-id">
+        <p class="form-hint" style="margin-top:0;">Track what CWR pays. Store dashboard links only — never passwords.</p>
+        <div class="form-group">
+          <label for="studio-cost-name">Name</label>
+          <input type="text" id="studio-cost-name" maxlength="120" placeholder="e.g. Expo EAS" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label for="studio-cost-vendor">Vendor</label>
+            <select id="studio-cost-vendor">
+              <option value="eas">Expo EAS</option>
+              <option value="porkbun">Porkbun</option>
+              <option value="app_store">App Store Connect</option>
+              <option value="play">Google Play Console</option>
+              <option value="firebase">Firebase</option>
+              <option value="apple_dev">Apple Developer</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group form-group-half">
+            <label for="studio-cost-status">Status</label>
+            <select id="studio-cost-status">
+              <option value="active">Active</option>
+              <option value="paused">Paused</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="studio-cost-url">Dashboard URL</label>
+          <input type="url" id="studio-cost-url" maxlength="500" placeholder="https://…">
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label for="studio-cost-amount">Amount (USD)</label>
+            <input type="number" id="studio-cost-amount" min="0" step="0.01" placeholder="0">
+          </div>
+          <div class="form-group form-group-half">
+            <label for="studio-cost-cycle">Billing cycle</label>
+            <select id="studio-cost-cycle">
+              <option value="monthly">Monthly</option>
+              <option value="annual">Annual</option>
+              <option value="once">One-time</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="studio-cost-renewal">Renewal date</label>
+          <input type="date" id="studio-cost-renewal">
+        </div>
+        <div class="form-group">
+          <label for="studio-cost-notes">Notes</label>
+          <textarea id="studio-cost-notes" class="has-scrollbar" rows="2" placeholder="Plan tier, seats, which clients use it…"></textarea>
+        </div>
+      </div>
+      <div class="agency-modal-footer">
+        <button type="button" class="btn btn-primary" id="studio-cost-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/assets/js/portfolio-built-in-data.js?v=poster-webp-20260729"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
   <script src="/assets/js/business-doc-shared.js?v=cwr-theme-surfaces-20260726"></script>
@@ -6414,7 +6616,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
   <script src="/assets/js/script.js?v=project-detail-close-20260730"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=milestones-pill-20260730"></script>
+  <script src="/assets/js/agency-tools.js?v=studio-costs-20260731"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
