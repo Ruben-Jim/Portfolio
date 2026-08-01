@@ -1506,6 +1506,11 @@ document.addEventListener('keydown', function(e) {
       closePortfolioUnsavedConfirmModal();
       return;
     }
+    const blogUnsavedModal = document.getElementById('blog-unsaved-confirm-modal');
+    if (blogUnsavedModal && blogUnsavedModal.classList.contains('active')) {
+      closeBlogUnsavedConfirmModal();
+      return;
+    }
     const portfolioModal = document.getElementById('portfolio-project-modal');
     if (portfolioModal && portfolioModal.classList.contains('active')) {
       closePortfolioProjectModal();
