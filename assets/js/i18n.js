@@ -209,6 +209,8 @@
       'hire.package_growth':      'Growth Platform (Website + App) — $3,500',
       'hire.package_agency':      'Business Platform (Website + App) — $6k–$12k',
       'hire.package_studio':      'Studio Build (Website + App) — $15k–$40k',
+      'hire.package_hint':        'Need help choosing?',
+      'hire.package_hint_link':   'See package details',
 
       /* ── Onboarding banners ─────────────────────────────── */
       'cookie.title':   'We use analytics cookies',
@@ -434,6 +436,8 @@
       'hire.package_growth':      'Plataforma de Crecimiento (Sitio + App) — $3,500',
       'hire.package_agency':      'Plataforma Empresarial (Sitio + App) — $6k–$12k',
       'hire.package_studio':      'Studio Build (Sitio + App) — $15k–$40k',
+      'hire.package_hint':        '\u00bfNecesitas ayuda para elegir?',
+      'hire.package_hint_link':   'Ver detalles de paquetes',
 
       /* ── Onboarding banners ─────────────────────────────── */
       'cookie.title':   'Usamos cookies de an\u00e1lisis',

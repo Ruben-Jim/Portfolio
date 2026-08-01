@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=project-detail-close-20260730">
+  <link rel="stylesheet" href="/assets/css/style.css?v=sidebar-expand-2200-20260731">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -2541,6 +2541,10 @@
                 </div>
                 <input type="hidden" name="project-type" value="" data-hire-project-type>
                 <input type="hidden" name="budget" value="" data-hire-budget>
+                <p class="hire-package-hint">
+                  <span data-i18n="hire.package_hint">Need help choosing?</span>
+                  <button type="button" class="hire-package-hint-link" data-i18n="hire.package_hint_link" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See package details</button>
+                </p>
               </div>
               <textarea name="message" class="form-input" placeholder="Walk me through your idea — what it does, who it's for, and your rough timeline." required data-form-input></textarea>
 
@@ -5192,6 +5196,27 @@
     </section>
   </div>
 
+  <!-- Unsaved blog post changes (body-level so it stacks above the blog editor) -->
+  <div class="modal-container" id="blog-unsaved-confirm-modal" aria-hidden="true">
+    <div class="overlay" id="blog-unsaved-confirm-overlay"></div>
+    <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="blog-unsaved-confirm-title" aria-describedby="blog-unsaved-confirm-desc">
+      <div class="confirm-delete-modal__header">
+        <h3 id="blog-unsaved-confirm-title">Save changes?</h3>
+        <button type="button" class="confirm-delete-modal__close" id="blog-unsaved-confirm-close" aria-label="Keep editing">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="confirm-delete-modal__body">
+        <p id="blog-unsaved-confirm-desc">You have unsaved edits on this blog post. Save before closing, discard changes, or keep editing.</p>
+      </div>
+      <div class="confirm-delete-modal__actions">
+        <button type="button" class="btn btn-secondary" id="blog-unsaved-confirm-discard">Discard</button>
+        <button type="button" class="btn btn-secondary" id="blog-unsaved-confirm-keep">Keep editing</button>
+        <button type="button" class="btn btn-primary" id="blog-unsaved-confirm-save">Save</button>
+      </div>
+    </section>
+  </div>
+
   <!-- Portfolio project create / edit (admin) -->
   <div class="add-blog-modal" id="portfolio-project-modal" aria-hidden="true">
     <div class="add-blog-overlay" id="portfolio-project-modal-overlay"></div>
@@ -5334,6 +5359,23 @@
         <div class="form-group">
           <label for="portfolio-project-bestfor">“Best for” lines (optional, one per line)</label>
           <textarea id="portfolio-project-bestfor" class="has-scrollbar" rows="3" placeholder="Barbershops&#10;Studios with appointments"></textarea>
+        </div>
+        <div class="form-group form-group-checkbox-row">
+          <label class="portfolio-project-checkbox">
+            <input type="checkbox" id="portfolio-project-is-template">
+            <span>Starter template (assignable to leads)</span>
+          </label>
+          <p class="form-hint">Mark as a base product you branch from for lead demos. Shows up in Project Hub → Assign template.</p>
+        </div>
+        <div class="form-row">
+          <div class="form-group form-group-half">
+            <label for="portfolio-project-template-repo">Template repo URL</label>
+            <input type="url" id="portfolio-project-template-repo" maxlength="500" placeholder="https://github.com/…/templates">
+          </div>
+          <div class="form-group form-group-half">
+            <label for="portfolio-project-demo-firebase">Demo Firebase project ID</label>
+            <input type="text" id="portfolio-project-demo-firebase" maxlength="120" placeholder="Shared demo backend for this template">
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="portfolio-project-form-cancel">Cancel</button>
@@ -6244,19 +6286,43 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
           <div class="form-group form-group-full"><label for="hub-title">Project title</label><input type="text" id="hub-title"></div>
         </div>
         <div class="form-group"><label for="hub-lead-id">Pipeline lead ID</label><input type="text" id="hub-lead-id" placeholder="Optional link to CRM lead"></div>
-        <div class="form-row">
-          <div class="form-group form-group-half"><label for="hub-expo-url">Expo / live URL</label><input type="url" id="hub-expo-url"></div>
-          <div class="form-group form-group-half"><label for="hub-repo-url">Repo URL</label><input type="url" id="hub-repo-url"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group form-group-half"><label for="hub-firebase-id">Firebase project ID</label><input type="text" id="hub-firebase-id"></div>
-          <div class="form-group form-group-half"><label for="hub-business-doc-id">Business doc ID</label><input type="text" id="hub-business-doc-id"></div>
-        </div>
+        <fieldset class="hub-delivery-fieldset">
+          <legend class="hub-delivery-legend">Delivery (template → demo → client)</legend>
+          <div class="form-row">
+            <div class="form-group form-group-half">
+              <label for="hub-delivery-stage">Delivery stage</label>
+              <select id="hub-delivery-stage">
+                <option value="demo">Demo</option>
+                <option value="converting">Converting</option>
+                <option value="client">Client</option>
+              </select>
+            </div>
+            <div class="form-group form-group-half">
+              <label for="hub-demo-branch">Demo branch</label>
+              <input type="text" id="hub-demo-branch" placeholder="demo/lead-slug" maxlength="120" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="hub-template-select">Assign starter template</label>
+            <select id="hub-template-select"></select>
+            <p class="form-hint">Only portfolio projects marked as starter templates. Assigning prefills template repo + demo Firebase while stage is Demo.</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group-half"><label for="hub-expo-url" id="hub-expo-label">EAS preview URL</label><input type="url" id="hub-expo-url" placeholder="https://….expo.app"></div>
+            <div class="form-group form-group-half"><label for="hub-repo-url" id="hub-repo-label">Template / working repo URL</label><input type="url" id="hub-repo-url"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group form-group-half"><label for="hub-client-repo-url">Client repo URL (after pay)</label><input type="url" id="hub-client-repo-url" placeholder="New codebase after they continue"></div>
+            <div class="form-group form-group-half"><label for="hub-firebase-id" id="hub-firebase-label">Demo Firebase project ID</label><input type="text" id="hub-firebase-id"></div>
+          </div>
+          <div class="form-group form-group-half" style="max-width:50%"><label for="hub-business-doc-id">Business doc ID</label><input type="text" id="hub-business-doc-id"></div>
+        </fieldset>
         <div class="form-group"><label>Milestones</label><ul class="hub-milestone-list" id="hub-milestones-list"></ul></div>
         <div class="form-group"><label for="hub-notes">Notes</label><textarea id="hub-notes" class="has-scrollbar" rows="3"></textarea></div>
         <div id="hub-portal-link-out" class="hub-portal-link-box" hidden></div>
       </div>
       <div class="agency-modal-footer">
+        <button type="button" class="btn btn-secondary" id="hub-graduate-btn">Graduate to client</button>
         <button type="button" class="btn btn-secondary" id="hub-generate-portal-btn">Generate client link</button>
         <button type="button" class="btn btn-primary" id="hub-save-btn">Save hub</button>
       </div>

@@ -332,6 +332,7 @@
       }
     });
     if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+    if (typeof window.refreshPipelineBoard === 'function') window.refreshPipelineBoard();
   }
 
   function fetchAgencyProjectsOnce() {
@@ -436,6 +437,72 @@
     refreshClientProjectsPicker();
   }
 
+  function deliveryStageOf(row) {
+    var s = String((row && row.deliveryStage) || 'demo').toLowerCase();
+    if (s === 'converting' || s === 'client') return s;
+    return 'demo';
+  }
+
+  function deliveryStageLabel(stage) {
+    var s = deliveryStageOf({ deliveryStage: stage });
+    if (s === 'converting') return 'Converting';
+    if (s === 'client') return 'Client';
+    return 'Demo';
+  }
+
+  function isPortfolioTemplate(p) {
+    return !!(p && (p.isTemplate === true || p.isTemplate === 'true' || p.isTemplate === 1));
+  }
+
+  function getTemplatePortfolioList() {
+    return getPortfolioList().filter(isPortfolioTemplate);
+  }
+
+  function findTemplateById(id) {
+    if (!id) return null;
+    return getPortfolioList().find(function (p) {
+      return p.id === id;
+    }) || null;
+  }
+
+  function copyDeliveryFields(existing) {
+    existing = existing || {};
+    return {
+      demoBranch: String(existing.demoBranch || '').slice(0, 120),
+      deliveryStage: deliveryStageOf(existing),
+      clientRepoUrl: String(existing.clientRepoUrl || '').slice(0, 500),
+      graduatedAt: existing.graduatedAt || null
+    };
+  }
+
+  function buildHubWritePayload(existing, overrides) {
+    existing = existing || {};
+    overrides = overrides || {};
+    var base = {
+      leadId: existing.leadId || '',
+      clientName: existing.clientName || '',
+      clientEmail: existing.clientEmail || '',
+      title: existing.title || '',
+      repoUrl: existing.repoUrl || '',
+      expoUrl: existing.expoUrl || '',
+      firebaseProjectId: existing.firebaseProjectId || '',
+      businessDocId: existing.businessDocId || '',
+      portfolioProjectId: existing.portfolioProjectId || '',
+      notes: existing.notes || '',
+      milestones: Array.isArray(existing.milestones) ? existing.milestones : [],
+      enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
+      showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
+      updatedAt: ts()
+    };
+    Object.assign(base, copyDeliveryFields(existing));
+    Object.assign(base, copyPortalGuideFields(existing));
+    Object.assign(base, overrides);
+    if (overrides.deliveryStage != null) {
+      base.deliveryStage = deliveryStageOf({ deliveryStage: overrides.deliveryStage });
+    }
+    return base;
+  }
+
   function normalizeProject(id, row) {
     row = row || {};
     var milestones = Array.isArray(row.milestones) ? row.milestones : [];
@@ -451,6 +518,10 @@
       firebaseProjectId: String(row.firebaseProjectId || '').slice(0, 120),
       businessDocId: String(row.businessDocId || '').slice(0, 80),
       portfolioProjectId: String(row.portfolioProjectId || '').slice(0, 80),
+      demoBranch: String(row.demoBranch || '').slice(0, 120),
+      deliveryStage: deliveryStageOf(row),
+      clientRepoUrl: String(row.clientRepoUrl || '').slice(0, 500),
+      graduatedAt: row.graduatedAt || null,
       notes: String(row.notes || '').slice(0, 4000),
       enabledModules: Array.isArray(row.enabledModules) ? row.enabledModules.slice(0, 12) : [],
       portalToken: String(row.portalToken || '').replace(/[^a-f0-9]/gi, '').slice(0, 64),
@@ -473,11 +544,13 @@
 
   function defaultMilestones() {
     return [
-      { id: 'm1', label: 'Discovery & scope approved', done: false },
-      { id: 'm2', label: 'Design / demo approved', done: false },
-      { id: 'm3', label: 'Build in progress', done: false },
-      { id: 'm4', label: 'Staging review', done: false },
-      { id: 'm5', label: 'Production launch', done: false }
+      { id: 'm1', label: 'Template assigned', done: false },
+      { id: 'm2', label: 'Demo branch created', done: false },
+      { id: 'm3', label: 'Preview deployed (EAS)', done: false },
+      { id: 'm4', label: 'Rebrand / copy pass', done: false },
+      { id: 'm5', label: 'Deposit paid', done: false },
+      { id: 'm6', label: 'Client codebase created', done: false },
+      { id: 'm7', label: 'Client Firebase / launch', done: false }
     ];
   }
 
@@ -546,12 +619,20 @@
       .map(function (p) {
         var done = p.milestones.filter(function (m) { return m.done; }).length;
         var total = p.milestones.length || 1;
+        var stage = deliveryStageOf(p);
+        var previewOn = !!(p.expoUrl && String(p.expoUrl).trim());
         return (
           '<li class="hub-list-item">' +
           '<button type="button" class="hub-list-item-open" data-hub-id="' + esc(p.id) + '" aria-label="Open project hub for ' + esc(p.clientName || p.title || 'Untitled') + '">' +
           '<span class="hub-list-item-main">' +
           '<strong class="hub-list-item-title">' + esc(p.clientName || p.title || 'Untitled') + '</strong>' +
           '<span class="hub-list-item-meta">' + done + '/' + total + ' milestones</span>' +
+          '<span class="hub-list-item-badges">' +
+          '<span class="hub-delivery-badge hub-delivery-badge--' + esc(stage) + '">' + esc(deliveryStageLabel(stage)) + '</span>' +
+          (previewOn
+            ? '<span class="hub-delivery-badge hub-delivery-badge--preview">Preview live</span>'
+            : '<span class="hub-delivery-badge hub-delivery-badge--no-preview">No preview</span>') +
+          '</span>' +
           '</span>' +
           '<span class="hub-list-chevron" aria-hidden="true"><ion-icon name="chevron-forward-outline"></ion-icon></span>' +
           '</button>' +
@@ -714,6 +795,10 @@
       firebaseProjectId: '',
       businessDocId: '',
       portfolioProjectId: '',
+      demoBranch: '',
+      deliveryStage: 'demo',
+      clientRepoUrl: '',
+      graduatedAt: null,
       notes: '',
       milestones: defaultMilestones(),
       enabledModules: [],
@@ -817,6 +902,82 @@
     }
   }
 
+  function fillHubTemplateSelect(selectedId) {
+    var sel = document.getElementById('hub-template-select');
+    if (!sel) return;
+    var templates = getTemplatePortfolioList();
+    var opts =
+      '<option value="">No template assigned…</option>' +
+      templates
+        .map(function (p) {
+          var best =
+            Array.isArray(p.bestFor) && p.bestFor.length
+              ? ' — ' + p.bestFor.slice(0, 2).join(', ')
+              : '';
+          var selected = selectedId && selectedId === p.id ? ' selected' : '';
+          return (
+            '<option value="' +
+            esc(p.id) +
+            '"' +
+            selected +
+            '>' +
+            esc(p.title || p.id) +
+            esc(best) +
+            '</option>'
+          );
+        })
+        .join('');
+    if (selectedId && !templates.some(function (p) { return p.id === selectedId; })) {
+      var linked = findTemplateById(selectedId);
+      opts +=
+        '<option value="' +
+        esc(selectedId) +
+        '" selected>' +
+        esc((linked && linked.title) || selectedId) +
+        ' (not marked template)</option>';
+    }
+    sel.innerHTML = opts;
+  }
+
+  function updateHubEditorDeliveryLabels(stage) {
+    stage = deliveryStageOf({ deliveryStage: stage });
+    var repoLabel = document.getElementById('hub-repo-label');
+    var fbLabel = document.getElementById('hub-firebase-label');
+    var expoLabel = document.getElementById('hub-expo-label');
+    if (repoLabel) {
+      repoLabel.textContent =
+        stage === 'client' ? 'Working / template repo URL' : 'Template / working repo URL';
+    }
+    if (fbLabel) {
+      fbLabel.textContent =
+        stage === 'client' ? 'Client Firebase project ID' : 'Demo Firebase project ID';
+    }
+    if (expoLabel) {
+      expoLabel.textContent = stage === 'client' ? 'Live / Expo URL' : 'EAS preview URL';
+    }
+  }
+
+  function applyTemplatePrefillFromSelect(selectEl, opts) {
+    opts = opts || {};
+    var templateId = selectEl ? selectEl.value.trim() : '';
+    var template = findTemplateById(templateId);
+    if (!template || !isPortfolioTemplate(template)) return;
+    var stageEl = opts.stageEl || document.getElementById('hub-delivery-stage');
+    var stage = deliveryStageOf({
+      deliveryStage: stageEl ? stageEl.value : opts.stage || 'demo'
+    });
+    var repoEl = opts.repoEl || document.getElementById('hub-repo-url');
+    var fbEl = opts.fbEl || document.getElementById('hub-firebase-id');
+    if (stage === 'demo') {
+      if (repoEl && template.templateRepoUrl && (!repoEl.value.trim() || opts.force)) {
+        repoEl.value = template.templateRepoUrl;
+      }
+      if (fbEl && template.demoFirebaseProjectId && (!fbEl.value.trim() || opts.force)) {
+        fbEl.value = template.demoFirebaseProjectId;
+      }
+    }
+  }
+
   function openProjectHubEditor(id) {
     var p = agencyProjects.find(function (x) { return x.id === id; });
     if (!p && id !== 'new') return;
@@ -825,12 +986,17 @@
         id: '',
         leadId: '',
         clientName: '',
+        clientEmail: '',
         title: '',
         repoUrl: '',
         expoUrl: '',
         firebaseProjectId: '',
         businessDocId: '',
         portfolioProjectId: '',
+        demoBranch: '',
+        deliveryStage: 'demo',
+        clientRepoUrl: '',
+        graduatedAt: null,
         notes: '',
         enabledModules: [],
         milestones: defaultMilestones()
@@ -846,6 +1012,14 @@
     document.getElementById('hub-expo-url').value = p.expoUrl || '';
     document.getElementById('hub-firebase-id').value = p.firebaseProjectId || '';
     document.getElementById('hub-business-doc-id').value = p.businessDocId || '';
+    var demoBranchEl = document.getElementById('hub-demo-branch');
+    if (demoBranchEl) demoBranchEl.value = p.demoBranch || '';
+    var clientRepoEl = document.getElementById('hub-client-repo-url');
+    if (clientRepoEl) clientRepoEl.value = p.clientRepoUrl || '';
+    var stageEl = document.getElementById('hub-delivery-stage');
+    if (stageEl) stageEl.value = deliveryStageOf(p);
+    fillHubTemplateSelect(p.portfolioProjectId || '');
+    updateHubEditorDeliveryLabels(p.deliveryStage);
     document.getElementById('hub-notes').value = p.notes || '';
     renderHubMilestones(p.milestones);
     renderHubPortalLink(p);
@@ -907,7 +1081,15 @@
     if (!rtdbReady()) return;
     var id = document.getElementById('hub-edit-id').value.trim();
     var existing = id ? agencyProjects.find(function (x) { return x.id === id; }) : null;
-    var payload = {
+    var templateSelect = document.getElementById('hub-template-select');
+    var portfolioProjectId = templateSelect
+      ? templateSelect.value.trim()
+      : existing
+        ? existing.portfolioProjectId || ''
+        : '';
+    var stageEl = document.getElementById('hub-delivery-stage');
+    var deliveryStage = stageEl ? stageEl.value : 'demo';
+    var payload = buildHubWritePayload(existing || {}, {
       leadId: document.getElementById('hub-lead-id').value.trim(),
       clientName: document.getElementById('hub-client-name').value.trim(),
       clientEmail: (document.getElementById('hub-client-email') || {}).value.trim(),
@@ -916,16 +1098,53 @@
       expoUrl: document.getElementById('hub-expo-url').value.trim(),
       firebaseProjectId: document.getElementById('hub-firebase-id').value.trim(),
       businessDocId: document.getElementById('hub-business-doc-id').value.trim(),
-      portfolioProjectId: existing ? (existing.portfolioProjectId || '') : '',
+      portfolioProjectId: portfolioProjectId,
+      demoBranch: (document.getElementById('hub-demo-branch') || {}).value.trim(),
+      deliveryStage: deliveryStage,
+      clientRepoUrl: (document.getElementById('hub-client-repo-url') || {}).value.trim(),
+      graduatedAt:
+        deliveryStage === 'client'
+          ? (existing && existing.graduatedAt) || ts()
+          : existing
+            ? existing.graduatedAt || null
+            : null,
       notes: document.getElementById('hub-notes').value.trim(),
       milestones: collectHubMilestonesFromDom(),
       enabledModules: existing && Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
-      showMaintenanceInPortal: existing ? existing.showMaintenanceInPortal !== false : true,
-      updatedAt: ts()
-    };
-    Object.assign(payload, copyPortalGuideFields(existing));
+      showMaintenanceInPortal: existing ? existing.showMaintenanceInPortal !== false : true
+    });
     var savedId = await saveProjectHubRecord(id, payload, true);
     if (savedId) openClientProjectWorkspace(savedId);
+  }
+
+  async function graduateHubFromEditor() {
+    var id = document.getElementById('hub-edit-id').value.trim();
+    var stageEl = document.getElementById('hub-delivery-stage');
+    var clientRepoEl = document.getElementById('hub-client-repo-url');
+    var fbEl = document.getElementById('hub-firebase-id');
+    if (stageEl) stageEl.value = 'client';
+    updateHubEditorDeliveryLabels('client');
+    var clientRepo = window.prompt(
+      'Paste the new client codebase / repo URL (from the lead branch after they continue with CWR):',
+      clientRepoEl ? clientRepoEl.value : ''
+    );
+    if (clientRepo == null) return;
+    clientRepo = String(clientRepo).trim();
+    if (clientRepoEl) clientRepoEl.value = clientRepo;
+    var clientFb = window.prompt(
+      'Client Firebase project ID (leave blank if still using demo Firebase for now):',
+      fbEl && deliveryStageOf({ deliveryStage: 'client' }) ? fbEl.value : ''
+    );
+    if (clientFb == null) return;
+    if (fbEl && String(clientFb).trim()) fbEl.value = String(clientFb).trim();
+    else if (fbEl && !String(clientFb).trim()) {
+      // Keep existing value; user may still be on demo Firebase temporarily
+    }
+    if (!id) {
+      await saveProjectHub();
+      return;
+    }
+    await saveProjectHub();
   }
 
   function initProjectHub() {
@@ -939,6 +1158,27 @@
     if (portalBtn) {
       portalBtn.addEventListener('click', function () {
         generateClientPortalLink(document.getElementById('hub-edit-id').value.trim());
+      });
+    }
+    var graduateBtn = document.getElementById('hub-graduate-btn');
+    if (graduateBtn && !graduateBtn.dataset.bound) {
+      graduateBtn.dataset.bound = '1';
+      graduateBtn.addEventListener('click', function () {
+        graduateHubFromEditor().catch(console.error);
+      });
+    }
+    var stageEl = document.getElementById('hub-delivery-stage');
+    if (stageEl && !stageEl.dataset.bound) {
+      stageEl.dataset.bound = '1';
+      stageEl.addEventListener('change', function () {
+        updateHubEditorDeliveryLabels(stageEl.value);
+      });
+    }
+    var templateSel = document.getElementById('hub-template-select');
+    if (templateSel && !templateSel.dataset.bound) {
+      templateSel.dataset.bound = '1';
+      templateSel.addEventListener('change', function () {
+        applyTemplatePrefillFromSelect(templateSel, { force: true });
       });
     }
   }
@@ -2386,6 +2626,16 @@
         (guideCount > 1 ? guideCount + ' guides' : 'Guide') +
         '</span>'
       : '';
+    var stage = deliveryStageOf(p);
+    var deliveryBadge =
+      '<span class="cp-client-picker-badge hub-delivery-badge--' +
+      esc(stage) +
+      '">' +
+      esc(deliveryStageLabel(stage)) +
+      '</span>';
+    var previewBadge = p.expoUrl
+      ? '<span class="cp-client-picker-badge is-preview">Preview</span>'
+      : '';
     return (
       '<li role="presentation">' +
       '<button type="button" class="cp-client-picker-card cp-client-picker-row' + (selected ? ' is-selected' : '') + '" ' +
@@ -2396,6 +2646,8 @@
       '<span class="cp-client-picker-row-head">' +
       '<span class="cp-client-picker-card-title">' + esc(title) + '</span>' +
       '<span class="cp-client-picker-row-badges">' +
+      deliveryBadge +
+      previewBadge +
       maintBadge +
       guideBadge +
       '<span class="cp-client-picker-badge ' + esc(meta.healthClass) + '">' + esc(meta.healthLabel) + '</span>' +
@@ -2695,7 +2947,12 @@
     var docs = ctx.docs;
     var portfolio = ctx.portfolio;
     if (id === 'hub') {
-      return hub.title || hub.clientName || '';
+      var hubBits = [];
+      if (hub.title || hub.clientName) hubBits.push(hub.title || hub.clientName);
+      hubBits.push(deliveryStageLabel(hub));
+      if (hub.demoBranch) hubBits.push(hub.demoBranch);
+      else if (hub.expoUrl) hubBits.push('Preview set');
+      return hubBits.join(' · ');
     }
     if (id === 'milestones') {
       var mDone = (hub.milestones || []).filter(function (m) {
@@ -2745,6 +3002,14 @@
       if (!hub.portfolioProjectId && !portfolio) return 'Not linked';
       if (portfolio && hub.portfolioProjectId === portfolio.id) return portfolio.title || 'Linked';
       return 'Save link for portal';
+    }
+    if (id === 'delivery') {
+      var stage = deliveryStageOf(hub);
+      var bits = [deliveryStageLabel(stage)];
+      if (hub.demoBranch) bits.push(hub.demoBranch);
+      else if (hub.expoUrl) bits.push('Preview set');
+      else bits.push('No preview');
+      return bits.join(' · ');
     }
     return '';
   }
@@ -3023,22 +3288,119 @@
     sectionCtx.docs = docs;
     sectionCtx.portfolio = portfolio;
 
+    var stage = deliveryStageOf(hub);
+    var templates = getTemplatePortfolioList();
+    var templateOptions =
+      '<option value="">No template assigned…</option>' +
+      templates
+        .map(function (p) {
+          var selected = !!(hub.portfolioProjectId && hub.portfolioProjectId === p.id);
+          var best =
+            Array.isArray(p.bestFor) && p.bestFor.length
+              ? ' — ' + p.bestFor.slice(0, 2).join(', ')
+              : '';
+          return (
+            '<option value="' +
+            esc(p.id) +
+            '" ' +
+            (selected ? 'selected' : '') +
+            '>' +
+            esc(p.title || p.id) +
+            esc(best) +
+            '</option>'
+          );
+        })
+        .join('');
+    if (
+      hub.portfolioProjectId &&
+      !templates.some(function (p) {
+        return p.id === hub.portfolioProjectId;
+      })
+    ) {
+      templateOptions +=
+        '<option value="' +
+        esc(hub.portfolioProjectId) +
+        '" selected>' +
+        esc((portfolio && portfolio.title) || hub.portfolioProjectId) +
+        ' (not marked template)</option>';
+    }
+
+    var repoLabel = stage === 'client' ? 'Working / template repo URL' : 'Template / working repo URL';
+    var fbLabel = stage === 'client' ? 'Client Firebase project ID' : 'Demo Firebase project ID';
+    var expoLabel = stage === 'client' ? 'Live / Expo URL' : 'EAS preview URL';
+
     var hubBody =
       '<div class="cp-form-grid cp-form-grid--can-split">' +
       '<div class="form-group"><label for="cp-hub-client">Client name</label><input id="cp-hub-client" class="form-input" type="text" value="' + esc(hub.clientName) + '"></div>' +
       '<div class="form-group"><label for="cp-hub-client-email">Client email</label><input id="cp-hub-client-email" class="form-input" type="email" value="' + esc(hub.clientEmail || '') + '" placeholder="name@company.com" autocomplete="email"></div>' +
       '<div class="form-group"><label for="cp-hub-title">Project title</label><input id="cp-hub-title" class="form-input" type="text" value="' + esc(hub.title) + '"></div>' +
       '<div class="form-group"><label for="cp-hub-lead">Pipeline lead ID</label><input id="cp-hub-lead" class="form-input" type="text" value="' + esc(hub.leadId) + '" placeholder="Link to pipelineLeads id"></div>' +
-      '<div class="form-group"><label for="cp-hub-firebase">Firebase project ID</label><input id="cp-hub-firebase" class="form-input" type="text" value="' + esc(hub.firebaseProjectId) + '"></div>' +
-      '<div class="form-group"><label for="cp-hub-repo">Repo URL</label><input id="cp-hub-repo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://…" value="' + esc(hub.repoUrl) + '"></div>' +
-      '<div class="form-group"><label for="cp-hub-expo">Expo / demo URL</label><input id="cp-hub-expo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://your-app.expo.app" value="' + esc(hub.expoUrl) + '"></div>' +
+      '</div>' +
+      '<fieldset class="hub-delivery-fieldset cp-delivery-block">' +
+      '<legend class="hub-delivery-legend">Delivery (template → demo → client)</legend>' +
+      '<div class="cp-form-grid cp-form-grid--can-split">' +
+      '<div class="form-group"><label for="cp-hub-delivery-stage">Delivery stage</label>' +
+      '<select id="cp-hub-delivery-stage" class="form-input">' +
+      ['demo', 'converting', 'client']
+        .map(function (st) {
+          return (
+            '<option value="' +
+            st +
+            '" ' +
+            (stage === st ? 'selected' : '') +
+            '>' +
+            esc(deliveryStageLabel(st)) +
+            '</option>'
+          );
+        })
+        .join('') +
+      '</select></div>' +
+      '<div class="form-group"><label for="cp-hub-demo-branch">Demo branch</label>' +
+      '<input id="cp-hub-demo-branch" class="form-input" type="text" maxlength="120" placeholder="demo/lead-slug" value="' +
+      esc(hub.demoBranch || '') +
+      '" autocomplete="off"></div>' +
+      '<div class="form-group form-group--full"><label for="cp-hub-template">Assign starter template</label>' +
+      '<select id="cp-hub-template" class="form-input">' +
+      templateOptions +
+      '</select>' +
+      '<p class="form-hint">Templates only. Assigning prefills template repo + demo Firebase while stage is Demo.</p></div>' +
+      '<div class="form-group"><label for="cp-hub-expo" id="cp-hub-expo-label">' +
+      esc(expoLabel) +
+      '</label><input id="cp-hub-expo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://your-app.expo.app" value="' +
+      esc(hub.expoUrl) +
+      '"></div>' +
+      '<div class="form-group"><label for="cp-hub-repo" id="cp-hub-repo-label">' +
+      esc(repoLabel) +
+      '</label><input id="cp-hub-repo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://…" value="' +
+      esc(hub.repoUrl) +
+      '"></div>' +
+      '<div class="form-group"><label for="cp-hub-client-repo">Client repo URL (after pay)</label>' +
+      '<input id="cp-hub-client-repo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="New codebase after they continue" value="' +
+      esc(hub.clientRepoUrl || '') +
+      '"></div>' +
+      '<div class="form-group"><label for="cp-hub-firebase" id="cp-hub-firebase-label">' +
+      esc(fbLabel) +
+      '</label><input id="cp-hub-firebase" class="form-input" type="text" value="' +
+      esc(hub.firebaseProjectId) +
+      '"></div>' +
       '<div class="form-group"><label for="cp-hub-doc-id">Business doc ID</label><input id="cp-hub-doc-id" class="form-input" type="text" value="' + esc(hub.businessDocId) + '"></div>' +
+      '</div></fieldset>' +
+      '<div class="cp-form-grid">' +
       '<div class="form-group form-group--full"><label for="cp-hub-notes">Notes</label><textarea id="cp-hub-notes" class="form-input has-scrollbar" rows="3">' + esc(hub.notes) + '</textarea></div>' +
       '</div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-hub">Save hub</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="graduate-client">Graduate to client</button>' +
       '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-hub">Delete client</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="hub" role="status"></p></div>';
+
+    var deliveryTitleBadge =
+      '<span class="cp-section-status-pill hub-delivery-badge--' +
+      esc(stage) +
+      '">' +
+      esc(deliveryStageLabel(stage)) +
+      (hub.expoUrl ? ' · preview' : '') +
+      '</span>';
 
     var milestonesBody =
       '<div class="form-group"><ul class="cp-milestones-list" id="cp-hub-milestones">' + renderCpMilestonesHtml(hub.milestones) + '</ul>' +
@@ -3210,7 +3572,7 @@
       '</div>';
 
     workspace.innerHTML =
-      buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub')) +
+      buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub'), deliveryTitleBadge) +
       buildCpCollapsibleSection('milestones', 'Milestones', null, milestonesBody, cpSectionSummary('milestones', sectionCtx), isCpSectionExpanded(hub.id, 'milestones'), milestonesTitleBadge) +
       buildCpCollapsibleSection('portal', 'Client portal', null, portalBody, cpSectionSummary('portal', sectionCtx), isCpSectionExpanded(hub.id, 'portal')) +
       buildCpCollapsibleSection('guide', 'Docs & guides', null, guideBody, cpSectionSummary('guide', sectionCtx), isCpSectionExpanded(hub.id, 'guide'), guideTitleBadge) +
@@ -3289,7 +3651,14 @@
     var existing = getHubById(hubId);
     if (!existing) return;
     var root = document.getElementById('client-projects-workspace');
-    var payload = {
+    var stageVal = (document.getElementById('cp-hub-delivery-stage') || {}).value || existing.deliveryStage || 'demo';
+    var templateId = (document.getElementById('cp-hub-template') || {}).value;
+    if (templateId == null || templateId === undefined) {
+      templateId = existing.portfolioProjectId || '';
+    } else {
+      templateId = String(templateId).trim();
+    }
+    var payload = buildHubWritePayload(existing, {
       leadId: cpFieldValue('cp-hub-lead'),
       clientName: cpFieldValue('cp-hub-client'),
       clientEmail: cpFieldValue('cp-hub-client-email'),
@@ -3298,14 +3667,19 @@
       expoUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-expo')),
       firebaseProjectId: cpFieldValue('cp-hub-firebase'),
       businessDocId: cpFieldValue('cp-hub-doc-id'),
-      portfolioProjectId: existing.portfolioProjectId || '',
+      portfolioProjectId: templateId,
+      demoBranch: cpFieldValue('cp-hub-demo-branch'),
+      deliveryStage: stageVal,
+      clientRepoUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-client-repo')),
+      graduatedAt:
+        deliveryStageOf({ deliveryStage: stageVal }) === 'client'
+          ? existing.graduatedAt || ts()
+          : existing.graduatedAt || null,
       notes: cpFieldValue('cp-hub-notes'),
       milestones: root ? collectCpMilestonesFromWorkspace(root) : existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
-      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
-      updatedAt: ts()
-    };
-    Object.assign(payload, copyPortalGuideFields(existing));
+      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing)
+    });
     try {
       await saveProjectHubRecord(hubId, payload, false);
       setCpFeedback(feedbackSection, feedbackSection === 'milestones' ? 'Milestones saved.' : 'Hub saved.', false);
@@ -3317,31 +3691,48 @@
     }
   }
 
+  async function graduateHubFromClientWorkspace() {
+    var hubId = clientProjectsSelectedId;
+    if (!hubId || !rtdbReady()) return;
+    var existing = getHubById(hubId);
+    if (!existing) return;
+    var stageEl = document.getElementById('cp-hub-delivery-stage');
+    if (stageEl) stageEl.value = 'client';
+    var clientRepoEl = document.getElementById('cp-hub-client-repo');
+    var fbEl = document.getElementById('cp-hub-firebase');
+    var clientRepo = window.prompt(
+      'Paste the new client codebase / repo URL (from the lead branch after they continue with CWR):',
+      clientRepoEl ? clientRepoEl.value : existing.clientRepoUrl || ''
+    );
+    if (clientRepo == null) return;
+    clientRepo = String(clientRepo).trim();
+    if (clientRepoEl) clientRepoEl.value = clientRepo;
+    var clientFb = window.prompt(
+      'Client Firebase project ID (leave blank to keep current value — often still demo until you cut over):',
+      fbEl ? fbEl.value : existing.firebaseProjectId || ''
+    );
+    if (clientFb == null) return;
+    if (fbEl && String(clientFb).trim()) fbEl.value = String(clientFb).trim();
+    try {
+      await saveHubFromClientWorkspace('hub');
+      setCpFeedback('hub', 'Graduated to client stage.', false);
+    } catch (err) {
+      console.error(err);
+      setCpFeedback('hub', (err && err.message) || 'Graduate failed.', true);
+    }
+  }
+
   async function saveGuideFromClientWorkspace() {
     var hubId = clientProjectsSelectedId;
     if (!hubId || !rtdbReady()) return;
     var existing = getHubById(hubId);
     if (!existing) return;
     var guideFields = portalGuideFieldsFromList(collectPortalGuidesFromWorkspace());
-    var payload = {
-      leadId: existing.leadId,
-      clientName: existing.clientName,
-      clientEmail: existing.clientEmail || '',
-      title: existing.title,
-      repoUrl: existing.repoUrl,
-      expoUrl: existing.expoUrl,
-      firebaseProjectId: existing.firebaseProjectId,
-      businessDocId: existing.businessDocId,
-      portfolioProjectId: existing.portfolioProjectId || '',
-      notes: existing.notes,
-      milestones: existing.milestones,
-      enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
-      showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
+    var payload = buildHubWritePayload(existing, {
       portalGuides: guideFields.portalGuides,
       portalCanvasDocUrl: guideFields.portalCanvasDocUrl,
-      portalCanvasDocTitle: guideFields.portalCanvasDocTitle,
-      updatedAt: ts()
-    };
+      portalCanvasDocTitle: guideFields.portalCanvasDocTitle
+    });
     try {
       await saveProjectHubRecord(hubId, payload, false);
       var n = guideFields.portalGuides.length;
@@ -3366,23 +3757,9 @@
     if (!hubId || !rtdbReady()) return;
     var existing = getHubById(hubId);
     if (!existing || !document.getElementById('cp-hub-show-maint-portal')) return;
-    var payload = {
-      leadId: existing.leadId,
-      clientName: existing.clientName,
-      clientEmail: existing.clientEmail || '',
-      title: existing.title,
-      repoUrl: existing.repoUrl,
-      expoUrl: existing.expoUrl,
-      firebaseProjectId: existing.firebaseProjectId,
-      businessDocId: existing.businessDocId,
-      portfolioProjectId: existing.portfolioProjectId || '',
-      notes: existing.notes,
-      milestones: existing.milestones,
-      enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
-      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
-      updatedAt: ts()
-    };
-    Object.assign(payload, copyPortalGuideFields(existing));
+    var payload = buildHubWritePayload(existing, {
+      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing)
+    });
     await saveProjectHubRecord(hubId, payload, false);
   }
 
@@ -3537,23 +3914,7 @@
     if (!hubId || !portfolioId || !rtdbReady()) return;
     var existing = getHubById(hubId);
     if (!existing) return;
-    var payload = {
-      leadId: existing.leadId,
-      clientName: existing.clientName,
-      clientEmail: existing.clientEmail || '',
-      title: existing.title,
-      repoUrl: existing.repoUrl,
-      expoUrl: existing.expoUrl,
-      firebaseProjectId: existing.firebaseProjectId,
-      businessDocId: existing.businessDocId,
-      portfolioProjectId: portfolioId,
-      notes: existing.notes,
-      milestones: existing.milestones,
-      enabledModules: existing.enabledModules,
-      showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
-      updatedAt: ts()
-    };
-    Object.assign(payload, copyPortalGuideFields(existing));
+    var payload = buildHubWritePayload(existing, { portfolioProjectId: portfolioId });
     await saveProjectHubRecord(hubId, payload, false);
     if (clientProjectsSelectedId === hubId) {
       setCpFeedback('portfolio', 'Client showcase created and linked.', false);
@@ -3571,23 +3932,7 @@
       setCpFeedback('portfolio', 'Select a portfolio project first, or use Unlink showcase.', true);
       return;
     }
-    var payload = {
-      leadId: existing.leadId,
-      clientName: existing.clientName,
-      clientEmail: existing.clientEmail || '',
-      title: existing.title,
-      repoUrl: existing.repoUrl,
-      expoUrl: existing.expoUrl,
-      firebaseProjectId: existing.firebaseProjectId,
-      businessDocId: existing.businessDocId,
-      portfolioProjectId: portfolioId,
-      notes: existing.notes,
-      milestones: existing.milestones,
-      enabledModules: existing.enabledModules,
-      showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
-      updatedAt: ts()
-    };
-    Object.assign(payload, copyPortalGuideFields(existing));
+    var payload = buildHubWritePayload(existing, { portfolioProjectId: portfolioId });
     try {
       await saveProjectHubRecord(hubId, payload, false);
       setCpFeedback('portfolio', 'Showcase link saved — refresh the client portal to see changes.', false);
@@ -3615,23 +3960,7 @@
     ) {
       return;
     }
-    var payload = {
-      leadId: existing.leadId,
-      clientName: existing.clientName,
-      clientEmail: existing.clientEmail || '',
-      title: existing.title,
-      repoUrl: existing.repoUrl,
-      expoUrl: existing.expoUrl,
-      firebaseProjectId: existing.firebaseProjectId,
-      businessDocId: existing.businessDocId,
-      portfolioProjectId: '',
-      notes: existing.notes,
-      milestones: existing.milestones,
-      enabledModules: existing.enabledModules,
-      showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
-      updatedAt: ts()
-    };
-    Object.assign(payload, copyPortalGuideFields(existing));
+    var payload = buildHubWritePayload(existing, { portfolioProjectId: '' });
     try {
       await saveProjectHubRecord(hubId, payload, false);
       setCpFeedback('portfolio', 'Showcase unlinked — refresh the client portal to see changes.', false);
@@ -3716,6 +4045,10 @@
     }
     if (action === 'save-hub') {
       saveHubFromClientWorkspace('hub').catch(console.error);
+      return;
+    }
+    if (action === 'graduate-client') {
+      graduateHubFromClientWorkspace().catch(console.error);
       return;
     }
     if (action === 'save-milestones') {
@@ -3920,6 +4253,36 @@
         e.preventDefault();
         handleClientProjectsAction(btn.getAttribute('data-cp-action'), btn);
       });
+      workspace.addEventListener('change', function (e) {
+        var t = e.target;
+        if (!t || !t.id) return;
+        if (t.id === 'cp-hub-template') {
+          applyTemplatePrefillFromSelect(t, {
+            force: true,
+            stageEl: document.getElementById('cp-hub-delivery-stage'),
+            repoEl: document.getElementById('cp-hub-repo'),
+            fbEl: document.getElementById('cp-hub-firebase')
+          });
+          return;
+        }
+        if (t.id === 'cp-hub-delivery-stage') {
+          var stage = deliveryStageOf({ deliveryStage: t.value });
+          var repoLabel = document.getElementById('cp-hub-repo-label');
+          var fbLabel = document.getElementById('cp-hub-firebase-label');
+          var expoLabel = document.getElementById('cp-hub-expo-label');
+          if (repoLabel) {
+            repoLabel.textContent =
+              stage === 'client' ? 'Working / template repo URL' : 'Template / working repo URL';
+          }
+          if (fbLabel) {
+            fbLabel.textContent =
+              stage === 'client' ? 'Client Firebase project ID' : 'Demo Firebase project ID';
+          }
+          if (expoLabel) {
+            expoLabel.textContent = stage === 'client' ? 'Live / Expo URL' : 'EAS preview URL';
+          }
+        }
+      });
     }
 
     refreshClientProjectsPicker();
@@ -4056,6 +4419,11 @@
     closeClientDrawer: closeCpClientDrawer,
     isClientDrawerOpen: isCpClientDrawerOpen,
     getOverviewSnapshot: getOverviewSnapshot,
+    getHubByLeadId: function (leadId) {
+      if (!leadId) return null;
+      return agencyProjects.find(function (p) { return p.leadId === leadId; }) || null;
+    },
+    deliveryStageLabel: deliveryStageLabel,
     openProjectHub: function (leadId) {
       var existing = agencyProjects.find(function (p) { return p.leadId === leadId; });
       if (existing) openClientProjectWorkspace(existing.id);

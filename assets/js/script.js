@@ -1178,10 +1178,83 @@ function resetBlogFormDirty(type) {
   if (type === 'edit') editBlogDirty = false;
 }
 
-function ensureBlogFormCanClose(type) {
-  const isDirty = type === 'add' ? addBlogDirty : editBlogDirty;
-  if (!isDirty) return true;
-  return window.confirm('You have unsaved changes. Close without saving?');
+let blogUnsavedConfirmType = null;
+
+function openBlogUnsavedConfirmModal(type) {
+  blogUnsavedConfirmType = type;
+  const modal = document.getElementById('blog-unsaved-confirm-modal');
+  if (!modal) return;
+  // Keep at body root so z-index can beat the blog editor modals (inline 9999).
+  if (modal.parentElement !== document.body) {
+    document.body.appendChild(modal);
+  }
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.style.zIndex = '10050';
+  modal.style.position = 'fixed';
+  modal.style.pointerEvents = 'all';
+  modal.style.visibility = 'visible';
+  // Focus Keep editing — never auto-focus Save (Enter would publish/update the post).
+  const keepBtn = document.getElementById('blog-unsaved-confirm-keep');
+  if (keepBtn) {
+    setTimeout(function () {
+      keepBtn.focus();
+    }, 0);
+  }
+}
+
+function closeBlogUnsavedConfirmModal() {
+  const modal = document.getElementById('blog-unsaved-confirm-modal');
+  if (!modal) return;
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.style.zIndex = '';
+  modal.style.position = '';
+  modal.style.pointerEvents = '';
+  modal.style.visibility = '';
+}
+
+function setupBlogUnsavedConfirmModal() {
+  const modal = document.getElementById('blog-unsaved-confirm-modal');
+  if (!modal || modal.dataset.bound === '1') return;
+  modal.dataset.bound = '1';
+
+  function keepEditing() {
+    closeBlogUnsavedConfirmModal();
+  }
+
+  function discardAndClose() {
+    const type = blogUnsavedConfirmType;
+    closeBlogUnsavedConfirmModal();
+    if (type === 'edit') {
+      closeEditBlogModal({ force: true });
+    } else {
+      closeAddBlogModal({ force: true });
+    }
+  }
+
+  function saveAndClose() {
+    const type = blogUnsavedConfirmType;
+    closeBlogUnsavedConfirmModal();
+    const form = document.getElementById(type === 'edit' ? 'edit-blog-form' : 'add-blog-form');
+    if (form && typeof form.requestSubmit === 'function') {
+      form.requestSubmit();
+    } else if (form) {
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }
+  }
+
+  const keepBtn = document.getElementById('blog-unsaved-confirm-keep');
+  const discardBtn = document.getElementById('blog-unsaved-confirm-discard');
+  const saveBtn = document.getElementById('blog-unsaved-confirm-save');
+  const closeBtn = document.getElementById('blog-unsaved-confirm-close');
+  const overlay = document.getElementById('blog-unsaved-confirm-overlay');
+
+  if (keepBtn) keepBtn.addEventListener('click', keepEditing);
+  if (closeBtn) closeBtn.addEventListener('click', keepEditing);
+  if (overlay) overlay.addEventListener('click', keepEditing);
+  if (discardBtn) discardBtn.addEventListener('click', discardAndClose);
+  if (saveBtn) saveBtn.addEventListener('click', saveAndClose);
 }
 
 function collectBlogPostFromForm(form, isEdit) {
@@ -1297,8 +1370,13 @@ if (addBlogBtn) {
 }
 
 // Close add blog modal
-function closeAddBlogModal() {
-  if (!ensureBlogFormCanClose('add')) return;
+function closeAddBlogModal(options) {
+  if (!options || typeof options !== 'object' || options instanceof Event) options = {};
+  if (!options.force && addBlogDirty) {
+    openBlogUnsavedConfirmModal('add');
+    return;
+  }
+  closeBlogUnsavedConfirmModal();
   if (addBlogModal) {
     addBlogModal.classList.remove('active');
     // Clear all inline styles set when opening the modal
@@ -1337,6 +1415,7 @@ if (addBlogOverlay) {
 if (cancelBlogBtn) {
   cancelBlogBtn.addEventListener('click', closeAddBlogModal);
 }
+setupBlogUnsavedConfirmModal();
 
 // Private post password modal event listeners
 (function bindPrivatePostModal() {
@@ -2287,8 +2366,13 @@ async function openEditBlogModal(postId) {
 }
 
 // Close edit modal
-function closeEditBlogModal() {
-  if (!ensureBlogFormCanClose('edit')) return;
+function closeEditBlogModal(options) {
+  if (!options || typeof options !== 'object' || options instanceof Event) options = {};
+  if (!options.force && editBlogDirty) {
+    openBlogUnsavedConfirmModal('edit');
+    return;
+  }
+  closeBlogUnsavedConfirmModal();
   if (editBlogModal) {
     editBlogModal.classList.remove('active');
     // Clear all inline styles set when opening the modal
@@ -3683,6 +3767,13 @@ function portfolioSanitizeDocumentPayload(data) {
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
       : [],
+    isTemplate: data.isTemplate === true || data.isTemplate === 'true' || data.isTemplate === 1,
+    templateRepoUrl: String(data.templateRepoUrl != null ? data.templateRepoUrl : '').trim().slice(0, 500),
+    demoFirebaseProjectId: String(
+      data.demoFirebaseProjectId != null ? data.demoFirebaseProjectId : ''
+    )
+      .trim()
+      .slice(0, 120),
     visibility:
       String(data.visibility || 'public').toLowerCase() === 'private' ||
       data.showPublicPortfolio === false
@@ -4226,6 +4317,9 @@ function buildAdminPortfolioRowHtml(p, listPosition, groupKey) {
     (isPublic
       ? '<span class="admin-portfolio-badge admin-portfolio-badge--public">Public</span>'
       : '<span class="admin-portfolio-badge admin-portfolio-badge--private">Private</span>') +
+    (p.isTemplate === true
+      ? '<span class="admin-portfolio-badge admin-portfolio-badge--template">Starter template</span>'
+      : '') +
     '<span class="admin-portfolio-order" title="' +
     portfolioEscapeHtml(orderTitle) +
     '">' +
@@ -4588,7 +4682,9 @@ function serializePortfolioProjectFormState() {
     'portfolio-project-admin-note',
     'portfolio-project-canvas-doc',
     'portfolio-project-canvas-title',
-    'portfolio-project-bestfor'
+    'portfolio-project-bestfor',
+    'portfolio-project-template-repo',
+    'portfolio-project-demo-firebase'
   ];
   var state = {
     fields: {},
@@ -4596,7 +4692,9 @@ function serializePortfolioProjectFormState() {
       showPublic: !!(document.getElementById('portfolio-project-show-public') &&
         document.getElementById('portfolio-project-show-public').checked),
       showQuote: !!(document.getElementById('portfolio-project-show-quote') &&
-        document.getElementById('portfolio-project-show-quote').checked)
+        document.getElementById('portfolio-project-show-quote').checked),
+      isTemplate: !!(document.getElementById('portfolio-project-is-template') &&
+        document.getElementById('portfolio-project-is-template').checked)
     },
     images: typeof getPortfolioFormImageUrlsFromDom === 'function' ? getPortfolioFormImageUrlsFromDom() : [],
     sections: typeof collectPortfolioDetailSectionsFromDom === 'function'
@@ -4724,6 +4822,12 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-bestfor').value = Array.isArray(project.bestFor)
       ? project.bestFor.join('\n')
       : '';
+    const isTemplateEl = document.getElementById('portfolio-project-is-template');
+    if (isTemplateEl) isTemplateEl.checked = project.isTemplate === true;
+    const templateRepoEl = document.getElementById('portfolio-project-template-repo');
+    if (templateRepoEl) templateRepoEl.value = project.templateRepoUrl || '';
+    const demoFbEl = document.getElementById('portfolio-project-demo-firebase');
+    if (demoFbEl) demoFbEl.value = project.demoFirebaseProjectId || '';
     const showPublicEl = document.getElementById('portfolio-project-show-public');
     if (showPublicEl) showPublicEl.checked = isPortfolioPublic(project);
     renderPortfolioDetailSectionsList(project.detailSections);
@@ -4740,6 +4844,12 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-show-quote').checked = true;
     const showPublicElDefault = document.getElementById('portfolio-project-show-public');
     if (showPublicElDefault) showPublicElDefault.checked = true;
+    const isTemplateDefault = document.getElementById('portfolio-project-is-template');
+    if (isTemplateDefault) isTemplateDefault.checked = false;
+    const templateRepoDefault = document.getElementById('portfolio-project-template-repo');
+    if (templateRepoDefault) templateRepoDefault.value = '';
+    const demoFbDefault = document.getElementById('portfolio-project-demo-firebase');
+    if (demoFbDefault) demoFbDefault.value = '';
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
   }
@@ -5001,6 +5111,15 @@ function setupPortfolioAdminControls() {
           .value.split(/\r?\n/)
           .map(function (l) { return l.trim(); })
           .filter(Boolean),
+        isTemplate: document.getElementById('portfolio-project-is-template')
+          ? document.getElementById('portfolio-project-is-template').checked
+          : false,
+        templateRepoUrl: document.getElementById('portfolio-project-template-repo')
+          ? document.getElementById('portfolio-project-template-repo').value
+          : '',
+        demoFirebaseProjectId: document.getElementById('portfolio-project-demo-firebase')
+          ? document.getElementById('portfolio-project-demo-firebase').value
+          : '',
         showPublicPortfolio: document.getElementById('portfolio-project-show-public')
           ? document.getElementById('portfolio-project-show-public').checked
           : true,
@@ -13303,6 +13422,35 @@ window.addEventListener('load', function() {
       var dateMs = pipelineTimestampMs(lead.updatedAt || lead.createdAt);
       var dateLabel = dateMs ? formatDateDisplay(new Date(dateMs).toISOString()) : '—';
 
+      var deliveryBadges = '';
+      if (window.AgencyTools && typeof window.AgencyTools.getHubByLeadId === 'function') {
+        var hubForLead = window.AgencyTools.getHubByLeadId(lead.id);
+        if (hubForLead) {
+          var dStage = String(hubForLead.deliveryStage || 'demo').toLowerCase();
+          if (dStage !== 'converting' && dStage !== 'client') dStage = 'demo';
+          var dLabel =
+            typeof window.AgencyTools.deliveryStageLabel === 'function'
+              ? window.AgencyTools.deliveryStageLabel(dStage)
+              : dStage;
+          deliveryBadges =
+            '<div class="pipeline-card-delivery">' +
+            '<span class="hub-delivery-badge hub-delivery-badge--' +
+            escapeHtml(dStage) +
+            '">' +
+            escapeHtml(dLabel) +
+            '</span>' +
+            (hubForLead.expoUrl
+              ? '<span class="hub-delivery-badge hub-delivery-badge--preview">Preview</span>'
+              : '<span class="hub-delivery-badge hub-delivery-badge--no-preview">No preview</span>') +
+            (hubForLead.demoBranch
+              ? '<span class="pipeline-card-branch" title="Demo branch">' +
+                escapeHtml(hubForLead.demoBranch) +
+                '</span>'
+              : '') +
+            '</div>';
+        }
+      }
+
       card.innerHTML =
         '<div class="pipeline-card-name">' +
         escapeHtml(lead.name || 'Untitled lead') +
@@ -13310,6 +13458,7 @@ window.addEventListener('load', function() {
         '<div class="pipeline-card-value">' +
         formatPipelineMoney(lead.value) +
         '</div>' +
+        deliveryBadges +
         '<div class="pipeline-card-meta">' +
         '<span class="pipeline-card-type">' +
         escapeHtml(pipelineProjectTypeLabel(lead.projectType).toUpperCase()) +
@@ -13345,6 +13494,9 @@ window.addEventListener('load', function() {
   window.findPipelineLead = findPipelineLead;
   window.getPipelineLeadsSnapshot = function () {
     return pipelineLeads.slice();
+  };
+  window.refreshPipelineBoard = function () {
+    renderPipelineBoard(pipelineLeads);
   };
   window.savePipelineLeadPartial = async function (id, partial) {
     if (!id || !partial || typeof partial !== 'object') return;
@@ -13441,6 +13593,60 @@ window.addEventListener('load', function() {
     var dateMs = pipelineTimestampMs(lead.updatedAt || lead.createdAt);
     var dateLabel = dateMs ? formatDateDisplay(new Date(dateMs).toISOString()) : '—';
 
+    var hubDeliveryHtml = '';
+    if (window.AgencyTools && typeof window.AgencyTools.getHubByLeadId === 'function') {
+      var hubRow = window.AgencyTools.getHubByLeadId(lead.id);
+      if (hubRow) {
+        var hs = String(hubRow.deliveryStage || 'demo').toLowerCase();
+        if (hs !== 'converting' && hs !== 'client') hs = 'demo';
+        var hsLabel =
+          typeof window.AgencyTools.deliveryStageLabel === 'function'
+            ? window.AgencyTools.deliveryStageLabel(hs)
+            : hs;
+        var tplTitle = '';
+        if (hubRow.portfolioProjectId && typeof window.getPortfolioProjectsSnapshot === 'function') {
+          var tpl = window.getPortfolioProjectsSnapshot().find(function (p) {
+            return p.id === hubRow.portfolioProjectId;
+          });
+          if (tpl) tplTitle = tpl.title || hubRow.portfolioProjectId;
+        }
+        hubDeliveryHtml =
+          '<div class="lead-drawer-delivery">' +
+          '<h4 class="h4">Delivery</h4>' +
+          '<dl class="lead-drawer-fields">' +
+          '<div><dt>Stage</dt><dd><span class="hub-delivery-badge hub-delivery-badge--' +
+          escapeHtml(hs) +
+          '">' +
+          escapeHtml(hsLabel) +
+          '</span></dd></div>' +
+          '<div><dt>Template</dt><dd>' +
+          escapeHtml(tplTitle || hubRow.portfolioProjectId || '—') +
+          '</dd></div>' +
+          '<div><dt>Demo branch</dt><dd>' +
+          escapeHtml(hubRow.demoBranch || '—') +
+          '</dd></div>' +
+          '<div><dt>Preview</dt><dd>' +
+          (hubRow.expoUrl
+            ? '<a href="' +
+              escapeHtml(hubRow.expoUrl) +
+              '" target="_blank" rel="noopener">' +
+              escapeHtml(hubRow.expoUrl) +
+              '</a>'
+            : '—') +
+          '</dd></div>' +
+          '<div><dt>Client repo</dt><dd>' +
+          (hubRow.clientRepoUrl
+            ? '<a href="' +
+              escapeHtml(hubRow.clientRepoUrl) +
+              '" target="_blank" rel="noopener">' +
+              escapeHtml(hubRow.clientRepoUrl) +
+              '</a>'
+            : '—') +
+          '</dd></div>' +
+          '</dl></div>';
+      }
+    }
+
     leadDrawerBody.innerHTML =
       '<dl class="lead-drawer-fields">' +
       '<div><dt>Pipeline ID</dt><dd class="lead-drawer-id-row">' +
@@ -13480,6 +13686,7 @@ window.addEventListener('load', function() {
       escapeHtml(dateLabel) +
       '</dd></div>' +
       '</dl>' +
+      hubDeliveryHtml +
       '<div class="lead-drawer-notes">' +
       '<h4 class="h4">Notes</h4>' +
       '<p class="lead-drawer-notes-text">' +
