@@ -6472,7 +6472,7 @@ window.initLandingNavbarScroll = initLandingNavbarScroll;
 window.updateLandingNavbarScroll = updateLandingNavbarScroll;
 
 // Valid path segments for rubenjimenez.dev/(tab)
-var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'business-systems', 'hire-me', 'contact', 'messages', 'admin'];
+var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'business-systems', 'hire-me', 'schedule', 'contact', 'messages', 'admin'];
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
@@ -6739,6 +6739,21 @@ function getHireMePackageFromSearch() {
     return HIRE_ME_PACKAGES[id] ? id : null;
   } catch (e) {
     return null;
+  }
+}
+
+function getScheduleQueryFromSearch() {
+  try {
+    if (!window.location || !window.location.search) return {};
+    var params = new URLSearchParams(window.location.search);
+    var out = {};
+    ['name', 'email', 'hub', 'type'].forEach(function (key) {
+      var val = params.get(key);
+      if (val != null && String(val).trim() !== '') out[key] = String(val).trim();
+    });
+    return out;
+  } catch (e) {
+    return {};
   }
 }
 
@@ -7394,6 +7409,13 @@ function switchToPage(pageName, skipSave, pageOptions) {
           }
         } catch (e) {}
       }
+      if (pageName === 'schedule') {
+        setTimeout(function () {
+          if (typeof window.openSchedulePageBooking === 'function') {
+            window.openSchedulePageBooking();
+          }
+        }, 50);
+      }
       if (typeof window.syncAdminMobileTabBarDock === 'function') {
         window.syncAdminMobileTabBarDock();
       }
@@ -7422,6 +7444,12 @@ function switchToPage(pageName, skipSave, pageOptions) {
           } else if (pageOptions.keepPackage) {
             var pkgFromUrl = getHireMePackageFromSearch();
             urlQuery = pkgFromUrl ? { package: pkgFromUrl } : {};
+          }
+        }
+        if (pageName === 'schedule') {
+          urlQuery = getScheduleQueryFromSearch();
+          if (pageOptions && pageOptions.scheduleQuery) {
+            urlQuery = pageOptions.scheduleQuery;
           }
         }
         updateUrlForPage(pageName, false, urlQuery);
@@ -7563,6 +7591,8 @@ function restoreActivePage() {
   if (targetPage === 'hire-me') {
     var restorePkg = getHireMePackageFromSearch();
     updateUrlForPage(targetPage, true, restorePkg ? { package: restorePkg } : {});
+  } else if (targetPage === 'schedule') {
+    updateUrlForPage(targetPage, true, getScheduleQueryFromSearch());
   } else {
     updateUrlForPage(targetPage, true);
   }
@@ -9452,19 +9482,42 @@ window.addEventListener('load', function() {
         'Next step: {{nextStep}}\n\n' +
         '{{linkLine}}\n' +
         'Talk soon,\nRuben'
+    },
+    {
+      id: 'schedule-call',
+      label: 'Schedule a call',
+      defaultSubject: 'Let’s find a time for a {{callType}}',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'I’d like to jump on a {{callType}} about {{projectName}}.\n\n' +
+        'Use the button below to pick a date and time — the call type is already set, so you’ll go straight to open slots. You’ll get a confirmation email with a calendar invite right away.\n\n' +
+        '{{linkLine}}\n' +
+        'Next step: {{nextStep}}\n\n' +
+        'Talk soon,\nRuben'
     }
   ];
+
+  var ADMIN_CLIENT_EMAIL_CTA = {
+    'schedule-call': {
+      cta_label: 'Pick a time →',
+      header_subtitle: 'Schedule a call'
+    }
+  };
 
   var ADMIN_CLIENT_EMAIL_DRAFT_KEY = 'adminClientEmailDraftV1';
   var adminClientEmailState = {
     initialized: false,
-    sending: false
+    sending: false,
+    callTypes: [],
+    callTypesLoaded: false
   };
 
   function adminClientEmailEls() {
     return {
       form: document.getElementById('admin-client-email-form'),
       template: document.getElementById('admin-client-email-template'),
+      callType: document.getElementById('admin-client-email-call-type'),
+      callTypeWrap: document.getElementById('admin-client-email-call-type-wrap'),
       toName: document.getElementById('admin-client-email-to-name'),
       toEmail: document.getElementById('admin-client-email-to-email'),
       nextStep: document.getElementById('admin-client-email-next-step'),
@@ -9490,12 +9543,53 @@ window.addEventListener('load', function() {
     return ADMIN_CLIENT_EMAIL_TEMPLATES.find(function (tpl) { return tpl.id === templateId; }) || ADMIN_CLIENT_EMAIL_TEMPLATES[0];
   }
 
+  function getSelectedAdminCallType(els) {
+    var id = String((els.callType && els.callType.value) || '').trim();
+    if (!id) return adminClientEmailState.callTypes[0] || null;
+    for (var i = 0; i < adminClientEmailState.callTypes.length; i++) {
+      if (String(adminClientEmailState.callTypes[i].id) === id) {
+        return adminClientEmailState.callTypes[i];
+      }
+    }
+    return adminClientEmailState.callTypes[0] || null;
+  }
+
+  function formatAdminCallTypeLabel(ct) {
+    if (!ct) return 'call';
+    var label = String(ct.label || 'Call').trim() || 'Call';
+    var mins = Number(ct.durationMin);
+    if (!isNaN(mins) && mins > 0 && !/\d+\s*min/i.test(label)) {
+      return label + ' (' + mins + ' min)';
+    }
+    return label;
+  }
+
+  function buildAdminScheduleLink(els, hubId) {
+    var name = String((els.toName && els.toName.value) || '').trim();
+    var email = String((els.toEmail && els.toEmail.value) || '').trim();
+    var ct = getSelectedAdminCallType(els);
+    var opts = { name: name, email: email };
+    if (hubId) opts.hubId = hubId;
+    if (ct && ct.id) opts.type = ct.id;
+    if (typeof window.buildScheduleInviteUrl === 'function') {
+      return window.buildScheduleInviteUrl(opts);
+    }
+    var origin = String(window.PORTFOLIO_PUBLIC_ORIGIN || window.location.origin || '').replace(/\/$/, '');
+    return origin + '/schedule';
+  }
+
   function getAdminClientEmailVars(els) {
     var link = String((els.link && els.link.value) || '').trim();
+    var templateId = (els.template && els.template.value) || '';
+    var ct = getSelectedAdminCallType(els);
+    if (!link && templateId === 'schedule-call') {
+      link = buildAdminScheduleLink(els);
+    }
     return {
       clientName: String((els.toName && els.toName.value) || '').trim() || 'there',
       projectName: 'your project',
       nextStep: String((els.nextStep && els.nextStep.value) || '').trim() || 'Reply with your notes when ready',
+      callType: formatAdminCallTypeLabel(ct),
       link: link,
       linkLine: link ? 'Link: ' + link : 'Link: (add your portal or preview link here)'
     };
@@ -9506,6 +9600,7 @@ window.addEventListener('load', function() {
       .replace(/\{\{\s*clientName\s*\}\}/g, vars.clientName)
       .replace(/\{\{\s*projectName\s*\}\}/g, vars.projectName)
       .replace(/\{\{\s*nextStep\s*\}\}/g, vars.nextStep)
+      .replace(/\{\{\s*callType\s*\}\}/g, vars.callType || 'call')
       .replace(/\{\{\s*linkLine\s*\}\}/g, vars.linkLine)
       .replace(/\{\{\s*link\s*\}\}/g, vars.link);
   }
@@ -9518,6 +9613,14 @@ window.addEventListener('load', function() {
   }
 
   function syncAdminClientEmailDynamicFields(els) {
+    var templateId = (els.template && els.template.value) || '';
+    if (templateId === 'schedule-call' && els.link) {
+      var currentLink = String(els.link.value || '').trim();
+      var isScheduleLink = !currentLink || /\/schedule(\?|$)/.test(currentLink);
+      if (isScheduleLink) {
+        els.link.value = buildAdminScheduleLink(els);
+      }
+    }
     var vars = getAdminClientEmailVars(els);
     if (els.message) {
       var msg = String(els.message.value || '');
@@ -9525,13 +9628,33 @@ window.addEventListener('load', function() {
       msg = msg.replace(/^Next step:\s*.*/gm, 'Next step: ' + vars.nextStep);
       msg = msg.replace(/^Target next step:\s*.*/gm, 'Target next step: ' + vars.nextStep);
       msg = msg.replace(/^Hey .+?,/m, 'Hey ' + vars.clientName + ',');
+      msg = msg.replace(/a quick call about/g, 'a ' + vars.callType + ' about');
+      msg = msg.replace(/jump on a .+? about/g, 'jump on a ' + vars.callType + ' about');
+      msg = msg.replace(/^Let’s find a time for a .+$/m, 'Let’s find a time for a ' + vars.callType);
       els.message.value = msg;
     }
-    if (els.subject && /\{\{/.test(String(els.subject.value || ''))) {
-      els.subject.value = renderEmailTemplateText(els.subject.value, vars);
+    if (els.subject) {
+      var subj = String(els.subject.value || '');
+      if (/\{\{/.test(subj) || /^Let’s find a time for a /i.test(subj) || /^Let’s find a time to talk/i.test(subj)) {
+        if (templateId === 'schedule-call') {
+          els.subject.value = 'Let’s find a time for a ' + vars.callType;
+        } else if (/\{\{/.test(subj)) {
+          els.subject.value = renderEmailTemplateText(subj, vars);
+        }
+      }
     }
     updateAdminClientEmailPreview(els);
     saveAdminClientEmailDraft(els);
+  }
+
+  function getAdminClientEmailMeta(els) {
+    var templateId = (els.template && els.template.value) || '';
+    var meta = ADMIN_CLIENT_EMAIL_CTA[templateId] || null;
+    var link = String((els.link && els.link.value) || '').trim();
+    if (!meta && /\/schedule(\/|\?|$)/i.test(link)) {
+      meta = ADMIN_CLIENT_EMAIL_CTA['schedule-call'];
+    }
+    return meta || {};
   }
 
   function updateAdminClientEmailPreview(els) {
@@ -9539,6 +9662,7 @@ window.addEventListener('load', function() {
     var vars = getAdminClientEmailVars(els);
     var subject = renderEmailTemplateText((els.subject && els.subject.value) || '', vars);
     var message = renderEmailTemplateText((els.message && els.message.value) || '', vars);
+    var meta = getAdminClientEmailMeta(els);
     var tpl = window.CwrClientEmailTemplates;
     if (!tpl || typeof tpl.buildAdminReplyHtml !== 'function') {
       els.preview.innerHTML =
@@ -9550,7 +9674,9 @@ window.addEventListener('load', function() {
     var html = tpl.buildAdminReplyHtml({
       from_name: 'Ruben Jimenez',
       subject: subject,
-      message: message
+      message: message,
+      cta_label: meta.cta_label || '',
+      header_subtitle: meta.header_subtitle || ''
     });
     els.preview.innerHTML = '';
     var iframe = document.getElementById('admin-client-email-preview-frame');
@@ -9569,6 +9695,7 @@ window.addEventListener('load', function() {
     try {
       var payload = {
         templateId: (els.template && els.template.value) || '',
+        callTypeId: (els.callType && els.callType.value) || '',
         toName: (els.toName && els.toName.value) || '',
         toEmail: (els.toEmail && els.toEmail.value) || '',
         nextStep: (els.nextStep && els.nextStep.value) || '',
@@ -9591,9 +9718,63 @@ window.addEventListener('load', function() {
     }
   }
 
+  function setAdminClientEmailCallTypeVisibility(els, templateId) {
+    if (!els.callTypeWrap) return;
+    var show = templateId === 'schedule-call';
+    els.callTypeWrap.hidden = !show;
+  }
+
+  async function ensureAdminClientEmailCallTypes(els, preferredId) {
+    if (!els.callType) return null;
+    if (!adminClientEmailState.callTypesLoaded) {
+      var types = [];
+      if (typeof window.fetchAgencyCallTypes === 'function') {
+        types = await window.fetchAgencyCallTypes();
+      }
+      adminClientEmailState.callTypes = Array.isArray(types) ? types : [];
+      adminClientEmailState.callTypesLoaded = true;
+    }
+    var options = adminClientEmailState.callTypes.map(function (ct) {
+      return { value: String(ct.id), label: formatAdminCallTypeLabel(ct) };
+    });
+    if (!options.length) {
+      options = [{ value: '', label: 'No call types saved yet — add them in Scheduling settings' }];
+    }
+    var selected = preferredId || (els.callType.value || '') || (options[0] && options[0].value) || '';
+    if (preferredId) {
+      var found = options.some(function (o) { return o.value === String(preferredId); });
+      if (!found) selected = (options[0] && options[0].value) || '';
+      else selected = String(preferredId);
+    }
+    if (typeof window.setBusinessDocSelectOptions === 'function') {
+      window.setBusinessDocSelectOptions(els.callType, options, { value: selected, keepValue: false });
+    } else {
+      els.callType.innerHTML = options.map(function (o) {
+        return '<option value="' + escHtml(o.value) + '">' + escHtml(o.label) + '</option>';
+      }).join('');
+      els.callType.value = selected;
+    }
+    return getSelectedAdminCallType(els);
+  }
+
   function applyAdminClientEmailTemplate(els, templateId) {
     var template = getTemplateById(templateId);
     if (els.template) els.template.value = template.id;
+    setAdminClientEmailCallTypeVisibility(els, template.id);
+    if (template.id === 'schedule-call') {
+      ensureAdminClientEmailCallTypes(els, els.callType && els.callType.value).then(function () {
+        if (els.link) els.link.value = buildAdminScheduleLink(els);
+        if (els.nextStep && !String(els.nextStep.value || '').trim()) {
+          els.nextStep.value = 'Book a slot that works for you';
+        }
+        var vars = getAdminClientEmailVars(els);
+        if (els.subject) els.subject.value = renderEmailTemplateText(template.defaultSubject, vars);
+        if (els.message) els.message.value = renderEmailTemplateText(template.defaultBody, vars);
+        updateAdminClientEmailPreview(els);
+        saveAdminClientEmailDraft(els);
+      });
+      return;
+    }
     var vars = getAdminClientEmailVars(els);
     if (els.subject) els.subject.value = renderEmailTemplateText(template.defaultSubject, vars);
     if (els.message) els.message.value = renderEmailTemplateText(template.defaultBody, vars);
@@ -9630,6 +9811,7 @@ window.addEventListener('load', function() {
     setAdminClientEmailFeedback(els, 'Sending email…', false);
 
     try {
+      var meta = getAdminClientEmailMeta(els);
       await sendPortfolioEmailRequest(
         {
           type: 'admin_reply',
@@ -9639,6 +9821,8 @@ window.addEventListener('load', function() {
             from_name: 'Ruben Jimenez',
             subject: subject,
             message: message,
+            cta_label: meta.cta_label || '',
+            header_subtitle: meta.header_subtitle || '',
             timestamp: new Date().toISOString()
           }
         },
@@ -9701,6 +9885,12 @@ window.addEventListener('load', function() {
       if (els.link) els.link.value = draft.link || '';
       if (els.subject) els.subject.value = draft.subject || '';
       if (els.message) els.message.value = draft.message || '';
+      setAdminClientEmailCallTypeVisibility(els, (els.template && els.template.value) || '');
+      if ((els.template && els.template.value) === 'schedule-call') {
+        ensureAdminClientEmailCallTypes(els, draft.callTypeId || '').then(function () {
+          syncAdminClientEmailDynamicFields(els);
+        });
+      }
     } else {
       applyAdminClientEmailTemplate(els, ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
     }
@@ -9713,6 +9903,25 @@ window.addEventListener('load', function() {
       els.template.addEventListener('change', function () {
         applyAdminClientEmailTemplate(els, els.template.value);
         setAdminClientEmailFeedback(els, '', false);
+      });
+    }
+
+    if (els.callType) {
+      els.callType.addEventListener('change', function () {
+        if ((els.template && els.template.value) === 'schedule-call') {
+          if (els.link) els.link.value = buildAdminScheduleLink(els);
+          syncAdminClientEmailDynamicFields(els);
+          var vars = getAdminClientEmailVars(els);
+          if (els.subject) els.subject.value = 'Let’s find a time for a ' + vars.callType;
+          if (els.message) {
+            var tpl = getTemplateById('schedule-call');
+            els.message.value = renderEmailTemplateText(tpl.defaultBody, vars);
+          }
+          updateAdminClientEmailPreview(els);
+          saveAdminClientEmailDraft(els);
+        } else {
+          syncAdminClientEmailDynamicFields(els);
+        }
       });
     }
 
@@ -9733,6 +9942,7 @@ window.addEventListener('load', function() {
 
     if (els.toEmail) {
       els.toEmail.addEventListener('input', function () {
+        syncAdminClientEmailDynamicFields(els);
         updateAdminClientEmailPreview(els);
         saveAdminClientEmailDraft(els);
       });
@@ -9760,9 +9970,28 @@ window.addEventListener('load', function() {
     if (data.name != null && els.toName) els.toName.value = String(data.name);
     if (data.email != null && els.toEmail) els.toEmail.value = String(data.email);
     if (data.link != null && els.link) els.link.value = String(data.link);
-    var templateId = (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
-    applyAdminClientEmailTemplate(els, templateId);
-    syncAdminClientEmailDynamicFields(els);
+    if (data.nextStep != null && els.nextStep) els.nextStep.value = String(data.nextStep);
+    var templateId = data.templateId || (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
+    if (els.template && typeof window.setBusinessDocSelectValue === 'function') {
+      window.setBusinessDocSelectValue(els.template, templateId, true);
+    } else if (els.template) {
+      els.template.value = templateId;
+    }
+    setAdminClientEmailCallTypeVisibility(els, templateId);
+    var preferredType = data.callTypeId ? String(data.callTypeId).trim() : '';
+    var finish = function () {
+      if (templateId === 'schedule-call') {
+        var hubId = data.hubId ? String(data.hubId).trim() : '';
+        if (els.link) els.link.value = buildAdminScheduleLink(els, hubId);
+      }
+      applyAdminClientEmailTemplate(els, templateId);
+      syncAdminClientEmailDynamicFields(els);
+    };
+    if (templateId === 'schedule-call') {
+      ensureAdminClientEmailCallTypes(els, preferredType).then(finish);
+    } else {
+      finish();
+    }
   };
 
   function afterAdminSessionReady() {
@@ -10723,6 +10952,10 @@ window.addEventListener('load', function() {
         callTypes: callTypes,
         blockedDates: blockedDates
       });
+      if (typeof adminClientEmailState !== 'undefined' && adminClientEmailState) {
+        adminClientEmailState.callTypesLoaded = false;
+        adminClientEmailState.callTypes = [];
+      }
       if (statusEl) statusEl.textContent = 'Saved.';
     } catch (e) {
       console.error('Failed to save scheduling settings', e);

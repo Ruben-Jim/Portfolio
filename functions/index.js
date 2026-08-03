@@ -559,6 +559,8 @@ exports.sendPortfolioEmail = onRequest(
           from_name: String(payload.from_name || "Ruben Jimenez"),
           subject,
           message,
+          cta_label: String(payload.cta_label || "").trim(),
+          header_subtitle: String(payload.header_subtitle || "").trim(),
           timestamp: String(payload.timestamp || ""),
         });
         const { data, error } = await resend.emails.send({

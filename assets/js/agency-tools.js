@@ -1396,6 +1396,7 @@
       '<div class="cp-hub-portal-actions">' +
       '<button type="button" class="btn btn-secondary btn-sm" id="hub-portal-copy-btn">Copy link</button>' +
       '<button type="button" class="btn btn-primary btn-sm" id="hub-portal-email-btn">Email portal link</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" id="hub-invite-schedule-btn">Invite to schedule</button>' +
       '</div>';
     var copyBtn = document.getElementById('hub-portal-copy-btn');
     if (copyBtn) {
@@ -1416,6 +1417,48 @@
             .catch(function (err) {
               alert((err && err.message) || 'Could not send portal email.');
             });
+        }
+      };
+    }
+    var inviteBtn = document.getElementById('hub-invite-schedule-btn');
+    if (inviteBtn) {
+      inviteBtn.onclick = function () {
+        var hubId = (document.getElementById('hub-edit-id') || {}).value.trim();
+        var hub = hubId ? getHubById(hubId) : project;
+        if (!hub) return;
+        var schedName = String(hub.clientName || '').trim();
+        var schedEmail = String(hub.clientEmail || '').trim();
+        var openInvite = function (callTypeId) {
+          var schedLink =
+            typeof window.buildScheduleInviteUrl === 'function'
+              ? window.buildScheduleInviteUrl({
+                  name: schedName,
+                  email: schedEmail,
+                  hubId: hub.id || hubId,
+                  type: callTypeId || ''
+                })
+              : String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '') + '/schedule';
+          if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
+          if (typeof window.prefillAdminClientEmail === 'function') {
+            window.prefillAdminClientEmail({
+              name: schedName,
+              email: schedEmail,
+              link: schedLink,
+              templateId: 'schedule-call',
+              nextStep: 'Book a slot that works for you',
+              hubId: hub.id || hubId,
+              callTypeId: callTypeId || ''
+            });
+          }
+        };
+        if (typeof window.getDefaultScheduleCallType === 'function') {
+          window.getDefaultScheduleCallType().then(function (ct) {
+            openInvite(ct && ct.id ? ct.id : '');
+          }).catch(function () {
+            openInvite('');
+          });
+        } else {
+          openInvite('');
         }
       };
     }
@@ -3578,6 +3621,7 @@
       '</div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="open-email">Compose email →</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="invite-schedule">Invite to schedule →</button>' +
       '</div>';
 
     workspace.innerHTML =
@@ -4008,6 +4052,48 @@
           window.prefillAdminClientEmail({ name: emailName, email: emailAddr, link: emailLink });
         }
       });
+      return;
+    }
+    if (action === 'invite-schedule') {
+      if (!hub) return;
+      var schedName = String((document.getElementById('cp-hub-client') || {}).value || hub.clientName || '').trim();
+      var schedEmail = String((document.getElementById('cp-hub-client-email') || {}).value || hub.clientEmail || '').trim();
+      var schedHubId = String(hub.id || clientProjectsSelectedId || '').trim();
+      var openInvite = function (callTypeId) {
+        var schedLink =
+          typeof window.buildScheduleInviteUrl === 'function'
+            ? window.buildScheduleInviteUrl({
+                name: schedName,
+                email: schedEmail,
+                hubId: schedHubId,
+                type: callTypeId || ''
+              })
+            : String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '') + '/schedule';
+        closeCpClientDrawer();
+        window.requestAnimationFrame(function () {
+          if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
+          if (typeof window.prefillAdminClientEmail === 'function') {
+            window.prefillAdminClientEmail({
+              name: schedName,
+              email: schedEmail,
+              link: schedLink,
+              templateId: 'schedule-call',
+              nextStep: 'Book a slot that works for you',
+              hubId: schedHubId,
+              callTypeId: callTypeId || ''
+            });
+          }
+        });
+      };
+      if (typeof window.getDefaultScheduleCallType === 'function') {
+        window.getDefaultScheduleCallType().then(function (ct) {
+          openInvite(ct && ct.id ? ct.id : '');
+        }).catch(function () {
+          openInvite('');
+        });
+      } else {
+        openInvite('');
+      }
       return;
     }
     if (action === 'generate-portal') {

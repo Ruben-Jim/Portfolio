@@ -2660,6 +2660,112 @@
       </article>
 
       <!--
+        - #SCHEDULE (public client booking — invite via Admin email)
+      -->
+
+      <article class="schedule" data-page="schedule">
+        <nav class="navbar" data-navbar>
+          <button class="navbar-toggle" data-navbar-btn type="button" aria-label="Toggle menu">
+            <ion-icon name="menu-outline" class="navbar-toggle-icon-open"></ion-icon>
+            <ion-icon name="close-outline" class="navbar-toggle-icon-close"></ion-icon>
+          </button>
+          <div class="navbar-menu" data-navbar-menu>
+            <ul class="navbar-list">
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="home"><span data-i18n="nav.home">Home</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="about"><span data-i18n="nav.about">About</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="portfolio"><span data-i18n="nav.portfolio">Portfolio</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="services-pricing"><span data-i18n="nav.services_pricing">Services & Pricing</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="business-systems">What We Build</button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="hire-me"><span data-i18n="nav.start_project">Start a project</span></button></li>
+              <li class="navbar-item"><button class="navbar-link" data-nav-link data-page-name="contact"><span data-i18n="nav.contact">Contact</span></button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="messages">Messages</button></li>
+              <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
+              <li class="navbar-item navbar-item--lang-toggle">
+                <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <header>
+          <h2 class="h2 article-title">Schedule a call</h2>
+          <p class="schedule-page-lead">Pick a time that works — you’ll get an email confirmation with a calendar invite.</p>
+        </header>
+
+        <section class="schedule-booking-section">
+          <div class="hire-form-submitted hire-booking-step schedule-booking-step" data-schedule-booking-step role="status" aria-live="polite">
+            <div class="hire-form-submitted-inner" data-schedule-booking-picker>
+              <div class="hire-form-submitted-icon">
+                <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <h3 class="h3 hire-form-submitted-title">Pick a time to talk</h3>
+              <p class="hire-form-submitted-text">Choose a call type and slot below. Confirmation goes to the email you enter.</p>
+
+              <div class="schedule-identity">
+                <label class="schedule-identity-label" for="schedule-guest-name">Your name</label>
+                <input type="text" id="schedule-guest-name" class="form-input" name="name" autocomplete="name" placeholder="Full name" required>
+                <label class="schedule-identity-label" for="schedule-guest-email">Your email</label>
+                <input type="email" id="schedule-guest-email" class="form-input" name="email" autocomplete="email" placeholder="Email address" required>
+              </div>
+
+              <div class="hire-booking-types" id="schedule-booking-types" role="radiogroup" aria-label="Call type"></div>
+
+              <div class="hire-booking-selected-type" id="schedule-booking-selected-type" hidden>
+                <span class="hire-booking-selected-type-label" id="schedule-booking-selected-type-label"></span>
+                <button type="button" class="hire-booking-change-type-btn" id="schedule-booking-change-type-btn">
+                  <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                  <span>Change</span>
+                </button>
+              </div>
+
+              <div class="hire-booking-slots" id="schedule-booking-slots" hidden>
+                <div class="hire-booking-calendar" id="schedule-booking-calendar">
+                  <div class="hire-booking-cal-header">
+                    <button type="button" class="hire-booking-cal-nav" id="schedule-booking-cal-prev" aria-label="Previous month">
+                      <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                    </button>
+                    <span class="hire-booking-cal-month" id="schedule-booking-cal-month" aria-live="polite"></span>
+                    <button type="button" class="hire-booking-cal-nav" id="schedule-booking-cal-next" aria-label="Next month">
+                      <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                    </button>
+                  </div>
+                  <div class="hire-booking-cal-weekdays">
+                    <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                  </div>
+                  <div class="hire-booking-cal-grid" id="schedule-booking-cal-grid" role="grid" aria-label="Choose a date"></div>
+                </div>
+                <div class="hire-booking-slot-grid" id="schedule-booking-slot-grid"></div>
+              </div>
+
+              <p class="hire-booking-empty" id="schedule-booking-empty" hidden>No open times right now — no worries, I'll follow up by email.</p>
+
+              <div class="hire-booking-confirm-row" id="schedule-booking-confirm-row" hidden>
+                <div class="hire-booking-confirm-row-inner">
+                  <span class="hire-booking-selected-label" id="schedule-booking-selected-label"></span>
+                  <button type="button" class="form-btn hire-form-submitted-btn" id="schedule-booking-confirm-btn">
+                    <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
+                    <span>Confirm booking</span>
+                  </button>
+                </div>
+              </div>
+
+              <button type="button" class="hire-booking-skip-btn" id="schedule-booking-skip-btn" hidden>Skip for now</button>
+            </div>
+
+            <div class="hire-form-submitted-inner hire-booking-confirmed" data-schedule-booking-confirmed hidden>
+              <div class="hire-form-submitted-icon">
+                <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+              </div>
+              <h3 class="h3 hire-form-submitted-title">You're booked</h3>
+              <p class="hire-form-submitted-text" id="schedule-booking-confirmed-text"></p>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <!--
         - #CONTACT
       -->
       
@@ -3083,7 +3189,7 @@
                       <ion-icon name="time-outline" class="admin-collapsible-icon" aria-hidden="true"></ion-icon>
                       <span class="admin-collapsible-text">
                         <span class="admin-collapsible-title" id="admin-cc-scheduling-heading">Scheduling settings</span>
-                        <span class="admin-collapsible-subtitle">Weekly hours, call types &amp; blocked dates for “Schedule a call”</span>
+                        <span class="admin-collapsible-subtitle">Weekly hours, call types &amp; blocked dates for Hire Me + /schedule</span>
                       </span>
                     </span>
                     <ion-icon name="chevron-down-outline" class="admin-collapsible-chevron" aria-hidden="true"></ion-icon>
@@ -3091,7 +3197,7 @@
 
                   <div class="admin-collapsible-content" id="admin-sched-content">
                     <div class="admin-collapsible-inner-content">
-                      <p class="business-doc-scope-hint">Powers the “Schedule a call” step on the Hire Me form. Times are shown as wall-clock hours with no timezone conversion — set the label to whatever zone you actually work in.</p>
+                      <p class="business-doc-scope-hint">Powers “Schedule a call” on Hire Me and the public <a href="/schedule/" target="_blank" rel="noopener">/schedule</a> page (send from Client Email → Schedule a call template). Save at least one weekly window and call type or clients will see no open times. Times are wall-clock hours — set the label to the zone you actually work in.</p>
 
                       <div class="form-group form-group-half" style="max-width:320px;">
                         <label for="admin-sched-timezone">Timezone label</label>
@@ -3314,6 +3420,18 @@
                         <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
                         <input type="hidden" id="admin-client-email-template" value="" aria-label="Email template">
                       </div>
+                    </div>
+                    <div class="form-group admin-client-email-grid-full" id="admin-client-email-call-type-wrap" hidden>
+                      <label class="form-label" id="admin-client-email-call-type-label" for="admin-client-email-call-type">Call type</label>
+                      <div class="business-doc-select" data-select-name="client-email-call-type">
+                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="admin-client-email-call-type-label">
+                          <span class="business-doc-select-trigger-label">Loading call types…</span>
+                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                        </button>
+                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
+                        <input type="hidden" id="admin-client-email-call-type" value="" aria-label="Call type">
+                      </div>
+                      <p class="form-hint">Defaults to your first Scheduling settings call type. Change it before send — the invite link skips straight to date &amp; time.</p>
                     </div>
                     <div class="form-group admin-client-email-grid-full">
                       <label class="form-label" for="admin-client-email-next-step">Next step</label>
@@ -6608,10 +6726,10 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/portfolio-built-in-data.js?v=poster-webp-20260729"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
   <script src="/assets/js/business-doc-shared.js?v=cwr-theme-surfaces-20260726"></script>
-  <script src="/assets/js/hire-me-booking.js?v=hireme-return-banner-20260727"></script>
+  <script src="/assets/js/hire-me-booking.js?v=schedule-type-deeplink-20260802"></script>
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=multi-guides-20260729"></script>
-  <script src="/assets/js/email-templates-client.js?v=client-email-shell-20260610"></script>
+  <script src="/assets/js/email-templates-client.js?v=schedule-cta-20260802"></script>
   <script src="/assets/js/i18n.js?v=portal-recover-20260728"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
   <script src="/assets/js/script.js?v=project-detail-close-20260730"></script>

@@ -129,7 +129,7 @@
     );
   }
 
-  function clientEmailHeader(fromName) {
+  function clientEmailHeader(fromName, subtitle) {
     return (
       '<tr><td style="padding:0 0 28px 0;">' +
       '<table width="100%" cellpadding="0" cellspacing="0" role="presentation"><tr>' +
@@ -146,7 +146,9 @@
       "</p>" +
       '<p class="email-subtitle-text" style="margin:2px 0 0;font-size:13px;color:' +
       T.subtitle +
-      ';">CodeWithRuben</p>' +
+      ';">' +
+      escapeHtml(subtitle || "CodeWithRuben") +
+      "</p>" +
       "</td></tr></table></td></tr>"
     );
   }
@@ -211,9 +213,19 @@
     return parts.join("");
   }
 
+  function isScheduleInviteUrl(url) {
+    return /\/schedule(\/|\?|$)/i.test(String(url || ""));
+  }
+
+  function resolveCtaLabel(url, defaultLabel) {
+    if (isScheduleInviteUrl(url)) return "Pick a time &#8594;";
+    return defaultLabel || "Open your portal &#8594;";
+  }
+
   function buildMessageBodyHtml(messageText, options) {
     options = options || {};
     var defaultCtaLabel = options.defaultCtaLabel || "Open your portal &#8594;";
+    var forceCtaLabel = options.forceCtaLabel ? String(options.forceCtaLabel) : "";
     var lines = String(messageText || "").split(/\r?\n/);
     var htmlParts = [];
     var ctaUrls = [];
@@ -245,7 +257,10 @@
     var bodyHtml = htmlParts.join("<br />");
     var buttons = ctaUrls
       .map(function (url) {
-        return clientCtaButton(url, defaultCtaLabel);
+        var label = forceCtaLabel || resolveCtaLabel(url, defaultCtaLabel);
+        var html = clientCtaButton(url, label);
+        if (isScheduleInviteUrl(url)) html += clientLinkFallback(url);
+        return html;
       })
       .join("");
     return bodyHtml + buttons;
@@ -597,13 +612,15 @@
     var fromName = p.from_name || "Ruben Jimenez";
     var subject = String(p.subject || "Message from Ruben").trim();
     var message = String(p.message || "");
+    var ctaLabel = String(p.cta_label || "").trim();
+    var headerSubtitle = String(p.header_subtitle || "").trim() || "CodeWithRuben";
+    var bodyOpts = {
+      defaultCtaLabel: ctaLabel || "Open your portal &#8594;",
+    };
+    if (ctaLabel) bodyOpts.forceCtaLabel = ctaLabel;
     var inner =
-      clientEmailHeader(fromName) +
-      clientMessageBlock(
-        buildMessageBodyHtml(message, {
-          defaultCtaLabel: p.cta_label || "Open your portal &#8594;",
-        })
-      );
+      clientEmailHeader(fromName, headerSubtitle) +
+      clientMessageBlock(buildMessageBodyHtml(message, bodyOpts));
     return wrapClientEmail(inner, clientFooterHtml(), firstLinePreheader(message, subject), "Message from Ruben");
   }
 

@@ -8486,6 +8486,39 @@ textarea.form-input::-webkit-resizer { display: none; }
 /* Hire Me — inline call scheduling (after success) */
 .hire-booking-step { text-align: left; }
 
+.schedule-page-lead {
+  margin: 8px 0 0;
+  color: var(--light-gray);
+  font-size: var(--fs-6);
+  line-height: 1.6;
+  max-width: 36rem;
+}
+
+.schedule-booking-section {
+  margin-top: 20px;
+}
+
+.schedule-booking-step:not([hidden]) {
+  display: block;
+}
+
+.schedule-identity {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 4px;
+  text-align: left;
+}
+
+.schedule-identity-label {
+  font-size: var(--fs-7);
+  color: var(--light-gray-70);
+  margin-top: 4px;
+}
+
+.schedule-identity .form-input {
+  width: 100%;
+}
+
 .hire-booking-step .hire-form-submitted-inner { max-width: 480px; }
 
 .hire-booking-step .hire-form-submitted-title,
