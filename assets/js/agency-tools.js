@@ -1,6 +1,6 @@
 /**
  * CodeWithRuben Agency Tools — Template Matcher, Project Hub, Case Studies,
- * Client Portal, Maintenance, Content Repurposing, Referrals, Firebase Health.
+ * Client Portal, Maintenance, Content Repurposing, Referrals, Studio Costs, Firebase Health.
  */
 (function () {
   'use strict';
@@ -10,6 +10,7 @@
     matcher: 'agencyMatcherSubmissions',
     maintenance: 'agencyMaintenance',
     referrals: 'agencyReferrals',
+    studioCosts: 'agencyStudioCosts',
     clientPortals: 'agencyClientPortals',
     firebaseHealth: 'agencyFirebaseHealth'
   };
@@ -67,6 +68,8 @@
   var healthSelectedProjectId = '';
   var agencyMaintenance = [];
   var agencyReferrals = [];
+  var agencyStudioCosts = [];
+  var studioCostsSeedAttempted = false;
   var agencyUnsubs = [];
   var pendingDeleteHubId = null;
   var pendingDeleteRefId = null;
@@ -406,6 +409,12 @@
     );
 
     agencyUnsubs.push(
+      window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.studioCosts), function (snap) {
+        applyStudioCostsFromVal(snap.val());
+      })
+    );
+
+    agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.firebaseHealth), function (snap) {
         mergeHealthSnapshot(snap.val());
         refreshHealthUiAfterData(false);
@@ -426,12 +435,15 @@
     agencyProjects = [];
     agencyMaintenance = [];
     agencyReferrals = [];
+    agencyStudioCosts = [];
+    studioCostsSeedAttempted = false;
     agencyHealthByProject = {};
     healthSelectedProjectId = '';
     closeCpClientDrawer();
     renderProjectHubList();
     renderMaintenanceList();
     renderReferralTable();
+    renderStudioCostsTable();
     renderFirebaseHealthProjectSelect();
     clearHealthForm(true);
     refreshClientProjectsPicker();
@@ -2020,6 +2032,414 @@
     if (save) save.addEventListener('click', function () { saveReferral().catch(console.error); });
   }
 
+  // ——— Studio Costs (what CWR pays) ———
+  var STUDIO_COST_VENDORS = {
+    eas: 'Expo EAS',
+    porkbun: 'Porkbun',
+    app_store: 'App Store Connect',
+    play: 'Google Play',
+    firebase: 'Firebase',
+    apple_dev: 'Apple Developer',
+    other: 'Other'
+  };
+
+  var STUDIO_COST_SEEDS = [
+    {
+      id: 'seed-eas',
+      name: 'Expo EAS',
+      vendor: 'eas',
+      status: 'active',
+      url: 'https://expo.dev/',
+      amount: 0,
+      billingCycle: 'monthly',
+      renewalDate: '',
+      notes: 'Hosting / builds',
+      order: 10
+    },
+    {
+      id: 'seed-porkbun',
+      name: 'Porkbun',
+      vendor: 'porkbun',
+      status: 'active',
+      url: 'https://porkbun.com/account/login',
+      amount: 0,
+      billingCycle: 'annual',
+      renewalDate: '',
+      notes: 'Custom domains',
+      order: 20
+    },
+    {
+      id: 'seed-app-store',
+      name: 'App Store Connect',
+      vendor: 'app_store',
+      status: 'active',
+      url: 'https://appstoreconnect.apple.com/',
+      amount: 0,
+      billingCycle: 'annual',
+      renewalDate: '',
+      notes: 'iOS listings (Apple Developer fee is separate)',
+      order: 30
+    },
+    {
+      id: 'seed-play',
+      name: 'Google Play Console',
+      vendor: 'play',
+      status: 'active',
+      url: 'https://play.google.com/console',
+      amount: 0,
+      billingCycle: 'once',
+      renewalDate: '',
+      notes: 'Android listings',
+      order: 40
+    }
+  ];
+
+  function normalizeStudioCostVendor(raw) {
+    var v = String(raw || 'other').toLowerCase();
+    if (STUDIO_COST_VENDORS[v]) return v;
+    return 'other';
+  }
+
+  function normalizeStudioCostStatus(raw) {
+    var s = String(raw || 'active').toLowerCase();
+    if (s === 'paused' || s === 'cancelled') return s;
+    return 'active';
+  }
+
+  function normalizeStudioCostCycle(raw) {
+    var c = String(raw || 'monthly').toLowerCase();
+    if (c === 'annual' || c === 'once') return c;
+    return 'monthly';
+  }
+
+  function normalizeStudioCost(id, row) {
+    row = row || {};
+    return {
+      id: id,
+      name: String(row.name || '').slice(0, 120),
+      vendor: normalizeStudioCostVendor(row.vendor),
+      status: normalizeStudioCostStatus(row.status),
+      url: String(row.url || '').trim().slice(0, 500),
+      amount: Math.max(0, Number(row.amount) || 0),
+      billingCycle: normalizeStudioCostCycle(row.billingCycle),
+      currency: String(row.currency || 'USD').slice(0, 8),
+      renewalDate: String(row.renewalDate || '').slice(0, 12),
+      notes: String(row.notes || '').slice(0, 2000),
+      order: Number(row.order) || 0,
+      externalRef: String(row.externalRef || '').slice(0, 120),
+      updatedAt: row.updatedAt || null,
+      createdAt: row.createdAt || null
+    };
+  }
+
+  function studioCostMonthlyAmount(row) {
+    if (!row || row.status !== 'active') return 0;
+    var amount = Number(row.amount) || 0;
+    if (row.billingCycle === 'annual') return amount / 12;
+    if (row.billingCycle === 'once') return 0;
+    return amount;
+  }
+
+  function studioCostDaysUntilRenewal(dateStr) {
+    if (!dateStr) return null;
+    var parts = String(dateStr).split('-');
+    if (parts.length !== 3) return null;
+    var y = Number(parts[0]);
+    var m = Number(parts[1]);
+    var d = Number(parts[2]);
+    if (!y || !m || !d) return null;
+    var target = new Date(y, m - 1, d);
+    var now = new Date();
+    var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((target.getTime() - start.getTime()) / 86400000);
+  }
+
+  function formatStudioCostMoney(amount) {
+    var n = Number(amount) || 0;
+    if (n >= 100) return '$' + Math.round(n).toLocaleString();
+    return (
+      '$' +
+      n.toLocaleString(undefined, {
+        minimumFractionDigits: n % 1 ? 2 : 0,
+        maximumFractionDigits: 2
+      })
+    );
+  }
+
+  function studioCostCycleLabel(cycle) {
+    if (cycle === 'annual') return '/yr';
+    if (cycle === 'once') return ' once';
+    return '/mo';
+  }
+
+  function studioCostVendorLabel(vendor) {
+    return STUDIO_COST_VENDORS[vendor] || STUDIO_COST_VENDORS.other;
+  }
+
+  function getStudioCostsSummary() {
+    var monthly = 0;
+    var active = 0;
+    var renewals = 0;
+    agencyStudioCosts.forEach(function (row) {
+      if (row.status === 'active') {
+        active += 1;
+        monthly += studioCostMonthlyAmount(row);
+      }
+      var days = studioCostDaysUntilRenewal(row.renewalDate);
+      if (days != null && days >= 0 && days <= 30 && row.status === 'active') renewals += 1;
+    });
+    return { monthly: monthly, active: active, renewals: renewals };
+  }
+
+  function renderStudioCostsSummary() {
+    var summary = getStudioCostsSummary();
+    var monthlyEl = document.getElementById('studio-costs-monthly');
+    var activeEl = document.getElementById('studio-costs-active-count');
+    var renewalsEl = document.getElementById('studio-costs-renewals-count');
+    var kpiEl = document.getElementById('kpi-studio-costs');
+    if (monthlyEl) monthlyEl.textContent = formatStudioCostMoney(summary.monthly);
+    if (activeEl) activeEl.textContent = String(summary.active);
+    if (renewalsEl) renewalsEl.textContent = String(summary.renewals);
+    if (kpiEl) kpiEl.textContent = formatStudioCostMoney(summary.monthly);
+  }
+
+  function renderStudioCostsTable() {
+    var tbody = document.getElementById('studio-costs-tbody');
+    renderStudioCostsSummary();
+    if (!tbody) return;
+    if (!agencyStudioCosts.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="5">No studio costs yet. Add EAS, Porkbun, App Store, or Play.</td></tr>';
+      return;
+    }
+    var sorted = agencyStudioCosts.slice().sort(function (a, b) {
+      if (a.order !== b.order) return a.order - b.order;
+      return String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base' });
+    });
+    tbody.innerHTML = sorted
+      .map(function (row) {
+        var days = studioCostDaysUntilRenewal(row.renewalDate);
+        var renewLabel = row.renewalDate || '—';
+        var renewClass = '';
+        if (days != null && row.status === 'active') {
+          if (days < 0) {
+            renewLabel = row.renewalDate + ' · overdue';
+            renewClass = ' is-overdue';
+          } else if (days <= 30) {
+            renewLabel = row.renewalDate + ' · ' + (days === 0 ? 'today' : days + 'd');
+            renewClass = ' is-soon';
+          }
+        }
+        var openBtn = row.url
+          ? '<a class="btn btn-secondary btn-sm" href="' +
+            esc(row.url) +
+            '" target="_blank" rel="noopener">Open</a>'
+          : '';
+        return (
+          '<tr data-studio-cost-id="' +
+          esc(row.id) +
+          '">' +
+          '<td><strong>' +
+          esc(row.name || 'Untitled') +
+          '</strong><div class="studio-costs-meta">' +
+          esc(studioCostVendorLabel(row.vendor)) +
+          '</div></td>' +
+          '<td>' +
+          formatStudioCostMoney(row.amount) +
+          esc(studioCostCycleLabel(row.billingCycle)) +
+          '</td>' +
+          '<td class="studio-costs-renewal' +
+          renewClass +
+          '">' +
+          esc(renewLabel) +
+          '</td>' +
+          '<td><span class="studio-cost-status studio-cost-status--' +
+          esc(row.status) +
+          '">' +
+          esc(row.status) +
+          '</span></td>' +
+          '<td class="referral-table-actions">' +
+          openBtn +
+          '<button type="button" class="btn btn-secondary btn-sm" data-edit-studio-cost="' +
+          esc(row.id) +
+          '">Edit</button>' +
+          '<button type="button" class="hub-list-btn hub-list-btn-delete" data-studio-cost-delete="' +
+          esc(row.id) +
+          '" aria-label="Delete studio cost"><ion-icon name="trash-outline"></ion-icon></button>' +
+          '</td></tr>'
+        );
+      })
+      .join('');
+
+    tbody.querySelectorAll('[data-edit-studio-cost]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        openStudioCostEditor(btn.getAttribute('data-edit-studio-cost'));
+      });
+    });
+    tbody.querySelectorAll('[data-studio-cost-delete]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        deleteStudioCost(btn.getAttribute('data-studio-cost-delete')).catch(console.error);
+      });
+    });
+  }
+
+  async function seedStudioCostsIfEmpty() {
+    if (studioCostsSeedAttempted || !rtdbReady()) return;
+    studioCostsSeedAttempted = true;
+    if (agencyStudioCosts.length) return;
+    try {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.studioCosts));
+      if (snap.val()) return;
+      var writes = {};
+      STUDIO_COST_SEEDS.forEach(function (seed) {
+        writes[seed.id] = {
+          name: seed.name,
+          vendor: seed.vendor,
+          status: seed.status,
+          url: seed.url,
+          amount: seed.amount,
+          billingCycle: seed.billingCycle,
+          currency: 'USD',
+          renewalDate: seed.renewalDate,
+          notes: seed.notes,
+          order: seed.order,
+          externalRef: '',
+          createdAt: ts(),
+          updatedAt: ts()
+        };
+      });
+      if (typeof window.rtdbUpdate === 'function') {
+        await window.rtdbUpdate(window.rtdbRef(window.rtdb, PATHS.studioCosts), writes);
+      } else {
+        var keys = Object.keys(writes);
+        for (var i = 0; i < keys.length; i++) {
+          await window.rtdbSet(
+            window.rtdbRef(window.rtdb, PATHS.studioCosts + '/' + keys[i]),
+            writes[keys[i]]
+          );
+        }
+      }
+    } catch (err) {
+      console.warn('Studio costs seed skipped', err);
+      studioCostsSeedAttempted = false;
+    }
+  }
+
+  function applyStudioCostsFromVal(val) {
+    agencyStudioCosts = [];
+    if (val && typeof val === 'object') {
+      Object.keys(val).forEach(function (id) {
+        agencyStudioCosts.push(normalizeStudioCost(id, val[id]));
+      });
+    }
+    renderStudioCostsTable();
+    if (!agencyStudioCosts.length) {
+      seedStudioCostsIfEmpty().catch(console.error);
+    }
+    if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+  }
+
+  function openStudioCostEditor(id) {
+    var row = agencyStudioCosts.find(function (x) {
+      return x.id === id;
+    });
+    if (!row && id !== 'new') return;
+    if (id === 'new') {
+      row = {
+        id: '',
+        name: '',
+        vendor: 'other',
+        status: 'active',
+        url: '',
+        amount: 0,
+        billingCycle: 'monthly',
+        renewalDate: '',
+        notes: ''
+      };
+    }
+    var titleEl = document.getElementById('studio-cost-modal-title');
+    if (titleEl) titleEl.textContent = row.id ? 'Edit studio cost' : 'Add studio cost';
+    document.getElementById('studio-cost-edit-id').value = row.id || '';
+    document.getElementById('studio-cost-name').value = row.name || '';
+    document.getElementById('studio-cost-vendor').value = row.vendor || 'other';
+    document.getElementById('studio-cost-status').value = row.status || 'active';
+    document.getElementById('studio-cost-url').value = row.url || '';
+    document.getElementById('studio-cost-amount').value = row.amount ? String(row.amount) : '';
+    document.getElementById('studio-cost-cycle').value = row.billingCycle || 'monthly';
+    document.getElementById('studio-cost-renewal').value = row.renewalDate || '';
+    document.getElementById('studio-cost-notes').value = row.notes || '';
+    openModal('studio-cost-editor-modal');
+  }
+
+  async function saveStudioCost() {
+    if (!rtdbReady()) return;
+    var id = document.getElementById('studio-cost-edit-id').value.trim();
+    var name = document.getElementById('studio-cost-name').value.trim();
+    if (!name) {
+      alert('Name is required.');
+      return;
+    }
+    var existing = id
+      ? agencyStudioCosts.find(function (x) {
+          return x.id === id;
+        })
+      : null;
+    var payload = {
+      name: name,
+      vendor: normalizeStudioCostVendor(document.getElementById('studio-cost-vendor').value),
+      status: normalizeStudioCostStatus(document.getElementById('studio-cost-status').value),
+      url: normalizeHubExternalUrl(document.getElementById('studio-cost-url').value),
+      amount: Math.max(0, Number(document.getElementById('studio-cost-amount').value) || 0),
+      billingCycle: normalizeStudioCostCycle(document.getElementById('studio-cost-cycle').value),
+      currency: 'USD',
+      renewalDate: document.getElementById('studio-cost-renewal').value || '',
+      notes: document.getElementById('studio-cost-notes').value.trim(),
+      order: existing ? existing.order || 0 : agencyStudioCosts.length * 10 + 10,
+      externalRef: existing ? existing.externalRef || '' : '',
+      updatedAt: ts()
+    };
+    if (id) {
+      if (existing && existing.createdAt) payload.createdAt = existing.createdAt;
+      await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.studioCosts + '/' + id), payload);
+    } else {
+      payload.createdAt = ts();
+      var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.studioCosts));
+      await window.rtdbSet(ref, payload);
+    }
+    closeModal('studio-cost-editor-modal');
+  }
+
+  async function deleteStudioCost(id) {
+    if (!id || !rtdbReady()) return;
+    var row = agencyStudioCosts.find(function (x) {
+      return x.id === id;
+    });
+    var label = row ? row.name || 'this service' : 'this service';
+    if (!window.confirm('Delete studio cost “' + label + '”? This cannot be undone.')) return;
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.studioCosts + '/' + id));
+  }
+
+  function initStudioCosts() {
+    var add = document.getElementById('studio-cost-add-btn');
+    if (add && !add.dataset.bound) {
+      add.dataset.bound = '1';
+      add.addEventListener('click', function () {
+        openStudioCostEditor('new');
+      });
+    }
+    bindModalClose('studio-cost-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
+    var save = document.getElementById('studio-cost-save-btn');
+    if (save && !save.dataset.bound) {
+      save.dataset.bound = '1';
+      save.addEventListener('click', function () {
+        saveStudioCost().catch(console.error);
+      });
+    }
+  }
+
   // ——— Firebase Health ———
   var HEALTH_CHECK_KEYS = ['rulesOk', 'authOk', 'functionsOk', 'rtdbOk', 'hostingOk'];
 
@@ -3155,7 +3575,7 @@
   function renderCpShowMaintPortalHtml(hub) {
     return (
       '<div class="form-group form-group-checkbox-row">' +
-      '<label class="portfolio-project-checkbox">' +
+      '<label class="custom-switch-label">' +
       '<input type="checkbox" id="cp-hub-show-maint-portal" class="custom-switch-input"' +
       (hub.showMaintenanceInPortal !== false ? ' checked' : '') +
       '>' +
@@ -3531,11 +3951,14 @@
         '</div>' +
         '<div class="cp-section-actions">' +
         '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint">Save maintenance</button>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-setup">Email: set up maintenance →</button>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-invoice">Email: invoice ready →</button>' +
         '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-maint">Delete maintenance</button>' +
         '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>'
       : renderCpShowMaintPortalHtml(hub) +
         '<div class="cp-section-actions">' +
         '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint-portal">Save portal visibility</button>' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-setup">Email: set up maintenance →</button>' +
         '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>' +
         '<div class="cp-section-empty"><p>No maintenance record for this client yet.</p>' +
         '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="add-maint">Add maintenance →</button></div>';
@@ -3622,6 +4045,8 @@
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="open-email">Compose email →</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="invite-schedule">Invite to schedule →</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-setup">Email: set up maintenance →</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-invoice">Email: invoice ready →</button>' +
       '</div>';
 
     workspace.innerHTML =
@@ -4050,6 +4475,36 @@
         if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
         if (typeof window.prefillAdminClientEmail === 'function') {
           window.prefillAdminClientEmail({ name: emailName, email: emailAddr, link: emailLink });
+        }
+      });
+      return;
+    }
+    if (action === 'email-maint-setup' || action === 'email-maint-invoice') {
+      if (!hub) return;
+      var maintEmailName = String(
+        (document.getElementById('cp-hub-client') || {}).value || hub.clientName || ''
+      ).trim();
+      var maintEmailAddr = String(
+        (document.getElementById('cp-hub-client-email') || {}).value || hub.clientEmail || ''
+      ).trim();
+      var maintEmailLink = hub.portalToken ? clientPortalUrl(hub.portalToken) : '';
+      var maintTemplateId =
+        action === 'email-maint-invoice' ? 'maintenance-invoice' : 'maintenance-setup';
+      var maintNext =
+        action === 'email-maint-invoice'
+          ? 'Open the portal and review your invoice'
+          : 'Pick a plan in your portal';
+      closeCpClientDrawer();
+      window.requestAnimationFrame(function () {
+        if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
+        if (typeof window.prefillAdminClientEmail === 'function') {
+          window.prefillAdminClientEmail({
+            name: maintEmailName,
+            email: maintEmailAddr,
+            link: maintEmailLink,
+            templateId: maintTemplateId,
+            nextStep: maintNext
+          });
         }
       });
       return;
@@ -4484,8 +4939,11 @@
     return {
       projects: agencyProjects.map(function (p) {
         return {
+          id: p.id,
           clientName: p.clientName,
+          clientEmail: p.clientEmail || '',
           title: p.title,
+          portalToken: p.portalToken || '',
           milestones: p.milestones || []
         };
       }),
@@ -4499,7 +4957,25 @@
       }),
       attention: attention,
       depositLeads: depositLeads,
-      portals: portals
+      portals: portals,
+      studioCosts: {
+        monthly: getStudioCostsSummary().monthly,
+        renewals: agencyStudioCosts
+          .filter(function (row) {
+            if (row.status !== 'active') return false;
+            var days = studioCostDaysUntilRenewal(row.renewalDate);
+            return days != null && days <= 30;
+          })
+          .map(function (row) {
+            return {
+              name: row.name,
+              renewalDate: row.renewalDate,
+              days: studioCostDaysUntilRenewal(row.renewalDate),
+              amount: row.amount,
+              billingCycle: row.billingCycle
+            };
+          })
+      }
     };
   }
 
@@ -4514,6 +4990,7 @@
     closeClientDrawer: closeCpClientDrawer,
     isClientDrawerOpen: isCpClientDrawerOpen,
     getOverviewSnapshot: getOverviewSnapshot,
+    refreshStudioCosts: renderStudioCostsTable,
     getHubByLeadId: function (leadId) {
       if (!leadId) return null;
       return agencyProjects.find(function (p) { return p.leadId === leadId; }) || null;
@@ -4539,6 +5016,7 @@
     initMaintenance();
     initContentRepurposing();
     initReferrals();
+    initStudioCosts();
     initFirebaseHealth();
     initClientProjects();
 

@@ -186,8 +186,66 @@
       durationMin: 30,
       calendarMonth: null,
       activeDate: null,
-      selectedSlot: null
+      selectedSlot: null,
+      inviteLocked: false
     };
+
+    function formatCallTypeShort(ct) {
+      if (!ct) return 'Call';
+      var label = String(ct.label || 'Call').trim() || 'Call';
+      var mins = Number(ct.durationMin);
+      if (!isNaN(mins) && mins > 0 && !/\d+\s*min/i.test(label)) {
+        return label + ' · ' + mins + ' min';
+      }
+      return label;
+    }
+
+    function hasCompleteInviteParams() {
+      if (cfg.source !== 'schedule') return false;
+      var q = readQueryLead();
+      return !!(q.name && q.email && q.type);
+    }
+
+    function setInviteLockedUi(locked, callType) {
+      state.inviteLocked = !!locked;
+      var identityWrap = cfg.identityWrap || document.getElementById('schedule-identity-fields');
+      var summaryWrap = cfg.inviteSummaryEl || document.getElementById('schedule-invite-summary');
+      var summaryText = cfg.inviteSummaryTextEl || document.getElementById('schedule-invite-summary-text');
+      var leadEl = cfg.leadTextEl || document.getElementById('schedule-booking-lead');
+      var titleEl = cfg.titleEl || document.getElementById('schedule-booking-title');
+
+      if (identityWrap) identityWrap.hidden = !!locked;
+      if (summaryWrap) summaryWrap.hidden = !locked;
+
+      if (cfg.nameInput) {
+        cfg.nameInput.readOnly = !!locked;
+        cfg.nameInput.tabIndex = locked ? -1 : 0;
+      }
+      if (cfg.emailInput) {
+        cfg.emailInput.readOnly = !!locked;
+        cfg.emailInput.tabIndex = locked ? -1 : 0;
+      }
+
+      if (locked) {
+        var q = readQueryLead();
+        var name = (cfg.nameInput && cfg.nameInput.value.trim()) || q.name;
+        var email = (cfg.emailInput && cfg.emailInput.value.trim()) || q.email;
+        var typeLabel = formatCallTypeShort(callType);
+        if (summaryText) {
+          summaryText.textContent = name + ' · ' + email + ' · ' + typeLabel;
+        }
+        if (titleEl) titleEl.textContent = 'Pick a date & time';
+        if (leadEl) leadEl.textContent = 'Your details are set from the invite — choose an open slot below.';
+        if (cfg.typesContainer) cfg.typesContainer.hidden = true;
+        if (cfg.selectedTypeWrap) cfg.selectedTypeWrap.hidden = true;
+        if (cfg.changeTypeBtn) cfg.changeTypeBtn.hidden = true;
+      } else {
+        if (summaryText) summaryText.textContent = '';
+        if (titleEl) titleEl.textContent = 'Pick a time to talk';
+        if (leadEl) leadEl.textContent = 'Choose a call type and slot below. Confirmation goes to the email you enter.';
+        if (cfg.changeTypeBtn) cfg.changeTypeBtn.hidden = false;
+      }
+    }
 
     function getLeadIdentity() {
       var q = readQueryLead();
@@ -230,8 +288,8 @@
 
     function applyQueryPrefill() {
       var q = readQueryLead();
-      if (cfg.nameInput && q.name && !cfg.nameInput.value) cfg.nameInput.value = q.name;
-      if (cfg.emailInput && q.email && !cfg.emailInput.value) cfg.emailInput.value = q.email;
+      if (cfg.nameInput && q.name) cfg.nameInput.value = q.name;
+      if (cfg.emailInput && q.email) cfg.emailInput.value = q.email;
     }
 
     async function loadAvailability() {
@@ -343,6 +401,7 @@
     }
 
     function showTypeStep() {
+      if (state.inviteLocked) return;
       state.callTypeId = null;
       state.selectedCallType = null;
       state.selectedSlot = null;
@@ -357,7 +416,8 @@
       });
     }
 
-    function selectCallType(ct) {
+    function selectCallType(ct, options) {
+      options = options || {};
       state.callTypeId = ct.id;
       state.selectedCallType = ct;
       state.durationMin = Number(ct.durationMin) || 30;
@@ -365,10 +425,17 @@
       hideConfirmRow();
 
       cfg.typesContainer.hidden = true;
-      if (cfg.selectedTypeLabelEl) {
-        cfg.selectedTypeLabelEl.textContent = ct.label + ' · ' + (Number(ct.durationMin) || 30) + ' min';
+      if (state.inviteLocked || options.lockInvite) {
+        if (cfg.selectedTypeWrap) cfg.selectedTypeWrap.hidden = true;
+        if (cfg.changeTypeBtn) cfg.changeTypeBtn.hidden = true;
+        setInviteLockedUi(true, ct);
+      } else {
+        if (cfg.selectedTypeLabelEl) {
+          cfg.selectedTypeLabelEl.textContent = ct.label + ' · ' + (Number(ct.durationMin) || 30) + ' min';
+        }
+        if (cfg.selectedTypeWrap) cfg.selectedTypeWrap.hidden = false;
+        if (cfg.changeTypeBtn) cfg.changeTypeBtn.hidden = false;
       }
-      if (cfg.selectedTypeWrap) cfg.selectedTypeWrap.hidden = false;
 
       var firstAvail = findFirstAvailableDate(state.durationMin);
       if (!firstAvail) {
@@ -511,8 +578,8 @@
       var bookingPayload = {
         name: lead.name,
         email: lead.email,
-        callTypeId: ct.id,
-        callTypeLabel: ct.label,
+        callTypeId: String(ct.id || ct.label || 'call'),
+        callTypeLabel: ct.label || 'Call',
         durationMin: Number(ct.durationMin) || 30,
         startISO: startISO,
         endISO: endISO,
@@ -528,6 +595,7 @@
         await window.rtdbSet(window.rtdbRef(window.rtdb, PATH_BOOKINGS + '/' + bookingId), bookingPayload);
       } catch (e) {
         console.warn('Failed to save booking record', e);
+        alert('Your time is reserved, but saving the booking details failed. Please email me so I can confirm manually.');
       }
 
       var emailFailed = false;
@@ -625,7 +693,6 @@
         state.loaded = true;
         if (cfg.pickerWrap) cfg.pickerWrap.hidden = false;
         if (cfg.confirmedWrap) cfg.confirmedWrap.hidden = true;
-        renderCallTypes(availability);
 
         var preTypeId = readQueryLead().type || cfg.preselectTypeId || '';
         var types = Array.isArray(availability.callTypes) ? availability.callTypes : [];
@@ -638,13 +705,22 @@
             }
           }
         }
-        if (preCt) {
-          selectCallType(preCt);
-          var cards = cfg.typesContainer.querySelectorAll('.hire-booking-type-card');
-          for (var ci = 0; ci < types.length && ci < cards.length; ci++) {
-            if (String(types[ci].id) === String(preCt.id)) {
-              cards[ci].classList.add('is-selected');
-              cards[ci].setAttribute('aria-checked', 'true');
+
+        var lockInvite = hasCompleteInviteParams() && !!preCt;
+        if (lockInvite) {
+          setInviteLockedUi(true, preCt);
+          selectCallType(preCt, { lockInvite: true });
+        } else {
+          setInviteLockedUi(false, null);
+          renderCallTypes(availability);
+          if (preCt) {
+            selectCallType(preCt);
+            var cards = cfg.typesContainer.querySelectorAll('.hire-booking-type-card');
+            for (var ci = 0; ci < types.length && ci < cards.length; ci++) {
+              if (String(types[ci].id) === String(preCt.id)) {
+                cards[ci].classList.add('is-selected');
+                cards[ci].setAttribute('aria-checked', 'true');
+              }
             }
           }
         }
@@ -754,7 +830,12 @@
       confirmBtn: document.getElementById('schedule-booking-confirm-btn'),
       skipBtn: document.getElementById('schedule-booking-skip-btn'),
       nameInput: document.getElementById('schedule-guest-name'),
-      emailInput: document.getElementById('schedule-guest-email')
+      emailInput: document.getElementById('schedule-guest-email'),
+      identityWrap: document.getElementById('schedule-identity-fields'),
+      inviteSummaryEl: document.getElementById('schedule-invite-summary'),
+      inviteSummaryTextEl: document.getElementById('schedule-invite-summary-text'),
+      leadTextEl: document.getElementById('schedule-booking-lead'),
+      titleEl: document.getElementById('schedule-booking-title')
     });
   }
 

@@ -9439,6 +9439,9 @@ window.addEventListener('load', function() {
     if (typeof initAdminClientEmailSender === 'function') {
       initAdminClientEmailSender();
     }
+    if (typeof window.initAdminBookingsPanel === 'function') {
+      window.initAdminBookingsPanel();
+    }
     if (typeof window.syncAdminMobileTabBarDock === 'function') {
       window.syncAdminMobileTabBarDock();
     }
@@ -9454,7 +9457,7 @@ window.addEventListener('load', function() {
         'Quick update on {{projectName}}: things are moving forward and I wanted to keep you in the loop.\n\n' +
         'Next step: {{nextStep}}\n\n' +
         '{{linkLine}}\n' +
-        'Thanks again,\nRuben'
+        'Thanks again,\nCodeWithRuben'
     },
     {
       id: 'delivery-handoff',
@@ -9469,7 +9472,7 @@ window.addEventListener('load', function() {
         '3) Send any edits you want bundled in the next pass\n\n' +
         '{{linkLine}}\n' +
         'Target next step: {{nextStep}}\n\n' +
-        'Appreciate you,\nRuben'
+        'Appreciate you,\nCodeWithRuben'
     },
     {
       id: 'check-in',
@@ -9481,7 +9484,7 @@ window.addEventListener('load', function() {
         'If you want any tweaks, send them over and I can queue them up.\n' +
         'Next step: {{nextStep}}\n\n' +
         '{{linkLine}}\n' +
-        'Talk soon,\nRuben'
+        'Talk soon,\nCodeWithRuben'
     },
     {
       id: 'schedule-call',
@@ -9493,7 +9496,44 @@ window.addEventListener('load', function() {
         'Use the button below to pick a date and time — the call type is already set, so you’ll go straight to open slots. You’ll get a confirmation email with a calendar invite right away.\n\n' +
         '{{linkLine}}\n' +
         'Next step: {{nextStep}}\n\n' +
-        'Talk soon,\nRuben'
+        'Talk soon,\nCodeWithRuben'
+    },
+    {
+      id: 'maintenance-setup',
+      label: 'Maintenance setup',
+      defaultSubject: 'Set up maintenance & support for {{projectName}}',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'Ready to lock in maintenance & support for {{projectName}}?\n\n' +
+        'Open your client portal to review Standard or Priority, pick monthly or annual billing, and request your plan. I’ll confirm from there.\n\n' +
+        '{{linkLine}}\n' +
+        'Next step: {{nextStep}}\n\n' +
+        'Talk soon,\nCodeWithRuben'
+    },
+    {
+      id: 'maintenance-invoice',
+      label: 'Maintenance invoice',
+      defaultSubject: 'Your maintenance invoice for {{projectName}}',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'Your maintenance invoice for {{projectName}} is ready to review in your client portal under Proposals, billing & contracts.\n\n' +
+        'Open the portal, view the document, and reply if you have any questions.\n\n' +
+        '{{linkLine}}\n' +
+        'Next step: {{nextStep}}\n\n' +
+        'Appreciate you,\nCodeWithRuben'
+    },
+    {
+      id: 'maintenance-grace',
+      label: 'Maintenance grace (day 14)',
+      defaultSubject: 'Action needed: grace period ends today — {{projectName}}',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'This is a heads-up that today is the last day of the 14-day grace period for your unpaid maintenance invoice on {{projectName}}.\n\n' +
+        'Hosting and support continue through today. After that, support may pause per our agreement.\n\n' +
+        'Please open your portal to review the invoice and get current, or reply if you need a payment plan.\n\n' +
+        '{{linkLine}}\n' +
+        'Next step: {{nextStep}}\n\n' +
+        'Thank you,\nCodeWithRuben'
     }
   ];
 
@@ -9501,10 +9541,22 @@ window.addEventListener('load', function() {
     'schedule-call': {
       cta_label: 'Pick a time →',
       header_subtitle: 'Schedule a call'
+    },
+    'maintenance-setup': {
+      cta_label: 'Open maintenance in portal →',
+      header_subtitle: 'Maintenance & support'
+    },
+    'maintenance-invoice': {
+      cta_label: 'View your invoice →',
+      header_subtitle: 'Maintenance invoice'
+    },
+    'maintenance-grace': {
+      cta_label: 'Open your portal →',
+      header_subtitle: 'Grace period ends today'
     }
   };
 
-  var ADMIN_CLIENT_EMAIL_DRAFT_KEY = 'adminClientEmailDraftV1';
+  var ADMIN_CLIENT_EMAIL_DRAFT_KEY = 'adminClientEmailDraftV2';
   var adminClientEmailState = {
     initialized: false,
     sending: false,
@@ -9672,7 +9724,7 @@ window.addEventListener('load', function() {
       return;
     }
     var html = tpl.buildAdminReplyHtml({
-      from_name: 'Ruben Jimenez',
+      from_name: 'CodeWithRuben',
       subject: subject,
       message: message,
       cta_label: meta.cta_label || '',
@@ -9757,10 +9809,22 @@ window.addEventListener('load', function() {
     return getSelectedAdminCallType(els);
   }
 
+  function defaultNextStepForEmailTemplate(templateId) {
+    if (templateId === 'schedule-call') return 'Book a slot that works for you';
+    if (templateId === 'maintenance-setup') return 'Pick a plan in your portal';
+    if (templateId === 'maintenance-invoice') return 'Open the portal and review your invoice';
+    if (templateId === 'maintenance-grace') return 'Review the invoice and get current today';
+    return '';
+  }
+
   function applyAdminClientEmailTemplate(els, templateId) {
     var template = getTemplateById(templateId);
     if (els.template) els.template.value = template.id;
     setAdminClientEmailCallTypeVisibility(els, template.id);
+    if (els.nextStep && !String(els.nextStep.value || '').trim()) {
+      var defaultNext = defaultNextStepForEmailTemplate(template.id);
+      if (defaultNext) els.nextStep.value = defaultNext;
+    }
     if (template.id === 'schedule-call') {
       ensureAdminClientEmailCallTypes(els, els.callType && els.callType.value).then(function () {
         if (els.link) els.link.value = buildAdminScheduleLink(els);
@@ -9818,7 +9882,7 @@ window.addEventListener('load', function() {
           payload: {
             to_email: toEmail,
             to_name: toName,
-            from_name: 'Ruben Jimenez',
+            from_name: 'CodeWithRuben',
             subject: subject,
             message: message,
             cta_label: meta.cta_label || '',
@@ -10149,6 +10213,60 @@ window.addEventListener('load', function() {
 
   const BUSINESS_DOCS_STORAGE_KEY = 'businessDocs.v1';
   const BUSINESS_DOCS_RTD_PATH = 'agencyBusinessDocuments';
+  const BUSINESS_DOC_CLIENT_LOGOS_KEY = 'businessDocClientLogos.v1';
+
+  /** Preset company logos for invoice Bill to (same assets as testimonial logo presets). */
+  var BUSINESS_DOC_LOGO_PRESETS = [
+    { src: '/assets/images/logo/logo-1-color.png', label: 'Logo 1' },
+    { src: '/assets/images/logo/logo-2-color.png', label: 'Logo 2' },
+    { src: '/assets/images/logo/logo-3-color.png', label: 'Logo 3' },
+    { src: '/assets/images/logo/logo-4-color.png', label: 'Logo 4' },
+    { src: '/assets/images/logo/logo-5-color.png', label: 'Logo 5' },
+    { src: '/assets/images/logo/logo-6-color.png', label: 'Logo 6' },
+    { src: '/assets/images/logo/logo-7-color.png', label: 'Logo 7' },
+    { src: '/assets/images/logo/logo-8-color.png', label: 'Logo 8' },
+    { src: '/assets/images/logo/logo--3-color.png', label: 'Logo alt' }
+  ];
+
+  function normalizeBusinessDocClientLogo(value) {
+    var s = String(value || '').trim();
+    if (!s) return '';
+    for (var i = 0; i < BUSINESS_DOC_LOGO_PRESETS.length; i++) {
+      if (BUSINESS_DOC_LOGO_PRESETS[i].src === s) return s;
+    }
+    return '';
+  }
+
+  function loadBusinessDocClientLogoMap() {
+    try {
+      var raw = localStorage.getItem(BUSINESS_DOC_CLIENT_LOGOS_KEY);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveBusinessDocClientLogoForName(clientName, logoPath) {
+    var name = String(clientName || '').trim().toLowerCase();
+    var logo = normalizeBusinessDocClientLogo(logoPath);
+    if (!name || !logo) return;
+    var map = loadBusinessDocClientLogoMap();
+    map[name] = logo;
+    try {
+      localStorage.setItem(BUSINESS_DOC_CLIENT_LOGOS_KEY, JSON.stringify(map));
+    } catch (e) {
+      console.warn('Failed to save client logo preference', e);
+    }
+  }
+
+  function rememberedBusinessDocClientLogo(clientName) {
+    var name = String(clientName || '').trim().toLowerCase();
+    if (!name) return '';
+    var map = loadBusinessDocClientLogoMap();
+    return normalizeBusinessDocClientLogo(map[name]);
+  }
 
   /**
    * @typedef {{ label: string, amount: number }} BusinessDocAddOnPriceOption
@@ -10183,6 +10301,9 @@ window.addEventListener('load', function() {
    * @property {'onetime'|'deposit-final'|'deposit-milestone-final'|'custom'=} paymentScheduleType - contract only; defaults to 'deposit-milestone-final'
    * @property {{ label: string, percent: number }[]=} paymentStages - contract only; percentages of `total` per stage
    * @property {string=} paymentMethods - contract only; free text, e.g. "Bank transfer, credit/debit card"
+   * @property {string=} invoiceNumber - invoice only; e.g. INV-2026-0001
+   * @property {string=} clientLogo - invoice only; preset path under /assets/images/logo/
+   * @property {string=} paidAt - invoice only; date paid (YYYY-MM-DD) when status is paid
    * @property {string} createdAt
    * @property {string} updatedAt
    */
@@ -10307,6 +10428,16 @@ window.addEventListener('load', function() {
       themeId = String(doc.theme || 'cwr').toLowerCase().trim() || 'cwr';
     }
     out.theme = themeId;
+    if (type === 'invoice') {
+      var invNo = String(doc.invoiceNumber || '').trim().toUpperCase();
+      if (/^INV-\d{4}-\d{4,}$/.test(invNo)) out.invoiceNumber = invNo;
+      if (status === 'paid') {
+        var paidAt = String(doc.paidAt || doc.dueDate || '').trim().slice(0, 32);
+        if (paidAt) out.paidAt = paidAt;
+      }
+      var logo = normalizeBusinessDocClientLogo(doc.clientLogo);
+      if (logo) out.clientLogo = logo;
+    }
     if (type === 'contract') {
       var ipMode = String(doc.ipTransferMode || '').toLowerCase();
       out.ipTransferMode = ipMode === 'buyout' ? 'buyout' : 'license';
@@ -10407,7 +10538,107 @@ window.addEventListener('load', function() {
     } else if (!doc.theme) {
       doc.theme = 'cwr';
     }
+    if (String(doc.type || '').toLowerCase() === 'invoice') {
+      var invNo = String(doc.invoiceNumber || '').trim().toUpperCase();
+      if (/^INV-\d{4}-\d{4,}$/.test(invNo)) doc.invoiceNumber = invNo;
+      else delete doc.invoiceNumber;
+      var logo = normalizeBusinessDocClientLogo(doc.clientLogo);
+      if (logo) doc.clientLogo = logo;
+      else delete doc.clientLogo;
+    } else {
+      delete doc.invoiceNumber;
+      delete doc.clientLogo;
+    }
     return doc;
+  }
+
+  function invoiceYearFromDoc(doc) {
+    if (doc && doc.createdAt) {
+      var d = new Date(doc.createdAt);
+      if (!isNaN(d.getTime())) return d.getFullYear();
+    }
+    return new Date().getFullYear();
+  }
+
+  function padInvoiceSeq(n) {
+    var s = String(Math.max(0, Number(n) || 0));
+    while (s.length < 4) s = '0' + s;
+    return s;
+  }
+
+  function parseInvoiceSequenceForYear(invoiceNumber, year) {
+    var m = String(invoiceNumber || '')
+      .trim()
+      .match(new RegExp('^INV-' + year + '-(\\d+)$', 'i'));
+    return m ? parseInt(m[1], 10) : 0;
+  }
+
+  function allocateNextInvoiceNumber(docs, year) {
+    var y = year || new Date().getFullYear();
+    var max = 0;
+    (docs || []).forEach(function (d) {
+      if (!d || String(d.type || '').toLowerCase() !== 'invoice') return;
+      var seq = parseInvoiceSequenceForYear(d.invoiceNumber, y);
+      if (seq > max) max = seq;
+    });
+    return 'INV-' + y + '-' + padInvoiceSeq(max + 1);
+  }
+
+  /** Assign INV-YYYY-#### to invoices missing one (stable once set). */
+  function ensureInvoiceNumberOnDoc(doc, docs) {
+    if (!doc || String(doc.type || '').toLowerCase() !== 'invoice') {
+      if (doc) delete doc.invoiceNumber;
+      return doc;
+    }
+    var existing = String(doc.invoiceNumber || '').trim().toUpperCase();
+    if (/^INV-\d{4}-\d{4,}$/.test(existing)) {
+      doc.invoiceNumber = existing;
+      return doc;
+    }
+    var prev = (docs || []).find(function (d) {
+      return d && d.id === doc.id;
+    });
+    var prevNo = prev ? String(prev.invoiceNumber || '').trim().toUpperCase() : '';
+    if (/^INV-\d{4}-\d{4,}$/.test(prevNo)) {
+      doc.invoiceNumber = prevNo;
+      return doc;
+    }
+    doc.invoiceNumber = allocateNextInvoiceNumber(docs, invoiceYearFromDoc(doc));
+    return doc;
+  }
+
+  function backfillMissingInvoiceNumbers(docs) {
+    var list = docs || [];
+    var maxByYear = {};
+    list.forEach(function (d) {
+      if (!d || String(d.type || '').toLowerCase() !== 'invoice') return;
+      var m = String(d.invoiceNumber || '')
+        .trim()
+        .match(/^INV-(\d{4})-(\d+)$/i);
+      if (!m) return;
+      var y = Number(m[1]);
+      var s = Number(m[2]);
+      if (!maxByYear[y] || s > maxByYear[y]) maxByYear[y] = s;
+    });
+    var needing = list
+      .filter(function (d) {
+        return (
+          d &&
+          String(d.type || '').toLowerCase() === 'invoice' &&
+          !/^INV-\d{4}-\d{4,}$/i.test(String(d.invoiceNumber || '').trim())
+        );
+      })
+      .sort(function (a, b) {
+        return businessDocTimestampMs(a) - businessDocTimestampMs(b);
+      });
+    if (!needing.length) return [];
+    needing.forEach(function (d) {
+      var y = invoiceYearFromDoc(d);
+      var next = (maxByYear[y] || 0) + 1;
+      maxByYear[y] = next;
+      d.invoiceNumber = 'INV-' + y + '-' + padInvoiceSeq(next);
+    });
+    return needing;
   }
 
   function getBusinessDocThemeList() {
@@ -10521,6 +10752,14 @@ window.addEventListener('load', function() {
     businessDocs = (Array.isArray(list) ? list : []).map(function (d) {
       return normalizeBusinessDocRecord(d);
     });
+    var backfilled = backfillMissingInvoiceNumbers(businessDocs);
+    if (backfilled.length) {
+      backfilled.forEach(function (d) {
+        syncBusinessDocToRtdb(d).catch(function (err) {
+          console.warn('Failed to sync invoice number', err);
+        });
+      });
+    }
     saveBusinessDocs(businessDocs);
     renderBusinessDocs();
     if (typeof window.renderAdminOverview === 'function') {
@@ -10634,22 +10873,87 @@ window.addEventListener('load', function() {
   const AGENCY_BOOKINGS_RTD_PATH = 'agencyBookings';
   var agencyBookingsList = [];
   var agencyBookingsUnsub = null;
+  var agencyBookingsListenFailed = false;
+
+  function pickNearestBookingDay() {
+    var now = Date.now();
+    var upcoming = (agencyBookingsList || [])
+      .filter(function (b) { return b && b.startISO && Date.parse(b.startISO) >= now; })
+      .sort(function (a, b) { return Date.parse(a.startISO) - Date.parse(b.startISO); });
+    var pick = upcoming[0];
+    if (!pick) {
+      var past = (agencyBookingsList || [])
+        .filter(function (b) { return b && b.startISO; })
+        .sort(function (a, b) { return Date.parse(b.startISO) - Date.parse(a.startISO); });
+      pick = past[0];
+    }
+    if (!pick) return;
+    adminBookingsSelectedDay = bookingDayKey(pick.startISO);
+    var d = new Date(pick.startISO);
+    if (!isNaN(d.getTime())) {
+      adminBookingsCalMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+    }
+  }
+
+  function applyAgencyBookingsSnapshot(val) {
+    agencyBookingsList = val && typeof val === 'object'
+      ? Object.keys(val).map(function (k) { return Object.assign({ id: k }, val[k]); })
+      : [];
+    agencyBookingsListenFailed = false;
+    setAdminBookingsFeedback('', false);
+    if (agencyBookingsList.length) {
+      ensureBookingsCalState();
+      if (!getBookingsForDayKey(adminBookingsSelectedDay).length) {
+        pickNearestBookingDay();
+      }
+    }
+    if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+    if (typeof window.renderAdminBookingsPanel === 'function') {
+      adminBookingsPreserveScroll = true;
+      window.renderAdminBookingsPanel();
+    }
+  }
 
   function subscribeAgencyBookingsFromRtdb() {
-    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
-    if (agencyBookingsUnsub) return;
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) {
+      setAdminBookingsFeedback('Bookings database is not ready yet — refresh and try again.', true);
+      return;
+    }
+    if (agencyBookingsUnsub && !agencyBookingsListenFailed) return;
+    if (typeof agencyBookingsUnsub === 'function') {
+      try { agencyBookingsUnsub(); } catch (e) {}
+      agencyBookingsUnsub = null;
+    }
+    agencyBookingsListenFailed = false;
     var ref = window.rtdbRef(window.rtdb, AGENCY_BOOKINGS_RTD_PATH);
+
+    // One-shot fetch so the list is not blank if the live listener is delayed or denied.
+    if (typeof window.rtdbGet === 'function') {
+      window.rtdbGet(ref).then(function (snap) {
+        applyAgencyBookingsSnapshot(snap && typeof snap.val === 'function' ? snap.val() : null);
+      }).catch(function (err) {
+        console.warn('Agency bookings RTDB get failed', err);
+        agencyBookingsListenFailed = true;
+        setAdminBookingsFeedback(
+          (err && err.message) || 'Could not load bookings (check you are signed in as admin).',
+          true
+        );
+      });
+    }
+
     agencyBookingsUnsub = window.rtdbOnValue(
       ref,
       function (snap) {
-        var val = snap.val();
-        agencyBookingsList = val && typeof val === 'object'
-          ? Object.keys(val).map(function (k) { return Object.assign({ id: k }, val[k]); })
-          : [];
-        if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+        applyAgencyBookingsSnapshot(snap.val());
       },
       function (err) {
         console.warn('Agency bookings RTDB listen failed', err);
+        agencyBookingsListenFailed = true;
+        agencyBookingsUnsub = null;
+        setAdminBookingsFeedback(
+          (err && err.message) || 'Could not listen for bookings (permission denied?).',
+          true
+        );
       }
     );
   }
@@ -10661,14 +10965,672 @@ window.addEventListener('load', function() {
       } catch (e) {}
     }
     agencyBookingsUnsub = null;
+    agencyBookingsListenFailed = false;
   }
 
   window.subscribeAgencyBookingsFromRtdb = subscribeAgencyBookingsFromRtdb;
   window.unsubscribeAgencyBookingsFromRtdb = unsubscribeAgencyBookingsFromRtdb;
 
+  var adminBookingsFilter = 'upcoming';
+  var adminBookingsSendingId = null;
+  var pendingCancelBookingId = null;
+  var adminBookingsView = 'calendar';
+  var adminBookingsCalMonth = null;
+  var adminBookingsSelectedDay = null;
+  var adminBookingsScrollDayPanel = false;
+  var adminBookingsPreserveScroll = false;
+
+  function setAdminBookingsFeedback(message, isError) {
+    var el = document.getElementById('admin-bookings-feedback');
+    if (!el) return;
+    el.textContent = message || '';
+    el.hidden = !message;
+    el.classList.toggle('is-error', !!isError);
+    el.classList.toggle('is-success', !isError && !!message);
+  }
+
+  function formatBookingTime(iso) {
+    try {
+      return new Date(iso).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function updateAdminBookingsSummary() {
+    var el = document.getElementById('admin-bookings-summary');
+    if (!el) return;
+    var total = (agencyBookingsList || []).length;
+    if (!total) {
+      el.textContent = 'No bookings yet';
+      return;
+    }
+    var now = Date.now();
+    var upcoming = (agencyBookingsList || []).filter(function (b) {
+      return b && b.startISO && Date.parse(b.startISO) >= now;
+    }).length;
+    el.textContent = upcoming
+      ? (upcoming + ' upcoming · ' + total + ' total')
+      : (total + ' total · none upcoming');
+  }
+
+  function formatBookingWhen(iso) {
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return iso || '';
+    }
+  }
+
+  function isValidMeetUrl(url) {
+    return /^https?:\/\/[^\s]+$/i.test(String(url || '').trim());
+  }
+
+  function bookingDayKey(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function todayBookingDayKey() {
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function ensureBookingsCalState() {
+    if (!adminBookingsCalMonth || isNaN(adminBookingsCalMonth.getTime())) {
+      var now = new Date();
+      adminBookingsCalMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    if (!adminBookingsSelectedDay) {
+      adminBookingsSelectedDay = todayBookingDayKey();
+    }
+  }
+
+  function getFilteredAgencyBookings() {
+    var now = Date.now();
+    var list = (agencyBookingsList || []).slice().filter(function (b) {
+      return b && b.startISO;
+    });
+    list.sort(function (a, b) {
+      return Date.parse(a.startISO) - Date.parse(b.startISO);
+    });
+    if (adminBookingsFilter === 'upcoming') {
+      return list.filter(function (b) { return Date.parse(b.startISO) >= now; });
+    }
+    if (adminBookingsFilter === 'past') {
+      return list.filter(function (b) { return Date.parse(b.startISO) < now; }).reverse();
+    }
+    return list.slice().reverse();
+  }
+
+  function getBookingsForDayKey(dayKey) {
+    return (agencyBookingsList || [])
+      .filter(function (b) { return b && b.startISO && bookingDayKey(b.startISO) === dayKey; })
+      .sort(function (a, b) { return Date.parse(a.startISO) - Date.parse(b.startISO); });
+  }
+
+  function escapeBookingHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function buildAdminBookingCardHtml(b) {
+    var meetUrl = String(b.meetUrl || '').trim();
+    var source = String(b.source || 'hire_me');
+    var sourceLabel = source === 'schedule' ? 'Schedule' : (source === 'hire_me' ? 'Hire Me' : source);
+    var when = formatBookingWhen(b.startISO);
+    var timeOnly = formatBookingTime(b.startISO);
+    var joinBtn = meetUrl
+      ? '<a class="btn btn-secondary btn-sm" href="' + escapeBookingHtml(meetUrl) + '" target="_blank" rel="noopener">Join</a>'
+      : '';
+    var meetReady = meetUrl
+      ? '<span class="admin-booking-chip admin-booking-chip--ok">Meet ready</span>'
+      : '<span class="admin-booking-chip">Needs Meet link</span>';
+    return (
+      '<article class="admin-booking-card" data-booking-id="' + escapeBookingHtml(b.id) + '">' +
+        '<div class="admin-booking-card-head">' +
+          '<div class="admin-booking-card-when">' +
+            '<span class="admin-booking-card-time">' + escapeBookingHtml(timeOnly || when) + '</span>' +
+            '<span class="admin-booking-card-type">' + escapeBookingHtml(b.callTypeLabel || 'Call') + '</span>' +
+          '</div>' +
+          '<div class="admin-booking-card-chips">' +
+            meetReady +
+            '<span class="admin-booking-chip admin-booking-chip--muted">' + escapeBookingHtml(sourceLabel) + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<h4 class="admin-booking-card-title">' + escapeBookingHtml(b.name || 'Guest') + '</h4>' +
+        '<p class="admin-booking-card-meta">' +
+          '<a href="mailto:' + escapeBookingHtml(b.email || '') + '">' + escapeBookingHtml(b.email || '') + '</a>' +
+          (b.hubId ? ' · hub ' + escapeBookingHtml(b.hubId) : '') +
+          ' · ' + escapeBookingHtml(when) +
+        '</p>' +
+        '<div class="admin-booking-meet-row">' +
+          '<label class="form-label" for="admin-booking-meet-' + escapeBookingHtml(b.id) + '">Google Meet URL</label>' +
+          '<div class="admin-booking-meet-controls">' +
+            '<input class="form-input" type="url" id="admin-booking-meet-' + escapeBookingHtml(b.id) + '" data-booking-meet-input value="' + escapeBookingHtml(meetUrl) + '" placeholder="https://meet.google.com/..." autocomplete="off">' +
+            '<div class="admin-booking-meet-actions">' +
+              '<button type="button" class="btn btn-secondary btn-sm" data-booking-action="save-meet">Save</button>' +
+              joinBtn +
+              '<button type="button" class="btn btn-primary btn-sm" data-booking-action="send-meet"' + (meetUrl ? '' : ' disabled') + '>Send</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="admin-booking-card-actions">' +
+          '<button type="button" class="btn btn-secondary btn-sm admin-booking-cancel-btn" data-booking-action="cancel-booking">Cancel booking</button>' +
+        '</div>' +
+      '</article>'
+    );
+  }
+
+  function fillBookingsListEl(listEl, rows, emptyHtml) {
+    if (!listEl) return;
+    if (!rows.length) {
+      listEl.innerHTML = emptyHtml;
+      return;
+    }
+    try {
+      listEl.innerHTML = rows.map(buildAdminBookingCardHtml).join('');
+    } catch (err) {
+      console.error('fillBookingsListEl failed', err);
+      listEl.innerHTML = '<p class="form-hint">Could not render bookings. Check the console for details.</p>';
+      setAdminBookingsFeedback((err && err.message) || 'Could not render bookings.', true);
+    }
+  }
+
+  function syncBookingsViewUi() {
+    var calView = document.getElementById('admin-bookings-calendar-view');
+    var listView = document.getElementById('admin-bookings-list-view');
+    if (calView) calView.hidden = adminBookingsView !== 'calendar';
+    if (listView) listView.hidden = adminBookingsView !== 'list';
+    document.querySelectorAll('[data-bookings-view]').forEach(function (btn) {
+      var on = btn.getAttribute('data-bookings-view') === adminBookingsView;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('[data-bookings-filter]').forEach(function (btn) {
+      var on = btn.getAttribute('data-bookings-filter') === adminBookingsFilter;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  function renderAdminBookingsCalendar() {
+    ensureBookingsCalState();
+    var monthLabel = document.getElementById('admin-bookings-cal-month-label');
+    var grid = document.getElementById('admin-bookings-cal-grid');
+    var dayTitle = document.getElementById('admin-bookings-day-title');
+    var dayList = document.getElementById('admin-bookings-day-list');
+    if (!grid) return;
+
+    var year = adminBookingsCalMonth.getFullYear();
+    var month = adminBookingsCalMonth.getMonth();
+    if (monthLabel) {
+      monthLabel.textContent = adminBookingsCalMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    var counts = {};
+    var firstTime = {};
+    (agencyBookingsList || []).forEach(function (b) {
+      if (!b || !b.startISO) return;
+      var key = bookingDayKey(b.startISO);
+      if (!key) return;
+      counts[key] = (counts[key] || 0) + 1;
+      var t = Date.parse(b.startISO);
+      if (!firstTime[key] || t < firstTime[key].t) {
+        firstTime[key] = { t: t, label: formatBookingTime(b.startISO) };
+      }
+    });
+
+    var firstWeekday = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var todayKey = todayBookingDayKey();
+    var html = '';
+    var i;
+    for (i = 0; i < firstWeekday; i++) {
+      html += '<div class="admin-bookings-cal-cell is-empty" aria-hidden="true"></div>';
+    }
+    for (i = 1; i <= daysInMonth; i++) {
+      var key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(i).padStart(2, '0');
+      var count = counts[key] || 0;
+      var classes = 'admin-bookings-cal-cell';
+      if (key === todayKey) classes += ' is-today';
+      if (key === adminBookingsSelectedDay) classes += ' is-selected';
+      if (count) classes += ' has-bookings';
+      var tip = firstTime[key] ? firstTime[key].label : '';
+      html +=
+        '<button type="button" class="' + classes + '" data-bookings-day="' + key + '"' +
+        (key === adminBookingsSelectedDay ? ' aria-current="date"' : '') +
+        ' aria-pressed="' + (key === adminBookingsSelectedDay ? 'true' : 'false') + '"' +
+        ' aria-label="' +
+        escapeBookingHtml(key) + (count ? (', ' + count + ' booking' + (count === 1 ? '' : 's')) : '') + '">' +
+          '<span class="admin-bookings-cal-day-top">' +
+            '<span class="admin-bookings-cal-day-num">' + i + '</span>' +
+            (count ? '<span class="admin-bookings-cal-day-count">' + count + '</span>' : '') +
+          '</span>' +
+          (tip ? '<span class="admin-bookings-cal-day-tip">' + escapeBookingHtml(tip) + '</span>' : '') +
+        '</button>';
+    }
+    grid.innerHTML = html;
+
+    var dayRows = getBookingsForDayKey(adminBookingsSelectedDay);
+    var dayCountEl = document.getElementById('admin-bookings-day-count');
+    if (dayTitle) {
+      try {
+        var parts = String(adminBookingsSelectedDay || '').split('-');
+        var labelDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        dayTitle.textContent = isNaN(labelDate.getTime())
+          ? 'Select a day'
+          : labelDate.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+      } catch (e) {
+        dayTitle.textContent = 'Select a day';
+      }
+    }
+    if (dayCountEl) {
+      dayCountEl.textContent = dayRows.length
+        ? (dayRows.length + ' call' + (dayRows.length === 1 ? '' : 's'))
+        : '';
+    }
+    fillBookingsListEl(
+      dayList,
+      dayRows,
+      '<div class="admin-bookings-empty"><p class="form-hint">No calls on this day. Pick a highlighted date, or open List for all bookings.</p></div>'
+    );
+  }
+
+  function renderAdminBookingsListView() {
+    var listEl = document.getElementById('admin-bookings-list');
+    if (!listEl) return;
+    var rows = getFilteredAgencyBookings();
+    var total = (agencyBookingsList || []).length;
+    var emptyHtml;
+    if (agencyBookingsListenFailed) {
+      emptyHtml = '<div class="admin-bookings-empty"><p class="form-hint">Bookings could not be loaded. Sign in as admin and refresh.</p></div>';
+    } else if (!total) {
+      emptyHtml = '<div class="admin-bookings-empty"><p class="form-hint">No bookings yet. When someone books via /schedule or Hire Me, they show up here.</p></div>';
+    } else if (!rows.length) {
+      emptyHtml = '<div class="admin-bookings-empty"><p class="form-hint">No ' + adminBookingsFilter + ' bookings (' + total + ' total).</p></div>';
+    } else {
+      emptyHtml = '';
+    }
+    fillBookingsListEl(listEl, rows, emptyHtml);
+  }
+
+  function renderAdminBookingsPanel() {
+    var preserveY = adminBookingsPreserveScroll ? window.pageYOffset : null;
+    var shouldScrollDay = adminBookingsScrollDayPanel;
+    adminBookingsScrollDayPanel = false;
+    adminBookingsPreserveScroll = false;
+
+    updateAdminBookingsSummary();
+    syncBookingsViewUi();
+    if (adminBookingsView === 'calendar') {
+      renderAdminBookingsCalendar();
+    } else {
+      renderAdminBookingsListView();
+    }
+
+    if (shouldScrollDay && adminBookingsView === 'calendar') {
+      var dayPanel = document.querySelector('#admin-bookings-section .admin-bookings-day-panel');
+      if (dayPanel && window.matchMedia('(max-width: 979px)').matches) {
+        requestAnimationFrame(function () {
+          dayPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+        return;
+      }
+    }
+
+    if (preserveY != null) {
+      requestAnimationFrame(function () {
+        window.scrollTo(0, preserveY);
+      });
+    }
+  }
+
+  async function saveBookingMeetUrl(bookingId, meetUrl) {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbUpdate) {
+      throw new Error('Database is not ready.');
+    }
+    meetUrl = String(meetUrl || '').trim();
+    if (meetUrl && !isValidMeetUrl(meetUrl)) {
+      throw new Error('Enter a valid https:// Meet URL.');
+    }
+    var patch = { meetUrl: meetUrl || null, meetUrlUpdatedAt: new Date().toISOString() };
+    await window.rtdbUpdate(window.rtdbRef(window.rtdb, AGENCY_BOOKINGS_RTD_PATH + '/' + bookingId), patch);
+    var row = (agencyBookingsList || []).find(function (b) { return b.id === bookingId; });
+    if (row) {
+      row.meetUrl = meetUrl;
+      row.meetUrlUpdatedAt = patch.meetUrlUpdatedAt;
+    }
+  }
+
+  async function sendBookingMeetLinkEmail(booking) {
+    var meetUrl = String(booking.meetUrl || '').trim();
+    if (!isValidMeetUrl(meetUrl)) {
+      throw new Error('Save a valid Google Meet URL first.');
+    }
+    await sendPortfolioEmailRequest(
+      {
+        type: 'booking_meet_link',
+        payload: {
+          name: booking.name || '',
+          email: booking.email || '',
+          call_type_label: booking.callTypeLabel || 'call',
+          start_display: formatBookingWhen(booking.startISO),
+          meet_url: meetUrl
+        }
+      },
+      { requireAdmin: true }
+    );
+    await window.rtdbUpdate(window.rtdbRef(window.rtdb, AGENCY_BOOKINGS_RTD_PATH + '/' + booking.id), {
+      meetLinkSentAt: new Date().toISOString()
+    });
+  }
+
+  function padBookingSlot2(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
+
+  function slotKeyFromBooking(booking) {
+    var stored = String((booking && booking.slotKey) || '').trim();
+    if (stored) return stored;
+    var d = new Date(booking && booking.startISO);
+    if (isNaN(d.getTime())) return '';
+    return d.getFullYear() + '-' + padBookingSlot2(d.getMonth() + 1) + '-' + padBookingSlot2(d.getDate()) +
+      'T' + padBookingSlot2(d.getHours()) + '-' + padBookingSlot2(d.getMinutes());
+  }
+
+  async function cancelAgencyBooking(booking) {
+    if (!booking || !booking.id) throw new Error('Missing booking.');
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbRemove) {
+      throw new Error('Database is not ready.');
+    }
+    var bookingId = booking.id;
+    var slotKey = slotKeyFromBooking(booking);
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, AGENCY_BOOKINGS_RTD_PATH + '/' + bookingId));
+    if (slotKey) {
+      try {
+        await window.rtdbRemove(window.rtdbRef(window.rtdb, 'agencyBookedSlots/' + slotKey));
+      } catch (slotErr) {
+        console.warn('Booking removed, but slot release failed', slotKey, slotErr);
+      }
+    }
+    agencyBookingsList = (agencyBookingsList || []).filter(function (b) { return b.id !== bookingId; });
+  }
+
+  function handleBookingCardAction(actionBtn) {
+    var card = actionBtn.closest('[data-booking-id]');
+    if (!card) return;
+    var bookingId = card.getAttribute('data-booking-id');
+    var booking = (agencyBookingsList || []).find(function (b) { return b.id === bookingId; });
+    if (!booking) return;
+    var input = card.querySelector('[data-booking-meet-input]');
+    var action = actionBtn.getAttribute('data-booking-action');
+
+    if (action === 'save-meet') {
+      actionBtn.disabled = true;
+      setAdminBookingsFeedback('Saving Meet link…', false);
+      saveBookingMeetUrl(bookingId, input ? input.value : '')
+        .then(function () {
+          setAdminBookingsFeedback('Meet link saved.', false);
+          adminBookingsPreserveScroll = true;
+          renderAdminBookingsPanel();
+        })
+        .catch(function (err) {
+          setAdminBookingsFeedback((err && err.message) || 'Could not save Meet link.', true);
+        })
+        .finally(function () {
+          actionBtn.disabled = false;
+        });
+      return;
+    }
+
+    if (action === 'send-meet') {
+      if (adminBookingsSendingId) return;
+      var meetUrl = input ? String(input.value || '').trim() : String(booking.meetUrl || '').trim();
+      adminBookingsSendingId = bookingId;
+      actionBtn.disabled = true;
+      setAdminBookingsFeedback('Sending Meet link…', false);
+      Promise.resolve()
+        .then(function () {
+          if (meetUrl !== String(booking.meetUrl || '').trim()) {
+            return saveBookingMeetUrl(bookingId, meetUrl).then(function () {
+              booking.meetUrl = meetUrl;
+            });
+          }
+        })
+        .then(function () {
+          return sendBookingMeetLinkEmail(booking);
+        })
+        .then(function () {
+          setAdminBookingsFeedback('Meet link emailed to ' + (booking.email || 'client') + '.', false);
+          adminBookingsPreserveScroll = true;
+          renderAdminBookingsPanel();
+        })
+        .catch(function (err) {
+          setAdminBookingsFeedback((err && err.message) || 'Could not send Meet link.', true);
+        })
+        .finally(function () {
+          adminBookingsSendingId = null;
+          actionBtn.disabled = false;
+        });
+      return;
+    }
+
+    if (action === 'cancel-booking') {
+      openCancelBookingConfirmModal(booking);
+    }
+  }
+
+  function closeCancelBookingConfirmModal() {
+    var modal = document.getElementById('cancel-booking-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingCancelBookingId = null;
+  }
+
+  function openCancelBookingConfirmModal(booking) {
+    if (!booking || !booking.id) return;
+    var label = (booking.name || 'Guest') + ' · ' + formatBookingWhen(booking.startISO);
+    var desc = document.getElementById('cancel-booking-confirm-desc');
+    if (desc) {
+      desc.textContent =
+        'Cancel “' + label + '”? This removes the booking and frees the time slot so someone else can book it.';
+    }
+    pendingCancelBookingId = booking.id;
+    var modal = document.getElementById('cancel-booking-confirm-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var keepBtn = document.getElementById('cancel-booking-confirm-keep');
+    if (keepBtn) {
+      setTimeout(function () {
+        keepBtn.focus();
+      }, 40);
+    }
+  }
+
+  async function performCancelAgencyBooking(bookingId) {
+    if (!bookingId) return;
+    var booking = (agencyBookingsList || []).find(function (b) { return b.id === bookingId; });
+    if (!booking) {
+      closeCancelBookingConfirmModal();
+      setAdminBookingsFeedback('That booking is no longer available.', true);
+      return;
+    }
+    var confirmBtn = document.getElementById('cancel-booking-confirm-cancel');
+    if (confirmBtn) confirmBtn.disabled = true;
+    setAdminBookingsFeedback('Canceling booking…', false);
+    try {
+      await cancelAgencyBooking(booking);
+      closeCancelBookingConfirmModal();
+      setAdminBookingsFeedback('Canceled booking for ' + (booking.name || 'guest') + '.', false);
+      adminBookingsPreserveScroll = true;
+      renderAdminBookingsPanel();
+    } catch (err) {
+      console.error('cancelAgencyBooking failed', err);
+      setAdminBookingsFeedback((err && err.message) || 'Could not cancel booking.', true);
+    } finally {
+      if (confirmBtn) confirmBtn.disabled = false;
+    }
+  }
+
+  function setupCancelBookingConfirmModal() {
+    var modal = document.getElementById('cancel-booking-confirm-modal');
+    if (!modal || modal.dataset.bound) return;
+    modal.dataset.bound = '1';
+
+    var overlay = document.getElementById('cancel-booking-confirm-overlay');
+    var btnClose = document.getElementById('cancel-booking-confirm-close');
+    var btnKeep = document.getElementById('cancel-booking-confirm-keep');
+    var btnConfirm = document.getElementById('cancel-booking-confirm-cancel');
+
+    function close() {
+      closeCancelBookingConfirmModal();
+    }
+
+    [overlay, btnClose, btnKeep].forEach(function (el) {
+      if (el) el.addEventListener('click', close);
+    });
+
+    if (btnConfirm) {
+      btnConfirm.addEventListener('click', function () {
+        var id = pendingCancelBookingId;
+        if (!id) {
+          close();
+          return;
+        }
+        performCancelAgencyBooking(id);
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      function bookingCancelEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        var m = document.getElementById('cancel-booking-confirm-modal');
+        if (!m || !m.classList.contains('active')) return;
+        ev.stopImmediatePropagation();
+        close();
+      },
+      true
+    );
+  }
+
+  function initAdminBookingsPanel() {
+    var section = document.getElementById('admin-bookings-section');
+    if (!section || section.dataset.boundBookings === '1') return;
+    section.dataset.boundBookings = '1';
+    ensureBookingsCalState();
+    setupCancelBookingConfirmModal();
+
+    section.querySelectorAll('[data-bookings-view]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        adminBookingsView = btn.getAttribute('data-bookings-view') || 'calendar';
+        adminBookingsPreserveScroll = true;
+        renderAdminBookingsPanel();
+      });
+    });
+
+    section.querySelectorAll('[data-bookings-filter]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        adminBookingsFilter = btn.getAttribute('data-bookings-filter') || 'upcoming';
+        adminBookingsPreserveScroll = true;
+        renderAdminBookingsPanel();
+      });
+    });
+
+    var prevBtn = document.getElementById('admin-bookings-cal-prev');
+    var nextBtn = document.getElementById('admin-bookings-cal-next');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function () {
+        ensureBookingsCalState();
+        adminBookingsCalMonth = new Date(adminBookingsCalMonth.getFullYear(), adminBookingsCalMonth.getMonth() - 1, 1);
+        adminBookingsPreserveScroll = true;
+        renderAdminBookingsPanel();
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function () {
+        ensureBookingsCalState();
+        adminBookingsCalMonth = new Date(adminBookingsCalMonth.getFullYear(), adminBookingsCalMonth.getMonth() + 1, 1);
+        adminBookingsPreserveScroll = true;
+        renderAdminBookingsPanel();
+      });
+    }
+    var todayBtn = document.getElementById('admin-bookings-cal-today');
+    if (todayBtn) {
+      todayBtn.addEventListener('click', function () {
+        var now = new Date();
+        adminBookingsCalMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        adminBookingsSelectedDay = todayBookingDayKey();
+        adminBookingsScrollDayPanel = true;
+        renderAdminBookingsPanel();
+      });
+    }
+
+    section.addEventListener('click', function (e) {
+      var dayBtn = e.target.closest('[data-bookings-day]');
+      if (dayBtn && section.contains(dayBtn)) {
+        var nextDay = dayBtn.getAttribute('data-bookings-day');
+        if (nextDay === adminBookingsSelectedDay) {
+          if (window.matchMedia('(max-width: 979px)').matches) {
+            var panel = section.querySelector('.admin-bookings-day-panel');
+            if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          return;
+        }
+        adminBookingsSelectedDay = nextDay;
+        adminBookingsScrollDayPanel = true;
+        renderAdminBookingsPanel();
+        return;
+      }
+      var actionBtn = e.target.closest('[data-booking-action]');
+      if (actionBtn && section.contains(actionBtn)) {
+        handleBookingCardAction(actionBtn);
+      }
+    });
+
+    section.addEventListener('input', function (e) {
+      var input = e.target.closest('[data-booking-meet-input]');
+      if (!input || !section.contains(input)) return;
+      var card = input.closest('[data-booking-id]');
+      if (!card) return;
+      var sendBtn = card.querySelector('[data-booking-action="send-meet"]');
+      if (sendBtn) sendBtn.disabled = !isValidMeetUrl(input.value);
+    });
+
+    // Keyboard: Enter/Space already activate buttons; Escape clears feedback
+    section.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') setAdminBookingsFeedback('', false);
+    });
+
+    renderAdminBookingsPanel();
+  }
+
+  window.renderAdminBookingsPanel = renderAdminBookingsPanel;
+  window.initAdminBookingsPanel = initAdminBookingsPanel;
+
   // ----------------------------
-  // Scheduling settings (Overview tab) — powers assets/js/hire-me-booking.js
+  // Scheduling settings (Bookings tab) — powers assets/js/hire-me-booking.js
   // ----------------------------
+
   const AGENCY_AVAILABILITY_RTD_PATH = 'agencyAvailability/config';
   const SCHED_DAY_IDS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
@@ -11081,6 +12043,134 @@ window.addEventListener('load', function() {
   const businessDocPaymentMethodsInput = document.getElementById('business-doc-payment-methods');
 
   let businessDocs = loadBusinessDocs();
+  if (backfillMissingInvoiceNumbers(businessDocs).length) {
+    saveBusinessDocs(businessDocs);
+  }
+
+  function escapeBusinessDocLogoAttr(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function ensureBusinessDocClientLogoUi() {
+    if (!businessDocForm || document.getElementById('business-doc-client-logo-wrap')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'form-group business-doc-client-logo-wrap';
+    wrap.id = 'business-doc-client-logo-wrap';
+    wrap.hidden = true;
+    wrap.innerHTML =
+      '<div class="business-doc-scope-title-row">' +
+      '<label class="business-doc-addons-label" id="business-doc-client-logo-label">Company logo</label>' +
+      '<span class="business-doc-scope-badge" aria-hidden="true">Invoice</span>' +
+      '</div>' +
+      '<p class="business-doc-addons-hint">Shown in Bill to on the invoice PDF. Optional — pick a preset.</p>' +
+      '<input type="hidden" id="business-doc-client-logo" value="">' +
+      '<div class="business-doc-client-logo-editor">' +
+      '<div class="business-doc-client-logo-current">' +
+      '<img class="business-doc-client-logo-preview" id="business-doc-client-logo-preview" src="" alt="" hidden>' +
+      '<span class="business-doc-client-logo-empty" id="business-doc-client-logo-empty">No logo selected</span>' +
+      '</div>' +
+      '<div class="business-doc-client-logo-grid" id="business-doc-client-logo-grid" role="listbox" aria-labelledby="business-doc-client-logo-label"></div>' +
+      '<button type="button" class="btn btn-secondary btn-sm" id="business-doc-client-logo-clear" hidden>Clear logo</button>' +
+      '</div>';
+
+    var emailInput = document.getElementById('business-doc-client-email');
+    var clientRow = emailInput && emailInput.closest ? emailInput.closest('.form-row') : null;
+    if (clientRow && clientRow.parentNode) {
+      clientRow.parentNode.insertBefore(wrap, clientRow.nextSibling);
+    } else if (businessDocProposedSiteWrap && businessDocProposedSiteWrap.parentNode) {
+      businessDocProposedSiteWrap.parentNode.insertBefore(wrap, businessDocProposedSiteWrap);
+    } else {
+      businessDocForm.insertBefore(wrap, businessDocForm.firstChild);
+    }
+
+    var grid = document.getElementById('business-doc-client-logo-grid');
+    if (grid) {
+      grid.innerHTML = BUSINESS_DOC_LOGO_PRESETS.map(function (p) {
+        return (
+          '<button type="button" class="business-doc-client-logo-thumb" data-logo-pick="' +
+          escapeBusinessDocLogoAttr(p.src) +
+          '" title="' +
+          escapeBusinessDocLogoAttr(p.label) +
+          '" role="option" aria-selected="false">' +
+          '<img src="' +
+          escapeBusinessDocLogoAttr(p.src) +
+          '" alt="' +
+          escapeBusinessDocLogoAttr(p.label) +
+          '" loading="lazy">' +
+          '</button>'
+        );
+      }).join('');
+      grid.addEventListener('click', function (ev) {
+        var btn = ev.target && ev.target.closest ? ev.target.closest('[data-logo-pick]') : null;
+        if (!btn) return;
+        setBusinessDocClientLogo(btn.getAttribute('data-logo-pick') || '');
+      });
+    }
+
+    var clearBtn = document.getElementById('business-doc-client-logo-clear');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function () {
+        setBusinessDocClientLogo('');
+      });
+    }
+  }
+
+  function getBusinessDocClientLogoValue() {
+    var input = document.getElementById('business-doc-client-logo');
+    return normalizeBusinessDocClientLogo(input && input.value);
+  }
+
+  function setBusinessDocClientLogo(path) {
+    ensureBusinessDocClientLogoUi();
+    var logo = normalizeBusinessDocClientLogo(path);
+    var input = document.getElementById('business-doc-client-logo');
+    if (input) input.value = logo;
+
+    var preview = document.getElementById('business-doc-client-logo-preview');
+    var empty = document.getElementById('business-doc-client-logo-empty');
+    var clearBtn = document.getElementById('business-doc-client-logo-clear');
+    if (preview) {
+      if (logo) {
+        preview.src = logo;
+        preview.alt = 'Selected company logo';
+        preview.hidden = false;
+      } else {
+        preview.removeAttribute('src');
+        preview.alt = '';
+        preview.hidden = true;
+      }
+    }
+    if (empty) empty.hidden = !!logo;
+    if (clearBtn) clearBtn.hidden = !logo;
+
+    var thumbs = document.querySelectorAll('#business-doc-client-logo-grid [data-logo-pick]');
+    for (var i = 0; i < thumbs.length; i++) {
+      var active = logo && thumbs[i].getAttribute('data-logo-pick') === logo;
+      thumbs[i].classList.toggle('is-active', !!active);
+      thumbs[i].setAttribute('aria-selected', active ? 'true' : 'false');
+    }
+  }
+
+  function updateBusinessDocClientLogoVisibility() {
+    ensureBusinessDocClientLogoUi();
+    var wrap = document.getElementById('business-doc-client-logo-wrap');
+    if (!wrap) return;
+    var isInvoice = !!(businessDocTypeInput && businessDocTypeInput.value === 'invoice');
+    wrap.hidden = !isInvoice;
+    if (!isInvoice) setBusinessDocClientLogo('');
+  }
+
+  function applyRememberedBusinessDocClientLogo() {
+    if (!businessDocTypeInput || businessDocTypeInput.value !== 'invoice') return;
+    if (getBusinessDocClientLogoValue()) return;
+    var name = businessDocClientNameInput ? businessDocClientNameInput.value.trim() : '';
+    var remembered = rememberedBusinessDocClientLogo(name);
+    if (remembered) setBusinessDocClientLogo(remembered);
+  }
 
   function generateBusinessAddonDomId() {
     return 'addon_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
@@ -11830,6 +12920,29 @@ window.addEventListener('load', function() {
     if (businessDocContractFields) {
       businessDocContractFields.hidden = type !== 'contract';
     }
+    updateBusinessDocClientLogoVisibility();
+  }
+
+  function updateBusinessDocDueDateLabel() {
+    var label = document.querySelector('label[for="business-doc-due-date"]');
+    if (!label) return;
+    var type = businessDocTypeInput ? businessDocTypeInput.value : '';
+    var status = businessDocStatusInput ? businessDocStatusInput.value : '';
+    if (type === 'invoice' && status === 'paid') {
+      label.textContent = 'Date paid';
+    } else {
+      label.textContent = 'Due Date (optional)';
+    }
+  }
+
+  function todayDateInputValue() {
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1);
+    var day = String(d.getDate());
+    if (m.length < 2) m = '0' + m;
+    if (day.length < 2) day = '0' + day;
+    return y + '-' + m + '-' + day;
   }
 
   function collectBusinessDocCoreFeaturesFromForm() {
@@ -11875,6 +12988,7 @@ window.addEventListener('load', function() {
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
     updateBusinessDocContractVisibility();
+    updateBusinessDocDueDateLabel();
     mountBusinessDocModalToBody();
     if (businessDocModal) {
       businessDocModal.style.display = 'flex';
@@ -11919,9 +13033,11 @@ window.addEventListener('load', function() {
     fillBusinessDocPaymentStagesUI(PAYMENT_SCHEDULE_PRESETS['deposit-milestone-final']);
     clearBusinessDocCoreFeaturesUI();
     clearBusinessDocAddonsUI();
+    setBusinessDocClientLogo('');
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
     updateBusinessDocContractVisibility();
+    updateBusinessDocDueDateLabel();
   }
 
   /**
@@ -11943,7 +13059,13 @@ window.addEventListener('load', function() {
     if (businessDocClientNameInput) businessDocClientNameInput.value = doc.clientName || '';
     if (businessDocClientEmailInput) businessDocClientEmailInput.value = doc.clientEmail || '';
     if (businessDocTotalInput) businessDocTotalInput.value = String(doc.total || '');
-    if (businessDocDueDateInput) businessDocDueDateInput.value = doc.dueDate || '';
+    if (businessDocDueDateInput) {
+      var dueOrPaid =
+        doc.type === 'invoice' && doc.status === 'paid'
+          ? doc.paidAt || doc.dueDate || ''
+          : doc.dueDate || '';
+      businessDocDueDateInput.value = String(dueOrPaid).slice(0, 10);
+    }
     setBusinessDocTheme(doc.theme || 'cwr');
     if (businessDocNotesInput) businessDocNotesInput.value = doc.notes || '';
     if (businessDocProposedSiteInput) businessDocProposedSiteInput.value = doc.proposedSiteUrl || '';
@@ -11986,6 +13108,14 @@ window.addEventListener('load', function() {
     syncBusinessDocSelectUI(businessDocMaintenancePlanInput);
     syncBusinessDocSelectUI(businessDocPaymentScheduleTypeInput);
     syncBusinessDocToggleUI(businessDocMaintenanceBillingInput);
+    if (String(doc.type || '') === 'invoice') {
+      var logo =
+        normalizeBusinessDocClientLogo(doc.clientLogo) ||
+        rememberedBusinessDocClientLogo(doc.clientName);
+      setBusinessDocClientLogo(logo);
+    } else {
+      setBusinessDocClientLogo('');
+    }
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
     updateBusinessDocContractVisibility();
@@ -12066,7 +13196,16 @@ window.addEventListener('load', function() {
 
       var clientTd = document.createElement('td');
       clientTd.setAttribute('data-label', 'Client');
-      clientTd.textContent = doc.clientName || '—';
+      if (doc.type === 'invoice' && doc.invoiceNumber) {
+        clientTd.innerHTML =
+          '<div>' +
+          escapeHtml(doc.clientName || '—') +
+          '</div><div class="business-doc-invoice-no">' +
+          escapeHtml(doc.invoiceNumber) +
+          '</div>';
+      } else {
+        clientTd.textContent = doc.clientName || '—';
+      }
       tr.appendChild(clientTd);
 
       var statusTd = document.createElement('td');
@@ -12388,6 +13527,41 @@ window.addEventListener('load', function() {
       var existingIndex = businessDocs.findIndex(function(d) { return d.id === doc.id; });
       if (existingIndex >= 0) {
         doc.createdAt = businessDocs[existingIndex].createdAt;
+        if (
+          String(doc.type || '') === 'invoice' &&
+          !doc.invoiceNumber &&
+          businessDocs[existingIndex].invoiceNumber
+        ) {
+          doc.invoiceNumber = businessDocs[existingIndex].invoiceNumber;
+        }
+      }
+
+      if (doc.type === 'invoice' && doc.status === 'paid') {
+        var existingPaid =
+          existingIndex >= 0
+            ? String((businessDocs[existingIndex] && businessDocs[existingIndex].paidAt) || '').trim()
+            : '';
+        doc.paidAt = doc.dueDate || existingPaid || todayDateInputValue();
+        if (!doc.dueDate) doc.dueDate = doc.paidAt;
+      } else {
+        delete doc.paidAt;
+      }
+
+      ensureInvoiceNumberOnDoc(doc, businessDocs);
+      if (String(doc.type || '') !== 'invoice') {
+        delete doc.invoiceNumber;
+        delete doc.clientLogo;
+      } else {
+        var logo = getBusinessDocClientLogoValue();
+        if (logo) {
+          doc.clientLogo = logo;
+          saveBusinessDocClientLogoForName(doc.clientName, logo);
+        } else {
+          delete doc.clientLogo;
+        }
+      }
+
+      if (existingIndex >= 0) {
         businessDocs[existingIndex] = doc;
       } else {
         businessDocs.push(doc);
@@ -12420,10 +13594,39 @@ window.addEventListener('load', function() {
       updateBusinessDocProposedSiteVisibility();
       updateBusinessDocMaintenanceVisibility();
       updateBusinessDocContractVisibility();
+      updateBusinessDocDueDateLabel();
+      if (businessDocTypeInput.value === 'invoice') {
+        applyRememberedBusinessDocClientLogo();
+      }
     });
     updateBusinessDocProposedSiteVisibility();
     updateBusinessDocMaintenanceVisibility();
     updateBusinessDocContractVisibility();
+    updateBusinessDocDueDateLabel();
+  }
+
+  if (businessDocClientNameInput) {
+    businessDocClientNameInput.addEventListener('change', function () {
+      applyRememberedBusinessDocClientLogo();
+    });
+    businessDocClientNameInput.addEventListener('blur', function () {
+      applyRememberedBusinessDocClientLogo();
+    });
+  }
+
+  if (businessDocStatusInput) {
+    businessDocStatusInput.addEventListener('change', function () {
+      updateBusinessDocDueDateLabel();
+      if (
+        businessDocTypeInput &&
+        businessDocTypeInput.value === 'invoice' &&
+        businessDocStatusInput.value === 'paid' &&
+        businessDocDueDateInput &&
+        !String(businessDocDueDateInput.value || '').trim()
+      ) {
+        businessDocDueDateInput.value = todayDateInputValue();
+      }
+    });
   }
 
   if (businessDocCreateBtn) {
@@ -12470,14 +13673,14 @@ window.addEventListener('load', function() {
     var MOBILE_ORDER_KEY = 'adminMobileTabOrder';
     var PRIMARY_SLOT_COUNT = 4;
     var DEFAULT_ORDER = [
-      'overview', 'crm-hub', 'content-hub', 'ops', 'referrals'
+      'overview', 'crm-hub', 'content-hub', 'ops', 'referrals', 'studio-costs'
     ];
     var VALID_TAB = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, pipeline: 1,
-      referrals: 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, bookings: 1, pipeline: 1,
+      referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
-    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, messages: 1, docs: 1, 'client-email': 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, messages: 1, docs: 1, 'client-email': 1, bookings: 1 };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
     if (!tabBar) return;
@@ -13140,13 +14343,14 @@ window.addEventListener('load', function() {
 
   // Mobile admin — CRM section hub + docked subtab bar (Pipeline · Clients · Messages · Docs · Email)
   (function initAdminMobileCRMSubtabBar() {
-    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'messages', 'docs', 'client-email'];
+    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'messages', 'docs', 'client-email', 'bookings'];
     var CRM_SUB_META = {
       pipeline:          { label: 'Pipeline', icon: 'git-network-outline' },
       'client-projects': { label: 'Clients',  icon: 'briefcase-outline' },
       messages:          { label: 'Messages', icon: 'mail-outline' },
       docs:              { label: 'Docs',     icon: 'document-text-outline' },
-      'client-email':    { label: 'Email',    icon: 'send-outline' }
+      'client-email':    { label: 'Email',    icon: 'send-outline' },
+      bookings:          { label: 'Bookings', icon: 'calendar-outline' }
     };
     var LAST_CRM_KEY = 'adminLastCRMTab';
     var crmSubtabRoot = null;
@@ -13270,11 +14474,11 @@ window.addEventListener('load', function() {
     }
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
-      referrals: 1, ops: 1
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      referrals: 1, 'studio-costs': 1, ops: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
-    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, messages: 1, docs: 1, 'client-email': 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, messages: 1, docs: 1, 'client-email': 1, bookings: 1 };
     var AGENCY_TABS = { 'client-projects': 1, referrals: 1 };
     var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
     var navGroups = tabBar.querySelectorAll('.admin-nav-group');
@@ -13345,8 +14549,25 @@ window.addEventListener('load', function() {
       if (tabId === 'testimonials' && typeof window.loadTestimonialAdminPanel === 'function') {
         window.loadTestimonialAdminPanel();
       }
+      if (tabId === 'bookings') {
+        if (typeof window.subscribeAgencyBookingsFromRtdb === 'function') {
+          window.subscribeAgencyBookingsFromRtdb();
+        }
+        if (typeof window.initAdminBookingsPanel === 'function') {
+          window.initAdminBookingsPanel();
+        }
+        if (typeof window.renderAdminBookingsPanel === 'function') {
+          window.renderAdminBookingsPanel();
+        }
+      }
       if (tabId === 'portfolio' && typeof populatePortfolioImageAssetSelect === 'function') {
         populatePortfolioImageAssetSelect();
+      }
+      if (tabId === 'studio-costs' && window.AgencyTools) {
+        if (typeof window.AgencyTools.subscribe === 'function') window.AgencyTools.subscribe();
+        if (typeof window.AgencyTools.refreshStudioCosts === 'function') {
+          window.AgencyTools.refreshStudioCosts();
+        }
       }
       if (AGENCY_TABS[tabId] && window.AgencyTools) {
         if (typeof window.AgencyTools.subscribe === 'function') window.AgencyTools.subscribe();
@@ -14362,10 +15583,36 @@ window.addEventListener('load', function() {
     var tab = opts.tab ? ' data-overview-tab="' + overviewEsc(opts.tab) + '"' : '';
     var hub = opts.hubId ? ' data-overview-hub="' + overviewEsc(opts.hubId) + '"' : '';
     var lead = opts.leadId ? ' data-overview-lead="' + overviewEsc(opts.leadId) + '"' : '';
+    var emailTpl = opts.emailTemplateId
+      ? ' data-overview-email-template="' + overviewEsc(opts.emailTemplateId) + '"'
+      : '';
+    var emailName = opts.emailName
+      ? ' data-overview-email-name="' + overviewEsc(opts.emailName) + '"'
+      : '';
+    var emailAddr = opts.emailAddr
+      ? ' data-overview-email-addr="' + overviewEsc(opts.emailAddr) + '"'
+      : '';
+    var emailLink = opts.emailLink
+      ? ' data-overview-email-link="' + overviewEsc(opts.emailLink) + '"'
+      : '';
+    var emailNext = opts.emailNextStep
+      ? ' data-overview-email-next="' + overviewEsc(opts.emailNextStep) + '"'
+      : '';
     var meta = opts.meta ? '<span class="admin-overview-item-meta">' + overviewEsc(opts.meta) + '</span>' : '';
     return (
-      '<li class="admin-overview-item"' + tab + hub + lead + ' role="button" tabindex="0">' +
-      '<span class="admin-overview-item-label">' + overviewEsc(opts.label) + '</span>' +
+      '<li class="admin-overview-item"' +
+      tab +
+      hub +
+      lead +
+      emailTpl +
+      emailName +
+      emailAddr +
+      emailLink +
+      emailNext +
+      ' role="button" tabindex="0">' +
+      '<span class="admin-overview-item-label">' +
+      overviewEsc(opts.label) +
+      '</span>' +
       meta +
       '</li>'
     );
@@ -14373,6 +15620,20 @@ window.addEventListener('load', function() {
 
   function overviewActivateItem(item) {
     if (!item) return;
+    var emailTpl = item.getAttribute('data-overview-email-template');
+    if (emailTpl) {
+      if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
+      if (typeof window.prefillAdminClientEmail === 'function') {
+        window.prefillAdminClientEmail({
+          templateId: emailTpl,
+          name: item.getAttribute('data-overview-email-name') || '',
+          email: item.getAttribute('data-overview-email-addr') || '',
+          link: item.getAttribute('data-overview-email-link') || '',
+          nextStep: item.getAttribute('data-overview-email-next') || ''
+        });
+      }
+      return;
+    }
     var hubId = item.getAttribute('data-overview-hub');
     var leadId = item.getAttribute('data-overview-lead');
     var tabId = item.getAttribute('data-overview-tab');
@@ -14509,6 +15770,18 @@ window.addEventListener('load', function() {
       }
     });
 
+    ((agency.studioCosts && agency.studioCosts.renewals) || []).forEach(function (row) {
+      var days = row.days;
+      if (days == null || days > 30) return;
+      var when = days < 0 ? 'Overdue ' + Math.abs(days) + 'd' : days === 0 ? 'Due today' : 'In ' + days + 'd';
+      push({
+        label: (row.name || 'Studio service') + ' bill',
+        meta: when + (row.amount ? ' · $' + row.amount : ''),
+        tab: 'studio-costs',
+        priority: 5
+      });
+    });
+
     businessDocs.filter(function (d) { return d.status === 'draft'; }).slice(0, 3).forEach(function (doc) {
       push({
         label: 'Send ' + doc.type + ': ' + (doc.clientName || 'Client'),
@@ -14533,6 +15806,55 @@ window.addEventListener('load', function() {
         });
       });
 
+    businessDocs
+      .filter(function (d) {
+        return d.type === 'invoice' && (d.status === 'sent' || d.status === 'accepted') && d.dueDate;
+      })
+      .forEach(function (doc) {
+        var days = overviewDaysUntil(doc.dueDate);
+        if (days !== -14) return;
+        var portalLink = '';
+        var hubId = '';
+        var projects = (agency && agency.projects) || [];
+        var nameKey = String(doc.clientName || '')
+          .trim()
+          .toLowerCase();
+        var emailKey = String(doc.clientEmail || '')
+          .trim()
+          .toLowerCase();
+        for (var pi = 0; pi < projects.length; pi++) {
+          var proj = projects[pi];
+          var pName = String(proj.clientName || '')
+            .trim()
+            .toLowerCase();
+          var pEmail = String(proj.clientEmail || '')
+            .trim()
+            .toLowerCase();
+          if ((nameKey && pName === nameKey) || (emailKey && pEmail && pEmail === emailKey)) {
+            hubId = proj.id || '';
+            if (proj.portalToken) {
+              portalLink =
+                String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '') +
+                '/portal.html?token=' +
+                proj.portalToken;
+            }
+            break;
+          }
+        }
+        push({
+          label: 'Grace ends today: ' + (doc.clientName || 'Client'),
+          meta: 'Unpaid invoice · day 14 — send grace email',
+          tab: 'client-email',
+          hubId: hubId || undefined,
+          priority: 2,
+          emailTemplateId: 'maintenance-grace',
+          emailName: doc.clientName || '',
+          emailAddr: doc.clientEmail || '',
+          emailLink: portalLink,
+          emailNextStep: 'Review the invoice and get current today'
+        });
+      });
+
     queue.sort(function (a, b) { return (a.priority || 99) - (b.priority || 99); });
     return queue.slice(0, 12);
   }
@@ -14540,14 +15862,16 @@ window.addEventListener('load', function() {
   function bindOverviewListClicks(listEl) {
     if (!listEl || listEl.dataset.overviewBound) return;
     listEl.dataset.overviewBound = '1';
+    var itemSel =
+      '.admin-overview-item[data-overview-tab], .admin-overview-item[data-overview-hub], .admin-overview-item[data-overview-lead], .admin-overview-item[data-overview-email-template]';
     listEl.addEventListener('click', function(e) {
-      var item = e.target.closest('.admin-overview-item[data-overview-tab], .admin-overview-item[data-overview-hub], .admin-overview-item[data-overview-lead]');
+      var item = e.target.closest(itemSel);
       if (!item) return;
       e.stopPropagation();
       overviewActivateItem(item);
     });
     listEl.addEventListener('keydown', function(e) {
-      var item = e.target.closest('.admin-overview-item[data-overview-tab], .admin-overview-item[data-overview-hub], .admin-overview-item[data-overview-lead]');
+      var item = e.target.closest(itemSel);
       if (!item || (e.key !== 'Enter' && e.key !== ' ')) return;
       e.preventDefault();
       e.stopPropagation();
@@ -14574,8 +15898,7 @@ window.addEventListener('load', function() {
       'admin-cc-inbox-list',
       'admin-cc-retainers-list',
       'admin-cc-attention-list',
-      'admin-cc-deposit-list',
-      'admin-cc-portal-list'
+      'admin-cc-deposit-list'
     ].forEach(function (id) {
       bindOverviewListClicks(document.getElementById(id));
     });
@@ -14663,47 +15986,6 @@ window.addEventListener('load', function() {
             });
           }).join('')
         : overviewEmpty('No deposit-paid leads waiting to onboard.');
-    }
-
-    var portalList = document.getElementById('admin-cc-portal-list');
-    var portals = agency.portals || [];
-    if (portalList) {
-      if (!(agency.projects || []).length) {
-        portalList.innerHTML = overviewEmpty('No clients yet — add one in Clients.');
-      } else {
-        portalList.innerHTML = portals.length
-          ? portals.slice(0, 8).map(function (row) {
-              return overviewListItem({
-                label: row.clientName || 'Client',
-                meta: row.meta || 'Portal issue',
-                tab: 'client-projects',
-                hubId: row.id
-              });
-            }).join('')
-          : overviewEmpty('Every client has an active portal link.');
-      }
-    }
-
-    var callsList = document.getElementById('admin-cc-calls-list');
-    if (callsList) {
-      var now = Date.now();
-      var upcoming = (agencyBookingsList || [])
-        .filter(function (b) { return b && b.startISO && Date.parse(b.startISO) >= now; })
-        .sort(function (a, b) { return Date.parse(a.startISO) - Date.parse(b.startISO); });
-      callsList.innerHTML = upcoming.length
-        ? upcoming.slice(0, 6).map(function (b) {
-            var when = formatDateDisplay(b.startISO);
-            try {
-              when = new Date(b.startISO).toLocaleString(undefined, {
-                month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-              });
-            } catch (e) {}
-            return overviewListItem({
-              label: b.name || 'Booked call',
-              meta: (b.callTypeLabel || 'Call') + ' · ' + when
-            });
-          }).join('')
-        : overviewEmpty('No calls booked yet.');
     }
 
     bindOverviewCommandCenterClicks();
@@ -15326,6 +16608,9 @@ window.addEventListener('load', function() {
   }
 
   function buildBusinessDocHtml(doc) {
+    if (window.BusinessDocShared && typeof window.BusinessDocShared.buildPrintHtml === 'function') {
+      return window.BusinessDocShared.buildPrintHtml(doc);
+    }
     var created = formatDateDisplay(doc.createdAt);
     var due = doc.dueDate ? formatDateDisplay(doc.dueDate) : '—';
     var typeLabel =
@@ -16180,7 +17465,7 @@ window.addEventListener('load', function() {
         payload: {
           to_email: String(messageData.email),
           to_name: String(messageData.name || 'Customer'),
-          from_name: 'Ruben Jimenez',
+          from_name: 'CodeWithRuben',
           subject: String(subject),
           message: String(message),
           timestamp: new Date().toISOString()
@@ -16389,6 +17674,7 @@ function toggleTheme() {
       { id: 'admin-portfolio', label: 'Admin: Portfolio projects', icon: 'albums-outline', search: 'admin portfolio projects', action: function () { runAdminTab('portfolio'); } },
       { id: 'admin-blog', label: 'Admin: Blog management', icon: 'newspaper-outline', search: 'admin blog posts', action: function () { runAdminTab('blog'); } },
       { id: 'admin-docs', label: 'Admin: Business documents', icon: 'document-text-outline', search: 'admin documents proposal invoice', action: function () { runAdminTab('docs'); } },
+      { id: 'admin-studio-costs', label: 'Admin: Studio costs', icon: 'wallet-outline', search: 'admin studio costs eas porkbun app store play billing', action: function () { runAdminTab('studio-costs'); } },
       { id: 'admin-dm-inbox', label: 'Admin: Conversations', icon: 'chatbubbles-outline', search: 'admin dm inbox messages realtime conversations', action: function () { runAdminTab('messages'); } },
       { id: 'admin-add-lead', label: 'Admin: Add pipeline lead', icon: 'person-add-outline', search: 'admin add lead pipeline new', action: function () { runAdminTab('pipeline', function () { if (typeof window.openLeadModal === 'function') window.openLeadModal(); }); } },
       { id: 'admin-new-hub', label: 'Admin: New client project', icon: 'add-circle-outline', search: 'admin new client project hub', action: function () { runAdminTab('client-projects', function () { if (window.AgencyTools && typeof window.AgencyTools.openNewClient === 'function') window.AgencyTools.openNewClient(); else clickById('client-projects-add-btn'); }); } },

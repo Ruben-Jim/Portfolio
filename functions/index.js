@@ -35,6 +35,7 @@ const {
   buildPortalInviteHtml,
   buildAdminReplyHtml,
   buildBookingConfirmationHtml,
+  buildBookingMeetLinkHtml,
   buildBookingAdminNotificationHtml,
 } = require("./emailTemplates");
 
@@ -265,6 +266,7 @@ exports.sendPortfolioEmail = onRequest(
         const timezoneLabel = String(payload.timezone_label || "").trim();
         const startISO = String(payload.start_iso || "").trim();
         const endISO = String(payload.end_iso || "").trim();
+        const meetUrl = String(payload.meet_url || "").trim();
         if (!name || !validEmail(email) || !callTypeLabel || !startDisplay) {
           res.status(400).json({
             ok: false,
@@ -279,6 +281,7 @@ exports.sendPortfolioEmail = onRequest(
           call_type_label: callTypeLabel,
           start_display: startDisplay,
           timezone_label: timezoneLabel,
+          meet_url: meetUrl,
         });
 
         let icsAttachment = null;
@@ -290,7 +293,11 @@ exports.sendPortfolioEmail = onRequest(
             startISO: startDate,
             endISO: endDate,
             summary: callTypeLabel + " with CodeWithRuben",
-            description: "Discovery call with CodeWithRuben (" + callTypeLabel + ").",
+            description:
+              "Discovery call with CodeWithRuben (" +
+              callTypeLabel +
+              ")." +
+              (meetUrl ? " Meet: " + meetUrl : ""),
             organizerEmail: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
             attendeeName: name,
             attendeeEmail: email,
@@ -338,6 +345,48 @@ exports.sendPortfolioEmail = onRequest(
         }
 
         res.status(200).json({ ok: true });
+        return;
+      }
+
+      if (type === "booking_meet_link") {
+        const adminUser = await verifyAdminBearer(req);
+        if (!adminUser) {
+          res.status(401).json({ ok: false, error: "Unauthorized" });
+          return;
+        }
+        const name = String(payload.name || "").trim();
+        const email = String(payload.email || "").trim();
+        const callTypeLabel = String(payload.call_type_label || "").trim();
+        const startDisplay = String(payload.start_display || "").trim();
+        const meetUrl = String(payload.meet_url || "").trim();
+        if (!name || !validEmail(email) || !meetUrl || !/^https?:\/\//i.test(meetUrl)) {
+          res.status(400).json({
+            ok: false,
+            error: "Missing name, email, or valid meet_url",
+          });
+          return;
+        }
+
+        const html = buildBookingMeetLinkHtml({
+          to_name: name,
+          to_email: email,
+          call_type_label: callTypeLabel || "call",
+          start_display: startDisplay,
+          meet_url: meetUrl,
+        });
+        const { data, error } = await resend.emails.send({
+          from,
+          to: [email],
+          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+          subject: "Your Google Meet link for our call",
+          html,
+        });
+        if (error) {
+          console.error("Resend error (booking_meet_link):", error);
+          res.status(502).json({ ok: false, error: error.message || "Resend failed" });
+          return;
+        }
+        res.status(200).json({ ok: true, id: data && data.id });
         return;
       }
 
@@ -556,7 +605,7 @@ exports.sendPortfolioEmail = onRequest(
         const html = buildAdminReplyHtml({
           to_email: toEmail,
           to_name: String(payload.to_name || "Customer"),
-          from_name: String(payload.from_name || "Ruben Jimenez"),
+          from_name: String(payload.from_name || "CodeWithRuben"),
           subject,
           message,
           cta_label: String(payload.cta_label || "").trim(),

@@ -35,6 +35,10 @@ function buildBookingConfirmationHtml(p) {
   return clientEmail.buildBookingConfirmationHtml(p);
 }
 
+function buildBookingMeetLinkHtml(p) {
+  return clientEmail.buildBookingMeetLinkHtml(p);
+}
+
 function buildBookingAdminNotificationHtml(p) {
   return clientEmail.buildBookingAdminNotificationHtml(p);
 }
@@ -47,5 +51,6 @@ module.exports = {
   buildPortalInviteHtml,
   buildAdminReplyHtml,
   buildBookingConfirmationHtml,
+  buildBookingMeetLinkHtml,
   buildBookingAdminNotificationHtml,
 };

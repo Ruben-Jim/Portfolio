@@ -2589,3 +2589,75 @@ body.cp-client-drawer-open {
     height: 38px;
   }
 }
+/* Studio Costs ledger */
+.studio-costs-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.studio-costs-summary-card {
+  padding: 12px 14px;
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.studio-costs-summary-value {
+  display: block;
+  font-size: var(--fs-4);
+  font-weight: var(--fw-600);
+  color: var(--orange-yellow-crayola);
+  line-height: 1.2;
+}
+
+.studio-costs-summary-label {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+}
+
+.studio-costs-meta {
+  margin-top: 2px;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+}
+
+.studio-costs-renewal.is-soon {
+  color: var(--orange-yellow-crayola);
+}
+
+.studio-costs-renewal.is-overdue {
+  color: hsl(6, 78%, 68%);
+}
+
+.studio-cost-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-8);
+  text-transform: capitalize;
+  border: 1px solid var(--jet);
+}
+
+.studio-cost-status--active {
+  color: hsl(140, 45%, 62%);
+  border-color: hsla(140, 45%, 42%, 0.45);
+  background: hsla(140, 40%, 20%, 0.35);
+}
+
+.studio-cost-status--paused {
+  color: var(--light-gray);
+}
+
+.studio-cost-status--cancelled {
+  color: hsl(6, 70%, 68%);
+}
+
+@media (max-width: 640px) {
+  .studio-costs-summary {
+    grid-template-columns: 1fr;
+  }
+}

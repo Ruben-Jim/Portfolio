@@ -6,14 +6,62 @@
 
   function formatCurrency(amount) {
     if (isNaN(amount)) return '$0.00';
-    return '$' + Number(amount).toFixed(2);
+    var n = Number(amount);
+    try {
+      return (
+        '$' +
+        n.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        })
+      );
+    } catch (e) {
+      return '$' + n.toFixed(2);
+    }
+  }
+
+  function formatInvoiceNumber(docOrId) {
+    if (docOrId && typeof docOrId === 'object') {
+      var stored = String(docOrId.invoiceNumber || '').trim();
+      if (/^INV-\d{4}-\d{4,}$/i.test(stored)) return stored.toUpperCase();
+      return formatInvoiceNumberFromId(docOrId.id);
+    }
+    return formatInvoiceNumberFromId(docOrId);
+  }
+
+  function formatInvoiceNumberFromId(docId) {
+    var raw = String(docId || '').trim();
+    if (!raw) return '—';
+    var cleaned = raw.replace(/^doc[_-]?/i, '').replace(/[^a-zA-Z0-9]/g, '');
+    if (cleaned.length > 8) cleaned = cleaned.slice(-8);
+    return 'INV-' + cleaned.toUpperCase();
   }
 
   function formatDateDisplay(iso) {
     if (!iso) return '—';
-    var d = new Date(iso);
+    var raw = String(iso).trim();
+    var ymd = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    var d;
+    if (ymd) {
+      d = new Date(Number(ymd[1]), Number(ymd[2]) - 1, Number(ymd[3]));
+    } else {
+      d = new Date(raw);
+    }
     if (isNaN(d.getTime())) return '—';
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  /** Blob/print windows can't resolve site-root paths like /assets/... */
+  function toAbsoluteAssetUrl(path) {
+    var s = String(path || '').trim();
+    if (!s) return '';
+    if (/^https?:\/\//i.test(s) || s.indexOf('data:') === 0 || s.indexOf('blob:') === 0) {
+      return s;
+    }
+    if (s.charAt(0) === '/' && global.location && global.location.origin) {
+      return global.location.origin + s;
+    }
+    return s;
   }
 
   function typeLabelFor(doc) {
@@ -52,6 +100,8 @@
       title: 'Web + Mobile App',
       monthly: '$150/mo',
       annual: '$990/yr',
+      monthlyAmount: 150,
+      annualAmount: 990,
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
@@ -69,6 +119,8 @@
       title: 'Web + Mobile App',
       monthly: '$300/mo',
       annual: '$1,980/yr',
+      monthlyAmount: 300,
+      annualAmount: 1980,
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$165/mo equivalent · billed once per year',
@@ -1199,12 +1251,396 @@
       '  </div>\n</body>\n</html>';
   }
 
+  /**
+   * Line items for classic invoice bills.
+   * Prefers addOns (priced rows). Project scope in notes becomes ONE billed row
+   * with the jot list as detail bullets — never one $0 row per note line.
+   * @returns {{ description: string, detail: string, amount: number }[]}
+   */
+  function collectInvoiceLineItems(doc) {
+    var lines = [];
+    if (doc && Array.isArray(doc.addOns)) {
+      for (var i = 0; i < doc.addOns.length; i++) {
+        var addon = doc.addOns[i];
+        if (!addon || !String(addon.name || '').trim()) continue;
+        var opts = addon.priceOptions && Array.isArray(addon.priceOptions) ? addon.priceOptions : [];
+        var amount = 0;
+        if (opts.length) {
+          for (var j = 0; j < opts.length; j++) {
+            var n = Number(opts[j] && opts[j].amount);
+            if (!isNaN(n)) amount += n;
+          }
+        }
+        lines.push({
+          description: String(addon.name).trim(),
+          detail: String(addon.description || '').trim(),
+          amount: amount
+        });
+      }
+    }
+    if (lines.length) return lines;
+
+    var notes = String((doc && doc.notes) || '').trim();
+    var noteLines = notes
+      ? notes.split(/\r?\n/).map(function (l) { return stripLeadingBulletMarker(l); }).filter(Boolean)
+      : [];
+    var total = Number(doc && doc.total) || 0;
+    if (noteLines.length === 1) {
+      lines.push({ description: noteLines[0], detail: '', amount: total });
+    } else if (noteLines.length > 1) {
+      lines.push({
+        description: 'Project services',
+        detail: noteLines.join('\n'),
+        amount: total
+      });
+    } else {
+      lines.push({ description: 'Services', detail: '', amount: total });
+    }
+    return lines;
+  }
+
+  function buildInvoiceLineDetailHtml(detail) {
+    var raw = String(detail || '').trim();
+    if (!raw) return '';
+    var parts = raw.split(/\r?\n/).map(function (l) { return stripLeadingBulletMarker(l); }).filter(Boolean);
+    if (!parts.length) return '';
+    if (parts.length === 1) {
+      return '<div class="inv-line-detail">' + escapeHtml(parts[0]) + '</div>';
+    }
+    return (
+      '<ul class="inv-line-scope">' +
+      parts
+        .map(function (p) {
+          return '<li>' + escapeHtml(p) + '</li>';
+        })
+        .join('') +
+      '</ul>'
+    );
+  }
+
+  function buildInvoiceLineItemsTableHtml(doc) {
+    var items = collectInvoiceLineItems(doc);
+    var rows = '';
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var detailHtml = buildInvoiceLineDetailHtml(it.detail);
+      rows +=
+        '<tr>' +
+        '<td class="inv-col-desc"><div class="inv-line-name">' +
+        escapeHtml(it.description) +
+        '</div>' +
+        detailHtml +
+        '</td>' +
+        '<td class="inv-col-amt">' +
+        escapeHtml(formatCurrency(it.amount)) +
+        '</td></tr>';
+    }
+    return (
+      '<table class="inv-table" role="table">' +
+      '<thead><tr><th class="inv-col-desc">Description</th><th class="inv-col-amt">Amount</th></tr></thead>' +
+      '<tbody>' +
+      rows +
+      '</tbody></table>'
+    );
+  }
+
+  function buildInvoicePlanFootnoteHtml(doc) {
+    var planId = String((doc && doc.maintenancePlanId) || '').toLowerCase();
+    if (planId !== 'standard' && planId !== 'priority') return '';
+    var plan = findMaintenancePlan(planId);
+    var billing =
+      String((doc && doc.maintenanceBilling) || '').toLowerCase() === 'annual' ? 'Annual' : 'Monthly';
+    var label = (plan && plan.badge) || planId;
+    return (
+      '<p class="inv-plan-note">Referenced plan: <strong>' +
+      escapeHtml(label) +
+      '</strong> · ' +
+      escapeHtml(billing) +
+      ' billing</p>'
+    );
+  }
+
+  /**
+   * Classic bill layout for invoices — theme colors, clear line items, amount due.
+   * No estimate-style marketing sections or maintenance upsell cards.
+   */
+  function getInvoiceDocumentHtml(doc) {
+    var C = resolveDocTheme(doc && doc.theme ? doc.theme : 'cwr');
+    var clientName = String((doc && doc.clientName) || 'Client').trim();
+    var clientEmail = String((doc && doc.clientEmail) || '').trim();
+    var clientLogo = String((doc && doc.clientLogo) || '').trim();
+    if (clientLogo.indexOf('/assets/images/logo/') !== 0 || clientLogo.indexOf('..') >= 0) {
+      clientLogo = '';
+    } else {
+      clientLogo = toAbsoluteAssetUrl(clientLogo);
+    }
+    var created = formatDateDisplay(doc && doc.createdAt);
+    var status = String((doc && doc.status) || 'draft').toLowerCase();
+    var isPaid = status === 'paid';
+    var paidRaw =
+      (doc && (doc.paidAt || doc.datePaid || doc.dueDate)) ||
+      (isPaid ? doc && (doc.updatedAt || doc.createdAt) : '') ||
+      '';
+    var dueOrPaidLabel = isPaid ? 'Date paid' : 'Due';
+    var dueOrPaidValue = isPaid
+      ? paidRaw
+        ? formatDateDisplay(paidRaw)
+        : '—'
+      : doc && doc.dueDate
+        ? formatDateDisplay(doc.dueDate)
+        : 'Upon receipt';
+    var invoiceId = String((doc && doc.id) || '').trim();
+    var displayId = formatInvoiceNumber(doc);
+    var totalFormatted = formatCurrency(Number(doc && doc.total) || 0);
+    var statusLabel =
+      isPaid ? 'Paid' : status === 'accepted' ? 'Accepted' : status === 'sent' ? 'Due' : 'Draft';
+    var amountLabel = isPaid ? 'Amount paid' : 'Amount due';
+    var tableHtml = buildInvoiceLineItemsTableHtml(doc);
+    var planNote = buildInvoicePlanFootnoteHtml(doc);
+    var notesRaw = String((doc && doc.notes) || '').trim();
+    var hasAddOns = !!(doc && Array.isArray(doc.addOns) && doc.addOns.length);
+    var memoHtml = '';
+    if (hasAddOns && notesRaw) {
+      var noteLines = notesRaw
+        .split(/\r?\n/)
+        .map(function (l) {
+          return stripLeadingBulletMarker(l);
+        })
+        .filter(Boolean);
+      var addonNames = (doc.addOns || [])
+        .map(function (a) {
+          return String((a && a.name) || '')
+            .trim()
+            .toLowerCase();
+        })
+        .filter(Boolean);
+      var memoLines = noteLines.filter(function (line) {
+        return addonNames.indexOf(line.toLowerCase()) === -1;
+      });
+      if (memoLines.length) {
+        memoHtml =
+          '<div class="inv-memo"><div class="inv-memo-label">Memo</div><p>' +
+          escapeHtml(memoLines.join('\n')).replace(/\n/g, '<br>') +
+          '</p></div>';
+      }
+    }
+
+    var borderSoft = C.a(0.22);
+    var borderStrong = C.a(0.45);
+    var rowBg = C.a(0.06);
+    var payDueCopy = isPaid
+      ? 'Payment received — thank you.'
+      : doc && doc.dueDate
+        ? 'Please pay by <strong>' + escapeHtml(formatDateDisplay(doc.dueDate)) + '</strong>.'
+        : 'Payment is due upon receipt.';
+
+    return (
+      '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>INVOICE — ' +
+      escapeHtml(clientName) +
+      '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
+      '@page { size: A4; margin: 12mm; }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 12px 16px !important; } }\n' +
+      '* { box-sizing: border-box; }\n' +
+      'body { margin: 0; padding: 40px 32px; font-family: \'Inter\', sans-serif; background: ' +
+      C.bg +
+      '; color: ' +
+      C.text +
+      '; font-size: 14px; }\n' +
+      '.doc { max-width: 800px; margin: 0 auto; }\n' +
+      '.inv-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }\n' +
+      '.inv-brand { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' +
+      C.primary +
+      '; letter-spacing: 0.02em; }\n' +
+      '.inv-brand span { color: ' +
+      C.text +
+      '; font-weight: 600; }\n' +
+      '.inv-brand-sub { font-size: 11px; color: ' +
+      C.muted +
+      '; margin-top: 4px; }\n' +
+      '.inv-badge-wrap { text-align: right; }\n' +
+      '.inv-badge { display: inline-block; padding: 6px 14px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; background: ' +
+      C.primary +
+      '; color: ' +
+      C.bg +
+      '; }\n' +
+      '.inv-meta-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; margin-bottom: 28px; align-items: stretch; }\n' +
+      '@media (max-width: 640px) { .inv-meta-grid { grid-template-columns: 1fr; } }\n' +
+      '.inv-panel { border: 1px solid ' +
+      borderSoft +
+      '; border-radius: 12px; padding: 16px 18px; background: rgba(255,255,255,0.03); display: flex; flex-direction: column; justify-content: flex-start; }\n' +
+      '.inv-panel-label { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: ' +
+      C.primary +
+      '; margin: 0 0 12px; }\n' +
+      '.inv-bill-row { display: flex; align-items: center; gap: 12px; }\n' +
+      '.inv-client-logo { width: 56px; height: 56px; padding: 7px; box-sizing: border-box; object-fit: contain; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid ' +
+      borderSoft +
+      '; flex-shrink: 0; }\n' +
+      '.inv-bill-text { min-width: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 3px; }\n' +
+      '.inv-panel-name { font-size: 15px; font-weight: 600; color: ' +
+      C.text +
+      '; margin: 0; line-height: 1.25; }\n' +
+      '.inv-panel-detail { font-size: 12px; color: ' +
+      C.muted +
+      '; line-height: 1.4; margin: 0; }\n' +
+      '.inv-panel-detail a { color: ' +
+      C.primary +
+      '; text-decoration: none; border-bottom: 1px solid ' +
+      C.a(0.35) +
+      '; }\n' +
+      '.inv-kv { display: grid; grid-template-columns: auto 1fr; gap: 7px 16px; font-size: 13px; align-items: baseline; align-content: start; margin: 0; }\n' +
+      '.inv-kv dt { color: ' +
+      C.muted +
+      '; }\n' +
+      '.inv-kv dd { margin: 0; color: ' +
+      C.text +
+      '; font-weight: 500; text-align: right; }\n' +
+      '.inv-kv dd.is-status { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; font-size: 12px; color: ' +
+      C.primary +
+      '; }\n' +
+      '.inv-section-title { font-family: \'Playfair Display\', serif; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: ' +
+      C.primary +
+      '; margin: 0 0 10px; }\n' +
+      '.inv-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }\n' +
+      '.inv-table th { text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' +
+      C.muted +
+      '; padding: 10px 12px; border-bottom: 1px solid ' +
+      borderStrong +
+      '; }\n' +
+      '.inv-table td { padding: 14px 12px; border-bottom: 1px solid ' +
+      borderSoft +
+      '; vertical-align: top; }\n' +
+      '.inv-table tbody tr:nth-child(even) td { background: ' +
+      rowBg +
+      '; }\n' +
+      '.inv-col-desc { width: 72%; }\n' +
+      '.inv-col-amt { width: 28%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; }\n' +
+      '.inv-table th.inv-col-amt { text-align: right; font-weight: 700; }\n' +
+      '.inv-line-name { font-size: 14px; font-weight: 600; color: ' +
+      C.text +
+      '; }\n' +
+      '.inv-line-detail { font-size: 12px; color: ' +
+      C.muted +
+      '; margin-top: 4px; line-height: 1.45; }\n' +
+      '.inv-line-scope { list-style: none; margin: 8px 0 0; padding: 0; }\n' +
+      '.inv-line-scope li { position: relative; padding: 4px 0 4px 14px; font-size: 12px; line-height: 1.45; color: ' +
+      C.muted +
+      '; }\n' +
+      '.inv-line-scope li::before { content: \'\'; position: absolute; left: 0; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: ' +
+      C.primary +
+      '; }\n' +
+      '.inv-totals { margin-top: 16px; display: flex; justify-content: flex-end; }\n' +
+      '.inv-total-box { min-width: 240px; border-radius: 12px; padding: 16px 18px; background: ' +
+      C.primary +
+      '; color: ' +
+      C.bg +
+      '; }\n' +
+      '.inv-total-label { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.85; margin-bottom: 6px; }\n' +
+      '.inv-total-amt { font-family: \'Playfair Display\', serif; font-size: 32px; font-weight: 700; line-height: 1; }\n' +
+      '.inv-plan-note { font-size: 12px; color: ' +
+      C.muted +
+      '; margin: 16px 0 0; }\n' +
+      '.inv-plan-note strong { color: ' +
+      C.primary +
+      '; font-weight: 600; }\n' +
+      '.inv-memo { margin-top: 20px; padding: 14px 16px; border-radius: 10px; border: 1px solid ' +
+      borderSoft +
+      '; background: rgba(255,255,255,0.03); }\n' +
+      '.inv-memo-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' +
+      C.primary +
+      '; margin-bottom: 6px; }\n' +
+      '.inv-memo p { margin: 0; font-size: 13px; line-height: 1.55; color: ' +
+      C.muted +
+      '; }\n' +
+      '.inv-pay { margin-top: 24px; padding-top: 16px; border-top: 1px solid ' +
+      borderSoft +
+      '; font-size: 13px; line-height: 1.55; color: ' +
+      C.muted +
+      '; }\n' +
+      '.inv-pay strong { color: ' +
+      C.text +
+      '; }\n' +
+      '.inv-pay a { color: ' +
+      C.primary +
+      '; }\n' +
+      '.inv-footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid ' +
+      borderSoft +
+      '; font-size: 11px; color: ' +
+      C.muted +
+      '; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }\n' +
+      'a { color: ' +
+      C.primary +
+      '; }\n' +
+      '</style>\n</head>\n<body>\n  <div class="doc">\n' +
+      '    <div class="inv-top">\n' +
+      '      <div><div class="inv-brand">Code<span>With</span>Ruben</div><div class="inv-brand-sub">rubenjimenez.dev</div></div>\n' +
+      '      <div class="inv-badge-wrap"><div class="inv-badge">Invoice</div></div>\n' +
+      '    </div>\n' +
+      '    <div class="inv-meta-grid">\n' +
+      '      <div class="inv-panel"><div class="inv-panel-label">Bill to</div><div class="inv-bill-row">' +
+      (clientLogo
+        ? '<img class="inv-client-logo" src="' +
+          escapeHtml(clientLogo) +
+          '" alt="' +
+          escapeHtml(clientName) +
+          ' logo">'
+        : '') +
+      '<div class="inv-bill-text"><div class="inv-panel-name">' +
+      escapeHtml(clientName) +
+      '</div>' +
+      (clientEmail
+        ? '<div class="inv-panel-detail"><a href="mailto:' +
+          escapeHtml(clientEmail) +
+          '">' +
+          escapeHtml(clientEmail) +
+          '</a></div>'
+        : '') +
+      '</div></div></div>\n' +
+      '      <div class="inv-panel"><div class="inv-panel-label">Invoice details</div><dl class="inv-kv">' +
+      '<dt>Invoice #</dt><dd>' +
+      escapeHtml(displayId) +
+      '</dd>' +
+      '<dt>Status</dt><dd class="is-status">' +
+      escapeHtml(statusLabel) +
+      '</dd>' +
+      '<dt>Issued</dt><dd>' +
+      escapeHtml(created) +
+      '</dd>' +
+      '<dt>' +
+      escapeHtml(dueOrPaidLabel) +
+      '</dt><dd>' +
+      escapeHtml(dueOrPaidValue) +
+      '</dd></dl></div>\n' +
+      '    </div>\n' +
+      '    <div class="inv-section-title">Line items</div>\n' +
+      tableHtml +
+      '\n' +
+      '    <div class="inv-totals"><div class="inv-total-box"><div class="inv-total-label">' +
+      escapeHtml(amountLabel) +
+      '</div><div class="inv-total-amt">' +
+      escapeHtml(totalFormatted) +
+      '</div></div></div>\n' +
+      planNote +
+      memoHtml +
+      '    <div class="inv-pay"><strong>Payment</strong> — ' +
+      payDueCopy +
+      ' Questions or confirmation: ' +
+      '<a href="mailto:Ruben.Jim.co@gmail.com">Ruben.Jim.co@gmail.com</a>.</div>\n' +
+      '    <div class="inv-footer"><span>CodeWithRuben · Invoice</span><span>' +
+      escapeHtml(displayId) +
+      '</span></div>\n' +
+      '  </div>\n</body>\n</html>'
+    );
+  }
+
   function buildBusinessDocHtml(doc, signature) {
     if (doc && String(doc.type || '').toLowerCase() === 'proposal') {
       return getProposalDocumentHtml(doc);
     }
     if (doc && String(doc.type || '').toLowerCase() === 'contract') {
       return getContractDocumentHtml(doc, signature);
+    }
+    if (doc && String(doc.type || '').toLowerCase() === 'invoice') {
+      return getInvoiceDocumentHtml(doc);
     }
     var created = formatDateDisplay(doc.createdAt);
     var due = doc.dueDate ? formatDateDisplay(doc.dueDate) : '—';

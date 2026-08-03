@@ -19,6 +19,8 @@
       title: 'Web + Mobile App',
       monthly: '$150/mo',
       annual: '$990/yr',
+      monthlyAmount: 150,
+      annualAmount: 990,
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
@@ -36,6 +38,8 @@
       title: 'Web + Mobile App',
       monthly: '$300/mo',
       annual: '$1,980/yr',
+      monthlyAmount: 300,
+      annualAmount: 1980,
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$165/mo equivalent · billed once per year',
@@ -724,11 +728,14 @@
     row = row || {};
     var milestones = Array.isArray(row.milestones) ? row.milestones : [];
     var guides = normalizePortalGuides(row);
+    var stage = String(row.deliveryStage || 'demo').toLowerCase();
+    if (stage !== 'client' && stage !== 'converting') stage = 'demo';
     return {
       id: id,
       clientName: String(row.clientName || '').slice(0, 120),
       title: String(row.title || '').slice(0, 200),
       expoUrl: String(row.expoUrl || '').slice(0, 500),
+      deliveryStage: stage,
       portfolioProjectId: String(row.portfolioProjectId || '').slice(0, 80),
       businessDocId: String(row.businessDocId || '').slice(0, 80),
       portalGuides: guides,
@@ -796,7 +803,9 @@
 
   function collectProjectVisitLinks(project, detailRecord, options) {
     options = options || {};
-    var demoUrl = ensureAbsolutePortalUrl(project && project.expoUrl);
+    var stage = String((project && project.deliveryStage) || 'demo').toLowerCase();
+    var isClientLive = stage === 'client';
+    var hubUrl = ensureAbsolutePortalUrl(project && project.expoUrl);
     var liveUrl = '';
     if (window.PortfolioDetailShared && detailRecord) {
       liveUrl = ensureAbsolutePortalUrl(
@@ -805,6 +814,25 @@
     }
 
     var links = [];
+
+    // Client delivery stage: hub URL is live product — never label it "View demo".
+    if (isClientLive) {
+      if (liveUrl && hubUrl && normalizePortalUrl(liveUrl) !== normalizePortalUrl(hubUrl)) {
+        links.push({ url: liveUrl, label: 'View website', primary: true });
+        links.push({ url: hubUrl, label: 'Open live app', primary: false });
+        return links;
+      }
+      var site = liveUrl || hubUrl;
+      if (!site) return links;
+      links.push({
+        url: site,
+        label: looksLikeDemoUrl(site) ? 'Open live app' : 'View website',
+        primary: true
+      });
+      return links;
+    }
+
+    var demoUrl = hubUrl;
     if (demoUrl && liveUrl && normalizePortalUrl(demoUrl) !== normalizePortalUrl(liveUrl)) {
       links.push({ url: demoUrl, label: 'View demo', primary: true });
       links.push({ url: liveUrl, label: 'View website', primary: false });
@@ -894,8 +922,10 @@
   }
 
   function renderStatusFooter(project) {
-    var done = project.milestones.filter(function (m) { return m.done; }).length;
-    var total = project.milestones.length || 0;
+    var milestones = project.milestones || [];
+    if (!milestones.length) return '';
+    var done = milestones.filter(function (m) { return m.done; }).length;
+    var total = milestones.length;
 
     return (
       '<details class="client-portal-status-footer" open>' +
@@ -906,7 +936,7 @@
       ' of ' +
       total +
       ' milestones complete</p>' +
-      project.milestones
+      milestones
         .map(function (m) {
           return (
             '<div class="client-portal-milestone' +
@@ -1391,13 +1421,19 @@
 
   function renderNoShowcaseMessage(project, detailOptions) {
     var hasVisitLink = collectProjectVisitLinks(project, null, detailOptions || {}).length > 0;
+    var isClientLive = String((project && project.deliveryStage) || '') === 'client';
+    var withLink = isClientLive
+      ? 'You can still open the live website or app above.'
+      : 'You can still open the live demo or website above.';
+    var withoutLink = isClientLive
+      ? 'A website or app link will show here when it is added to your project.'
+      : 'A demo or website link will show here when it is added to your project.';
     return (
       '<section class="client-portal-section client-portal-empty-showcase">' +
       '<p><strong>No portfolio project is linked</strong> to this portal yet. The full showcase page will appear here once your project contact links one.</p>' +
-      (hasVisitLink
-        ? '<p class="client-portal-empty-showcase-lead">You can still open the live demo or website above.</p>'
-        : '<p class="client-portal-empty-showcase-lead">A demo or website link will show here when it is added to your project.</p>') +
-      '</section>'
+      '<p class="client-portal-empty-showcase-lead">' +
+      (hasVisitLink ? withLink : withoutLink) +
+      '</p></section>'
     );
   }
 

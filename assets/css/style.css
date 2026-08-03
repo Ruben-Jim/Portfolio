@@ -5551,7 +5551,8 @@ article.about .about-founder {
   pointer-events: auto;
 }
 
-#delete-lead-confirm-modal.modal-container {
+#delete-lead-confirm-modal.modal-container,
+#cancel-booking-confirm-modal.modal-container {
   z-index: 10080;
 }
 
@@ -8507,6 +8508,31 @@ textarea.form-input::-webkit-resizer { display: none; }
   gap: 8px;
   margin: 16px 0 4px;
   text-align: left;
+}
+
+.schedule-identity[hidden] {
+  display: none;
+}
+
+.schedule-invite-summary {
+  margin: 16px 0 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--jet);
+  background: hsla(0, 0%, 100%, 0.03);
+  text-align: center;
+}
+
+.schedule-invite-summary[hidden] {
+  display: none;
+}
+
+.schedule-invite-summary-text {
+  margin: 0;
+  color: var(--white-2);
+  font-size: var(--fs-6);
+  line-height: 1.5;
+  word-break: break-word;
 }
 
 .schedule-identity-label {
@@ -12531,6 +12557,14 @@ body.portfolio-project-modal-open .cp-client-drawer {
   max-width: 52ch;
 }
 
+.business-doc-scope-hint a {
+  display: inline;
+  color: var(--orange-yellow-crayola);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: normal;
+}
+
 .business-doc-scope-hint kbd {
   display: inline-block;
   padding: 2px 6px;
@@ -12622,6 +12656,88 @@ body.portfolio-project-modal-open .cp-client-drawer {
 
 .business-doc-maintenance-pickers .form-row {
   margin-bottom: 0;
+}
+
+/* Invoice company logo picker (Docs edit) */
+.business-doc-client-logo-wrap[hidden] {
+  display: none !important;
+}
+
+.business-doc-client-logo-editor {
+  padding: 4px 0 0;
+}
+
+.business-doc-client-logo-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  margin-bottom: 12px;
+}
+
+.business-doc-client-logo-preview {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  flex-shrink: 0;
+}
+
+.business-doc-client-logo-preview[hidden] {
+  display: none !important;
+}
+
+.business-doc-client-logo-empty {
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.business-doc-client-logo-empty[hidden] {
+  display: none !important;
+}
+
+.business-doc-client-logo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.business-doc-client-logo-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid hsla(0, 0%, 100%, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.business-doc-client-logo-thumb:hover {
+  border-color: hsla(45, 100%, 72%, 0.45);
+  background: hsla(45, 100%, 72%, 0.08);
+}
+
+.business-doc-client-logo-thumb.is-active {
+  border-color: var(--orange-yellow-crayola);
+  background: hsla(45, 100%, 72%, 0.14);
+  box-shadow: 0 0 0 1px hsla(45, 100%, 72%, 0.35);
+}
+
+.business-doc-client-logo-thumb img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+#business-doc-client-logo-clear[hidden] {
+  display: none !important;
 }
 
 /* Business doc modal: optional add-ons / tiered pricing */
@@ -13259,7 +13375,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
   line-height: 1.45;
 }
 
-.form-group.form-group-checkbox-row label.portfolio-project-checkbox span {
+.form-group.form-group-checkbox-row label.portfolio-project-checkbox > span:not(.custom-switch),
+.form-group.form-group-checkbox-row label.custom-switch-label > span:not(.custom-switch) {
   flex: 1;
   min-width: 0;
 }
@@ -14033,7 +14150,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-hub-confirm-modal.modal-container,
 #delete-referral-confirm-modal.modal-container,
 #delete-maint-confirm-modal.modal-container,
-#delete-lead-confirm-modal.modal-container {
+#delete-lead-confirm-modal.modal-container,
+#cancel-booking-confirm-modal.modal-container {
     align-items: flex-end;
     justify-content: flex-end;
     overflow: hidden;
@@ -14045,7 +14163,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-hub-confirm-modal.active .overlay,
 #delete-referral-confirm-modal.active .overlay,
 #delete-maint-confirm-modal.active .overlay,
-#delete-lead-confirm-modal.active .overlay {
+#delete-lead-confirm-modal.active .overlay,
+#cancel-booking-confirm-modal.active .overlay {
     background: rgba(0, 0, 0, 0.62);
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
@@ -14059,7 +14178,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-hub-confirm-modal .confirm-delete-modal,
 #delete-referral-confirm-modal .confirm-delete-modal,
 #delete-maint-confirm-modal .confirm-delete-modal,
-#delete-lead-confirm-modal .confirm-delete-modal {
+#delete-lead-confirm-modal .confirm-delete-modal,
+#cancel-booking-confirm-modal .confirm-delete-modal {
     display: flex;
     flex-direction: column;
     margin: 0;
@@ -14086,7 +14206,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
   #delete-hub-confirm-modal.active .confirm-delete-modal,
   #delete-referral-confirm-modal.active .confirm-delete-modal,
   #delete-maint-confirm-modal.active .confirm-delete-modal,
-  #delete-lead-confirm-modal.active .confirm-delete-modal {
+  #delete-lead-confirm-modal.active .confirm-delete-modal,
+  #cancel-booking-confirm-modal.active .confirm-delete-modal {
     transform: translate3d(0, 0, 0);
     visibility: visible;
     pointer-events: auto;
@@ -14112,7 +14233,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-hub-confirm-modal .confirm-delete-modal::before,
 #delete-referral-confirm-modal .confirm-delete-modal::before,
 #delete-maint-confirm-modal .confirm-delete-modal::before,
-#delete-lead-confirm-modal .confirm-delete-modal::before {
+#delete-lead-confirm-modal .confirm-delete-modal::before,
+#cancel-booking-confirm-modal .confirm-delete-modal::before {
     content: '';
     display: block;
     flex-shrink: 0;
@@ -16410,6 +16532,13 @@ body.portfolio-project-modal-open .cp-client-drawer {
   color: hsl(350, 100%, 80%);
 }
 
+.business-doc-invoice-no {
+  margin-top: 2px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+  letter-spacing: 0.04em;
+}
+
 .business-doc-type-contract {
   background: hsla(45, 93%, 47%, 0.14);
   color: var(--orange-yellow-crayola, #eab308);
@@ -17026,7 +17155,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-hub-confirm-modal,
 #delete-maint-confirm-modal,
 #delete-referral-confirm-modal,
-#delete-lead-confirm-modal {
+#delete-lead-confirm-modal,
+#cancel-booking-confirm-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -17135,7 +17265,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
   z-index: 10085;
 }
 
-#delete-lead-confirm-modal {
+#delete-lead-confirm-modal,
+#cancel-booking-confirm-modal {
   z-index: 10090;
 }
 
@@ -17145,7 +17276,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-document-confirm-modal.active,
 #delete-portfolio-confirm-modal.active,
 #delete-testimonial-confirm-modal.active,
-#delete-lead-confirm-modal.active {
+#delete-lead-confirm-modal.active,
+#cancel-booking-confirm-modal.active {
   pointer-events: all;
   visibility: visible;
 }
@@ -17156,7 +17288,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-document-confirm-modal .overlay,
 #delete-portfolio-confirm-modal .overlay,
 #delete-testimonial-confirm-modal .overlay,
-#delete-lead-confirm-modal .overlay {
+#delete-lead-confirm-modal .overlay,
+#cancel-booking-confirm-modal .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -17179,7 +17312,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-maint-confirm-modal.active .overlay,
 #delete-testimonial-confirm-modal.active .overlay,
 #delete-dm-conversation-confirm-modal.active .overlay,
-#delete-lead-confirm-modal.active .overlay {
+#delete-lead-confirm-modal.active .overlay,
+#cancel-booking-confirm-modal.active .overlay {
   opacity: 0.85;
   visibility: visible;
   pointer-events: all;
@@ -17211,7 +17345,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-maint-confirm-modal.active .confirm-delete-modal,
 #delete-testimonial-confirm-modal.active .confirm-delete-modal,
 #delete-dm-conversation-confirm-modal.active .confirm-delete-modal,
-#delete-lead-confirm-modal.active .confirm-delete-modal {
+#delete-lead-confirm-modal.active .confirm-delete-modal,
+#cancel-booking-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
   visibility: visible;
@@ -25480,6 +25615,547 @@ body.admin-tab-reorder-active::before {
   .admin-client-email-actions {
     grid-column: 1 / -1;
     grid-row: 2;
+  }
+}
+
+.admin-bookings-seg {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  border: 1px solid var(--jet);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.admin-bookings-seg-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--light-gray);
+  font: inherit;
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.admin-bookings-seg-btn ion-icon {
+  font-size: 16px;
+}
+
+.admin-bookings-seg-btn:hover {
+  color: var(--white-2);
+}
+
+.admin-bookings-seg-btn.is-active {
+  background: rgba(255, 219, 114, 0.14);
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-bookings-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+  min-height: 1.2em;
+}
+
+.admin-bookings-summary {
+  margin: 0;
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+}
+
+.admin-bookings-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 14px;
+}
+
+.admin-bookings-feedback {
+  margin: 0;
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+}
+
+.admin-bookings-feedback[hidden] {
+  display: none !important;
+}
+
+.admin-bookings-feedback.is-error {
+  color: hsl(6, 88%, 67%);
+}
+
+.admin-bookings-feedback.is-success {
+  color: hsl(140, 40%, 55%);
+}
+
+.admin-bookings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 48px;
+  overflow: visible;
+}
+
+.admin-bookings-empty {
+  padding: 18px 16px;
+  border-radius: 14px;
+  border: 1px dashed var(--jet);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.admin-bookings-empty .form-hint {
+  margin: 0;
+  color: var(--light-gray);
+}
+
+.admin-bookings-calendar-view {
+  margin-bottom: 24px;
+  overflow: visible;
+}
+
+.admin-bookings-cal-main {
+  min-width: 0;
+  align-self: start;
+}
+
+.admin-bookings-list-view {
+  margin-bottom: 24px;
+  overflow: visible;
+}
+
+.admin-bookings-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-bookings-cal-nav-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-bookings-cal-month {
+  margin: 0;
+  font-size: var(--fs-4);
+  color: var(--white-2);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.admin-bookings-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.admin-bookings-cal-weekdays span {
+  text-align: center;
+  font-size: 10px;
+  color: var(--light-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.admin-bookings-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.admin-bookings-cal-cell {
+  appearance: none;
+  border: 1px solid var(--jet);
+  background: var(--eerie-black-2, var(--eerie-black-1));
+  color: var(--white-2);
+  border-radius: 12px;
+  min-height: 68px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.admin-bookings-cal-cell:hover:not(.is-empty) {
+  border-color: rgba(255, 219, 114, 0.35);
+}
+
+.admin-bookings-cal-cell.is-empty {
+  border: none;
+  background: transparent;
+  min-height: 68px;
+  pointer-events: none;
+}
+
+.admin-bookings-cal-cell.is-today {
+  border-color: rgba(255, 219, 114, 0.45);
+}
+
+.admin-bookings-cal-cell.is-selected {
+  border-color: var(--orange-yellow-crayola);
+  background: rgba(255, 219, 114, 0.1);
+}
+
+.admin-bookings-cal-cell.has-bookings:not(.is-selected) {
+  background: rgba(255, 219, 114, 0.05);
+}
+
+.admin-bookings-cal-day-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+}
+
+.admin-bookings-cal-day-num {
+  font-size: var(--fs-6);
+  font-weight: var(--fw-600);
+}
+
+.admin-bookings-cal-day-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--orange-yellow-crayola);
+  color: var(--eerie-black-1);
+  font-size: 10px;
+  font-weight: var(--fw-600);
+}
+
+.admin-bookings-cal-day-tip {
+  font-size: 10px;
+  color: var(--light-gray);
+  line-height: 1.2;
+}
+
+.admin-bookings-day-panel {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--jet);
+  /* Clear mobile bottom tab bar / CRM subtab when scrolled into view */
+  scroll-margin-top: 12px;
+  scroll-margin-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+}
+
+.admin-bookings-day-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-bookings-day-title {
+  margin: 0;
+  font-size: var(--fs-5);
+  color: var(--white-2);
+}
+
+.admin-bookings-day-count {
+  margin: 0;
+  font-size: var(--fs-7);
+  color: var(--orange-yellow-crayola);
+}
+
+/* Page scrolls (same as admin sidebar). Avoid nested sticky + overflow scroll here. */
+@media (min-width: 980px) {
+  .admin-bookings-calendar-view {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.95fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .admin-bookings-day-panel {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    border-left: 1px solid var(--jet);
+    padding-left: 20px;
+    scroll-margin-bottom: 24px;
+    align-self: start;
+    min-width: 0;
+  }
+}
+
+.admin-bookings-settings {
+  margin-top: 8px;
+  padding: 0;
+  border: 1px solid var(--jet);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+/* One card: don't nest a second bordered header (margin left a dark peek when collapsed) */
+.admin-bookings-settings > .admin-collapsible-header,
+.admin-bookings-settings.admin-collapsible-open > .admin-collapsible-header,
+.admin-bookings-settings:not(.admin-collapsible-open) > .admin-collapsible-header {
+  width: 100%;
+  margin: 0;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.admin-bookings-settings.admin-collapsible-open > .admin-collapsible-header {
+  border-bottom: 1px solid var(--jet);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* Keep collapse animation working: only relax overflow when open */
+#admin-bookings-section #admin-sched-section:not(.admin-collapsible-open) > .admin-collapsible-content {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+#admin-bookings-section #admin-sched-section:not(.admin-collapsible-open) .admin-collapsible-inner-content {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+#admin-bookings-section #admin-sched-section.admin-collapsible-open {
+  overflow: hidden;
+}
+
+#admin-bookings-section #admin-sched-section.admin-collapsible-open > .admin-collapsible-content {
+  display: grid;
+  grid-template-rows: minmax(0, max-content);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+#admin-bookings-section #admin-sched-section.admin-collapsible-open .admin-collapsible-inner-content {
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+  padding: 14px 16px 16px;
+}
+
+#admin-bookings-section #admin-sched-section .business-doc-scope-hint {
+  max-width: none;
+  margin-bottom: 14px;
+}
+
+#admin-bookings-section {
+  padding-bottom: 8px;
+}
+
+@media (max-width: 767px) {
+  #admin-bookings-section {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.admin-booking-card {
+  display: block;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--jet);
+  background: var(--eerie-black-2, var(--eerie-black-1));
+  color: var(--white-2);
+  overflow: visible;
+  scroll-margin-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+}
+
+.admin-booking-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.admin-booking-card-when {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.admin-booking-card-time {
+  font-size: var(--fs-4);
+  font-weight: var(--fw-600);
+  color: var(--orange-yellow-crayola);
+  line-height: 1.1;
+}
+
+.admin-booking-card-type {
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+}
+
+.admin-booking-card-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-booking-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--jet);
+  font-size: 11px;
+  color: var(--light-gray);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-booking-chip--ok {
+  border-color: rgba(90, 180, 120, 0.45);
+  color: hsl(140, 40%, 62%);
+}
+
+.admin-booking-chip--muted {
+  opacity: 0.85;
+}
+
+.admin-booking-card-title {
+  margin: 0 0 4px;
+  font-size: var(--fs-5);
+  color: var(--white-2);
+}
+
+.admin-booking-card-meta {
+  margin: 0;
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+  line-height: 1.5;
+}
+
+.admin-booking-card-meta a {
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-booking-meet-row {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-booking-meet-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-booking-meet-controls .form-input {
+  grid-column: 1 / -1;
+  min-width: 0;
+  width: 100%;
+}
+
+.admin-booking-meet-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-booking-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.admin-booking-cancel-btn {
+  border-color: rgba(220, 90, 80, 0.45);
+  color: hsl(6, 78%, 68%);
+}
+
+.admin-booking-cancel-btn:hover {
+  border-color: hsl(6, 78%, 62%);
+  color: hsl(6, 88%, 74%);
+}
+
+@media (min-width: 640px) {
+  .admin-booking-meet-controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .admin-booking-meet-controls .form-input {
+    grid-column: 1;
+  }
+
+  .admin-booking-meet-actions {
+    grid-column: 2;
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-bookings-cal-cell {
+    min-height: 54px;
+    padding: 6px;
+  }
+
+  .admin-bookings-cal-day-tip {
+    display: none;
+  }
+
+  #admin-bookings-section .admin-panel-heading--with-action {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #admin-bookings-section .admin-panel-heading-action {
+    width: 100%;
+  }
+
+  #admin-bookings-section .admin-bookings-seg {
+    width: 100%;
+  }
+
+  #admin-bookings-section .admin-bookings-seg-btn {
+    flex: 1 1 0;
   }
 }
 

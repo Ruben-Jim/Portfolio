@@ -615,8 +615,8 @@
   }
 
   function buildAdminReplyHtml(p) {
-    var fromName = p.from_name || "Ruben Jimenez";
-    var subject = String(p.subject || "Message from Ruben").trim();
+    var fromName = p.from_name || "CodeWithRuben";
+    var subject = String(p.subject || "Message from CodeWithRuben").trim();
     var message = String(p.message || "");
     var ctaLabel = String(p.cta_label || "").trim();
     var headerSubtitle = String(p.header_subtitle || "").trim() || undefined;
@@ -627,7 +627,7 @@
     var inner =
       clientEmailHeader(fromName, headerSubtitle) +
       clientMessageBlock(buildMessageBodyHtml(message, bodyOpts));
-    return wrapClientEmail(inner, clientFooterHtml(), firstLinePreheader(message, subject), "Message from Ruben");
+    return wrapClientEmail(inner, clientFooterHtml(), firstLinePreheader(message, subject), "Message from CodeWithRuben");
   }
 
   function buildTestimonialRequestHtml(p) {
@@ -660,6 +660,7 @@
     var callTypeLabel = String(p.call_type_label || "your call").trim();
     var startDisplay = String(p.start_display || "").trim();
     var timezoneLabel = String(p.timezone_label || "").trim();
+    var meetUrl = String(p.meet_url || "").trim();
     var subject = String(p.subject || "Your call with CWR is booked").trim();
     var message =
       "Hi " +
@@ -669,12 +670,43 @@
       " with Ruben.\n\nWhen: " +
       startDisplay +
       (timezoneLabel ? " (" + timezoneLabel + ")" : "") +
-      "\n\nReply here if you need to reschedule.\n\nThanks,\nRuben";
+      "\n\n";
+    if (meetUrl) {
+      message += "Join with Google Meet:\nLink: " + meetUrl + "\n\n";
+    } else {
+      message += "I’ll send a Google Meet link before we talk.\n\n";
+    }
+    message += "Reply here if you need to reschedule.\n\nThanks,\nRuben";
     return buildAdminReplyHtml({
       from_name: "CodeWithRuben",
       header_subtitle: "Discovery call confirmed",
       subject: subject,
       message: message,
+      cta_label: meetUrl ? "Join Google Meet →" : "",
+    });
+  }
+
+  function buildBookingMeetLinkHtml(p) {
+    var name = String(p.to_name || "there").trim();
+    var callTypeLabel = String(p.call_type_label || "your call").trim();
+    var startDisplay = String(p.start_display || "").trim();
+    var meetUrl = String(p.meet_url || "").trim();
+    var subject = String(p.subject || "Your Google Meet link for our call").trim();
+    var message =
+      "Hi " +
+      name +
+      ",\n\nHere’s the Google Meet link for our " +
+      callTypeLabel +
+      (startDisplay ? " on " + startDisplay : "") +
+      ".\n\nLink: " +
+      meetUrl +
+      "\n\nSee you then,\nRuben";
+    return buildAdminReplyHtml({
+      from_name: "CodeWithRuben",
+      header_subtitle: "Google Meet link",
+      subject: subject,
+      message: message,
+      cta_label: "Join Google Meet →",
     });
   }
 
@@ -732,6 +764,7 @@
     buildTestimonialRequestHtml: buildTestimonialRequestHtml,
     buildPortalInviteHtml: buildPortalInviteHtml,
     buildBookingConfirmationHtml: buildBookingConfirmationHtml,
+    buildBookingMeetLinkHtml: buildBookingMeetLinkHtml,
     buildBookingAdminNotificationHtml: buildBookingAdminNotificationHtml,
   };
 });

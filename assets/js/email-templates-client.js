@@ -609,8 +609,8 @@
   }
 
   function buildAdminReplyHtml(p) {
-    var fromName = p.from_name || "Ruben Jimenez";
-    var subject = String(p.subject || "Message from Ruben").trim();
+    var fromName = p.from_name || "CodeWithRuben";
+    var subject = String(p.subject || "Message from CodeWithRuben").trim();
     var message = String(p.message || "");
     var ctaLabel = String(p.cta_label || "").trim();
     var headerSubtitle = String(p.header_subtitle || "").trim() || "CodeWithRuben";
@@ -621,7 +621,7 @@
     var inner =
       clientEmailHeader(fromName, headerSubtitle) +
       clientMessageBlock(buildMessageBodyHtml(message, bodyOpts));
-    return wrapClientEmail(inner, clientFooterHtml(), firstLinePreheader(message, subject), "Message from Ruben");
+    return wrapClientEmail(inner, clientFooterHtml(), firstLinePreheader(message, subject), "Message from CodeWithRuben");
   }
 
   function buildTestimonialRequestHtml(p) {

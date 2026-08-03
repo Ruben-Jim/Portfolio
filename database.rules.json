@@ -97,14 +97,14 @@
     "agencyBookedSlots": {
       ".read": true,
       "$slotKey": {
-        ".write": "!data.exists()"
+        ".write": "!data.exists() || (auth != null && auth.token.email == 'ruben.jim.co@gmail.com')"
       }
     },
     "agencyBookings": {
       ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       "$bookingId": {
-        ".write": "!data.exists()",
-        ".validate": "newData.hasChildren(['name', 'email', 'startISO', 'endISO', 'callTypeId'])"
+        ".write": "!data.exists() || (auth != null && auth.token.email == 'ruben.jim.co@gmail.com')",
+        ".validate": "!newData.exists() || newData.hasChildren(['name', 'email', 'startISO', 'endISO', 'callTypeId'])"
       }
     }
   }

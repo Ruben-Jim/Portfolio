@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=sidebar-expand-2200-20260731">
+  <link rel="stylesheet" href="/assets/css/style.css?v=admin-studio-costs-20260803">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -86,7 +86,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=milestones-pill-20260730">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=admin-studio-costs-20260803">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -2700,10 +2700,14 @@
               <div class="hire-form-submitted-icon">
                 <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
               </div>
-              <h3 class="h3 hire-form-submitted-title">Pick a time to talk</h3>
-              <p class="hire-form-submitted-text">Choose a call type and slot below. Confirmation goes to the email you enter.</p>
+              <h3 class="h3 hire-form-submitted-title" id="schedule-booking-title">Pick a time to talk</h3>
+              <p class="hire-form-submitted-text" id="schedule-booking-lead">Choose a call type and slot below. Confirmation goes to the email you enter.</p>
 
-              <div class="schedule-identity">
+              <div class="schedule-invite-summary" id="schedule-invite-summary" hidden>
+                <p class="schedule-invite-summary-text" id="schedule-invite-summary-text"></p>
+              </div>
+
+              <div class="schedule-identity" id="schedule-identity-fields">
                 <label class="schedule-identity-label" for="schedule-guest-name">Your name</label>
                 <input type="text" id="schedule-guest-name" class="form-input" name="name" autocomplete="name" placeholder="Full name" required>
                 <label class="schedule-identity-label" for="schedule-guest-email">Your email</label>
@@ -3012,6 +3016,10 @@
                   <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Email</span><span class="admin-tab-label-mobile">Email</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-bookings" data-admin-tab="bookings" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-bookings" tabindex="-1" aria-label="Schedule call bookings">
+                  <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Bookings</span><span class="admin-tab-label-mobile">Bookings</span></span>
+                </button>
                 <button type="button" class="admin-tab admin-tab--nav-hidden" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub" hidden>
                   <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Project Hub</span><span class="admin-tab-label-mobile">Hub</span></span>
@@ -3111,13 +3119,6 @@
                   <span class="admin-kpi-label">Pipeline Value</span>
                 </div>
               </div>
-              <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="testimonials" title="Go to testimonials">
-                <ion-icon name="star-outline" aria-hidden="true"></ion-icon>
-                <div>
-                  <span class="admin-kpi-value" id="kpi-pending-reviews">—</span>
-                  <span class="admin-kpi-label">Pending Reviews</span>
-                </div>
-              </div>
               <div class="admin-kpi-card" role="button" tabindex="0" data-admin-kpi-tab="studio-costs" title="Go to studio costs">
                 <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
                 <div>
@@ -3168,72 +3169,6 @@
                     Deposit → onboard
                   </h4>
                   <ul class="admin-overview-list" id="admin-cc-deposit-list" aria-live="polite"></ul>
-                </section>
-                <section class="admin-cc-card admin-cc-card--span-full" aria-labelledby="admin-cc-portal-heading">
-                  <h4 class="admin-cc-card-title" id="admin-cc-portal-heading">
-                    <ion-icon name="link-outline" aria-hidden="true"></ion-icon>
-                    Portal status
-                  </h4>
-                  <ul class="admin-overview-list" id="admin-cc-portal-list" aria-live="polite"></ul>
-                </section>
-                <section class="admin-cc-card" aria-labelledby="admin-cc-calls-heading">
-                  <h4 class="admin-cc-card-title" id="admin-cc-calls-heading">
-                    <ion-icon name="call-outline" aria-hidden="true"></ion-icon>
-                    Upcoming calls
-                  </h4>
-                  <ul class="admin-overview-list" id="admin-cc-calls-list" aria-live="polite"></ul>
-                </section>
-                <section class="admin-cc-card admin-cc-card--span-full admin-collapsible-section" id="admin-sched-section">
-                  <button type="button" class="admin-collapsible-header" id="admin-sched-toggle" aria-expanded="false" aria-controls="admin-sched-content">
-                    <span class="admin-collapsible-inner">
-                      <ion-icon name="time-outline" class="admin-collapsible-icon" aria-hidden="true"></ion-icon>
-                      <span class="admin-collapsible-text">
-                        <span class="admin-collapsible-title" id="admin-cc-scheduling-heading">Scheduling settings</span>
-                        <span class="admin-collapsible-subtitle">Weekly hours, call types &amp; blocked dates for Hire Me + /schedule</span>
-                      </span>
-                    </span>
-                    <ion-icon name="chevron-down-outline" class="admin-collapsible-chevron" aria-hidden="true"></ion-icon>
-                  </button>
-
-                  <div class="admin-collapsible-content" id="admin-sched-content">
-                    <div class="admin-collapsible-inner-content">
-                      <p class="business-doc-scope-hint">Powers “Schedule a call” on Hire Me and the public <a href="/schedule/" target="_blank" rel="noopener">/schedule</a> page (send from Client Email → Schedule a call template). Save at least one weekly window and call type or clients will see no open times. Times are wall-clock hours — set the label to the zone you actually work in.</p>
-
-                      <div class="form-group form-group-half" style="max-width:320px;">
-                        <label for="admin-sched-timezone">Timezone label</label>
-                        <input type="text" id="admin-sched-timezone" placeholder="America/Los_Angeles" value="America/Los_Angeles">
-                      </div>
-
-                      <div class="admin-sched-days" id="admin-sched-days"></div>
-
-                      <div class="admin-sched-subsection">
-                        <div class="business-doc-scope-title-row">
-                          <label class="business-doc-addons-label">Call types</label>
-                        </div>
-                        <div class="admin-sched-call-types" id="admin-sched-call-types"></div>
-                        <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="admin-sched-add-call-type-btn">
-                          <ion-icon name="add-outline"></ion-icon> Add call type
-                        </button>
-                      </div>
-
-                      <div class="admin-sched-subsection">
-                        <div class="business-doc-scope-title-row">
-                          <label class="business-doc-addons-label">Blocked dates</label>
-                        </div>
-                        <div class="admin-sched-blocked-dates" id="admin-sched-blocked-dates"></div>
-                        <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="admin-sched-add-blocked-date-btn">
-                          <ion-icon name="add-outline"></ion-icon> Add blocked date
-                        </button>
-                      </div>
-
-                      <div class="form-actions">
-                        <button type="button" class="btn btn-primary" id="admin-sched-save-btn">
-                          <ion-icon name="save-outline"></ion-icon> Save scheduling settings
-                        </button>
-                        <span id="admin-sched-save-status" class="business-doc-scope-hint" style="margin-left:12px;"></span>
-                      </div>
-                    </div>
-                  </div>
                 </section>
               </div>
             </div>
@@ -3467,6 +3402,126 @@
             </div>
           </section>
           </div><!-- /admin-panel-client-email -->
+
+          <div id="admin-panel-bookings" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-bookings" data-admin-tab="bookings" hidden>
+          <section class="service" id="admin-bookings-section">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Bookings</h3>
+                <p class="admin-panel-lead">Calls from /schedule and Hire Me. Add a Meet link here — never on the invite email.</p>
+              </div>
+              <div class="admin-panel-heading-action">
+                <div class="admin-bookings-seg" role="group" aria-label="Bookings view">
+                  <button type="button" class="admin-bookings-seg-btn is-active" data-bookings-view="calendar">
+                    <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+                    <span>Calendar</span>
+                  </button>
+                  <button type="button" class="admin-bookings-seg-btn" data-bookings-view="list">
+                    <ion-icon name="list-outline" aria-hidden="true"></ion-icon>
+                    <span>List</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-bookings-status-row">
+              <p class="admin-bookings-summary" id="admin-bookings-summary" aria-live="polite"></p>
+              <p class="admin-bookings-feedback" id="admin-bookings-feedback" role="status" aria-live="polite" hidden></p>
+            </div>
+
+            <div id="admin-bookings-calendar-view" class="admin-bookings-calendar-view">
+              <div class="admin-bookings-cal-main">
+                <div class="admin-bookings-cal-nav">
+                  <button type="button" class="btn btn-secondary btn-sm" id="admin-bookings-cal-prev" aria-label="Previous month">
+                    <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                  <div class="admin-bookings-cal-nav-center">
+                    <h4 class="admin-bookings-cal-month" id="admin-bookings-cal-month-label">Month</h4>
+                    <button type="button" class="btn btn-secondary btn-sm" id="admin-bookings-cal-today">Today</button>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" id="admin-bookings-cal-next" aria-label="Next month">
+                    <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                </div>
+                <div class="admin-bookings-cal-weekdays" aria-hidden="true">
+                  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div class="admin-bookings-cal-grid" id="admin-bookings-cal-grid" role="grid" aria-label="Bookings calendar"></div>
+              </div>
+              <div class="admin-bookings-day-panel">
+                <div class="admin-bookings-day-panel-head">
+                  <h4 class="admin-bookings-day-title" id="admin-bookings-day-title">Select a day</h4>
+                  <p class="admin-bookings-day-count" id="admin-bookings-day-count"></p>
+                </div>
+                <div class="admin-bookings-list" id="admin-bookings-day-list"></div>
+              </div>
+            </div>
+
+            <div id="admin-bookings-list-view" class="admin-bookings-list-view" hidden>
+              <div class="admin-bookings-toolbar">
+                <div class="admin-bookings-seg admin-bookings-seg--filters" role="group" aria-label="Booking filters">
+                  <button type="button" class="admin-bookings-seg-btn is-active" data-bookings-filter="upcoming">Upcoming</button>
+                  <button type="button" class="admin-bookings-seg-btn" data-bookings-filter="past">Past</button>
+                  <button type="button" class="admin-bookings-seg-btn" data-bookings-filter="all">All</button>
+                </div>
+              </div>
+              <div class="admin-bookings-list" id="admin-bookings-list"></div>
+            </div>
+
+            <section class="admin-bookings-settings admin-collapsible-section" id="admin-sched-section">
+              <button type="button" class="admin-collapsible-header" id="admin-sched-toggle" aria-expanded="false" aria-controls="admin-sched-content">
+                <span class="admin-collapsible-inner">
+                  <ion-icon name="time-outline" class="admin-collapsible-icon" aria-hidden="true"></ion-icon>
+                  <span class="admin-collapsible-text">
+                    <span class="admin-collapsible-title" id="admin-cc-scheduling-heading">Scheduling settings</span>
+                    <span class="admin-collapsible-subtitle">Weekly hours, call types &amp; blocked dates</span>
+                  </span>
+                </span>
+                <ion-icon name="chevron-down-outline" class="admin-collapsible-chevron" aria-hidden="true"></ion-icon>
+              </button>
+
+              <div class="admin-collapsible-content" id="admin-sched-content">
+                <div class="admin-collapsible-inner-content">
+                  <p class="business-doc-scope-hint">Powers Hire Me and <a href="/schedule/" target="_blank" rel="noopener">/schedule</a>. Save at least one weekday window and call type or clients see no open times.</p>
+
+                  <div class="form-group form-group-half" style="max-width:320px;">
+                    <label for="admin-sched-timezone">Timezone label</label>
+                    <input type="text" id="admin-sched-timezone" placeholder="America/Los_Angeles" value="America/Los_Angeles">
+                  </div>
+
+                  <div class="admin-sched-days" id="admin-sched-days"></div>
+
+                  <div class="admin-sched-subsection">
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-addons-label">Call types</label>
+                    </div>
+                    <div class="admin-sched-call-types" id="admin-sched-call-types"></div>
+                    <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="admin-sched-add-call-type-btn">
+                      <ion-icon name="add-outline"></ion-icon> Add call type
+                    </button>
+                  </div>
+
+                  <div class="admin-sched-subsection">
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-addons-label">Blocked dates</label>
+                    </div>
+                    <div class="admin-sched-blocked-dates" id="admin-sched-blocked-dates"></div>
+                    <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="admin-sched-add-blocked-date-btn">
+                      <ion-icon name="add-outline"></ion-icon> Add blocked date
+                    </button>
+                  </div>
+
+                  <div class="form-actions">
+                    <button type="button" class="btn btn-primary" id="admin-sched-save-btn">
+                      <ion-icon name="save-outline"></ion-icon> Save scheduling settings
+                    </button>
+                    <span id="admin-sched-save-status" class="business-doc-scope-hint" style="margin-left:12px;"></span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </section>
+          </div><!-- /admin-panel-bookings -->
 
           <!-- Testimonial invites (Firestore + Resend) -->
           <div id="admin-panel-testimonials" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-testimonials" data-admin-tab="testimonials" hidden>
@@ -4225,6 +4280,26 @@
             <div class="confirm-delete-modal__actions">
               <button type="button" class="btn btn-secondary" id="delete-lead-confirm-cancel">Cancel</button>
               <button type="button" class="btn btn-danger" id="delete-lead-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Cancel booking confirmation -->
+        <div class="modal-container" id="cancel-booking-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="cancel-booking-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="cancel-booking-confirm-title" aria-describedby="cancel-booking-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="cancel-booking-confirm-title">Cancel this booking?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="cancel-booking-confirm-close" aria-label="Keep booking">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="cancel-booking-confirm-desc">This removes the booking and frees the time slot so someone else can book it.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="cancel-booking-confirm-keep">Keep booking</button>
+              <button type="button" class="btn btn-danger" id="cancel-booking-confirm-cancel">Cancel booking</button>
             </div>
           </section>
         </div>
@@ -6726,15 +6801,15 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/portfolio-built-in-data.js?v=poster-webp-20260729"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
   <script src="/assets/js/business-doc-shared.js?v=cwr-theme-surfaces-20260726"></script>
-  <script src="/assets/js/hire-me-booking.js?v=schedule-type-deeplink-20260802"></script>
+  <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=multi-guides-20260729"></script>
-  <script src="/assets/js/email-templates-client.js?v=schedule-cta-20260802"></script>
+  <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=portal-recover-20260728"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=project-detail-close-20260730"></script>
+  <script src="/assets/js/script.js?v=admin-studio-costs-20260803"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=studio-costs-20260731"></script>
+  <script src="/assets/js/agency-tools.js?v=admin-studio-costs-20260803"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
