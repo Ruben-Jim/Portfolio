@@ -9499,6 +9499,18 @@ window.addEventListener('load', function() {
         'Talk soon,\nCodeWithRuben'
     },
     {
+      id: 'reschedule-call',
+      label: 'Reschedule call',
+      defaultSubject: 'Let’s reschedule your {{callType}}',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'It looks like the Google Meet link for our {{callType}} didn’t come through on your end.\n\n' +
+        '{{agreedTimeBlock}}' +
+        '{{linkLine}}\n' +
+        'Next step: {{nextStep}}\n\n' +
+        'Talk soon,\nCodeWithRuben'
+    },
+    {
       id: 'maintenance-setup',
       label: 'Maintenance setup',
       defaultSubject: 'Set up maintenance & support for {{projectName}}',
@@ -9541,6 +9553,10 @@ window.addEventListener('load', function() {
     'schedule-call': {
       cta_label: 'Pick a time →',
       header_subtitle: 'Schedule a call'
+    },
+    'reschedule-call': {
+      cta_label: 'Pick a new time →',
+      header_subtitle: 'Reschedule your call'
     },
     'maintenance-setup': {
       cta_label: 'Open maintenance in portal →',
@@ -9595,6 +9611,16 @@ window.addEventListener('load', function() {
     return ADMIN_CLIENT_EMAIL_TEMPLATES.find(function (tpl) { return tpl.id === templateId; }) || ADMIN_CLIENT_EMAIL_TEMPLATES[0];
   }
 
+  function isScheduleInviteEmailTemplate(templateId) {
+    return templateId === 'schedule-call' || templateId === 'reschedule-call';
+  }
+
+  function scheduleInviteEmailSubject(templateId, callTypeLabel) {
+    var label = callTypeLabel || 'call';
+    if (templateId === 'reschedule-call') return 'Let’s reschedule your ' + label;
+    return 'Let’s find a time for a ' + label;
+  }
+
   function getSelectedAdminCallType(els) {
     var id = String((els.callType && els.callType.value) || '').trim();
     if (!id) return adminClientEmailState.callTypes[0] || null;
@@ -9634,27 +9660,50 @@ window.addEventListener('load', function() {
     var link = String((els.link && els.link.value) || '').trim();
     var templateId = (els.template && els.template.value) || '';
     var ct = getSelectedAdminCallType(els);
-    if (!link && templateId === 'schedule-call') {
+    var agreedTime = '';
+    if (els.link && els.link.dataset) {
+      agreedTime = String(els.link.dataset.agreedTime || '').trim();
+    }
+    var isAgreedReschedule = templateId === 'reschedule-call' && !!agreedTime;
+    if (!link && isScheduleInviteEmailTemplate(templateId) && !isAgreedReschedule) {
       link = buildAdminScheduleLink(els);
     }
+    var agreedTimeBlock = agreedTime
+      ? ('No worries — we’ve locked in a new time: ' + agreedTime + '.\n\n' +
+        'I’ll send the Google Meet link shortly. Reply if you need to change anything.\n\n')
+      : (templateId === 'reschedule-call'
+        ? ('No worries — use the button below to pick a new date and time. The call type is already set, so you’ll go straight to open slots. You’ll get a fresh confirmation email with the calendar invite and Meet link.\n\n')
+        : '');
+    var linkLine = link
+      ? 'Link: ' + link
+      : (isScheduleInviteEmailTemplate(templateId) || isAgreedReschedule
+        ? ''
+        : 'Link: (add your portal or preview link here)');
     return {
       clientName: String((els.toName && els.toName.value) || '').trim() || 'there',
       projectName: 'your project',
       nextStep: String((els.nextStep && els.nextStep.value) || '').trim() || 'Reply with your notes when ready',
       callType: formatAdminCallTypeLabel(ct),
       link: link,
-      linkLine: link ? 'Link: ' + link : 'Link: (add your portal or preview link here)'
+      linkLine: linkLine,
+      agreedTime: agreedTime,
+      agreedTimeBlock: agreedTimeBlock
     };
   }
 
   function renderEmailTemplateText(templateText, vars) {
-    return String(templateText || '')
+    var out = String(templateText || '')
       .replace(/\{\{\s*clientName\s*\}\}/g, vars.clientName)
       .replace(/\{\{\s*projectName\s*\}\}/g, vars.projectName)
       .replace(/\{\{\s*nextStep\s*\}\}/g, vars.nextStep)
       .replace(/\{\{\s*callType\s*\}\}/g, vars.callType || 'call')
+      .replace(/\{\{\s*agreedTimeBlock\s*\}\}/g, vars.agreedTimeBlock || '')
+      .replace(/\{\{\s*agreedTime\s*\}\}/g, vars.agreedTime || '')
       .replace(/\{\{\s*linkLine\s*\}\}/g, vars.linkLine)
       .replace(/\{\{\s*link\s*\}\}/g, vars.link);
+    // Drop blank Link lines when no CTA link (agreed-time reschedule)
+    out = out.replace(/^Link:\s*$/gm, '').replace(/\n{3,}/g, '\n\n');
+    return out;
   }
 
   function setAdminClientEmailFeedback(els, message, isError) {
@@ -9666,11 +9715,14 @@ window.addEventListener('load', function() {
 
   function syncAdminClientEmailDynamicFields(els) {
     var templateId = (els.template && els.template.value) || '';
-    if (templateId === 'schedule-call' && els.link) {
-      var currentLink = String(els.link.value || '').trim();
-      var isScheduleLink = !currentLink || /\/schedule(\?|$)/.test(currentLink);
-      if (isScheduleLink) {
-        els.link.value = buildAdminScheduleLink(els);
+    if (isScheduleInviteEmailTemplate(templateId) && els.link) {
+      var agreedTimeSync = String(els.link.dataset.agreedTime || '').trim();
+      if (!(templateId === 'reschedule-call' && agreedTimeSync)) {
+        var currentLink = String(els.link.value || '').trim();
+        var isScheduleLink = !currentLink || /\/schedule(\?|$)/.test(currentLink);
+        if (isScheduleLink) {
+          els.link.value = buildAdminScheduleLink(els);
+        }
       }
     }
     var vars = getAdminClientEmailVars(els);
@@ -9682,14 +9734,21 @@ window.addEventListener('load', function() {
       msg = msg.replace(/^Hey .+?,/m, 'Hey ' + vars.clientName + ',');
       msg = msg.replace(/a quick call about/g, 'a ' + vars.callType + ' about');
       msg = msg.replace(/jump on a .+? about/g, 'jump on a ' + vars.callType + ' about');
+      msg = msg.replace(/for our .+?(?=\s+didn’t|\s+didn't|\s+about)/g, 'for our ' + vars.callType);
       msg = msg.replace(/^Let’s find a time for a .+$/m, 'Let’s find a time for a ' + vars.callType);
+      msg = msg.replace(/^Let’s reschedule your .+$/m, 'Let’s reschedule your ' + vars.callType);
       els.message.value = msg;
     }
     if (els.subject) {
       var subj = String(els.subject.value || '');
-      if (/\{\{/.test(subj) || /^Let’s find a time for a /i.test(subj) || /^Let’s find a time to talk/i.test(subj)) {
-        if (templateId === 'schedule-call') {
-          els.subject.value = 'Let’s find a time for a ' + vars.callType;
+      if (
+        /\{\{/.test(subj) ||
+        /^Let’s find a time for a /i.test(subj) ||
+        /^Let’s find a time to talk/i.test(subj) ||
+        /^Let’s reschedule your /i.test(subj)
+      ) {
+        if (isScheduleInviteEmailTemplate(templateId)) {
+          els.subject.value = scheduleInviteEmailSubject(templateId, vars.callType);
         } else if (/\{\{/.test(subj)) {
           els.subject.value = renderEmailTemplateText(subj, vars);
         }
@@ -9701,8 +9760,12 @@ window.addEventListener('load', function() {
 
   function getAdminClientEmailMeta(els) {
     var templateId = (els.template && els.template.value) || '';
-    var meta = ADMIN_CLIENT_EMAIL_CTA[templateId] || null;
     var link = String((els.link && els.link.value) || '').trim();
+    var agreedTime = els.link && els.link.dataset ? String(els.link.dataset.agreedTime || '').trim() : '';
+    if (templateId === 'reschedule-call' && agreedTime && !link) {
+      return { cta_label: '', header_subtitle: 'Reschedule confirmation' };
+    }
+    var meta = ADMIN_CLIENT_EMAIL_CTA[templateId] || null;
     if (!meta && /\/schedule(\/|\?|$)/i.test(link)) {
       meta = ADMIN_CLIENT_EMAIL_CTA['schedule-call'];
     }
@@ -9772,7 +9835,7 @@ window.addEventListener('load', function() {
 
   function setAdminClientEmailCallTypeVisibility(els, templateId) {
     if (!els.callTypeWrap) return;
-    var show = templateId === 'schedule-call';
+    var show = isScheduleInviteEmailTemplate(templateId);
     els.callTypeWrap.hidden = !show;
   }
 
@@ -9811,6 +9874,7 @@ window.addEventListener('load', function() {
 
   function defaultNextStepForEmailTemplate(templateId) {
     if (templateId === 'schedule-call') return 'Book a slot that works for you';
+    if (templateId === 'reschedule-call') return 'Pick a new time that works for you';
     if (templateId === 'maintenance-setup') return 'Pick a plan in your portal';
     if (templateId === 'maintenance-invoice') return 'Open the portal and review your invoice';
     if (templateId === 'maintenance-grace') return 'Review the invoice and get current today';
@@ -9825,11 +9889,14 @@ window.addEventListener('load', function() {
       var defaultNext = defaultNextStepForEmailTemplate(template.id);
       if (defaultNext) els.nextStep.value = defaultNext;
     }
-    if (template.id === 'schedule-call') {
+    if (isScheduleInviteEmailTemplate(template.id)) {
       ensureAdminClientEmailCallTypes(els, els.callType && els.callType.value).then(function () {
-        if (els.link) els.link.value = buildAdminScheduleLink(els);
+        var agreedTime = els.link && els.link.dataset ? String(els.link.dataset.agreedTime || '').trim() : '';
+        if (els.link && !(template.id === 'reschedule-call' && agreedTime)) {
+          els.link.value = buildAdminScheduleLink(els);
+        }
         if (els.nextStep && !String(els.nextStep.value || '').trim()) {
-          els.nextStep.value = 'Book a slot that works for you';
+          els.nextStep.value = defaultNextStepForEmailTemplate(template.id);
         }
         var vars = getAdminClientEmailVars(els);
         if (els.subject) els.subject.value = renderEmailTemplateText(template.defaultSubject, vars);
@@ -9950,7 +10017,7 @@ window.addEventListener('load', function() {
       if (els.subject) els.subject.value = draft.subject || '';
       if (els.message) els.message.value = draft.message || '';
       setAdminClientEmailCallTypeVisibility(els, (els.template && els.template.value) || '');
-      if ((els.template && els.template.value) === 'schedule-call') {
+      if (isScheduleInviteEmailTemplate((els.template && els.template.value) || '')) {
         ensureAdminClientEmailCallTypes(els, draft.callTypeId || '').then(function () {
           syncAdminClientEmailDynamicFields(els);
         });
@@ -9972,13 +10039,14 @@ window.addEventListener('load', function() {
 
     if (els.callType) {
       els.callType.addEventListener('change', function () {
-        if ((els.template && els.template.value) === 'schedule-call') {
+        var templateId = (els.template && els.template.value) || '';
+        if (isScheduleInviteEmailTemplate(templateId)) {
           if (els.link) els.link.value = buildAdminScheduleLink(els);
           syncAdminClientEmailDynamicFields(els);
           var vars = getAdminClientEmailVars(els);
-          if (els.subject) els.subject.value = 'Let’s find a time for a ' + vars.callType;
+          var tpl = getTemplateById(templateId);
+          if (els.subject) els.subject.value = scheduleInviteEmailSubject(templateId, vars.callType);
           if (els.message) {
-            var tpl = getTemplateById('schedule-call');
             els.message.value = renderEmailTemplateText(tpl.defaultBody, vars);
           }
           updateAdminClientEmailPreview(els);
@@ -10035,6 +10103,13 @@ window.addEventListener('load', function() {
     if (data.email != null && els.toEmail) els.toEmail.value = String(data.email);
     if (data.link != null && els.link) els.link.value = String(data.link);
     if (data.nextStep != null && els.nextStep) els.nextStep.value = String(data.nextStep);
+    if (els.link && els.link.dataset) {
+      if (data.agreedTime != null) {
+        els.link.dataset.agreedTime = String(data.agreedTime || '').trim();
+      } else {
+        delete els.link.dataset.agreedTime;
+      }
+    }
     var templateId = data.templateId || (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
     if (els.template && typeof window.setBusinessDocSelectValue === 'function') {
       window.setBusinessDocSelectValue(els.template, templateId, true);
@@ -10044,14 +10119,20 @@ window.addEventListener('load', function() {
     setAdminClientEmailCallTypeVisibility(els, templateId);
     var preferredType = data.callTypeId ? String(data.callTypeId).trim() : '';
     var finish = function () {
-      if (templateId === 'schedule-call') {
+      if (isScheduleInviteEmailTemplate(templateId)) {
         var hubId = data.hubId ? String(data.hubId).trim() : '';
-        if (els.link) els.link.value = buildAdminScheduleLink(els, hubId);
+        var agreedTime = data.agreedTime != null ? String(data.agreedTime || '').trim() : '';
+        if (els.link && !(templateId === 'reschedule-call' && agreedTime)) {
+          els.link.value = buildAdminScheduleLink(els, hubId);
+        }
+        if (templateId === 'reschedule-call' && agreedTime && els.link) {
+          els.link.value = '';
+        }
       }
       applyAdminClientEmailTemplate(els, templateId);
       syncAdminClientEmailDynamicFields(els);
     };
-    if (templateId === 'schedule-call') {
+    if (isScheduleInviteEmailTemplate(templateId)) {
       ensureAdminClientEmailCallTypes(els, preferredType).then(finish);
     } else {
       finish();
@@ -10294,7 +10375,7 @@ window.addEventListener('load', function() {
    * @property {string=} whyDifferentIntro
    * @property {string=} whyDifferent
    * @property {BusinessDocAddOn[]=} addOns
-   * @property {string=} maintenancePlanId - 'standard' | 'priority' (estimate/invoice); proposals ignore and show all
+   * @property {string=} maintenancePlanId - 'essential' | 'standard' | 'priority' (estimate/invoice); proposals ignore and show all
    * @property {'monthly'|'annual'=} maintenanceBilling - estimate/invoice billing display preference
    * @property {string=} sourceProposalId - contract only; id of the accepted proposal it was generated from
    * @property {'license'|'buyout'=} ipTransferMode - contract only; defaults to 'license'
@@ -10414,7 +10495,7 @@ window.addEventListener('load', function() {
       if (!out.addOns.length) delete out.addOns;
     }
     var planId = String(doc.maintenancePlanId || '').toLowerCase();
-    if (planId === 'standard' || planId === 'priority') {
+    if (planId === 'essential' || planId === 'standard' || planId === 'priority') {
       out.maintenancePlanId = planId;
       var billing = String(doc.maintenanceBilling || 'monthly').toLowerCase();
       out.maintenanceBilling = billing === 'annual' ? 'annual' : 'monthly';
@@ -10878,7 +10959,9 @@ window.addEventListener('load', function() {
   function pickNearestBookingDay() {
     var now = Date.now();
     var upcoming = (agencyBookingsList || [])
-      .filter(function (b) { return b && b.startISO && Date.parse(b.startISO) >= now; })
+      .filter(function (b) {
+        return isActiveAgencyBooking(b) && Date.parse(b.startISO) >= now;
+      })
       .sort(function (a, b) { return Date.parse(a.startISO) - Date.parse(b.startISO); });
     var pick = upcoming[0];
     if (!pick) {
@@ -10974,6 +11057,7 @@ window.addEventListener('load', function() {
   var adminBookingsFilter = 'upcoming';
   var adminBookingsSendingId = null;
   var pendingCancelBookingId = null;
+  var pendingRescheduleBookingId = null;
   var adminBookingsView = 'calendar';
   var adminBookingsCalMonth = null;
   var adminBookingsSelectedDay = null;
@@ -11000,13 +11084,14 @@ window.addEventListener('load', function() {
   function updateAdminBookingsSummary() {
     var el = document.getElementById('admin-bookings-summary');
     if (!el) return;
-    var total = (agencyBookingsList || []).length;
+    var active = (agencyBookingsList || []).filter(isActiveAgencyBooking);
+    var total = active.length;
     if (!total) {
       el.textContent = 'No bookings yet';
       return;
     }
     var now = Date.now();
-    var upcoming = (agencyBookingsList || []).filter(function (b) {
+    var upcoming = active.filter(function (b) {
       return b && b.startISO && Date.parse(b.startISO) >= now;
     }).length;
     el.textContent = upcoming
@@ -11030,6 +11115,14 @@ window.addEventListener('load', function() {
 
   function isValidMeetUrl(url) {
     return /^https?:\/\/[^\s]+$/i.test(String(url || '').trim());
+  }
+
+  function isAgencyBookingNoShow(booking) {
+    return String((booking && booking.status) || '').toLowerCase() === 'no_show';
+  }
+
+  function isActiveAgencyBooking(booking) {
+    return !!(booking && booking.startISO && !isAgencyBookingNoShow(booking));
   }
 
   function bookingDayKey(iso) {
@@ -11068,10 +11161,16 @@ window.addEventListener('load', function() {
       return Date.parse(a.startISO) - Date.parse(b.startISO);
     });
     if (adminBookingsFilter === 'upcoming') {
-      return list.filter(function (b) { return Date.parse(b.startISO) >= now; });
+      return list.filter(function (b) {
+        return isActiveAgencyBooking(b) && Date.parse(b.startISO) >= now;
+      });
     }
     if (adminBookingsFilter === 'past') {
-      return list.filter(function (b) { return Date.parse(b.startISO) < now; }).reverse();
+      return list
+        .filter(function (b) {
+          return Date.parse(b.startISO) < now || isAgencyBookingNoShow(b);
+        })
+        .reverse();
     }
     return list.slice().reverse();
   }
@@ -11096,30 +11195,18 @@ window.addEventListener('load', function() {
     var sourceLabel = source === 'schedule' ? 'Schedule' : (source === 'hire_me' ? 'Hire Me' : source);
     var when = formatBookingWhen(b.startISO);
     var timeOnly = formatBookingTime(b.startISO);
-    var joinBtn = meetUrl
+    var isNoShow = isAgencyBookingNoShow(b);
+    var joinBtn = meetUrl && !isNoShow
       ? '<a class="btn btn-secondary btn-sm" href="' + escapeBookingHtml(meetUrl) + '" target="_blank" rel="noopener">Join</a>'
       : '';
-    var meetReady = meetUrl
-      ? '<span class="admin-booking-chip admin-booking-chip--ok">Meet ready</span>'
-      : '<span class="admin-booking-chip">Needs Meet link</span>';
-    return (
-      '<article class="admin-booking-card" data-booking-id="' + escapeBookingHtml(b.id) + '">' +
-        '<div class="admin-booking-card-head">' +
-          '<div class="admin-booking-card-when">' +
-            '<span class="admin-booking-card-time">' + escapeBookingHtml(timeOnly || when) + '</span>' +
-            '<span class="admin-booking-card-type">' + escapeBookingHtml(b.callTypeLabel || 'Call') + '</span>' +
-          '</div>' +
-          '<div class="admin-booking-card-chips">' +
-            meetReady +
-            '<span class="admin-booking-chip admin-booking-chip--muted">' + escapeBookingHtml(sourceLabel) + '</span>' +
-          '</div>' +
-        '</div>' +
-        '<h4 class="admin-booking-card-title">' + escapeBookingHtml(b.name || 'Guest') + '</h4>' +
-        '<p class="admin-booking-card-meta">' +
-          '<a href="mailto:' + escapeBookingHtml(b.email || '') + '">' + escapeBookingHtml(b.email || '') + '</a>' +
-          (b.hubId ? ' · hub ' + escapeBookingHtml(b.hubId) : '') +
-          ' · ' + escapeBookingHtml(when) +
-        '</p>' +
+    var statusChip = isNoShow
+      ? '<span class="admin-booking-chip admin-booking-chip--noshow">No show</span>'
+      : (meetUrl
+        ? '<span class="admin-booking-chip admin-booking-chip--ok">Meet ready</span>'
+        : '<span class="admin-booking-chip">Needs Meet link</span>');
+    var meetRow = isNoShow
+      ? ''
+      : (
         '<div class="admin-booking-meet-row">' +
           '<label class="form-label" for="admin-booking-meet-' + escapeBookingHtml(b.id) + '">Google Meet URL</label>' +
           '<div class="admin-booking-meet-controls">' +
@@ -11130,10 +11217,35 @@ window.addEventListener('load', function() {
               '<button type="button" class="btn btn-primary btn-sm" data-booking-action="send-meet"' + (meetUrl ? '' : ' disabled') + '>Send</button>' +
             '</div>' +
           '</div>' +
+        '</div>'
+      );
+    var actions =
+      '<div class="admin-booking-card-actions">' +
+        '<button type="button" class="btn btn-secondary btn-sm" data-booking-action="reschedule-booking">Reschedule</button>' +
+        '<button type="button" class="btn btn-secondary btn-sm admin-booking-cancel-btn" data-booking-action="cancel-booking">' +
+        (isNoShow ? 'Remove' : 'Cancel booking') +
+        '</button>' +
+      '</div>';
+    return (
+      '<article class="admin-booking-card' + (isNoShow ? ' is-noshow' : '') + '" data-booking-id="' + escapeBookingHtml(b.id) + '">' +
+        '<div class="admin-booking-card-head">' +
+          '<div class="admin-booking-card-when">' +
+            '<span class="admin-booking-card-time">' + escapeBookingHtml(timeOnly || when) + '</span>' +
+            '<span class="admin-booking-card-type">' + escapeBookingHtml(b.callTypeLabel || 'Call') + '</span>' +
+          '</div>' +
+          '<div class="admin-booking-card-chips">' +
+            statusChip +
+            '<span class="admin-booking-chip admin-booking-chip--muted">' + escapeBookingHtml(sourceLabel) + '</span>' +
+          '</div>' +
         '</div>' +
-        '<div class="admin-booking-card-actions">' +
-          '<button type="button" class="btn btn-secondary btn-sm admin-booking-cancel-btn" data-booking-action="cancel-booking">Cancel booking</button>' +
-        '</div>' +
+        '<h4 class="admin-booking-card-title">' + escapeBookingHtml(b.name || 'Guest') + '</h4>' +
+        '<p class="admin-booking-card-meta">' +
+          '<a href="mailto:' + escapeBookingHtml(b.email || '') + '">' + escapeBookingHtml(b.email || '') + '</a>' +
+          (b.hubId ? ' · hub ' + escapeBookingHtml(b.hubId) : '') +
+          ' · ' + escapeBookingHtml(when) +
+        '</p>' +
+        meetRow +
+        actions +
       '</article>'
     );
   }
@@ -11187,7 +11299,7 @@ window.addEventListener('load', function() {
     var counts = {};
     var firstTime = {};
     (agencyBookingsList || []).forEach(function (b) {
-      if (!b || !b.startISO) return;
+      if (!isActiveAgencyBooking(b)) return;
       var key = bookingDayKey(b.startISO);
       if (!key) return;
       counts[key] = (counts[key] || 0) + 1;
@@ -11373,6 +11485,383 @@ window.addEventListener('load', function() {
     agencyBookingsList = (agencyBookingsList || []).filter(function (b) { return b.id !== bookingId; });
   }
 
+  async function markAgencyBookingNoShow(booking) {
+    if (!booking || !booking.id) throw new Error('Missing booking.');
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbUpdate) {
+      throw new Error('Database is not ready.');
+    }
+    if (isAgencyBookingNoShow(booking)) return booking;
+    var bookingId = booking.id;
+    var slotKey = slotKeyFromBooking(booking);
+    var patch = {
+      status: 'no_show',
+      noShowAt: new Date().toISOString()
+    };
+    await window.rtdbUpdate(window.rtdbRef(window.rtdb, AGENCY_BOOKINGS_RTD_PATH + '/' + bookingId), patch);
+    if (slotKey) {
+      try {
+        await window.rtdbRemove(window.rtdbRef(window.rtdb, 'agencyBookedSlots/' + slotKey));
+      } catch (slotErr) {
+        console.warn('Marked no-show, but slot release failed', slotKey, slotErr);
+      }
+    }
+    var row = (agencyBookingsList || []).find(function (b) { return b.id === bookingId; });
+    if (row) {
+      row.status = 'no_show';
+      row.noShowAt = patch.noShowAt;
+    }
+    return row || booking;
+  }
+
+  function slotKeyFromLocalDate(d) {
+    if (!d || isNaN(d.getTime())) return '';
+    return d.getFullYear() + '-' + padBookingSlot2(d.getMonth() + 1) + '-' + padBookingSlot2(d.getDate()) +
+      'T' + padBookingSlot2(d.getHours()) + '-' + padBookingSlot2(d.getMinutes());
+  }
+
+  function toDatetimeLocalValue(d) {
+    if (!d || isNaN(d.getTime())) return '';
+    return d.getFullYear() + '-' + padBookingSlot2(d.getMonth() + 1) + '-' + padBookingSlot2(d.getDate()) +
+      'T' + padBookingSlot2(d.getHours()) + ':' + padBookingSlot2(d.getMinutes());
+  }
+
+  function parseDatetimeLocalValue(value) {
+    var raw = String(value || '').trim();
+    var m = raw.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+    if (!m) return null;
+    var d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]), 0, 0);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  async function rescheduleAgencyBookingToDateTime(booking, startLocal) {
+    if (!booking || !booking.id) throw new Error('Missing booking.');
+    if (!startLocal || isNaN(startLocal.getTime())) throw new Error('Pick a valid date and time.');
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbUpdate || !window.rtdbSet || !window.rtdbRemove) {
+      throw new Error('Database is not ready.');
+    }
+    var durationMin = Number(booking.durationMin) || 30;
+    if (isNaN(durationMin) || durationMin < 5) durationMin = 30;
+    var endLocal = new Date(startLocal.getTime() + durationMin * 60000);
+    var startISO = startLocal.toISOString();
+    var endISO = endLocal.toISOString();
+    var newSlotKey = slotKeyFromLocalDate(startLocal);
+    var oldSlotKey = slotKeyFromBooking(booking);
+    if (!newSlotKey) throw new Error('Could not build a slot key for that time.');
+
+    var conflict = (agencyBookingsList || []).some(function (b) {
+      return (
+        b &&
+        b.id !== booking.id &&
+        isActiveAgencyBooking(b) &&
+        slotKeyFromBooking(b) === newSlotKey
+      );
+    });
+    if (conflict) {
+      throw new Error('That time is already taken — pick another.');
+    }
+
+    if (newSlotKey !== oldSlotKey) {
+      try {
+        await window.rtdbSet(window.rtdbRef(window.rtdb, 'agencyBookedSlots/' + newSlotKey), {
+          startISO: startISO,
+          endISO: endISO
+        });
+      } catch (slotErr) {
+        throw new Error('That time is already taken — pick another.');
+      }
+    } else {
+      try {
+        await window.rtdbSet(window.rtdbRef(window.rtdb, 'agencyBookedSlots/' + newSlotKey), {
+          startISO: startISO,
+          endISO: endISO
+        });
+      } catch (e) {
+        /* slot may already belong to this booking */
+      }
+    }
+
+    var patch = {
+      startISO: startISO,
+      endISO: endISO,
+      slotKey: newSlotKey,
+      durationMin: durationMin,
+      status: null,
+      noShowAt: null,
+      meetUrl: null,
+      meetUrlUpdatedAt: null,
+      meetLinkSentAt: null,
+      rescheduledAt: new Date().toISOString()
+    };
+    try {
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, AGENCY_BOOKINGS_RTD_PATH + '/' + booking.id), patch);
+    } catch (err) {
+      if (newSlotKey !== oldSlotKey) {
+        try {
+          await window.rtdbRemove(window.rtdbRef(window.rtdb, 'agencyBookedSlots/' + newSlotKey));
+        } catch (e2) { /* ignore */ }
+      }
+      throw err;
+    }
+
+    if (oldSlotKey && oldSlotKey !== newSlotKey) {
+      try {
+        await window.rtdbRemove(window.rtdbRef(window.rtdb, 'agencyBookedSlots/' + oldSlotKey));
+      } catch (slotErr) {
+        console.warn('Rescheduled booking, but old slot release failed', oldSlotKey, slotErr);
+      }
+    }
+
+    var row = (agencyBookingsList || []).find(function (b) { return b.id === booking.id; });
+    if (row) {
+      row.startISO = startISO;
+      row.endISO = endISO;
+      row.slotKey = newSlotKey;
+      row.durationMin = durationMin;
+      row.rescheduledAt = patch.rescheduledAt;
+      delete row.status;
+      delete row.noShowAt;
+      delete row.meetUrl;
+      delete row.meetUrlUpdatedAt;
+      delete row.meetLinkSentAt;
+    }
+    return row || booking;
+  }
+
+  function openRescheduleEmailForBooking(booking, options) {
+    if (!booking) return;
+    options = options || {};
+    var agreedTime = String(options.agreedTime || '').trim();
+    var name = String(booking.name || '').trim();
+    var email = String(booking.email || '').trim();
+    var callTypeId = String(booking.callTypeId || '').trim();
+    var hubId = String(booking.hubId || '').trim();
+
+    var openWithType = function (typeId) {
+      var payload = {
+        name: name,
+        email: email,
+        templateId: 'reschedule-call',
+        hubId: hubId || undefined,
+        callTypeId: typeId || ''
+      };
+      if (agreedTime) {
+        payload.agreedTime = agreedTime;
+        payload.link = '';
+        payload.nextStep = 'Watch for the Google Meet link before we talk';
+      } else {
+        payload.agreedTime = '';
+        payload.link =
+          typeof window.buildScheduleInviteUrl === 'function'
+            ? window.buildScheduleInviteUrl({
+                name: name,
+                email: email,
+                hubId: hubId || undefined,
+                type: typeId || ''
+              })
+            : String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '') + '/schedule';
+        payload.nextStep = 'Pick a new time that works for you';
+      }
+      if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
+      if (typeof window.prefillAdminClientEmail === 'function') {
+        window.prefillAdminClientEmail(payload);
+      }
+    };
+
+    if (callTypeId) {
+      openWithType(callTypeId);
+      return;
+    }
+    if (typeof window.getDefaultScheduleCallType === 'function') {
+      window.getDefaultScheduleCallType().then(function (ct) {
+        openWithType(ct && ct.id ? ct.id : '');
+      }).catch(function () {
+        openWithType('');
+      });
+      return;
+    }
+    openWithType('');
+  }
+
+  function ensureRescheduleBookingModal() {
+    if (document.getElementById('reschedule-booking-modal')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'modal-container';
+    wrap.id = 'reschedule-booking-modal';
+    wrap.setAttribute('aria-hidden', 'true');
+    wrap.innerHTML =
+      '<div class="overlay" id="reschedule-booking-overlay"></div>' +
+      '<section class="confirm-delete-modal reschedule-booking-modal" role="dialog" aria-modal="true" aria-labelledby="reschedule-booking-title" aria-describedby="reschedule-booking-desc">' +
+        '<div class="confirm-delete-modal__header">' +
+          '<h3 id="reschedule-booking-title">Reschedule booking</h3>' +
+          '<button type="button" class="confirm-delete-modal__close" id="reschedule-booking-close" aria-label="Close">' +
+            '<ion-icon name="close-outline"></ion-icon>' +
+          '</button>' +
+        '</div>' +
+        '<div class="confirm-delete-modal__body">' +
+          '<p id="reschedule-booking-desc">Set the agreed date and time, or send a pick-a-time link instead.</p>' +
+          '<div class="reschedule-booking-fields">' +
+            '<label class="form-label" for="reschedule-booking-datetime">New date &amp; time</label>' +
+            '<input type="datetime-local" class="form-input" id="reschedule-booking-datetime" required>' +
+            '<p class="form-hint" id="reschedule-booking-hint">Updates this booking in place, clears No show, and clears the Meet link so you can add a new one later.</p>' +
+          '</div>' +
+          '<p class="reschedule-booking-feedback form-hint" id="reschedule-booking-feedback" role="status" aria-live="polite" hidden></p>' +
+        '</div>' +
+        '<div class="confirm-delete-modal__actions reschedule-booking-actions">' +
+          '<button type="button" class="btn btn-secondary" id="reschedule-booking-pick-link">Send pick-a-time link instead</button>' +
+          '<button type="button" class="btn btn-primary" id="reschedule-booking-save">Save time &amp; open email</button>' +
+        '</div>' +
+      '</section>';
+    document.body.appendChild(wrap);
+  }
+
+  function setRescheduleBookingFeedback(message, isError) {
+    var el = document.getElementById('reschedule-booking-feedback');
+    if (!el) return;
+    el.textContent = message || '';
+    el.hidden = !message;
+    el.classList.toggle('is-error', !!isError);
+  }
+
+  function closeRescheduleBookingModal() {
+    var modal = document.getElementById('reschedule-booking-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingRescheduleBookingId = null;
+    setRescheduleBookingFeedback('', false);
+  }
+
+  function openRescheduleBookingModal(booking) {
+    if (!booking || !booking.id) return;
+    ensureRescheduleBookingModal();
+    setupRescheduleBookingModal();
+    pendingRescheduleBookingId = booking.id;
+    var desc = document.getElementById('reschedule-booking-desc');
+    if (desc) {
+      desc.textContent =
+        'Reschedule “' + (booking.name || 'Guest') + ' · ' + formatBookingWhen(booking.startISO) +
+        '”. Enter the time you already agreed on, or send a pick-a-time link instead.';
+    }
+    var input = document.getElementById('reschedule-booking-datetime');
+    if (input) {
+      var start = new Date(booking.startISO);
+      if (!isNaN(start.getTime()) && !isAgencyBookingNoShow(booking)) {
+        input.value = toDatetimeLocalValue(start);
+      } else {
+        var next = new Date();
+        next.setMinutes(0, 0, 0);
+        next.setHours(next.getHours() + 1);
+        input.value = toDatetimeLocalValue(next);
+      }
+      setTimeout(function () { input.focus(); }, 40);
+    }
+    setRescheduleBookingFeedback('', false);
+    var modal = document.getElementById('reschedule-booking-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  async function performRescheduleBookingSave() {
+    var bookingId = pendingRescheduleBookingId;
+    var booking = (agencyBookingsList || []).find(function (b) { return b.id === bookingId; });
+    if (!booking) {
+      closeRescheduleBookingModal();
+      setAdminBookingsFeedback('That booking is no longer available.', true);
+      return;
+    }
+    var input = document.getElementById('reschedule-booking-datetime');
+    var startLocal = parseDatetimeLocalValue(input && input.value);
+    if (!startLocal) {
+      setRescheduleBookingFeedback('Enter a valid date and time.', true);
+      if (input) input.focus();
+      return;
+    }
+    var saveBtn = document.getElementById('reschedule-booking-save');
+    var pickBtn = document.getElementById('reschedule-booking-pick-link');
+    if (saveBtn) saveBtn.disabled = true;
+    if (pickBtn) pickBtn.disabled = true;
+    setRescheduleBookingFeedback('Saving new time…', false);
+    try {
+      var updated = await rescheduleAgencyBookingToDateTime(booking, startLocal);
+      var agreedLabel = formatBookingWhen(updated && updated.startISO ? updated.startISO : startLocal.toISOString());
+      closeRescheduleBookingModal();
+      adminBookingsSelectedDay = bookingDayKey(updated.startISO);
+      adminBookingsPreserveScroll = true;
+      renderAdminBookingsPanel();
+      setAdminBookingsFeedback('Updated booking to ' + agreedLabel + '. Opening email…', false);
+      openRescheduleEmailForBooking(updated, { agreedTime: agreedLabel });
+    } catch (err) {
+      console.error('reschedule save failed', err);
+      setRescheduleBookingFeedback((err && err.message) || 'Could not save the new time.', true);
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+      if (pickBtn) pickBtn.disabled = false;
+    }
+  }
+
+  async function performRescheduleBookingPickLink() {
+    var bookingId = pendingRescheduleBookingId;
+    var booking = (agencyBookingsList || []).find(function (b) { return b.id === bookingId; });
+    if (!booking) {
+      closeRescheduleBookingModal();
+      setAdminBookingsFeedback('That booking is no longer available.', true);
+      return;
+    }
+    var saveBtn = document.getElementById('reschedule-booking-save');
+    var pickBtn = document.getElementById('reschedule-booking-pick-link');
+    if (saveBtn) saveBtn.disabled = true;
+    if (pickBtn) pickBtn.disabled = true;
+    setRescheduleBookingFeedback('Marking as no-show…', false);
+    try {
+      await markAgencyBookingNoShow(booking);
+      closeRescheduleBookingModal();
+      adminBookingsPreserveScroll = true;
+      renderAdminBookingsPanel();
+      setAdminBookingsFeedback(
+        'Marked as no-show. Opening pick-a-time email for ' + (booking.email || 'client') + '…',
+        false
+      );
+      openRescheduleEmailForBooking(booking);
+    } catch (err) {
+      console.error('reschedule pick-link failed', err);
+      setRescheduleBookingFeedback((err && err.message) || 'Could not mark as no-show.', true);
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+      if (pickBtn) pickBtn.disabled = false;
+    }
+  }
+
+  function setupRescheduleBookingModal() {
+    ensureRescheduleBookingModal();
+    var modal = document.getElementById('reschedule-booking-modal');
+    if (!modal || modal.dataset.bound) return;
+    modal.dataset.bound = '1';
+
+    var overlay = document.getElementById('reschedule-booking-overlay');
+    var btnClose = document.getElementById('reschedule-booking-close');
+    var btnSave = document.getElementById('reschedule-booking-save');
+    var btnPick = document.getElementById('reschedule-booking-pick-link');
+
+    [overlay, btnClose].forEach(function (el) {
+      if (el) el.addEventListener('click', closeRescheduleBookingModal);
+    });
+    if (btnSave) btnSave.addEventListener('click', function () { performRescheduleBookingSave(); });
+    if (btnPick) btnPick.addEventListener('click', function () { performRescheduleBookingPickLink(); });
+
+    document.addEventListener(
+      'keydown',
+      function bookingRescheduleEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        var m = document.getElementById('reschedule-booking-modal');
+        if (!m || !m.classList.contains('active')) return;
+        ev.stopImmediatePropagation();
+        closeRescheduleBookingModal();
+      },
+      true
+    );
+  }
+
   function handleBookingCardAction(actionBtn) {
     var card = actionBtn.closest('[data-booking-id]');
     if (!card) return;
@@ -11429,6 +11918,11 @@ window.addEventListener('load', function() {
           adminBookingsSendingId = null;
           actionBtn.disabled = false;
         });
+      return;
+    }
+
+    if (action === 'reschedule-booking') {
+      openRescheduleBookingModal(booking);
       return;
     }
 
@@ -11539,6 +12033,7 @@ window.addEventListener('load', function() {
     section.dataset.boundBookings = '1';
     ensureBookingsCalState();
     setupCancelBookingConfirmModal();
+    setupRescheduleBookingModal();
 
     section.querySelectorAll('[data-bookings-view]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -12910,7 +13405,7 @@ window.addEventListener('load', function() {
     }
     if (businessDocMaintenanceHint) {
       businessDocMaintenanceHint.textContent = isProposal
-        ? 'Proposals show Standard + Priority as compact cards beside the gold turn-key price.'
+        ? 'Proposals show Essential, Standard + Priority as compact cards beside the gold turn-key price.'
         : 'Pick one portal plan for this document. Monthly also shows annual so the client can see savings; annual shows annual only.';
     }
   }
@@ -13082,7 +13577,7 @@ window.addEventListener('load', function() {
     if (businessDocMaintenancePlanInput) {
       var planId = String(doc.maintenancePlanId || '').toLowerCase();
       businessDocMaintenancePlanInput.value =
-        planId === 'standard' || planId === 'priority' ? planId : '';
+        planId === 'essential' || planId === 'standard' || planId === 'priority' ? planId : '';
     }
     if (businessDocMaintenanceBillingInput) {
       businessDocMaintenanceBillingInput.value =
@@ -13506,7 +14001,7 @@ window.addEventListener('load', function() {
         var planSel = businessDocMaintenancePlanInput
           ? String(businessDocMaintenancePlanInput.value || '').toLowerCase()
           : '';
-        if (planSel === 'standard' || planSel === 'priority') {
+        if (planSel === 'essential' || planSel === 'standard' || planSel === 'priority') {
           doc.maintenancePlanId = planSel;
           doc.maintenanceBilling =
             businessDocMaintenanceBillingInput &&

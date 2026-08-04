@@ -1799,22 +1799,49 @@
             <p class="maintenance-billing-lead" data-i18n="services.maint_lead">After your first included month: pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
             <div class="enterprise-grid maintenance-tier-grid">
               <div class="enterprise-card">
-                <span class="enterprise-card-badge">Standard</span>
-                <div class="enterprise-card-title" data-i18n="services.std_title">Standard Care</div>
-                <div class="enterprise-card-sub" data-i18n="services.std_sub">
-                  Ongoing support for hosting, updates, monitoring, and minor fixes across web and mobile (iOS &amp; Android) after your first included month.
+                <span class="enterprise-card-badge">Essential</span>
+                <div class="enterprise-card-title" data-i18n="services.ess_title">Essential Care</div>
+                <div class="enterprise-card-sub" data-i18n="services.ess_sub">
+                  Keep hosting, updates, and monitoring healthy between busy seasons — slower response, same web + mobile coverage.
                 </div>
 
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$79<span class="enterprise-price-period">/mo</span></div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_mo_note">5 business days · 1 maintenance window/month</div>
+                </div>
+
+                <div class="maintenance-billing-block maintenance-billing-block--annual">
+                  <span class="maintenance-billing-label" data-i18n="services.ess_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
+                  <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_ann_note">Same as ~$44/mo · billed once per year</div>
+                </div>
+
+                <ul class="enterprise-feature-list">
+                  <li data-i18n="services.ess_f1">Response within 5 business days</li>
+                  <li data-i18n="services.ess_f2">1 maintenance window per month</li>
+                  <li data-i18n="services.ess_f3">Hosting, updates, monitoring, minor fixes</li>
+                  <li data-i18n="services.ess_f4">Web + iOS + Android support</li>
+                </ul>
+              </div>
+
+              <div class="enterprise-card featured-card">
+                <span class="enterprise-card-badge">Standard</span>
+                <div class="enterprise-card-title" data-i18n="services.std_title">Standard Care</div>
+                <div class="enterprise-card-sub" data-i18n="services.std_sub">
+                  Recommended for live day-to-day ops — hosting, updates, monitoring, and minor fixes across web and mobile (iOS &amp; Android).
+                </div>
+
+                <div class="maintenance-billing-block">
+                  <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
+                  <div class="enterprise-price">$150<span class="enterprise-price-period">/mo</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_mo_note">72-hour response · 1 maintenance window/month</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label" data-i18n="services.std_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_ann_note">Same as ~$44/mo · billed once per year</div>
+                  <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_ann_note">Same as ~$83/mo · billed once per year</div>
                 </div>
 
                 <ul class="enterprise-feature-list">
@@ -1829,26 +1856,26 @@
                 <span class="enterprise-card-badge">Priority</span>
                 <div class="enterprise-card-title" data-i18n="services.pri_title">Priority Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.pri_sub">
-                  Same coverage as Standard Care with faster response times and more frequent maintenance windows across web and mobile (iOS &amp; Android).
+                  Same coverage as Standard with faster response and more maintenance windows for high-volume teams.
                 </div>
 
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
-                  <div class="enterprise-price">$150<span class="enterprise-price-period">/mo</span></div>
+                  <div class="enterprise-price">$300<span class="enterprise-price-period">/mo</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">24-hour response · 2 maintenance windows/month</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label" data-i18n="services.pri_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_ann_note">Same as ~$83/mo · billed once per year</div>
+                  <div class="enterprise-price">$1,980<span class="enterprise-price-period">/yr</span></div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_ann_note">Same as ~$165/mo · billed once per year</div>
                 </div>
 
                 <ul class="enterprise-feature-list">
                   <li data-i18n="services.pri_f1">Response within 24 business hours</li>
                   <li data-i18n="services.pri_f2">2 maintenance windows per month</li>
-                  <li data-i18n="services.std_f3">Hosting, updates, monitoring, minor fixes</li>
-                  <li data-i18n="services.std_f4">Web + iOS + Android support</li>
+                  <li data-i18n="services.pri_f3">Hosting, updates, monitoring, minor fixes</li>
+                  <li data-i18n="services.pri_f4">Web + iOS + Android support</li>
                 </ul>
               </div>
             </div>
@@ -1863,7 +1890,7 @@
             </div> -->
 
             <div class="standard-addon-cta-wrap">
-              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month — Standard $79/mo or $522/yr (annual), or Priority $150/mo or $990/yr (annual, 45% off vs monthly).'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month — Essential $79/mo or $522/yr, Standard $150/mo or $990/yr (recommended), or Priority $300/mo or $1,980/yr (annual save 45% vs monthly).'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                 <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                 <span data-i18n="services.maint_cta">Discuss Plan</span>
               </a>
@@ -4555,10 +4582,10 @@
                       <label class="business-doc-addons-label" id="business-doc-maintenance-label">Maintenance plan</label>
                       <span class="business-doc-scope-badge" aria-hidden="true">PDF section</span>
                     </div>
-                    <p class="business-doc-addons-hint" id="business-doc-maintenance-hint">Proposals show Standard + Priority as compact cards beside the gold turn-key price.</p>
+                    <p class="business-doc-addons-hint" id="business-doc-maintenance-hint">Proposals show Essential, Standard + Priority as compact cards beside the gold turn-key price.</p>
                   </div>
                   <div id="business-doc-maintenance-proposal-note" class="business-doc-maintenance-note">
-                    PDF shows <strong>both portal plans</strong> (Standard &amp; Priority) in a compact dual card next to Base Turn-Key pricing.
+                    PDF shows <strong>all three portal plans</strong> (Essential, Standard &amp; Priority) in a compact card row next to Base Turn-Key pricing.
                   </div>
                   <div id="business-doc-maintenance-pickers" class="business-doc-maintenance-pickers" hidden>
                     <div class="form-row">
@@ -4571,6 +4598,7 @@
                           </button>
                           <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
                             <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">None — omit from PDF</button>
+                            <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="essential">Essential · $79/mo · $522/yr</button>
                             <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="standard">Standard · $150/mo · $990/yr</button>
                             <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="priority">Priority · $300/mo · $1,980/yr</button>
                           </div>

@@ -12,11 +12,31 @@
   var PATH_CONTRACT_SIGNATURES = 'agencyContractSignatures';
   var PATH_MAINTENANCE = 'agencyMaintenance';
 
+  /** Keep in sync with business-doc-shared.js MAINTENANCE_PLANS + Services & Pricing. */
   var MAINTENANCE_PLANS = [
+    {
+      id: 'essential',
+      badge: 'Essential',
+      title: 'Keep it healthy',
+      monthly: '$79/mo',
+      annual: '$522/yr',
+      monthlyAmount: 79,
+      annualAmount: 522,
+      monthlyNote: 'Billed monthly',
+      annualNote: 'Save 45% vs monthly',
+      annualEquiv: '~$44/mo equivalent · billed once per year',
+      slaLabel: '5 business days',
+      features: [
+        'Response within 5 business days',
+        '1 maintenance window per month',
+        'Hosting, updates, monitoring, minor fixes',
+        'Web + iOS + Android support'
+      ]
+    },
     {
       id: 'standard',
       badge: 'Standard',
-      title: 'Web + Mobile App',
+      title: 'Recommended for live ops',
       monthly: '$150/mo',
       annual: '$990/yr',
       monthlyAmount: 150,
@@ -25,6 +45,7 @@
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
       slaLabel: '72 business hours',
+      recommended: true,
       features: [
         'Response within 72 business hours',
         '1 maintenance window per month',
@@ -35,7 +56,7 @@
     {
       id: 'priority',
       badge: 'Priority',
-      title: 'Web + Mobile App',
+      title: 'Faster turnaround',
       monthly: '$300/mo',
       annual: '$1,980/yr',
       monthlyAmount: 300,
@@ -177,8 +198,13 @@
       '<div class="client-portal-plan-grid">' +
       MAINTENANCE_PLANS.map(function (plan) {
         var checked = selectedTier === plan.id ? ' checked' : '';
+        var recBadge = plan.recommended
+          ? '<span class="client-portal-plan-rec">Recommended</span>'
+          : '';
         return (
-          '<label class="client-portal-plan-card">' +
+          '<label class="client-portal-plan-card' +
+          (plan.recommended ? ' is-recommended' : '') +
+          '">' +
           '<input type="radio" name="portal-plan-tier" value="' +
           esc(plan.id) +
           '"' +
@@ -187,6 +213,7 @@
           '<span class="client-portal-plan-badge">' +
           esc(plan.badge) +
           '</span>' +
+          recBadge +
           '<strong class="client-portal-plan-title">' +
           esc(plan.title) +
           '</strong>' +
@@ -233,7 +260,10 @@
         '</p>' +
         '<p class="client-portal-maint-meta">Response target: within ' +
         esc(String(maint.slaHours)) +
-        ' business hours. Major features and scope changes are quoted separately.</p></div>'
+        (String(maint.planTier || '').toLowerCase() === 'essential'
+          ? ' business days'
+          : ' business hours') +
+        '. Major features and scope changes are quoted separately.</p></div>'
       );
     }
 

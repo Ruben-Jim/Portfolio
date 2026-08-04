@@ -5074,6 +5074,10 @@ article.about .about-founder {
     gap: 18px;
   }
 
+  .enterprise-grid.maintenance-tier-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .enterprise-card.full-width {
     grid-column: 1 / -1;
   }
@@ -5552,7 +5556,8 @@ article.about .about-founder {
 }
 
 #delete-lead-confirm-modal.modal-container,
-#cancel-booking-confirm-modal.modal-container {
+#cancel-booking-confirm-modal.modal-container,
+#reschedule-booking-modal.modal-container {
   z-index: 10080;
 }
 
@@ -17266,7 +17271,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 }
 
 #delete-lead-confirm-modal,
-#cancel-booking-confirm-modal {
+#cancel-booking-confirm-modal,
+#reschedule-booking-modal {
   z-index: 10090;
 }
 
@@ -17277,7 +17283,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-portfolio-confirm-modal.active,
 #delete-testimonial-confirm-modal.active,
 #delete-lead-confirm-modal.active,
-#cancel-booking-confirm-modal.active {
+#cancel-booking-confirm-modal.active,
+#reschedule-booking-modal.active {
   pointer-events: all;
   visibility: visible;
 }
@@ -17289,7 +17296,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-portfolio-confirm-modal .overlay,
 #delete-testimonial-confirm-modal .overlay,
 #delete-lead-confirm-modal .overlay,
-#cancel-booking-confirm-modal .overlay {
+#cancel-booking-confirm-modal .overlay,
+#reschedule-booking-modal .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -17313,7 +17321,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-testimonial-confirm-modal.active .overlay,
 #delete-dm-conversation-confirm-modal.active .overlay,
 #delete-lead-confirm-modal.active .overlay,
-#cancel-booking-confirm-modal.active .overlay {
+#cancel-booking-confirm-modal.active .overlay,
+#reschedule-booking-modal.active .overlay {
   opacity: 0.85;
   visibility: visible;
   pointer-events: all;
@@ -17346,7 +17355,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-testimonial-confirm-modal.active .confirm-delete-modal,
 #delete-dm-conversation-confirm-modal.active .confirm-delete-modal,
 #delete-lead-confirm-modal.active .confirm-delete-modal,
-#cancel-booking-confirm-modal.active .confirm-delete-modal {
+#cancel-booking-confirm-modal.active .confirm-delete-modal,
+#reschedule-booking-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
   visibility: visible;
@@ -26048,6 +26058,15 @@ body.admin-tab-reorder-active::before {
   color: hsl(140, 40%, 62%);
 }
 
+.admin-booking-chip--noshow {
+  border-color: rgba(220, 160, 80, 0.45);
+  color: hsl(32, 78%, 66%);
+}
+
+.admin-booking-card.is-noshow {
+  opacity: 0.88;
+}
+
 .admin-booking-chip--muted {
   opacity: 0.85;
 }
@@ -26114,6 +26133,32 @@ body.admin-tab-reorder-active::before {
 .admin-booking-cancel-btn:hover {
   border-color: hsl(6, 78%, 62%);
   color: hsl(6, 88%, 74%);
+}
+
+#reschedule-booking-modal .reschedule-booking-modal {
+  max-width: 460px;
+}
+
+.reschedule-booking-fields {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.reschedule-booking-fields .form-input {
+  width: 100%;
+}
+
+.reschedule-booking-feedback {
+  margin: 10px 0 0;
+}
+
+.reschedule-booking-feedback.is-error {
+  color: hsl(6, 78%, 68%);
+}
+
+.reschedule-booking-actions {
+  flex-wrap: wrap;
 }
 
 @media (min-width: 640px) {

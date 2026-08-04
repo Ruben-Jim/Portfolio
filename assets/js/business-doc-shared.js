@@ -92,12 +92,31 @@
     return s.trim();
   }
 
-  /** Portal catalog — keep in sync with client-portal.js MAINTENANCE_PLANS. */
+  /** Portal catalog — keep in sync with client-portal.js MAINTENANCE_PLANS + Services & Pricing. */
   var MAINTENANCE_PLANS = [
+    {
+      id: 'essential',
+      badge: 'Essential',
+      title: 'Keep it healthy',
+      monthly: '$79/mo',
+      annual: '$522/yr',
+      monthlyAmount: 79,
+      annualAmount: 522,
+      monthlyNote: 'Billed monthly',
+      annualNote: 'Save 45% vs monthly',
+      annualEquiv: '~$44/mo equivalent · billed once per year',
+      slaLabel: '5 business days',
+      features: [
+        'Response within 5 business days',
+        '1 maintenance window per month',
+        'Hosting, updates, monitoring, minor fixes',
+        'Web + iOS + Android support'
+      ]
+    },
     {
       id: 'standard',
       badge: 'Standard',
-      title: 'Web + Mobile App',
+      title: 'Recommended for live ops',
       monthly: '$150/mo',
       annual: '$990/yr',
       monthlyAmount: 150,
@@ -106,6 +125,7 @@
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
       slaLabel: '72 business hours',
+      recommended: true,
       features: [
         'Response within 72 business hours',
         '1 maintenance window per month',
@@ -116,7 +136,7 @@
     {
       id: 'priority',
       badge: 'Priority',
-      title: 'Web + Mobile App',
+      title: 'Faster turnaround',
       monthly: '$300/mo',
       annual: '$1,980/yr',
       monthlyAmount: 300,
@@ -789,7 +809,7 @@
     return jotLines(doc && doc.notes);
   }
 
-  /** Compact dual maintenance cards for proposal pricing row. */
+  /** Compact maintenance cards for proposal pricing row. */
   function buildProposalMaintCompactHtml() {
     var cards = [];
     for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
@@ -799,16 +819,21 @@
       for (var j = 0; j < feat.length; j++) {
         lis += '<li>' + escapeHtml(feat[j]) + '</li>';
       }
+      var rec =
+        plan.recommended
+          ? '<div class="pc-maint-rec">Recommended</div>'
+          : '';
       cards.push(
-        '<div class="pc-maint-card">' +
+        '<div class="pc-maint-card' + (plan.recommended ? ' is-recommended' : '') + '">' +
           '<div class="pc-maint-badge">' + escapeHtml(plan.badge) + '</div>' +
+          rec +
           '<div class="pc-maint-price">' + escapeHtml(plan.monthly) + '</div>' +
           '<div class="pc-maint-annual">' + escapeHtml(plan.annual) + ' · ' + escapeHtml(plan.annualNote) + '</div>' +
           '<ul class="pc-maint-feats">' + lis + '</ul>' +
         '</div>'
       );
     }
-    return '<div class="pc-maint-dual">' + cards.join('') + '</div>';
+    return '<div class="pc-maint-dual pc-maint-dual--' + MAINTENANCE_PLANS.length + '">' + cards.join('') + '</div>';
   }
 
   /**
@@ -918,7 +943,7 @@
 
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>PROPOSAL — ' + escapeHtml(clientName) + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 10mm; }\n' +
-      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 10px 14px !important; } .doc { page-break-inside: avoid; } .doc-title { font-size: 22px; } .section-title { font-size: 11px; margin-bottom: 8px; } .pc-body { font-size: 12px; margin-bottom: 0; } .pc-core-grid { gap: 12px; } .pc-core-title { font-size: 11px; } .pc-core-desc { font-size: 11px; } .pc-pricing-row { gap: 12px; grid-template-columns: 1fr; } .pc-gold { padding: 14px 16px; } .pc-gold-amt { font-size: 28px; } .pc-gold-list { columns: 2; font-size: 11px; } .pc-maint-dual { grid-template-columns: 1fr 1fr; height: auto; } .pc-maint-card { padding: 10px 12px; } .pc-maint-price { font-size: 16px; } .pc-maint-feats li { font-size: 10px; } .why-list { font-size: 12px; } .next-steps-grid { gap: 12px; } .footer-buttons { margin-top: 14px; } .divider { margin: 12px 0 !important; } .addon-cards-grid--single .addon-card { padding: 0; } }\n' +
+      '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 10px 14px !important; } .doc { page-break-inside: avoid; } .doc-title { font-size: 22px; } .section-title { font-size: 11px; margin-bottom: 8px; } .pc-body { font-size: 12px; margin-bottom: 0; } .pc-core-grid { gap: 12px; } .pc-core-title { font-size: 11px; } .pc-core-desc { font-size: 11px; } .pc-pricing-row { gap: 12px; grid-template-columns: 1fr; } .pc-gold { padding: 14px 16px; } .pc-gold-amt { font-size: 28px; } .pc-gold-list { columns: 2; font-size: 11px; } .pc-maint-dual { grid-template-columns: 1fr 1fr 1fr; height: auto; } .pc-maint-card { padding: 10px 12px; } .pc-maint-price { font-size: 16px; } .pc-maint-feats li { font-size: 10px; } .why-list { font-size: 12px; } .next-steps-grid { gap: 12px; } .footer-buttons { margin-top: 14px; } .divider { margin: 12px 0 !important; } .addon-cards-grid--single .addon-card { padding: 0; } }\n' +
       '* { box-sizing: border-box; }\n' +
       'body { margin: 0; padding: 36px 28px; font-family: \'Inter\', sans-serif; background: ' + C.bg + '; color: ' + C.text + '; font-size: 14px; }\n' +
       '.doc { max-width: 820px; margin: 0 auto; }\n' +
@@ -944,8 +969,11 @@
       '.pc-gold-list { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; columns: 2; column-gap: 28px; }\n' +
       '.pc-gold-list li { margin-bottom: 5px; break-inside: avoid; }\n' +
       '.pc-maint-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; height: auto; }\n' +
+      '.pc-maint-dual--3 { grid-template-columns: 1fr 1fr 1fr; }\n' +
       '.pc-maint-card { border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 16px 16px 14px; background: rgba(255,255,255,0.03); display: flex; flex-direction: column; min-height: 0; }\n' +
-      '.pc-maint-badge { display: inline-block; align-self: flex-start; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' + C.bg + '; background: ' + C.primary + '; padding: 3px 8px; border-radius: 4px; margin-bottom: 8px; }\n' +
+      '.pc-maint-card.is-recommended { border-color: ' + C.a(0.45) + '; background: ' + C.a(0.08) + '; }\n' +
+      '.pc-maint-badge { display: inline-block; align-self: flex-start; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' + C.bg + '; background: ' + C.primary + '; padding: 3px 8px; border-radius: 4px; margin-bottom: 6px; }\n' +
+      '.pc-maint-rec { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: ' + C.primary + '; margin: 0 0 6px; }\n' +
       '.pc-maint-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; line-height: 1.1; }\n' +
       '.pc-maint-annual { font-size: 12px; color: ' + C.muted + '; margin: 6px 0 10px; line-height: 1.4; }\n' +
       '.pc-maint-feats { list-style: none; margin: auto 0 0; padding: 0; }\n' +
@@ -1346,7 +1374,7 @@
 
   function buildInvoicePlanFootnoteHtml(doc) {
     var planId = String((doc && doc.maintenancePlanId) || '').toLowerCase();
-    if (planId !== 'standard' && planId !== 'priority') return '';
+    if (planId !== 'essential' && planId !== 'standard' && planId !== 'priority') return '';
     var plan = findMaintenancePlan(planId);
     var billing =
       String((doc && doc.maintenanceBilling) || '').toLowerCase() === 'annual' ? 'Annual' : 'Monthly';

@@ -578,6 +578,9 @@
     if (t === 'priority') {
       return { planTier: 'priority', slaHours: 24, hoursIncluded: 8 };
     }
+    if (t === 'essential') {
+      return { planTier: 'essential', slaHours: 5, hoursIncluded: 2 };
+    }
     return { planTier: 'standard', slaHours: 72, hoursIncluded: 4 };
   }
 
