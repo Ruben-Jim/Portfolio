@@ -1389,31 +1389,44 @@ body.client-portal-page {
   pointer-events: none;
 }
 
+.client-portal-plan-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
 .client-portal-plan-badge {
   display: inline-block;
-  margin-bottom: 6px;
-  margin-right: 6px;
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 11px;
+  line-height: 1.5;
   font-weight: var(--fw-600);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
   color: var(--orange-yellow-crayola);
   border: 1px solid hsla(45, 100%, 72%, 0.3);
 }
 
 .client-portal-plan-rec {
   display: inline-block;
-  margin-bottom: 6px;
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 10px;
+  line-height: 1.5;
   font-weight: var(--fw-600);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--eerie-black-1);
+  white-space: nowrap;
+  color: var(--smoky-black);
   background: var(--orange-yellow-crayola);
+}
+
+.client-portal-plan-card:not(.is-recommended) .client-portal-plan-rec {
+  visibility: hidden;
 }
 
 .client-portal-plan-title {

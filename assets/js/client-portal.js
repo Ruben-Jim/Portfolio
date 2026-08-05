@@ -231,9 +231,11 @@
       '<div class="client-portal-plan-grid">' +
       MAINTENANCE_PLANS.map(function (plan) {
         var checked = selectedTier === plan.id ? ' checked' : '';
+        // Non-recommended cards keep an invisible pill so every card's badge
+        // row is the same height and the titles below stay aligned.
         var recBadge = plan.recommended
           ? '<span class="client-portal-plan-rec">Recommended</span>'
-          : '';
+          : '<span class="client-portal-plan-rec" aria-hidden="true">Recommended</span>';
         return (
           '<label class="client-portal-plan-card' +
           (plan.recommended ? ' is-recommended' : '') +
@@ -243,10 +245,12 @@
           '"' +
           checked +
           '>' +
+          '<span class="client-portal-plan-badges">' +
           '<span class="client-portal-plan-badge">' +
           esc(plan.badge) +
           '</span>' +
           recBadge +
+          '</span>' +
           '<strong class="client-portal-plan-title">' +
           esc(plan.title) +
           '</strong>' +
