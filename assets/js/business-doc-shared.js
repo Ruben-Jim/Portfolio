@@ -20,6 +20,28 @@
     }
   }
 
+  /**
+   * Invoice payment destinations (portal Pay now + PDF footer).
+   * Keep handles in sync with PORTAL_PAYMENT_METHODS in client-portal.js.
+   */
+  var CWR_INVOICE_PAYMENT_METHODS = [
+    { id: 'zelle', label: 'Zelle', handle: 'Ruben.Jim.co@gmail.com' },
+    { id: 'paypal', label: 'PayPal', handle: 'Ruben.Jim.co@gmail.com' },
+    { id: 'venmo', label: 'Venmo', handle: '@CodeWithRuben' }
+  ];
+
+  function buildInvoicePaymentMethodsHtml() {
+    return CWR_INVOICE_PAYMENT_METHODS.map(function (m) {
+      return (
+        '<span class="inv-pay-method"><strong>' +
+        escapeHtml(m.label) +
+        '</strong> ' +
+        escapeHtml(m.handle) +
+        '</span>'
+      );
+    }).join('<span class="inv-pay-sep">·</span>');
+  }
+
   function formatInvoiceNumber(docOrId) {
     if (docOrId && typeof docOrId === 'object') {
       var stored = String(docOrId.invoiceNumber || '').trim();
@@ -1461,6 +1483,9 @@
       : doc && doc.dueDate
         ? 'Please pay by <strong>' + escapeHtml(formatDateDisplay(doc.dueDate)) + '</strong>.'
         : 'Payment is due upon receipt.';
+    var payMethodsBlock = isPaid
+      ? ''
+      : '<div class="inv-pay-methods">Pay via ' + buildInvoicePaymentMethodsHtml() + '. Include invoice # <strong>' + escapeHtml(displayId) + '</strong> in the memo.</div>';
 
     return (
       '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>INVOICE — ' +
@@ -1590,6 +1615,13 @@
       '.inv-pay a { color: ' +
       C.primary +
       '; }\n' +
+      '.inv-pay-methods { margin-top: 10px; font-size: 12px; line-height: 1.6; color: ' +
+      C.text +
+      '; }\n' +
+      '.inv-pay-method { white-space: nowrap; }\n' +
+      '.inv-pay-sep { margin: 0 8px; color: ' +
+      C.muted +
+      '; }\n' +
       '.inv-footer { margin-top: 24px; padding-top: 14px; border-top: 1px solid ' +
       borderSoft +
       '; font-size: 11px; color: ' +
@@ -1652,7 +1684,9 @@
       '    <div class="inv-pay"><strong>Payment</strong> — ' +
       payDueCopy +
       ' Questions or confirmation: ' +
-      '<a href="mailto:Ruben.Jim.co@gmail.com">Ruben.Jim.co@gmail.com</a>.</div>\n' +
+      '<a href="mailto:Ruben.Jim.co@gmail.com">Ruben.Jim.co@gmail.com</a>.' +
+      payMethodsBlock +
+      '</div>\n' +
       '    <div class="inv-footer"><span>CodeWithRuben · Invoice</span><span>' +
       escapeHtml(displayId) +
       '</span></div>\n' +
@@ -1769,6 +1803,7 @@
   global.BusinessDocShared = {
     formatCurrency: formatCurrency,
     formatDateDisplay: formatDateDisplay,
+    formatInvoiceNumber: formatInvoiceNumber,
     typeLabelFor: typeLabelFor,
     buildPrintHtml: buildBusinessDocHtml,
     openPrintWindow: openPrintWindow,

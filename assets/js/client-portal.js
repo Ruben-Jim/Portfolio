@@ -12,6 +12,37 @@
   var PATH_CONTRACT_SIGNATURES = 'agencyContractSignatures';
   var PATH_MAINTENANCE = 'agencyMaintenance';
 
+  /**
+   * How CWR receives invoice payments in the portal (Zelle / PayPal / Venmo).
+   * Update handles here when accounts change — keep in sync with invoice PDF copy
+   * in business-doc-shared.js (CWR_INVOICE_PAYMENT_METHODS).
+   */
+  var PORTAL_PAYMENT_METHODS = [
+    {
+      id: 'zelle',
+      label: 'Zelle',
+      handleLabel: 'Send to',
+      handle: 'Ruben.Jim.co@gmail.com',
+      hint: 'Open your bank app → Zelle → Send. Use the invoice # as the memo.'
+    },
+    {
+      id: 'paypal',
+      label: 'PayPal',
+      handleLabel: 'Send to',
+      handle: 'Ruben.Jim.co@gmail.com',
+      hint: 'PayPal → Send. Include the invoice # in the note.',
+      link: ''
+    },
+    {
+      id: 'venmo',
+      label: 'Venmo',
+      handleLabel: 'Username',
+      handle: '@CodeWithRuben',
+      hint: 'Venmo → Pay. Include the invoice # in the note.',
+      link: 'https://venmo.com/CodeWithRuben'
+    }
+  ];
+
   /** Keep in sync with business-doc-shared.js MAINTENANCE_PLANS + Services & Pricing. */
   var MAINTENANCE_PLANS = [
     {
@@ -1022,6 +1053,100 @@
     return s ? s.charAt(0).toUpperCase() + s.slice(1) : '—';
   }
 
+  function isInvoiceDoc(doc) {
+    return String((doc && doc.type) || '').toLowerCase() === 'invoice';
+  }
+
+  function isInvoicePaid(doc) {
+    return String((doc && doc.status) || '').toLowerCase() === 'paid';
+  }
+
+  function invoiceDisplayNumber(doc) {
+    if (window.BusinessDocShared && window.BusinessDocShared.formatInvoiceNumber) {
+      return window.BusinessDocShared.formatInvoiceNumber(doc);
+    }
+    return String((doc && doc.id) || '').slice(0, 12).toUpperCase() || 'INV';
+  }
+
+  function paymentMethodById(id) {
+    var key = String(id || '').toLowerCase();
+    for (var i = 0; i < PORTAL_PAYMENT_METHODS.length; i++) {
+      if (PORTAL_PAYMENT_METHODS[i].id === key) return PORTAL_PAYMENT_METHODS[i];
+    }
+    return null;
+  }
+
+  function renderInvoicePayDetailHtml(doc, method) {
+    var amount = formatMoneyDetailed(doc.total);
+    var invNo = invoiceDisplayNumber(doc);
+    var linkHtml = method.link
+      ? '<a class="client-portal-pay-link" href="' +
+        esc(method.link) +
+        '" target="_blank" rel="noopener noreferrer">Open ' +
+        esc(method.label) +
+        '</a>'
+      : '';
+    return (
+      '<p class="client-portal-pay-detail-lead">Pay <strong>' +
+      esc(amount) +
+      '</strong> via ' +
+      esc(method.label) +
+      '</p>' +
+      '<div class="client-portal-pay-handle-row">' +
+      '<span class="client-portal-pay-handle-label">' +
+      esc(method.handleLabel) +
+      '</span>' +
+      '<code class="client-portal-pay-handle" data-portal-pay-handle>' +
+      esc(method.handle) +
+      '</code>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-portal-pay-copy>Copy</button>' +
+      '</div>' +
+      '<p class="client-portal-pay-memo">Memo / note: <strong>' +
+      esc(invNo) +
+      '</strong></p>' +
+      '<p class="client-portal-pay-hint">' +
+      esc(method.hint) +
+      '</p>' +
+      linkHtml +
+      '<p class="client-portal-pay-confirm">After you send, keep your receipt. We’ll mark this invoice paid once payment clears.</p>'
+    );
+  }
+
+  function renderInvoicePayPanelHtml(doc) {
+    var docId = esc(doc.id);
+    var methodsHtml = PORTAL_PAYMENT_METHODS.map(function (m) {
+      return (
+        '<button type="button" class="client-portal-pay-method-btn" data-portal-pay-method="' +
+        esc(m.id) +
+        '" data-portal-pay-doc="' +
+        docId +
+        '">' +
+        esc(m.label) +
+        '</button>'
+      );
+    }).join('');
+    return (
+      '<div class="client-portal-sign-panel client-portal-pay-panel" data-portal-pay-panel="' +
+      docId +
+      '" hidden>' +
+      '<p class="client-portal-pay-ask">How would you like to pay?</p>' +
+      '<p class="client-portal-pay-ask-sub">Zelle, PayPal, or Venmo — pick one and we’ll show where to send it.</p>' +
+      '<div class="client-portal-pay-methods" role="group" aria-label="Payment methods">' +
+      methodsHtml +
+      '</div>' +
+      '<div class="client-portal-pay-detail" data-portal-pay-detail="' +
+      docId +
+      '" hidden></div>' +
+      '<div class="client-portal-pay-footer-actions">' +
+      '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
+      docId +
+      '">View invoice</button>' +
+      '</div>' +
+      renderContractSignedPanelHtml(doc) +
+      '</div>'
+    );
+  }
+
   async function loadBusinessDocumentsForHub(hubRow, project) {
     if (!rtdbReady()) return [];
     try {
@@ -1230,10 +1355,33 @@
         .map(function (d) {
           var due = d.dueDate ? formatDocDate(d.dueDate) : '';
           var isContract = String(d.type || '') === 'contract';
+          var isInvoice = isInvoiceDoc(d);
+          var invoicePaid = isInvoice && isInvoicePaid(d);
           var signature = isContract ? signaturesById[d.id] : null;
           var actionHtml;
           var metaExtra = '';
           var panelHtml = '';
+          var titleText = d.clientName || 'Document';
+          var metaHtml;
+
+          if (isInvoice) {
+            titleText = formatMoneyDetailed(d.total);
+            metaHtml =
+              (invoicePaid
+                ? 'Paid'
+                : due
+                  ? 'Due ' + esc(due)
+                  : 'Due upon receipt') +
+              ' · ' +
+              esc(invoiceDisplayNumber(d));
+          } else {
+            metaHtml =
+              esc(statusLabel(d.status)) +
+              ' · ' +
+              esc(formatMoneyDetailed(d.total)) +
+              (due ? ' · Due ' + esc(due) : '');
+          }
+
           if (isContract && signature) {
             actionHtml =
               '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
@@ -1249,6 +1397,19 @@
               '">Review &amp; sign</button>';
             metaExtra = ' · Awaiting your signature';
             panelHtml = renderContractSignPanelHtml(d);
+          } else if (isInvoice && invoicePaid) {
+            actionHtml =
+              '<span class="client-portal-doc-status client-portal-doc-status--paid">Paid</span>' +
+              '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
+              esc(d.id) +
+              '">View invoice</button>';
+            panelHtml = renderContractSignedPanelHtml(d);
+          } else if (isInvoice) {
+            actionHtml =
+              '<button type="button" class="btn btn-primary btn-sm client-portal-doc-pay-btn" data-portal-pay-doc="' +
+              esc(d.id) +
+              '">Pay now →</button>';
+            panelHtml = renderInvoicePayPanelHtml(d);
           } else {
             actionHtml =
               '<button type="button" class="btn btn-primary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
@@ -1257,7 +1418,9 @@
             panelHtml = renderContractSignedPanelHtml(d);
           }
           return (
-            '<li class="client-portal-doc-card">' +
+            '<li class="client-portal-doc-card' +
+            (isInvoice && !invoicePaid ? ' client-portal-doc-card--payable' : '') +
+            '">' +
             '<div class="client-portal-doc-card-main">' +
             '<span class="client-portal-doc-type client-portal-doc-type--' +
             esc(String(d.type || 'proposal')) +
@@ -1265,16 +1428,15 @@
             esc(docTypeLabel(d.type)) +
             '</span>' +
             '<strong class="client-portal-doc-title">' +
-            esc(d.clientName || 'Document') +
+            esc(titleText) +
             '</strong>' +
             '<p class="client-portal-doc-meta">' +
-            esc(statusLabel(d.status)) +
-            ' · ' +
-            esc(formatMoneyDetailed(d.total)) +
-            (due ? ' · Due ' + esc(due) : '') +
+            metaHtml +
             metaExtra +
             '</p></div>' +
+            '<div class="client-portal-doc-actions">' +
             actionHtml +
+            '</div>' +
             panelHtml +
             '</li>'
           );
@@ -1309,7 +1471,7 @@
         var opening = panel.hidden;
         panel.hidden = !opening;
         if (opening && !ensurePortalContractFrame(panel, docId)) {
-          alert('Unable to load the signed contract right now.');
+          alert('Unable to load this document right now.');
           panel.hidden = true;
         }
       });
@@ -1321,6 +1483,67 @@
         var docId = btn.getAttribute('data-portal-download-doc');
         if (!openPortalBusinessDoc(docId, { autoPrint: true })) {
           alert('Unable to download. Please allow popups for this site.');
+        }
+      });
+    });
+  }
+
+  function bindPortalPayButtons(root) {
+    if (!root) return;
+    root.querySelectorAll('[data-portal-pay-doc].client-portal-doc-pay-btn').forEach(function (btn) {
+      if (btn.dataset.portalPayBound) return;
+      btn.dataset.portalPayBound = '1';
+      btn.addEventListener('click', function () {
+        var docId = btn.getAttribute('data-portal-pay-doc');
+        var panel = root.querySelector('[data-portal-pay-panel="' + docId + '"]');
+        if (!panel) return;
+        var opening = panel.hidden;
+        panel.hidden = !opening;
+        if (opening) {
+          btn.setAttribute('aria-expanded', 'true');
+        } else {
+          btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    });
+    root.querySelectorAll('[data-portal-pay-method]').forEach(function (btn) {
+      if (btn.dataset.portalPayMethodBound) return;
+      btn.dataset.portalPayMethodBound = '1';
+      btn.addEventListener('click', function () {
+        var docId = btn.getAttribute('data-portal-pay-doc');
+        var methodId = btn.getAttribute('data-portal-pay-method');
+        var method = paymentMethodById(methodId);
+        var doc = getPortalContractDoc(docId);
+        var detail = root.querySelector('[data-portal-pay-detail="' + docId + '"]');
+        var panel = root.querySelector('[data-portal-pay-panel="' + docId + '"]');
+        if (!method || !doc || !detail) return;
+        detail.innerHTML = renderInvoicePayDetailHtml(doc, method);
+        detail.hidden = false;
+        if (panel) {
+          panel.querySelectorAll('[data-portal-pay-method]').forEach(function (b) {
+            b.classList.toggle('is-selected', b === btn);
+          });
+        }
+        var copyBtn = detail.querySelector('[data-portal-pay-copy]');
+        if (copyBtn && !copyBtn.dataset.portalPayCopyBound) {
+          copyBtn.dataset.portalPayCopyBound = '1';
+          copyBtn.addEventListener('click', function () {
+            var handleEl = detail.querySelector('[data-portal-pay-handle]');
+            var text = handleEl ? handleEl.textContent : method.handle;
+            var done = function () {
+              copyBtn.textContent = 'Copied';
+              setTimeout(function () {
+                copyBtn.textContent = 'Copy';
+              }, 1600);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(done).catch(function () {
+                window.prompt('Copy this payment handle:', text);
+              });
+            } else {
+              window.prompt('Copy this payment handle:', text);
+            }
+          });
         }
       });
     });
@@ -1449,24 +1672,6 @@
       .join('');
   }
 
-  function renderNoShowcaseMessage(project, detailOptions) {
-    var hasVisitLink = collectProjectVisitLinks(project, null, detailOptions || {}).length > 0;
-    var isClientLive = String((project && project.deliveryStage) || '') === 'client';
-    var withLink = isClientLive
-      ? 'You can still open the live website or app above.'
-      : 'You can still open the live demo or website above.';
-    var withoutLink = isClientLive
-      ? 'A website or app link will show here when it is added to your project.'
-      : 'A demo or website link will show here when it is added to your project.';
-    return (
-      '<section class="client-portal-section client-portal-empty-showcase">' +
-      '<p><strong>No portfolio project is linked</strong> to this portal yet. The full showcase page will appear here once your project contact links one.</p>' +
-      '<p class="client-portal-empty-showcase-lead">' +
-      (hasVisitLink ? withLink : withoutLink) +
-      '</p></section>'
-    );
-  }
-
   function wrapShowcaseSection(innerHtml) {
     if (!innerHtml) return '';
     return (
@@ -1544,10 +1749,8 @@
     var showcaseHtml = '';
     if (hasShowcase && detailRecord && window.PortfolioDetailShared) {
       showcaseHtml = window.PortfolioDetailShared.renderPortfolioDetailHtml(detailRecord, showcaseOptions);
-    } else if (!hasGuide) {
-      showcaseHtml = renderNoShowcaseMessage(project, detailOptions);
+      showcaseHtml = wrapShowcaseSection(showcaseHtml);
     }
-    showcaseHtml = wrapShowcaseSection(showcaseHtml);
 
     var guideHtml = renderGuideSectionsHtml(portalGuides, guideBase);
 
@@ -1571,6 +1774,7 @@
     bindDemoHintScroll(inner);
     bindPortalSignButtons(inner, portalCtx);
     bindPortalSignedViewButtons(inner);
+    bindPortalPayButtons(inner);
     bindMaintenanceSupportSection(inner, portalCtx, project, maint);
     mountPortalDmChrome(project, portalCtx);
   }
