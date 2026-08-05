@@ -2094,6 +2094,23 @@ body.portal-dm-sheet-open {
   .project-detail-actions {
     padding: 0 16px 18px;
   }
+
+  .client-portal-doc-card {
+    padding: 12px 10px;
+  }
+
+  .client-portal-doc-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .client-portal-sign-panel {
+    padding: 12px 8px;
+  }
+
+  .client-portal-contract-preview {
+    border-radius: 8px;
+  }
 }
 
 @media (min-width: 720px) {

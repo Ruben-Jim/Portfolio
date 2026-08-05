@@ -25,9 +25,9 @@
    * Keep handles in sync with PORTAL_PAYMENT_METHODS in client-portal.js.
    */
   var CWR_INVOICE_PAYMENT_METHODS = [
-    { id: 'zelle', label: 'Zelle', handle: 'Ruben.Jim.co@gmail.com' },
-    { id: 'paypal', label: 'PayPal', handle: 'Ruben.Jim.co@gmail.com' },
-    { id: 'venmo', label: 'Venmo', handle: '@CodeWithRuben' }
+    { id: 'zelle', label: 'Zelle', handle: 'ruben.jim.co@gmail.com or 559 653 7380' },
+    { id: 'paypal', label: 'PayPal', handle: 'jruben447@gmail.com' },
+    { id: 'venmo', label: 'Venmo', handle: '@RubenDEV' }
   ];
 
   function buildInvoicePaymentMethodsHtml() {

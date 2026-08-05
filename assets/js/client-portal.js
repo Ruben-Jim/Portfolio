@@ -21,15 +21,17 @@
     {
       id: 'zelle',
       label: 'Zelle',
-      handleLabel: 'Send to',
-      handle: 'Ruben.Jim.co@gmail.com',
+      handleLabel: 'Email',
+      handle: 'ruben.jim.co@gmail.com',
+      altHandleLabel: 'Or phone',
+      altHandle: '559 653 7380',
       hint: 'Open your bank app → Zelle → Send. Use the invoice # as the memo.'
     },
     {
       id: 'paypal',
       label: 'PayPal',
       handleLabel: 'Send to',
-      handle: 'Ruben.Jim.co@gmail.com',
+      handle: 'jruben447@gmail.com',
       hint: 'PayPal → Send. Include the invoice # in the note.',
       link: ''
     },
@@ -37,9 +39,9 @@
       id: 'venmo',
       label: 'Venmo',
       handleLabel: 'Username',
-      handle: '@CodeWithRuben',
+      handle: '@RubenDEV',
       hint: 'Venmo → Pay. Include the invoice # in the note.',
-      link: 'https://venmo.com/CodeWithRuben'
+      link: 'https://venmo.com/RubenDEV'
     }
   ];
 
@@ -1076,6 +1078,20 @@
     return null;
   }
 
+  function renderPayHandleRowHtml(label, handle) {
+    return (
+      '<div class="client-portal-pay-handle-row">' +
+      '<span class="client-portal-pay-handle-label">' +
+      esc(label) +
+      '</span>' +
+      '<code class="client-portal-pay-handle" data-portal-pay-handle>' +
+      esc(handle) +
+      '</code>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-portal-pay-copy>Copy</button>' +
+      '</div>'
+    );
+  }
+
   function renderInvoicePayDetailHtml(doc, method) {
     var amount = formatMoneyDetailed(doc.total);
     var invNo = invoiceDisplayNumber(doc);
@@ -1086,21 +1102,20 @@
         esc(method.label) +
         '</a>'
       : '';
+    var handlesHtml = renderPayHandleRowHtml(method.handleLabel, method.handle);
+    if (method.altHandle) {
+      handlesHtml += renderPayHandleRowHtml(
+        method.altHandleLabel || 'Or',
+        method.altHandle
+      );
+    }
     return (
       '<p class="client-portal-pay-detail-lead">Pay <strong>' +
       esc(amount) +
       '</strong> via ' +
       esc(method.label) +
       '</p>' +
-      '<div class="client-portal-pay-handle-row">' +
-      '<span class="client-portal-pay-handle-label">' +
-      esc(method.handleLabel) +
-      '</span>' +
-      '<code class="client-portal-pay-handle" data-portal-pay-handle>' +
-      esc(method.handle) +
-      '</code>' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-portal-pay-copy>Copy</button>' +
-      '</div>' +
+      handlesHtml +
       '<p class="client-portal-pay-memo">Memo / note: <strong>' +
       esc(invNo) +
       '</strong></p>' +
@@ -1137,12 +1152,6 @@
       '<div class="client-portal-pay-detail" data-portal-pay-detail="' +
       docId +
       '" hidden></div>' +
-      '<div class="client-portal-pay-footer-actions">' +
-      '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
-      docId +
-      '">View invoice</button>' +
-      '</div>' +
-      renderContractSignedPanelHtml(doc) +
       '</div>'
     );
   }
@@ -1245,6 +1254,25 @@
       ':host { display: block; width: 100%; overflow: visible; }' +
       '.portal-contract-embed { display: block; width: 100%; overflow: visible; box-sizing: border-box; }' +
       '.portal-contract-embed .doc { max-width: 100%; }' +
+      // Long emails, handles and grid items would otherwise push the doc wider
+      // than the portal card, which bleeds off-screen on phones.
+      '.portal-contract-embed .inv-panel, .portal-contract-embed .inv-bill-text,' +
+      '.portal-contract-embed .contract-party { min-width: 0; }' +
+      '.portal-contract-embed .inv-panel-detail, .portal-contract-embed .inv-kv dd,' +
+      '.portal-contract-embed .inv-pay, .portal-contract-embed .contract-party-detail { overflow-wrap: anywhere; }' +
+      '@media (max-width: 700px) {' +
+      '.portal-contract-embed { padding: 20px 14px; }' +
+      '.portal-contract-embed .inv-meta-grid { grid-template-columns: 1fr; }' +
+      '.portal-contract-embed .inv-kv { grid-template-columns: auto minmax(0, 1fr); }' +
+      '.portal-contract-embed .inv-table { table-layout: fixed; }' +
+      '.portal-contract-embed .inv-table th, .portal-contract-embed .inv-table td { padding: 10px 8px; overflow-wrap: anywhere; }' +
+      '.portal-contract-embed .inv-totals { display: block; }' +
+      '.portal-contract-embed .inv-total-box { min-width: 0; width: 100%; box-sizing: border-box; }' +
+      '.portal-contract-embed .inv-total-amt { font-size: 26px; }' +
+      '.portal-contract-embed .inv-pay-method { white-space: normal; display: block; }' +
+      '.portal-contract-embed .inv-pay-sep { display: none; }' +
+      '.portal-contract-embed .contract-parties { grid-template-columns: 1fr; }' +
+      '}' +
       '</style>' +
       '<div class="portal-contract-embed">' +
       parsed.body.innerHTML +
@@ -1406,10 +1434,13 @@
             panelHtml = renderContractSignedPanelHtml(d);
           } else if (isInvoice) {
             actionHtml =
+              '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
+              esc(d.id) +
+              '">View invoice</button>' +
               '<button type="button" class="btn btn-primary btn-sm client-portal-doc-pay-btn" data-portal-pay-doc="' +
               esc(d.id) +
               '">Pay now →</button>';
-            panelHtml = renderInvoicePayPanelHtml(d);
+            panelHtml = renderContractSignedPanelHtml(d) + renderInvoicePayPanelHtml(d);
           } else {
             actionHtml =
               '<button type="button" class="btn btn-primary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
@@ -1470,9 +1501,13 @@
         if (!panel) return;
         var opening = panel.hidden;
         panel.hidden = !opening;
-        if (opening && !ensurePortalContractFrame(panel, docId)) {
-          alert('Unable to load this document right now.');
-          panel.hidden = true;
+        if (opening) {
+          var payPanel = root.querySelector('[data-portal-pay-panel="' + docId + '"]');
+          if (payPanel) payPanel.hidden = true;
+          if (!ensurePortalContractFrame(panel, docId)) {
+            alert('Unable to load this document right now.');
+            panel.hidden = true;
+          }
         }
       });
     });
@@ -1500,6 +1535,8 @@
         var opening = panel.hidden;
         panel.hidden = !opening;
         if (opening) {
+          var viewPanel = root.querySelector('[data-portal-signed-panel="' + docId + '"]');
+          if (viewPanel) viewPanel.hidden = true;
           btn.setAttribute('aria-expanded', 'true');
         } else {
           btn.setAttribute('aria-expanded', 'false');
@@ -1524,11 +1561,12 @@
             b.classList.toggle('is-selected', b === btn);
           });
         }
-        var copyBtn = detail.querySelector('[data-portal-pay-copy]');
-        if (copyBtn && !copyBtn.dataset.portalPayCopyBound) {
+        detail.querySelectorAll('[data-portal-pay-copy]').forEach(function (copyBtn) {
+          if (copyBtn.dataset.portalPayCopyBound) return;
           copyBtn.dataset.portalPayCopyBound = '1';
           copyBtn.addEventListener('click', function () {
-            var handleEl = detail.querySelector('[data-portal-pay-handle]');
+            var row = copyBtn.closest('.client-portal-pay-handle-row');
+            var handleEl = row ? row.querySelector('[data-portal-pay-handle]') : null;
             var text = handleEl ? handleEl.textContent : method.handle;
             var done = function () {
               copyBtn.textContent = 'Copied';
@@ -1544,7 +1582,7 @@
               window.prompt('Copy this payment handle:', text);
             }
           });
-        }
+        });
       });
     });
   }
