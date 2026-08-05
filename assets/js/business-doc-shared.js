@@ -152,6 +152,8 @@
         'Response within 72 business hours',
         '1 maintenance window per month',
         'Hosting, updates, monitoring, minor fixes',
+        'Live-ops triage for bugs & broken flows',
+        'Small content & copy tweaks in your window',
         'Web + iOS + Android support'
       ]
     },
