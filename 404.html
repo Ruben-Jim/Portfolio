@@ -3634,7 +3634,34 @@
                     <button type="button" class="cp-client-sort-chip" data-cp-sort="maintenance" aria-pressed="false">On maintenance</button>
                     <button type="button" class="cp-client-sort-chip" data-cp-sort="added" aria-pressed="false">Date added</button>
                   </div>
-                  <ul class="cp-client-picker-list" id="client-projects-picker-list" role="listbox" aria-label="Clients"></ul>
+                  <div class="cp-client-onboard" id="cp-client-onboard" hidden></div>
+                  <div class="cp-client-empty" id="cp-client-empty" hidden></div>
+                  <div class="cp-delivery-board" id="cp-delivery-board" aria-label="Client delivery stages">
+                    <div class="cp-delivery-col" data-delivery-stage="demo">
+                      <div class="cp-delivery-col-header">
+                        <span class="cp-delivery-stage-dot cp-delivery-dot--demo" aria-hidden="true"></span>
+                        <h4 class="cp-delivery-col-title">Demo</h4>
+                        <span class="cp-delivery-col-count" id="cp-delivery-count-demo">0</span>
+                      </div>
+                      <div class="cp-delivery-cards" id="cp-delivery-cards-demo" data-delivery-stage="demo"></div>
+                    </div>
+                    <div class="cp-delivery-col" data-delivery-stage="converting">
+                      <div class="cp-delivery-col-header">
+                        <span class="cp-delivery-stage-dot cp-delivery-dot--converting" aria-hidden="true"></span>
+                        <h4 class="cp-delivery-col-title">Converting</h4>
+                        <span class="cp-delivery-col-count" id="cp-delivery-count-converting">0</span>
+                      </div>
+                      <div class="cp-delivery-cards" id="cp-delivery-cards-converting" data-delivery-stage="converting"></div>
+                    </div>
+                    <div class="cp-delivery-col" data-delivery-stage="client">
+                      <div class="cp-delivery-col-header">
+                        <span class="cp-delivery-stage-dot cp-delivery-dot--client" aria-hidden="true"></span>
+                        <h4 class="cp-delivery-col-title">Client</h4>
+                        <span class="cp-delivery-col-count" id="cp-delivery-count-client">0</span>
+                      </div>
+                      <div class="cp-delivery-cards" id="cp-delivery-cards-client" data-delivery-stage="client"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

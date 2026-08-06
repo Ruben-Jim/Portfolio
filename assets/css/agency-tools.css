@@ -1356,6 +1356,39 @@ select.admin-inline-select {
   background: var(--orange-yellow-crayola);
 }
 
+.cp-client-onboard {
+  margin: 0 0 14px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid hsla(145, 40%, 40%, 0.35);
+  background: hsla(145, 35%, 28%, 0.1);
+}
+
+.cp-client-onboard[hidden],
+.cp-client-empty[hidden],
+.cp-delivery-board[hidden] {
+  display: none !important;
+}
+
+.cp-client-onboard-head {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: hsl(145, 55%, 72%);
+}
+
+.cp-client-onboard-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cp-client-empty {
+  margin: 0 0 12px;
+}
+
 .cp-client-picker-list {
   list-style: none;
   margin: 0;
@@ -1378,6 +1411,178 @@ select.admin-inline-select {
   border-radius: 12px;
   color: var(--light-gray);
   font-size: var(--fs-7);
+  margin: 0;
+}
+
+.cp-delivery-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  align-items: stretch;
+  padding-bottom: 8px;
+}
+
+.cp-delivery-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--eerie-black-2, hsl(240, 2%, 12%));
+  border: 1px solid var(--jet, hsl(0, 0%, 22%));
+  border-radius: 10px;
+}
+
+.cp-delivery-col-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 10px;
+  border-bottom: 1px solid var(--jet, hsl(0, 0%, 22%));
+  margin-bottom: 4px;
+}
+
+.cp-delivery-stage-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cp-delivery-dot--demo {
+  background: hsl(210, 80%, 65%);
+}
+
+.cp-delivery-dot--converting {
+  background: hsl(38, 90%, 58%);
+}
+
+.cp-delivery-dot--client {
+  background: hsl(145, 55%, 52%);
+}
+
+.cp-delivery-col-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: var(--fw-600);
+  color: var(--white-2, hsl(0, 0%, 98%));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex: 1;
+  line-height: 1.25;
+}
+
+.cp-delivery-col-count {
+  font-size: 11px;
+  color: var(--light-gray-70, hsla(0, 0%, 84%, 0.7));
+  background: var(--jet, hsl(0, 0%, 22%));
+  border-radius: 10px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.cp-delivery-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 120px;
+}
+
+.cp-delivery-cards.drag-over {
+  outline: 1px dashed var(--orange-yellow-crayola);
+  outline-offset: 2px;
+  border-radius: 8px;
+  background: hsla(45, 100%, 72%, 0.06);
+}
+
+.cp-delivery-empty {
+  font-size: 11px;
+  color: var(--light-gray-70, hsla(0, 0%, 84%, 0.7));
+  text-align: center;
+  padding: 20px 8px;
+  border: 1px dashed var(--jet, hsl(0, 0%, 22%));
+  border-radius: 8px;
+  margin: 0;
+}
+
+.cp-delivery-card {
+  display: block;
+  background: var(--border-gradient-onyx, hsla(240, 5%, 14%, 0.95));
+  border: 1px solid var(--jet, hsl(0, 0%, 22%));
+  border-radius: 8px;
+  padding: 12px;
+  cursor: grab;
+  transition: border-color 0.2s, transform 0.15s;
+  user-select: none;
+}
+
+.cp-delivery-card:hover {
+  border-color: var(--orange-yellow-crayola);
+  transform: translateY(-1px);
+}
+
+.cp-delivery-card:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.cp-delivery-card.is-selected {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 1px hsla(45, 100%, 72%, 0.35);
+}
+
+.cp-delivery-card.is-dragging {
+  opacity: 0.55;
+  cursor: grabbing;
+}
+
+.cp-delivery-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cp-delivery-card-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: var(--fw-500);
+  color: var(--white-2, hsl(0, 0%, 98%));
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-delivery-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.cp-delivery-card .cp-client-picker-progress,
+.cp-delivery-card .cp-client-picker-progress-label {
+  margin-top: 0;
+}
+
+@media (max-width: 900px) {
+  .cp-delivery-board {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cp-delivery-col {
+    flex: 0 0 min(280px, 82vw);
+  }
 }
 
 .cp-client-picker-card {

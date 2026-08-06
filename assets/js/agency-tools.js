@@ -2914,6 +2914,9 @@
   var clientProjectsBound = false;
   var clientProjectsPickerBound = false;
   var clientProjectsSortBound = false;
+  var clientProjectsDndBound = false;
+  var cpDeliveryDragProjectId = null;
+  var CP_DELIVERY_STAGES = ['demo', 'converting', 'client'];
   var CP_CLIENT_SORT_KEY = 'cp-client-projects-sort';
   var CP_CLIENT_SORT_OPTIONS = ['name', 'attention', 'milestones', 'maintenance', 'added'];
   var clientProjectsSort = (function () {
@@ -3063,25 +3066,34 @@
     var sub = lead.company && lead.name && lead.company !== lead.name ? lead.company : cpStageLabel('deposit');
     var initials = clientPickerInitials(title);
     return (
-      '<li role="presentation">' +
-      '<button type="button" class="cp-client-picker-card cp-client-picker-card--deposit cp-client-picker-row" ' +
-      'role="option" aria-selected="false" data-cp-lead-id="' + esc(lead.id) + '">' +
-      '<span class="cp-client-picker-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
+      '<button type="button" class="cp-client-picker-card cp-client-picker-card--deposit cp-client-picker-row cp-onboard-card" ' +
+      'data-cp-lead-id="' +
+      esc(lead.id) +
+      '">' +
+      '<span class="cp-client-picker-avatar" aria-hidden="true">' +
+      esc(initials) +
+      '</span>' +
       '<span class="cp-client-picker-row-main">' +
       '<span class="cp-client-picker-row-head">' +
-      '<span class="cp-client-picker-card-title">' + esc(title) + '</span>' +
+      '<span class="cp-client-picker-card-title">' +
+      esc(title) +
+      '</span>' +
       '<span class="cp-client-picker-row-badges">' +
       '<span class="cp-client-picker-badge is-deposit">Deposit paid</span>' +
-      '<span class="cp-client-picker-badge">' + esc(cpMoney(lead.value)) + '</span>' +
+      '<span class="cp-client-picker-badge">' +
+      esc(cpMoney(lead.value)) +
+      '</span>' +
       '</span></span>' +
-      '<span class="cp-client-picker-card-sub">' + esc(sub) + ' · Ready to onboard</span>' +
+      '<span class="cp-client-picker-card-sub">' +
+      esc(sub) +
+      ' · Ready to onboard</span>' +
       '</span>' +
       '<ion-icon name="add-circle-outline" class="cp-client-picker-chevron" aria-hidden="true"></ion-icon>' +
-      '</button></li>'
+      '</button>'
     );
   }
 
-  function renderCpHubPickerCard(p) {
+  function renderCpHubDeliveryCard(p) {
     var title = (p.clientName || p.title || 'Untitled').trim();
     var meta = getClientPickerMeta(p);
     var selected = clientProjectsSelectedId === p.id;
@@ -3095,34 +3107,40 @@
         (guideCount > 1 ? guideCount + ' guides' : 'Guide') +
         '</span>'
       : '';
-    var stage = deliveryStageOf(p);
-    var deliveryBadge =
-      '<span class="cp-client-picker-badge hub-delivery-badge--' +
-      esc(stage) +
-      '">' +
-      esc(deliveryStageLabel(stage)) +
-      '</span>';
     var previewBadge = p.expoUrl
       ? '<span class="cp-client-picker-badge is-preview">Preview</span>'
       : '';
     return (
-      '<li role="presentation">' +
-      '<button type="button" class="cp-client-picker-card cp-client-picker-row' + (selected ? ' is-selected' : '') + '" ' +
-      'role="option" aria-selected="' + (selected ? 'true' : 'false') + '" ' +
-      'data-cp-client-id="' + esc(p.id) + '">' +
-      '<span class="cp-client-picker-avatar" aria-hidden="true">' + esc(initials) + '</span>' +
-      '<span class="cp-client-picker-row-main">' +
-      '<span class="cp-client-picker-row-head">' +
-      '<span class="cp-client-picker-card-title">' + esc(title) + '</span>' +
-      '<span class="cp-client-picker-row-badges">' +
-      deliveryBadge +
+      '<article class="cp-delivery-card' +
+      (selected ? ' is-selected' : '') +
+      '" draggable="true" tabindex="0" role="button" ' +
+      'data-project-id="' +
+      esc(p.id) +
+      '" data-cp-client-id="' +
+      esc(p.id) +
+      '" aria-pressed="' +
+      (selected ? 'true' : 'false') +
+      '">' +
+      '<div class="cp-delivery-card-top">' +
+      '<span class="cp-client-picker-avatar" aria-hidden="true">' +
+      esc(initials) +
+      '</span>' +
+      '<span class="cp-delivery-card-title">' +
+      esc(title) +
+      '</span>' +
+      '</div>' +
+      '<div class="cp-delivery-card-badges">' +
       previewBadge +
       maintBadge +
       guideBadge +
-      '<span class="cp-client-picker-badge ' + esc(meta.healthClass) + '">' + esc(meta.healthLabel) + '</span>' +
-      '</span></span>' +
+      '<span class="cp-client-picker-badge ' +
+      esc(meta.healthClass) +
+      '">' +
+      esc(meta.healthLabel) +
+      '</span>' +
+      '</div>' +
       (meta.milestonesTotal
-        ? '<span class="cp-client-picker-progress" aria-label="' +
+        ? '<div class="cp-client-picker-progress" aria-label="' +
           esc(meta.milestones + ' milestones complete') +
           '">' +
           '<span class="cp-client-picker-progress-track">' +
@@ -3131,12 +3149,15 @@
           '%"></span></span>' +
           '<span class="cp-client-picker-progress-label">' +
           esc(meta.milestones) +
-          ' milestones</span></span>'
+          ' milestones</span></div>'
         : '<span class="cp-client-picker-progress-label cp-client-picker-progress-label--empty">No milestones</span>') +
-      '</span>' +
-      '<ion-icon name="chevron-forward-outline" class="cp-client-picker-chevron" aria-hidden="true"></ion-icon>' +
-      '</button></li>'
+      '</article>'
     );
+  }
+
+  /** @deprecated Prefer renderCpHubDeliveryCard — kept for any leftover callers. */
+  function renderCpHubPickerCard(p) {
+    return renderCpHubDeliveryCard(p);
   }
 
   function clientHubSortName(hub) {
@@ -3317,7 +3338,7 @@
     renderClientProjectsPickerList();
     renderClientProjectsWorkspace();
     openCpClientDrawer();
-    var card = document.querySelector('.cp-client-picker-card.is-selected');
+    var card = document.querySelector('.cp-delivery-card.is-selected, .cp-client-picker-card.is-selected');
     if (card && typeof card.scrollIntoView === 'function') {
       card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
@@ -4066,8 +4087,10 @@
   }
 
   function renderClientProjectsPickerList() {
-    var list = document.getElementById('client-projects-picker-list');
-    if (!list) return;
+    var onboard = document.getElementById('cp-client-onboard');
+    var emptyEl = document.getElementById('cp-client-empty');
+    var board = document.getElementById('cp-delivery-board');
+    if (!board) return;
     syncClientProjectsSortChips();
     var query = clientProjectsSearchQuery.toLowerCase().trim();
     var depositLeads = getDepositLeadsWithoutHub().filter(function (lead) {
@@ -4079,36 +4102,151 @@
       }),
       clientProjectsSort
     );
-    var html = '';
-    var clientCount = filtered.length + depositLeads.length;
+    var buckets = { demo: [], converting: [], client: [] };
+    filtered.forEach(function (p) {
+      var stage = deliveryStageOf(p);
+      if (!buckets[stage]) buckets[stage] = [];
+      buckets[stage].push(p);
+    });
 
-    if (depositLeads.length) {
-      html +=
-        '<li class="cp-client-picker-section-label" role="presentation">Deposit paid — ready to onboard</li>' +
-        depositLeads.map(renderCpDepositLeadCard).join('');
-    }
+    var hasAnySource = agencyProjects.length > 0 || getDepositLeadsWithoutHub().length > 0;
+    var hasVisible = filtered.length > 0 || depositLeads.length > 0;
 
-    if (filtered.length) {
-      if (depositLeads.length) {
-        html += '<li class="cp-client-picker-section-label" role="presentation">Active clients (' + filtered.length + ')</li>';
-      } else if (clientCount > 0) {
-        html += '<li class="cp-client-picker-section-label" role="presentation">' + clientCount + (clientCount === 1 ? ' client' : ' clients') + '</li>';
-      }
-      html += filtered.map(renderCpHubPickerCard).join('');
-    }
-
-    if (!html) {
-      if (!agencyProjects.length && !getDepositLeadsWithoutHub().length) {
-        list.innerHTML =
-          '<li class="cp-client-picker-empty">No clients yet. ' +
-          '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="new-client">Add your first client</button></li>';
+    if (emptyEl) {
+      if (!hasVisible) {
+        emptyEl.hidden = false;
+        if (!hasAnySource) {
+          emptyEl.innerHTML =
+            '<p class="cp-client-picker-empty">No clients yet. ' +
+            '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="new-client">Add your first client</button></p>';
+        } else {
+          emptyEl.innerHTML = '<p class="cp-client-picker-empty">No clients match your search.</p>';
+        }
       } else {
-        list.innerHTML = '<li class="cp-client-picker-empty">No clients match your search.</li>';
+        emptyEl.hidden = true;
+        emptyEl.innerHTML = '';
       }
+    }
+
+    if (onboard) {
+      if (depositLeads.length) {
+        onboard.hidden = false;
+        onboard.innerHTML =
+          '<div class="cp-client-onboard-head">Deposit paid — ready to onboard (' +
+          depositLeads.length +
+          ')</div>' +
+          '<div class="cp-client-onboard-list">' +
+          depositLeads.map(renderCpDepositLeadCard).join('') +
+          '</div>';
+      } else {
+        onboard.hidden = true;
+        onboard.innerHTML = '';
+      }
+    }
+
+    board.hidden = !hasVisible;
+
+    CP_DELIVERY_STAGES.forEach(function (stage) {
+      var zone = document.getElementById('cp-delivery-cards-' + stage);
+      var countEl = document.getElementById('cp-delivery-count-' + stage);
+      var rows = buckets[stage] || [];
+      if (countEl) countEl.textContent = String(rows.length);
+      if (!zone) return;
+      if (!rows.length) {
+        zone.innerHTML =
+          '<p class="cp-delivery-empty">No ' +
+          esc(deliveryStageLabel(stage).toLowerCase()) +
+          ' projects.</p>';
+      } else {
+        zone.innerHTML = rows.map(renderCpHubDeliveryCard).join('');
+      }
+    });
+  }
+
+  async function moveHubDeliveryStage(projectId, stage) {
+    if (!projectId) return;
+    stage = deliveryStageOf({ deliveryStage: stage });
+    if (CP_DELIVERY_STAGES.indexOf(stage) < 0) return;
+    var hub = getHubById(projectId);
+    if (!hub) return;
+    if (deliveryStageOf(hub) === stage) return;
+    if (!rtdbReady()) {
+      alert('Unable to update stage right now.');
       return;
     }
+    var prev = deliveryStageOf(hub);
+    hub.deliveryStage = stage;
+    renderClientProjectsPickerList();
+    try {
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, PATHS.projects + '/' + projectId), {
+        deliveryStage: stage,
+        updatedAt: ts()
+      });
+      if (clientProjectsSelectedId === projectId) {
+        renderClientProjectsWorkspace();
+      }
+    } catch (err) {
+      console.error('moveHubDeliveryStage', err);
+      hub.deliveryStage = prev;
+      renderClientProjectsPickerList();
+      alert('Could not update delivery stage.');
+    }
+  }
 
-    list.innerHTML = html;
+  function initClientProjectsDeliveryDnd() {
+    var board = document.getElementById('cp-delivery-board');
+    if (!board || clientProjectsDndBound) return;
+    clientProjectsDndBound = true;
+
+    board.addEventListener('dragstart', function (e) {
+      var card = e.target.closest('.cp-delivery-card');
+      if (!card) return;
+      cpDeliveryDragProjectId = card.getAttribute('data-project-id');
+      card.classList.add('is-dragging');
+      if (e.dataTransfer) {
+        e.dataTransfer.setData('text/plain', cpDeliveryDragProjectId || '');
+        e.dataTransfer.effectAllowed = 'move';
+      }
+    });
+
+    board.addEventListener('dragend', function (e) {
+      var card = e.target.closest('.cp-delivery-card');
+      if (card) card.classList.remove('is-dragging');
+      cpDeliveryDragProjectId = null;
+      board.querySelectorAll('.cp-delivery-cards.drag-over').forEach(function (el) {
+        el.classList.remove('drag-over');
+      });
+    });
+
+    board.addEventListener('dragover', function (e) {
+      var zone = e.target.closest('.cp-delivery-cards');
+      if (!zone) return;
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      board.querySelectorAll('.cp-delivery-cards.drag-over').forEach(function (el) {
+        el.classList.remove('drag-over');
+      });
+      zone.classList.add('drag-over');
+    });
+
+    board.addEventListener('dragleave', function (e) {
+      var zone = e.target.closest('.cp-delivery-cards');
+      if (zone && !zone.contains(e.relatedTarget)) zone.classList.remove('drag-over');
+    });
+
+    board.addEventListener('drop', function (e) {
+      var zone = e.target.closest('.cp-delivery-cards');
+      if (!zone) return;
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      var col = zone.closest('.cp-delivery-col');
+      if (!col) return;
+      var stage = col.getAttribute('data-delivery-stage') || zone.getAttribute('data-delivery-stage');
+      var projectId =
+        cpDeliveryDragProjectId || (e.dataTransfer && e.dataTransfer.getData('text/plain'));
+      if (!projectId || !stage) return;
+      moveHubDeliveryStage(projectId, stage);
+    });
   }
 
   function refreshClientProjectsPicker() {
@@ -4771,7 +4909,7 @@
       });
     }
 
-    var picker = document.getElementById('client-projects-picker-list');
+    var picker = document.getElementById('cp-client-picker');
     if (picker && !clientProjectsPickerBound) {
       clientProjectsPickerBound = true;
       picker.addEventListener('click', function (e) {
@@ -4795,7 +4933,16 @@
         e.preventDefault();
         selectClientProject(card.getAttribute('data-cp-client-id'));
       });
+      picker.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        var card = e.target.closest('.cp-delivery-card[data-cp-client-id]');
+        if (!card || !picker.contains(card)) return;
+        e.preventDefault();
+        selectClientProject(card.getAttribute('data-cp-client-id'));
+      });
     }
+
+    initClientProjectsDeliveryDnd();
 
     var workspace = document.getElementById('client-projects-workspace');
     if (workspace && !clientProjectsBound) {
