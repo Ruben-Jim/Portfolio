@@ -11054,11 +11054,9 @@ window.addEventListener('load', function() {
   window.subscribeAgencyBookingsFromRtdb = subscribeAgencyBookingsFromRtdb;
   window.unsubscribeAgencyBookingsFromRtdb = unsubscribeAgencyBookingsFromRtdb;
 
-  var adminBookingsFilter = 'upcoming';
   var adminBookingsSendingId = null;
   var pendingCancelBookingId = null;
   var pendingRescheduleBookingId = null;
-  var adminBookingsView = 'calendar';
   var adminBookingsCalMonth = null;
   var adminBookingsSelectedDay = null;
   var adminBookingsScrollDayPanel = false;
@@ -11150,29 +11148,6 @@ window.addEventListener('load', function() {
     if (!adminBookingsSelectedDay) {
       adminBookingsSelectedDay = todayBookingDayKey();
     }
-  }
-
-  function getFilteredAgencyBookings() {
-    var now = Date.now();
-    var list = (agencyBookingsList || []).slice().filter(function (b) {
-      return b && b.startISO;
-    });
-    list.sort(function (a, b) {
-      return Date.parse(a.startISO) - Date.parse(b.startISO);
-    });
-    if (adminBookingsFilter === 'upcoming') {
-      return list.filter(function (b) {
-        return isActiveAgencyBooking(b) && Date.parse(b.startISO) >= now;
-      });
-    }
-    if (adminBookingsFilter === 'past') {
-      return list
-        .filter(function (b) {
-          return Date.parse(b.startISO) < now || isAgencyBookingNoShow(b);
-        })
-        .reverse();
-    }
-    return list.slice().reverse();
   }
 
   function getBookingsForDayKey(dayKey) {
@@ -11267,19 +11242,7 @@ window.addEventListener('load', function() {
 
   function syncBookingsViewUi() {
     var calView = document.getElementById('admin-bookings-calendar-view');
-    var listView = document.getElementById('admin-bookings-list-view');
-    if (calView) calView.hidden = adminBookingsView !== 'calendar';
-    if (listView) listView.hidden = adminBookingsView !== 'list';
-    document.querySelectorAll('[data-bookings-view]').forEach(function (btn) {
-      var on = btn.getAttribute('data-bookings-view') === adminBookingsView;
-      btn.classList.toggle('is-active', on);
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-    document.querySelectorAll('[data-bookings-filter]').forEach(function (btn) {
-      var on = btn.getAttribute('data-bookings-filter') === adminBookingsFilter;
-      btn.classList.toggle('is-active', on);
-      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
+    if (calView) calView.hidden = false;
   }
 
   function renderAdminBookingsCalendar() {
@@ -11361,26 +11324,8 @@ window.addEventListener('load', function() {
     fillBookingsListEl(
       dayList,
       dayRows,
-      '<div class="admin-bookings-empty"><p class="form-hint">No calls on this day. Pick a highlighted date, or open List for all bookings.</p></div>'
+      '<div class="admin-bookings-empty"><p class="form-hint">No calls on this day. Pick a highlighted date on the calendar.</p></div>'
     );
-  }
-
-  function renderAdminBookingsListView() {
-    var listEl = document.getElementById('admin-bookings-list');
-    if (!listEl) return;
-    var rows = getFilteredAgencyBookings();
-    var total = (agencyBookingsList || []).length;
-    var emptyHtml;
-    if (agencyBookingsListenFailed) {
-      emptyHtml = '<div class="admin-bookings-empty"><p class="form-hint">Bookings could not be loaded. Sign in as admin and refresh.</p></div>';
-    } else if (!total) {
-      emptyHtml = '<div class="admin-bookings-empty"><p class="form-hint">No bookings yet. When someone books via /schedule or Hire Me, they show up here.</p></div>';
-    } else if (!rows.length) {
-      emptyHtml = '<div class="admin-bookings-empty"><p class="form-hint">No ' + adminBookingsFilter + ' bookings (' + total + ' total).</p></div>';
-    } else {
-      emptyHtml = '';
-    }
-    fillBookingsListEl(listEl, rows, emptyHtml);
   }
 
   function renderAdminBookingsPanel() {
@@ -11391,13 +11336,9 @@ window.addEventListener('load', function() {
 
     updateAdminBookingsSummary();
     syncBookingsViewUi();
-    if (adminBookingsView === 'calendar') {
-      renderAdminBookingsCalendar();
-    } else {
-      renderAdminBookingsListView();
-    }
+    renderAdminBookingsCalendar();
 
-    if (shouldScrollDay && adminBookingsView === 'calendar') {
+    if (shouldScrollDay) {
       var dayPanel = document.querySelector('#admin-bookings-section .admin-bookings-day-panel');
       if (dayPanel && window.matchMedia('(max-width: 979px)').matches) {
         requestAnimationFrame(function () {
@@ -12035,22 +11976,6 @@ window.addEventListener('load', function() {
     setupCancelBookingConfirmModal();
     setupRescheduleBookingModal();
 
-    section.querySelectorAll('[data-bookings-view]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        adminBookingsView = btn.getAttribute('data-bookings-view') || 'calendar';
-        adminBookingsPreserveScroll = true;
-        renderAdminBookingsPanel();
-      });
-    });
-
-    section.querySelectorAll('[data-bookings-filter]').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        adminBookingsFilter = btn.getAttribute('data-bookings-filter') || 'upcoming';
-        adminBookingsPreserveScroll = true;
-        renderAdminBookingsPanel();
-      });
-    });
-
     var prevBtn = document.getElementById('admin-bookings-cal-prev');
     var nextBtn = document.getElementById('admin-bookings-cal-next');
     if (prevBtn) {
@@ -12515,6 +12440,10 @@ window.addEventListener('load', function() {
   const businessDocProposedSiteWrap = document.getElementById('business-doc-proposed-site-wrap');
   const businessDocResetBtn = document.getElementById('business-doc-reset-btn');
   const businessDocsTbody = document.getElementById('business-docs-tbody');
+  let businessDocsOpenClientKey = null;
+  try {
+    businessDocsOpenClientKey = sessionStorage.getItem('adminBusinessDocsOpenClient') || null;
+  } catch (e) {}
   const businessDocFilterType = document.getElementById('business-doc-filter-type');
   const businessDocFilterStatus = document.getElementById('business-doc-filter-status');
   const businessDocModal = document.getElementById('business-doc-modal');
@@ -13657,8 +13586,216 @@ window.addEventListener('load', function() {
     ].join('');
   }
 
+  function buildBusinessDocRowEl(doc) {
+    var tr = document.createElement('tr');
+    tr.className = 'business-doc-row';
+
+    var typeTd = document.createElement('td');
+    typeTd.setAttribute('data-label', 'Type');
+    typeTd.innerHTML = '<span class="business-doc-badge business-doc-type-' + doc.type + '">' + doc.type.charAt(0).toUpperCase() + doc.type.slice(1) + '</span>';
+    tr.appendChild(typeTd);
+
+    var clientTd = document.createElement('td');
+    clientTd.setAttribute('data-label', 'Client');
+    if (doc.type === 'invoice' && doc.invoiceNumber) {
+      clientTd.innerHTML =
+        '<div>' +
+        escapeHtml(doc.clientName || '—') +
+        '</div><div class="business-doc-invoice-no">' +
+        escapeHtml(doc.invoiceNumber) +
+        '</div>';
+    } else {
+      clientTd.textContent = doc.clientName || '—';
+    }
+    tr.appendChild(clientTd);
+
+    var statusTd = document.createElement('td');
+    statusTd.setAttribute('data-label', 'Status');
+    statusTd.innerHTML = '<span class="business-doc-badge business-doc-status-' + doc.status + '">' + doc.status.toUpperCase() + '</span>';
+    if (doc.type === 'contract') {
+      var signature = contractSignaturesById[doc.id];
+      var signedBadge = document.createElement('span');
+      signedBadge.className =
+        'business-doc-signed-badge ' +
+        (signature ? 'business-doc-signed-badge--signed' : 'business-doc-signed-badge--unsigned');
+      signedBadge.style.marginLeft = '6px';
+      signedBadge.textContent = signature
+        ? 'Signed · ' + formatDateDisplay(signature.signedAt)
+        : 'Awaiting signature';
+      statusTd.appendChild(signedBadge);
+    }
+    tr.appendChild(statusTd);
+
+    var createdTd = document.createElement('td');
+    createdTd.setAttribute('data-label', 'Created');
+    createdTd.textContent = formatDateDisplay(doc.createdAt);
+    tr.appendChild(createdTd);
+
+    var actionsTd = document.createElement('td');
+    actionsTd.setAttribute('data-label', '');
+    actionsTd.className = 'business-doc-actions';
+
+    var editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'btn-icon edit-btn';
+    editBtn.title = 'Edit';
+    editBtn.setAttribute('aria-label', 'Edit document');
+    editBtn.innerHTML = '<ion-icon name="create-outline"></ion-icon>';
+    editBtn.addEventListener('click', function() {
+      var latest =
+        businessDocs.find(function (d) {
+          return d && d.id === doc.id;
+        }) || doc;
+      openBusinessDocModal(latest);
+    });
+
+    var pdfBtn = document.createElement('button');
+    pdfBtn.type = 'button';
+    pdfBtn.className = 'btn-icon';
+    pdfBtn.title = 'Generate PDF';
+    pdfBtn.setAttribute('aria-label', 'Generate PDF');
+    pdfBtn.innerHTML = '<ion-icon name="document-text-outline"></ion-icon>';
+    pdfBtn.addEventListener('click', function() {
+      generateBusinessDocPdf(doc);
+    });
+
+    var generateContractBtn = null;
+    if (doc.type === 'proposal' && doc.status === 'accepted') {
+      generateContractBtn = document.createElement('button');
+      generateContractBtn.type = 'button';
+      generateContractBtn.className = 'btn-icon contract-btn';
+      generateContractBtn.title = 'Generate Contract';
+      generateContractBtn.setAttribute('aria-label', 'Generate contract from this proposal');
+      generateContractBtn.innerHTML = '<ion-icon name="document-lock-outline"></ion-icon>';
+      generateContractBtn.addEventListener('click', function () {
+        var nowIso = new Date().toISOString();
+        openBusinessDocModal({
+          id: generateBusinessDocId(),
+          type: 'contract',
+          clientName: doc.clientName || '',
+          clientEmail: doc.clientEmail || '',
+          total: doc.total || 0,
+          status: 'draft',
+          dueDate: doc.dueDate || '',
+          notes: doc.includedItems || doc.notes || '',
+          theme: doc.theme || 'cwr',
+          sourceProposalId: doc.id,
+          ipTransferMode: 'license',
+          createdAt: nowIso,
+          updatedAt: nowIso
+        });
+      });
+    }
+
+    var deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn-icon delete-btn';
+    deleteBtn.title = 'Delete';
+    deleteBtn.setAttribute('aria-label', 'Delete document');
+    deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
+    deleteBtn.addEventListener('click', function () {
+      openDeleteDocumentConfirmModal(doc.id);
+    });
+
+    actionsTd.appendChild(editBtn);
+    actionsTd.appendChild(pdfBtn);
+    if (generateContractBtn) actionsTd.appendChild(generateContractBtn);
+    actionsTd.appendChild(deleteBtn);
+
+    tr.appendChild(actionsTd);
+    return tr;
+  }
+
+  var BUSINESS_DOC_NO_CLIENT_KEY = '￿__no_client__';
+  var BUSINESS_DOC_STATUS_FLAG_ORDER = ['draft', 'sent', 'accepted', 'paid'];
+
+  function groupBusinessDocsByClient(docs) {
+    var groups = [];
+    var groupsByKey = {};
+    docs.forEach(function (doc) {
+      var name = String(doc.clientName || '').trim();
+      var key = name ? name.toLowerCase() : BUSINESS_DOC_NO_CLIENT_KEY;
+      if (!groupsByKey[key]) {
+        groupsByKey[key] = { key: key, name: name || 'No client', docs: [] };
+        groups.push(groupsByKey[key]);
+      }
+      groupsByKey[key].docs.push(doc);
+    });
+    groups.sort(function (a, b) {
+      if (a.key === BUSINESS_DOC_NO_CLIENT_KEY) return 1;
+      if (b.key === BUSINESS_DOC_NO_CLIENT_KEY) return -1;
+      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+    });
+    return groups;
+  }
+
+  function setBusinessDocsOpenClient(key) {
+    businessDocsOpenClientKey = key;
+    try {
+      sessionStorage.setItem('adminBusinessDocsOpenClient', key || '');
+    } catch (e) {}
+  }
+
+  function buildBusinessDocClientHeaderRowEl(group, isOpen) {
+    var statusCounts = {};
+    group.docs.forEach(function (d) {
+      statusCounts[d.status] = (statusCounts[d.status] || 0) + 1;
+    });
+    var flagsHtml = BUSINESS_DOC_STATUS_FLAG_ORDER
+      .filter(function (s) { return statusCounts[s]; })
+      .map(function (s) {
+        return '<span class="business-doc-badge business-doc-status-' + s + '">' + statusCounts[s] + ' ' + s + '</span>';
+      })
+      .join('');
+
+    var tr = document.createElement('tr');
+    tr.className = 'business-doc-row business-doc-client-group-row';
+    tr.setAttribute('data-client-key', group.key);
+    tr.setAttribute('role', 'button');
+    tr.setAttribute('tabindex', '0');
+    tr.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+    var typeTd = document.createElement('td');
+    typeTd.setAttribute('data-label', 'Type');
+    typeTd.innerHTML = '<ion-icon name="chevron-forward-outline" class="business-doc-client-chevron" aria-hidden="true"></ion-icon>';
+    tr.appendChild(typeTd);
+
+    var clientTd = document.createElement('td');
+    clientTd.setAttribute('data-label', 'Client');
+    clientTd.innerHTML =
+      '<div class="business-doc-client-name">' + escapeHtml(group.name) + '</div>' +
+      '<div class="business-doc-invoice-no">' + group.docs.length + (group.docs.length === 1 ? ' document' : ' documents') + '</div>';
+    tr.appendChild(clientTd);
+
+    var statusTd = document.createElement('td');
+    statusTd.setAttribute('data-label', 'Status');
+    statusTd.colSpan = 3;
+    statusTd.innerHTML = '<span class="business-doc-client-flags">' + flagsHtml + '</span>';
+    tr.appendChild(statusTd);
+
+    function toggle() {
+      setBusinessDocsOpenClient(businessDocsOpenClientKey === group.key ? null : group.key);
+      renderBusinessDocs();
+    }
+    tr.addEventListener('click', toggle);
+    tr.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    });
+
+    return tr;
+  }
+
   function renderBusinessDocs() {
     if (!businessDocsTbody) return;
+    var table = businessDocsTbody.closest('table');
+    if (table) {
+      Array.prototype.slice.call(table.querySelectorAll('tbody.business-doc-client-card')).forEach(function (tb) {
+        tb.remove();
+      });
+    }
 
     const filtered = applyBusinessDocsFilters(businessDocs.slice().sort(function(a, b) {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
@@ -13666,6 +13803,7 @@ window.addEventListener('load', function() {
     renderBusinessDocsSummary(businessDocs, filtered);
 
     if (filtered.length === 0) {
+      businessDocsTbody.hidden = false;
       businessDocsTbody.innerHTML =
         '<tr class="empty-row"><td colspan="5">' +
         '<div class="business-docs-empty-state">' +
@@ -13675,131 +13813,35 @@ window.addEventListener('load', function() {
         '</div></td></tr>';
       var cta = document.getElementById('business-docs-empty-cta');
       if (cta) cta.addEventListener('click', function() { openBusinessDocModal(); });
+      if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
       return;
     }
 
     businessDocsTbody.innerHTML = '';
+    businessDocsTbody.hidden = true;
 
-    filtered.forEach(function(doc) {
-      var tr = document.createElement('tr');
-      tr.className = 'business-doc-row';
-
-      var typeTd = document.createElement('td');
-      typeTd.setAttribute('data-label', 'Type');
-      typeTd.innerHTML = '<span class="business-doc-badge business-doc-type-' + doc.type + '">' + doc.type.charAt(0).toUpperCase() + doc.type.slice(1) + '</span>';
-      tr.appendChild(typeTd);
-
-      var clientTd = document.createElement('td');
-      clientTd.setAttribute('data-label', 'Client');
-      if (doc.type === 'invoice' && doc.invoiceNumber) {
-        clientTd.innerHTML =
-          '<div>' +
-          escapeHtml(doc.clientName || '—') +
-          '</div><div class="business-doc-invoice-no">' +
-          escapeHtml(doc.invoiceNumber) +
-          '</div>';
-      } else {
-        clientTd.textContent = doc.clientName || '—';
-      }
-      tr.appendChild(clientTd);
-
-      var statusTd = document.createElement('td');
-      statusTd.setAttribute('data-label', 'Status');
-      statusTd.innerHTML = '<span class="business-doc-badge business-doc-status-' + doc.status + '">' + doc.status.toUpperCase() + '</span>';
-      if (doc.type === 'contract') {
-        var signature = contractSignaturesById[doc.id];
-        var signedBadge = document.createElement('span');
-        signedBadge.className =
-          'business-doc-signed-badge ' +
-          (signature ? 'business-doc-signed-badge--signed' : 'business-doc-signed-badge--unsigned');
-        signedBadge.style.marginLeft = '6px';
-        signedBadge.textContent = signature
-          ? 'Signed · ' + formatDateDisplay(signature.signedAt)
-          : 'Awaiting signature';
-        statusTd.appendChild(signedBadge);
-      }
-      tr.appendChild(statusTd);
-
-      var createdTd = document.createElement('td');
-      createdTd.setAttribute('data-label', 'Created');
-      createdTd.textContent = formatDateDisplay(doc.createdAt);
-      tr.appendChild(createdTd);
-
-      var actionsTd = document.createElement('td');
-      actionsTd.setAttribute('data-label', '');
-      actionsTd.className = 'business-doc-actions';
-
-      var editBtn = document.createElement('button');
-      editBtn.type = 'button';
-      editBtn.className = 'btn-icon edit-btn';
-      editBtn.title = 'Edit';
-      editBtn.setAttribute('aria-label', 'Edit document');
-      editBtn.innerHTML = '<ion-icon name="create-outline"></ion-icon>';
-      editBtn.addEventListener('click', function() {
-        var latest =
-          businessDocs.find(function (d) {
-            return d && d.id === doc.id;
-          }) || doc;
-        openBusinessDocModal(latest);
-      });
-
-      var pdfBtn = document.createElement('button');
-      pdfBtn.type = 'button';
-      pdfBtn.className = 'btn-icon';
-      pdfBtn.title = 'Generate PDF';
-      pdfBtn.setAttribute('aria-label', 'Generate PDF');
-      pdfBtn.innerHTML = '<ion-icon name="document-text-outline"></ion-icon>';
-      pdfBtn.addEventListener('click', function() {
-        generateBusinessDocPdf(doc);
-      });
-
-      var generateContractBtn = null;
-      if (doc.type === 'proposal' && doc.status === 'accepted') {
-        generateContractBtn = document.createElement('button');
-        generateContractBtn.type = 'button';
-        generateContractBtn.className = 'btn-icon contract-btn';
-        generateContractBtn.title = 'Generate Contract';
-        generateContractBtn.setAttribute('aria-label', 'Generate contract from this proposal');
-        generateContractBtn.innerHTML = '<ion-icon name="document-lock-outline"></ion-icon>';
-        generateContractBtn.addEventListener('click', function () {
-          var nowIso = new Date().toISOString();
-          openBusinessDocModal({
-            id: generateBusinessDocId(),
-            type: 'contract',
-            clientName: doc.clientName || '',
-            clientEmail: doc.clientEmail || '',
-            total: doc.total || 0,
-            status: 'draft',
-            dueDate: doc.dueDate || '',
-            notes: doc.includedItems || doc.notes || '',
-            theme: doc.theme || 'cwr',
-            sourceProposalId: doc.id,
-            ipTransferMode: 'license',
-            createdAt: nowIso,
-            updatedAt: nowIso
-          });
+    var groups = groupBusinessDocsByClient(filtered);
+    if (businessDocsOpenClientKey && !groups.some(function (g) { return g.key === businessDocsOpenClientKey; })) {
+      setBusinessDocsOpenClient(null);
+    }
+    groups.forEach(function (group) {
+      var isOpen = businessDocsOpenClientKey === group.key;
+      var groupTbody = document.createElement('tbody');
+      groupTbody.className = 'business-doc-client-card';
+      groupTbody.setAttribute('data-client-key', group.key);
+      groupTbody.appendChild(buildBusinessDocClientHeaderRowEl(group, isOpen));
+      if (isOpen) {
+        group.docs.forEach(function (doc) {
+          groupTbody.appendChild(buildBusinessDocRowEl(doc));
         });
       }
-
-      var deleteBtn = document.createElement('button');
-      deleteBtn.type = 'button';
-      deleteBtn.className = 'btn-icon delete-btn';
-      deleteBtn.title = 'Delete';
-      deleteBtn.setAttribute('aria-label', 'Delete document');
-      deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
-      deleteBtn.addEventListener('click', function () {
-        openDeleteDocumentConfirmModal(doc.id);
-      });
-
-      actionsTd.appendChild(editBtn);
-      actionsTd.appendChild(pdfBtn);
-      if (generateContractBtn) actionsTd.appendChild(generateContractBtn);
-      actionsTd.appendChild(deleteBtn);
-
-      tr.appendChild(actionsTd);
-
-      businessDocsTbody.appendChild(tr);
+      if (table) {
+        table.appendChild(groupTbody);
+      } else {
+        businessDocsTbody.appendChild(groupTbody);
+      }
     });
+
     if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
   }
 
@@ -14172,10 +14214,10 @@ window.addEventListener('load', function() {
     ];
     var VALID_TAB = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, bookings: 1, pipeline: 1,
-      referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
-    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, messages: 1, docs: 1, 'client-email': 1, bookings: 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, 'time-capacity': 1, messages: 1, docs: 1, 'client-email': 1, bookings: 1 };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
     if (!tabBar) return;
@@ -14838,10 +14880,11 @@ window.addEventListener('load', function() {
 
   // Mobile admin — CRM section hub + docked subtab bar (Pipeline · Clients · Messages · Docs · Email)
   (function initAdminMobileCRMSubtabBar() {
-    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'messages', 'docs', 'client-email', 'bookings'];
+    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'time-capacity', 'messages', 'docs', 'client-email', 'bookings'];
     var CRM_SUB_META = {
       pipeline:          { label: 'Pipeline', icon: 'git-network-outline' },
       'client-projects': { label: 'Clients',  icon: 'briefcase-outline' },
+      'time-capacity':   { label: 'Time',     icon: 'timer-outline' },
       messages:          { label: 'Messages', icon: 'mail-outline' },
       docs:              { label: 'Docs',     icon: 'document-text-outline' },
       'client-email':    { label: 'Email',    icon: 'send-outline' },
@@ -14970,11 +15013,11 @@ window.addEventListener('load', function() {
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
-      referrals: 1, 'studio-costs': 1, ops: 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
-    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, messages: 1, docs: 1, 'client-email': 1, bookings: 1 };
-    var AGENCY_TABS = { 'client-projects': 1, referrals: 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, 'time-capacity': 1, messages: 1, docs: 1, 'client-email': 1, bookings: 1 };
+    var AGENCY_TABS = { 'client-projects': 1, 'time-capacity': 1, referrals: 1 };
     var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
     var navGroups = tabBar.querySelectorAll('.admin-nav-group');
 
@@ -15062,6 +15105,12 @@ window.addEventListener('load', function() {
         if (typeof window.AgencyTools.subscribe === 'function') window.AgencyTools.subscribe();
         if (typeof window.AgencyTools.refreshStudioCosts === 'function') {
           window.AgencyTools.refreshStudioCosts();
+        }
+      }
+      if (tabId === 'time-capacity' && window.AgencyTools) {
+        if (typeof window.AgencyTools.subscribe === 'function') window.AgencyTools.subscribe();
+        if (typeof window.AgencyTools.refreshTimeCapacity === 'function') {
+          window.AgencyTools.refreshTimeCapacity();
         }
       }
       if (AGENCY_TABS[tabId] && window.AgencyTools) {
@@ -18168,6 +18217,7 @@ function toggleTheme() {
       { id: 'admin-messages', label: 'Admin: Contact messages', icon: 'mail-outline', search: 'admin contact messages inbox', action: function () { runAdminTab('messages'); } },
       { id: 'admin-pipeline', label: 'Admin: Client pipeline', icon: 'git-network-outline', search: 'admin pipeline leads crm', action: function () { runAdminTab('pipeline'); } },
       { id: 'admin-hub', label: 'Admin: Clients Projects', icon: 'briefcase-outline', search: 'admin clients projects hub client', action: function () { runAdminTab('client-projects'); } },
+      { id: 'admin-time-capacity', label: 'Admin: Time Capacity', icon: 'timer-outline', search: 'admin time capacity hours maintenance build weekly', action: function () { runAdminTab('time-capacity'); } },
       { id: 'admin-maintenance', label: 'Admin: Clients Projects (maintenance)', icon: 'construct-outline', search: 'admin maintenance sla clients', action: function () { runAdminTab('client-projects'); } },
       { id: 'admin-portfolio', label: 'Admin: Portfolio projects', icon: 'albums-outline', search: 'admin portfolio projects', action: function () { runAdminTab('portfolio'); } },
       { id: 'admin-blog', label: 'Admin: Blog management', icon: 'newspaper-outline', search: 'admin blog posts', action: function () { runAdminTab('blog'); } },

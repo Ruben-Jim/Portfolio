@@ -90,6 +90,11 @@
       ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     },
+    "agencyTimeEntries": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".indexOn": ["date", "projectId", "maintenanceId"]
+    },
     "agencyAvailability": {
       ".read": true,
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"

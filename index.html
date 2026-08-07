@@ -381,6 +381,21 @@
           </div>
         </section>
 
+        <!-- Section: App Store / Google Play -->
+        <section class="cwr-landing-band cwr-landing-band--dark" aria-labelledby="cwr-stores-title">
+          <div class="cwr-landing-band-inner cwr-landing-stores-inner">
+            <header class="cwr-landing-band-header cwr-landing-band-header--center">
+              <p class="cwr-landing-band-kicker" data-i18n="home.stores_kicker">From idea to launch</p>
+              <h2 class="cwr-landing-band-title" id="cwr-stores-title" data-i18n="home.stores_title">We put your app on the App Store and Google Play</h2>
+              <p class="cwr-landing-band-lead" data-i18n="home.stores_lead">Full native builds, submitted and published under your name — not just a website wrapped in a shell.</p>
+            </header>
+            <div class="cwr-landing-stores-badges">
+              <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" loading="lazy" width="162" height="54">
+              <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" loading="lazy" width="182" height="54">
+            </div>
+          </div>
+        </section>
+
         <!-- Section 2: Demo reel -->
         <section class="cwr-landing-band cwr-landing-band--light" aria-labelledby="cwr-demo-title">
           <div class="cwr-landing-band-inner cwr-landing-demo-grid">
@@ -3016,6 +3031,7 @@
             <h2 class="h2 article-title">Admin Dashboard</h2>
           </header>
 
+
         <div class="admin-tabs" id="admin-tabs">
           <nav class="admin-tab-bar" aria-label="Admin dashboard sections">
             <button type="button" class="admin-tab is-active" role="tab" id="admin-tab-overview" data-admin-tab="overview" data-mobile-primary aria-selected="true" aria-controls="admin-panel-overview" tabindex="0" aria-label="Overview">
@@ -3036,6 +3052,10 @@
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-client-projects" data-admin-tab="client-projects" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-projects" tabindex="-1" aria-label="Clients">
                   <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients</span><span class="admin-tab-label-mobile">Clients</span></span>
+                </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-time-capacity" data-admin-tab="time-capacity" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-time-capacity" tabindex="-1" aria-label="Time Capacity">
+                  <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Time Capacity</span><span class="admin-tab-label-mobile">Time</span></span>
                 </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
                   <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
@@ -3434,22 +3454,10 @@
 
           <div id="admin-panel-bookings" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-bookings" data-admin-tab="bookings" hidden>
           <section class="service" id="admin-bookings-section">
-            <div class="admin-panel-heading admin-panel-heading--with-action">
+            <div class="admin-panel-heading">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Bookings</h3>
                 <p class="admin-panel-lead">Calls from /schedule and Hire Me. Add a Meet link here — never on the invite email.</p>
-              </div>
-              <div class="admin-panel-heading-action">
-                <div class="admin-bookings-seg" role="group" aria-label="Bookings view">
-                  <button type="button" class="admin-bookings-seg-btn is-active" data-bookings-view="calendar">
-                    <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-                    <span>Calendar</span>
-                  </button>
-                  <button type="button" class="admin-bookings-seg-btn" data-bookings-view="list">
-                    <ion-icon name="list-outline" aria-hidden="true"></ion-icon>
-                    <span>List</span>
-                  </button>
-                </div>
               </div>
             </div>
 
@@ -3486,16 +3494,6 @@
               </div>
             </div>
 
-            <div id="admin-bookings-list-view" class="admin-bookings-list-view" hidden>
-              <div class="admin-bookings-toolbar">
-                <div class="admin-bookings-seg admin-bookings-seg--filters" role="group" aria-label="Booking filters">
-                  <button type="button" class="admin-bookings-seg-btn is-active" data-bookings-filter="upcoming">Upcoming</button>
-                  <button type="button" class="admin-bookings-seg-btn" data-bookings-filter="past">Past</button>
-                  <button type="button" class="admin-bookings-seg-btn" data-bookings-filter="all">All</button>
-                </div>
-              </div>
-              <div class="admin-bookings-list" id="admin-bookings-list"></div>
-            </div>
 
             <section class="admin-bookings-settings admin-collapsible-section" id="admin-sched-section">
               <button type="button" class="admin-collapsible-header" id="admin-sched-toggle" aria-expanded="false" aria-controls="admin-sched-content">
@@ -3857,6 +3855,85 @@
           </section>
           </div><!-- /admin-panel-client-projects -->
 
+          <!-- Time Capacity -->
+          <div id="admin-panel-time-capacity" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-time-capacity" data-admin-tab="time-capacity" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Time Capacity</h3>
+                <p class="admin-panel-lead">Plan and log hours on the calendar for Client-stage projects and maintenance retainers. Suggested capacity stays in the summary.</p>
+              </div>
+              <div class="admin-panel-heading-action">
+                <button type="button" class="btn btn-secondary" id="tc-open-timer-drawer" data-tc-action="open-timer">
+                  <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
+                  Timer
+                </button>
+              </div>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content time-capacity-shell">
+                <div class="tc-summary" id="tc-summary" aria-live="polite">
+                  <div class="tc-summary-card tc-summary-card--week">
+                    <span class="tc-summary-value" id="tc-summary-week">0h</span>
+                    <span class="tc-summary-label">Suggested this week</span>
+                  </div>
+                  <div class="tc-summary-card">
+                    <span class="tc-summary-value" id="tc-summary-maint">0h</span>
+                    <span class="tc-summary-label">Maintenance left</span>
+                  </div>
+                  <div class="tc-summary-card">
+                    <span class="tc-summary-value" id="tc-summary-build">0h</span>
+                    <span class="tc-summary-label">Build left</span>
+                  </div>
+                  <div class="tc-summary-card">
+                    <span class="tc-summary-value" id="tc-summary-planned">0h</span>
+                    <span class="tc-summary-label">Planned this week</span>
+                  </div>
+                  <div class="tc-summary-card">
+                    <span class="tc-summary-value" id="tc-summary-logged">0h</span>
+                    <span class="tc-summary-label">Logged this week</span>
+                  </div>
+                </div>
+
+
+                <div class="admin-bookings-calendar-view tc-calendar-view" id="tc-calendar-view">
+                  <div class="admin-bookings-cal-main">
+                    <div class="admin-bookings-cal-nav">
+                      <button type="button" class="btn btn-secondary btn-sm" id="tc-cal-prev" aria-label="Previous month">
+                        <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                      </button>
+                      <div class="admin-bookings-cal-nav-center">
+                        <h4 class="admin-bookings-cal-month" id="tc-cal-month-label">Month</h4>
+                        <button type="button" class="btn btn-secondary btn-sm" id="tc-cal-today">Today</button>
+                      </div>
+                      <button type="button" class="btn btn-secondary btn-sm" id="tc-cal-next" aria-label="Next month">
+                        <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                      </button>
+                    </div>
+                    <div class="admin-bookings-cal-weekdays" aria-hidden="true">
+                      <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div class="admin-bookings-cal-grid" id="tc-cal-grid" role="grid" aria-label="Time capacity calendar"></div>
+                  </div>
+                  <div class="admin-bookings-day-panel">
+                    <div class="admin-bookings-day-panel-head">
+                      <h4 class="admin-bookings-day-title" id="tc-day-title">Select a day</h4>
+                      <p class="admin-bookings-day-count" id="tc-day-count"></p>
+                    </div>
+                    <div class="tc-day-list" id="tc-day-list"></div>
+                    <div class="tc-day-actions">
+                      <button type="button" class="btn btn-primary btn-sm" id="tc-open-add-drawer" data-tc-action="open-add">
+                        <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                        Add for this day
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-time-capacity -->
+
           <!-- Project Hub -->
           <div id="admin-panel-hub" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-hub" data-admin-tab="hub" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
@@ -4133,6 +4210,34 @@
 
         </div> <!-- End admin-dashboard-content -->
 
+          <div class="tc-timer-bar" id="tc-timer-bar" hidden aria-live="polite">
+            <div class="tc-timer-bar-main">
+              <span class="tc-timer-bar-pulse" aria-hidden="true"></span>
+              <div class="tc-timer-bar-copy">
+                <span class="tc-timer-bar-label">Focus</span>
+                <span class="tc-timer-bar-client" id="tc-timer-bar-client">Focus session</span>
+              </div>
+              <div class="tc-timer-bar-clock">
+                <span class="tc-timer-bar-display" id="tc-timer-display">00:00:00</span>
+              </div>
+            </div>
+            <div class="tc-timer-bar-actions">
+              <button type="button" class="tc-timer-bar-btn" id="tc-timer-pause" aria-label="Pause">
+                <ion-icon name="pause" aria-hidden="true"></ion-icon>
+                <span>Pause</span>
+              </button>
+              <button type="button" class="tc-timer-bar-btn tc-timer-bar-btn--primary" id="tc-timer-resume" hidden aria-label="Resume">
+                <ion-icon name="play" aria-hidden="true"></ion-icon>
+                <span>Resume</span>
+              </button>
+              <button type="button" class="tc-timer-bar-btn tc-timer-bar-btn--stop" id="tc-timer-stop" aria-label="Stop and log">
+                <ion-icon name="stop" aria-hidden="true"></ion-icon>
+                <span>Stop &amp; log</span>
+              </button>
+            </div>
+          </div>
+
+
         <!-- Admin Login Modal -->
         <div class="login-modal" id="admin-login-modal">
           <div class="login-overlay" id="admin-login-overlay"></div>
@@ -4312,6 +4417,35 @@
             <div class="confirm-delete-modal__actions">
               <button type="button" class="btn btn-secondary" id="delete-hub-confirm-cancel">Cancel</button>
               <button type="button" class="btn btn-danger" id="delete-hub-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
+        <!-- Graduate to client handler -->
+        <div class="modal-container" id="graduate-client-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="graduate-client-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="dialog" aria-modal="true" aria-labelledby="graduate-client-confirm-title" aria-describedby="graduate-client-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="graduate-client-confirm-title">Graduate to client</h3>
+              <button type="button" class="confirm-delete-modal__close" id="graduate-client-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="graduate-client-confirm-desc">Move this hub to Client stage. Paste the new codebase URL and optional client Firebase ID.</p>
+              <div class="form-group" style="margin-top:12px;">
+                <label for="graduate-client-repo">Client repo URL</label>
+                <input type="text" id="graduate-client-repo" class="form-input" inputmode="url" autocomplete="off" placeholder="https://github.com/…/client-repo">
+              </div>
+              <div class="form-group">
+                <label for="graduate-client-firebase">Client Firebase project ID</label>
+                <input type="text" id="graduate-client-firebase" class="form-input" autocomplete="off" placeholder="Leave blank to keep current">
+              </div>
+              <p id="graduate-client-form-error" class="cp-new-client-error" role="alert" hidden></p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="graduate-client-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-primary" id="graduate-client-confirm">Graduate</button>
             </div>
           </section>
         </div>
@@ -4542,6 +4676,91 @@
             </div>
           </div>
         </div>
+
+
+
+        <!-- Time Capacity: focus timer drawer / bottom sheet -->
+        <div class="tc-add-drawer-overlay" id="tc-timer-drawer-overlay" hidden aria-hidden="true"></div>
+        <aside class="tc-add-drawer tc-timer-drawer" id="tc-timer-drawer" hidden aria-hidden="true" aria-labelledby="tc-timer-drawer-title" data-lenis-prevent>
+          <div class="tc-add-drawer-header">
+            <div class="tc-add-drawer-heading">
+              <h3 class="h3" id="tc-timer-drawer-title">Focus session</h3>
+              <p class="tc-add-drawer-subtitle">Optional client — logs to today when you stop.</p>
+            </div>
+            <button type="button" class="tc-add-drawer-close" id="tc-timer-drawer-close" aria-label="Close">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+          <div class="tc-add-drawer-body has-scrollbar">
+            <div class="tc-add-form tc-add-form--stack">
+              <div class="tc-field tc-field--grow">
+                <span id="tc-timer-target-label">Client <span class="tc-optional-hint">(optional)</span></span>
+                <div class="business-doc-select" data-select-name="tc-timer-target">
+                  <input type="hidden" id="tc-timer-target" name="tc-timer-target" value="" autocomplete="off">
+                  <button type="button" class="business-doc-select-trigger form-input tc-input" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="tc-timer-target-label">
+                    <span class="business-doc-select-trigger-label">No client — just focus</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">No client — just focus</button>
+                  </div>
+                </div>
+              </div>
+              <p class="tc-add-feedback form-hint" id="tc-timer-feedback" role="status"></p>
+            </div>
+          </div>
+          <div class="tc-add-drawer-footer">
+            <button type="button" class="btn btn-secondary" id="tc-timer-drawer-cancel">Cancel</button>
+            <button type="button" class="btn btn-primary" id="tc-timer-start">
+              <ion-icon name="play-outline" aria-hidden="true"></ion-icon>
+              Start
+            </button>
+          </div>
+        </aside>
+
+        <!-- Time Capacity: add hours drawer (desktop) / bottom sheet (mobile) -->
+        <div class="tc-add-drawer-overlay" id="tc-add-drawer-overlay" hidden aria-hidden="true"></div>
+        <aside class="tc-add-drawer" id="tc-add-drawer" hidden aria-hidden="true" aria-labelledby="tc-add-drawer-title" data-lenis-prevent>
+          <div class="tc-add-drawer-header">
+            <div class="tc-add-drawer-heading">
+              <h3 class="h3" id="tc-add-drawer-title">Add for this day</h3>
+              <p class="tc-add-drawer-subtitle" id="tc-add-drawer-subtitle"></p>
+            </div>
+            <button type="button" class="tc-add-drawer-close" id="tc-add-drawer-close" aria-label="Close">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+          <div class="tc-add-drawer-body has-scrollbar">
+            <div class="tc-add-form tc-add-form--stack">
+              <div class="tc-add-hours-row">
+                <label class="tc-field"><span>Planned</span>
+                  <input type="number" id="tc-add-planned" class="form-input tc-input" min="0" step="0.5" inputmode="decimal" placeholder="0">
+                </label>
+                <label class="tc-field"><span>Logged</span>
+                  <input type="number" id="tc-add-logged" class="form-input tc-input" min="0" step="0.5" inputmode="decimal" value="0">
+                </label>
+              </div>
+              <div class="tc-field tc-field--grow">
+                <span id="tc-add-target-label">Client</span>
+                <div class="business-doc-select" data-select-name="tc-add-target">
+                  <input type="hidden" id="tc-add-target" name="tc-add-target" value="" autocomplete="off">
+                  <button type="button" class="business-doc-select-trigger form-input tc-input" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="tc-add-target-label">
+                    <span class="business-doc-select-trigger-label">Choose client…</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Choose client…</button>
+                  </div>
+                </div>
+              </div>
+              <p class="tc-add-feedback form-hint" id="tc-add-feedback" role="status"></p>
+            </div>
+          </div>
+          <div class="tc-add-drawer-footer">
+            <button type="button" class="btn btn-secondary" id="tc-add-drawer-cancel">Cancel</button>
+            <button type="button" class="btn btn-primary" data-tc-action="add-entry" id="tc-add-drawer-save">Add hours</button>
+          </div>
+        </aside>
 
         <!-- Client project workspace (desktop: drawer / mobile: bottom sheet) -->
         <div class="cp-client-drawer-overlay" id="cp-client-drawer-overlay" hidden aria-hidden="true"></div>

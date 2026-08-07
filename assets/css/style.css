@@ -2269,6 +2269,25 @@ article.home.has-hire-inquiry-banner .cwr-landing-nav-cta {
   margin-inline: auto;
 }
 
+.cwr-landing-stores-inner {
+  text-align: center;
+}
+
+.cwr-landing-stores-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2vw, 20px);
+  margin-top: clamp(20px, 3vw, 28px);
+}
+
+.cwr-landing-stores-badges img {
+  height: 54px;
+  width: auto;
+  display: block;
+}
+
 .cwr-landing-demo-grid {
   display: grid;
   gap: clamp(28px, 4vw, 48px);
@@ -5550,7 +5569,8 @@ article.about .about-founder {
 
 #delete-hub-confirm-modal.modal-container.active,
 #delete-referral-confirm-modal.modal-container.active,
-#delete-maint-confirm-modal.modal-container.active {
+#delete-maint-confirm-modal.modal-container.active,
+#graduate-client-confirm-modal.modal-container.active {
   visibility: visible;
   pointer-events: auto;
 }
@@ -14156,7 +14176,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-referral-confirm-modal.modal-container,
 #delete-maint-confirm-modal.modal-container,
 #delete-lead-confirm-modal.modal-container,
-#cancel-booking-confirm-modal.modal-container {
+#cancel-booking-confirm-modal.modal-container,
+#graduate-client-confirm-modal.modal-container {
     align-items: flex-end;
     justify-content: flex-end;
     overflow: hidden;
@@ -14169,7 +14190,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-referral-confirm-modal.active .overlay,
 #delete-maint-confirm-modal.active .overlay,
 #delete-lead-confirm-modal.active .overlay,
-#cancel-booking-confirm-modal.active .overlay {
+#cancel-booking-confirm-modal.active .overlay,
+#graduate-client-confirm-modal.active .overlay {
     background: rgba(0, 0, 0, 0.62);
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
@@ -14184,7 +14206,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-referral-confirm-modal .confirm-delete-modal,
 #delete-maint-confirm-modal .confirm-delete-modal,
 #delete-lead-confirm-modal .confirm-delete-modal,
-#cancel-booking-confirm-modal .confirm-delete-modal {
+#cancel-booking-confirm-modal .confirm-delete-modal,
+#graduate-client-confirm-modal .confirm-delete-modal {
     display: flex;
     flex-direction: column;
     margin: 0;
@@ -14212,7 +14235,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
   #delete-referral-confirm-modal.active .confirm-delete-modal,
   #delete-maint-confirm-modal.active .confirm-delete-modal,
   #delete-lead-confirm-modal.active .confirm-delete-modal,
-  #cancel-booking-confirm-modal.active .confirm-delete-modal {
+  #cancel-booking-confirm-modal.active .confirm-delete-modal,
+  #graduate-client-confirm-modal.active .confirm-delete-modal {
     transform: translate3d(0, 0, 0);
     visibility: visible;
     pointer-events: auto;
@@ -14239,7 +14263,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-referral-confirm-modal .confirm-delete-modal::before,
 #delete-maint-confirm-modal .confirm-delete-modal::before,
 #delete-lead-confirm-modal .confirm-delete-modal::before,
-#cancel-booking-confirm-modal .confirm-delete-modal::before {
+#cancel-booking-confirm-modal .confirm-delete-modal::before,
+#graduate-client-confirm-modal .confirm-delete-modal::before {
     content: '';
     display: block;
     flex-shrink: 0;
@@ -16435,6 +16460,39 @@ body.portfolio-project-modal-open .cp-client-drawer {
   border: 1px solid rgba(255,255,255,0.06);
 }
 
+.business-doc-client-group-row {
+  cursor: pointer;
+}
+
+.business-doc-client-group-row:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: -2px;
+}
+
+.business-doc-client-chevron {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--light-gray);
+  transition: transform 0.2s ease;
+  vertical-align: middle;
+}
+
+.business-doc-client-group-row[aria-expanded="true"] .business-doc-client-chevron {
+  transform: rotate(90deg);
+}
+
+.business-doc-client-name {
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+}
+
+.business-doc-client-flags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
 .business-docs-table {
   width: 100%;
   border-collapse: collapse;
@@ -16752,6 +16810,33 @@ body.portfolio-project-modal-open .cp-client-drawer {
 
   .business-doc-actions .btn-icon {
     flex-shrink: 0;
+  }
+
+  /* Group a client's header row + its expanded documents into one merged card
+     instead of separate sibling cards, so it reads as one item expanding. */
+  .business-docs-table tbody.business-doc-client-card {
+    display: block;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+  }
+
+  .business-docs-table tbody.business-doc-client-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .business-docs-table tbody.business-doc-client-card tr.business-doc-row {
+    margin-bottom: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .business-docs-table tbody.business-doc-client-card tr.business-doc-row:last-child {
+    border-bottom: none;
   }
 }
 
@@ -17162,7 +17247,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-maint-confirm-modal,
 #delete-referral-confirm-modal,
 #delete-lead-confirm-modal,
-#cancel-booking-confirm-modal {
+#cancel-booking-confirm-modal,
+#graduate-client-confirm-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -17267,7 +17353,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 
 #delete-hub-confirm-modal,
 #delete-maint-confirm-modal,
-#delete-referral-confirm-modal {
+#delete-referral-confirm-modal,
+#graduate-client-confirm-modal {
   z-index: 10085;
 }
 
@@ -17285,7 +17372,11 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-testimonial-confirm-modal.active,
 #delete-lead-confirm-modal.active,
 #cancel-booking-confirm-modal.active,
-#reschedule-booking-modal.active {
+#reschedule-booking-modal.active,
+#delete-hub-confirm-modal.active,
+#delete-maint-confirm-modal.active,
+#delete-referral-confirm-modal.active,
+#graduate-client-confirm-modal.active {
   pointer-events: all;
   visibility: visible;
 }
@@ -17298,7 +17389,11 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-testimonial-confirm-modal .overlay,
 #delete-lead-confirm-modal .overlay,
 #cancel-booking-confirm-modal .overlay,
-#reschedule-booking-modal .overlay {
+#reschedule-booking-modal .overlay,
+#delete-hub-confirm-modal .overlay,
+#delete-maint-confirm-modal .overlay,
+#delete-referral-confirm-modal .overlay,
+#graduate-client-confirm-modal .overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -17323,7 +17418,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-dm-conversation-confirm-modal.active .overlay,
 #delete-lead-confirm-modal.active .overlay,
 #cancel-booking-confirm-modal.active .overlay,
-#reschedule-booking-modal.active .overlay {
+#reschedule-booking-modal.active .overlay,
+#graduate-client-confirm-modal.active .overlay {
   opacity: 0.85;
   visibility: visible;
   pointer-events: all;
@@ -17357,7 +17453,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-dm-conversation-confirm-modal.active .confirm-delete-modal,
 #delete-lead-confirm-modal.active .confirm-delete-modal,
 #cancel-booking-confirm-modal.active .confirm-delete-modal,
-#reschedule-booking-modal.active .confirm-delete-modal {
+#reschedule-booking-modal.active .confirm-delete-modal,
+#graduate-client-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
   visibility: visible;
@@ -25855,25 +25952,53 @@ body.admin-tab-reorder-active::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 12px;
+}
+
+.admin-bookings-cal-nav > .btn {
+  flex: 0 0 auto;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .admin-bookings-cal-nav-center {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
   flex: 1 1 auto;
   min-width: 0;
 }
 
 .admin-bookings-cal-month {
   margin: 0;
-  font-size: var(--fs-4);
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
   color: var(--white-2);
   text-align: center;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.admin-bookings-cal-nav-center > .btn {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  font-size: var(--fs-8);
+  white-space: nowrap;
 }
 
 .admin-bookings-cal-weekdays {
@@ -26185,6 +26310,7 @@ body.admin-tab-reorder-active::before {
   font-size: var(--fs-7);
   color: var(--light-gray);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .admin-booking-card-meta a {
@@ -26280,6 +26406,29 @@ body.admin-tab-reorder-active::before {
 }
 
 @media (max-width: 767px) {
+  .admin-bookings-cal-nav {
+    gap: 6px;
+  }
+
+  .admin-bookings-cal-nav > .btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+  }
+
+  .admin-bookings-cal-nav-center {
+    gap: 6px;
+  }
+
+  .admin-bookings-cal-month {
+    font-size: var(--fs-6);
+  }
+
+  .admin-bookings-cal-nav-center > .btn {
+    height: 30px;
+    padding: 0 8px;
+  }
+
   .admin-bookings-cal-cell {
     min-height: 54px;
     padding: 6px;
@@ -26304,6 +26453,35 @@ body.admin-tab-reorder-active::before {
 
   #admin-bookings-section .admin-bookings-seg-btn {
     flex: 1 1 0;
+  }
+}
+
+@media (max-width: 480px) {
+  #admin-bookings-section .admin-sched-day-row {
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto;
+    row-gap: 8px;
+  }
+
+  #admin-bookings-section .admin-sched-day-check {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-content: space-between;
+  }
+
+  #admin-bookings-section .admin-sched-time-select:first-of-type {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  #admin-bookings-section .admin-sched-day-dash {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  #admin-bookings-section .admin-sched-time-select:last-of-type {
+    grid-column: 3;
+    grid-row: 2;
   }
 }
 

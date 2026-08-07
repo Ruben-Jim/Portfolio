@@ -12,7 +12,8 @@
     referrals: 'agencyReferrals',
     studioCosts: 'agencyStudioCosts',
     clientPortals: 'agencyClientPortals',
-    firebaseHealth: 'agencyFirebaseHealth'
+    firebaseHealth: 'agencyFirebaseHealth',
+    timeEntries: 'agencyTimeEntries'
   };
 
   var MICRO_SAAS_MODULES = [
@@ -67,6 +68,7 @@
   var agencyHealthByProject = {};
   var healthSelectedProjectId = '';
   var agencyMaintenance = [];
+  var agencyTimeEntries = [];
   var agencyReferrals = [];
   var agencyStudioCosts = [];
   var studioCostsSeedAttempted = false;
@@ -329,6 +331,7 @@
     renderFirebaseHealthProjectSelect();
     refreshClientProjectsPicker();
     refreshClientProjectsWorkspace();
+    renderTimeCapacityPanel();
     fetchFirebaseHealthOnce().then(function () {
       if (healthSelectedProjectId) {
         return loadHealthForProject(healthSelectedProjectId);
@@ -391,7 +394,14 @@
         }
         renderMaintenanceList();
         refreshClientProjectsWorkspace();
+        renderTimeCapacityPanel();
         if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+      })
+    );
+
+    agencyUnsubs.push(
+      window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.timeEntries), function (snap) {
+        applyTimeEntriesFromVal(snap.val());
       })
     );
 
@@ -434,16 +444,19 @@
     agencyUnsubs = [];
     agencyProjects = [];
     agencyMaintenance = [];
+    agencyTimeEntries = [];
     agencyReferrals = [];
     agencyStudioCosts = [];
     studioCostsSeedAttempted = false;
     agencyHealthByProject = {};
     healthSelectedProjectId = '';
     closeCpClientDrawer();
+    closeTcAddDrawer();
     renderProjectHubList();
     renderMaintenanceList();
     renderReferralTable();
     renderStudioCostsTable();
+    renderTimeCapacityPanel();
     renderFirebaseHealthProjectSelect();
     clearHealthForm(true);
     refreshClientProjectsPicker();
@@ -504,6 +517,8 @@
       milestones: Array.isArray(existing.milestones) ? existing.milestones : [],
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
+      buildHoursEstimate: Math.max(0, Number(existing.buildHoursEstimate) || 0),
+      buildHoursSpent: Math.max(0, Number(existing.buildHoursSpent) || 0),
       updatedAt: ts()
     };
     Object.assign(base, copyDeliveryFields(existing));
@@ -542,6 +557,8 @@
       portalGuides: guideFields.portalGuides,
       portalCanvasDocUrl: guideFields.portalCanvasDocUrl,
       portalCanvasDocTitle: guideFields.portalCanvasDocTitle,
+      buildHoursEstimate: Math.max(0, Number(row.buildHoursEstimate) || 0),
+      buildHoursSpent: Math.max(0, Number(row.buildHoursSpent) || 0),
       milestones: milestones.map(function (m, i) {
         return {
           id: m.id || 'm' + i,
@@ -821,6 +838,8 @@
       portalGuides: [],
       portalCanvasDocUrl: '',
       portalCanvasDocTitle: 'Project guide',
+      buildHoursEstimate: 0,
+      buildHoursSpent: 0,
       updatedAt: ts()
     };
   }
@@ -915,6 +934,148 @@
         createNewClientFromModal().catch(console.error);
       });
     }
+  }
+
+  var graduateModalSource = '';
+  var graduateModalBound = false;
+
+  function setGraduateClientFormError(message) {
+    var el = document.getElementById('graduate-client-form-error');
+    if (!el) return;
+    if (message) {
+      el.textContent = message;
+      el.hidden = false;
+    } else {
+      el.textContent = '';
+      el.hidden = true;
+    }
+  }
+
+  function openGraduateClientModal(source, defaults) {
+    defaults = defaults || {};
+    var modal = document.getElementById('graduate-client-confirm-modal');
+    var repoEl = document.getElementById('graduate-client-repo');
+    var fbEl = document.getElementById('graduate-client-firebase');
+    if (!modal || !repoEl || !fbEl) return;
+    graduateModalSource = source || 'workspace';
+    repoEl.value = defaults.repo || '';
+    fbEl.value = defaults.firebase || '';
+    setGraduateClientFormError('');
+    if (modal.parentElement !== document.body) {
+      document.body.appendChild(modal);
+    }
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    window.setTimeout(function () {
+      try {
+        repoEl.focus();
+        repoEl.select();
+      } catch (fe) {}
+    }, 40);
+  }
+
+  function closeGraduateClientModal() {
+    var modal = document.getElementById('graduate-client-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    graduateModalSource = '';
+  }
+
+  async function applyGraduateFromWorkspace(clientRepo, clientFb) {
+    var hubId = clientProjectsSelectedId;
+    if (!hubId || !rtdbReady()) throw new Error('No client selected.');
+    var existing = getHubById(hubId);
+    if (!existing) throw new Error('Client hub not found.');
+    var stageEl = document.getElementById('cp-hub-delivery-stage');
+    var clientRepoEl = document.getElementById('cp-hub-client-repo');
+    var fbEl = document.getElementById('cp-hub-firebase');
+    if (stageEl) stageEl.value = 'client';
+    if (clientRepoEl) clientRepoEl.value = clientRepo;
+    if (fbEl && clientFb) fbEl.value = clientFb;
+    await saveHubFromClientWorkspace('hub');
+    setCpFeedback('hub', 'Graduated to client stage.', false);
+  }
+
+  async function applyGraduateFromEditor(clientRepo, clientFb) {
+    var stageEl = document.getElementById('hub-delivery-stage');
+    var clientRepoEl = document.getElementById('hub-client-repo-url');
+    var fbEl = document.getElementById('hub-firebase-id');
+    if (stageEl) stageEl.value = 'client';
+    updateHubEditorDeliveryLabels('client');
+    if (clientRepoEl) clientRepoEl.value = clientRepo;
+    if (fbEl && clientFb) fbEl.value = clientFb;
+    await saveProjectHub();
+  }
+
+  async function confirmGraduateClientFromModal() {
+    var repoEl = document.getElementById('graduate-client-repo');
+    var fbEl = document.getElementById('graduate-client-firebase');
+    var confirmBtn = document.getElementById('graduate-client-confirm');
+    if (!repoEl || !fbEl) return;
+    var clientRepo = String(repoEl.value || '').trim();
+    var clientFb = String(fbEl.value || '').trim();
+    setGraduateClientFormError('');
+    if (confirmBtn) confirmBtn.disabled = true;
+    try {
+      if (graduateModalSource === 'editor') {
+        await applyGraduateFromEditor(clientRepo, clientFb);
+      } else {
+        await applyGraduateFromWorkspace(clientRepo, clientFb);
+      }
+      closeGraduateClientModal();
+    } catch (err) {
+      console.error(err);
+      setGraduateClientFormError((err && err.message) || 'Graduate failed.');
+    } finally {
+      if (confirmBtn) confirmBtn.disabled = false;
+    }
+  }
+
+  function initGraduateClientModal() {
+    if (graduateModalBound) return;
+    var modal = document.getElementById('graduate-client-confirm-modal');
+    if (!modal) return;
+    graduateModalBound = true;
+
+    var overlay = document.getElementById('graduate-client-confirm-overlay');
+    var btnClose = document.getElementById('graduate-client-confirm-close');
+    var btnCancel = document.getElementById('graduate-client-confirm-cancel');
+    var btnConfirm = document.getElementById('graduate-client-confirm');
+
+    function onClose() {
+      closeGraduateClientModal();
+    }
+    if (overlay) overlay.addEventListener('click', onClose);
+    if (btnClose) btnClose.addEventListener('click', onClose);
+    if (btnCancel) btnCancel.addEventListener('click', onClose);
+    if (btnConfirm) {
+      btnConfirm.addEventListener('click', function () {
+        confirmGraduateClientFromModal().catch(console.error);
+      });
+    }
+
+    var repoEl = document.getElementById('graduate-client-repo');
+    var fbEl = document.getElementById('graduate-client-firebase');
+    function onEnter(e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      confirmGraduateClientFromModal().catch(console.error);
+    }
+    if (repoEl) repoEl.addEventListener('keydown', onEnter);
+    if (fbEl) fbEl.addEventListener('keydown', onEnter);
+
+    document.addEventListener(
+      'keydown',
+      function graduateEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        var m = document.getElementById('graduate-client-confirm-modal');
+        if (!m || !m.classList.contains('active')) return;
+        ev.stopImmediatePropagation();
+        closeGraduateClientModal();
+      },
+      true
+    );
   }
 
   function fillHubTemplateSelect(selectedId) {
@@ -1136,33 +1297,12 @@
   }
 
   async function graduateHubFromEditor() {
-    var id = document.getElementById('hub-edit-id').value.trim();
-    var stageEl = document.getElementById('hub-delivery-stage');
     var clientRepoEl = document.getElementById('hub-client-repo-url');
     var fbEl = document.getElementById('hub-firebase-id');
-    if (stageEl) stageEl.value = 'client';
-    updateHubEditorDeliveryLabels('client');
-    var clientRepo = window.prompt(
-      'Paste the new client codebase / repo URL (from the lead branch after they continue with CWR):',
-      clientRepoEl ? clientRepoEl.value : ''
-    );
-    if (clientRepo == null) return;
-    clientRepo = String(clientRepo).trim();
-    if (clientRepoEl) clientRepoEl.value = clientRepo;
-    var clientFb = window.prompt(
-      'Client Firebase project ID (leave blank if still using demo Firebase for now):',
-      fbEl && deliveryStageOf({ deliveryStage: 'client' }) ? fbEl.value : ''
-    );
-    if (clientFb == null) return;
-    if (fbEl && String(clientFb).trim()) fbEl.value = String(clientFb).trim();
-    else if (fbEl && !String(clientFb).trim()) {
-      // Keep existing value; user may still be on demo Firebase temporarily
-    }
-    if (!id) {
-      await saveProjectHub();
-      return;
-    }
-    await saveProjectHub();
+    openGraduateClientModal('editor', {
+      repo: clientRepoEl ? clientRepoEl.value : '',
+      firebase: fbEl ? fbEl.value : ''
+    });
   }
 
   function initProjectHub() {
@@ -3919,6 +4059,12 @@
       esc(hub.firebaseProjectId) +
       '"></div>' +
       '<div class="form-group"><label for="cp-hub-doc-id">Business doc ID</label><input id="cp-hub-doc-id" class="form-input" type="text" value="' + esc(hub.businessDocId) + '"></div>' +
+      '<div class="form-group"><label for="cp-hub-build-estimate">Build hours estimate</label><input id="cp-hub-build-estimate" class="form-input" type="number" min="0" step="0.5" inputmode="decimal" value="' +
+      esc(String(hub.buildHoursEstimate || 0)) +
+      '"></div>' +
+      '<div class="form-group"><label for="cp-hub-build-spent">Build hours spent</label><input id="cp-hub-build-spent" class="form-input" type="number" min="0" step="0.5" inputmode="decimal" value="' +
+      esc(String(hub.buildHoursSpent || 0)) +
+      '"></div>' +
       '</div></fieldset>' +
       '<div class="cp-form-grid">' +
       '<div class="form-group form-group--full"><label for="cp-hub-notes">Notes</label><textarea id="cp-hub-notes" class="form-input has-scrollbar" rows="3">' + esc(hub.notes) + '</textarea></div>' +
@@ -4349,12 +4495,15 @@
       notes: cpFieldValue('cp-hub-notes'),
       milestones: root ? collectCpMilestonesFromWorkspace(root) : existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
-      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing)
+      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
+      buildHoursEstimate: Math.max(0, Number((document.getElementById('cp-hub-build-estimate') || {}).value) || 0),
+      buildHoursSpent: Math.max(0, Number((document.getElementById('cp-hub-build-spent') || {}).value) || 0)
     });
     try {
       await saveProjectHubRecord(hubId, payload, false);
       setCpFeedback(feedbackSection, feedbackSection === 'milestones' ? 'Milestones saved.' : 'Hub saved.', false);
       renderClientProjectsWorkspace();
+      renderTimeCapacityPanel();
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
       console.error(err);
@@ -4367,30 +4516,12 @@
     if (!hubId || !rtdbReady()) return;
     var existing = getHubById(hubId);
     if (!existing) return;
-    var stageEl = document.getElementById('cp-hub-delivery-stage');
-    if (stageEl) stageEl.value = 'client';
     var clientRepoEl = document.getElementById('cp-hub-client-repo');
     var fbEl = document.getElementById('cp-hub-firebase');
-    var clientRepo = window.prompt(
-      'Paste the new client codebase / repo URL (from the lead branch after they continue with CWR):',
-      clientRepoEl ? clientRepoEl.value : existing.clientRepoUrl || ''
-    );
-    if (clientRepo == null) return;
-    clientRepo = String(clientRepo).trim();
-    if (clientRepoEl) clientRepoEl.value = clientRepo;
-    var clientFb = window.prompt(
-      'Client Firebase project ID (leave blank to keep current value — often still demo until you cut over):',
-      fbEl ? fbEl.value : existing.firebaseProjectId || ''
-    );
-    if (clientFb == null) return;
-    if (fbEl && String(clientFb).trim()) fbEl.value = String(clientFb).trim();
-    try {
-      await saveHubFromClientWorkspace('hub');
-      setCpFeedback('hub', 'Graduated to client stage.', false);
-    } catch (err) {
-      console.error(err);
-      setCpFeedback('hub', (err && err.message) || 'Graduate failed.', true);
-    }
+    openGraduateClientModal('workspace', {
+      repo: clientRepoEl ? clientRepoEl.value : existing.clientRepoUrl || '',
+      firebase: fbEl ? fbEl.value : existing.firebaseProjectId || ''
+    });
   }
 
   async function saveGuideFromClientWorkspace() {
@@ -4475,6 +4606,7 @@
       await updateHubShowMaintenanceInPortal();
       setCpFeedback('maint', 'Maintenance saved.', false);
       renderClientProjectsWorkspace();
+      renderTimeCapacityPanel();
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
       console.error(err);
@@ -4930,6 +5062,7 @@
 
   function initClientProjects() {
     initNewClientModal();
+    initGraduateClientModal();
     setupCpClientDrawer();
 
     var search = document.getElementById('client-projects-search');
@@ -5065,6 +5198,1277 @@
     });
   }
 
+  /* ── Time Capacity tab ─────────────────────────────────────────── */
+
+  var BUILD_WEEKLY_HORIZON = 4;
+  var TC_TIMER_STORAGE_KEY = 'agencyTcFocusTimer';
+  var timeCapacityBound = false;
+  var tcCalMonth = null;
+  var tcSelectedDay = null;
+  var tcSyncingTotals = false;
+  var tcTimerState = {
+    status: 'idle',
+    target: '',
+    clientName: '',
+    accumulatedMs: 0,
+    segmentStartedAt: null
+  };
+  var tcTimerTickId = null;
+  var tcTimerStopping = false;
+
+  function weeksUntilDate(dateStr) {
+    if (!dateStr) return BUILD_WEEKLY_HORIZON;
+    var end = new Date(String(dateStr) + 'T12:00:00');
+    if (isNaN(end.getTime())) return BUILD_WEEKLY_HORIZON;
+    var now = new Date();
+    var ms = end.getTime() - now.getTime();
+    if (ms <= 0) return 1;
+    return Math.max(1, ms / (7 * 86400000));
+  }
+
+  function roundHours(n) {
+    return Math.round(Math.max(0, Number(n) || 0) * 10) / 10;
+  }
+
+  function formatHours(n) {
+    var v = roundHours(n);
+    return (Math.abs(v - Math.round(v)) < 0.05 ? String(Math.round(v)) : v.toFixed(1)) + 'h';
+  }
+
+  function planTierLabel(tier) {
+    var t = String(tier || 'standard').toLowerCase();
+    if (t === 'priority') return 'Priority';
+    if (t === 'essential') return 'Essential';
+    return 'Standard';
+  }
+
+  function normalizeTimeEntry(id, row) {
+    row = row || {};
+    var kind = String(row.kind || 'build').toLowerCase() === 'maint' ? 'maint' : 'build';
+    return {
+      id: id,
+      date: String(row.date || '').slice(0, 10),
+      projectId: String(row.projectId || ''),
+      maintenanceId: String(row.maintenanceId || ''),
+      clientName: String(row.clientName || '').slice(0, 120),
+      kind: kind,
+      plannedHours: Math.max(0, Number(row.plannedHours) || 0),
+      loggedHours: Math.max(0, Number(row.loggedHours) || 0),
+      notes: String(row.notes || '').slice(0, 500),
+      updatedAt: row.updatedAt || null,
+      createdAt: row.createdAt || null
+    };
+  }
+
+  function applyTimeEntriesFromVal(val) {
+    agencyTimeEntries = [];
+    if (val && typeof val === 'object') {
+      Object.keys(val).forEach(function (id) {
+        agencyTimeEntries.push(normalizeTimeEntry(id, val[id]));
+      });
+    }
+    agencyTimeEntries.sort(function (a, b) {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return String(a.clientName).localeCompare(String(b.clientName), undefined, { sensitivity: 'base' });
+    });
+    renderTimeCapacityPanel();
+  }
+
+  function todayTcDayKey() {
+    var d = new Date();
+    return (
+      d.getFullYear() +
+      '-' +
+      String(d.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(d.getDate()).padStart(2, '0')
+    );
+  }
+
+  function ensureTcCalState() {
+    if (!tcCalMonth || isNaN(tcCalMonth.getTime())) {
+      var now = new Date();
+      tcCalMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    if (!tcSelectedDay) tcSelectedDay = todayTcDayKey();
+  }
+
+  function tcWeekBoundsForDate(dateObj) {
+    var start = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+    start.setDate(start.getDate() - start.getDay());
+    var end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+    function key(d) {
+      return (
+        d.getFullYear() +
+        '-' +
+        String(d.getMonth() + 1).padStart(2, '0') +
+        '-' +
+        String(d.getDate()).padStart(2, '0')
+      );
+    }
+    return { startKey: key(start), endKey: key(end) };
+  }
+
+  function computeMaintCapacityRow(m) {
+    var included = Math.max(0, Number(m.hoursIncluded) || 0);
+    var used = Math.max(0, Number(m.hoursUsed) || 0);
+    var remaining = Math.max(0, included - used);
+    var overBy = Math.max(0, used - included);
+    var weeks = weeksUntilDate(m.renewalDate);
+    var weekly = remaining / weeks;
+    var status = overBy > 0 ? 'over' : remaining <= 1 && included > 0 ? 'low' : 'ok';
+    return {
+      kind: 'maint',
+      id: m.id,
+      projectId: m.projectId || '',
+      clientName: m.clientName || 'Client',
+      planTier: m.planTier || 'standard',
+      included: included,
+      used: used,
+      remaining: remaining,
+      overBy: overBy,
+      weekly: weekly,
+      weeks: weeks,
+      renewalDate: m.renewalDate || '',
+      status: status
+    };
+  }
+
+  function computeBuildCapacityRow(p) {
+    var estimate = Math.max(0, Number(p.buildHoursEstimate) || 0);
+    var spent = Math.max(0, Number(p.buildHoursSpent) || 0);
+    var remaining = Math.max(0, estimate - spent);
+    var overBy = Math.max(0, spent - estimate);
+    var stage = deliveryStageOf(p);
+    var weekly = remaining / BUILD_WEEKLY_HORIZON;
+    var status =
+      !estimate ? 'unset' : overBy > 0 ? 'over' : remaining <= 1 && estimate > 0 ? 'low' : 'ok';
+    return {
+      kind: 'build',
+      id: p.id,
+      projectId: p.id,
+      clientName: p.clientName || p.title || 'Untitled',
+      stage: stage,
+      estimate: estimate,
+      spent: spent,
+      remaining: remaining,
+      overBy: overBy,
+      weekly: weekly,
+      status: status
+    };
+  }
+
+  function shouldShowBuildCapacity(p) {
+    return deliveryStageOf(p) === 'client';
+  }
+
+  function getActiveMaintForCapacity() {
+    return agencyMaintenance.filter(function (m) {
+      return m.effectivePlanStatus === 'active' || m.effectivePlanStatus === 'pending';
+    });
+  }
+
+  function getTimeCapacitySnapshot() {
+    var maintRows = getActiveMaintForCapacity()
+      .map(computeMaintCapacityRow)
+      .sort(function (a, b) {
+        if (a.status === 'over' && b.status !== 'over') return -1;
+        if (b.status === 'over' && a.status !== 'over') return 1;
+        if (a.status === 'low' && b.status !== 'low') return -1;
+        if (b.status === 'low' && a.status !== 'low') return 1;
+        return String(a.clientName).localeCompare(String(b.clientName), undefined, { sensitivity: 'base' });
+      });
+
+    var buildRows = agencyProjects
+      .filter(shouldShowBuildCapacity)
+      .map(computeBuildCapacityRow)
+      .sort(function (a, b) {
+        if (a.status === 'over' && b.status !== 'over') return -1;
+        if (b.status === 'over' && a.status !== 'over') return 1;
+        if (a.status === 'unset' && b.status !== 'unset') return 1;
+        if (b.status === 'unset' && a.status !== 'unset') return -1;
+        return String(a.clientName).localeCompare(String(b.clientName), undefined, { sensitivity: 'base' });
+      });
+
+    var suggestedWeek = 0;
+    var maintRemaining = 0;
+    var buildRemaining = 0;
+    maintRows.forEach(function (r) {
+      suggestedWeek += r.weekly;
+      maintRemaining += r.remaining;
+    });
+    buildRows.forEach(function (r) {
+      suggestedWeek += r.weekly;
+      buildRemaining += r.remaining;
+    });
+
+    var week = tcWeekBoundsForDate(new Date());
+    var weekPlanned = 0;
+    var weekLogged = 0;
+    agencyTimeEntries.forEach(function (e) {
+      if (!e.date || e.date < week.startKey || e.date > week.endKey) return;
+      weekPlanned += e.plannedHours;
+      weekLogged += e.loggedHours;
+    });
+
+    return {
+      maintRows: maintRows,
+      buildRows: buildRows,
+      suggestedWeek: suggestedWeek,
+      maintRemaining: maintRemaining,
+      buildRemaining: buildRemaining,
+      weekPlanned: weekPlanned,
+      weekLogged: weekLogged
+    };
+  }
+
+  function getTcEntriesForDay(dayKey) {
+    return agencyTimeEntries.filter(function (e) {
+      return e.date === dayKey;
+    });
+  }
+
+  function sumLoggedForProject(projectId, excludeId) {
+    var total = 0;
+    agencyTimeEntries.forEach(function (e) {
+      if (excludeId && e.id === excludeId) return;
+      if (e.kind === 'build' && e.projectId === projectId) total += e.loggedHours;
+    });
+    return roundHours(total);
+  }
+
+  function sumLoggedForMaint(maintenanceId, excludeId) {
+    var total = 0;
+    agencyTimeEntries.forEach(function (e) {
+      if (excludeId && e.id === excludeId) return;
+      if (e.kind === 'maint' && e.maintenanceId === maintenanceId) total += e.loggedHours;
+    });
+    return roundHours(total);
+  }
+
+  async function syncLoggedTotalsFromEntries(opts) {
+    if (!rtdbReady() || tcSyncingTotals) return;
+    opts = opts || {};
+    tcSyncingTotals = true;
+    try {
+      if (opts.projectId) {
+        var hub = getHubById(opts.projectId);
+        if (hub) {
+          var spent = sumLoggedForProject(opts.projectId);
+          if (roundHours(hub.buildHoursSpent) !== spent) {
+            await saveProjectHubRecord(
+              opts.projectId,
+              buildHubWritePayload(hub, { buildHoursSpent: spent }),
+              false
+            );
+          }
+        }
+      }
+      if (opts.maintenanceId) {
+        var existing = agencyMaintenance.find(function (x) {
+          return x.id === opts.maintenanceId;
+        });
+        if (existing) {
+          var used = sumLoggedForMaint(opts.maintenanceId);
+          if (roundHours(existing.hoursUsed) !== used) {
+            var snap = await window.rtdbGet(
+              window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + opts.maintenanceId)
+            );
+            var row = snap.val() || {};
+            await window.rtdbSet(
+              window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + opts.maintenanceId),
+              Object.assign({}, row, { hoursUsed: used, updatedAt: ts() })
+            );
+          }
+        }
+      }
+    } finally {
+      tcSyncingTotals = false;
+    }
+  }
+
+  function getTcAddTargetOptions() {
+    var list = [];
+    agencyProjects.filter(shouldShowBuildCapacity).forEach(function (p) {
+      list.push({
+        value: 'build:' + p.id,
+        label: (p.clientName || p.title || 'Untitled') + ' · Build'
+      });
+    });
+    getActiveMaintForCapacity().forEach(function (m) {
+      list.push({
+        value: 'maint:' + m.id,
+        label: (m.clientName || 'Client') + ' · Maintenance'
+      });
+    });
+    return list;
+  }
+
+  function syncTcAddTargetSelect(keepValue) {
+    var hidden = document.getElementById('tc-add-target');
+    if (!hidden) return;
+    if (typeof window.setBusinessDocSelectOptions === 'function') {
+      window.setBusinessDocSelectOptions(hidden, getTcAddTargetOptions(), {
+        placeholder: 'Choose client…',
+        keepValue: keepValue !== false
+      });
+      return;
+    }
+    if (typeof window.initBusinessDocCustomSelects === 'function') {
+      window.initBusinessDocCustomSelects();
+    }
+  }
+
+  function syncTcTimerTargetSelect(keepValue) {
+    var hidden = document.getElementById('tc-timer-target');
+    if (!hidden) return;
+    var preferred = keepValue === false ? '' : String(hidden.value || '');
+    if (typeof window.setBusinessDocSelectOptions === 'function') {
+      window.setBusinessDocSelectOptions(hidden, getTcAddTargetOptions(), {
+        placeholder: 'No client — just focus',
+        keepValue: keepValue !== false,
+        value: keepValue === false ? '' : undefined
+      });
+      if (keepValue !== false && preferred && typeof window.setBusinessDocSelectValue === 'function') {
+        window.setBusinessDocSelectValue('tc-timer-target', preferred, true);
+      }
+      return;
+    }
+    if (typeof window.initBusinessDocCustomSelects === 'function') {
+      window.initBusinessDocCustomSelects();
+    }
+  }
+
+  function formatTcTimer(ms) {
+    var total = Math.floor(Math.max(0, Number(ms) || 0) / 1000);
+    var h = Math.floor(total / 3600);
+    var m = Math.floor((total % 3600) / 60);
+    var s = Math.floor(total % 60);
+    return (
+      String(h).padStart(2, '0') +
+      ':' +
+      String(m).padStart(2, '0') +
+      ':' +
+      String(s).padStart(2, '0')
+    );
+  }
+
+  function getTcTimerElapsedMs() {
+    var elapsed = Math.max(0, Number(tcTimerState.accumulatedMs) || 0);
+    if (tcTimerState.status === 'running' && tcTimerState.segmentStartedAt) {
+      elapsed += Math.max(0, Date.now() - tcTimerState.segmentStartedAt);
+    }
+    return elapsed;
+  }
+
+  function msToLoggedHours(ms) {
+    if (ms < 60000) return 0;
+    return Math.max(0.1, roundHours(ms / 3600000));
+  }
+
+  function persistTcTimerState() {
+    try {
+      sessionStorage.setItem(
+        TC_TIMER_STORAGE_KEY,
+        JSON.stringify({
+          status: tcTimerState.status,
+          target: tcTimerState.target,
+          clientName: tcTimerState.clientName,
+          accumulatedMs: tcTimerState.accumulatedMs,
+          segmentStartedAt: tcTimerState.segmentStartedAt
+        })
+      );
+    } catch (err) {
+      /* ignore */
+    }
+  }
+
+  function clearPersistedTcTimer() {
+    try {
+      sessionStorage.removeItem(TC_TIMER_STORAGE_KEY);
+    } catch (err) {
+      /* ignore */
+    }
+  }
+
+  function loadPersistedTcTimer() {
+    try {
+      var raw = sessionStorage.getItem(TC_TIMER_STORAGE_KEY);
+      if (!raw) return;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return;
+      var status = parsed.status === 'running' || parsed.status === 'paused' ? parsed.status : 'idle';
+      if (status === 'idle') return;
+      tcTimerState = {
+        status: status,
+        target: String(parsed.target || ''),
+        clientName: String(parsed.clientName || ''),
+        accumulatedMs: Math.max(0, Number(parsed.accumulatedMs) || 0),
+        segmentStartedAt:
+          status === 'running' && parsed.segmentStartedAt
+            ? Number(parsed.segmentStartedAt)
+            : null
+      };
+    } catch (err) {
+      /* ignore */
+    }
+  }
+
+  function ensureTcTimerBarMounted() {
+    var bar = document.getElementById('tc-timer-bar');
+    if (!bar || !document.body) return;
+    if (bar.parentElement !== document.body) {
+      document.body.appendChild(bar);
+    }
+  }
+
+  function setTcTimerFeedback(msg, isError) {
+    var el = document.getElementById('tc-timer-feedback');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.classList.toggle('is-error', !!isError && !!msg);
+  }
+
+  function isTcTimerActive() {
+    return tcTimerState.status === 'running' || tcTimerState.status === 'paused';
+  }
+
+  function updateTcTimerUi() {
+    ensureTcTimerBarMounted();
+    var bar = document.getElementById('tc-timer-bar');
+    var display = document.getElementById('tc-timer-display');
+    var clientEl = document.getElementById('tc-timer-bar-client');
+    var pauseBtn = document.getElementById('tc-timer-pause');
+    var resumeBtn = document.getElementById('tc-timer-resume');
+    var stopBtn = document.getElementById('tc-timer-stop');
+    var openBtn = document.getElementById('tc-open-timer-drawer');
+    var status = tcTimerState.status;
+    var active = isTcTimerActive();
+    var elapsed = getTcTimerElapsedMs();
+
+    if (display) display.textContent = formatTcTimer(elapsed);
+    if (clientEl) {
+      clientEl.textContent = tcTimerState.clientName
+        ? tcTimerState.clientName
+        : 'Focus session';
+    }
+    if (bar) {
+      bar.hidden = !active;
+      bar.classList.toggle('is-running', status === 'running');
+      bar.classList.toggle('is-paused', status === 'paused');
+      bar.setAttribute('aria-hidden', active ? 'false' : 'true');
+    }
+    document.body.classList.toggle('tc-timer-bar-active', active);
+    if (pauseBtn) pauseBtn.hidden = status !== 'running';
+    if (resumeBtn) resumeBtn.hidden = status !== 'paused';
+    if (stopBtn) stopBtn.hidden = !active;
+    if (openBtn) {
+      openBtn.disabled = active;
+      openBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      openBtn.title = active ? 'Focus session running' : 'Start a focus session';
+    }
+  }
+
+  function stopTcTimerTick() {
+    if (tcTimerTickId) {
+      clearInterval(tcTimerTickId);
+      tcTimerTickId = null;
+    }
+  }
+
+  function startTcTimerTick() {
+    stopTcTimerTick();
+    tcTimerTickId = setInterval(function () {
+      updateTcTimerUi();
+    }, 250);
+  }
+
+  function resolveTcTimerTarget(target) {
+    var parts = String(target || '').split(':');
+    var kind = parts[0] === 'maint' ? 'maint' : 'build';
+    var refId = parts.slice(1).join(':');
+    if (!refId) return null;
+    if (kind === 'build') {
+      var hub = getHubById(refId);
+      if (!hub || !shouldShowBuildCapacity(hub)) return null;
+      return {
+        kind: 'build',
+        projectId: hub.id,
+        maintenanceId: '',
+        clientName: hub.clientName || hub.title || 'Untitled'
+      };
+    }
+    var m = agencyMaintenance.find(function (x) {
+      return x.id === refId;
+    });
+    if (!m) return null;
+    return {
+      kind: 'maint',
+      projectId: m.projectId || '',
+      maintenanceId: m.id,
+      clientName: m.clientName || 'Client'
+    };
+  }
+
+  async function addLoggedHoursForToday(opts) {
+    if (!rtdbReady()) throw new Error('Not connected.');
+    var hours = roundHours(opts.hours);
+    if (hours <= 0) throw new Error('Nothing to log.');
+    var date = todayTcDayKey();
+    var kind = opts.kind === 'maint' ? 'maint' : 'build';
+    var projectId = opts.projectId || '';
+    var maintenanceId = opts.maintenanceId || '';
+    var clientName = opts.clientName || 'Client';
+
+    var dup = agencyTimeEntries.find(function (e) {
+      return (
+        e.date === date &&
+        e.kind === kind &&
+        ((kind === 'build' && e.projectId === projectId) ||
+          (kind === 'maint' && e.maintenanceId === maintenanceId))
+      );
+    });
+
+    if (dup) {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id));
+      var row = snap.val() || {};
+      var nextLogged = roundHours((Number(row.loggedHours) || 0) + hours);
+      await window.rtdbSet(
+        window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id),
+        Object.assign({}, row, {
+          loggedHours: nextLogged,
+          clientName: clientName,
+          updatedAt: ts()
+        })
+      );
+      dup.loggedHours = nextLogged;
+      dup.clientName = clientName;
+    } else {
+      var payload = {
+        date: date,
+        projectId: projectId,
+        maintenanceId: maintenanceId,
+        clientName: clientName,
+        kind: kind,
+        plannedHours: 0,
+        loggedHours: hours,
+        notes: '',
+        createdAt: ts(),
+        updatedAt: ts()
+      };
+      var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.timeEntries));
+      await window.rtdbSet(ref, payload);
+      agencyTimeEntries.push(normalizeTimeEntry(ref.key, payload));
+    }
+
+    await syncLoggedTotalsFromEntries({
+      projectId: projectId,
+      maintenanceId: maintenanceId
+    });
+    return hours;
+  }
+
+  function resetTcTimerState() {
+    stopTcTimerTick();
+    tcTimerState = {
+      status: 'idle',
+      target: '',
+      clientName: '',
+      accumulatedMs: 0,
+      segmentStartedAt: null
+    };
+    clearPersistedTcTimer();
+    updateTcTimerUi();
+  }
+
+  function startTcFocusSession() {
+    if (tcTimerState.status !== 'idle') return;
+    var targetEl = document.getElementById('tc-timer-target');
+    var target = targetEl ? String(targetEl.value || '') : '';
+    var resolved = target ? resolveTcTimerTarget(target) : null;
+    if (target && !resolved) {
+      setTcTimerFeedback('That client is no longer available.', true);
+      return;
+    }
+    setTcTimerFeedback('');
+    tcTimerState = {
+      status: 'running',
+      target: resolved ? target : '',
+      clientName: resolved ? resolved.clientName : '',
+      accumulatedMs: 0,
+      segmentStartedAt: Date.now()
+    };
+    persistTcTimerState();
+    closeTcTimerDrawer();
+    startTcTimerTick();
+    updateTcTimerUi();
+  }
+
+  function pauseTcFocusSession() {
+    if (tcTimerState.status !== 'running') return;
+    tcTimerState.accumulatedMs = getTcTimerElapsedMs();
+    tcTimerState.segmentStartedAt = null;
+    tcTimerState.status = 'paused';
+    persistTcTimerState();
+    stopTcTimerTick();
+    updateTcTimerUi();
+  }
+
+  function resumeTcFocusSession() {
+    if (tcTimerState.status !== 'paused') return;
+    tcTimerState.status = 'running';
+    tcTimerState.segmentStartedAt = Date.now();
+    persistTcTimerState();
+    startTcTimerTick();
+    updateTcTimerUi();
+  }
+
+  async function stopTcFocusSession() {
+    if (tcTimerStopping) return;
+    if (!isTcTimerActive()) return;
+    var elapsed = getTcTimerElapsedMs();
+    var target = tcTimerState.target;
+    var resolved = target ? resolveTcTimerTarget(target) : null;
+    var hours = msToLoggedHours(elapsed);
+    var stopBtn = document.getElementById('tc-timer-stop');
+
+    if (hours <= 0 || !resolved) {
+      resetTcTimerState();
+      return;
+    }
+
+    tcTimerStopping = true;
+    if (stopBtn) stopBtn.disabled = true;
+    try {
+      await addLoggedHoursForToday({
+        kind: resolved.kind,
+        projectId: resolved.projectId,
+        maintenanceId: resolved.maintenanceId,
+        clientName: resolved.clientName,
+        hours: hours
+      });
+      resetTcTimerState();
+      tcSelectedDay = todayTcDayKey();
+      renderTimeCapacityPanel();
+    } catch (err) {
+      console.error(err);
+      updateTcTimerUi();
+    } finally {
+      tcTimerStopping = false;
+      if (stopBtn) stopBtn.disabled = false;
+    }
+  }
+
+  function formatTcDayTitle(dayKey) {
+    if (!dayKey) return 'Select a day';
+    var parts = dayKey.split('-');
+    if (parts.length !== 3) return dayKey;
+    var d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (isNaN(d.getTime())) return dayKey;
+    return d.toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
+  function renderTimeCapacityPanel() {
+    var summaryWeek = document.getElementById('tc-summary-week');
+    if (!summaryWeek) return;
+    ensureTcCalState();
+    var snap = getTimeCapacitySnapshot();
+
+    summaryWeek.textContent = formatHours(snap.suggestedWeek);
+    var elMaint = document.getElementById('tc-summary-maint');
+    var elBuild = document.getElementById('tc-summary-build');
+    var elPlanned = document.getElementById('tc-summary-planned');
+    var elLogged = document.getElementById('tc-summary-logged');
+    if (elMaint) elMaint.textContent = formatHours(snap.maintRemaining);
+    if (elBuild) elBuild.textContent = formatHours(snap.buildRemaining);
+    if (elPlanned) elPlanned.textContent = formatHours(snap.weekPlanned);
+    if (elLogged) elLogged.textContent = formatHours(snap.weekLogged);
+
+    var monthLabel = document.getElementById('tc-cal-month-label');
+    var grid = document.getElementById('tc-cal-grid');
+    if (!grid) return;
+
+    var year = tcCalMonth.getFullYear();
+    var month = tcCalMonth.getMonth();
+    if (monthLabel) {
+      monthLabel.textContent = tcCalMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    var dayTotals = {};
+    agencyTimeEntries.forEach(function (e) {
+      if (!e.date) return;
+      if (!dayTotals[e.date]) dayTotals[e.date] = { planned: 0, logged: 0 };
+      dayTotals[e.date].planned += e.plannedHours;
+      dayTotals[e.date].logged += e.loggedHours;
+    });
+
+    var firstWeekday = new Date(year, month, 1).getDay();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var todayKey = todayTcDayKey();
+    var html = '';
+    var i;
+    for (i = 0; i < firstWeekday; i++) {
+      html += '<div class="admin-bookings-cal-cell is-empty" aria-hidden="true"></div>';
+    }
+    for (i = 1; i <= daysInMonth; i++) {
+      var key =
+        year + '-' + String(month + 1).padStart(2, '0') + '-' + String(i).padStart(2, '0');
+      var tot = dayTotals[key] || { planned: 0, logged: 0 };
+      var has = tot.planned > 0 || tot.logged > 0;
+      var classes = 'admin-bookings-cal-cell';
+      if (key === todayKey) classes += ' is-today';
+      if (key === tcSelectedDay) classes += ' is-selected';
+      if (has) classes += ' has-bookings tc-has-hours';
+      var tipParts = [];
+      if (tot.planned > 0) tipParts.push('P ' + formatHours(tot.planned));
+      if (tot.logged > 0) tipParts.push('L ' + formatHours(tot.logged));
+      var tip = tipParts.join(' · ');
+      var badge =
+        tot.planned > 0 || tot.logged > 0
+          ? '<span class="admin-bookings-cal-day-count">' +
+            esc(formatHours(tot.planned + tot.logged)) +
+            '</span>'
+          : '';
+      html +=
+        '<button type="button" class="' +
+        classes +
+        '" data-tc-day="' +
+        key +
+        '"' +
+        (key === tcSelectedDay ? ' aria-current="date"' : '') +
+        ' aria-pressed="' +
+        (key === tcSelectedDay ? 'true' : 'false') +
+        '"' +
+        ' aria-label="' +
+        esc(key) +
+        (tip ? ', ' + tip : '') +
+        '">' +
+        '<span class="admin-bookings-cal-day-top">' +
+        '<span class="admin-bookings-cal-day-num">' +
+        i +
+        '</span>' +
+        badge +
+        '</span>' +
+        (tip
+          ? '<span class="admin-bookings-cal-day-tip">' + esc(tip) + '</span>'
+          : '') +
+        '</button>';
+    }
+    grid.innerHTML = html;
+
+    var dayTitle = document.getElementById('tc-day-title');
+    var dayCount = document.getElementById('tc-day-count');
+    var dayList = document.getElementById('tc-day-list');
+    var dayEntries = getTcEntriesForDay(tcSelectedDay);
+    var dayPlanned = 0;
+    var dayLogged = 0;
+    dayEntries.forEach(function (e) {
+      dayPlanned += e.plannedHours;
+      dayLogged += e.loggedHours;
+    });
+    if (dayTitle) dayTitle.textContent = formatTcDayTitle(tcSelectedDay);
+    if (dayCount) {
+      dayCount.textContent =
+        formatHours(dayPlanned) + ' planned · ' + formatHours(dayLogged) + ' logged';
+    }
+
+    if (dayList) {
+      if (!dayEntries.length) {
+        dayList.innerHTML =
+          '<p class="form-hint tc-day-empty">No planned or logged hours this day. Add a block below.</p>';
+      } else {
+        dayList.innerHTML = dayEntries
+          .map(function (e) {
+            return (
+              '<article class="tc-entry-card" data-tc-entry-id="' +
+              esc(e.id) +
+              '">' +
+              '<div class="tc-entry-head">' +
+              '<button type="button" class="tc-entry-open" data-tc-action="open-client" data-tc-kind="' +
+              esc(e.kind) +
+              '" data-tc-project="' +
+              esc(e.projectId || '') +
+              '" data-tc-maint="' +
+              esc(e.maintenanceId || '') +
+              '">' +
+              '<span class="tc-entry-name">' +
+              esc(e.clientName || 'Client') +
+              '</span>' +
+              '<span class="tc-entry-meta">' +
+              esc(e.kind === 'maint' ? 'Maintenance' : 'Build') +
+              '</span></button>' +
+              '<button type="button" class="btn btn-danger btn-sm" data-tc-action="delete-entry">Delete</button>' +
+              '</div>' +
+              '<div class="tc-entry-edit">' +
+              '<label class="tc-field"><span>Planned</span>' +
+              '<input type="number" class="form-input tc-input" data-tc-field="plannedHours" min="0" step="0.5" inputmode="decimal" value="' +
+              esc(String(e.plannedHours)) +
+              '"></label>' +
+              '<label class="tc-field"><span>Logged</span>' +
+              '<input type="number" class="form-input tc-input" data-tc-field="loggedHours" min="0" step="0.5" inputmode="decimal" value="' +
+              esc(String(e.loggedHours)) +
+              '"></label>' +
+              '<button type="button" class="btn btn-secondary btn-sm" data-tc-action="save-entry">Save</button>' +
+              '</div></article>'
+            );
+          })
+          .join('');
+      }
+    }
+
+    syncTcAddTargetSelect(true);
+    updateTcTimerUi();
+  }
+
+  async function saveTimeEntryFromCard(card) {
+    if (!card || !rtdbReady()) return;
+    var id = card.getAttribute('data-tc-entry-id');
+    if (!id) return;
+    var existing = agencyTimeEntries.find(function (x) {
+      return x.id === id;
+    });
+    if (!existing) return;
+    var planned = Math.max(
+      0,
+      Number((card.querySelector('[data-tc-field="plannedHours"]') || {}).value) || 0
+    );
+    var logged = Math.max(
+      0,
+      Number((card.querySelector('[data-tc-field="loggedHours"]') || {}).value) || 0
+    );
+    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + id));
+    var row = snap.val() || {};
+    await window.rtdbSet(
+      window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + id),
+      Object.assign({}, row, {
+        plannedHours: planned,
+        loggedHours: logged,
+        updatedAt: ts()
+      })
+    );
+    var local = agencyTimeEntries.find(function (x) {
+      return x.id === id;
+    });
+    if (local) {
+      local.plannedHours = planned;
+      local.loggedHours = logged;
+    }
+    await syncLoggedTotalsFromEntries({
+      projectId: existing.projectId,
+      maintenanceId: existing.maintenanceId
+    });
+  }
+
+  async function deleteTimeEntry(id) {
+    if (!id || !rtdbReady() || typeof window.rtdbRemove !== 'function') return;
+    var existing = agencyTimeEntries.find(function (x) {
+      return x.id === id;
+    });
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + id));
+    agencyTimeEntries = agencyTimeEntries.filter(function (x) {
+      return x.id !== id;
+    });
+    if (existing) {
+      await syncLoggedTotalsFromEntries({
+        projectId: existing.projectId,
+        maintenanceId: existing.maintenanceId
+      });
+    }
+  }
+
+  async function addTimeEntryFromForm() {
+    if (!rtdbReady()) return;
+    ensureTcCalState();
+    var targetEl = document.getElementById('tc-add-target');
+    var plannedEl = document.getElementById('tc-add-planned');
+    var loggedEl = document.getElementById('tc-add-logged');
+    var target = targetEl ? String(targetEl.value || '') : '';
+    if (!target) throw new Error('Choose a client.');
+    var parts = target.split(':');
+    var kind = parts[0] === 'maint' ? 'maint' : 'build';
+    var refId = parts.slice(1).join(':');
+    var planned = Math.max(0, Number(plannedEl && plannedEl.value) || 0);
+    var logged = Math.max(0, Number(loggedEl && loggedEl.value) || 0);
+    if (planned <= 0 && logged <= 0) throw new Error('Enter planned or logged hours.');
+
+    var clientName = '';
+    var projectId = '';
+    var maintenanceId = '';
+    if (kind === 'build') {
+      var hub = getHubById(refId);
+      if (!hub || !shouldShowBuildCapacity(hub)) throw new Error('Client project not found.');
+      clientName = hub.clientName || hub.title || 'Untitled';
+      projectId = hub.id;
+    } else {
+      var m = agencyMaintenance.find(function (x) {
+        return x.id === refId;
+      });
+      if (!m) throw new Error('Maintenance client not found.');
+      clientName = m.clientName || 'Client';
+      maintenanceId = m.id;
+      projectId = m.projectId || '';
+    }
+
+    var dup = agencyTimeEntries.find(function (e) {
+      return (
+        e.date === tcSelectedDay &&
+        e.kind === kind &&
+        ((kind === 'build' && e.projectId === projectId) ||
+          (kind === 'maint' && e.maintenanceId === maintenanceId))
+      );
+    });
+    if (dup) {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id));
+      var row = snap.val() || {};
+      await window.rtdbSet(
+        window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id),
+        Object.assign({}, row, {
+          plannedHours: planned,
+          loggedHours: logged,
+          clientName: clientName,
+          updatedAt: ts()
+        })
+      );
+      dup.plannedHours = planned;
+      dup.loggedHours = logged;
+      dup.clientName = clientName;
+      await syncLoggedTotalsFromEntries({ projectId: projectId, maintenanceId: maintenanceId });
+    } else {
+      var payload = {
+        date: tcSelectedDay,
+        projectId: projectId,
+        maintenanceId: maintenanceId,
+        clientName: clientName,
+        kind: kind,
+        plannedHours: planned,
+        loggedHours: logged,
+        notes: '',
+        createdAt: ts(),
+        updatedAt: ts()
+      };
+      var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.timeEntries));
+      await window.rtdbSet(ref, payload);
+      agencyTimeEntries.push(normalizeTimeEntry(ref.key, payload));
+      await syncLoggedTotalsFromEntries({ projectId: projectId, maintenanceId: maintenanceId });
+    }
+
+    if (plannedEl) plannedEl.value = '';
+    if (loggedEl) loggedEl.value = '0';
+    if (typeof window.setBusinessDocSelectValue === 'function') {
+      window.setBusinessDocSelectValue('tc-add-target', '', true);
+    } else if (targetEl) {
+      targetEl.value = '';
+    }
+  }
+
+  function isTcAddDrawerOpen() {
+    var drawer = document.getElementById('tc-add-drawer');
+    return !!(drawer && drawer.classList.contains('is-open'));
+  }
+
+  function openTcAddDrawer() {
+    ensureTcCalState();
+    closeTcTimerDrawer();
+    var drawer = document.getElementById('tc-add-drawer');
+    var overlay = document.getElementById('tc-add-drawer-overlay');
+    if (!drawer || !overlay) return;
+    var subtitle = document.getElementById('tc-add-drawer-subtitle');
+    if (subtitle) subtitle.textContent = formatTcDayTitle(tcSelectedDay);
+    var feedback = document.getElementById('tc-add-feedback');
+    if (feedback) {
+      feedback.textContent = '';
+      feedback.classList.remove('is-error');
+    }
+    syncTcAddTargetSelect(false);
+    drawer.hidden = false;
+    overlay.hidden = false;
+    drawer.setAttribute('aria-hidden', 'false');
+    overlay.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () {
+      drawer.classList.add('is-open');
+      overlay.classList.add('is-open');
+    });
+    document.body.classList.add('tc-add-drawer-open');
+    window.setTimeout(function () {
+      var trigger = drawer.querySelector('.business-doc-select-trigger');
+      if (trigger) {
+        try {
+          trigger.focus();
+        } catch (fe) {}
+      }
+    }, 40);
+  }
+
+  function closeTcAddDrawer() {
+    var drawer = document.getElementById('tc-add-drawer');
+    var overlay = document.getElementById('tc-add-drawer-overlay');
+    if (!drawer || !overlay) return;
+    drawer.classList.remove('is-open');
+    overlay.classList.remove('is-open');
+    if (!isTcTimerDrawerOpen()) {
+      document.body.classList.remove('tc-add-drawer-open');
+    }
+    window.setTimeout(function () {
+      if (drawer.classList.contains('is-open')) return;
+      drawer.hidden = true;
+      overlay.hidden = true;
+      drawer.setAttribute('aria-hidden', 'true');
+      overlay.setAttribute('aria-hidden', 'true');
+    }, 360);
+  }
+
+  function isTcTimerDrawerOpen() {
+    var drawer = document.getElementById('tc-timer-drawer');
+    return !!(drawer && drawer.classList.contains('is-open'));
+  }
+
+  function openTcTimerDrawer() {
+    if (isTcTimerActive()) return;
+    closeTcAddDrawer();
+    var drawer = document.getElementById('tc-timer-drawer');
+    var overlay = document.getElementById('tc-timer-drawer-overlay');
+    if (!drawer || !overlay) return;
+    setTcTimerFeedback('');
+    syncTcTimerTargetSelect(false);
+    drawer.hidden = false;
+    overlay.hidden = false;
+    drawer.setAttribute('aria-hidden', 'false');
+    overlay.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () {
+      drawer.classList.add('is-open');
+      overlay.classList.add('is-open');
+    });
+    document.body.classList.add('tc-add-drawer-open');
+    window.setTimeout(function () {
+      var startBtn = document.getElementById('tc-timer-start');
+      if (startBtn) {
+        try {
+          startBtn.focus();
+        } catch (fe) {}
+      }
+    }, 40);
+  }
+
+  function closeTcTimerDrawer() {
+    var drawer = document.getElementById('tc-timer-drawer');
+    var overlay = document.getElementById('tc-timer-drawer-overlay');
+    if (!drawer || !overlay) return;
+    drawer.classList.remove('is-open');
+    overlay.classList.remove('is-open');
+    if (!isTcAddDrawerOpen()) {
+      document.body.classList.remove('tc-add-drawer-open');
+    }
+    window.setTimeout(function () {
+      if (drawer.classList.contains('is-open')) return;
+      drawer.hidden = true;
+      overlay.hidden = true;
+      drawer.setAttribute('aria-hidden', 'true');
+      overlay.setAttribute('aria-hidden', 'true');
+    }, 360);
+  }
+
+  function initTimeCapacity() {
+    if (timeCapacityBound) return;
+    var panel = document.getElementById('admin-panel-time-capacity');
+    if (!panel) return;
+    timeCapacityBound = true;
+    ensureTcCalState();
+    loadPersistedTcTimer();
+    syncTcAddTargetSelect(false);
+    updateTcTimerUi();
+    if (tcTimerState.status === 'running') startTcTimerTick();
+    else if (tcTimerState.status === 'paused') updateTcTimerUi();
+
+    var openTimerBtn = document.getElementById('tc-open-timer-drawer');
+    var timerStart = document.getElementById('tc-timer-start');
+    var timerPause = document.getElementById('tc-timer-pause');
+    var timerResume = document.getElementById('tc-timer-resume');
+    var timerStop = document.getElementById('tc-timer-stop');
+    var timerOverlay = document.getElementById('tc-timer-drawer-overlay');
+    var timerClose = document.getElementById('tc-timer-drawer-close');
+    var timerCancel = document.getElementById('tc-timer-drawer-cancel');
+    if (openTimerBtn) openTimerBtn.addEventListener('click', openTcTimerDrawer);
+    if (timerStart) timerStart.addEventListener('click', startTcFocusSession);
+    if (timerPause) timerPause.addEventListener('click', pauseTcFocusSession);
+    if (timerResume) timerResume.addEventListener('click', resumeTcFocusSession);
+    if (timerStop) timerStop.addEventListener('click', function () {
+      stopTcFocusSession();
+    });
+    if (timerOverlay) timerOverlay.addEventListener('click', closeTcTimerDrawer);
+    if (timerClose) timerClose.addEventListener('click', closeTcTimerDrawer);
+    if (timerCancel) timerCancel.addEventListener('click', closeTcTimerDrawer);
+
+    var prevBtn = document.getElementById('tc-cal-prev');
+    var nextBtn = document.getElementById('tc-cal-next');
+    var todayBtn = document.getElementById('tc-cal-today');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function () {
+        ensureTcCalState();
+        tcCalMonth = new Date(tcCalMonth.getFullYear(), tcCalMonth.getMonth() - 1, 1);
+        renderTimeCapacityPanel();
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function () {
+        ensureTcCalState();
+        tcCalMonth = new Date(tcCalMonth.getFullYear(), tcCalMonth.getMonth() + 1, 1);
+        renderTimeCapacityPanel();
+      });
+    }
+    if (todayBtn) {
+      todayBtn.addEventListener('click', function () {
+        var now = new Date();
+        tcCalMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        tcSelectedDay = todayTcDayKey();
+        renderTimeCapacityPanel();
+        var dayPanel = panel.querySelector('.admin-bookings-day-panel');
+        if (dayPanel && window.matchMedia('(max-width: 979px)').matches) {
+          dayPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    }
+
+    var addOverlay = document.getElementById('tc-add-drawer-overlay');
+    var addClose = document.getElementById('tc-add-drawer-close');
+    var addCancel = document.getElementById('tc-add-drawer-cancel');
+    if (addOverlay) addOverlay.addEventListener('click', closeTcAddDrawer);
+    if (addClose) addClose.addEventListener('click', closeTcAddDrawer);
+    if (addCancel) addCancel.addEventListener('click', closeTcAddDrawer);
+
+    var addDrawer = document.getElementById('tc-add-drawer');
+    if (addDrawer) {
+      addDrawer.addEventListener('click', function (e) {
+        var actionBtn = e.target.closest('[data-tc-action="add-entry"]');
+        if (!actionBtn || !addDrawer.contains(actionBtn)) return;
+        e.preventDefault();
+        var feedback = document.getElementById('tc-add-feedback');
+        actionBtn.disabled = true;
+        if (feedback) {
+          feedback.textContent = '';
+          feedback.classList.remove('is-error');
+        }
+        addTimeEntryFromForm()
+          .then(function () {
+            renderTimeCapacityPanel();
+            if (feedback) feedback.textContent = 'Saved.';
+            closeTcAddDrawer();
+          })
+          .catch(function (err) {
+            console.error(err);
+            if (feedback) {
+              feedback.textContent = (err && err.message) || 'Could not save.';
+              feedback.classList.add('is-error');
+            }
+          })
+          .then(function () {
+            actionBtn.disabled = false;
+          });
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      function tcAddEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        if (isTcTimerDrawerOpen()) {
+          ev.stopImmediatePropagation();
+          closeTcTimerDrawer();
+          return;
+        }
+        if (!isTcAddDrawerOpen()) return;
+        ev.stopImmediatePropagation();
+        closeTcAddDrawer();
+      },
+      true
+    );
+
+    panel.addEventListener('click', function (e) {
+      var dayBtn = e.target.closest('[data-tc-day]');
+      if (dayBtn && panel.contains(dayBtn)) {
+        var nextDay = dayBtn.getAttribute('data-tc-day');
+        if (nextDay === tcSelectedDay) {
+          if (window.matchMedia('(max-width: 979px)').matches) {
+            var p = panel.querySelector('.admin-bookings-day-panel');
+            if (p) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          return;
+        }
+        tcSelectedDay = nextDay;
+        renderTimeCapacityPanel();
+        if (window.matchMedia('(max-width: 979px)').matches) {
+          var panelEl = panel.querySelector('.admin-bookings-day-panel');
+          if (panelEl) panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        return;
+      }
+
+      var actionBtn = e.target.closest('[data-tc-action]');
+      if (!actionBtn || !panel.contains(actionBtn)) return;
+      var action = actionBtn.getAttribute('data-tc-action');
+
+      if (action === 'open-timer') {
+        openTcTimerDrawer();
+        return;
+      }
+
+      if (action === 'open-add') {
+        openTcAddDrawer();
+        return;
+      }
+
+      if (action === 'open-client') {
+        var projectId = actionBtn.getAttribute('data-tc-project');
+        var maintId = actionBtn.getAttribute('data-tc-maint');
+        if (projectId) openClientProjectWorkspace(projectId);
+        else if (maintId) {
+          var m = agencyMaintenance.find(function (x) {
+            return x.id === maintId;
+          });
+          if (m && m.projectId) openClientProjectWorkspace(m.projectId);
+        }
+        return;
+      }
+
+      if (action === 'save-entry') {
+        var card = actionBtn.closest('[data-tc-entry-id]');
+        actionBtn.disabled = true;
+        saveTimeEntryFromCard(card)
+          .then(function () {
+            renderTimeCapacityPanel();
+          })
+          .catch(function (err) {
+            console.error(err);
+          })
+          .then(function () {
+            actionBtn.disabled = false;
+          });
+        return;
+      }
+
+      if (action === 'delete-entry') {
+        var delCard = actionBtn.closest('[data-tc-entry-id]');
+        var delId = delCard && delCard.getAttribute('data-tc-entry-id');
+        if (!delId || !window.confirm('Delete this time entry?')) return;
+        actionBtn.disabled = true;
+        deleteTimeEntry(delId)
+          .then(function () {
+            renderTimeCapacityPanel();
+          })
+          .catch(function (err) {
+            console.error(err);
+          })
+          .then(function () {
+            actionBtn.disabled = false;
+          });
+      }
+    });
+  }
+
   function getOverviewSnapshot() {
     var now = Date.now();
     var PORTAL_WARN_MS = 7 * 86400000;
@@ -5197,6 +6601,7 @@
     isClientDrawerOpen: isCpClientDrawerOpen,
     getOverviewSnapshot: getOverviewSnapshot,
     refreshStudioCosts: renderStudioCostsTable,
+    refreshTimeCapacity: renderTimeCapacityPanel,
     getHubByLeadId: function (leadId) {
       if (!leadId) return null;
       return agencyProjects.find(function (p) { return p.leadId === leadId; }) || null;
@@ -5225,6 +6630,7 @@
     initStudioCosts();
     initFirebaseHealth();
     initClientProjects();
+    initTimeCapacity();
 
     document.addEventListener('adminSessionReady', function (e) {
       if (e.detail && e.detail.isAdmin) subscribeAgencyData();
