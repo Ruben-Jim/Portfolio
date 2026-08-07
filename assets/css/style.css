@@ -24918,19 +24918,10 @@ body.lead-drawer-open {
   }
 }
 
-/* Responsive: pipeline scrolls on small screens; KPI stays 2-col */
+/* Responsive: Client Pipeline */
 @media (max-width: 1100px) {
   .pipeline-board--four {
-    display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 12px;
-    padding-bottom: 12px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .pipeline-board--four .pipeline-col {
-    flex: 0 0 min(240px, 78vw);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -24939,28 +24930,32 @@ body.lead-drawer-open {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .pipeline-board--three {
-    grid-template-columns: 1fr;
+  #admin-panel-pipeline .admin-panel-heading--with-action {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 
+  #admin-panel-pipeline .admin-panel-heading--with-action .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  #admin-panel-pipeline .admin-panel-lead {
+    font-size: var(--fs-8, 13px);
+    line-height: 1.45;
+  }
+
+  .pipeline-summary-row--three,
   .pipeline-summary-row--four {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .pipeline-summary-row--three {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-  }
-
-  .pipeline-summary-row--four {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    margin-bottom: 12px;
   }
 
   .pipeline-summary-stat {
-    padding: 10px 6px;
+    padding: 10px 8px;
+    gap: 4px;
   }
 
   .pipeline-summary-value {
@@ -24970,6 +24965,79 @@ body.lead-drawer-open {
   .pipeline-summary-label {
     font-size: 9px;
     letter-spacing: 0.04em;
+  }
+
+  .pipeline-summary-sub {
+    font-size: 10px;
+  }
+
+  /* Vertical stage stack — easier than sideways scroll on phones */
+  .pipeline-board,
+  .pipeline-board--three,
+  .pipeline-board--four {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: visible;
+    padding-bottom: 4px;
+    align-items: stretch;
+  }
+
+  .pipeline-col {
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+    padding: 10px 10px 12px;
+  }
+
+  .pipeline-col-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: -10px -10px 8px;
+    padding: 10px;
+    background: var(--eerie-black-2);
+    border-bottom: 1px solid var(--jet);
+    border-radius: 10px 10px 0 0;
+  }
+
+  .pipeline-cards {
+    min-height: 0;
+    gap: 8px;
+  }
+
+  .pipeline-empty {
+    padding: 12px 8px;
+  }
+
+  .pipeline-card {
+    padding: 12px;
+  }
+
+  .pipeline-card:hover {
+    transform: none;
+  }
+
+  .pipeline-card-name {
+    font-size: 14px;
+  }
+
+  .pipeline-card-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .pipeline-card-stage-select {
+    width: 100%;
+    max-width: 100%;
+    min-height: 36px;
+    font-size: 16px; /* avoid iOS zoom */
+  }
+}
+
+@media (max-width: 640px) {
+  .pipeline-summary-stat {
+    padding: 10px 6px;
   }
 }
 
