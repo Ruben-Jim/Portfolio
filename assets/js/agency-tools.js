@@ -4061,7 +4061,7 @@
       ? '<p class="form-hint">' + esc(lead.name || lead.company || 'Lead') + ' · ' + cpStageLabel(lead.stage) + ' · ' + cpMoney(lead.value) + '</p>' +
         '<div class="cp-form-grid cp-form-grid--can-split">' +
         '<div class="form-group"><label for="cp-pipeline-stage">Stage</label><select id="cp-pipeline-stage" class="form-input">' +
-        ['lead', 'proposal', 'deposit'].map(function (st) {
+        ['lead', 'demo', 'proposal', 'deposit'].map(function (st) {
           return '<option value="' + st + '" ' + (lead.stage === st ? 'selected' : '') + '>' + esc(cpStageLabel(st)) + '</option>';
         }).join('') +
         '</select></div>' +

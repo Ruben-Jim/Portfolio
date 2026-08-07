@@ -15154,10 +15154,10 @@ window.addEventListener('load', function() {
   // ----------------------------
 
   var PIPELINE_RTD_PATH = 'pipelineLeads';
-  var PIPELINE_STAGES = ['lead', 'proposal', 'deposit'];
-  var PIPELINE_OPEN_STAGES = ['lead', 'proposal'];
+  var PIPELINE_STAGES = ['lead', 'demo', 'proposal', 'deposit'];
+  var PIPELINE_OPEN_STAGES = ['lead', 'demo', 'proposal'];
   var PIPELINE_WON_STAGES = ['deposit'];
-  var PIPELINE_ACTIVE_STAGES = ['lead', 'proposal', 'deposit'];
+  var PIPELINE_ACTIVE_STAGES = ['lead', 'demo', 'proposal', 'deposit'];
   var PIPELINE_LEGACY_STAGE_MAP = {
     discovery: 'proposal',
     building: 'deposit',
@@ -15225,6 +15225,7 @@ window.addEventListener('load', function() {
   function pipelineStageLabel(stage) {
     var map = {
       lead: 'Lead',
+      demo: 'Demo',
       proposal: 'Proposal Sent',
       deposit: 'Deposit Paid'
     };
@@ -15342,7 +15343,7 @@ window.addEventListener('load', function() {
   }
 
   function renderPipelineSummary(leads) {
-    var counts = { lead: 0, proposal: 0, deposit: 0 };
+    var counts = { lead: 0, demo: 0, proposal: 0, deposit: 0 };
     var openValue = 0;
     var wonValue = 0;
 
@@ -15353,6 +15354,7 @@ window.addEventListener('load', function() {
     });
 
     var elLead = document.getElementById('pipeline-summary-lead');
+    var elDemo = document.getElementById('pipeline-summary-demo');
     var elProposal = document.getElementById('pipeline-summary-proposal');
     var elDeposit = document.getElementById('pipeline-summary-deposit');
     var elDepositValue = document.getElementById('pipeline-summary-deposit-value');
@@ -15360,6 +15362,7 @@ window.addEventListener('load', function() {
     var kpiActive = document.getElementById('kpi-active-projects');
 
     if (elLead) elLead.textContent = String(counts.lead);
+    if (elDemo) elDemo.textContent = String(counts.demo);
     if (elProposal) elProposal.textContent = String(counts.proposal);
     if (elDeposit) elDeposit.textContent = String(counts.deposit);
     if (elDepositValue) elDepositValue.textContent = formatPipelineMoney(wonValue);

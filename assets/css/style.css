@@ -15620,7 +15620,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
   margin-bottom: 12px;
 }
 
-#admin-dashboard-content .pipeline-summary-row--three {
+#admin-dashboard-content .pipeline-summary-row--three,
+#admin-dashboard-content .pipeline-summary-row--four {
   margin-bottom: 14px;
 }
 
@@ -24352,6 +24353,10 @@ body.admin-testimonial-detail-open {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.pipeline-summary-row--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .pipeline-summary-stat {
   display: flex;
   flex-direction: column;
@@ -24369,6 +24374,7 @@ body.admin-testimonial-detail-open {
 }
 
 .pipeline-summary-stat--lead .pipeline-summary-value { color: var(--light-gray); }
+.pipeline-summary-stat--demo .pipeline-summary-value { color: #60a5fa; }
 .pipeline-summary-stat--proposal .pipeline-summary-value { color: #f59e0b; }
 .pipeline-summary-stat--deposit .pipeline-summary-value { color: #34d399; }
 
@@ -24414,6 +24420,10 @@ body.admin-testimonial-detail-open {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.pipeline-board--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .pipeline-col {
   min-width: 0;
   display: flex;
@@ -24442,6 +24452,7 @@ body.admin-testimonial-detail-open {
 }
 
 .pipeline-dot--lead        { background: var(--light-gray-70); }
+.pipeline-dot--demo        { background: #60a5fa; }
 .pipeline-dot--discovery   { background: #60a5fa; }
 .pipeline-dot--proposal    { background: #f59e0b; }
 .pipeline-dot--deposit     { background: #10b981; }
@@ -24907,7 +24918,22 @@ body.lead-drawer-open {
   }
 }
 
-/* Responsive: pipeline stacks on small screens; KPI stays 2-col */
+/* Responsive: pipeline scrolls on small screens; KPI stays 2-col */
+@media (max-width: 1100px) {
+  .pipeline-board--four {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .pipeline-board--four .pipeline-col {
+    flex: 0 0 min(240px, 78vw);
+  }
+}
+
 @media (max-width: 900px) {
   .admin-kpi-bar {
     grid-template-columns: repeat(2, 1fr);
@@ -24916,11 +24942,20 @@ body.lead-drawer-open {
   .pipeline-board--three {
     grid-template-columns: 1fr;
   }
+
+  .pipeline-summary-row--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
   .pipeline-summary-row--three {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .pipeline-summary-row--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 
