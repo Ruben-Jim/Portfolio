@@ -2585,6 +2585,7 @@
       applyHealthToForm(agencyHealthByProject[sel.value] || null);
     }
     if (clientProjectsSelectedId) renderClientProjectsWorkspace();
+    refreshClientProjectsPicker();
   }
 
   function fetchFirebaseHealthOnce() {
@@ -2916,9 +2917,11 @@
   var clientProjectsSortBound = false;
   var clientProjectsDndBound = false;
   var cpDeliveryDragProjectId = null;
+  var cpDeliveryDragMoved = false;
   var CP_DELIVERY_STAGES = ['demo', 'converting', 'client'];
   var CP_CLIENT_SORT_KEY = 'cp-client-projects-sort';
   var CP_CLIENT_SORT_OPTIONS = ['name', 'attention', 'milestones', 'maintenance', 'added'];
+  var CP_SPARSE_SIDE_MAX = 3;
   var clientProjectsSort = (function () {
     try {
       var saved = localStorage.getItem(CP_CLIENT_SORT_KEY);
@@ -3023,7 +3026,15 @@
     var total = hub.milestones ? hub.milestones.length : 0;
     var health = agencyHealthByProject[hub.id];
     var healthDone = health ? healthCheckedCount(health) : 0;
-    var healthClass = healthDone >= HEALTH_CHECK_KEYS.length ? 'is-good' : healthDone > 0 ? 'is-warn' : '';
+    var healthClass =
+      healthDone >= HEALTH_CHECK_KEYS.length
+        ? 'is-good'
+        : healthDone > 0
+          ? 'is-warn'
+          : 'is-bad';
+    var healthLabel = health
+      ? 'Health ' + healthDone + '/' + HEALTH_CHECK_KEYS.length
+      : 'Health —';
     var maint = findMaintenanceForHub(hub);
     var maintPending = !!(maint && maint.effectivePlanStatus === 'pending');
     return {
@@ -3031,8 +3042,9 @@
       milestonesPct: total ? Math.round((done / total) * 100) : 0,
       milestonesDone: done,
       milestonesTotal: total,
-      healthLabel: 'Health ' + healthDone + '/' + HEALTH_CHECK_KEYS.length,
+      healthLabel: healthLabel,
       healthClass: healthClass,
+      healthMissing: !health,
       maintPending: maintPending,
       maintTier: maint && maint.planTier ? maint.planTier : '',
       hasGuide: hubHasPortalGuide(hub)
@@ -3125,7 +3137,9 @@
       '<span class="cp-client-picker-avatar" aria-hidden="true">' +
       esc(initials) +
       '</span>' +
-      '<span class="cp-delivery-card-title">' +
+      '<span class="cp-delivery-card-title" title="' +
+      esc(title) +
+      '">' +
       esc(title) +
       '</span>' +
       '</div>' +
@@ -3185,7 +3199,7 @@
     var meta = getClientPickerMeta(hub);
     var score = 0;
     if (meta.maintPending) score += 100;
-    if (meta.healthClass === '') score += 40;
+    if (meta.healthMissing || meta.healthClass === 'is-bad') score += 40;
     else if (meta.healthClass === 'is-warn') score += 20;
     if (!meta.milestonesTotal) score += 10;
     else score += Math.max(0, 10 - Math.round(meta.milestonesPct / 10));
@@ -3239,6 +3253,33 @@
     } catch (e) { /* ignore */ }
     syncClientProjectsSortChips();
     renderClientProjectsPickerList();
+  }
+
+  /** Auto stack: Converting+Client stack when sparse; Demo wraps when busy. */
+  function applyDeliveryBoardLayoutClasses(bucketCounts) {
+    var board = document.getElementById('cp-delivery-board');
+    if (!board) return;
+    var counts = bucketCounts || {};
+    var convertingCount = Number(counts.converting) || 0;
+    var clientCount = Number(counts.client) || 0;
+    var sideCount = convertingCount + clientCount;
+    var demoCount = Number(counts.demo) || 0;
+
+    board.classList.remove(
+      'is-layout-asymmetric',
+      'is-layout-demo-wrap',
+      'is-layout-sparse',
+      'is-layout-sparse-stacked',
+      'is-demo-cards-wrap'
+    );
+
+    board.classList.add('is-layout-sparse');
+    if (sideCount <= CP_SPARSE_SIDE_MAX) {
+      board.classList.add('is-layout-sparse-stacked');
+      board.classList.add('is-demo-cards-wrap');
+    } else if (demoCount >= 4) {
+      board.classList.add('is-demo-cards-wrap');
+    }
   }
 
   var CP_DRAWER_TRANSITION_MS = 380;
@@ -4161,6 +4202,12 @@
         zone.innerHTML = rows.map(renderCpHubDeliveryCard).join('');
       }
     });
+
+    applyDeliveryBoardLayoutClasses({
+      demo: (buckets.demo || []).length,
+      converting: (buckets.converting || []).length,
+      client: (buckets.client || []).length
+    });
   }
 
   async function moveHubDeliveryStage(projectId, stage) {
@@ -4202,6 +4249,7 @@
       var card = e.target.closest('.cp-delivery-card');
       if (!card) return;
       cpDeliveryDragProjectId = card.getAttribute('data-project-id');
+      cpDeliveryDragMoved = true;
       card.classList.add('is-dragging');
       if (e.dataTransfer) {
         e.dataTransfer.setData('text/plain', cpDeliveryDragProjectId || '');
@@ -4216,6 +4264,10 @@
       board.querySelectorAll('.cp-delivery-cards.drag-over').forEach(function (el) {
         el.classList.remove('drag-over');
       });
+      // Suppress the click that browsers fire after a drag.
+      window.setTimeout(function () {
+        cpDeliveryDragMoved = false;
+      }, 0);
     });
 
     board.addEventListener('dragover', function (e) {
@@ -4930,6 +4982,10 @@
         }
         var card = e.target.closest('[data-cp-client-id]');
         if (!card) return;
+        if (cpDeliveryDragMoved) {
+          e.preventDefault();
+          return;
+        }
         e.preventDefault();
         selectClientProject(card.getAttribute('data-cp-client-id'));
       });
