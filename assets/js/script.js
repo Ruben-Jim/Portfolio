@@ -9662,6 +9662,7 @@ window.addEventListener('load', function() {
       toEmail: document.getElementById('admin-client-email-to-email'),
       nextStep: document.getElementById('admin-client-email-next-step'),
       link: document.getElementById('admin-client-email-link'),
+      ctaLabel: document.getElementById('admin-client-email-cta-label'),
       subject: document.getElementById('admin-client-email-subject'),
       message: document.getElementById('admin-client-email-message'),
       preview: document.getElementById('admin-client-email-preview'),
@@ -9877,9 +9878,31 @@ window.addEventListener('load', function() {
     els.feedback.classList.toggle('is-success', !isError && !!message);
   }
 
+  function markAdminClientEmailLinkUserSet(els) {
+    if (els.link) els.link.dataset.userSetLink = '1';
+  }
+
+  function clearAdminClientEmailLinkUserSet(els) {
+    if (els.link && els.link.dataset) delete els.link.dataset.userSetLink;
+  }
+
+  function isAdminClientEmailLinkUserSet(els) {
+    return !!(els.link && els.link.dataset && els.link.dataset.userSetLink === '1');
+  }
+
+  function isAdminClientEmailLinkFocused(els) {
+    return !!(els.link && document.activeElement === els.link);
+  }
+
   function syncAdminClientEmailDynamicFields(els) {
     var templateId = (els.template && els.template.value) || '';
-    if (isScheduleInviteEmailTemplate(templateId) && els.link) {
+    // Don't fight the user while they edit/paste a custom URL (demo site, etc.).
+    if (
+      isScheduleInviteEmailTemplate(templateId) &&
+      els.link &&
+      !isAdminClientEmailLinkUserSet(els) &&
+      !isAdminClientEmailLinkFocused(els)
+    ) {
       var agreedTimeSync = String(els.link.dataset.agreedTime || '').trim();
       if (!(templateId === 'reschedule-call' && agreedTimeSync)) {
         var currentLink = String(els.link.value || '').trim();
@@ -9932,10 +9955,25 @@ window.addEventListener('load', function() {
     saveAdminClientEmailDraft(els);
   }
 
+  function defaultCtaLabelForEmailTemplate(templateId) {
+    var meta = ADMIN_CLIENT_EMAIL_CTA[templateId];
+    return (meta && meta.cta_label) || '';
+  }
+
+  function syncAdminClientEmailCtaLabel(els, templateId, forceDefault) {
+    if (!els.ctaLabel) return;
+    var fallback = defaultCtaLabelForEmailTemplate(templateId);
+    if (forceDefault || !String(els.ctaLabel.value || '').trim()) {
+      els.ctaLabel.value = fallback;
+    }
+    els.ctaLabel.placeholder = fallback || 'Open link →';
+  }
+
   function getAdminClientEmailMeta(els) {
     var templateId = (els.template && els.template.value) || '';
     var link = String((els.link && els.link.value) || '').trim();
     var agreedTime = els.link && els.link.dataset ? String(els.link.dataset.agreedTime || '').trim() : '';
+    var customLabel = String((els.ctaLabel && els.ctaLabel.value) || '').trim();
     if (templateId === 'reschedule-call' && agreedTime && !link) {
       return { cta_label: '', header_subtitle: 'Reschedule confirmation' };
     }
@@ -9943,7 +9981,11 @@ window.addEventListener('load', function() {
     if (!meta && /\/schedule(\/|\?|$)/i.test(link)) {
       meta = ADMIN_CLIENT_EMAIL_CTA['schedule-call'];
     }
-    return meta || {};
+    var base = meta || {};
+    return {
+      cta_label: customLabel || base.cta_label || '',
+      header_subtitle: base.header_subtitle || ''
+    };
   }
 
   function updateAdminClientEmailPreview(els) {
@@ -9990,6 +10032,7 @@ window.addEventListener('load', function() {
         toEmail: (els.toEmail && els.toEmail.value) || '',
         nextStep: (els.nextStep && els.nextStep.value) || '',
         link: (els.link && els.link.value) || '',
+        ctaLabel: (els.ctaLabel && els.ctaLabel.value) || '',
         subject: (els.subject && els.subject.value) || '',
         message: (els.message && els.message.value) || ''
       };
@@ -10060,10 +10103,15 @@ window.addEventListener('load', function() {
     return '';
   }
 
-  function applyAdminClientEmailTemplate(els, templateId) {
+  function applyAdminClientEmailTemplate(els, templateId, opts) {
+    opts = opts || {};
     var template = getTemplateById(templateId);
     if (els.template) els.template.value = template.id;
     setAdminClientEmailCallTypeVisibility(els, template.id);
+    syncAdminClientEmailCtaLabel(els, template.id, true);
+    if (!opts.preserveUserLink) {
+      clearAdminClientEmailLinkUserSet(els);
+    }
     if (els.nextStep && !String(els.nextStep.value || '').trim()) {
       var defaultNext = defaultNextStepForEmailTemplate(template.id);
       if (defaultNext) els.nextStep.value = defaultNext;
@@ -10071,15 +10119,13 @@ window.addEventListener('load', function() {
     if (isDemoOutreachEmailTemplate(template.id)) {
       ensureAdminClientEmailDemos(els, els.demo && els.demo.value);
       var demo = getSelectedAdminDemo(els);
-      if (els.link) {
+      if (els.link && !isAdminClientEmailLinkUserSet(els)) {
         var demoLink = demo.defaultLink || '';
         var currentLink = String(els.link.value || '').trim();
-        if (
-          demoLink &&
-          (!currentLink || /tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink))
-        ) {
+        var isKnownDemoLink = /tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink);
+        if (demoLink && (!currentLink || isKnownDemoLink)) {
           els.link.value = demoLink;
-        } else if (!demoLink && /tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink)) {
+        } else if (!demoLink && isKnownDemoLink) {
           els.link.value = '';
         }
       }
@@ -10088,7 +10134,11 @@ window.addEventListener('load', function() {
     if (isScheduleInviteEmailTemplate(template.id)) {
       ensureAdminClientEmailCallTypes(els, els.callType && els.callType.value).then(function () {
         var agreedTime = els.link && els.link.dataset ? String(els.link.dataset.agreedTime || '').trim() : '';
-        if (els.link && !(template.id === 'reschedule-call' && agreedTime)) {
+        if (
+          els.link &&
+          !(template.id === 'reschedule-call' && agreedTime) &&
+          !isAdminClientEmailLinkUserSet(els)
+        ) {
           els.link.value = buildAdminScheduleLink(els);
         }
         if (els.nextStep && !String(els.nextStep.value || '').trim()) {
@@ -10174,6 +10224,8 @@ window.addEventListener('load', function() {
     if (els.toEmail) els.toEmail.value = '';
     if (els.nextStep) els.nextStep.value = '';
     if (els.link) els.link.value = '';
+    clearAdminClientEmailLinkUserSet(els);
+    if (els.ctaLabel) els.ctaLabel.value = '';
     applyAdminClientEmailTemplate(els, (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
     setAdminClientEmailFeedback(els, 'Draft reset.', false);
   }
@@ -10210,9 +10262,13 @@ window.addEventListener('load', function() {
       if (els.toEmail) els.toEmail.value = draft.toEmail || '';
       if (els.nextStep) els.nextStep.value = draft.nextStep || '';
       if (els.link) els.link.value = draft.link || '';
+      if (draft.link) markAdminClientEmailLinkUserSet(els);
+      else clearAdminClientEmailLinkUserSet(els);
+      if (els.ctaLabel) els.ctaLabel.value = draft.ctaLabel || '';
       if (els.subject) els.subject.value = draft.subject || '';
       if (els.message) els.message.value = draft.message || '';
       setAdminClientEmailCallTypeVisibility(els, (els.template && els.template.value) || '');
+      syncAdminClientEmailCtaLabel(els, (els.template && els.template.value) || '', !draft.ctaLabel);
       if (isDemoOutreachEmailTemplate((els.template && els.template.value) || '')) {
         ensureAdminClientEmailDemos(els, draft.demoId || '');
       }
@@ -10226,7 +10282,11 @@ window.addEventListener('load', function() {
     }
 
     if (!draft || !String((els.subject && els.subject.value) || '').trim() || !String((els.message && els.message.value) || '').trim()) {
-      applyAdminClientEmailTemplate(els, (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
+      applyAdminClientEmailTemplate(
+        els,
+        (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id,
+        { preserveUserLink: !!(draft && draft.link) }
+      );
     }
 
     if (els.template) {
@@ -10243,7 +10303,7 @@ window.addEventListener('load', function() {
           syncAdminClientEmailDynamicFields(els);
           return;
         }
-        applyAdminClientEmailTemplate(els, templateId);
+        applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
         setAdminClientEmailFeedback(els, '', false);
       });
     }
@@ -10252,7 +10312,9 @@ window.addEventListener('load', function() {
       els.callType.addEventListener('change', function () {
         var templateId = (els.template && els.template.value) || '';
         if (isScheduleInviteEmailTemplate(templateId)) {
-          if (els.link) els.link.value = buildAdminScheduleLink(els);
+          if (els.link && !isAdminClientEmailLinkUserSet(els)) {
+            els.link.value = buildAdminScheduleLink(els);
+          }
           syncAdminClientEmailDynamicFields(els);
           var vars = getAdminClientEmailVars(els);
           var tpl = getTemplateById(templateId);
@@ -10268,12 +10330,23 @@ window.addEventListener('load', function() {
       });
     }
 
-    [els.toName, els.nextStep, els.link].forEach(function (el) {
+    [els.toName, els.nextStep, els.ctaLabel].forEach(function (el) {
       if (!el) return;
       el.addEventListener('input', function () {
         syncAdminClientEmailDynamicFields(els);
       });
     });
+
+    if (els.link) {
+      els.link.addEventListener('input', function () {
+        markAdminClientEmailLinkUserSet(els);
+        syncAdminClientEmailDynamicFields(els);
+      });
+      els.link.addEventListener('change', function () {
+        markAdminClientEmailLinkUserSet(els);
+        syncAdminClientEmailDynamicFields(els);
+      });
+    }
 
     [els.subject, els.message].forEach(function (el) {
       if (!el) return;
