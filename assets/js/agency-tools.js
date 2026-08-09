@@ -5215,6 +5215,7 @@
   };
   var tcTimerTickId = null;
   var tcTimerStopping = false;
+  var tcTimerAwaitingClientLog = false;
 
   function weeksUntilDate(dateStr) {
     if (!dateStr) return BUILD_WEEKLY_HORIZON;
@@ -5743,6 +5744,7 @@
       );
       dup.loggedHours = nextLogged;
       dup.clientName = clientName;
+      dup.date = date;
     } else {
       var payload = {
         date: date,
@@ -5761,11 +5763,41 @@
       agencyTimeEntries.push(normalizeTimeEntry(ref.key, payload));
     }
 
-    await syncLoggedTotalsFromEntries({
-      projectId: projectId,
-      maintenanceId: maintenanceId
-    });
+    try {
+      await syncLoggedTotalsFromEntries({
+        projectId: projectId,
+        maintenanceId: maintenanceId
+      });
+    } catch (syncErr) {
+      console.error(syncErr);
+    }
     return hours;
+  }
+
+  function jumpTcCalendarToToday() {
+    var now = new Date();
+    tcCalMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    tcSelectedDay = todayTcDayKey();
+  }
+
+  function showTcTimerToast(message, isError) {
+    var existing = document.getElementById('tc-timer-toast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.id = 'tc-timer-toast';
+    toast.className = 'tc-timer-toast' + (isError ? ' is-error' : '');
+    toast.setAttribute('role', 'status');
+    toast.textContent = message || '';
+    document.body.appendChild(toast);
+    window.setTimeout(function () {
+      toast.classList.add('is-visible');
+    }, 10);
+    window.setTimeout(function () {
+      toast.classList.remove('is-visible');
+      window.setTimeout(function () {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 280);
+    }, 3200);
   }
 
   function resetTcTimerState() {
@@ -5781,7 +5813,85 @@
     updateTcTimerUi();
   }
 
+  async function commitTcFocusLog(resolved, hours) {
+    await addLoggedHoursForToday({
+      kind: resolved.kind,
+      projectId: resolved.projectId,
+      maintenanceId: resolved.maintenanceId,
+      clientName: resolved.clientName,
+      hours: hours
+    });
+    tcTimerAwaitingClientLog = false;
+    resetTcTimerState();
+    closeTcTimerDrawer();
+    jumpTcCalendarToToday();
+    renderTimeCapacityPanel();
+    showTcTimerToast(
+      'Logged ' + formatHours(hours) + ' for ' + (resolved.clientName || 'client') + ' today.'
+    );
+  }
+
+  function openTcTimerDrawerForLog(hours) {
+    tcTimerAwaitingClientLog = true;
+    if (tcTimerState.status === 'running') {
+      tcTimerState.accumulatedMs = getTcTimerElapsedMs();
+      tcTimerState.segmentStartedAt = null;
+      tcTimerState.status = 'paused';
+      persistTcTimerState();
+      stopTcTimerTick();
+      updateTcTimerUi();
+    }
+    closeTcAddDrawer();
+    var drawer = document.getElementById('tc-timer-drawer');
+    var overlay = document.getElementById('tc-timer-drawer-overlay');
+    if (!drawer || !overlay) {
+      showTcTimerToast('Choose a client, then stop again to log ' + formatHours(hours) + '.', true);
+      return;
+    }
+    var title = document.getElementById('tc-timer-drawer-title');
+    var subtitle = drawer.querySelector('.tc-add-drawer-subtitle');
+    var startBtn = document.getElementById('tc-timer-start');
+    if (title) title.textContent = 'Log focus time';
+    if (subtitle) {
+      subtitle.textContent =
+        'Pick a client to log ' + formatHours(hours) + ' to today.';
+    }
+    if (startBtn) {
+      startBtn.innerHTML =
+        '<ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon> Log to today';
+    }
+    setTcTimerFeedback('Client required to save this session.');
+    syncTcTimerTargetSelect(false);
+    drawer.hidden = false;
+    overlay.hidden = false;
+    drawer.setAttribute('aria-hidden', 'false');
+    overlay.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () {
+      drawer.classList.add('is-open');
+      overlay.classList.add('is-open');
+    });
+    document.body.classList.add('tc-add-drawer-open');
+  }
+
+  function resetTcTimerDrawerChrome() {
+    tcTimerAwaitingClientLog = false;
+    var title = document.getElementById('tc-timer-drawer-title');
+    var drawer = document.getElementById('tc-timer-drawer');
+    var subtitle = drawer && drawer.querySelector('.tc-add-drawer-subtitle');
+    var startBtn = document.getElementById('tc-timer-start');
+    if (title) title.textContent = 'Focus session';
+    if (subtitle) subtitle.textContent = 'Optional client — logs to today when you stop.';
+    if (startBtn) {
+      startBtn.innerHTML =
+        '<ion-icon name="play-outline" aria-hidden="true"></ion-icon> Start';
+    }
+  }
+
   function startTcFocusSession() {
+    if (tcTimerAwaitingClientLog) {
+      finishPendingTcFocusLog();
+      return;
+    }
     if (tcTimerState.status !== 'idle') return;
     var targetEl = document.getElementById('tc-timer-target');
     var target = targetEl ? String(targetEl.value || '') : '';
@@ -5804,6 +5914,41 @@
     updateTcTimerUi();
   }
 
+  async function finishPendingTcFocusLog() {
+    if (tcTimerStopping) return;
+    var hours = msToLoggedHours(getTcTimerElapsedMs());
+    if (hours <= 0) {
+      resetTcTimerDrawerChrome();
+      resetTcTimerState();
+      closeTcTimerDrawer();
+      showTcTimerToast('Under 1 minute — nothing logged.');
+      return;
+    }
+    var targetEl = document.getElementById('tc-timer-target');
+    var target = targetEl ? String(targetEl.value || '') : '';
+    var resolved = target ? resolveTcTimerTarget(target) : null;
+    if (!resolved) {
+      setTcTimerFeedback('Choose a client to log this time.', true);
+      return;
+    }
+    tcTimerStopping = true;
+    var startBtn = document.getElementById('tc-timer-start');
+    if (startBtn) startBtn.disabled = true;
+    try {
+      tcTimerState.target = target;
+      tcTimerState.clientName = resolved.clientName;
+      await commitTcFocusLog(resolved, hours);
+      resetTcTimerDrawerChrome();
+    } catch (err) {
+      console.error(err);
+      setTcTimerFeedback((err && err.message) || 'Could not log time.', true);
+      showTcTimerToast((err && err.message) || 'Could not log time.', true);
+    } finally {
+      tcTimerStopping = false;
+      if (startBtn) startBtn.disabled = false;
+    }
+  }
+
   function pauseTcFocusSession() {
     if (tcTimerState.status !== 'running') return;
     tcTimerState.accumulatedMs = getTcTimerElapsedMs();
@@ -5816,6 +5961,7 @@
 
   function resumeTcFocusSession() {
     if (tcTimerState.status !== 'paused') return;
+    if (tcTimerAwaitingClientLog) return;
     tcTimerState.status = 'running';
     tcTimerState.segmentStartedAt = Date.now();
     persistTcTimerState();
@@ -5832,27 +5978,27 @@
     var hours = msToLoggedHours(elapsed);
     var stopBtn = document.getElementById('tc-timer-stop');
 
-    if (hours <= 0 || !resolved) {
+    if (hours <= 0) {
+      resetTcTimerDrawerChrome();
       resetTcTimerState();
+      showTcTimerToast('Under 1 minute — nothing logged.');
+      return;
+    }
+
+    if (!resolved) {
+      openTcTimerDrawerForLog(hours);
       return;
     }
 
     tcTimerStopping = true;
     if (stopBtn) stopBtn.disabled = true;
     try {
-      await addLoggedHoursForToday({
-        kind: resolved.kind,
-        projectId: resolved.projectId,
-        maintenanceId: resolved.maintenanceId,
-        clientName: resolved.clientName,
-        hours: hours
-      });
-      resetTcTimerState();
-      tcSelectedDay = todayTcDayKey();
-      renderTimeCapacityPanel();
+      await commitTcFocusLog(resolved, hours);
+      resetTcTimerDrawerChrome();
     } catch (err) {
       console.error(err);
       updateTcTimerUi();
+      showTcTimerToast((err && err.message) || 'Could not log time.', true);
     } finally {
       tcTimerStopping = false;
       if (stopBtn) stopBtn.disabled = false;
@@ -6228,13 +6374,16 @@
   }
 
   function openTcTimerDrawer() {
-    if (isTcTimerActive()) return;
+    if (isTcTimerActive() && !tcTimerAwaitingClientLog) return;
     closeTcAddDrawer();
     var drawer = document.getElementById('tc-timer-drawer');
     var overlay = document.getElementById('tc-timer-drawer-overlay');
     if (!drawer || !overlay) return;
-    setTcTimerFeedback('');
-    syncTcTimerTargetSelect(false);
+    if (!tcTimerAwaitingClientLog) {
+      resetTcTimerDrawerChrome();
+      setTcTimerFeedback('');
+      syncTcTimerTargetSelect(false);
+    }
     drawer.hidden = false;
     overlay.hidden = false;
     drawer.setAttribute('aria-hidden', 'false');
@@ -6262,6 +6411,10 @@
     overlay.classList.remove('is-open');
     if (!isTcAddDrawerOpen()) {
       document.body.classList.remove('tc-add-drawer-open');
+    }
+    if (tcTimerAwaitingClientLog) {
+      // Keep paused session; user can Stop & log again to assign a client.
+      resetTcTimerDrawerChrome();
     }
     window.setTimeout(function () {
       if (drawer.classList.contains('is-open')) return;

@@ -3417,6 +3417,18 @@
                       </div>
                       <p class="form-hint">Defaults to your first Scheduling settings call type. Change it before send — the invite link skips straight to date &amp; time.</p>
                     </div>
+                    <div class="form-group admin-client-email-grid-full" id="admin-client-email-demo-wrap" hidden>
+                      <label class="form-label" id="admin-client-email-demo-label" for="admin-client-email-demo">Select demo</label>
+                      <div class="business-doc-select" data-select-name="client-email-demo">
+                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="admin-client-email-demo-label">
+                          <span class="business-doc-select-trigger-label">Choose demo…</span>
+                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                        </button>
+                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
+                        <input type="hidden" id="admin-client-email-demo" value="" aria-label="Select demo">
+                      </div>
+                      <p class="form-hint">Subject, message, and demo link update from Template Outreach Scripts for the vertical you pick.</p>
+                    </div>
                     <div class="form-group admin-client-email-grid-full">
                       <label class="form-label" for="admin-client-email-next-step">Next step</label>
                       <input class="form-input" type="text" id="admin-client-email-next-step" maxlength="180" placeholder="Review the update and send any edits by Friday">
@@ -3705,7 +3717,7 @@
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Client Pipeline</h3>
-                <p class="admin-panel-lead">Four stages: new lead → demo → proposal sent → deposit paid.</p>
+                <p class="admin-panel-lead">Four stages: new lead → discovery call → proposal sent → deposit paid. Discovery call is optional — skip straight to proposal when a lead doesn't need one.</p>
               </div>
               <button type="button" class="btn btn-primary" id="admin-add-lead-btn">
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
@@ -3722,10 +3734,10 @@
                     <span class="pipeline-summary-value" id="pipeline-summary-lead">0</span>
                     <span class="pipeline-summary-label">Lead</span>
                   </div>
-                  <div class="pipeline-summary-stat pipeline-summary-stat--demo">
-                    <span class="pipeline-stage-dot pipeline-dot--demo" aria-hidden="true"></span>
-                    <span class="pipeline-summary-value" id="pipeline-summary-demo">0</span>
-                    <span class="pipeline-summary-label">Demo</span>
+                  <div class="pipeline-summary-stat pipeline-summary-stat--discovery-call">
+                    <span class="pipeline-stage-dot pipeline-dot--discovery-call" aria-hidden="true"></span>
+                    <span class="pipeline-summary-value" id="pipeline-summary-discovery-call">0</span>
+                    <span class="pipeline-summary-label">Discovery call</span>
                   </div>
                   <div class="pipeline-summary-stat pipeline-summary-stat--proposal">
                     <span class="pipeline-stage-dot pipeline-dot--proposal" aria-hidden="true"></span>
@@ -3754,14 +3766,14 @@
                     </div>
                   </div>
 
-                  <div class="pipeline-col" data-stage="demo">
+                  <div class="pipeline-col" data-stage="discovery-call">
                     <div class="pipeline-col-header">
-                      <span class="pipeline-stage-dot pipeline-dot--demo"></span>
-                      <h4 class="pipeline-col-title">Demo</h4>
-                      <span class="pipeline-col-count" id="pipeline-count-demo">0</span>
+                      <span class="pipeline-stage-dot pipeline-dot--discovery-call"></span>
+                      <h4 class="pipeline-col-title">Discovery Call</h4>
+                      <span class="pipeline-col-count" id="pipeline-count-discovery-call">0</span>
                     </div>
-                    <div class="pipeline-cards" id="pipeline-cards-demo">
-                      <p class="pipeline-empty">No demos yet.</p>
+                    <div class="pipeline-cards" id="pipeline-cards-discovery-call">
+                      <p class="pipeline-empty">No leads yet.</p>
                     </div>
                   </div>
 
@@ -4150,7 +4162,7 @@
                   </div>
                   <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-template-scripts">
                     <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="chatbubbles-outline" class="text-2xl"></ion-icon>Template Outreach Scripts</h2>
-                    <p class="text-zinc-400">ProcCleaning (email), Field Trades (cold call + voicemail + text), HOA (email), generic follow-up — swap placeholders</p>
+                    <p class="text-zinc-400">Realtor &amp; Insurance, Lawnscaper, Trade Services, Salon/Barber/Tattoo — text first, then email, then call — swap placeholders</p>
                   </div>
                   <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-turnkey">
                     <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="build-outline" class="text-2xl"></ion-icon>Turn-Key Client Architecture</h2>
@@ -4630,7 +4642,7 @@
                       </button>
                       <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
                         <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="lead">Lead</button>
-                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="demo">Demo</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="discovery-call">Discovery Call</button>
                         <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="proposal">Proposal Sent</button>
                         <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="deposit">Deposit Paid</button>
                       </div>
@@ -6350,18 +6362,24 @@
           <div class="template-script-accordion" id="template-script-accordion">
             <details class="template-script-accordion-item">
               <summary class="template-script-accordion-summary">
-                <span class="tag">ProcCleaning (reference demo)</span>
+                <span class="tag">Realtor &amp; Insurance Platform</span>
                 <span class="template-script-accordion-titles">
-                  <span class="template-script-accordion-title accent">Cold DM / email — cleaning vertical</span>
+                  <span class="template-script-accordion-title accent">Text → email → call — real estate &amp; insurance offices</span>
                 </span>
                 <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
               </summary>
               <div class="template-script-accordion-panel">
                 <div class="template-script-sub-accordion">
                   <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Text (first touch)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">[Name] — this is Ruben, I build client portals for real estate & insurance offices. Listings or plans, quotes, signed docs, and messages — all in one branded app instead of split across email and DocuSign. Worth a 2-minute look? [demo link]</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
                     <summary class="template-script-sub-summary">Subject line</summary>
                     <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — crews + spotty signal?</pre>
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — one place for listings, quotes & client docs?</pre>
                     </div>
                   </details>
                   <details class="template-script-sub-item">
@@ -6369,129 +6387,21 @@
                     <div class="template-script-sub-body">
                       <pre class="template-script-pre template-script-pre--sub">Hi [Name],
 
-Most cleaning ops I talk to in [City] juggle scheduling, job photos, and customer updates across texts and calls—and the app flakes when crews are actually on site.
+Most real estate and insurance offices I talk to in [City] are juggling listings or plans, quote requests, signed documents, and client messages across email, DocuSign, and text — easy for something to slip through.
 
-I white-label a mobile flow built for that (offline-friendly where it matters). Reference build (cleaning): https://procleaning.expo.app
+I build a branded platform that puts all of it in one place: property or plan browsing, a guided quote flow, a client portal for documents and payments, and direct messaging — plus an admin dashboard for leads and policies.
 
-If it’s relevant for [Company], I’ll send a tight one-pager and block 15 minutes—fit call, not a pitch deck—to see if your workflow maps.
+If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how your office runs today.
 
 — Ruben</pre>
                     </div>
                   </details>
-                </div>
-              </div>
-            </details>
-            <details class="template-script-accordion-item">
-              <summary class="template-script-accordion-summary">
-                <span class="tag">Field Trades Template</span>
-                <span class="template-script-accordion-titles">
-                  <span class="template-script-accordion-title accent">Cold call script (service businesses)</span>
-                </span>
-                <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
-              </summary>
-              <div class="template-script-accordion-panel">
-                <div class="template-script-sub-accordion">
                   <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Mindset (before you dial)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">You’re selling speed and clarity: a branded booking + job flow—not a science project. They don’t need to care how it’s built.
-Win on the call: a 15-minute demo, or a one-pager + short Loom—not a closed deal.</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Opening (permission + relevance)</summary>
+                    <summary class="template-script-sub-summary">Call opener (if they pick up)</summary>
                     <div class="template-script-sub-body">
                       <pre class="template-script-pre template-script-pre--sub">You:
-"Hi, is this [Name]? [Your name] — I’m reaching out to a few [city] [roof / lawn / plumbing / HVAC] shops. We set up a ready-made customer booking flow—schedule, deposit, reminders—so small crews spend less time on phone tag.
-Have I caught you for 20 seconds, or is [later today / tomorrow morning] better?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Bad time vs. good time</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Bad time → book a specific callback. Good time → continue.</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Bridge (one breath)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"Totally fine if it’s not a fit—I just want to see if how you take jobs today is anything like what we built for."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">One-line value (pick by trade)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Roof / exterior: "Homeowners pick package, property size, and a time slot—you see everything in one queue instead of scattered DMs."
-Lawn: "Recurring routes and seasonal add-ons without re-explaining pricing in texts every week."
-Plumber / HVAC: "Emergency vs. standard intake, clearer dispatch, card on file so you’re not chasing checks after the job."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Template positioning</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"It’s not a ground-up custom build—it’s a template you brand, so you’re live in days, not months, without agency-style pricing."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Qualification (2–3 questions)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"Where do most new jobs come in today—phone, Google, text, or a form?"
-"When you’re on a job, what slips first—returning calls, quoting, or collecting deposits?"
-"If fewer no-shows and money up front moved the needle, would 15 minutes on a screen share be reasonable?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Transition to demo</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">You:
-"Rather than describe it—I’ll show you what the homeowner sees and what you see on your side: appointments, jobs, estimates or invoicing if you use them.
-Are you open [Option A: e.g. tomorrow 10] or [Option B: e.g. Thursday 2] for a quick share?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">If they hedge</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"No worries—I can record a 3-minute walkthrough for [their trade] and drop you a link. Best email or cell?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Objections</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">They say                         You say
-"We’re too small."              "That’s the sweet spot—one crew still pays for missed calls and no-shows."
-"We have a website."            "Perfect—this sits under that: booking, payments, job flow. A lot of folks link out from the site or replace the contact form."
-"Sounds expensive."             "Fair—on the demo I’ll show exactly what’s included so you can compare to hiring it out or building it yourself."
-"I don’t have time."            "That’s why it’s 15 minutes—you’ll know fast if it’s wrong, and we stop."
-"Just send info."               "Will do—one page plus a short video. Best email? And mostly residential or commercial so I don’t waste your time?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Close</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">You:
-"Great—I’ll [send the calendar link / hold Thursday 2]. You’ll walk through customer booking into your dashboard end to end. If it’s not a match, no hard feelings.
-Thanks [Name]—talk [day/time]."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Voicemail (~25 seconds)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"Hi [Name], [Your name]. We help [trade] owners run bookings and deposits through a branded app—less phone tag, fewer no-shows. It’s a fast-launch template, not a custom dev project. I’ll text a one-liner and link from this number—thanks."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Text (after no pickup)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"[Name] — [Your name], booking flow for [trade] crews. Most of your jobs still phone/text? We bundle book + deposit + reminders in one place. 15-min demo if useful: [link or two time options]."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Conversion habits</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">• Lead with trade + city in the first sentence.
-• Say "booking, deposits, reminders" before "app" or "template."
-• One clear ask: demo, video, or email—never all three at once.
-• After a demo: 3-bullet recap—what they saw, what pain it removes, "starts at" or range if you’re comfortable.</pre>
+"Hi, is this [Name]? This is Ruben — I build client portals for real estate and insurance offices in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"
+[continue] "It’s one branded app for listings or plans, quotes, signed docs, and client messages — instead of split across email, DocuSign, and text. Worth a 15-minute look at how it’d fit [Company]?"</pre>
                     </div>
                   </details>
                 </div>
@@ -6499,18 +6409,24 @@ Thanks [Name]—talk [day/time]."</pre>
             </details>
             <details class="template-script-accordion-item">
               <summary class="template-script-accordion-summary">
-                <span class="tag">HOA App Template</span>
+                <span class="tag">Lawnscaper Platform</span>
                 <span class="template-script-accordion-titles">
-                  <span class="template-script-accordion-title accent">Board / manager outreach</span>
+                  <span class="template-script-accordion-title accent">Text → email → call — lawn &amp; landscape crews</span>
                 </span>
                 <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
               </summary>
               <div class="template-script-accordion-panel">
                 <div class="template-script-sub-accordion">
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Text (first touch)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">[Name] — this is Ruben, I build scheduling apps for lawn & landscape crews. Recurring routes, seasonal add-ons, and deposits — no more re-quoting pricing in a text thread every week. Worth a 2-minute look? [demo link]</pre>
+                    </div>
+                  </details>
                   <details class="template-script-sub-item">
                     <summary class="template-script-sub-summary">Subject line</summary>
                     <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Subject: Fewer email chains for [Association name]?</pre>
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — routes & pricing off of text threads?</pre>
                     </div>
                   </details>
                   <details class="template-script-sub-item">
@@ -6518,13 +6434,21 @@ Thanks [Name]—talk [day/time]."</pre>
                     <div class="template-script-sub-body">
                       <pre class="template-script-pre template-script-pre--sub">Hi [Name],
 
-Boards and managers usually want announcements, documents, and resident questions in one place—without another 40-reply thread.
+Most lawn and landscape crews I talk to in [City] are running recurring routes and seasonal add-ons over text — re-explaining pricing every week and chasing payment after the job is done.
 
-I deliver a branded HOA community app template: push notifications, shared docs, and resident messaging in a single app experience. Product walkthrough: https://hoa-community-app--a7f6nhxo8x.expo.app
+I build a branded scheduling app for lawn care crews: customers book recurring service, add seasonal work, and pay through the app — you see every route and job in one dashboard instead of a group chat.
 
-If [Association] is comparing options this season, I can send scope + pricing (base template vs. premium customizations) and do a short call on your timeline—no pressure.
+If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it matches how your crew runs routes today.
 
 — Ruben</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Call opener (if they pick up)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Hi, is this [Name]? This is Ruben — I build scheduling apps for lawn and landscape crews in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"
+[continue] "Customers book recurring routes and seasonal add-ons right from their phone, and it’s all in one dashboard for you — no more re-quoting in texts. Worth a 15-minute look?"</pre>
                     </div>
                   </details>
                 </div>
@@ -6532,36 +6456,93 @@ If [Association] is comparing options this season, I can send scope + pricing (b
             </details>
             <details class="template-script-accordion-item">
               <summary class="template-script-accordion-summary">
-                <span class="tag">Follow-up (any vertical)</span>
+                <span class="tag">Trade Services Platform (reference demo)</span>
                 <span class="template-script-accordion-titles">
-                  <span class="template-script-accordion-title accent">Bump after no reply</span>
+                  <span class="template-script-accordion-title accent">Text → email → call — roofing, plumbing, HVAC, electrical</span>
                 </span>
                 <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
               </summary>
               <div class="template-script-accordion-panel">
                 <div class="template-script-sub-accordion">
                   <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Opening + context</summary>
+                    <summary class="template-script-sub-summary">Text (first touch)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">[Name] — this is Ruben, I build booking apps for [trade] crews in [City]. Customers pick a service and time slot and pay a deposit up front, so you’re not chasing calls. Worth a 2-minute look? https://tradeservice.expo.app</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Subject line</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — fewer calls, more booked jobs?</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Email body</summary>
                     <div class="template-script-sub-body">
                       <pre class="template-script-pre template-script-pre--sub">Hi [Name],
 
-Quick bump on the branded app we discussed for [Company].
+Most [trade] crews I talk to in [City] are still running scheduling through phone tag and texts — and it’s easy for a job to slip through the cracks between the quote and the deposit.
 
-I can re-label the demo for [trade] in [City] before we meet so you’re not judging a generic example.</pre>
+I build a branded booking app for trade crews: customers pick a service, a time slot, and pay a deposit before you show up — you see every request and job status in one dashboard. Live reference build: https://tradeservice.expo.app
+
+If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.
+
+— Ruben</pre>
                     </div>
                   </details>
                   <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Link + next step</summary>
+                    <summary class="template-script-sub-summary">Call opener (if they pick up)</summary>
                     <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Same link: [paste demo URL]
-
-If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute look still makes sense, send two times that work.</pre>
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Hi, is this [Name]? This is Ruben — I’m reaching out to a few [City] [roof / plumbing / HVAC / electrical] shops. We set up a ready-made customer booking flow — schedule, deposit, reminders — so small crews spend less time on phone tag. Have I caught you for 20 seconds, or is [later today / tomorrow morning] better?"
+[continue] "Rather than describe it — I’ll show you what the homeowner sees and what you see on your side. Are you open [Option A] or [Option B] for a quick share?"</pre>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </details>
+            <details class="template-script-accordion-item">
+              <summary class="template-script-accordion-summary">
+                <span class="tag">Salon / Barber / Tattoo Platform (reference demo)</span>
+                <span class="template-script-accordion-titles">
+                  <span class="template-script-accordion-title accent">Text → email → call — appearance-based businesses</span>
+                </span>
+                <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
+              </summary>
+              <div class="template-script-accordion-panel">
+                <div class="template-script-sub-accordion">
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Text (first touch)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">[Name] — this is Ruben, I build booking apps for salons, barbershops & tattoo studios. Clients pick a stylist or artist, book a slot, and pay a deposit — no more DMs at 11pm. Worth a 2-minute look? https://rosasalon.expo.app</pre>
                     </div>
                   </details>
                   <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Sign-off</summary>
+                    <summary class="template-script-sub-summary">Subject line</summary>
                     <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">— Ruben</pre>
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — still booking through IG DMs?</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Email body</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Hi [Name],
+
+Most salons, barbershops, and tattoo studios I talk to in [City] are still booking through Instagram DMs and texts — easy to lose track of who’s confirmed and who’s a no-show.
+
+I build a branded booking app for appearance-based businesses: clients pick a stylist or artist, a service, and a time slot, and pay a deposit up front — you see your whole day in one dashboard. Reference build: https://rosasalon.expo.app
+
+If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it fits your shop.
+
+— Ruben</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Call opener (if they pick up)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Hi, is this [Name]? This is Ruben — I build booking apps for salons, barbershops, and tattoo studios in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"
+[continue] "Clients book a stylist or artist and a time slot right from their phone, deposit included — instead of DMs and no-shows. Worth a 15-minute look?"</pre>
                     </div>
                   </details>
                 </div>

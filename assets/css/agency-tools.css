@@ -3359,6 +3359,42 @@ body.cp-client-drawer-open {
   letter-spacing: 0;
 }
 
+.tc-timer-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  z-index: 140;
+  max-width: min(420px, calc(100vw - 24px));
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.28);
+  background: hsla(240, 12%, 8%, 0.94);
+  color: var(--white-2);
+  font-size: var(--fs-8);
+  line-height: 1.4;
+  box-shadow: 0 14px 40px hsla(0, 0%, 0%, 0.45);
+  transform: translateX(-50%) translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.tc-timer-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tc-timer-toast.is-error {
+  border-color: hsla(6, 70%, 55%, 0.45);
+  color: hsl(6, 80%, 82%);
+}
+
+@media (max-width: 767px) {
+  body.admin-page-active.tc-timer-bar-active .tc-timer-toast {
+    bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tc-timer-bar,
   .tc-timer-bar.is-running .tc-timer-bar-pulse,

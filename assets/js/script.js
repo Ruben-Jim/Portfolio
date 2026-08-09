@@ -9546,6 +9546,72 @@ window.addEventListener('load', function() {
         '{{linkLine}}\n' +
         'Next step: {{nextStep}}\n\n' +
         'Thank you,\nCodeWithRuben'
+    },
+    {
+      id: 'send-demo',
+      label: 'Send demo',
+      defaultSubject: '{{projectName}} — product demo',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I put together a quick demo that may be relevant for {{projectName}}.\n\n' +
+        '{{linkLine}}\n' +
+        'If it’s a fit, I’ll hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
+    }
+  ];
+
+  var ADMIN_CLIENT_EMAIL_DEMOS = [
+    {
+      id: 'realtor',
+      label: 'Realtor & insurance',
+      defaultLink: '',
+      defaultSubject: '{{projectName}} — one place for listings, quotes & client docs?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most real estate and insurance offices I talk to in your area are juggling listings or plans, quote requests, signed documents, and client messages across email, DocuSign, and text — easy for something to slip through.\n\n' +
+        'I build a branded platform that puts all of it in one place: property or plan browsing, a guided quote flow, a client portal for documents and payments, and direct messaging — plus an admin dashboard for leads and policies.\n\n' +
+        '{{linkLine}}\n' +
+        'If it’s relevant for {{projectName}}, I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how your office runs today.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'lawn',
+      label: 'Lawn & landscape',
+      defaultLink: '',
+      defaultSubject: '{{projectName}} — routes & pricing off of text threads?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most lawn and landscape crews I talk to in your area are running recurring routes and seasonal add-ons over text — re-explaining pricing every week and chasing payment after the job is done.\n\n' +
+        'I build a branded scheduling app for lawn care crews: customers book recurring service, add seasonal work, and pay through the app — you see every route and job in one dashboard instead of a group chat.\n\n' +
+        '{{linkLine}}\n' +
+        'If it’s relevant for {{projectName}}, I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it matches how your crew runs routes today.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'trades',
+      label: 'Trade services',
+      defaultLink: 'https://tradeservice.expo.app',
+      defaultSubject: '{{projectName}} — fewer calls, more booked jobs?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most trade crews I talk to in your area are still running scheduling through phone tag and texts — and it’s easy for a job to slip through the cracks between the quote and the deposit.\n\n' +
+        'I build a branded booking app for trade crews: customers pick a service, a time slot, and pay a deposit before you show up — you see every request and job status in one dashboard.\n\n' +
+        '{{linkLine}}\n' +
+        'If it’s relevant for {{projectName}}, I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'salon',
+      label: 'Salon / barber / tattoo',
+      defaultLink: 'https://rosasalon.expo.app',
+      defaultSubject: '{{projectName}} — still booking through IG DMs?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most salons, barbershops, and tattoo studios I talk to in your area are still booking through Instagram DMs and texts — easy to lose track of who’s confirmed and who’s a no-show.\n\n' +
+        'I build a branded booking app for appearance-based businesses: clients pick a stylist or artist, a service, and a time slot, and pay a deposit up front — you see your whole day in one dashboard.\n\n' +
+        '{{linkLine}}\n' +
+        'If it’s relevant for {{projectName}}, I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it fits your shop.\n\n' +
+        '— Ruben'
     }
   ];
 
@@ -9569,6 +9635,10 @@ window.addEventListener('load', function() {
     'maintenance-grace': {
       cta_label: 'Open your portal →',
       header_subtitle: 'Grace period ends today'
+    },
+    'send-demo': {
+      cta_label: 'View demo website/app →',
+      header_subtitle: 'Product demo'
     }
   };
 
@@ -9586,6 +9656,8 @@ window.addEventListener('load', function() {
       template: document.getElementById('admin-client-email-template'),
       callType: document.getElementById('admin-client-email-call-type'),
       callTypeWrap: document.getElementById('admin-client-email-call-type-wrap'),
+      demo: document.getElementById('admin-client-email-demo'),
+      demoWrap: document.getElementById('admin-client-email-demo-wrap'),
       toName: document.getElementById('admin-client-email-to-name'),
       toEmail: document.getElementById('admin-client-email-to-email'),
       nextStep: document.getElementById('admin-client-email-next-step'),
@@ -9613,6 +9685,94 @@ window.addEventListener('load', function() {
 
   function isScheduleInviteEmailTemplate(templateId) {
     return templateId === 'schedule-call' || templateId === 'reschedule-call';
+  }
+
+  function isDemoOutreachEmailTemplate(templateId) {
+    return templateId === 'send-demo';
+  }
+
+  function getDemoById(demoId) {
+    return (
+      ADMIN_CLIENT_EMAIL_DEMOS.find(function (d) {
+        return d.id === demoId;
+      }) || ADMIN_CLIENT_EMAIL_DEMOS[0]
+    );
+  }
+
+  function getSelectedAdminDemo(els) {
+    var id = String((els.demo && els.demo.value) || '').trim();
+    return getDemoById(id || (ADMIN_CLIENT_EMAIL_DEMOS[0] && ADMIN_CLIENT_EMAIL_DEMOS[0].id));
+  }
+
+  function normalizeClientEmailDraftTemplate(draft) {
+    if (!draft || typeof draft !== 'object') return draft;
+    var legacy = {
+      'demo-realtor': 'realtor',
+      'demo-lawn': 'lawn',
+      'demo-trades': 'trades',
+      'demo-salon': 'salon'
+    };
+    if (legacy[draft.templateId]) {
+      draft.demoId = draft.demoId || legacy[draft.templateId];
+      draft.templateId = 'send-demo';
+    }
+    return draft;
+  }
+
+  function defaultDemoLinkForEmailTemplate(templateId, demoId) {
+    if (!isDemoOutreachEmailTemplate(templateId)) return '';
+    var demo = getDemoById(demoId);
+    return (demo && demo.defaultLink) || '';
+  }
+
+  function syncDemoOutreachFieldLabels(els, templateId) {
+    var isDemo = isDemoOutreachEmailTemplate(templateId);
+    var nextLabel = document.querySelector('label[for="admin-client-email-next-step"]');
+    var linkLabel = document.querySelector('label[for="admin-client-email-link"]');
+    if (nextLabel) nextLabel.textContent = isDemo ? 'Company' : 'Next step';
+    if (linkLabel) linkLabel.textContent = isDemo ? 'Demo link' : 'Link (optional)';
+    if (els.nextStep) {
+      els.nextStep.placeholder = isDemo
+        ? 'Company name'
+        : 'Review the update and send any edits by Friday';
+    }
+    if (els.link) {
+      els.link.placeholder = isDemo
+        ? 'https://… (demo website or app)'
+        : 'https://rubenjimenez.dev/portal.html?token=...';
+    }
+  }
+
+  function ensureAdminClientEmailDemos(els, preferredId) {
+    if (!els.demo) return getDemoById(preferredId);
+    var options = ADMIN_CLIENT_EMAIL_DEMOS.map(function (d) {
+      return { value: d.id, label: d.label };
+    });
+    var selected = preferredId || (els.demo.value || '') || (options[0] && options[0].value) || '';
+    if (preferredId) {
+      var found = options.some(function (o) {
+        return o.value === String(preferredId);
+      });
+      selected = found ? String(preferredId) : (options[0] && options[0].value) || '';
+    }
+    if (typeof window.setBusinessDocSelectOptions === 'function') {
+      window.setBusinessDocSelectOptions(els.demo, options, { value: selected, keepValue: false });
+    } else {
+      els.demo.value = selected;
+    }
+    return getSelectedAdminDemo(els);
+  }
+
+  function getActiveEmailCopyTemplate(els, templateId) {
+    var template = getTemplateById(templateId);
+    if (!isDemoOutreachEmailTemplate(template.id)) return template;
+    var demo = getSelectedAdminDemo(els);
+    return {
+      id: template.id,
+      label: template.label,
+      defaultSubject: demo.defaultSubject,
+      defaultBody: demo.defaultBody
+    };
   }
 
   function scheduleInviteEmailSubject(templateId, callTypeLabel) {
@@ -9678,11 +9838,15 @@ window.addEventListener('load', function() {
       ? 'Link: ' + link
       : (isScheduleInviteEmailTemplate(templateId) || isAgreedReschedule
         ? ''
-        : 'Link: (add your portal or preview link here)');
+        : isDemoOutreachEmailTemplate(templateId)
+          ? 'Link: (add your demo website or app link here)'
+          : 'Link: (add your portal or preview link here)');
+    var nextRaw = String((els.nextStep && els.nextStep.value) || '').trim();
+    var isDemo = isDemoOutreachEmailTemplate(templateId);
     return {
       clientName: String((els.toName && els.toName.value) || '').trim() || 'there',
-      projectName: 'your project',
-      nextStep: String((els.nextStep && els.nextStep.value) || '').trim() || 'Reply with your notes when ready',
+      projectName: isDemo ? nextRaw || 'your company' : 'your project',
+      nextStep: nextRaw || 'Reply with your notes when ready',
       callType: formatAdminCallTypeLabel(ct),
       link: link,
       linkLine: linkLine,
@@ -9732,16 +9896,26 @@ window.addEventListener('load', function() {
       msg = msg.replace(/^Next step:\s*.*/gm, 'Next step: ' + vars.nextStep);
       msg = msg.replace(/^Target next step:\s*.*/gm, 'Target next step: ' + vars.nextStep);
       msg = msg.replace(/^Hey .+?,/m, 'Hey ' + vars.clientName + ',');
+      msg = msg.replace(/^Hi .+?,/m, 'Hi ' + vars.clientName + ',');
       msg = msg.replace(/a quick call about/g, 'a ' + vars.callType + ' about');
       msg = msg.replace(/jump on a .+? about/g, 'jump on a ' + vars.callType + ' about');
       msg = msg.replace(/for our .+?(?=\s+didn’t|\s+didn't|\s+about)/g, 'for our ' + vars.callType);
       msg = msg.replace(/^Let’s find a time for a .+$/m, 'Let’s find a time for a ' + vars.callType);
       msg = msg.replace(/^Let’s reschedule your .+$/m, 'Let’s reschedule your ' + vars.callType);
+      if (isDemoOutreachEmailTemplate(templateId)) {
+        msg = msg.replace(/If it’s relevant for .+?,/g, 'If it’s relevant for ' + vars.projectName + ',');
+        msg = msg.replace(/If it's relevant for .+?,/g, "If it's relevant for " + vars.projectName + ',');
+      }
       els.message.value = msg;
     }
     if (els.subject) {
       var subj = String(els.subject.value || '');
-      if (
+      if (isDemoOutreachEmailTemplate(templateId)) {
+        els.subject.value = renderEmailTemplateText(
+          getActiveEmailCopyTemplate(els, templateId).defaultSubject,
+          vars
+        );
+      } else if (
         /\{\{/.test(subj) ||
         /^Let’s find a time for a /i.test(subj) ||
         /^Let’s find a time to talk/i.test(subj) ||
@@ -9810,6 +9984,7 @@ window.addEventListener('load', function() {
     try {
       var payload = {
         templateId: (els.template && els.template.value) || '',
+        demoId: (els.demo && els.demo.value) || '',
         callTypeId: (els.callType && els.callType.value) || '',
         toName: (els.toName && els.toName.value) || '',
         toEmail: (els.toEmail && els.toEmail.value) || '',
@@ -9834,9 +10009,13 @@ window.addEventListener('load', function() {
   }
 
   function setAdminClientEmailCallTypeVisibility(els, templateId) {
-    if (!els.callTypeWrap) return;
-    var show = isScheduleInviteEmailTemplate(templateId);
-    els.callTypeWrap.hidden = !show;
+    if (els.callTypeWrap) {
+      els.callTypeWrap.hidden = !isScheduleInviteEmailTemplate(templateId);
+    }
+    if (els.demoWrap) {
+      els.demoWrap.hidden = !isDemoOutreachEmailTemplate(templateId);
+    }
+    syncDemoOutreachFieldLabels(els, templateId);
   }
 
   async function ensureAdminClientEmailCallTypes(els, preferredId) {
@@ -9888,6 +10067,23 @@ window.addEventListener('load', function() {
     if (els.nextStep && !String(els.nextStep.value || '').trim()) {
       var defaultNext = defaultNextStepForEmailTemplate(template.id);
       if (defaultNext) els.nextStep.value = defaultNext;
+    }
+    if (isDemoOutreachEmailTemplate(template.id)) {
+      ensureAdminClientEmailDemos(els, els.demo && els.demo.value);
+      var demo = getSelectedAdminDemo(els);
+      if (els.link) {
+        var demoLink = demo.defaultLink || '';
+        var currentLink = String(els.link.value || '').trim();
+        if (
+          demoLink &&
+          (!currentLink || /tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink))
+        ) {
+          els.link.value = demoLink;
+        } else if (!demoLink && /tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink)) {
+          els.link.value = '';
+        }
+      }
+      template = getActiveEmailCopyTemplate(els, template.id);
     }
     if (isScheduleInviteEmailTemplate(template.id)) {
       ensureAdminClientEmailCallTypes(els, els.callType && els.callType.value).then(function () {
@@ -10001,7 +10197,7 @@ window.addEventListener('load', function() {
       }).join('');
     }
 
-    var draft = loadAdminClientEmailDraft();
+    var draft = normalizeClientEmailDraftTemplate(loadAdminClientEmailDraft());
     if (draft) {
       if (els.template) {
         if (typeof window.setBusinessDocSelectValue === 'function') {
@@ -10017,6 +10213,9 @@ window.addEventListener('load', function() {
       if (els.subject) els.subject.value = draft.subject || '';
       if (els.message) els.message.value = draft.message || '';
       setAdminClientEmailCallTypeVisibility(els, (els.template && els.template.value) || '');
+      if (isDemoOutreachEmailTemplate((els.template && els.template.value) || '')) {
+        ensureAdminClientEmailDemos(els, draft.demoId || '');
+      }
       if (isScheduleInviteEmailTemplate((els.template && els.template.value) || '')) {
         ensureAdminClientEmailCallTypes(els, draft.callTypeId || '').then(function () {
           syncAdminClientEmailDynamicFields(els);
@@ -10033,6 +10232,18 @@ window.addEventListener('load', function() {
     if (els.template) {
       els.template.addEventListener('change', function () {
         applyAdminClientEmailTemplate(els, els.template.value);
+        setAdminClientEmailFeedback(els, '', false);
+      });
+    }
+
+    if (els.demo) {
+      els.demo.addEventListener('change', function () {
+        var templateId = (els.template && els.template.value) || '';
+        if (!isDemoOutreachEmailTemplate(templateId)) {
+          syncAdminClientEmailDynamicFields(els);
+          return;
+        }
+        applyAdminClientEmailTemplate(els, templateId);
         setAdminClientEmailFeedback(els, '', false);
       });
     }
@@ -10111,12 +10322,26 @@ window.addEventListener('load', function() {
       }
     }
     var templateId = data.templateId || (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
+    var legacyDemo = {
+      'demo-realtor': 'realtor',
+      'demo-lawn': 'lawn',
+      'demo-trades': 'trades',
+      'demo-salon': 'salon'
+    };
+    var preferredDemo = data.demoId ? String(data.demoId).trim() : '';
+    if (legacyDemo[templateId]) {
+      preferredDemo = preferredDemo || legacyDemo[templateId];
+      templateId = 'send-demo';
+    }
     if (els.template && typeof window.setBusinessDocSelectValue === 'function') {
       window.setBusinessDocSelectValue(els.template, templateId, true);
     } else if (els.template) {
       els.template.value = templateId;
     }
     setAdminClientEmailCallTypeVisibility(els, templateId);
+    if (isDemoOutreachEmailTemplate(templateId)) {
+      ensureAdminClientEmailDemos(els, preferredDemo);
+    }
     var preferredType = data.callTypeId ? String(data.callTypeId).trim() : '';
     var finish = function () {
       if (isScheduleInviteEmailTemplate(templateId)) {
@@ -15203,15 +15428,19 @@ window.addEventListener('load', function() {
   // ----------------------------
 
   var PIPELINE_RTD_PATH = 'pipelineLeads';
-  var PIPELINE_STAGES = ['lead', 'demo', 'proposal', 'deposit'];
-  var PIPELINE_OPEN_STAGES = ['lead', 'demo', 'proposal'];
+  var PIPELINE_STAGES = ['lead', 'discovery-call', 'proposal', 'deposit'];
+  var PIPELINE_OPEN_STAGES = ['lead', 'discovery-call', 'proposal'];
   var PIPELINE_WON_STAGES = ['deposit'];
-  var PIPELINE_ACTIVE_STAGES = ['lead', 'demo', 'proposal', 'deposit'];
+  var PIPELINE_ACTIVE_STAGES = PIPELINE_STAGES.slice();
   var PIPELINE_LEGACY_STAGE_MAP = {
-    discovery: 'proposal',
+    demo: 'discovery-call',
+    discovery: 'discovery-call',
     building: 'deposit',
     launched: 'deposit',
-    maintenance: 'deposit'
+    maintenance: 'deposit',
+    // Leads saved during the brief 6-stage experiment degrade to Deposit.
+    'kickoff-call': 'deposit',
+    launch: 'deposit'
   };
   var pipelineLeads = [];
   var pipelineUnsubscribe = null;
@@ -15274,7 +15503,7 @@ window.addEventListener('load', function() {
   function pipelineStageLabel(stage) {
     var map = {
       lead: 'Lead',
-      demo: 'Demo',
+      'discovery-call': 'Discovery Call',
       proposal: 'Proposal Sent',
       deposit: 'Deposit Paid'
     };
@@ -15392,7 +15621,8 @@ window.addEventListener('load', function() {
   }
 
   function renderPipelineSummary(leads) {
-    var counts = { lead: 0, demo: 0, proposal: 0, deposit: 0 };
+    var counts = {};
+    PIPELINE_STAGES.forEach(function (st) { counts[st] = 0; });
     var openValue = 0;
     var wonValue = 0;
 
@@ -15402,19 +15632,16 @@ window.addEventListener('load', function() {
       if (PIPELINE_WON_STAGES.indexOf(lead.stage) >= 0) wonValue += lead.value;
     });
 
-    var elLead = document.getElementById('pipeline-summary-lead');
-    var elDemo = document.getElementById('pipeline-summary-demo');
-    var elProposal = document.getElementById('pipeline-summary-proposal');
-    var elDeposit = document.getElementById('pipeline-summary-deposit');
+    PIPELINE_STAGES.forEach(function (st) {
+      var el = document.getElementById('pipeline-summary-' + st);
+      if (el) el.textContent = String(counts[st]);
+    });
+
     var elDepositValue = document.getElementById('pipeline-summary-deposit-value');
     var kpiValue = document.getElementById('kpi-pipeline-value');
     var kpiActive = document.getElementById('kpi-active-projects');
 
-    if (elLead) elLead.textContent = String(counts.lead);
-    if (elDemo) elDemo.textContent = String(counts.demo);
-    if (elProposal) elProposal.textContent = String(counts.proposal);
-    if (elDeposit) elDeposit.textContent = String(counts.deposit);
-    if (elDepositValue) elDepositValue.textContent = formatPipelineMoney(wonValue);
+    if (elDepositValue) elDepositValue.textContent = formatPipelineMoney(wonValue) + ' won';
     if (kpiValue) kpiValue.textContent = formatPipelineMoney(openValue);
     if (kpiActive) kpiActive.textContent = String(leads.length);
   }

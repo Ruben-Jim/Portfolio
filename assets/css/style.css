@@ -24471,7 +24471,7 @@ body.admin-testimonial-detail-open {
 }
 
 .pipeline-summary-stat--lead .pipeline-summary-value { color: var(--light-gray); }
-.pipeline-summary-stat--demo .pipeline-summary-value { color: #60a5fa; }
+.pipeline-summary-stat--discovery-call .pipeline-summary-value { color: #60a5fa; }
 .pipeline-summary-stat--proposal .pipeline-summary-value { color: #f59e0b; }
 .pipeline-summary-stat--deposit .pipeline-summary-value { color: #34d399; }
 
@@ -24548,14 +24548,10 @@ body.admin-testimonial-detail-open {
   flex-shrink: 0;
 }
 
-.pipeline-dot--lead        { background: var(--light-gray-70); }
-.pipeline-dot--demo        { background: #60a5fa; }
-.pipeline-dot--discovery   { background: #60a5fa; }
-.pipeline-dot--proposal    { background: #f59e0b; }
-.pipeline-dot--deposit     { background: #10b981; }
-.pipeline-dot--building    { background: var(--orange-yellow-crayola); }
-.pipeline-dot--launched    { background: #34d399; }
-.pipeline-dot--maintenance { background: #a78bfa; }
+.pipeline-dot--lead           { background: var(--light-gray-70); }
+.pipeline-dot--discovery-call { background: #60a5fa; }
+.pipeline-dot--proposal       { background: #f59e0b; }
+.pipeline-dot--deposit        { background: #34d399; }
 
 .pipeline-col-title {
   font-size: 12px;
@@ -24626,6 +24622,7 @@ body.admin-testimonial-detail-open {
 .pipeline-card-meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   margin-top: 6px;
 }
