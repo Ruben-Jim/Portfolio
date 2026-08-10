@@ -3016,6 +3016,56 @@
             <h2 class="h2 article-title">Admin Dashboard</h2>
           </header>
 
+          <div class="tc-timer-chip" id="tc-timer-chip">
+            <button type="button" class="tc-timer-chip-btn" id="tc-timer-chip-btn" aria-expanded="false" aria-controls="tc-timer-chip-panel">
+              <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
+              <span class="tc-timer-chip-label" id="tc-timer-chip-label">Timer</span>
+              <span class="tc-timer-chip-time" id="tc-timer-chip-time" hidden>0h 0m</span>
+            </button>
+            <div class="tc-timer-chip-panel" id="tc-timer-chip-panel" hidden>
+              <div class="tc-timer-chip-panel-head">
+                <div>
+                  <p class="tc-timer-chip-panel-title" id="tc-timer-chip-panel-title">Focus session</p>
+                  <p class="tc-timer-chip-panel-sub" id="tc-timer-chip-panel-sub">Start a session or switch focus anytime.</p>
+                </div>
+                <button type="button" class="tc-timer-chip-panel-close" id="tc-timer-chip-panel-close" aria-label="Close">
+                  <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+                </button>
+              </div>
+              <div class="tc-timer-chip-panel-clock" id="tc-timer-chip-panel-clock">0h 0m 0s</div>
+              <div class="tc-timer-chip-panel-client" id="tc-timer-chip-panel-client">No client</div>
+              <div class="tc-timer-chip-segments" id="tc-timer-chip-segments" hidden></div>
+              <div class="tc-timer-chip-panel-select" id="tc-timer-chip-panel-select-wrap">
+                <div class="business-doc-select" data-select-name="tc-chip-target">
+                  <input type="hidden" id="tc-chip-target" name="tc-chip-target" value="" autocomplete="off">
+                  <button type="button" class="business-doc-select-trigger form-input tc-input" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="business-doc-select-trigger-label">No client — just focus</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">No client — just focus</button>
+                  </div>
+                </div>
+              </div>
+              <div class="tc-timer-chip-panel-actions" id="tc-timer-chip-panel-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="tc-chip-start">Start</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="tc-chip-switch" hidden>Switch focus</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="tc-chip-pause" hidden>Pause</button>
+                <button type="button" class="btn btn-primary btn-sm" id="tc-chip-resume" hidden>Resume</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="tc-chip-stop" hidden>Stop &amp; review</button>
+              </div>
+              <div class="tc-timer-chip-review" id="tc-timer-chip-review" hidden>
+                <p class="tc-timer-chip-review-lead">Review segments, then log to today.</p>
+                <ul class="tc-timer-chip-review-list" id="tc-timer-chip-review-list"></ul>
+                <div class="tc-timer-chip-panel-actions">
+                  <button type="button" class="btn btn-secondary btn-sm" id="tc-chip-review-discard">Discard</button>
+                  <button type="button" class="btn btn-primary btn-sm" id="tc-chip-review-log">Log segments</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
 
         <div class="admin-tabs" id="admin-tabs">
           <nav class="admin-tab-bar" aria-label="Admin dashboard sections">
@@ -3038,9 +3088,9 @@
                   <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients</span><span class="admin-tab-label-mobile">Clients</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-time-capacity" data-admin-tab="time-capacity" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-time-capacity" tabindex="-1" aria-label="Time Capacity">
-                  <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Time Capacity</span><span class="admin-tab-label-mobile">Time</span></span>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-planner" data-admin-tab="planner" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-planner" tabindex="-1" aria-label="Planner">
+                  <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Planner</span><span class="admin-tab-label-mobile">Planner</span></span>
                 </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
                   <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
@@ -3049,10 +3099,6 @@
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-client-email" data-admin-tab="client-email" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-email" tabindex="-1" aria-label="Client Email Sender">
                   <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Email</span><span class="admin-tab-label-mobile">Email</span></span>
-                </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-bookings" data-admin-tab="bookings" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-bookings" tabindex="-1" aria-label="Schedule call bookings">
-                  <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Bookings</span><span class="admin-tab-label-mobile">Bookings</span></span>
                 </button>
                 <button type="button" class="admin-tab admin-tab--nav-hidden" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub" hidden>
                   <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
@@ -3454,12 +3500,12 @@
           </section>
           </div><!-- /admin-panel-client-email -->
 
-          <div id="admin-panel-bookings" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-bookings" data-admin-tab="bookings" hidden>
+          <div id="admin-panel-planner" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-planner" data-admin-tab="planner" hidden>
           <section class="service" id="admin-bookings-section">
             <div class="admin-panel-heading">
               <div class="admin-panel-heading-main">
-                <h3 class="h3 admin-panel-title">Bookings</h3>
-                <p class="admin-panel-lead">Calls from /schedule and Hire Me. Add a Meet link here — never on the invite email.</p>
+                <h3 class="h3 admin-panel-title">Planner</h3>
+                <p class="admin-panel-lead">Calls, planned hours, and logged time on one calendar. Scheduling settings stay below.</p>
               </div>
             </div>
 
@@ -3468,7 +3514,30 @@
               <p class="admin-bookings-feedback" id="admin-bookings-feedback" role="status" aria-live="polite" hidden></p>
             </div>
 
-            <div id="admin-bookings-calendar-view" class="admin-bookings-calendar-view">
+            <div class="tc-summary" id="tc-summary" aria-live="polite">
+              <div class="tc-summary-card tc-summary-card--week">
+                <span class="tc-summary-value" id="tc-summary-week">0h</span>
+                <span class="tc-summary-label">Suggested this week</span>
+              </div>
+              <div class="tc-summary-card">
+                <span class="tc-summary-value" id="tc-summary-maint">0h</span>
+                <span class="tc-summary-label">Maintenance left</span>
+              </div>
+              <div class="tc-summary-card">
+                <span class="tc-summary-value" id="tc-summary-build">0h</span>
+                <span class="tc-summary-label">Build left</span>
+              </div>
+              <div class="tc-summary-card">
+                <span class="tc-summary-value" id="tc-summary-planned">0h</span>
+                <span class="tc-summary-label">Planned this week</span>
+              </div>
+              <div class="tc-summary-card">
+                <span class="tc-summary-value" id="tc-summary-logged">0h</span>
+                <span class="tc-summary-label">Logged this week</span>
+              </div>
+            </div>
+
+            <div id="admin-bookings-calendar-view" class="admin-bookings-calendar-view planner-calendar-view">
               <div class="admin-bookings-cal-main">
                 <div class="admin-bookings-cal-nav">
                   <button type="button" class="btn btn-secondary btn-sm" id="admin-bookings-cal-prev" aria-label="Previous month">
@@ -3485,14 +3554,28 @@
                 <div class="admin-bookings-cal-weekdays" aria-hidden="true">
                   <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
                 </div>
-                <div class="admin-bookings-cal-grid" id="admin-bookings-cal-grid" role="grid" aria-label="Bookings calendar"></div>
+                <div class="admin-bookings-cal-grid" id="admin-bookings-cal-grid" role="grid" aria-label="Planner calendar"></div>
               </div>
-              <div class="admin-bookings-day-panel">
+              <div class="admin-bookings-day-panel planner-day-panel">
                 <div class="admin-bookings-day-panel-head">
                   <h4 class="admin-bookings-day-title" id="admin-bookings-day-title">Select a day</h4>
                   <p class="admin-bookings-day-count" id="admin-bookings-day-count"></p>
                 </div>
-                <div class="admin-bookings-list" id="admin-bookings-day-list"></div>
+                <div class="planner-day-block">
+                  <h5 class="planner-day-block-title">Calls</h5>
+                  <div class="admin-bookings-list" id="admin-bookings-day-list"></div>
+                </div>
+                <div class="planner-day-block">
+                  <h5 class="planner-day-block-title">Hours</h5>
+                  <p class="admin-bookings-day-count" id="tc-day-count"></p>
+                  <div class="tc-day-list" id="tc-day-list"></div>
+                  <div class="tc-day-actions">
+                    <button type="button" class="btn btn-primary btn-sm" id="tc-open-add-drawer" data-tc-action="open-add">
+                      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                      Add for this day
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -3550,7 +3633,7 @@
               </div>
             </section>
           </section>
-          </div><!-- /admin-panel-bookings -->
+          </div><!-- /admin-panel-planner -->
 
           <!-- Testimonial invites (Firestore + Resend) -->
           <div id="admin-panel-testimonials" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-testimonials" data-admin-tab="testimonials" hidden>
@@ -3858,7 +3941,7 @@
           </div><!-- /admin-panel-client-projects -->
 
           <!-- Time Capacity -->
-          <div id="admin-panel-time-capacity" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-time-capacity" data-admin-tab="time-capacity" hidden>
+          <div id="admin-panel-time-capacity" data-planner-legacy="1" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="admin-tab-time-capacity" data-admin-tab="time-capacity" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
@@ -3866,7 +3949,7 @@
                 <p class="admin-panel-lead">Plan and log hours on the calendar for Client-stage projects and maintenance retainers. Suggested capacity stays in the summary.</p>
               </div>
               <div class="admin-panel-heading-action">
-                <button type="button" class="btn btn-secondary" id="tc-open-timer-drawer" data-tc-action="open-timer">
+                <button type="button" class="btn btn-secondary" id="legacy-tc-open-timer-drawer" data-tc-action="open-timer">
                   <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
                   Timer
                 </button>
@@ -3874,57 +3957,57 @@
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content time-capacity-shell">
-                <div class="tc-summary" id="tc-summary" aria-live="polite">
+                <div class="tc-summary" id="legacy-tc-summary" aria-live="polite">
                   <div class="tc-summary-card tc-summary-card--week">
-                    <span class="tc-summary-value" id="tc-summary-week">0h</span>
+                    <span class="tc-summary-value" id="legacy-tc-summary-week">0h</span>
                     <span class="tc-summary-label">Suggested this week</span>
                   </div>
                   <div class="tc-summary-card">
-                    <span class="tc-summary-value" id="tc-summary-maint">0h</span>
+                    <span class="tc-summary-value" id="legacy-tc-summary-maint">0h</span>
                     <span class="tc-summary-label">Maintenance left</span>
                   </div>
                   <div class="tc-summary-card">
-                    <span class="tc-summary-value" id="tc-summary-build">0h</span>
+                    <span class="tc-summary-value" id="legacy-tc-summary-build">0h</span>
                     <span class="tc-summary-label">Build left</span>
                   </div>
                   <div class="tc-summary-card">
-                    <span class="tc-summary-value" id="tc-summary-planned">0h</span>
+                    <span class="tc-summary-value" id="legacy-tc-summary-planned">0h</span>
                     <span class="tc-summary-label">Planned this week</span>
                   </div>
                   <div class="tc-summary-card">
-                    <span class="tc-summary-value" id="tc-summary-logged">0h</span>
+                    <span class="tc-summary-value" id="legacy-tc-summary-logged">0h</span>
                     <span class="tc-summary-label">Logged this week</span>
                   </div>
                 </div>
 
 
-                <div class="admin-bookings-calendar-view tc-calendar-view" id="tc-calendar-view">
+                <div class="admin-bookings-calendar-view tc-calendar-view" id="legacy-tc-calendar-view">
                   <div class="admin-bookings-cal-main">
                     <div class="admin-bookings-cal-nav">
-                      <button type="button" class="btn btn-secondary btn-sm" id="tc-cal-prev" aria-label="Previous month">
+                      <button type="button" class="btn btn-secondary btn-sm" id="legacy-tc-cal-prev" aria-label="Previous month">
                         <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
                       </button>
                       <div class="admin-bookings-cal-nav-center">
-                        <h4 class="admin-bookings-cal-month" id="tc-cal-month-label">Month</h4>
-                        <button type="button" class="btn btn-secondary btn-sm" id="tc-cal-today">Today</button>
+                        <h4 class="admin-bookings-cal-month" id="legacy-tc-cal-month-label">Month</h4>
+                        <button type="button" class="btn btn-secondary btn-sm" id="legacy-tc-cal-today">Today</button>
                       </div>
-                      <button type="button" class="btn btn-secondary btn-sm" id="tc-cal-next" aria-label="Next month">
+                      <button type="button" class="btn btn-secondary btn-sm" id="legacy-tc-cal-next" aria-label="Next month">
                         <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
                       </button>
                     </div>
                     <div class="admin-bookings-cal-weekdays" aria-hidden="true">
                       <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
                     </div>
-                    <div class="admin-bookings-cal-grid" id="tc-cal-grid" role="grid" aria-label="Time capacity calendar"></div>
+                    <div class="admin-bookings-cal-grid" id="legacy-tc-cal-grid" role="grid" aria-label="Time capacity calendar"></div>
                   </div>
                   <div class="admin-bookings-day-panel">
                     <div class="admin-bookings-day-panel-head">
-                      <h4 class="admin-bookings-day-title" id="tc-day-title">Select a day</h4>
-                      <p class="admin-bookings-day-count" id="tc-day-count"></p>
+                      <h4 class="admin-bookings-day-title" id="legacy-tc-day-title">Select a day</h4>
+                      <p class="admin-bookings-day-count" id="legacy-tc-day-count"></p>
                     </div>
-                    <div class="tc-day-list" id="tc-day-list"></div>
+                    <div class="tc-day-list" id="legacy-tc-day-list"></div>
                     <div class="tc-day-actions">
-                      <button type="button" class="btn btn-primary btn-sm" id="tc-open-add-drawer" data-tc-action="open-add">
+                      <button type="button" class="btn btn-primary btn-sm" id="legacy-tc-open-add-drawer" data-tc-action="open-add">
                         <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
                         Add for this day
                       </button>

@@ -76,6 +76,7 @@
   var pendingDeleteHubId = null;
   var pendingDeleteRefId = null;
   var pendingDeleteMaintId = null;
+  var pendingDeleteTimeEntryId = null;
 
   function esc(s) {
     if (s == null) return '';
@@ -5206,16 +5207,20 @@
   var tcCalMonth = null;
   var tcSelectedDay = null;
   var tcSyncingTotals = false;
+  var tcPlannerSyncing = false;
   var tcTimerState = {
     status: 'idle',
     target: '',
     clientName: '',
-    accumulatedMs: 0,
-    segmentStartedAt: null
+    segmentAccumulatedMs: 0,
+    segmentStartedAt: null,
+    segments: []
   };
   var tcTimerTickId = null;
   var tcTimerStopping = false;
   var tcTimerAwaitingClientLog = false;
+  var tcTimerReviewSegments = null;
+  var tcChipOpen = false;
 
   function weeksUntilDate(dateStr) {
     if (!dateStr) return BUILD_WEEKLY_HORIZON;
@@ -5540,31 +5545,77 @@
     }
   }
 
-  function formatTcTimer(ms) {
+  function syncTcChipTargetSelect(keepValue) {
+    var hidden = document.getElementById('tc-chip-target');
+    if (!hidden) return;
+    var preferred = keepValue === false ? '' : String(hidden.value || tcTimerState.target || '');
+    if (typeof window.setBusinessDocSelectOptions === 'function') {
+      window.setBusinessDocSelectOptions(hidden, getTcAddTargetOptions(), {
+        placeholder: 'No client — just focus',
+        keepValue: keepValue !== false,
+        value: keepValue === false ? '' : undefined
+      });
+      if (keepValue !== false && preferred && typeof window.setBusinessDocSelectValue === 'function') {
+        window.setBusinessDocSelectValue('tc-chip-target', preferred, true);
+      }
+      return;
+    }
+    if (typeof window.initBusinessDocCustomSelects === 'function') {
+      window.initBusinessDocCustomSelects();
+    }
+  }
+
+  function formatTcDurationHm(ms) {
+    var total = Math.floor(Math.max(0, Number(ms) || 0) / 1000);
+    var h = Math.floor(total / 3600);
+    var m = Math.floor((total % 3600) / 60);
+    return h + 'h ' + m + 'm';
+  }
+
+  function formatTcDurationHms(ms) {
     var total = Math.floor(Math.max(0, Number(ms) || 0) / 1000);
     var h = Math.floor(total / 3600);
     var m = Math.floor((total % 3600) / 60);
     var s = Math.floor(total % 60);
-    return (
-      String(h).padStart(2, '0') +
-      ':' +
-      String(m).padStart(2, '0') +
-      ':' +
-      String(s).padStart(2, '0')
-    );
+    return h + 'h ' + m + 'm ' + s + 's';
   }
 
-  function getTcTimerElapsedMs() {
-    var elapsed = Math.max(0, Number(tcTimerState.accumulatedMs) || 0);
+  function formatTcTimer(ms) {
+    return formatTcDurationHms(ms);
+  }
+
+  function getCurrentSegmentElapsedMs() {
+    var elapsed = Math.max(0, Number(tcTimerState.segmentAccumulatedMs) || 0);
     if (tcTimerState.status === 'running' && tcTimerState.segmentStartedAt) {
       elapsed += Math.max(0, Date.now() - tcTimerState.segmentStartedAt);
     }
     return elapsed;
   }
 
+  function getTcTimerElapsedMs() {
+    var total = 0;
+    (tcTimerState.segments || []).forEach(function (seg) {
+      total += Math.max(0, Number(seg.ms) || 0);
+    });
+    if (tcTimerState.status === 'running' || tcTimerState.status === 'paused') {
+      total += getCurrentSegmentElapsedMs();
+    }
+    return total;
+  }
+
   function msToLoggedHours(ms) {
     if (ms < 60000) return 0;
     return Math.max(0.1, roundHours(ms / 3600000));
+  }
+
+  function cloneTcSegments(list) {
+    return (list || []).map(function (seg) {
+      return {
+        target: String(seg.target || ''),
+        clientName: String(seg.clientName || ''),
+        ms: Math.max(0, Number(seg.ms) || 0)
+      };
+    });
   }
 
   function persistTcTimerState() {
@@ -5575,8 +5626,9 @@
           status: tcTimerState.status,
           target: tcTimerState.target,
           clientName: tcTimerState.clientName,
-          accumulatedMs: tcTimerState.accumulatedMs,
-          segmentStartedAt: tcTimerState.segmentStartedAt
+          segmentAccumulatedMs: tcTimerState.segmentAccumulatedMs,
+          segmentStartedAt: tcTimerState.segmentStartedAt,
+          segments: cloneTcSegments(tcTimerState.segments)
         })
       );
     } catch (err) {
@@ -5600,15 +5652,25 @@
       if (!parsed || typeof parsed !== 'object') return;
       var status = parsed.status === 'running' || parsed.status === 'paused' ? parsed.status : 'idle';
       if (status === 'idle') return;
+      var segments = Array.isArray(parsed.segments) ? cloneTcSegments(parsed.segments) : [];
+      // Migrate older single-clock sessions.
+      if (!segments.length && parsed.accumulatedMs && !parsed.segmentAccumulatedMs) {
+        /* keep elapsed in current segment via accumulatedMs below */
+      }
+      var segmentAccumulatedMs = Math.max(
+        0,
+        Number(parsed.segmentAccumulatedMs != null ? parsed.segmentAccumulatedMs : parsed.accumulatedMs) || 0
+      );
       tcTimerState = {
         status: status,
         target: String(parsed.target || ''),
         clientName: String(parsed.clientName || ''),
-        accumulatedMs: Math.max(0, Number(parsed.accumulatedMs) || 0),
+        segmentAccumulatedMs: segmentAccumulatedMs,
         segmentStartedAt:
           status === 'running' && parsed.segmentStartedAt
             ? Number(parsed.segmentStartedAt)
-            : null
+            : null,
+        segments: segments
       };
     } catch (err) {
       /* ignore */
@@ -5623,6 +5685,14 @@
     }
   }
 
+  function ensureTcTimerChipMounted() {
+    var chip = document.getElementById('tc-timer-chip');
+    if (!chip || !document.body) return;
+    if (chip.parentElement !== document.body) {
+      document.body.appendChild(chip);
+    }
+  }
+
   function setTcTimerFeedback(msg, isError) {
     var el = document.getElementById('tc-timer-feedback');
     if (!el) return;
@@ -5634,8 +5704,87 @@
     return tcTimerState.status === 'running' || tcTimerState.status === 'paused';
   }
 
+  function isTcTimerReviewOpen() {
+    return Array.isArray(tcTimerReviewSegments);
+  }
+
+  function setTcChipExpanded(open) {
+    ensureTcTimerChipMounted();
+    tcChipOpen = !!open;
+    var chip = document.getElementById('tc-timer-chip');
+    var btn = document.getElementById('tc-timer-chip-btn');
+    var panel = document.getElementById('tc-timer-chip-panel');
+    if (chip) chip.classList.toggle('is-open', tcChipOpen);
+    if (btn) btn.setAttribute('aria-expanded', tcChipOpen ? 'true' : 'false');
+    if (panel) panel.hidden = !tcChipOpen;
+  }
+
+  function renderTcChipSegmentsStrip() {
+    var wrap = document.getElementById('tc-timer-chip-segments');
+    if (!wrap) return;
+    var segs = tcTimerState.segments || [];
+    if (!segs.length || isTcTimerReviewOpen()) {
+      wrap.hidden = true;
+      wrap.innerHTML = '';
+      return;
+    }
+    wrap.hidden = false;
+    wrap.innerHTML = segs
+      .map(function (seg) {
+        return (
+          '<div class="tc-timer-chip-segment">' +
+          '<span class="tc-timer-chip-segment-name">' +
+          esc(seg.clientName || 'No client') +
+          '</span>' +
+          '<span class="tc-timer-chip-segment-time">' +
+          esc(formatTcDurationHm(seg.ms)) +
+          '</span></div>'
+        );
+      })
+      .join('');
+  }
+
+  function renderTcChipReviewList() {
+    var list = document.getElementById('tc-timer-chip-review-list');
+    if (!list) return;
+    var segs = tcTimerReviewSegments || [];
+    if (!segs.length) {
+      list.innerHTML = '<li class="tc-timer-chip-review-empty">No segments to log.</li>';
+      return;
+    }
+    list.innerHTML = segs
+      .map(function (seg, idx) {
+        var hours = msToLoggedHours(seg.ms);
+        var skip = hours <= 0;
+        var noClient = !seg.target;
+        return (
+          '<li class="tc-timer-chip-review-item' +
+          (skip || noClient ? ' is-skip' : '') +
+          '" data-review-idx="' +
+          idx +
+          '">' +
+          '<div class="tc-timer-chip-review-main">' +
+          '<span class="tc-timer-chip-review-name">' +
+          esc(seg.clientName || 'No client') +
+          '</span>' +
+          '<span class="tc-timer-chip-review-time">' +
+          esc(formatTcDurationHm(seg.ms)) +
+          '</span></div>' +
+          '<p class="tc-timer-chip-review-meta">' +
+          (skip
+            ? 'Under 1 minute — will not log'
+            : noClient
+              ? 'Needs a client — will not log'
+              : 'Logs ' + formatHours(hours) + ' today') +
+          '</p></li>'
+        );
+      })
+      .join('');
+  }
+
   function updateTcTimerUi() {
     ensureTcTimerBarMounted();
+    ensureTcTimerChipMounted();
     var bar = document.getElementById('tc-timer-bar');
     var display = document.getElementById('tc-timer-display');
     var clientEl = document.getElementById('tc-timer-bar-client');
@@ -5645,29 +5794,91 @@
     var openBtn = document.getElementById('tc-open-timer-drawer');
     var status = tcTimerState.status;
     var active = isTcTimerActive();
-    var elapsed = getTcTimerElapsedMs();
+    var reviewing = isTcTimerReviewOpen();
+    var elapsed = reviewing
+      ? (tcTimerReviewSegments || []).reduce(function (sum, seg) {
+          return sum + (Number(seg.ms) || 0);
+        }, 0)
+      : getTcTimerElapsedMs();
 
-    if (display) display.textContent = formatTcTimer(elapsed);
+    if (display) display.textContent = formatTcDurationHm(elapsed);
     if (clientEl) {
-      clientEl.textContent = tcTimerState.clientName
-        ? tcTimerState.clientName
-        : 'Focus session';
+      clientEl.textContent = reviewing
+        ? 'Review segments'
+        : tcTimerState.clientName
+          ? tcTimerState.clientName
+          : 'Focus session';
     }
     if (bar) {
-      bar.hidden = !active;
+      bar.hidden = !(active || reviewing);
       bar.classList.toggle('is-running', status === 'running');
-      bar.classList.toggle('is-paused', status === 'paused');
-      bar.setAttribute('aria-hidden', active ? 'false' : 'true');
+      bar.classList.toggle('is-paused', status === 'paused' || reviewing);
+      bar.setAttribute('aria-hidden', active || reviewing ? 'false' : 'true');
     }
-    document.body.classList.toggle('tc-timer-bar-active', active);
+    document.body.classList.toggle('tc-timer-bar-active', active || reviewing);
     if (pauseBtn) pauseBtn.hidden = status !== 'running';
-    if (resumeBtn) resumeBtn.hidden = status !== 'paused';
+    if (resumeBtn) resumeBtn.hidden = status !== 'paused' || reviewing;
     if (stopBtn) stopBtn.hidden = !active;
     if (openBtn) {
-      openBtn.disabled = active;
-      openBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
-      openBtn.title = active ? 'Focus session running' : 'Start a focus session';
+      openBtn.disabled = active || reviewing;
+      openBtn.setAttribute('aria-pressed', active || reviewing ? 'true' : 'false');
+      openBtn.title = active || reviewing ? 'Focus session running' : 'Start a focus session';
     }
+
+    var chip = document.getElementById('tc-timer-chip');
+    var chipTime = document.getElementById('tc-timer-chip-time');
+    var chipLabel = document.getElementById('tc-timer-chip-label');
+    var chipClock = document.getElementById('tc-timer-chip-panel-clock');
+    var chipClient = document.getElementById('tc-timer-chip-panel-client');
+    var chipSub = document.getElementById('tc-timer-chip-panel-sub');
+    var chipStart = document.getElementById('tc-chip-start');
+    var chipSwitch = document.getElementById('tc-chip-switch');
+    var chipPause = document.getElementById('tc-chip-pause');
+    var chipResume = document.getElementById('tc-chip-resume');
+    var chipStop = document.getElementById('tc-chip-stop');
+    var chipActions = document.getElementById('tc-timer-chip-panel-actions');
+    var chipSelectWrap = document.getElementById('tc-timer-chip-panel-select-wrap');
+    var chipReview = document.getElementById('tc-timer-chip-review');
+
+    if (chip) {
+      chip.classList.toggle('is-active', active || reviewing);
+      chip.classList.toggle('is-paused', status === 'paused' || reviewing);
+      chip.hidden = false;
+    }
+    if (chipTime) {
+      chipTime.hidden = !(active || reviewing);
+      chipTime.textContent = formatTcDurationHm(elapsed);
+    }
+    if (chipLabel) {
+      chipLabel.textContent = reviewing ? 'Review' : active ? 'Focus' : 'Timer';
+    }
+    if (chipClock) chipClock.textContent = formatTcDurationHms(elapsed);
+    if (chipClient) {
+      chipClient.textContent = reviewing
+        ? (tcTimerReviewSegments || []).length + ' segment' + ((tcTimerReviewSegments || []).length === 1 ? '' : 's')
+        : tcTimerState.clientName
+          ? tcTimerState.clientName
+          : 'No client';
+    }
+    if (chipSub) {
+      chipSub.textContent = reviewing
+        ? 'Check each segment, then log to today.'
+        : active
+          ? 'One clock — switch focus anytime, split on stop.'
+          : 'Start a session or switch focus anytime.';
+    }
+    if (chipActions) chipActions.hidden = reviewing;
+    if (chipSelectWrap) chipSelectWrap.hidden = reviewing;
+    if (chipReview) {
+      chipReview.hidden = !reviewing;
+      if (reviewing) renderTcChipReviewList();
+    }
+    if (chipStart) chipStart.hidden = active || reviewing;
+    if (chipSwitch) chipSwitch.hidden = !active || reviewing;
+    if (chipPause) chipPause.hidden = status !== 'running';
+    if (chipResume) chipResume.hidden = status !== 'paused' || reviewing;
+    if (chipStop) chipStop.hidden = !active;
+    renderTcChipSegmentsStrip();
   }
 
   function stopTcTimerTick() {
@@ -5720,6 +5931,7 @@
     var projectId = opts.projectId || '';
     var maintenanceId = opts.maintenanceId || '';
     var clientName = opts.clientName || 'Client';
+    var notes = String(opts.notes || '').slice(0, 500);
 
     var dup = agencyTimeEntries.find(function (e) {
       return (
@@ -5734,16 +5946,22 @@
       var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id));
       var row = snap.val() || {};
       var nextLogged = roundHours((Number(row.loggedHours) || 0) + hours);
+      var nextNotes = [String(row.notes || '').trim(), notes.trim()]
+        .filter(Boolean)
+        .join(' / ')
+        .slice(0, 500);
       await window.rtdbSet(
         window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id),
         Object.assign({}, row, {
           loggedHours: nextLogged,
           clientName: clientName,
+          notes: nextNotes,
           updatedAt: ts()
         })
       );
       dup.loggedHours = nextLogged;
       dup.clientName = clientName;
+      dup.notes = nextNotes;
       dup.date = date;
     } else {
       var payload = {
@@ -5754,7 +5972,7 @@
         kind: kind,
         plannedHours: 0,
         loggedHours: hours,
-        notes: '',
+        notes: notes,
         createdAt: ts(),
         updatedAt: ts()
       };
@@ -5780,143 +5998,455 @@
     tcSelectedDay = todayTcDayKey();
   }
 
-  function showTcTimerToast(message, isError) {
+  function handlePlannerAction(actionBtn) {
+    if (!actionBtn) return;
+    var action = actionBtn.getAttribute('data-tc-action');
+    if (!action) return;
+
+    if (action === 'open-timer') {
+      openTcTimerDrawer();
+      return;
+    }
+
+    if (action === 'open-add') {
+      openTcAddDrawer();
+      return;
+    }
+
+    if (action === 'open-client') {
+      var projectId = actionBtn.getAttribute('data-tc-project');
+      var maintId = actionBtn.getAttribute('data-tc-maint');
+      if (projectId) openClientProjectWorkspace(projectId);
+      else if (maintId) {
+        var m = agencyMaintenance.find(function (x) {
+          return x.id === maintId;
+        });
+        if (m && m.projectId) openClientProjectWorkspace(m.projectId);
+      }
+      return;
+    }
+
+    if (action === 'save-entry') {
+      var card = actionBtn.closest('[data-tc-entry-id]');
+      actionBtn.disabled = true;
+      saveTimeEntryFromCard(card)
+        .then(function () {
+          renderTimeCapacityPanel();
+        })
+        .catch(function (err) {
+          console.error(err);
+        })
+        .then(function () {
+          actionBtn.disabled = false;
+        });
+      return;
+    }
+
+    if (action === 'delete-entry') {
+      var delCard = actionBtn.closest('[data-tc-entry-id]');
+      var delId = delCard && delCard.getAttribute('data-tc-entry-id');
+      if (!delId) return;
+      openDeleteTimeEntryConfirmModal(delId);
+    }
+  }
+
+  function bindTcTimerChipControls() {
+    var chipBtn = document.getElementById('tc-timer-chip-btn');
+    var chipClose = document.getElementById('tc-timer-chip-panel-close');
+    var chipStart = document.getElementById('tc-chip-start');
+    var chipSwitch = document.getElementById('tc-chip-switch');
+    var chipPause = document.getElementById('tc-chip-pause');
+    var chipResume = document.getElementById('tc-chip-resume');
+    var chipStop = document.getElementById('tc-chip-stop');
+    var reviewDiscard = document.getElementById('tc-chip-review-discard');
+    var reviewLog = document.getElementById('tc-chip-review-log');
+    if (chipBtn && !chipBtn.dataset.tcBound) {
+      chipBtn.dataset.tcBound = '1';
+      chipBtn.addEventListener('click', function () {
+        setTcChipExpanded(!tcChipOpen);
+        if (tcChipOpen) syncTcChipTargetSelect(true);
+      });
+    }
+    if (chipClose && !chipClose.dataset.tcBound) {
+      chipClose.dataset.tcBound = '1';
+      chipClose.addEventListener('click', function () {
+        setTcChipExpanded(false);
+      });
+    }
+    if (chipStart && !chipStart.dataset.tcBound) {
+      chipStart.dataset.tcBound = '1';
+      chipStart.addEventListener('click', startTcTimerFromChip);
+    }
+    if (chipSwitch && !chipSwitch.dataset.tcBound) {
+      chipSwitch.dataset.tcBound = '1';
+      chipSwitch.addEventListener('click', switchTcFocusFromChip);
+    }
+    if (chipPause && !chipPause.dataset.tcBound) {
+      chipPause.dataset.tcBound = '1';
+      chipPause.addEventListener('click', pauseTcFocusSession);
+    }
+    if (chipResume && !chipResume.dataset.tcBound) {
+      chipResume.dataset.tcBound = '1';
+      chipResume.addEventListener('click', resumeTcFocusSession);
+    }
+    if (chipStop && !chipStop.dataset.tcBound) {
+      chipStop.dataset.tcBound = '1';
+      chipStop.addEventListener('click', stopTcFocusSession);
+    }
+    if (reviewDiscard && !reviewDiscard.dataset.tcBound) {
+      reviewDiscard.dataset.tcBound = '1';
+      reviewDiscard.addEventListener('click', discardTcTimerReview);
+    }
+    if (reviewLog && !reviewLog.dataset.tcBound) {
+      reviewLog.dataset.tcBound = '1';
+      reviewLog.addEventListener('click', function () {
+        logTcTimerReviewSegments();
+      });
+    }
+  }
+
+  function initTimeCapacity() {
+    if (timeCapacityBound) return;
+    var panel =
+      document.getElementById('admin-panel-planner') ||
+      document.getElementById('admin-panel-time-capacity');
+    if (!panel) return;
+    timeCapacityBound = true;
+    setupDeleteTimeEntryConfirmModal();
+    ensureTcCalState();
+    loadPersistedTcTimer();
+    syncTcAddTargetSelect(false);
+    syncTcChipTargetSelect(false);
+    bindTcTimerChipControls();
+    ensureTcTimerChipMounted();
+    updateTcTimerUi();
+    if (tcTimerState.status === 'running') startTcTimerTick();
+    else if (tcTimerState.status === 'paused') updateTcTimerUi();
+
+    var openTimerBtn = document.getElementById('tc-open-timer-drawer');
+    var timerStart = document.getElementById('tc-timer-start');
+    var timerPause = document.getElementById('tc-timer-pause');
+    var timerResume = document.getElementById('tc-timer-resume');
+    var timerStop = document.getElementById('tc-timer-stop');
+    var timerOverlay = document.getElementById('tc-timer-drawer-overlay');
+    var timerClose = document.getElementById('tc-timer-drawer-close');
+    var timerCancel = document.getElementById('tc-timer-drawer-cancel');
+    if (openTimerBtn) openTimerBtn.addEventListener('click', openTcTimerDrawer);
+    if (timerStart) timerStart.addEventListener('click', finishPendingTcFocusLog);
+    if (timerPause) timerPause.addEventListener('click', pauseTcFocusSession);
+    if (timerResume) timerResume.addEventListener('click', resumeTcFocusSession);
+    if (timerStop) timerStop.addEventListener('click', function () {
+      stopTcFocusSession();
+    });
+    if (timerOverlay) timerOverlay.addEventListener('click', closeTcTimerDrawer);
+    if (timerClose) timerClose.addEventListener('click', closeTcTimerDrawer);
+    if (timerCancel) timerCancel.addEventListener('click', closeTcTimerDrawer);
+
+    var prevBtn = document.getElementById('tc-cal-prev');
+    var nextBtn = document.getElementById('tc-cal-next');
+    var todayBtn = document.getElementById('tc-cal-today');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', function () {
+        ensureTcCalState();
+        tcCalMonth = new Date(tcCalMonth.getFullYear(), tcCalMonth.getMonth() - 1, 1);
+        renderTimeCapacityPanel();
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', function () {
+        ensureTcCalState();
+        tcCalMonth = new Date(tcCalMonth.getFullYear(), tcCalMonth.getMonth() + 1, 1);
+        renderTimeCapacityPanel();
+      });
+    }
+    if (todayBtn) {
+      todayBtn.addEventListener('click', function () {
+        jumpTcCalendarToToday();
+        renderTimeCapacityPanel();
+        var dayPanel = panel.querySelector('.admin-bookings-day-panel');
+        if (dayPanel && window.matchMedia('(max-width: 979px)').matches) {
+          dayPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      });
+    }
+
+    var addOverlay = document.getElementById('tc-add-drawer-overlay');
+    var addClose = document.getElementById('tc-add-drawer-close');
+    var addCancel = document.getElementById('tc-add-drawer-cancel');
+    if (addOverlay) addOverlay.addEventListener('click', closeTcAddDrawer);
+    if (addClose) addClose.addEventListener('click', closeTcAddDrawer);
+    if (addCancel) addCancel.addEventListener('click', closeTcAddDrawer);
+
+    var addDrawer = document.getElementById('tc-add-drawer');
+    if (addDrawer) {
+      addDrawer.addEventListener('click', function (e) {
+        var actionBtn = e.target.closest('[data-tc-action="add-entry"]');
+        if (!actionBtn || !addDrawer.contains(actionBtn)) return;
+        e.preventDefault();
+        var feedback = document.getElementById('tc-add-feedback');
+        actionBtn.disabled = true;
+        if (feedback) {
+          feedback.textContent = '';
+          feedback.classList.remove('is-error');
+        }
+        addTimeEntryFromForm()
+          .then(function () {
+            renderTimeCapacityPanel();
+            if (feedback) feedback.textContent = 'Saved.';
+            closeTcAddDrawer();
+          })
+          .catch(function (err) {
+            console.error(err);
+            if (feedback) {
+              feedback.textContent = (err && err.message) || 'Could not save.';
+              feedback.classList.add('is-error');
+            }
+          })
+          .then(function () {
+            actionBtn.disabled = false;
+          });
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      function tcAddEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        if (tcChipOpen && !isTcTimerReviewOpen()) {
+          setTcChipExpanded(false);
+          return;
+        }
+        if (isTcTimerDrawerOpen()) {
+          ev.stopImmediatePropagation();
+          closeTcTimerDrawer();
+          return;
+        }
+        if (!isTcAddDrawerOpen()) return;
+        ev.stopImmediatePropagation();
+        closeTcAddDrawer();
+      },
+      true
+    );
+
+    panel.addEventListener('click', function (e) {
+      var dayBtn = e.target.closest('[data-tc-day]');
+      if (dayBtn && panel.contains(dayBtn)) {
+        var nextDay = dayBtn.getAttribute('data-tc-day');
+        if (nextDay === tcSelectedDay) {
+          if (window.matchMedia('(max-width: 979px)').matches) {
+            var p = panel.querySelector('.admin-bookings-day-panel');
+            if (p) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          return;
+        }
+        tcSelectedDay = nextDay;
+        renderTimeCapacityPanel();
+        if (window.matchMedia('(max-width: 979px)').matches) {
+          var panelEl = panel.querySelector('.admin-bookings-day-panel');
+          if (panelEl) panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        return;
+      }
+
+      var actionBtn = e.target.closest('[data-tc-action]');
+      if (!actionBtn || !panel.contains(actionBtn)) return;
+      handlePlannerAction(actionBtn);
+    });
+  }
+
+  function showTcTimerToast(message, isError, action) {
     var existing = document.getElementById('tc-timer-toast');
     if (existing) existing.remove();
     var toast = document.createElement('div');
     toast.id = 'tc-timer-toast';
     toast.className = 'tc-timer-toast' + (isError ? ' is-error' : '');
     toast.setAttribute('role', 'status');
-    toast.textContent = message || '';
-    document.body.appendChild(toast);
-    window.setTimeout(function () {
-      toast.classList.add('is-visible');
-    }, 10);
-    window.setTimeout(function () {
+    var msg = document.createElement('span');
+    msg.className = 'tc-timer-toast-msg';
+    msg.textContent = message || '';
+    toast.appendChild(msg);
+
+    function dismiss() {
       toast.classList.remove('is-visible');
       window.setTimeout(function () {
         if (toast.parentNode) toast.parentNode.removeChild(toast);
       }, 280);
-    }, 3200);
+    }
+
+    if (action && action.label && typeof action.onClick === 'function') {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tc-timer-toast-action';
+      btn.textContent = action.label;
+      btn.addEventListener('click', function () {
+        dismiss();
+        action.onClick();
+      });
+      toast.appendChild(btn);
+    }
+
+    document.body.appendChild(toast);
+    window.setTimeout(function () {
+      toast.classList.add('is-visible');
+    }, 10);
+    window.setTimeout(dismiss, action ? 6000 : 3200);
   }
 
   function resetTcTimerState() {
     stopTcTimerTick();
+    tcTimerReviewSegments = null;
     tcTimerState = {
       status: 'idle',
       target: '',
       clientName: '',
-      accumulatedMs: 0,
-      segmentStartedAt: null
+      segmentAccumulatedMs: 0,
+      segmentStartedAt: null,
+      segments: []
     };
     clearPersistedTcTimer();
     updateTcTimerUi();
   }
 
-  async function commitTcFocusLog(resolved, hours) {
+  function pushCurrentSegment() {
+    var ms = getCurrentSegmentElapsedMs();
+    if (ms <= 0) {
+      tcTimerState.segmentAccumulatedMs = 0;
+      tcTimerState.segmentStartedAt = null;
+      return;
+    }
+    if (!tcTimerState.segments) tcTimerState.segments = [];
+    tcTimerState.segments.push({
+      target: tcTimerState.target || '',
+      clientName: tcTimerState.clientName || '',
+      ms: ms
+    });
+    tcTimerState.segmentAccumulatedMs = 0;
+    tcTimerState.segmentStartedAt = null;
+  }
+
+  function quickStartTcTimer(target, clientName) {
+    if (tcTimerState.status !== 'idle' || isTcTimerReviewOpen()) return;
+    var resolved = target ? resolveTcTimerTarget(target) : null;
+    tcTimerState = {
+      status: 'running',
+      target: target || '',
+      clientName: resolved ? resolved.clientName : clientName || '',
+      segmentAccumulatedMs: 0,
+      segmentStartedAt: Date.now(),
+      segments: []
+    };
+    persistTcTimerState();
+    startTcTimerTick();
+    syncTcChipTargetSelect(true);
+    updateTcTimerUi();
+    showTcTimerToast(
+      tcTimerState.clientName
+        ? 'Timer started for ' + tcTimerState.clientName + '.'
+        : 'Timer started.'
+    );
+  }
+
+  function switchTcFocusFromChip() {
+    if (!isTcTimerActive() || isTcTimerReviewOpen()) return;
+    var targetEl = document.getElementById('tc-chip-target');
+    var nextTarget = targetEl ? String(targetEl.value || '') : '';
+    if (nextTarget === String(tcTimerState.target || '')) {
+      showTcTimerToast('Pick a different client to switch focus.', true);
+      return;
+    }
+    var resolved = nextTarget ? resolveTcTimerTarget(nextTarget) : null;
+    if (nextTarget && !resolved) {
+      showTcTimerToast('Choose a valid client.', true);
+      return;
+    }
+    pushCurrentSegment();
+    tcTimerState.target = nextTarget;
+    tcTimerState.clientName = resolved ? resolved.clientName : '';
+    if (tcTimerState.status === 'running') {
+      tcTimerState.segmentStartedAt = Date.now();
+    } else {
+      tcTimerState.segmentAccumulatedMs = 0;
+    }
+    persistTcTimerState();
+    updateTcTimerUi();
+    showTcTimerToast(
+      tcTimerState.clientName
+        ? 'Switched focus to ' + tcTimerState.clientName + '.'
+        : 'Switched to no client.'
+    );
+  }
+
+  async function commitTcFocusLog(resolved, hours, notes) {
     await addLoggedHoursForToday({
       kind: resolved.kind,
       projectId: resolved.projectId,
       maintenanceId: resolved.maintenanceId,
       clientName: resolved.clientName,
-      hours: hours
+      hours: hours,
+      notes: notes
     });
+    var target = tcTimerState.target;
     tcTimerAwaitingClientLog = false;
     resetTcTimerState();
     closeTcTimerDrawer();
     jumpTcCalendarToToday();
     renderTimeCapacityPanel();
     showTcTimerToast(
-      'Logged ' + formatHours(hours) + ' for ' + (resolved.clientName || 'client') + ' today.'
+      'Logged ' + formatHours(hours) + ' for ' + (resolved.clientName || 'client') + ' today.',
+      false,
+      {
+        label: 'Start another',
+        onClick: function () {
+          quickStartTcTimer(target, resolved.clientName);
+        }
+      }
     );
   }
 
   function openTcTimerDrawerForLog(hours) {
     tcTimerAwaitingClientLog = true;
     if (tcTimerState.status === 'running') {
-      tcTimerState.accumulatedMs = getTcTimerElapsedMs();
+      tcTimerState.segmentAccumulatedMs = getCurrentSegmentElapsedMs();
       tcTimerState.segmentStartedAt = null;
       tcTimerState.status = 'paused';
       persistTcTimerState();
       stopTcTimerTick();
       updateTcTimerUi();
     }
-    closeTcAddDrawer();
-    var drawer = document.getElementById('tc-timer-drawer');
-    var overlay = document.getElementById('tc-timer-drawer-overlay');
-    if (!drawer || !overlay) {
+    var modal = document.getElementById('tc-timer-drawer');
+    if (!modal) {
       showTcTimerToast('Choose a client, then stop again to log ' + formatHours(hours) + '.', true);
       return;
     }
-    var title = document.getElementById('tc-timer-drawer-title');
-    var subtitle = drawer.querySelector('.tc-add-drawer-subtitle');
-    var startBtn = document.getElementById('tc-timer-start');
-    if (title) title.textContent = 'Log focus time';
-    if (subtitle) {
-      subtitle.textContent =
-        'Pick a client to log ' + formatHours(hours) + ' to today.';
-    }
-    if (startBtn) {
-      startBtn.innerHTML =
-        '<ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon> Log to today';
-    }
-    setTcTimerFeedback('Client required to save this session.');
-    syncTcTimerTargetSelect(false);
-    drawer.hidden = false;
-    overlay.hidden = false;
-    drawer.setAttribute('aria-hidden', 'false');
-    overlay.setAttribute('aria-hidden', 'false');
-    requestAnimationFrame(function () {
-      drawer.classList.add('is-open');
-      overlay.classList.add('is-open');
-    });
-    document.body.classList.add('tc-add-drawer-open');
+    var hoursInput = document.getElementById('tc-timer-log-hours');
+    var notesInput = document.getElementById('tc-timer-log-notes');
+    if (hoursInput) hoursInput.value = String(hours);
+    if (notesInput) notesInput.value = '';
+    setTcTimerFeedback(tcTimerState.target ? '' : 'Client required to save this session.');
+    syncTcTimerTargetSelect(true);
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    window.setTimeout(function () {
+      var closeBtn = document.getElementById('tc-timer-drawer-close');
+      if (closeBtn) {
+        try {
+          closeBtn.focus();
+        } catch (fe) {}
+      }
+    }, 40);
   }
 
   function resetTcTimerDrawerChrome() {
     tcTimerAwaitingClientLog = false;
-    var title = document.getElementById('tc-timer-drawer-title');
-    var drawer = document.getElementById('tc-timer-drawer');
-    var subtitle = drawer && drawer.querySelector('.tc-add-drawer-subtitle');
-    var startBtn = document.getElementById('tc-timer-start');
-    if (title) title.textContent = 'Focus session';
-    if (subtitle) subtitle.textContent = 'Optional client — logs to today when you stop.';
-    if (startBtn) {
-      startBtn.innerHTML =
-        '<ion-icon name="play-outline" aria-hidden="true"></ion-icon> Start';
-    }
-  }
-
-  function startTcFocusSession() {
-    if (tcTimerAwaitingClientLog) {
-      finishPendingTcFocusLog();
-      return;
-    }
-    if (tcTimerState.status !== 'idle') return;
-    var targetEl = document.getElementById('tc-timer-target');
-    var target = targetEl ? String(targetEl.value || '') : '';
-    var resolved = target ? resolveTcTimerTarget(target) : null;
-    if (target && !resolved) {
-      setTcTimerFeedback('That client is no longer available.', true);
-      return;
-    }
-    setTcTimerFeedback('');
-    tcTimerState = {
-      status: 'running',
-      target: resolved ? target : '',
-      clientName: resolved ? resolved.clientName : '',
-      accumulatedMs: 0,
-      segmentStartedAt: Date.now()
-    };
-    persistTcTimerState();
-    closeTcTimerDrawer();
-    startTcTimerTick();
-    updateTcTimerUi();
   }
 
   async function finishPendingTcFocusLog() {
     if (tcTimerStopping) return;
-    var hours = msToLoggedHours(getTcTimerElapsedMs());
+    var hoursInput = document.getElementById('tc-timer-log-hours');
+    var notesInput = document.getElementById('tc-timer-log-notes');
+    var fallbackHours = msToLoggedHours(getTcTimerElapsedMs());
+    var hours =
+      hoursInput && hoursInput.value !== '' ? roundHours(hoursInput.value) : fallbackHours;
     if (hours <= 0) {
       resetTcTimerDrawerChrome();
       resetTcTimerState();
@@ -5931,13 +6461,14 @@
       setTcTimerFeedback('Choose a client to log this time.', true);
       return;
     }
+    var notes = notesInput ? notesInput.value : '';
     tcTimerStopping = true;
     var startBtn = document.getElementById('tc-timer-start');
     if (startBtn) startBtn.disabled = true;
     try {
       tcTimerState.target = target;
       tcTimerState.clientName = resolved.clientName;
-      await commitTcFocusLog(resolved, hours);
+      await commitTcFocusLog(resolved, hours, notes);
       resetTcTimerDrawerChrome();
     } catch (err) {
       console.error(err);
@@ -5951,7 +6482,7 @@
 
   function pauseTcFocusSession() {
     if (tcTimerState.status !== 'running') return;
-    tcTimerState.accumulatedMs = getTcTimerElapsedMs();
+    tcTimerState.segmentAccumulatedMs = getCurrentSegmentElapsedMs();
     tcTimerState.segmentStartedAt = null;
     tcTimerState.status = 'paused';
     persistTcTimerState();
@@ -5961,7 +6492,7 @@
 
   function resumeTcFocusSession() {
     if (tcTimerState.status !== 'paused') return;
-    if (tcTimerAwaitingClientLog) return;
+    if (tcTimerAwaitingClientLog || isTcTimerReviewOpen()) return;
     tcTimerState.status = 'running';
     tcTimerState.segmentStartedAt = Date.now();
     persistTcTimerState();
@@ -5969,40 +6500,114 @@
     updateTcTimerUi();
   }
 
-  async function stopTcFocusSession() {
+  function openTcTimerReview() {
+    pushCurrentSegment();
+    var segs = cloneTcSegments(tcTimerState.segments);
+    if (!segs.length) {
+      resetTcTimerState();
+      showTcTimerToast('Under 1 minute — nothing logged.');
+      return;
+    }
+    stopTcTimerTick();
+    tcTimerState.status = 'idle';
+    tcTimerState.segmentAccumulatedMs = 0;
+    tcTimerState.segmentStartedAt = null;
+    tcTimerState.segments = [];
+    clearPersistedTcTimer();
+    tcTimerReviewSegments = segs;
+    setTcChipExpanded(true);
+    updateTcTimerUi();
+  }
+
+  function discardTcTimerReview() {
+    tcTimerReviewSegments = null;
+    resetTcTimerState();
+    showTcTimerToast('Session discarded.');
+  }
+
+  async function logTcTimerReviewSegments() {
+    if (tcTimerStopping || !isTcTimerReviewOpen()) return;
+    var segs = tcTimerReviewSegments || [];
+    var toLog = [];
+    segs.forEach(function (seg) {
+      var hours = msToLoggedHours(seg.ms);
+      if (hours <= 0) return;
+      var resolved = seg.target ? resolveTcTimerTarget(seg.target) : null;
+      if (!resolved) return;
+      toLog.push({ resolved: resolved, hours: hours, ms: seg.ms });
+    });
+    if (!toLog.length) {
+      showTcTimerToast('Nothing to log — need a client and at least 1 minute.', true);
+      return;
+    }
+    tcTimerStopping = true;
+    var logBtn = document.getElementById('tc-chip-review-log');
+    if (logBtn) logBtn.disabled = true;
+    try {
+      var logged = 0;
+      for (var i = 0; i < toLog.length; i++) {
+        var item = toLog[i];
+        await addLoggedHoursForToday({
+          kind: item.resolved.kind,
+          projectId: item.resolved.projectId,
+          maintenanceId: item.resolved.maintenanceId,
+          clientName: item.resolved.clientName,
+          hours: item.hours,
+          notes: 'Focus · ' + formatTcDurationHm(item.ms)
+        });
+        logged += item.hours;
+      }
+      tcTimerReviewSegments = null;
+      resetTcTimerState();
+      jumpTcCalendarToToday();
+      renderTimeCapacityPanel();
+      showTcTimerToast(
+        'Logged ' + formatHours(logged) + ' across ' + toLog.length + ' segment' + (toLog.length === 1 ? '' : 's') + '.',
+        false,
+        {
+          label: 'Start another',
+          onClick: function () {
+            quickStartTcTimer('', '');
+          }
+        }
+      );
+    } catch (err) {
+      console.error(err);
+      showTcTimerToast((err && err.message) || 'Could not log segments.', true);
+    } finally {
+      tcTimerStopping = false;
+      if (logBtn) logBtn.disabled = false;
+    }
+  }
+
+  function stopTcFocusSession() {
     if (tcTimerStopping) return;
     if (!isTcTimerActive()) return;
-    var elapsed = getTcTimerElapsedMs();
-    var target = tcTimerState.target;
-    var resolved = target ? resolveTcTimerTarget(target) : null;
-    var hours = msToLoggedHours(elapsed);
-    var stopBtn = document.getElementById('tc-timer-stop');
-
-    if (hours <= 0) {
+    if (getTcTimerElapsedMs() < 60000) {
       resetTcTimerDrawerChrome();
       resetTcTimerState();
       showTcTimerToast('Under 1 minute — nothing logged.');
       return;
     }
-
-    if (!resolved) {
-      openTcTimerDrawerForLog(hours);
+    // Prefer chip review (keeps one continuous clock, splits on stop).
+    if (document.getElementById('tc-timer-chip')) {
+      openTcTimerReview();
       return;
     }
+    openTcTimerDrawerForLog(msToLoggedHours(getTcTimerElapsedMs()));
+  }
 
-    tcTimerStopping = true;
-    if (stopBtn) stopBtn.disabled = true;
-    try {
-      await commitTcFocusLog(resolved, hours);
-      resetTcTimerDrawerChrome();
-    } catch (err) {
-      console.error(err);
-      updateTcTimerUi();
-      showTcTimerToast((err && err.message) || 'Could not log time.', true);
-    } finally {
-      tcTimerStopping = false;
-      if (stopBtn) stopBtn.disabled = false;
+  function startTcTimerFromChip() {
+    if (isTcTimerActive() || isTcTimerReviewOpen()) return;
+    var targetEl = document.getElementById('tc-chip-target');
+    var target = targetEl ? String(targetEl.value || '') : '';
+    var resolved = target ? resolveTcTimerTarget(target) : null;
+    if (target && !resolved) {
+      showTcTimerToast('Choose a valid client.', true);
+      return;
     }
+    quickStartTcTimer(target, resolved ? resolved.clientName : '');
+    setTcChipExpanded(true);
   }
 
   function formatTcDayTitle(dayKey) {
@@ -6019,32 +6624,7 @@
     });
   }
 
-  function renderTimeCapacityPanel() {
-    var summaryWeek = document.getElementById('tc-summary-week');
-    if (!summaryWeek) return;
-    ensureTcCalState();
-    var snap = getTimeCapacitySnapshot();
-
-    summaryWeek.textContent = formatHours(snap.suggestedWeek);
-    var elMaint = document.getElementById('tc-summary-maint');
-    var elBuild = document.getElementById('tc-summary-build');
-    var elPlanned = document.getElementById('tc-summary-planned');
-    var elLogged = document.getElementById('tc-summary-logged');
-    if (elMaint) elMaint.textContent = formatHours(snap.maintRemaining);
-    if (elBuild) elBuild.textContent = formatHours(snap.buildRemaining);
-    if (elPlanned) elPlanned.textContent = formatHours(snap.weekPlanned);
-    if (elLogged) elLogged.textContent = formatHours(snap.weekLogged);
-
-    var monthLabel = document.getElementById('tc-cal-month-label');
-    var grid = document.getElementById('tc-cal-grid');
-    if (!grid) return;
-
-    var year = tcCalMonth.getFullYear();
-    var month = tcCalMonth.getMonth();
-    if (monthLabel) {
-      monthLabel.textContent = tcCalMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' });
-    }
-
+  function getTcDayHoursMap() {
     var dayTotals = {};
     agencyTimeEntries.forEach(function (e) {
       if (!e.date) return;
@@ -6052,62 +6632,18 @@
       dayTotals[e.date].planned += e.plannedHours;
       dayTotals[e.date].logged += e.loggedHours;
     });
+    Object.keys(dayTotals).forEach(function (key) {
+      var tot = dayTotals[key];
+      tot.planned = roundHours(tot.planned);
+      tot.logged = roundHours(tot.logged);
+      tot.plannedLabel = formatHours(tot.planned);
+      tot.loggedLabel = formatHours(tot.logged);
+    });
+    return dayTotals;
+  }
 
-    var firstWeekday = new Date(year, month, 1).getDay();
-    var daysInMonth = new Date(year, month + 1, 0).getDate();
-    var todayKey = todayTcDayKey();
-    var html = '';
-    var i;
-    for (i = 0; i < firstWeekday; i++) {
-      html += '<div class="admin-bookings-cal-cell is-empty" aria-hidden="true"></div>';
-    }
-    for (i = 1; i <= daysInMonth; i++) {
-      var key =
-        year + '-' + String(month + 1).padStart(2, '0') + '-' + String(i).padStart(2, '0');
-      var tot = dayTotals[key] || { planned: 0, logged: 0 };
-      var has = tot.planned > 0 || tot.logged > 0;
-      var classes = 'admin-bookings-cal-cell';
-      if (key === todayKey) classes += ' is-today';
-      if (key === tcSelectedDay) classes += ' is-selected';
-      if (has) classes += ' has-bookings tc-has-hours';
-      var tipParts = [];
-      if (tot.planned > 0) tipParts.push('P ' + formatHours(tot.planned));
-      if (tot.logged > 0) tipParts.push('L ' + formatHours(tot.logged));
-      var tip = tipParts.join(' · ');
-      var badge =
-        tot.planned > 0 || tot.logged > 0
-          ? '<span class="admin-bookings-cal-day-count">' +
-            esc(formatHours(tot.planned + tot.logged)) +
-            '</span>'
-          : '';
-      html +=
-        '<button type="button" class="' +
-        classes +
-        '" data-tc-day="' +
-        key +
-        '"' +
-        (key === tcSelectedDay ? ' aria-current="date"' : '') +
-        ' aria-pressed="' +
-        (key === tcSelectedDay ? 'true' : 'false') +
-        '"' +
-        ' aria-label="' +
-        esc(key) +
-        (tip ? ', ' + tip : '') +
-        '">' +
-        '<span class="admin-bookings-cal-day-top">' +
-        '<span class="admin-bookings-cal-day-num">' +
-        i +
-        '</span>' +
-        badge +
-        '</span>' +
-        (tip
-          ? '<span class="admin-bookings-cal-day-tip">' + esc(tip) + '</span>'
-          : '') +
-        '</button>';
-    }
-    grid.innerHTML = html;
-
-    var dayTitle = document.getElementById('tc-day-title');
+  function renderTcDayListOnly() {
+    ensureTcCalState();
     var dayCount = document.getElementById('tc-day-count');
     var dayList = document.getElementById('tc-day-list');
     var dayEntries = getTcEntriesForDay(tcSelectedDay);
@@ -6117,6 +6653,7 @@
       dayPlanned += e.plannedHours;
       dayLogged += e.loggedHours;
     });
+    var dayTitle = document.getElementById('tc-day-title');
     if (dayTitle) dayTitle.textContent = formatTcDayTitle(tcSelectedDay);
     if (dayCount) {
       dayCount.textContent =
@@ -6150,6 +6687,9 @@
               '</span></button>' +
               '<button type="button" class="btn btn-danger btn-sm" data-tc-action="delete-entry">Delete</button>' +
               '</div>' +
+              (e.notes
+                ? '<p class="tc-entry-notes">' + esc(e.notes) + '</p>'
+                : '') +
               '<div class="tc-entry-edit">' +
               '<label class="tc-field"><span>Planned</span>' +
               '<input type="number" class="form-input tc-input" data-tc-field="plannedHours" min="0" step="0.5" inputmode="decimal" value="' +
@@ -6159,6 +6699,10 @@
               '<input type="number" class="form-input tc-input" data-tc-field="loggedHours" min="0" step="0.5" inputmode="decimal" value="' +
               esc(String(e.loggedHours)) +
               '"></label>' +
+              '<label class="tc-field tc-field--grow"><span>What was done</span>' +
+              '<textarea class="form-input tc-input" data-tc-field="notes" rows="2">' +
+              esc(e.notes || '') +
+              '</textarea></label>' +
               '<button type="button" class="btn btn-secondary btn-sm" data-tc-action="save-entry">Save</button>' +
               '</div></article>'
             );
@@ -6166,9 +6710,130 @@
           .join('');
       }
     }
+  }
 
+  function syncPlannerSelectedDay(dayKey, monthDate) {
+    ensureTcCalState();
+    if (dayKey) tcSelectedDay = String(dayKey).slice(0, 10);
+    if (monthDate && !isNaN(monthDate.getTime())) {
+      tcCalMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+    } else if (tcSelectedDay) {
+      var parts = tcSelectedDay.split('-');
+      if (parts.length === 3) {
+        tcCalMonth = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
+      }
+    }
+    if (tcPlannerSyncing) {
+      renderTcDayListOnly();
+      return;
+    }
+    tcPlannerSyncing = true;
+    try {
+      renderTcDayListOnly();
+    } finally {
+      tcPlannerSyncing = false;
+    }
+  }
+
+  function refreshPlannerBookingsCalendar() {
+    if (tcPlannerSyncing) return;
+    if (typeof window.renderAdminBookingsPanel !== 'function') return;
+    tcPlannerSyncing = true;
+    try {
+      window.renderAdminBookingsPanel();
+    } finally {
+      tcPlannerSyncing = false;
+    }
+  }
+
+  function renderTimeCapacityPanel() {
+    var summaryWeek = document.getElementById('tc-summary-week');
+    if (!summaryWeek) return;
+    ensureTcCalState();
+    var snap = getTimeCapacitySnapshot();
+
+    summaryWeek.textContent = formatHours(snap.suggestedWeek);
+    var elMaint = document.getElementById('tc-summary-maint');
+    var elBuild = document.getElementById('tc-summary-build');
+    var elPlanned = document.getElementById('tc-summary-planned');
+    var elLogged = document.getElementById('tc-summary-logged');
+    if (elMaint) elMaint.textContent = formatHours(snap.maintRemaining);
+    if (elBuild) elBuild.textContent = formatHours(snap.buildRemaining);
+    if (elPlanned) elPlanned.textContent = formatHours(snap.weekPlanned);
+    if (elLogged) elLogged.textContent = formatHours(snap.weekLogged);
+
+    var monthLabel = document.getElementById('tc-cal-month-label');
+    var grid = document.getElementById('tc-cal-grid');
+    if (grid) {
+      var year = tcCalMonth.getFullYear();
+      var month = tcCalMonth.getMonth();
+      if (monthLabel) {
+        monthLabel.textContent = tcCalMonth.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+      }
+
+      var dayTotals = getTcDayHoursMap();
+      var firstWeekday = new Date(year, month, 1).getDay();
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+      var todayKey = todayTcDayKey();
+      var html = '';
+      var i;
+      for (i = 0; i < firstWeekday; i++) {
+        html += '<div class="admin-bookings-cal-cell is-empty" aria-hidden="true"></div>';
+      }
+      for (i = 1; i <= daysInMonth; i++) {
+        var key =
+          year + '-' + String(month + 1).padStart(2, '0') + '-' + String(i).padStart(2, '0');
+        var tot = dayTotals[key] || { planned: 0, logged: 0 };
+        var has = tot.planned > 0 || tot.logged > 0;
+        var classes = 'admin-bookings-cal-cell';
+        if (key === todayKey) classes += ' is-today';
+        if (key === tcSelectedDay) classes += ' is-selected';
+        if (has) classes += ' has-bookings tc-has-hours';
+        var tipParts = [];
+        if (tot.planned > 0) tipParts.push('P ' + formatHours(tot.planned));
+        if (tot.logged > 0) tipParts.push('L ' + formatHours(tot.logged));
+        var tip = tipParts.join(' · ');
+        var badge =
+          tot.planned > 0 || tot.logged > 0
+            ? '<span class="admin-bookings-cal-day-count">' +
+              esc(formatHours(tot.planned + tot.logged)) +
+              '</span>'
+            : '';
+        html +=
+          '<button type="button" class="' +
+          classes +
+          '" data-tc-day="' +
+          key +
+          '"' +
+          (key === tcSelectedDay ? ' aria-current="date"' : '') +
+          ' aria-pressed="' +
+          (key === tcSelectedDay ? 'true' : 'false') +
+          '"' +
+          ' aria-label="' +
+          esc(key) +
+          (tip ? ', ' + tip : '') +
+          '">' +
+          '<span class="admin-bookings-cal-day-top">' +
+          '<span class="admin-bookings-cal-day-num">' +
+          i +
+          '</span>' +
+          badge +
+          '</span>' +
+          (tip
+            ? '<span class="admin-bookings-cal-day-tip">' + esc(tip) + '</span>'
+            : '') +
+          '</button>';
+      }
+      grid.innerHTML = html;
+    }
+
+    renderTcDayListOnly();
     syncTcAddTargetSelect(true);
+    syncTcChipTargetSelect(true);
     updateTcTimerUi();
+    if (!grid && document.getElementById('admin-bookings-cal-grid')) {
+      refreshPlannerBookingsCalendar();
+    }
   }
 
   async function saveTimeEntryFromCard(card) {
@@ -6187,6 +6852,9 @@
       0,
       Number((card.querySelector('[data-tc-field="loggedHours"]') || {}).value) || 0
     );
+    var notes = String(
+      (card.querySelector('[data-tc-field="notes"]') || {}).value || ''
+    ).slice(0, 500);
     var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + id));
     var row = snap.val() || {};
     await window.rtdbSet(
@@ -6194,6 +6862,7 @@
       Object.assign({}, row, {
         plannedHours: planned,
         loggedHours: logged,
+        notes: notes,
         updatedAt: ts()
       })
     );
@@ -6203,6 +6872,7 @@
     if (local) {
       local.plannedHours = planned;
       local.loggedHours = logged;
+      local.notes = notes;
     }
     await syncLoggedTotalsFromEntries({
       projectId: existing.projectId,
@@ -6225,6 +6895,100 @@
         maintenanceId: existing.maintenanceId
       });
     }
+  }
+
+  function openDeleteTimeEntryConfirmModal(id) {
+    if (!id) return;
+    pendingDeleteTimeEntryId = id;
+    var entry = agencyTimeEntries.find(function (x) { return x.id === id; });
+    var desc = document.getElementById('delete-time-entry-confirm-desc');
+    if (desc) {
+      var label = entry ? (entry.clientName || 'this client') : 'this entry';
+      var hoursBit = entry
+        ? ' (' + formatHours(entry.plannedHours) + ' planned, ' + formatHours(entry.loggedHours) + ' logged)'
+        : '';
+      desc.textContent =
+        'Permanently delete the time entry for “' + label + '”' + hoursBit + '? This cannot be undone.';
+    }
+    var modal = document.getElementById('delete-time-entry-confirm-modal');
+    if (!modal) return;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var cancelBtn = document.getElementById('delete-time-entry-confirm-cancel');
+    if (cancelBtn) {
+      setTimeout(function () {
+        cancelBtn.focus();
+      }, 40);
+    }
+  }
+
+  function closeDeleteTimeEntryConfirmModal() {
+    var modal = document.getElementById('delete-time-entry-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingDeleteTimeEntryId = null;
+  }
+
+  function setupDeleteTimeEntryConfirmModal() {
+    var modal = document.getElementById('delete-time-entry-confirm-modal');
+    if (!modal || modal.dataset.tcDelBound) return;
+    modal.dataset.tcDelBound = '1';
+
+    var overlay = document.getElementById('delete-time-entry-confirm-overlay');
+    var btnClose = document.getElementById('delete-time-entry-confirm-close');
+    var btnCancel = document.getElementById('delete-time-entry-confirm-cancel');
+    var btnDelete = document.getElementById('delete-time-entry-confirm-delete');
+
+    function close() {
+      closeDeleteTimeEntryConfirmModal();
+    }
+
+    [overlay, btnClose, btnCancel].forEach(function (el) {
+      if (el) el.addEventListener('click', close);
+    });
+
+    if (btnDelete) {
+      btnDelete.addEventListener('click', function () {
+        var id = pendingDeleteTimeEntryId;
+        if (!id || !rtdbReady()) {
+          close();
+          return;
+        }
+        btnDelete.disabled = true;
+        deleteTimeEntry(id)
+          .then(function () {
+            close();
+            renderTimeCapacityPanel();
+            if (typeof showSuccessMessage === 'function') {
+              showSuccessMessage('Time entry deleted.');
+            }
+          })
+          .catch(function (err) {
+            console.error(err);
+            if (typeof showErrorMessage === 'function') {
+              showErrorMessage(err.message || 'Could not delete time entry.');
+            } else {
+              alert('Could not delete time entry. Try again.');
+            }
+          })
+          .finally(function () {
+            btnDelete.disabled = false;
+          });
+      });
+    }
+
+    document.addEventListener(
+      'keydown',
+      function tcDelEsc(ev) {
+        if (ev.key !== 'Escape') return;
+        var m = document.getElementById('delete-time-entry-confirm-modal');
+        if (!m || !m.classList.contains('active')) return;
+        ev.stopImmediatePropagation();
+        close();
+      },
+      true
+    );
   }
 
   async function addTimeEntryFromForm() {
@@ -6374,252 +7138,21 @@
   }
 
   function openTcTimerDrawer() {
-    if (isTcTimerActive() && !tcTimerAwaitingClientLog) return;
-    closeTcAddDrawer();
-    var drawer = document.getElementById('tc-timer-drawer');
-    var overlay = document.getElementById('tc-timer-drawer-overlay');
-    if (!drawer || !overlay) return;
-    if (!tcTimerAwaitingClientLog) {
-      resetTcTimerDrawerChrome();
-      setTcTimerFeedback('');
-      syncTcTimerTargetSelect(false);
-    }
-    drawer.hidden = false;
-    overlay.hidden = false;
-    drawer.setAttribute('aria-hidden', 'false');
-    overlay.setAttribute('aria-hidden', 'false');
-    requestAnimationFrame(function () {
-      drawer.classList.add('is-open');
-      overlay.classList.add('is-open');
-    });
-    document.body.classList.add('tc-add-drawer-open');
-    window.setTimeout(function () {
-      var startBtn = document.getElementById('tc-timer-start');
-      if (startBtn) {
-        try {
-          startBtn.focus();
-        } catch (fe) {}
-      }
-    }, 40);
+    // Pressing "Timer" starts a session immediately — the sticky bar is the
+    // only UI for it. No client picker step: pick the client when you stop.
+    if (isTcTimerActive()) return;
+    quickStartTcTimer('', '');
   }
 
   function closeTcTimerDrawer() {
-    var drawer = document.getElementById('tc-timer-drawer');
-    var overlay = document.getElementById('tc-timer-drawer-overlay');
-    if (!drawer || !overlay) return;
-    drawer.classList.remove('is-open');
-    overlay.classList.remove('is-open');
-    if (!isTcAddDrawerOpen()) {
-      document.body.classList.remove('tc-add-drawer-open');
-    }
-    if (tcTimerAwaitingClientLog) {
-      // Keep paused session; user can Stop & log again to assign a client.
-      resetTcTimerDrawerChrome();
-    }
-    window.setTimeout(function () {
-      if (drawer.classList.contains('is-open')) return;
-      drawer.hidden = true;
-      overlay.hidden = true;
-      drawer.setAttribute('aria-hidden', 'true');
-      overlay.setAttribute('aria-hidden', 'true');
-    }, 360);
-  }
-
-  function initTimeCapacity() {
-    if (timeCapacityBound) return;
-    var panel = document.getElementById('admin-panel-time-capacity');
-    if (!panel) return;
-    timeCapacityBound = true;
-    ensureTcCalState();
-    loadPersistedTcTimer();
-    syncTcAddTargetSelect(false);
+    var modal = document.getElementById('tc-timer-drawer');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    // Keep the paused session; user can Stop & log again to assign a client,
+    // or Resume (now unblocked) to keep working.
+    resetTcTimerDrawerChrome();
     updateTcTimerUi();
-    if (tcTimerState.status === 'running') startTcTimerTick();
-    else if (tcTimerState.status === 'paused') updateTcTimerUi();
-
-    var openTimerBtn = document.getElementById('tc-open-timer-drawer');
-    var timerStart = document.getElementById('tc-timer-start');
-    var timerPause = document.getElementById('tc-timer-pause');
-    var timerResume = document.getElementById('tc-timer-resume');
-    var timerStop = document.getElementById('tc-timer-stop');
-    var timerOverlay = document.getElementById('tc-timer-drawer-overlay');
-    var timerClose = document.getElementById('tc-timer-drawer-close');
-    var timerCancel = document.getElementById('tc-timer-drawer-cancel');
-    if (openTimerBtn) openTimerBtn.addEventListener('click', openTcTimerDrawer);
-    if (timerStart) timerStart.addEventListener('click', startTcFocusSession);
-    if (timerPause) timerPause.addEventListener('click', pauseTcFocusSession);
-    if (timerResume) timerResume.addEventListener('click', resumeTcFocusSession);
-    if (timerStop) timerStop.addEventListener('click', function () {
-      stopTcFocusSession();
-    });
-    if (timerOverlay) timerOverlay.addEventListener('click', closeTcTimerDrawer);
-    if (timerClose) timerClose.addEventListener('click', closeTcTimerDrawer);
-    if (timerCancel) timerCancel.addEventListener('click', closeTcTimerDrawer);
-
-    var prevBtn = document.getElementById('tc-cal-prev');
-    var nextBtn = document.getElementById('tc-cal-next');
-    var todayBtn = document.getElementById('tc-cal-today');
-    if (prevBtn) {
-      prevBtn.addEventListener('click', function () {
-        ensureTcCalState();
-        tcCalMonth = new Date(tcCalMonth.getFullYear(), tcCalMonth.getMonth() - 1, 1);
-        renderTimeCapacityPanel();
-      });
-    }
-    if (nextBtn) {
-      nextBtn.addEventListener('click', function () {
-        ensureTcCalState();
-        tcCalMonth = new Date(tcCalMonth.getFullYear(), tcCalMonth.getMonth() + 1, 1);
-        renderTimeCapacityPanel();
-      });
-    }
-    if (todayBtn) {
-      todayBtn.addEventListener('click', function () {
-        var now = new Date();
-        tcCalMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        tcSelectedDay = todayTcDayKey();
-        renderTimeCapacityPanel();
-        var dayPanel = panel.querySelector('.admin-bookings-day-panel');
-        if (dayPanel && window.matchMedia('(max-width: 979px)').matches) {
-          dayPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-      });
-    }
-
-    var addOverlay = document.getElementById('tc-add-drawer-overlay');
-    var addClose = document.getElementById('tc-add-drawer-close');
-    var addCancel = document.getElementById('tc-add-drawer-cancel');
-    if (addOverlay) addOverlay.addEventListener('click', closeTcAddDrawer);
-    if (addClose) addClose.addEventListener('click', closeTcAddDrawer);
-    if (addCancel) addCancel.addEventListener('click', closeTcAddDrawer);
-
-    var addDrawer = document.getElementById('tc-add-drawer');
-    if (addDrawer) {
-      addDrawer.addEventListener('click', function (e) {
-        var actionBtn = e.target.closest('[data-tc-action="add-entry"]');
-        if (!actionBtn || !addDrawer.contains(actionBtn)) return;
-        e.preventDefault();
-        var feedback = document.getElementById('tc-add-feedback');
-        actionBtn.disabled = true;
-        if (feedback) {
-          feedback.textContent = '';
-          feedback.classList.remove('is-error');
-        }
-        addTimeEntryFromForm()
-          .then(function () {
-            renderTimeCapacityPanel();
-            if (feedback) feedback.textContent = 'Saved.';
-            closeTcAddDrawer();
-          })
-          .catch(function (err) {
-            console.error(err);
-            if (feedback) {
-              feedback.textContent = (err && err.message) || 'Could not save.';
-              feedback.classList.add('is-error');
-            }
-          })
-          .then(function () {
-            actionBtn.disabled = false;
-          });
-      });
-    }
-
-    document.addEventListener(
-      'keydown',
-      function tcAddEsc(ev) {
-        if (ev.key !== 'Escape') return;
-        if (isTcTimerDrawerOpen()) {
-          ev.stopImmediatePropagation();
-          closeTcTimerDrawer();
-          return;
-        }
-        if (!isTcAddDrawerOpen()) return;
-        ev.stopImmediatePropagation();
-        closeTcAddDrawer();
-      },
-      true
-    );
-
-    panel.addEventListener('click', function (e) {
-      var dayBtn = e.target.closest('[data-tc-day]');
-      if (dayBtn && panel.contains(dayBtn)) {
-        var nextDay = dayBtn.getAttribute('data-tc-day');
-        if (nextDay === tcSelectedDay) {
-          if (window.matchMedia('(max-width: 979px)').matches) {
-            var p = panel.querySelector('.admin-bookings-day-panel');
-            if (p) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
-          return;
-        }
-        tcSelectedDay = nextDay;
-        renderTimeCapacityPanel();
-        if (window.matchMedia('(max-width: 979px)').matches) {
-          var panelEl = panel.querySelector('.admin-bookings-day-panel');
-          if (panelEl) panelEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-        return;
-      }
-
-      var actionBtn = e.target.closest('[data-tc-action]');
-      if (!actionBtn || !panel.contains(actionBtn)) return;
-      var action = actionBtn.getAttribute('data-tc-action');
-
-      if (action === 'open-timer') {
-        openTcTimerDrawer();
-        return;
-      }
-
-      if (action === 'open-add') {
-        openTcAddDrawer();
-        return;
-      }
-
-      if (action === 'open-client') {
-        var projectId = actionBtn.getAttribute('data-tc-project');
-        var maintId = actionBtn.getAttribute('data-tc-maint');
-        if (projectId) openClientProjectWorkspace(projectId);
-        else if (maintId) {
-          var m = agencyMaintenance.find(function (x) {
-            return x.id === maintId;
-          });
-          if (m && m.projectId) openClientProjectWorkspace(m.projectId);
-        }
-        return;
-      }
-
-      if (action === 'save-entry') {
-        var card = actionBtn.closest('[data-tc-entry-id]');
-        actionBtn.disabled = true;
-        saveTimeEntryFromCard(card)
-          .then(function () {
-            renderTimeCapacityPanel();
-          })
-          .catch(function (err) {
-            console.error(err);
-          })
-          .then(function () {
-            actionBtn.disabled = false;
-          });
-        return;
-      }
-
-      if (action === 'delete-entry') {
-        var delCard = actionBtn.closest('[data-tc-entry-id]');
-        var delId = delCard && delCard.getAttribute('data-tc-entry-id');
-        if (!delId || !window.confirm('Delete this time entry?')) return;
-        actionBtn.disabled = true;
-        deleteTimeEntry(delId)
-          .then(function () {
-            renderTimeCapacityPanel();
-          })
-          .catch(function (err) {
-            console.error(err);
-          })
-          .then(function () {
-            actionBtn.disabled = false;
-          });
-      }
-    });
   }
 
   function getOverviewSnapshot() {
@@ -6755,6 +7288,9 @@
     getOverviewSnapshot: getOverviewSnapshot,
     refreshStudioCosts: renderStudioCostsTable,
     refreshTimeCapacity: renderTimeCapacityPanel,
+    syncPlannerSelectedDay: syncPlannerSelectedDay,
+    getDayHoursMap: getTcDayHoursMap,
+    handlePlannerAction: handlePlannerAction,
     getHubByLeadId: function (leadId) {
       if (!leadId) return null;
       return agencyProjects.find(function (p) { return p.leadId === leadId; }) || null;

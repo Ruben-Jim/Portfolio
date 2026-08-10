@@ -11570,6 +11570,15 @@ window.addEventListener('load', function() {
       }
     });
 
+    var dayHours = {};
+    if (window.AgencyTools && typeof window.AgencyTools.getDayHoursMap === 'function') {
+      try {
+        dayHours = window.AgencyTools.getDayHoursMap() || {};
+      } catch (hoursErr) {
+        dayHours = {};
+      }
+    }
+
     var firstWeekday = new Date(year, month, 1).getDay();
     var daysInMonth = new Date(year, month + 1, 0).getDate();
     var todayKey = todayBookingDayKey();
@@ -11581,17 +11590,27 @@ window.addEventListener('load', function() {
     for (i = 1; i <= daysInMonth; i++) {
       var key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(i).padStart(2, '0');
       var count = counts[key] || 0;
+      var hours = dayHours[key] || null;
+      var hasHours = !!(hours && (hours.planned > 0 || hours.logged > 0));
       var classes = 'admin-bookings-cal-cell';
       if (key === todayKey) classes += ' is-today';
       if (key === adminBookingsSelectedDay) classes += ' is-selected';
       if (count) classes += ' has-bookings';
-      var tip = firstTime[key] ? firstTime[key].label : '';
+      if (hasHours) classes += ' tc-has-hours';
+      var tipParts = [];
+      if (firstTime[key]) tipParts.push(firstTime[key].label);
+      if (hasHours) {
+        if (hours.planned > 0) tipParts.push('P ' + (hours.plannedLabel || hours.planned + 'h'));
+        if (hours.logged > 0) tipParts.push('L ' + (hours.loggedLabel || hours.logged + 'h'));
+      }
+      var tip = tipParts.join(' · ');
       html +=
         '<button type="button" class="' + classes + '" data-bookings-day="' + key + '"' +
         (key === adminBookingsSelectedDay ? ' aria-current="date"' : '') +
         ' aria-pressed="' + (key === adminBookingsSelectedDay ? 'true' : 'false') + '"' +
         ' aria-label="' +
-        escapeBookingHtml(key) + (count ? (', ' + count + ' booking' + (count === 1 ? '' : 's')) : '') + '">' +
+        escapeBookingHtml(key) + (count ? (', ' + count + ' booking' + (count === 1 ? '' : 's')) : '') +
+        (hasHours && tip ? ', ' + tip : '') + '">' +
           '<span class="admin-bookings-cal-day-top">' +
             '<span class="admin-bookings-cal-day-num">' + i + '</span>' +
             (count ? '<span class="admin-bookings-cal-day-count">' + count + '</span>' : '') +
@@ -11624,6 +11643,10 @@ window.addEventListener('load', function() {
       dayRows,
       '<div class="admin-bookings-empty"><p class="form-hint">No calls on this day. Pick a highlighted date on the calendar.</p></div>'
     );
+
+    if (window.AgencyTools && typeof window.AgencyTools.syncPlannerSelectedDay === 'function') {
+      window.AgencyTools.syncPlannerSelectedDay(adminBookingsSelectedDay, adminBookingsCalMonth);
+    }
   }
 
   function renderAdminBookingsPanel() {
@@ -12317,6 +12340,11 @@ window.addEventListener('load', function() {
         adminBookingsSelectedDay = nextDay;
         adminBookingsScrollDayPanel = true;
         renderAdminBookingsPanel();
+        return;
+      }
+      var tcActionBtn = e.target.closest('[data-tc-action]');
+      if (tcActionBtn && section.contains(tcActionBtn) && window.AgencyTools && typeof window.AgencyTools.handlePlannerAction === 'function') {
+        window.AgencyTools.handlePlannerAction(tcActionBtn);
         return;
       }
       var actionBtn = e.target.closest('[data-booking-action]');
@@ -14511,11 +14539,11 @@ window.addEventListener('load', function() {
       'overview', 'crm-hub', 'content-hub', 'ops', 'referrals', 'studio-costs'
     ];
     var VALID_TAB = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, bookings: 1, pipeline: 1,
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
-    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, 'time-capacity': 1, messages: 1, docs: 1, 'client-email': 1, bookings: 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, docs: 1, 'client-email': 1 };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
     if (!tabBar) return;
@@ -15178,15 +15206,22 @@ window.addEventListener('load', function() {
 
   // Mobile admin — CRM section hub + docked subtab bar (Pipeline · Clients · Messages · Docs · Email)
   (function initAdminMobileCRMSubtabBar() {
-    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'time-capacity', 'messages', 'docs', 'client-email', 'bookings'];
+    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'planner', 'messages', 'docs', 'client-email'];
+    var CRM_SUB_TAB_META = {
+      pipeline:          { label: 'Pipeline', icon: 'git-network-outline' },
+      'client-projects': { label: 'Clients',  icon: 'briefcase-outline' },
+      planner:           { label: 'Planner',  icon: 'calendar-outline' },
+      messages:          { label: 'Messages', icon: 'mail-outline' },
+      docs:              { label: 'Docs',     icon: 'document-text-outline' },
+      'client-email':    { label: 'Email',    icon: 'send-outline' }
+    };
     var CRM_SUB_META = {
       pipeline:          { label: 'Pipeline', icon: 'git-network-outline' },
       'client-projects': { label: 'Clients',  icon: 'briefcase-outline' },
-      'time-capacity':   { label: 'Time',     icon: 'timer-outline' },
+      planner:           { label: 'Planner',  icon: 'calendar-outline' },
       messages:          { label: 'Messages', icon: 'mail-outline' },
       docs:              { label: 'Docs',     icon: 'document-text-outline' },
-      'client-email':    { label: 'Email',    icon: 'send-outline' },
-      bookings:          { label: 'Bookings', icon: 'calendar-outline' }
+      'client-email':    { label: 'Email',    icon: 'send-outline' }
     };
     var LAST_CRM_KEY = 'adminLastCRMTab';
     var crmSubtabRoot = null;
@@ -15310,17 +15345,18 @@ window.addEventListener('load', function() {
     }
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
-    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, 'time-capacity': 1, messages: 1, docs: 1, 'client-email': 1, bookings: 1 };
-    var AGENCY_TABS = { 'client-projects': 1, 'time-capacity': 1, referrals: 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, docs: 1, 'client-email': 1 };
+    var AGENCY_TABS = { 'client-projects': 1, planner: 1, referrals: 1 };
     var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
     var navGroups = tabBar.querySelectorAll('.admin-nav-group');
 
     function resolveAdminTab(tabId) {
       if (LEGACY_AGENCY_TABS[tabId]) return 'client-projects';
+      if (tabId === 'bookings' || tabId === 'time-capacity') return 'planner';
       return tabId;
     }
 
@@ -15385,7 +15421,7 @@ window.addEventListener('load', function() {
       if (tabId === 'testimonials' && typeof window.loadTestimonialAdminPanel === 'function') {
         window.loadTestimonialAdminPanel();
       }
-      if (tabId === 'bookings') {
+      if (tabId === 'planner' || tabId === 'bookings') {
         if (typeof window.subscribeAgencyBookingsFromRtdb === 'function') {
           window.subscribeAgencyBookingsFromRtdb();
         }
@@ -15394,6 +15430,15 @@ window.addEventListener('load', function() {
         }
         if (typeof window.renderAdminBookingsPanel === 'function') {
           window.renderAdminBookingsPanel();
+        }
+        if (window.AgencyTools) {
+          if (typeof window.AgencyTools.subscribe === 'function') window.AgencyTools.subscribe();
+          if (typeof window.AgencyTools.refreshTimeCapacity === 'function') {
+            window.AgencyTools.refreshTimeCapacity();
+          }
+          if (typeof window.AgencyTools.syncPlannerSelectedDay === 'function') {
+            window.AgencyTools.syncPlannerSelectedDay();
+          }
         }
       }
       if (tabId === 'portfolio' && typeof populatePortfolioImageAssetSelect === 'function') {
@@ -18517,7 +18562,7 @@ function toggleTheme() {
       { id: 'admin-messages', label: 'Admin: Contact messages', icon: 'mail-outline', search: 'admin contact messages inbox', action: function () { runAdminTab('messages'); } },
       { id: 'admin-pipeline', label: 'Admin: Client pipeline', icon: 'git-network-outline', search: 'admin pipeline leads crm', action: function () { runAdminTab('pipeline'); } },
       { id: 'admin-hub', label: 'Admin: Clients Projects', icon: 'briefcase-outline', search: 'admin clients projects hub client', action: function () { runAdminTab('client-projects'); } },
-      { id: 'admin-time-capacity', label: 'Admin: Time Capacity', icon: 'timer-outline', search: 'admin time capacity hours maintenance build weekly', action: function () { runAdminTab('time-capacity'); } },
+      { id: 'admin-planner', label: 'Admin: Planner', icon: 'calendar-outline', search: 'admin planner bookings time capacity hours calendar calls', action: function () { runAdminTab('planner'); } },
       { id: 'admin-maintenance', label: 'Admin: Clients Projects (maintenance)', icon: 'construct-outline', search: 'admin maintenance sla clients', action: function () { runAdminTab('client-projects'); } },
       { id: 'admin-portfolio', label: 'Admin: Portfolio projects', icon: 'albums-outline', search: 'admin portfolio projects', action: function () { runAdminTab('portfolio'); } },
       { id: 'admin-blog', label: 'Admin: Blog management', icon: 'newspaper-outline', search: 'admin blog posts', action: function () { runAdminTab('blog'); } },

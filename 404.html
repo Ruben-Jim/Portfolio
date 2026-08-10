@@ -2906,6 +2906,56 @@
             <h2 class="h2 article-title">Admin Dashboard</h2>
           </header>
 
+          <div class="tc-timer-chip" id="tc-timer-chip">
+            <button type="button" class="tc-timer-chip-btn" id="tc-timer-chip-btn" aria-expanded="false" aria-controls="tc-timer-chip-panel">
+              <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
+              <span class="tc-timer-chip-label" id="tc-timer-chip-label">Timer</span>
+              <span class="tc-timer-chip-time" id="tc-timer-chip-time" hidden>0h 0m</span>
+            </button>
+            <div class="tc-timer-chip-panel" id="tc-timer-chip-panel" hidden>
+              <div class="tc-timer-chip-panel-head">
+                <div>
+                  <p class="tc-timer-chip-panel-title" id="tc-timer-chip-panel-title">Focus session</p>
+                  <p class="tc-timer-chip-panel-sub" id="tc-timer-chip-panel-sub">Start a session or switch focus anytime.</p>
+                </div>
+                <button type="button" class="tc-timer-chip-panel-close" id="tc-timer-chip-panel-close" aria-label="Close">
+                  <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+                </button>
+              </div>
+              <div class="tc-timer-chip-panel-clock" id="tc-timer-chip-panel-clock">0h 0m 0s</div>
+              <div class="tc-timer-chip-panel-client" id="tc-timer-chip-panel-client">No client</div>
+              <div class="tc-timer-chip-segments" id="tc-timer-chip-segments" hidden></div>
+              <div class="tc-timer-chip-panel-select" id="tc-timer-chip-panel-select-wrap">
+                <div class="business-doc-select" data-select-name="tc-chip-target">
+                  <input type="hidden" id="tc-chip-target" name="tc-chip-target" value="" autocomplete="off">
+                  <button type="button" class="business-doc-select-trigger form-input tc-input" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="business-doc-select-trigger-label">No client — just focus</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">No client — just focus</button>
+                  </div>
+                </div>
+              </div>
+              <div class="tc-timer-chip-panel-actions" id="tc-timer-chip-panel-actions">
+                <button type="button" class="btn btn-primary btn-sm" id="tc-chip-start">Start</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="tc-chip-switch" hidden>Switch focus</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="tc-chip-pause" hidden>Pause</button>
+                <button type="button" class="btn btn-primary btn-sm" id="tc-chip-resume" hidden>Resume</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="tc-chip-stop" hidden>Stop &amp; review</button>
+              </div>
+              <div class="tc-timer-chip-review" id="tc-timer-chip-review" hidden>
+                <p class="tc-timer-chip-review-lead">Review segments, then log to today.</p>
+                <ul class="tc-timer-chip-review-list" id="tc-timer-chip-review-list"></ul>
+                <div class="tc-timer-chip-panel-actions">
+                  <button type="button" class="btn btn-secondary btn-sm" id="tc-chip-review-discard">Discard</button>
+                  <button type="button" class="btn btn-primary btn-sm" id="tc-chip-review-log">Log segments</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
 
         <div class="admin-tabs" id="admin-tabs">
           <nav class="admin-tab-bar" aria-label="Admin dashboard sections">
@@ -2928,9 +2978,9 @@
                   <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients</span><span class="admin-tab-label-mobile">Clients</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-time-capacity" data-admin-tab="time-capacity" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-time-capacity" tabindex="-1" aria-label="Time Capacity">
-                  <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Time Capacity</span><span class="admin-tab-label-mobile">Time</span></span>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-planner" data-admin-tab="planner" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-planner" tabindex="-1" aria-label="Planner">
+                  <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Planner</span><span class="admin-tab-label-mobile">Planner</span></span>
                 </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
                   <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>

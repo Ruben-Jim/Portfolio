@@ -3126,6 +3126,16 @@ body.cp-client-drawer-open {
   color: var(--light-gray);
 }
 
+.tc-timer-modal .confirm-delete-modal {
+  max-width: 460px;
+}
+
+.tc-timer-modal .tc-add-drawer-subtitle {
+  margin: 0 0 16px;
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+}
+
 .tc-timer-bar[hidden] {
   display: none !important;
 }
@@ -3377,11 +3387,40 @@ body.cp-client-drawer-open {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.22s ease, transform 0.22s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .tc-timer-toast.is-visible {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.tc-timer-toast-msg {
+  flex: 1 1 auto;
+}
+
+.tc-timer-toast-action {
+  flex-shrink: 0;
+  appearance: none;
+  border: 1px solid hsla(45, 100%, 72%, 0.4);
+  background: hsla(45, 100%, 72%, 0.12);
+  color: var(--orange-yellow-crayola);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font: inherit;
+  font-weight: var(--fw-600);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.tc-timer-toast-action:hover,
+.tc-timer-toast-action:focus-visible {
+  background: hsla(45, 100%, 72%, 0.22);
+  border-color: hsla(45, 100%, 72%, 0.6);
 }
 
 .tc-timer-toast.is-error {
@@ -3402,6 +3441,301 @@ body.cp-client-drawer-open {
     animation: none;
     transition: none;
   }
+}
+
+/* Viewport top-right timer chip (kept alongside floating dock) */
+.tc-timer-chip {
+  --tc-chip-accent: var(--orange-yellow-crayola);
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 10060;
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: min(360px, calc(100vw - 24px));
+  font-family: var(--ff-poppins, inherit);
+}
+
+body.admin-page-active article.admin[data-page="admin"].active .tc-timer-chip,
+body.admin-page-active .tc-timer-chip {
+  display: flex;
+}
+
+/* When chip is portaled to body */
+body.admin-page-active > .tc-timer-chip {
+  display: flex;
+}
+
+body:not(.admin-page-active) > .tc-timer-chip {
+  display: none !important;
+}
+
+.tc-timer-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(20, 20, 20, 0.92);
+  color: var(--white-2, #fafafa);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.tc-timer-chip.is-active .tc-timer-chip-btn {
+  border-color: color-mix(in srgb, var(--tc-chip-accent) 55%, transparent);
+}
+
+.tc-timer-chip.is-paused .tc-timer-chip-btn {
+  --tc-chip-accent: hsl(0, 0%, 78%);
+}
+
+.tc-timer-chip-btn:hover {
+  transform: translateY(-1px);
+}
+
+.tc-timer-chip-btn ion-icon {
+  font-size: 16px;
+  color: var(--tc-chip-accent);
+}
+
+.tc-timer-chip-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.tc-timer-chip-time {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--tc-chip-accent);
+  font-weight: 600;
+}
+
+.tc-timer-chip-panel {
+  width: min(340px, calc(100vw - 24px));
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(18, 18, 18, 0.96);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform-origin: top right;
+  animation: tc-timer-chip-in 0.22s ease-out;
+}
+
+.tc-timer-chip-panel[hidden] {
+  display: none !important;
+}
+
+@keyframes tc-timer-chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.tc-timer-chip-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tc-timer-chip-panel-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white-2, #fafafa);
+}
+
+.tc-timer-chip-panel-sub {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--light-gray, #d6d6d6);
+  opacity: 0.85;
+}
+
+.tc-timer-chip-panel-close {
+  border: 0;
+  background: transparent;
+  color: var(--light-gray, #d6d6d6);
+  cursor: pointer;
+  padding: 2px;
+  display: inline-flex;
+}
+
+.tc-timer-chip-panel-clock {
+  font-variant-numeric: tabular-nums;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--tc-chip-accent);
+  letter-spacing: 0.01em;
+}
+
+.tc-timer-chip-panel-client {
+  font-size: 13px;
+  color: var(--white-2, #fafafa);
+}
+
+.tc-timer-chip-segments {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 120px;
+  overflow: auto;
+}
+
+.tc-timer-chip-segment {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tc-timer-chip-segment-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-chip-accent);
+}
+
+.tc-timer-chip-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tc-timer-chip-panel-actions .btn[hidden],
+.tc-timer-chip-panel-actions[hidden],
+.tc-timer-chip-panel-select[hidden],
+.tc-timer-chip-review[hidden] {
+  display: none !important;
+}
+
+.tc-timer-chip-review-lead {
+  margin: 0;
+  font-size: 12px;
+  color: var(--light-gray, #d6d6d6);
+}
+
+.tc-timer-chip-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.tc-timer-chip-review-item {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tc-timer-chip-review-item.is-skip {
+  opacity: 0.72;
+}
+
+.tc-timer-chip-review-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.tc-timer-chip-review-time {
+  font-variant-numeric: tabular-nums;
+  color: var(--tc-chip-accent);
+}
+
+.tc-timer-chip-review-meta {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--light-gray, #d6d6d6);
+}
+
+.tc-timer-chip-review-empty {
+  font-size: 12px;
+  color: var(--light-gray, #d6d6d6);
+}
+
+@media (max-width: 640px) {
+  .tc-timer-chip {
+    top: auto;
+    bottom: max(88px, env(safe-area-inset-bottom));
+    right: max(10px, env(safe-area-inset-right));
+    left: max(10px, env(safe-area-inset-left));
+    align-items: stretch;
+    max-width: none;
+  }
+
+  .tc-timer-chip-btn {
+    align-self: flex-end;
+  }
+
+  .tc-timer-chip-panel {
+    width: 100%;
+    max-height: min(70vh, 520px);
+    overflow: auto;
+    animation-name: tc-timer-chip-sheet-in;
+  }
+
+  @keyframes tc-timer-chip-sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-timer-chip-panel,
+  .tc-timer-chip-btn {
+    animation: none;
+    transition: none;
+  }
+}
+
+.planner-day-panel .planner-day-block {
+  margin-top: 14px;
+}
+
+.planner-day-block-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--light-gray, #d6d6d6);
+}
+
+.planner-calendar-view .tc-summary {
+  margin-bottom: 16px;
+}
+
+.admin-panel-planner .tc-summary,
+#admin-panel-planner .tc-summary {
+  margin: 12px 0 18px;
 }
 
 .tc-calendar-view {
@@ -3469,12 +3803,38 @@ body.cp-client-drawer-open {
   color: var(--light-gray);
 }
 
+.tc-entry-notes {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: hsla(0, 0%, 100%, 0.03);
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
 .tc-entry-edit,
 .tc-add-form {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
   gap: 8px;
   align-items: end;
+}
+
+.tc-entry-edit .tc-field--grow {
+  grid-column: 1 / -1;
+}
+
+.tc-entry-edit .btn {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+textarea.tc-input {
+  min-height: 40px;
+  resize: vertical;
+  font-family: inherit;
 }
 
 .tc-add-form {

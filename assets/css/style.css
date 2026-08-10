@@ -14191,7 +14191,9 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-maint-confirm-modal.active .overlay,
 #delete-lead-confirm-modal.active .overlay,
 #cancel-booking-confirm-modal.active .overlay,
-#graduate-client-confirm-modal.active .overlay {
+#graduate-client-confirm-modal.active .overlay,
+#tc-timer-drawer.active .overlay,
+#delete-time-entry-confirm-modal.active .overlay {
     background: rgba(0, 0, 0, 0.62);
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
@@ -14237,6 +14239,13 @@ body.portfolio-project-modal-open .cp-client-drawer {
   #delete-lead-confirm-modal.active .confirm-delete-modal,
   #cancel-booking-confirm-modal.active .confirm-delete-modal,
   #graduate-client-confirm-modal.active .confirm-delete-modal {
+    transform: translate3d(0, 0, 0);
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  #tc-timer-drawer.active .confirm-delete-modal,
+  #delete-time-entry-confirm-modal.active .confirm-delete-modal {
     transform: translate3d(0, 0, 0);
     visibility: visible;
     pointer-events: auto;
@@ -17419,7 +17428,9 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #delete-lead-confirm-modal.active .overlay,
 #cancel-booking-confirm-modal.active .overlay,
 #reschedule-booking-modal.active .overlay,
-#graduate-client-confirm-modal.active .overlay {
+#graduate-client-confirm-modal.active .overlay,
+#tc-timer-drawer.active .overlay,
+#delete-time-entry-confirm-modal.active .overlay {
   opacity: 0.85;
   visibility: visible;
   pointer-events: all;
@@ -17455,6 +17466,14 @@ body.portfolio-project-modal-open .cp-client-drawer {
 #cancel-booking-confirm-modal.active .confirm-delete-modal,
 #reschedule-booking-modal.active .confirm-delete-modal,
 #graduate-client-confirm-modal.active .confirm-delete-modal {
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+#tc-timer-drawer.active .confirm-delete-modal,
+#delete-time-entry-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
   visibility: visible;
