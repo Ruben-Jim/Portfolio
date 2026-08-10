@@ -5581,7 +5581,17 @@
   }
 
   function formatTcTimer(ms) {
-    return formatTcDurationHms(ms);
+    var total = Math.floor(Math.max(0, Number(ms) || 0) / 1000);
+    var h = Math.floor(total / 3600);
+    var m = Math.floor((total % 3600) / 60);
+    var s = Math.floor(total % 60);
+    return (
+      String(h).padStart(2, '0') +
+      ':' +
+      String(m).padStart(2, '0') +
+      ':' +
+      String(s).padStart(2, '0')
+    );
   }
 
   function getCurrentSegmentElapsedMs() {
@@ -5813,7 +5823,7 @@
         }, 0)
       : getTcTimerElapsedMs();
 
-    if (display) display.textContent = formatTcDurationHm(elapsed);
+    if (display) display.textContent = formatTcTimer(elapsed);
     if (clientEl) {
       clientEl.textContent = reviewing
         ? 'Review segments'
