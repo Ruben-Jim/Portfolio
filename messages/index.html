@@ -3790,7 +3790,7 @@
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Client Pipeline</h3>
-                <p class="admin-panel-lead">Four stages: new lead → demo → proposal sent → deposit paid.</p>
+                <p class="admin-panel-lead">Four stages: new lead → discovery call → proposal sent → deposit paid. Discovery call is optional — skip straight to proposal when a lead doesn't need one.</p>
               </div>
               <button type="button" class="btn btn-primary" id="admin-add-lead-btn">
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
@@ -3807,10 +3807,10 @@
                     <span class="pipeline-summary-value" id="pipeline-summary-lead">0</span>
                     <span class="pipeline-summary-label">Lead</span>
                   </div>
-                  <div class="pipeline-summary-stat pipeline-summary-stat--demo">
-                    <span class="pipeline-stage-dot pipeline-dot--demo" aria-hidden="true"></span>
-                    <span class="pipeline-summary-value" id="pipeline-summary-demo">0</span>
-                    <span class="pipeline-summary-label">Demo</span>
+                  <div class="pipeline-summary-stat pipeline-summary-stat--discovery-call">
+                    <span class="pipeline-stage-dot pipeline-dot--discovery-call" aria-hidden="true"></span>
+                    <span class="pipeline-summary-value" id="pipeline-summary-discovery-call">0</span>
+                    <span class="pipeline-summary-label">Discovery call</span>
                   </div>
                   <div class="pipeline-summary-stat pipeline-summary-stat--proposal">
                     <span class="pipeline-stage-dot pipeline-dot--proposal" aria-hidden="true"></span>
@@ -3839,14 +3839,14 @@
                     </div>
                   </div>
 
-                  <div class="pipeline-col" data-stage="demo">
+                  <div class="pipeline-col" data-stage="discovery-call">
                     <div class="pipeline-col-header">
-                      <span class="pipeline-stage-dot pipeline-dot--demo"></span>
-                      <h4 class="pipeline-col-title">Demo</h4>
-                      <span class="pipeline-col-count" id="pipeline-count-demo">0</span>
+                      <span class="pipeline-stage-dot pipeline-dot--discovery-call"></span>
+                      <h4 class="pipeline-col-title">Discovery Call</h4>
+                      <span class="pipeline-col-count" id="pipeline-count-discovery-call">0</span>
                     </div>
-                    <div class="pipeline-cards" id="pipeline-cards-demo">
-                      <p class="pipeline-empty">No demos yet.</p>
+                    <div class="pipeline-cards" id="pipeline-cards-discovery-call">
+                      <p class="pipeline-empty">No leads yet.</p>
                     </div>
                   </div>
 
@@ -4715,7 +4715,7 @@
                       </button>
                       <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
                         <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="lead">Lead</button>
-                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="demo">Demo</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="discovery-call">Discovery Call</button>
                         <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="proposal">Proposal Sent</button>
                         <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="deposit">Deposit Paid</button>
                       </div>
