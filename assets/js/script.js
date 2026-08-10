@@ -16929,6 +16929,23 @@ window.addEventListener('load', function() {
           .filter(Boolean);
       }
 
+      // Timer tool — opens panel only; does not change the active admin tab.
+      var timerItem = document.createElement('button');
+      timerItem.type = 'button';
+      timerItem.className = 'admin-tab-more-item admin-tab-more-item--timer';
+      timerItem.setAttribute('role', 'option');
+      timerItem.setAttribute('data-more-action', 'timer');
+      timerItem.innerHTML =
+        '<ion-icon name="timer-outline" aria-hidden="true"></ion-icon><span>Timer</span>';
+      timerItem.addEventListener('click', function () {
+        if (window.AdminMobileTabOrder && window.AdminMobileTabOrder.isReorderActive()) return;
+        closeDropdown();
+        if (window.AgencyTools && typeof window.AgencyTools.openTimerPanel === 'function') {
+          window.AgencyTools.openTimerPanel();
+        }
+      });
+      dropdown.appendChild(timerItem);
+
       overflowTabs.forEach(function(tab) {
         var tabId   = tab.getAttribute('data-admin-tab');
         var iconEl  = tab.querySelector('ion-icon');
@@ -16986,6 +17003,10 @@ window.addEventListener('load', function() {
 
       // Sync active state on dropdown items
       dropdown.querySelectorAll('.admin-tab-more-item').forEach(function(item) {
+        if (item.getAttribute('data-more-action')) {
+          item.classList.remove('is-active');
+          return;
+        }
         var t = document.getElementById('admin-tab-' + item.getAttribute('data-more-tab'));
         item.classList.toggle('is-active', !!(t && t.classList.contains('is-active')));
       });

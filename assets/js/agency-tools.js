@@ -5688,9 +5688,21 @@
   function ensureTcTimerChipMounted() {
     var chip = document.getElementById('tc-timer-chip');
     if (!chip || !document.body) return;
+    // Keep on body so desktop fixed viewport top-right stays outside the admin card.
     if (chip.parentElement !== document.body) {
       document.body.appendChild(chip);
     }
+  }
+
+  function openTcTimerPanel() {
+    ensureTcTimerChipMounted();
+    syncTcChipTargetSelect(true);
+    setTcChipExpanded(true);
+    updateTcTimerUi();
+  }
+
+  function closeTcTimerPanel() {
+    setTcChipExpanded(false);
   }
 
   function setTcTimerFeedback(msg, isError) {
@@ -7291,6 +7303,8 @@
     syncPlannerSelectedDay: syncPlannerSelectedDay,
     getDayHoursMap: getTcDayHoursMap,
     handlePlannerAction: handlePlannerAction,
+    openTimerPanel: openTcTimerPanel,
+    closeTimerPanel: closeTcTimerPanel,
     getHubByLeadId: function (leadId) {
       if (!leadId) return null;
       return agencyProjects.find(function (p) { return p.leadId === leadId; }) || null;

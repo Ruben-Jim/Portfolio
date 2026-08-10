@@ -3443,91 +3443,117 @@ body.cp-client-drawer-open {
   }
 }
 
-/* Viewport top-right timer chip (kept alongside floating dock) */
+/* Admin window timer control — desktop corner notch; mobile via More + dock */
 .tc-timer-chip {
   --tc-chip-accent: var(--orange-yellow-crayola);
-  position: fixed;
-  top: max(12px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
-  z-index: 10060;
+  --tc-chip-surface: var(--eerie-black-2);
+  --tc-chip-border: var(--jet);
   display: none;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
-  max-width: min(360px, calc(100vw - 24px));
+  gap: 0;
+  z-index: 10060;
   font-family: var(--ff-poppins, inherit);
+  pointer-events: none;
 }
 
-body.admin-page-active article.admin[data-page="admin"].active .tc-timer-chip,
-body.admin-page-active .tc-timer-chip {
-  display: flex;
-}
-
-/* When chip is portaled to body */
-body.admin-page-active > .tc-timer-chip {
-  display: flex;
+.tc-timer-chip > * {
+  pointer-events: auto;
 }
 
 body:not(.admin-page-active) > .tc-timer-chip {
   display: none !important;
 }
 
-.tc-timer-chip-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(20, 20, 20, 0.92);
-  color: var(--white-2, #fafafa);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
-  cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.2s ease;
-}
+/* Desktop: viewport top-right, flush into the corner (outside admin card) */
+@media (min-width: 768px) {
+  body.admin-page-active:has(article.admin[data-page="admin"][data-admin-auth="signed-in"].active)
+    > .tc-timer-chip,
+  body.admin-page-active:has(article.admin[data-page="admin"][data-admin-auth="signed-in"].active)
+    .tc-timer-chip {
+    display: flex;
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: auto;
+    bottom: auto;
+    max-width: min(360px, calc(100vw - 24px));
+  }
 
-.tc-timer-chip.is-active .tc-timer-chip-btn {
-  border-color: color-mix(in srgb, var(--tc-chip-accent) 55%, transparent);
-}
+  .tc-timer-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 11px 16px 10px 14px;
+    border: 1px solid var(--tc-chip-border);
+    border-top: 0;
+    border-right: 0;
+    border-radius: 0 0 0 14px;
+    background:
+      linear-gradient(145deg, hsla(45, 100%, 72%, 0.08) 0%, transparent 55%),
+      var(--tc-chip-surface);
+    color: var(--white-2, #fafafa);
+    box-shadow: none;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
 
-.tc-timer-chip.is-paused .tc-timer-chip-btn {
-  --tc-chip-accent: hsl(0, 0%, 78%);
-}
+  .tc-timer-chip.is-active .tc-timer-chip-btn {
+    background:
+      linear-gradient(145deg, hsla(45, 100%, 72%, 0.16) 0%, transparent 55%),
+      var(--tc-chip-surface);
+  }
 
-.tc-timer-chip-btn:hover {
-  transform: translateY(-1px);
-}
+  .tc-timer-chip.is-paused .tc-timer-chip-btn {
+    --tc-chip-accent: hsl(0, 0%, 78%);
+  }
 
-.tc-timer-chip-btn ion-icon {
-  font-size: 16px;
-  color: var(--tc-chip-accent);
-}
+  .tc-timer-chip-btn:hover {
+    transform: none;
+    background:
+      linear-gradient(145deg, hsla(45, 100%, 72%, 0.14) 0%, transparent 55%),
+      var(--eerie-black-1, #212121);
+  }
 
-.tc-timer-chip-label {
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
+  .tc-timer-chip-btn ion-icon {
+    font-size: 16px;
+    color: var(--tc-chip-accent);
+  }
 
-.tc-timer-chip-time {
-  font-variant-numeric: tabular-nums;
-  font-size: 12px;
-  color: var(--tc-chip-accent);
-  font-weight: 600;
-}
+  .tc-timer-chip-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
 
-.tc-timer-chip-panel {
-  width: min(340px, calc(100vw - 24px));
-  padding: 14px;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(18, 18, 18, 0.96);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transform-origin: top right;
-  animation: tc-timer-chip-in 0.22s ease-out;
+  .tc-timer-chip-time {
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
+    color: var(--tc-chip-accent);
+    font-weight: 600;
+  }
+
+  .tc-timer-chip-panel {
+    width: min(340px, calc(100vw - 24px));
+    margin-top: -1px;
+    padding: 14px;
+    border: 1px solid var(--tc-chip-border);
+    border-right: 0;
+    border-radius: 14px 0 0 14px;
+    background: var(--tc-chip-surface);
+    box-shadow: var(--shadow-2, 0 8px 24px rgba(0, 0, 0, 0.35));
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transform-origin: top right;
+    animation: tc-timer-chip-in 0.2s ease-out;
+  }
+
+  .tc-timer-chip.is-open .tc-timer-chip-btn {
+    border-bottom-color: transparent;
+    border-radius: 0;
+  }
 }
 
 .tc-timer-chip-panel[hidden] {
@@ -3537,7 +3563,7 @@ body:not(.admin-page-active) > .tc-timer-chip {
 @keyframes tc-timer-chip-in {
   from {
     opacity: 0;
-    transform: translateY(-6px) scale(0.98);
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
@@ -3675,36 +3701,67 @@ body:not(.admin-page-active) > .tc-timer-chip {
   color: var(--light-gray, #d6d6d6);
 }
 
-@media (max-width: 640px) {
-  .tc-timer-chip {
+/* Mobile: no corner control — open from More; panel docks above tab bar; floating dock stays */
+@media (max-width: 767px) {
+  body.admin-page-active:has(article.admin[data-page="admin"][data-admin-auth="signed-in"].active)
+    .tc-timer-chip {
+    display: none;
+    position: fixed;
     top: auto;
-    bottom: max(88px, env(safe-area-inset-bottom));
-    right: max(10px, env(safe-area-inset-right));
-    left: max(10px, env(safe-area-inset-left));
-    align-items: stretch;
+    right: 0;
+    left: 0;
+    bottom: 0;
     max-width: none;
+    align-items: stretch;
+    z-index: 10060;
+  }
+
+  body.admin-page-active:has(article.admin[data-page="admin"][data-admin-auth="signed-in"].active)
+    .tc-timer-chip.is-open {
+    display: flex;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.admin-page-active:has(.admin-mobile-tab-bar-root .admin-mobile-subtab-bar-root:not([hidden]))
+    .tc-timer-chip.is-open {
+    bottom: calc(118px + env(safe-area-inset-bottom, 0px));
   }
 
   .tc-timer-chip-btn {
-    align-self: flex-end;
+    display: none !important;
   }
 
   .tc-timer-chip-panel {
     width: 100%;
-    max-height: min(70vh, 520px);
+    margin: 0;
+    max-height: min(72vh, 560px);
     overflow: auto;
-    animation-name: tc-timer-chip-sheet-in;
+    padding: 16px;
+    border: 1px solid var(--jet);
+    border-bottom: 0;
+    border-radius: 16px 16px 0 0;
+    background: var(--eerie-black-2);
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
+    animation: tc-timer-chip-sheet-in 0.24s ease-out;
   }
 
   @keyframes tc-timer-chip-sheet-in {
     from {
       opacity: 0;
-      transform: translateY(12px);
+      transform: translateY(16px);
     }
     to {
       opacity: 1;
       transform: none;
     }
+  }
+
+  .admin-tab-more-item--timer {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .admin-tab-more-item--timer ion-icon {
+    color: var(--orange-yellow-crayola);
   }
 }
 
