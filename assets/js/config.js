@@ -16,7 +16,7 @@ const FIREBASE_CONFIG = {
  * Deploy: `cd functions && npm install` then from repo root `firebase deploy --only functions:sendPortfolioEmail`
  * Set secrets: `firebase functions:secrets:set RESEND_API_KEY`
  * Set params: `firebase functions:config:set` (legacy) — use `.env` / Firebase console **Parameters** for:
- *   RESEND_FROM (e.g. "Portfolio <noreply@yourdomain.com>")
+ *   RESEND_FROM (e.g. "CodeWithRuben <contact@rubenjimenez.dev>")
  *   NOTIFY_TO_EMAIL (your inbox for contact + hire-me notifications)
  *
  * Paste the deployed function URL below (see RESEND_SETUP.md).

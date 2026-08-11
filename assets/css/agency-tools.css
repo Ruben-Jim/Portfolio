@@ -3058,6 +3058,92 @@ body.cp-client-drawer-open {
   color: hsl(6, 78%, 68%);
 }
 
+/* Sits inside .studio-costs-renewal, so it has to win against the is-soon /
+   is-overdue colour the parent cell sets. */
+.studio-costs-renewal .studio-costs-paid {
+  color: hsl(140, 45%, 62%);
+}
+
+/* ——— Loading skeletons ———
+   Shown while a panel's RTDB subscription has not answered yet, so the dashboard
+   stops rendering "No X yet" against data that simply has not arrived. */
+.agency-skeleton-bar {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    hsla(0, 0%, 100%, 0.05) 25%,
+    hsla(0, 0%, 100%, 0.11) 37%,
+    hsla(0, 0%, 100%, 0.05) 63%
+  );
+  background-size: 400% 100%;
+  animation: agency-skeleton-shimmer 1.4s ease infinite;
+}
+
+.agency-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 6px 0;
+}
+
+.agency-skeleton-list .agency-skeleton-bar:nth-child(2) {
+  width: 82%;
+}
+
+.agency-skeleton-list .agency-skeleton-bar:nth-child(3) {
+  width: 64%;
+}
+
+.agency-skeleton-row td {
+  padding: 14px 12px;
+}
+
+.agency-skeleton-row:nth-child(2) .agency-skeleton-bar {
+  width: 86%;
+}
+
+.agency-skeleton-row:nth-child(3) .agency-skeleton-bar {
+  width: 68%;
+}
+
+@keyframes agency-skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agency-skeleton-bar {
+    animation: none;
+    background: hsla(0, 0%, 100%, 0.07);
+  }
+}
+
+.studio-cost-paid-date-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.studio-cost-paid-date-row input[type="date"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.studio-cost-paid-date-row .btn {
+  flex: 0 0 auto;
+}
+
+.studio-cost-paid-preview {
+  margin-bottom: 0;
+  color: var(--orange-yellow-crayola);
+}
+
 .studio-cost-status {
   display: inline-block;
   padding: 2px 8px;
@@ -3463,6 +3549,17 @@ body.cp-client-drawer-open {
 
 body:not(.admin-page-active) > .tc-timer-chip {
   display: none !important;
+}
+
+/* Push timer chip behind any open drawer or modal */
+body.admin-email-drawer-open > .tc-timer-chip,
+body.lead-drawer-open > .tc-timer-chip,
+body.cp-client-drawer-open > .tc-timer-chip,
+body.admin-contact-detail-open > .tc-timer-chip,
+body.admin-email-reply-modal-open > .tc-timer-chip,
+body.tc-timer-drawer-open > .tc-timer-chip {
+  z-index: 10035 !important;
+  pointer-events: none !important;
 }
 
 /* Desktop: viewport top-right, flush into the corner (outside admin card) */

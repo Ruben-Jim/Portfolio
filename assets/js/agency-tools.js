@@ -73,6 +73,43 @@
   var agencyStudioCosts = [];
   var studioCostsSeedAttempted = false;
   var agencyUnsubs = [];
+
+  // First-response tracking per dataset. The dashboard is revealed as soon as AUTH
+  // resolves, but each RTDB subscription answers later — so without this every
+  // panel renders "No X yet" against a still-empty array and briefly tells you
+  // your data is gone. False means "no answer yet", not "empty".
+  var agencyLoaded = {
+    projects: false,
+    maintenance: false,
+    timeEntries: false,
+    referrals: false,
+    studioCosts: false
+  };
+
+  function resetAgencyLoaded() {
+    Object.keys(agencyLoaded).forEach(function (k) {
+      agencyLoaded[k] = false;
+    });
+  }
+
+  function skeletonRowsHtml(colspan, rows) {
+    var out = '';
+    for (var i = 0; i < (rows || 3); i++) {
+      out +=
+        '<tr class="agency-skeleton-row" aria-hidden="true"><td colspan="' +
+        colspan +
+        '"><span class="agency-skeleton-bar"></span></td></tr>';
+    }
+    return out;
+  }
+
+  function skeletonListHtml(rows) {
+    var out = '<div class="agency-skeleton-list" aria-hidden="true">';
+    for (var i = 0; i < (rows || 3); i++) {
+      out += '<span class="agency-skeleton-bar"></span>';
+    }
+    return out + '</div>';
+  }
   var pendingDeleteHubId = null;
   var pendingDeleteRefId = null;
   var pendingDeleteMaintId = null;
@@ -380,12 +417,14 @@
 
     agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.projects), function (snap) {
+        agencyLoaded.projects = true;
         applyAgencyProjectsFromVal(snap.val());
       })
     );
 
     agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.maintenance), function (snap) {
+        agencyLoaded.maintenance = true;
         var val = snap.val();
         agencyMaintenance = [];
         if (val && typeof val === 'object') {
@@ -402,12 +441,14 @@
 
     agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.timeEntries), function (snap) {
+        agencyLoaded.timeEntries = true;
         applyTimeEntriesFromVal(snap.val());
       })
     );
 
     agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.referrals), function (snap) {
+        agencyLoaded.referrals = true;
         var val = snap.val();
         agencyReferrals = [];
         if (val && typeof val === 'object') {
@@ -421,6 +462,7 @@
 
     agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.studioCosts), function (snap) {
+        agencyLoaded.studioCosts = true;
         applyStudioCostsFromVal(snap.val());
       })
     );
@@ -448,6 +490,7 @@
     agencyTimeEntries = [];
     agencyReferrals = [];
     agencyStudioCosts = [];
+    resetAgencyLoaded();
     studioCostsSeedAttempted = false;
     agencyHealthByProject = {};
     healthSelectedProjectId = '';
@@ -644,6 +687,10 @@
       document.querySelector('#admin-dashboard-content #project-hub-list') ||
       document.getElementById('project-hub-list');
     if (!list) return;
+    if (!agencyLoaded.projects) {
+      list.innerHTML = skeletonListHtml(3);
+      return;
+    }
     if (!agencyProjects.length) {
       list.innerHTML = '<p class="form-hint">No project hubs yet. Create one from a pipeline lead or here.</p>';
       return;
@@ -1693,6 +1740,10 @@
   function renderMaintenanceList() {
     var list = document.getElementById('maintenance-list');
     if (!list) return;
+    if (!agencyLoaded.maintenance) {
+      list.innerHTML = skeletonListHtml(3);
+      return;
+    }
     if (!agencyMaintenance.length) {
       list.innerHTML = '<p class="form-hint">No maintenance clients yet.</p>';
       return;
@@ -1995,6 +2046,10 @@
   function renderReferralTable() {
     var tbody = document.getElementById('referral-tbody');
     if (!tbody) return;
+    if (!agencyLoaded.referrals) {
+      tbody.innerHTML = skeletonRowsHtml(5, 3);
+      return;
+    }
     if (!agencyReferrals.length) {
       tbody.innerHTML = '<tr><td colspan="5">No referral partners yet.</td></tr>';
       return;
@@ -2268,6 +2323,7 @@
       billingCycle: normalizeStudioCostCycle(row.billingCycle),
       currency: String(row.currency || 'USD').slice(0, 8),
       renewalDate: String(row.renewalDate || '').slice(0, 12),
+      lastPaidAt: String(row.lastPaidAt || '').slice(0, 12),
       notes: String(row.notes || '').slice(0, 2000),
       order: Number(row.order) || 0,
       externalRef: String(row.externalRef || '').slice(0, 120),
@@ -2296,6 +2352,78 @@
     var now = new Date();
     var start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     return Math.round((target.getTime() - start.getTime()) / 86400000);
+  }
+
+  var STUDIO_COST_MONTHS = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+
+  function studioCostParseDate(dateStr) {
+    var parts = String(dateStr || '').split('-');
+    if (parts.length !== 3) return null;
+    var y = Number(parts[0]);
+    var m = Number(parts[1]);
+    var d = Number(parts[2]);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  }
+
+  function studioCostToISODate(date) {
+    var m = String(date.getMonth() + 1);
+    var d = String(date.getDate());
+    return (
+      date.getFullYear() +
+      '-' +
+      (m.length < 2 ? '0' + m : m) +
+      '-' +
+      (d.length < 2 ? '0' + d : d)
+    );
+  }
+
+  // Short label for the table. Parses the parts by hand rather than through
+  // new Date('2026-08-11'), which JS reads as UTC and renders a day early in Pacific.
+  function formatStudioCostDateShort(dateStr) {
+    var parts = String(dateStr || '').split('-');
+    if (parts.length !== 3) return '';
+    var m = Number(parts[1]);
+    var d = Number(parts[2]);
+    if (!m || !d || m < 1 || m > 12) return '';
+    return STUDIO_COST_MONTHS[m - 1] + ' ' + d;
+  }
+
+  function studioCostAddCycle(date, cycle) {
+    var y = date.getFullYear();
+    var m = date.getMonth();
+    var d = date.getDate();
+    if (cycle === 'annual') y += 1;
+    else m += 1;
+    // Clamp to the last real day of the target month so Jan 31 lands on Feb 28,
+    // not Mar 3.
+    var lastDay = new Date(y, m + 1, 0).getDate();
+    return new Date(y, m, Math.min(d, lastDay));
+  }
+
+  function studioCostToday() {
+    var now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  // Next renewal after a payment. Advances until the date is past `paidOnStr`, so
+  // a cost that sat overdue for months lands on a real upcoming date rather than
+  // another past one. Measured against the payment date, not today — backdating a
+  // payment to last month should not push the renewal an extra cycle out.
+  // One-time costs have no next renewal.
+  function studioCostNextRenewal(dateStr, cycle, paidOnStr) {
+    if (cycle === 'once') return '';
+    var paidOn = studioCostParseDate(paidOnStr) || studioCostToday();
+    var next = studioCostAddCycle(studioCostParseDate(dateStr) || paidOn, cycle);
+    var guard = 0;
+    while (next.getTime() <= paidOn.getTime() && guard < 120) {
+      next = studioCostAddCycle(next, cycle);
+      guard += 1;
+    }
+    return studioCostToISODate(next);
   }
 
   function formatStudioCostMoney(amount) {
@@ -2341,16 +2469,23 @@
     var activeEl = document.getElementById('studio-costs-active-count');
     var renewalsEl = document.getElementById('studio-costs-renewals-count');
     var kpiEl = document.getElementById('kpi-studio-costs');
-    if (monthlyEl) monthlyEl.textContent = formatStudioCostMoney(summary.monthly);
-    if (activeEl) activeEl.textContent = String(summary.active);
-    if (renewalsEl) renewalsEl.textContent = String(summary.renewals);
-    if (kpiEl) kpiEl.textContent = formatStudioCostMoney(summary.monthly);
+    // Before the first snapshot the totals would compute to $0 / 0 from an empty
+    // array, which reads as real data. Show a placeholder until we actually know.
+    var pending = !agencyLoaded.studioCosts;
+    if (monthlyEl) monthlyEl.textContent = pending ? '—' : formatStudioCostMoney(summary.monthly);
+    if (activeEl) activeEl.textContent = pending ? '—' : String(summary.active);
+    if (renewalsEl) renewalsEl.textContent = pending ? '—' : String(summary.renewals);
+    if (kpiEl) kpiEl.textContent = pending ? '—' : formatStudioCostMoney(summary.monthly);
   }
 
   function renderStudioCostsTable() {
     var tbody = document.getElementById('studio-costs-tbody');
     renderStudioCostsSummary();
     if (!tbody) return;
+    if (!agencyLoaded.studioCosts) {
+      tbody.innerHTML = skeletonRowsHtml(5, 3);
+      return;
+    }
     if (!agencyStudioCosts.length) {
       tbody.innerHTML =
         '<tr><td colspan="5">No studio costs yet. Add EAS, Porkbun, App Store, or Play.</td></tr>';
@@ -2396,6 +2531,11 @@
           renewClass +
           '">' +
           esc(renewLabel) +
+          (row.lastPaidAt
+            ? '<div class="studio-costs-meta studio-costs-paid">Paid ' +
+              esc(formatStudioCostDateShort(row.lastPaidAt)) +
+              '</div>'
+            : '') +
           '</td>' +
           '<td><span class="studio-cost-status studio-cost-status--' +
           esc(row.status) +
@@ -2403,6 +2543,11 @@
           esc(row.status) +
           '</span></td>' +
           '<td class="referral-table-actions">' +
+          (row.status === 'cancelled'
+            ? ''
+            : '<button type="button" class="btn btn-secondary btn-sm" data-studio-cost-paid="' +
+              esc(row.id) +
+              '">Mark paid</button>') +
           openBtn +
           '<button type="button" class="btn btn-secondary btn-sm" data-edit-studio-cost="' +
           esc(row.id) +
@@ -2419,6 +2564,13 @@
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         openStudioCostEditor(btn.getAttribute('data-edit-studio-cost'));
+      });
+    });
+    tbody.querySelectorAll('[data-studio-cost-paid]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openStudioCostPaidModal(btn.getAttribute('data-studio-cost-paid'));
       });
     });
     tbody.querySelectorAll('[data-studio-cost-delete]').forEach(function (btn) {
@@ -2543,6 +2695,9 @@
       notes: document.getElementById('studio-cost-notes').value.trim(),
       order: existing ? existing.order || 0 : agencyStudioCosts.length * 10 + 10,
       externalRef: existing ? existing.externalRef || '' : '',
+      // rtdbSet replaces the whole node, so the paid stamp has to be carried
+      // forward here or editing a cost would silently erase it.
+      lastPaidAt: existing ? existing.lastPaidAt || '' : '',
       updatedAt: ts()
     };
     if (id) {
@@ -2554,6 +2709,111 @@
       await window.rtdbSet(ref, payload);
     }
     closeModal('studio-cost-editor-modal');
+  }
+
+  // Long-form date for the modal preview. Built from the parts rather than
+  // new Date('2026-08-11'), which JS reads as UTC and renders a day early here.
+  function formatStudioCostDateLong(dateStr) {
+    var parts = String(dateStr || '').split('-');
+    if (parts.length !== 3) return '';
+    var m = Number(parts[1]);
+    var d = Number(parts[2]);
+    if (!m || !d || m < 1 || m > 12) return '';
+    return STUDIO_COST_MONTHS[m - 1] + ' ' + d + ', ' + parts[0];
+  }
+
+  function openStudioCostPaidModal(id) {
+    var row = agencyStudioCosts.find(function (x) {
+      return x.id === id;
+    });
+    if (!row) {
+      console.error('[studio costs] No cost found for id', id);
+      return;
+    }
+    var idEl = document.getElementById('studio-cost-paid-id');
+    var dateEl = document.getElementById('studio-cost-paid-date');
+    var summaryEl = document.getElementById('studio-cost-paid-summary');
+    // A missing modal means the page HTML is older than this script — usually a
+    // cached admin/index.html. Say so instead of returning silently, which just
+    // looks like a dead button.
+    if (!idEl || !dateEl) {
+      console.error(
+        '[studio costs] #studio-cost-paid-modal is missing from the page. ' +
+          'Hard-refresh the admin page (Cmd+Shift+R) to pick up the current HTML.'
+      );
+      alert('Mark paid needs a page refresh to load. Press Cmd+Shift+R and try again.');
+      return;
+    }
+
+    idEl.value = row.id;
+    // Default to today, but any date is allowed — bills get paid late and get
+    // reconciled after the fact.
+    dateEl.value = studioCostToISODate(studioCostToday());
+    if (summaryEl) {
+      summaryEl.textContent =
+        (row.name || 'Untitled') +
+        ' · ' +
+        formatStudioCostMoney(row.amount) +
+        studioCostCycleLabel(row.billingCycle) +
+        (row.lastPaidAt ? ' · last paid ' + formatStudioCostDateLong(row.lastPaidAt) : '');
+    }
+    renderStudioCostPaidPreview();
+    openModal('studio-cost-paid-modal');
+  }
+
+  function renderStudioCostPaidPreview() {
+    var previewEl = document.getElementById('studio-cost-paid-preview');
+    var idEl = document.getElementById('studio-cost-paid-id');
+    var dateEl = document.getElementById('studio-cost-paid-date');
+    if (!previewEl || !idEl || !dateEl) return;
+    var row = agencyStudioCosts.find(function (x) {
+      return x.id === idEl.value;
+    });
+    if (!row) {
+      previewEl.textContent = '';
+      return;
+    }
+    if (!dateEl.value) {
+      previewEl.textContent = 'Pick a payment date.';
+      return;
+    }
+    if (row.billingCycle === 'once') {
+      previewEl.textContent = 'One-time cost — no renewal will be scheduled.';
+      return;
+    }
+    var next = studioCostNextRenewal(row.renewalDate, row.billingCycle, dateEl.value);
+    previewEl.textContent =
+      'Renewal moves ' +
+      (row.renewalDate ? formatStudioCostDateLong(row.renewalDate) + ' → ' : 'to ') +
+      formatStudioCostDateLong(next) +
+      '.';
+  }
+
+  // Writes the payment. Deliberately does NOT touch status — a paid subscription
+  // is still an active cost, and studioCostMonthlyAmount() drops anything that
+  // isn't 'active' out of the monthly burn total.
+  async function confirmStudioCostPaid() {
+    if (!rtdbReady()) return;
+    var idEl = document.getElementById('studio-cost-paid-id');
+    var dateEl = document.getElementById('studio-cost-paid-date');
+    if (!idEl || !dateEl) return;
+    var id = idEl.value;
+    var row = agencyStudioCosts.find(function (x) {
+      return x.id === id;
+    });
+    if (!row) return;
+    var paidOn = dateEl.value;
+    if (!studioCostParseDate(paidOn)) {
+      alert('Pick a valid payment date.');
+      return;
+    }
+
+    await window.rtdbUpdate(window.rtdbRef(window.rtdb, PATHS.studioCosts + '/' + id), {
+      lastPaidAt: paidOn,
+      renewalDate: studioCostNextRenewal(row.renewalDate, row.billingCycle, paidOn),
+      updatedAt: ts()
+    });
+    closeModal('studio-cost-paid-modal');
   }
 
   async function deleteStudioCost(id) {
@@ -2580,6 +2840,31 @@
       save.dataset.bound = '1';
       save.addEventListener('click', function () {
         saveStudioCost().catch(console.error);
+      });
+    }
+
+    bindModalClose('studio-cost-paid-modal', '.agency-modal-overlay', '.agency-modal-close');
+    var paidDate = document.getElementById('studio-cost-paid-date');
+    if (paidDate && !paidDate.dataset.bound) {
+      paidDate.dataset.bound = '1';
+      paidDate.addEventListener('change', renderStudioCostPaidPreview);
+      paidDate.addEventListener('input', renderStudioCostPaidPreview);
+    }
+    var paidToday = document.getElementById('studio-cost-paid-today-btn');
+    if (paidToday && !paidToday.dataset.bound) {
+      paidToday.dataset.bound = '1';
+      paidToday.addEventListener('click', function () {
+        var el = document.getElementById('studio-cost-paid-date');
+        if (!el) return;
+        el.value = studioCostToISODate(studioCostToday());
+        renderStudioCostPaidPreview();
+      });
+    }
+    var paidConfirm = document.getElementById('studio-cost-paid-confirm-btn');
+    if (paidConfirm && !paidConfirm.dataset.bound) {
+      paidConfirm.dataset.bound = '1';
+      paidConfirm.addEventListener('click', function () {
+        confirmStudioCostPaid().catch(console.error);
       });
     }
   }
@@ -4303,7 +4588,11 @@
     if (emptyEl) {
       if (!hasVisible) {
         emptyEl.hidden = false;
-        if (!hasAnySource) {
+        if (!agencyLoaded.projects) {
+          // Client list is built from project hubs — wait for that subscription
+          // before claiming there are no clients.
+          emptyEl.innerHTML = skeletonListHtml(3);
+        } else if (!hasAnySource) {
           emptyEl.innerHTML =
             '<p class="cp-client-picker-empty">No clients yet. ' +
             '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="new-client">Add your first client</button></p>';
@@ -6448,6 +6737,7 @@
     syncTcTimerTargetSelect(true);
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('tc-timer-drawer-open');
     window.setTimeout(function () {
       var closeBtn = document.getElementById('tc-timer-drawer-close');
       if (closeBtn) {
@@ -7171,6 +7461,7 @@
     if (!modal) return;
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('tc-timer-drawer-open');
     // Keep the paused session; user can Stop & log again to assign a client,
     // or Resume (now unblocked) to keep working.
     resetTcTimerDrawerChrome();

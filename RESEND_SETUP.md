@@ -23,16 +23,30 @@ firebase functions:secrets:set RESEND_API_KEY
 # paste your Resend API key when prompted
 ```
 
+For inbound receiving, also set (after creating the webhook in Resend — see [Inbound email](#inbound-email-receiving)):
+
+```bash
+firebase functions:secrets:set RESEND_WEBHOOK_SECRET
+# paste the whsec_... signing secret from Resend → Webhooks
+```
+
+For outbound status events, set a separate secret:
+
+```bash
+firebase functions:secrets:set RESEND_OUTBOUND_WEBHOOK_SECRET
+# paste the whsec_... signing secret from your outbound webhook
+```
+
 Set **non-secret** parameters (Firebase Console → Functions → your function → **Environment** / **Parameters**, or use `.env` files as described in [Firebase parameterized configuration](https://firebase.google.com/docs/functions/config-env)):
 
 | Parameter          | Example                                      | Purpose |
 |--------------------|-----------------------------------------------|---------|
-| `RESEND_FROM`      | `Portfolio <noreply@yourdomain.com>`         | `from` address (must be allowed in Resend). |
+| `RESEND_FROM`      | `CodeWithRuben <contact@rubenjimenez.dev>`   | `from` address (must be allowed in Resend). |
 | `NOTIFY_TO_EMAIL`  | `you@example.com`                             | Inbox that receives **Contact** and **Hire Me** notifications. |
 
 If `NOTIFY_TO_EMAIL` is empty, contact and hire-me requests return **503** until you set it.
 
-Defaults in code: `RESEND_FROM` defaults to `Portfolio <onboarding@resend.dev>` for quick tests.
+Defaults in code: `RESEND_FROM` defaults to `CodeWithRuben <contact@rubenjimenez.dev>`.
 
 ## Deploy the function
 
@@ -108,6 +122,78 @@ firebase emulators:start --only functions
 ```
 
 You must provide `RESEND_API_KEY` (and params) to the emulator environment per Firebase docs; without them, sends will fail.
+
+## Inbound email (receiving)
+
+Resend can forward mail to `*@ouuldeaulk.resend.app`. The portfolio stores inbound messages in Realtime Database at `agencyInboundEmails` (admin read-only). Attachments are skipped in v1.
+
+### Deploy the inbound webhook
+
+```bash
+firebase deploy --only functions:resendInboundWebhook,database
+```
+
+Set the webhook signing secret (shown once when you create the webhook in Resend):
+
+```bash
+firebase functions:secrets:set RESEND_WEBHOOK_SECRET
+# paste the whsec_... value from Resend → Webhooks
+```
+
+If **`curl -X POST`** to the webhook returns **403 Forbidden**, allow public invoke on Cloud Run (same as send function):
+
+```bash
+gcloud run services add-iam-policy-binding resendinboundwebhook \
+  --region=us-central1 \
+  --member=allUsers \
+  --role=roles/run.invoker \
+  --project=portfolio-2578e
+```
+
+Webhook URL (paste into Resend → Webhooks → Add endpoint):
+
+`https://us-central1-portfolio-2578e.cloudfunctions.net/resendInboundWebhook`
+
+Select event **`email.received`**.
+
+### Test inbound
+
+1. Deploy functions + database rules.
+2. Create the webhook in Resend with the URL above; copy `whsec_...` into `RESEND_WEBHOOK_SECRET`.
+3. Send mail to any address on `@ouuldeaulk.resend.app` (e.g. `anything@ouuldeaulk.resend.app`).
+4. Open Admin → CRM → **Email** → **Inbound** — the message should appear with sanitized HTML and a plain-text toggle.
+
+Stored fields: from, to, subject, received time, text, html. Resend `email_id` is used only during ingest for dedupe and is **not** saved to RTDB or shown in Admin.
+
+## Outbound email status webhook
+
+Create a second webhook in Resend for delivery lifecycle events:
+
+- `email.delivered`
+- `email.bounced`
+- `email.complained`
+
+Webhook URL:
+
+`https://us-central1-portfolio-2578e.cloudfunctions.net/resendOutboundWebhook`
+
+Deploy outbound webhook + rules:
+
+```bash
+firebase deploy --only functions:resendOutboundWebhook,database
+```
+
+If webhook POSTs return **403**, grant Cloud Run invoke:
+
+```bash
+gcloud run services add-iam-policy-binding resendoutboundwebhook \
+  --region=us-central1 \
+  --member=allUsers \
+  --role=roles/run.invoker \
+  --project=portfolio-2578e
+```
+
+Outbound events are stored in `agencyOutboundEvents` (admin read-only). A dedupe key prevents duplicate retries from creating repeated rows.
 
 ## Billing note
 

@@ -111,6 +111,29 @@
         ".write": "!data.exists() || (auth != null && auth.token.email == 'ruben.jim.co@gmail.com')",
         ".validate": "!newData.exists() || newData.hasChildren(['name', 'email', 'startISO', 'endISO', 'callTypeId'])"
       }
+    },
+    "agencyInboundEmails": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": false,
+      ".indexOn": ["receivedAt", "createdAt"]
+    },
+    "agencyInboundDedupe": {
+      ".read": false,
+      ".write": false
+    },
+    "agencyOutboundEvents": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": false,
+      ".indexOn": ["type", "eventAt", "createdAt"]
+    },
+    "agencyOutboundReplies": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".indexOn": ["sentAt", "createdAt", "threadKey", "toEmail"]
+    },
+    "agencyOutboundDedupe": {
+      ".read": false,
+      ".write": false
     }
   }
 }

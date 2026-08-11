@@ -86,7 +86,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=milestones-pill-20260730">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=admin-skeletons-20260811e">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -2986,9 +2986,13 @@
                   <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-client-email" data-admin-tab="client-email" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-email" tabindex="-1" aria-label="Client Email Sender">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-email" data-admin-tab="email" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-email" tabindex="-1" aria-label="Email Inbox">
+                  <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Email</span><span class="admin-tab-label-mobile">Email</span></span>
+                </button>
+                <button type="button" class="admin-tab admin-tab--nav-hidden" role="tab" id="admin-tab-client-email" data-admin-tab="client-email" aria-selected="false" aria-controls="admin-panel-client-email" tabindex="-1" aria-label="Client Email Sender" hidden>
                   <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Email</span><span class="admin-tab-label-mobile">Email</span></span>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Email</span><span class="admin-tab-label-mobile">Sender</span></span>
                 </button>
                 <button type="button" class="admin-tab admin-tab--nav-hidden" role="tab" id="admin-tab-hub" data-admin-tab="hub" aria-selected="false" aria-controls="admin-panel-hub" tabindex="-1" aria-label="Project Hub" hidden>
                   <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
@@ -3366,6 +3370,78 @@
             </div>
           </section>
           </div><!-- /admin-panel-messages -->
+
+          <!-- Email inbox (Inbound + Outbound status) -->
+          <div id="admin-panel-email" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-email" data-admin-tab="email" hidden>
+          <section class="service admin-collapsible-section admin-inbound-section admin-collapsible-open admin-email-preview-collapsed" id="admin-email-section">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Email</h3>
+                <p class="admin-panel-lead">View inbound email and outbound delivery statuses.</p>
+              </div>
+              <div class="admin-panel-heading-action admin-email-heading-actions">
+                <button type="button" class="btn btn-secondary btn-sm" id="admin-email-toggle-preview" aria-pressed="false">Show Preview</button>
+                <button type="button" class="btn btn-primary btn-sm" id="admin-email-compose-btn">Compose Email</button>
+              </div>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <div class="admin-email-threads-layout">
+                  <!-- Vertical thread list (sidebar) -->
+                  <div class="admin-email-thread-list-wrap">
+                    <div class="admin-email-thread-search-bar">
+                      <input type="search" id="admin-email-thread-search" class="form-input" placeholder="Search threads…" aria-label="Search email threads">
+                    </div>
+                    <div class="admin-email-thread-list has-scrollbar" id="admin-email-thread-list" aria-live="polite" role="listbox" aria-label="Email threads">
+                      <div class="no-messages">
+                        <ion-icon name="mail-unread-outline"></ion-icon>
+                        <p>No threads yet</p>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Thread detail (right panel) -->
+                  <div class="admin-email-thread-detail" id="admin-email-thread-detail" hidden>
+                    <header class="admin-email-thread-detail-head">
+                      <div class="admin-email-thread-detail-meta">
+                        <h4 class="admin-email-thread-detail-subject" id="admin-email-thread-detail-subject"></h4>
+                        <p class="admin-email-thread-detail-contact" id="admin-email-thread-detail-contact"></p>
+                      </div>
+                    </header>
+                    <div class="admin-email-thread-timeline has-scrollbar" id="admin-email-thread-timeline" aria-live="polite"></div>
+                    <!-- Inline reply composer (hidden until Reply triggered) -->
+                    <div class="admin-email-thread-composer" id="admin-email-thread-composer" hidden>
+                      <textarea id="admin-email-thread-reply-body" class="form-input admin-email-thread-reply-textarea" placeholder="Write your reply…" aria-label="Reply message body"></textarea>
+                      <div class="admin-email-thread-composer-actions">
+                        <button type="button" class="btn btn-secondary btn-sm" id="admin-email-thread-composer-cancel">Cancel</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="admin-email-thread-composer-send">
+                          <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
+                          Send reply
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Reply confirm modal -->
+                <div class="admin-email-reply-confirm-modal" id="admin-email-reply-confirm-modal" hidden aria-modal="true" role="dialog" aria-labelledby="admin-email-reply-confirm-title">
+                  <div class="admin-email-reply-confirm-backdrop" id="admin-email-reply-confirm-backdrop"></div>
+                  <div class="admin-email-reply-confirm-dialog">
+                    <h4 class="admin-email-reply-confirm-title" id="admin-email-reply-confirm-title">Confirm send</h4>
+                    <p class="admin-email-reply-confirm-body" id="admin-email-reply-confirm-body"></p>
+                    <div class="admin-email-reply-confirm-warning" id="admin-email-reply-confirm-warning" hidden></div>
+                    <div class="admin-email-reply-confirm-actions">
+                      <button type="button" class="btn btn-secondary btn-sm" id="admin-email-reply-confirm-cancel">Cancel</button>
+                      <button type="button" class="btn btn-primary btn-sm" id="admin-email-reply-confirm-ok">
+                        <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
+                        Send
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-email -->
 
           <!-- Client Email Sender -->
           <div id="admin-panel-client-email" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-client-email" data-admin-tab="client-email" hidden>
@@ -6960,6 +7036,32 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
     </div>
   </div>
 
+  <div class="agency-modal" id="studio-cost-paid-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content">
+      <div class="agency-modal-header">
+        <h3 id="studio-cost-paid-title">Mark paid</h3>
+        <button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <div class="agency-modal-body has-scrollbar">
+        <input type="hidden" id="studio-cost-paid-id">
+        <p class="form-hint" style="margin-top:0;" id="studio-cost-paid-summary"></p>
+        <div class="form-group">
+          <label for="studio-cost-paid-date">Payment date</label>
+          <div class="studio-cost-paid-date-row">
+            <input type="date" id="studio-cost-paid-date">
+            <button type="button" class="btn btn-secondary btn-sm" id="studio-cost-paid-today-btn">Today</button>
+          </div>
+        </div>
+        <p class="form-hint studio-cost-paid-preview" id="studio-cost-paid-preview" aria-live="polite"></p>
+      </div>
+      <div class="agency-modal-footer">
+        <button type="button" class="btn btn-primary" id="studio-cost-paid-confirm-btn">Mark paid</button>
+      </div>
+    </div>
+  </div>
+
+
   <script src="/assets/js/portfolio-built-in-data.js?v=poster-webp-20260729"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
   <script src="/assets/js/business-doc-shared.js?v=cwr-theme-surfaces-20260726"></script>
@@ -6969,9 +7071,9 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=portal-recover-20260728"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=bookings-hub-20260803"></script>
+  <script src="/assets/js/script.js?v=admin-skeletons-20260811e"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=studio-costs-20260731"></script>
+  <script src="/assets/js/agency-tools.js?v=admin-skeletons-20260811e"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

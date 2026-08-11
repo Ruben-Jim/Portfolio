@@ -535,7 +535,13 @@
         });
         await window.rtdbUpdate(rootRef, patch).catch(function () {});
       }
-      if (window.rtdbUpdate) {
+      // snap.exists() goes false the moment an admin deletes the conversation —
+      // and this listener fires on that deletion. Writing meta here would
+      // RESURRECT dm/meta/<id>, because an RTDB update() creates any path it
+      // does not find. The rebuilt node holds only these two fields, so it shows
+      // in the admin inbox as "Customer / —" with a brand-new updatedAt and
+      // sorts straight to the top. Only touch meta while the thread is real.
+      if (window.rtdbUpdate && snap.exists()) {
         await window.rtdbUpdate(rtdbMetaRef(conversationId), {
           unreadCustomer: 0,
           updatedAt: window.rtdbServerTimestamp()

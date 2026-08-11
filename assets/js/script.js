@@ -12,6 +12,51 @@
   } catch (e) {}
 })();
 
+/**
+ * Admin dashboard loading registry.
+ *
+ * The dashboard is revealed the moment AUTH resolves, but every data
+ * subscription answers later. Without a per-dataset "have we heard back yet"
+ * flag, each panel runs `if (!list.length)` against a still-empty array and
+ * announces "No X yet" — telling you your data is gone when it is merely late.
+ *
+ * `false` here means "no answer yet", which is NOT the same as "empty".
+ * Skeleton markup uses the .agency-skeleton-* classes in agency-tools.css.
+ */
+window.AdminLoading = (function () {
+  var state = {};
+  return {
+    mark: function (key) {
+      if (state[key]) return false;
+      state[key] = true;
+      return true;
+    },
+    is: function (key) {
+      return !!state[key];
+    },
+    reset: function () {
+      state = {};
+    },
+    /** Skeleton <tr>s for table bodies. */
+    rows: function (colspan, count) {
+      var out = '';
+      for (var i = 0; i < (count || 3); i++) {
+        out +=
+          '<tr class="agency-skeleton-row" aria-hidden="true"><td colspan="' +
+          colspan +
+          '"><span class="agency-skeleton-bar"></span></td></tr>';
+      }
+      return out;
+    },
+    /** Skeleton bars for list/card panels. */
+    list: function (count) {
+      var out = '<div class="agency-skeleton-list" aria-hidden="true">';
+      for (var i = 0; i < (count || 3); i++) out += '<span class="agency-skeleton-bar"></span>';
+      return out + '</div>';
+    }
+  };
+})();
+
 // element toggle function
 const elementToggleFunc = function (elem) { elem.classList.toggle("active"); }
 
@@ -3608,6 +3653,7 @@ function normalizePortfolioRtdbRow(row) {
 async function loadPortfolioProjectsFromRtdb() {
   portfolioProjectsRtdb = [];
   if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) {
+    window.AdminLoading.mark('portfolioProjects');
     syncWindowPortfolioProjectsRef();
     return;
   }
@@ -3633,6 +3679,9 @@ async function loadPortfolioProjectsFromRtdb() {
   } catch (err) {
     console.error('Portfolio RTDB load failed; falling back to built-in projects', err);
   }
+  // After the await, on both success and failure — a read that times out must
+  // fall through to the real empty state rather than shimmer forever.
+  window.AdminLoading.mark('portfolioProjects');
   syncWindowPortfolioProjectsRef();
   if (typeof populatePortfolioImageAssetSelect === 'function') {
     populatePortfolioImageAssetSelect();
@@ -4410,6 +4459,10 @@ function renderAdminPortfolioProjects() {
     return;
   }
   syncAdminPortfolioLocalBanner();
+  if (!window.AdminLoading.is('portfolioProjects')) {
+    listEl.innerHTML = window.AdminLoading.list(3);
+    return;
+  }
   if (!portfolioProjectsRtdb.length) {
     listEl.innerHTML =
       '<div class="empty-item"><p>No projects in Realtime Database yet. The public portfolio still shows the built-in list until you add one below.</p></div>';
@@ -8548,7 +8601,12 @@ window.addEventListener('load', function() {
         .replace(/>/g, "&gt;");
     }
     if (!combined) return;
+    // Async Firestore fetch — shimmer until the first load resolves.
+    if (!window.AdminLoading.is('testimonials')) {
+      combined.innerHTML = window.AdminLoading.list(3);
+    }
     if (!window.db || !window.collection || !window.getDocs) {
+      window.AdminLoading.mark('testimonials');
       combined.innerHTML =
         '<div class="empty-item"><p>Firestore is not ready yet. Refresh in a moment.</p></div>';
       return;
@@ -8726,8 +8784,10 @@ window.addEventListener('load', function() {
         combined.innerHTML =
           '<div class="empty-item"><p>No invites or submitted testimonials yet.</p></div>';
       }
+      window.AdminLoading.mark('testimonials');
     } catch (e) {
       console.error("loadTestimonialAdminPanel", e);
+      window.AdminLoading.mark('testimonials');
       combined.innerHTML =
         '<div class="empty-item"><p>Could not load invites or testimonials.</p></div>';
     }
@@ -8860,6 +8920,9 @@ window.addEventListener('load', function() {
           adminAuthResolved = true;
           syncAdminArticleAuth();
         }
+        // Signing out tears down every subscription, so the next session must
+        // shimmer again rather than trust flags from the previous one.
+        if (!firebaseUser) window.AdminLoading.reset();
         handleFirebaseAuthStateChange(firebaseUser);
         if (!resolved) {
           resolved = true;
@@ -10467,6 +10530,15 @@ window.addEventListener('load', function() {
     if (typeof window.subscribeAgencyBookingsFromRtdb === 'function') {
       window.subscribeAgencyBookingsFromRtdb();
     }
+    if (typeof window.subscribeAgencyInboundFromRtdb === 'function') {
+      window.subscribeAgencyInboundFromRtdb();
+    }
+    if (typeof window.subscribeAgencyOutboundFromRtdb === 'function') {
+      window.subscribeAgencyOutboundFromRtdb();
+    }
+    if (typeof window.subscribeAgencyOutboundRepliesFromRtdb === 'function') {
+      window.subscribeAgencyOutboundRepliesFromRtdb();
+    }
     if (typeof window.loadAgencySchedulingSettings === 'function') {
       window.loadAgencySchedulingSettings();
     }
@@ -10503,6 +10575,15 @@ window.addEventListener('load', function() {
     }
     if (typeof window.unsubscribeAgencyBookingsFromRtdb === 'function') {
       window.unsubscribeAgencyBookingsFromRtdb();
+    }
+    if (typeof window.unsubscribeAgencyInboundFromRtdb === 'function') {
+      window.unsubscribeAgencyInboundFromRtdb();
+    }
+    if (typeof window.unsubscribeAgencyOutboundFromRtdb === 'function') {
+      window.unsubscribeAgencyOutboundFromRtdb();
+    }
+    if (typeof window.unsubscribeAgencyOutboundRepliesFromRtdb === 'function') {
+      window.unsubscribeAgencyOutboundRepliesFromRtdb();
     }
     if (window.AgencyTools && typeof window.AgencyTools.unsubscribe === 'function') {
       window.AgencyTools.unsubscribe();
@@ -11325,6 +11406,7 @@ window.addEventListener('load', function() {
     agencyBookingsUnsub = window.rtdbOnValue(
       ref,
       function (snap) {
+        window.AdminLoading.mark('bookings');
         applyAgencyBookingsSnapshot(snap.val());
       },
       function (err) {
@@ -11351,6 +11433,891 @@ window.addEventListener('load', function() {
 
   window.subscribeAgencyBookingsFromRtdb = subscribeAgencyBookingsFromRtdb;
   window.unsubscribeAgencyBookingsFromRtdb = unsubscribeAgencyBookingsFromRtdb;
+
+  // ── Email Threads ──────────────────────────────────────────────────────────
+  var AGENCY_INBOUND_RTD_PATH   = 'agencyInboundEmails';
+  var AGENCY_OUTBOUND_RTD_PATH  = 'agencyOutboundEvents';
+  var AGENCY_OUTBOUND_REPLIES_RTD_PATH = 'agencyOutboundReplies';
+  var agencyInboundList         = [];
+  var agencyOutboundList        = [];
+  var agencyOutboundRepliesList = [];
+  var agencyInboundUnsub        = null;
+  var agencyOutboundUnsub       = null;
+  var agencyOutboundRepliesUnsub = null;
+  var agencyInboundListenFailed = false;
+  var agencyOutboundListenFailed = false;
+  var agencyOutboundRepliesListenFailed = false;
+  var agencyEmailPreviewCollapsed = true;
+  var agencyEmailThreads        = [];   // [{contactEmail, contactName, subject, lastAt, messages:[]}]
+  var agencyEmailSelectedThread = '';   // contactEmail key
+  var agencyEmailThreadSearch   = '';
+  var agencyEmailReplyState     = null; // {to, subject, inReplyTo, references, toName}
+  var agencyEmailReplySending   = false;
+  var agencyEmailLoadedFromCache = false;
+  var agencyEmailLiveSynced = false;
+  var AGENCY_EMAIL_CACHE_DB = 'portfolioEmailCacheDB';
+  var AGENCY_EMAIL_CACHE_STORE = 'kv';
+  var AGENCY_EMAIL_CACHE_KEY = 'adminEmailThreadsCacheV1';
+  var AGENCY_EMAIL_CACHE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+  var AGENCY_EMAIL_PREVIEW_KEY  = 'adminEmailPreviewCollapsed';
+  var AGENCY_EMAIL_THREAD_KEY   = 'adminEmailThread';
+
+  // ── Shared helpers ──────────────────────────────────────────────────────────
+  function escapeEmailHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function formatEmailWhen(iso) {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+      });
+    } catch (e) { return String(iso); }
+  }
+
+  function outboundTypeTone(type) {
+    var t = String(type || '').toLowerCase();
+    if (t === 'email.delivered') return 'delivered';
+    if (t === 'email.bounced')   return 'bounced';
+    if (t === 'email.complained') return 'complained';
+    return 'neutral';
+  }
+
+  function outboundTypeLabel(type) {
+    var t = String(type || '').toLowerCase();
+    if (t === 'email.delivered') return 'Delivered';
+    if (t === 'email.bounced')   return 'Bounced';
+    if (t === 'email.complained') return 'Complained';
+    return t || 'Event';
+  }
+
+  function safeIso(value) {
+    if (!value) return '';
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString();
+  }
+
+  function pruneEmailRowsByAge(rows, dateField) {
+    var cutoff = Date.now() - AGENCY_EMAIL_CACHE_MAX_AGE_MS;
+    return (rows || []).filter(function (row) {
+      var raw = row && row[dateField] ? row[dateField] : row && row.createdAt;
+      var t = Date.parse(raw || 0) || 0;
+      return t >= cutoff;
+    });
+  }
+
+  function openAgencyEmailCacheDb() {
+    return new Promise(function (resolve, reject) {
+      if (!window.indexedDB) {
+        reject(new Error('IndexedDB unavailable'));
+        return;
+      }
+      var req = window.indexedDB.open(AGENCY_EMAIL_CACHE_DB, 1);
+      req.onupgradeneeded = function (e) {
+        var db = e.target.result;
+        if (!db.objectStoreNames.contains(AGENCY_EMAIL_CACHE_STORE)) {
+          db.createObjectStore(AGENCY_EMAIL_CACHE_STORE, { keyPath: 'key' });
+        }
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error || new Error('IndexedDB open failed')); };
+    });
+  }
+
+  async function readAgencyEmailCache() {
+    try {
+      var db = await openAgencyEmailCacheDb();
+      var tx = db.transaction(AGENCY_EMAIL_CACHE_STORE, 'readonly');
+      var store = tx.objectStore(AGENCY_EMAIL_CACHE_STORE);
+      var req = store.get(AGENCY_EMAIL_CACHE_KEY);
+      var row = await new Promise(function (resolve, reject) {
+        req.onsuccess = function () { resolve(req.result || null); };
+        req.onerror = function () { reject(req.error || new Error('IndexedDB read failed')); };
+      });
+      db.close();
+      return row && row.value ? row.value : null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  async function writeAgencyEmailCache() {
+    try {
+      var db = await openAgencyEmailCacheDb();
+      var tx = db.transaction(AGENCY_EMAIL_CACHE_STORE, 'readwrite');
+      var store = tx.objectStore(AGENCY_EMAIL_CACHE_STORE);
+      var payload = {
+        version: 1,
+        savedAt: new Date().toISOString(),
+        inbound: pruneEmailRowsByAge(agencyInboundList, 'receivedAt'),
+        outbound: pruneEmailRowsByAge(agencyOutboundList, 'eventAt'),
+        replies: pruneEmailRowsByAge(agencyOutboundRepliesList, 'sentAt')
+      };
+      store.put({ key: AGENCY_EMAIL_CACHE_KEY, value: payload });
+      await new Promise(function (resolve, reject) {
+        tx.oncomplete = function () { resolve(); };
+        tx.onerror = function () { reject(tx.error || new Error('IndexedDB write failed')); };
+        tx.onabort = function () { reject(tx.error || new Error('IndexedDB write aborted')); };
+      });
+      db.close();
+    } catch (err) {
+      // Best-effort cache write only.
+    }
+  }
+
+  // ── Thread building ─────────────────────────────────────────────────────────
+  // Returns canonical contact email from an inbound row (the sender).
+  function inboundContactEmail(row) {
+    return String(row.fromEmail || row.from || '').toLowerCase().trim();
+  }
+
+  // Returns canonical contact email from an outbound row (the recipient).
+  function outboundContactEmail(row) {
+    var list = Array.isArray(row.to) ? row.to : [];
+    return String(list[0] || '').toLowerCase().trim();
+  }
+
+  function inboundDisplayFrom(row) {
+    if (!row) return 'Unknown';
+    return String(row.fromName || row.fromEmail || row.from || 'Unknown').trim();
+  }
+
+  function normalizeThreadSubject(subject) {
+    var s = String(subject || '(No subject)').trim();
+    // Collapse common reply/forward prefixes so "Re: X" stays in same thread as "X".
+    s = s.replace(/^\s*((re|fw|fwd)\s*:\s*)+/i, '').trim();
+    return s.toLowerCase() || '(no subject)';
+  }
+
+  function buildEmailThreads() {
+    var map = {};
+
+    agencyInboundList.forEach(function (row) {
+      var contactEmail = inboundContactEmail(row);
+      if (!contactEmail) return;
+      var subjectRoot = normalizeThreadSubject(row.subject);
+      var key = contactEmail + '|' + subjectRoot;
+      if (!map[key]) {
+        map[key] = {
+          threadKey: key,
+          contactEmail: contactEmail,
+          contactName: inboundDisplayFrom(row),
+          subjectRoot: subjectRoot,
+          messages: []
+        };
+      }
+      map[key].messages.push({
+        kind: 'inbound',
+        id: row.id,
+        subject: row.subject || '(No subject)',
+        at: row.receivedAt || row.createdAt || '',
+        from: inboundDisplayFrom(row),
+        fromEmail: String(row.fromEmail || row.from || ''),
+        to: Array.isArray(row.to) ? row.to : [],
+        html: row.html || '',
+        text: row.text || '',
+        messageId: row.messageId || '',
+        references: row.references || ''
+      });
+    });
+
+    agencyOutboundList.forEach(function (row) {
+      var contactEmail = outboundContactEmail(row);
+      if (!contactEmail) return;
+      var subjectRoot = normalizeThreadSubject(row.subject);
+      var key = contactEmail + '|' + subjectRoot;
+      if (!map[key]) {
+        map[key] = {
+          threadKey: key,
+          contactEmail: contactEmail,
+          contactName: contactEmail,
+          subjectRoot: subjectRoot,
+          messages: []
+        };
+      }
+      map[key].messages.push({
+        kind: 'outbound',
+        id: row.id,
+        subject: row.subject || '(No subject)',
+        at: row.eventAt || row.createdAt || '',
+        statusType: row.type || '',
+        emailId: row.emailId || '',
+        from: row.from || '',
+        to: Array.isArray(row.to) ? row.to : []
+      });
+    });
+
+    agencyOutboundRepliesList.forEach(function (row) {
+      var contactEmail = String(row.toEmail || '').toLowerCase().trim();
+      if (!contactEmail) return;
+      var subjectRoot = normalizeThreadSubject(row.subject);
+      var key = String(row.threadKey || (contactEmail + '|' + subjectRoot));
+      if (!map[key]) {
+        map[key] = {
+          threadKey: key,
+          contactEmail: contactEmail,
+          contactName: contactEmail,
+          subjectRoot: subjectRoot,
+          messages: []
+        };
+      }
+      map[key].messages.push({
+        kind: 'reply',
+        id: row.id,
+        subject: row.subject || '(No subject)',
+        at: row.sentAt || row.createdAt || '',
+        from: row.from || 'You',
+        to: [contactEmail],
+        text: String(row.message || ''),
+        messageId: String(row.messageId || ''),
+        inReplyTo: String(row.inReplyTo || ''),
+        references: String(row.references || ''),
+        clientNonce: String(row.clientNonce || ''),
+        optimistic: !!row.optimistic
+      });
+    });
+
+    // Sort messages newest first within each thread
+    Object.keys(map).forEach(function (key) {
+      map[key].messages.sort(function (a, b) {
+        return (Date.parse(b.at) || 0) - (Date.parse(a.at) || 0);
+      });
+    });
+
+    // Sort threads by most recent message
+    agencyEmailThreads = Object.values(map).sort(function (a, b) {
+      var ta = a.messages.length ? (Date.parse(a.messages[0].at) || 0) : 0;
+      var tb = b.messages.length ? (Date.parse(b.messages[0].at) || 0) : 0;
+      return tb - ta;
+    });
+  }
+
+  function getFilteredThreads() {
+    var q = agencyEmailThreadSearch.toLowerCase().trim();
+    if (!q) return agencyEmailThreads;
+    return agencyEmailThreads.filter(function (t) {
+      return t.contactEmail.indexOf(q) >= 0 ||
+        t.contactName.toLowerCase().indexOf(q) >= 0 ||
+        t.messages.some(function (m) { return m.subject.toLowerCase().indexOf(q) >= 0; });
+    });
+  }
+
+  function getSelectedThread() {
+    if (!agencyEmailSelectedThread) return null;
+    return agencyEmailThreads.find(function (t) {
+      return t.threadKey === agencyEmailSelectedThread;
+    }) || null;
+  }
+
+  // ── Thread list rendering ───────────────────────────────────────────────────
+  function renderAdminEmailThreadList() {
+    var listEl = document.getElementById('admin-email-thread-list');
+    if (!listEl) return;
+    var threads = getFilteredThreads();
+    if (!threads.length) {
+      listEl.innerHTML =
+        '<div class="no-messages">' +
+        '<ion-icon name="mail-unread-outline"></ion-icon>' +
+        '<p>' + (agencyEmailThreadSearch ? 'No threads match your search.' : 'No threads yet') + '</p>' +
+        '</div>';
+      return;
+    }
+    listEl.innerHTML = threads.map(function (thread) {
+      var active = thread.threadKey === agencyEmailSelectedThread ? ' is-active' : '';
+      var latest = thread.messages[0] || {};
+      var hasComplained = thread.messages.some(function (m) { return m.kind === 'outbound' && m.statusType === 'email.complained'; });
+      var hasBounced    = thread.messages.some(function (m) { return m.kind === 'outbound' && m.statusType === 'email.bounced'; });
+      var hasDelivered  = thread.messages.some(function (m) { return m.kind === 'outbound' && m.statusType === 'email.delivered'; });
+      var healthTone    = hasComplained ? 'complained' : hasBounced ? 'bounced' : hasDelivered ? 'delivered' : 'neutral';
+      var healthLabel   = hasComplained ? 'Complained' : hasBounced ? 'Bounced' : hasDelivered ? 'Delivered' : '';
+      var inboundCount  = thread.messages.filter(function (m) { return m.kind === 'inbound'; }).length;
+      var unreadBadge   = inboundCount > 0
+        ? '<span class="admin-email-thread-badge admin-email-thread-badge--unread">' + inboundCount + '</span>'
+        : '';
+      var healthBadge   = healthLabel
+        ? '<span class="admin-email-chip admin-email-status-chip admin-email-status-chip--' + escapeEmailHtml(healthTone) + '">' + escapeEmailHtml(healthLabel) + '</span>'
+        : '';
+      return (
+        '<button type="button" class="admin-email-thread-card' + active + '" ' +
+          'data-thread-key="' + escapeEmailHtml(thread.threadKey) + '" tabindex="0" ' +
+          'role="option" aria-selected="' + (active ? 'true' : 'false') + '">' +
+        '<div class="admin-email-thread-card-contact">' + escapeEmailHtml(thread.contactName) + '</div>' +
+        '<div class="admin-email-thread-card-subject">' + escapeEmailHtml(latest.subject || '(No subject)') + '</div>' +
+        '<div class="admin-email-thread-card-meta">' +
+        '<span class="admin-email-chip admin-email-chip--time">' + escapeEmailHtml(formatEmailWhen(latest.at)) + '</span>' +
+        unreadBadge + healthBadge +
+        '</div>' +
+        '</button>'
+      );
+    }).join('');
+  }
+
+  // ── Thread detail rendering ─────────────────────────────────────────────────
+  function renderAdminEmailThreadDetail() {
+    var detailEl    = document.getElementById('admin-email-thread-detail');
+    var subjectEl   = document.getElementById('admin-email-thread-detail-subject');
+    var contactEl   = document.getElementById('admin-email-thread-detail-contact');
+    var timelineEl  = document.getElementById('admin-email-thread-timeline');
+    var composerEl  = document.getElementById('admin-email-thread-composer');
+    if (!detailEl) return;
+
+    var thread = getSelectedThread();
+    if (!thread) {
+      detailEl.hidden = true;
+      return;
+    }
+    detailEl.hidden = false;
+
+    var latest = thread.messages[0] || {};
+    if (subjectEl) subjectEl.textContent = latest.subject || '(No subject)';
+    if (contactEl) {
+      var sourceTag = agencyEmailLiveSynced ? '' : (agencyEmailLoadedFromCache ? ' · Cached' : '');
+      contactEl.textContent = thread.contactName + ' · ' + thread.contactEmail + sourceTag;
+    }
+
+    if (!timelineEl) return;
+    // Determine latest inbound for reply threading data stored on the container
+    var latestInbound = thread.messages.find(function (m) { return m.kind === 'inbound'; });
+    if (latestInbound) {
+      timelineEl.dataset.replyTo      = latestInbound.fromEmail;
+      timelineEl.dataset.replyName    = latestInbound.from;
+      timelineEl.dataset.replySubject = 'Re: ' + latestInbound.subject;
+      timelineEl.dataset.replyMsgId   = latestInbound.messageId || '';
+      timelineEl.dataset.replyRefs    = latestInbound.references || '';
+      agencyEmailReplyState = {
+        to: latestInbound.fromEmail || '',
+        toName: latestInbound.from || '',
+        subject: 'Re: ' + (latestInbound.subject || '(No subject)'),
+        inReplyTo: latestInbound.messageId ? '<' + latestInbound.messageId + '>' : '',
+        references: (latestInbound.references ? latestInbound.references + ' ' : '') + (latestInbound.messageId ? '<' + latestInbound.messageId + '>' : '')
+      };
+      if (composerEl) composerEl.hidden = false;
+    } else {
+      delete timelineEl.dataset.replyTo;
+      agencyEmailReplyState = null;
+      if (composerEl) composerEl.hidden = true;
+    }
+
+    // Group consecutive messages to avoid repeating same subject
+    var prevSubject = null;
+    timelineEl.innerHTML = thread.messages.map(function (msg) {
+      var showSubject = msg.subject !== prevSubject;
+      prevSubject = msg.subject;
+
+      if (msg.kind === 'inbound') {
+        var htmlBody = sanitizeBlogContentHtml(msg.html || '');
+        var bodyContent = htmlBody
+          ? '<div class="admin-email-bubble-body admin-email-bubble-body--html">' + htmlBody + '</div>'
+          : '<div class="admin-email-bubble-body admin-email-bubble-body--text">' + escapeEmailHtml(msg.text || '(No body)') + '</div>';
+        return (
+          '<div class="admin-email-bubble admin-email-bubble--inbound">' +
+          '<div class="admin-email-bubble-meta">' +
+          '<span class="admin-email-bubble-from">' + escapeEmailHtml(msg.from) + '</span>' +
+          '<span class="admin-email-bubble-when">' + escapeEmailHtml(formatEmailWhen(msg.at)) + '</span>' +
+          '</div>' +
+          (showSubject ? '<div class="admin-email-bubble-subject">' + escapeEmailHtml(msg.subject) + '</div>' : '') +
+          bodyContent +
+          '</div>'
+        );
+      }
+      if (msg.kind === 'reply') {
+        return (
+          '<div class="admin-email-bubble admin-email-bubble--outbound">' +
+          '<div class="admin-email-bubble-meta">' +
+          '<span class="admin-email-bubble-from">You</span>' +
+          '<span class="admin-email-bubble-when">' + escapeEmailHtml(formatEmailWhen(msg.at)) + '</span>' +
+          (msg.optimistic ? '<span class="admin-email-chip admin-email-chip--to">Sending…</span>' : '<span class="admin-email-chip admin-email-chip--to">Sent</span>') +
+          '</div>' +
+          (showSubject ? '<div class="admin-email-bubble-subject">' + escapeEmailHtml(msg.subject) + '</div>' : '') +
+          '<div class="admin-email-bubble-body admin-email-bubble-body--text">' + escapeEmailHtml(msg.text || '') + '</div>' +
+          '</div>'
+        );
+      }
+      // outbound status event
+      var tone = outboundTypeTone(msg.statusType);
+      var label = outboundTypeLabel(msg.statusType);
+      return (
+        '<div class="admin-email-bubble admin-email-bubble--outbound">' +
+        '<div class="admin-email-bubble-meta">' +
+        '<span class="admin-email-bubble-from">You</span>' +
+        '<span class="admin-email-bubble-when">' + escapeEmailHtml(formatEmailWhen(msg.at)) + '</span>' +
+        '<span class="admin-email-chip admin-email-status-chip admin-email-status-chip--' + escapeEmailHtml(tone) + '">' + escapeEmailHtml(label) + '</span>' +
+        '</div>' +
+        (showSubject ? '<div class="admin-email-bubble-subject">' + escapeEmailHtml(msg.subject) + '</div>' : '') +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  // ── Reply composer ──────────────────────────────────────────────────────────
+  function closeAdminEmailReplyComposer() {
+    var textarea = document.getElementById('admin-email-thread-reply-body');
+    if (textarea) textarea.value = '';
+  }
+
+  function showAdminEmailReplyConfirm() {
+    if (!agencyEmailReplyState) return;
+    var textarea = document.getElementById('admin-email-thread-reply-body');
+    var message = textarea ? textarea.value.trim() : '';
+    if (!message) { if (textarea) { textarea.focus(); } return; }
+
+    var modal    = document.getElementById('admin-email-reply-confirm-modal');
+    var bodyEl   = document.getElementById('admin-email-reply-confirm-body');
+    var warnEl   = document.getElementById('admin-email-reply-confirm-warning');
+    if (!modal) return;
+
+    var to = agencyEmailReplyState.to;
+    var subject = agencyEmailReplyState.subject;
+    if (bodyEl) {
+      bodyEl.textContent = 'Send reply to ' + to + ' with subject "' + subject + '"?';
+    }
+    // Domain warning if not a common personal domain (external custom domain)
+    var personalDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'icloud.com', 'me.com', 'aol.com', 'protonmail.com', 'live.com'];
+    var toDomain = to.split('@')[1] || '';
+    var isExternal = toDomain && personalDomains.indexOf(toDomain.toLowerCase()) < 0;
+    if (warnEl) {
+      if (isExternal) {
+        warnEl.textContent = 'Note: ' + to + ' uses a custom domain (' + toDomain + '). Make sure this is a real customer email.';
+        warnEl.hidden = false;
+      } else {
+        warnEl.hidden = true;
+      }
+    }
+    modal.hidden = false;
+    document.body.classList.add('admin-email-reply-modal-open');
+  }
+
+  function closeAdminEmailReplyConfirm() {
+    var modal = document.getElementById('admin-email-reply-confirm-modal');
+    if (modal) modal.hidden = true;
+    document.body.classList.remove('admin-email-reply-modal-open');
+  }
+
+  function mergeOutboundRepliesRows(serverRows) {
+    var optimisticRows = (agencyOutboundRepliesList || []).filter(function (row) {
+      return !!(row && row.optimistic);
+    });
+    var byNonce = {};
+    (serverRows || []).forEach(function (row) {
+      var nonce = String((row && row.clientNonce) || '');
+      if (nonce) byNonce[nonce] = true;
+    });
+    var pendingOnly = optimisticRows.filter(function (row) {
+      var nonce = String((row && row.clientNonce) || '');
+      return nonce && !byNonce[nonce];
+    });
+    return (serverRows || []).concat(pendingOnly);
+  }
+
+  function addOptimisticReplyRow(data) {
+    var row = Object.assign({
+      id: 'optimistic:' + String(data.clientNonce || Date.now()),
+      optimistic: true,
+      createdAt: safeIso(new Date()),
+    }, data || {});
+    agencyOutboundRepliesList = (agencyOutboundRepliesList || []).concat([row]);
+    rebuildAndRender();
+    writeAgencyEmailCache();
+  }
+
+  async function persistOutboundReplyRow(row) {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbPush || !window.rtdbSet) {
+      throw new Error('Realtime DB is not ready');
+    }
+    var ref = window.rtdbPush(window.rtdbRef(window.rtdb, AGENCY_OUTBOUND_REPLIES_RTD_PATH));
+    var record = Object.assign({}, row || {});
+    delete record.id;
+    delete record.optimistic;
+    await window.rtdbSet(ref, record);
+    return ref && ref.key ? String(ref.key) : '';
+  }
+
+  async function sendAdminEmailReply() {
+    if (!agencyEmailReplyState || agencyEmailReplySending) return;
+    var textarea = document.getElementById('admin-email-thread-reply-body');
+    var message = textarea ? textarea.value.trim() : '';
+    if (!message) return;
+
+    agencyEmailReplySending = true;
+    var sendBtn = document.getElementById('admin-email-reply-confirm-ok');
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Sending…'; }
+
+    try {
+      var state = agencyEmailReplyState;
+      var thread = getSelectedThread();
+      var sentAtIso = safeIso(new Date()) || new Date().toISOString();
+      var clientNonce = 'reply-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+      await sendPortfolioEmailRequest({
+        type: 'admin_reply',
+        payload: {
+          to_email: state.to,
+          to_name: state.toName || '',
+          subject: state.subject,
+          message: message,
+          in_reply_to: state.inReplyTo,
+          references: state.references
+        }
+      }, { requireAdmin: true });
+
+      addOptimisticReplyRow({
+        threadKey: thread ? thread.threadKey : '',
+        toEmail: state.to,
+        toName: state.toName || '',
+        from: 'You',
+        subject: state.subject,
+        message: message,
+        sentAt: sentAtIso,
+        createdAt: sentAtIso,
+        inReplyTo: state.inReplyTo || '',
+        references: state.references || '',
+        clientNonce: clientNonce
+      });
+
+      persistOutboundReplyRow({
+        threadKey: thread ? thread.threadKey : '',
+        toEmail: state.to,
+        toName: state.toName || '',
+        from: 'You',
+        subject: state.subject,
+        message: message,
+        sentAt: sentAtIso,
+        createdAt: sentAtIso,
+        inReplyTo: state.inReplyTo || '',
+        references: state.references || '',
+        clientNonce: clientNonce
+      }).catch(function (persistErr) {
+        console.warn('agencyOutboundReplies write failed', persistErr);
+      });
+
+      closeAdminEmailReplyConfirm();
+      closeAdminEmailReplyComposer();
+    } catch (err) {
+      var errMsg = (err && err.message) || 'Send failed. Try again.';
+      if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send'; }
+      var warnEl = document.getElementById('admin-email-reply-confirm-warning');
+      if (warnEl) { warnEl.textContent = 'Error: ' + errMsg; warnEl.hidden = false; }
+    } finally {
+      agencyEmailReplySending = false;
+      if (sendBtn) { sendBtn.disabled = false; }
+      var icon = '<ion-icon name="send-outline" aria-hidden="true"></ion-icon> Send';
+      if (sendBtn) sendBtn.innerHTML = icon;
+    }
+  }
+
+  // ── Thread selection ────────────────────────────────────────────────────────
+  function selectEmailThread(contactEmail) {
+    agencyEmailSelectedThread = contactEmail;
+    if (agencyEmailPreviewCollapsed) setAdminEmailPreviewCollapsed(false);
+    renderAdminEmailThreadList();
+    renderAdminEmailThreadDetail();
+    try { sessionStorage.setItem(AGENCY_EMAIL_THREAD_KEY, contactEmail); } catch (e) {}
+  }
+
+  // ── Bind UI ─────────────────────────────────────────────────────────────────
+  function bindAdminEmailThreadsUi() {
+    var listEl = document.getElementById('admin-email-thread-list');
+    if (listEl && !listEl.dataset.bound) {
+      listEl.dataset.bound = '1';
+      listEl.addEventListener('click', function (e) {
+        var card = e.target.closest('[data-thread-key]');
+        if (!card) return;
+        selectEmailThread(card.getAttribute('data-thread-key'));
+      });
+      listEl.addEventListener('keydown', function (e) {
+        var cards = Array.prototype.slice.call(listEl.querySelectorAll('[data-thread-key]'));
+        if (!cards.length) return;
+        var idx = cards.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          var next = idx < 0 ? 0 : (e.key === 'ArrowDown' ? Math.min(cards.length - 1, idx + 1) : Math.max(0, idx - 1));
+          cards[next].focus();
+          selectEmailThread(cards[next].getAttribute('data-thread-key'));
+        } else if ((e.key === 'Enter' || e.key === ' ') && idx >= 0) {
+          e.preventDefault();
+          selectEmailThread(cards[idx].getAttribute('data-thread-key'));
+        }
+      });
+    }
+
+    var searchEl = document.getElementById('admin-email-thread-search');
+    if (searchEl && !searchEl.dataset.bound) {
+      searchEl.dataset.bound = '1';
+      searchEl.addEventListener('input', function () {
+        agencyEmailThreadSearch = searchEl.value || '';
+        renderAdminEmailThreadList();
+      });
+    }
+
+
+    var timelineEl = document.getElementById('admin-email-thread-timeline');
+
+    // Composer cancel / send
+    var cancelBtn = document.getElementById('admin-email-thread-composer-cancel');
+    if (cancelBtn && !cancelBtn.dataset.bound) {
+      cancelBtn.dataset.bound = '1';
+      cancelBtn.addEventListener('click', closeAdminEmailReplyComposer);
+    }
+    var composerSendBtn = document.getElementById('admin-email-thread-composer-send');
+    if (composerSendBtn && !composerSendBtn.dataset.bound) {
+      composerSendBtn.dataset.bound = '1';
+      composerSendBtn.addEventListener('click', showAdminEmailReplyConfirm);
+    }
+
+    // Confirm modal
+    var confirmModal = document.getElementById('admin-email-reply-confirm-modal');
+    if (confirmModal && !confirmModal.dataset.bound) {
+      confirmModal.dataset.bound = '1';
+      document.getElementById('admin-email-reply-confirm-cancel').addEventListener('click', closeAdminEmailReplyConfirm);
+      document.getElementById('admin-email-reply-confirm-backdrop').addEventListener('click', closeAdminEmailReplyConfirm);
+      document.getElementById('admin-email-reply-confirm-ok').addEventListener('click', sendAdminEmailReply);
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        if (confirmModal && !confirmModal.hidden) { closeAdminEmailReplyConfirm(); }
+      }
+    });
+  }
+
+  // ── Preview collapse ────────────────────────────────────────────────────────
+  function setAdminEmailPreviewCollapsed(collapsed) {
+    agencyEmailPreviewCollapsed = !!collapsed;
+    var section = document.getElementById('admin-email-section');
+    var toggleBtn = document.getElementById('admin-email-toggle-preview');
+    if (section) section.classList.toggle('admin-email-preview-collapsed', agencyEmailPreviewCollapsed);
+    if (toggleBtn) {
+      toggleBtn.textContent = agencyEmailPreviewCollapsed ? 'Show Preview' : 'Hide Preview';
+      toggleBtn.setAttribute('aria-pressed', agencyEmailPreviewCollapsed ? 'false' : 'true');
+    }
+    try { sessionStorage.setItem(AGENCY_EMAIL_PREVIEW_KEY, agencyEmailPreviewCollapsed ? '1' : '0'); } catch (e) {}
+  }
+
+  // ── Compose drawer ──────────────────────────────────────────────────────────
+  function ensureAdminClientEmailDrawer() {
+    var existing = document.getElementById('admin-email-compose-drawer');
+    if (existing) return existing;
+    var sourcePanel = document.getElementById('admin-panel-client-email');
+    if (!sourcePanel) return null;
+    var sourceSection = sourcePanel.querySelector('#admin-client-email-section');
+    if (!sourceSection) return null;
+    var drawer = document.createElement('div');
+    drawer.id = 'admin-email-compose-drawer';
+    drawer.className = 'admin-email-drawer';
+    drawer.setAttribute('aria-hidden', 'true');
+    drawer.innerHTML =
+      '<div class="admin-email-drawer__backdrop" data-email-drawer-close></div>' +
+      '<aside class="admin-email-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="admin-email-drawer-title">' +
+      '<header class="admin-email-drawer__head">' +
+      '<h3 class="h3 admin-panel-title" id="admin-email-drawer-title">Compose email</h3>' +
+      '<button type="button" class="admin-email-drawer__close" id="admin-email-drawer-close" aria-label="Close compose drawer">' +
+      '<ion-icon name="close-outline" aria-hidden="true"></ion-icon>' +
+      '</button>' +
+      '</header>' +
+      '<div class="admin-email-drawer__body has-scrollbar" id="admin-email-drawer-body"></div>' +
+      '</aside>';
+    document.body.appendChild(drawer);
+    var body = drawer.querySelector('#admin-email-drawer-body');
+    if (body) body.appendChild(sourceSection);
+    sourcePanel.hidden = true;
+    sourcePanel.setAttribute('aria-hidden', 'true');
+    return drawer;
+  }
+
+  function closeAdminClientEmailDrawer() {
+    var drawer = document.getElementById('admin-email-compose-drawer');
+    if (!drawer) return;
+    drawer.classList.remove('is-open');
+    drawer.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('admin-email-drawer-open');
+  }
+
+  function openAdminClientEmailDrawer() {
+    var drawer = ensureAdminClientEmailDrawer();
+    if (!drawer) return;
+    drawer.classList.add('is-open');
+    drawer.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('admin-email-drawer-open');
+  }
+
+  function bindAdminEmailActions() {
+    var toggleBtn = document.getElementById('admin-email-toggle-preview');
+    if (toggleBtn && toggleBtn.dataset.bound !== '1') {
+      toggleBtn.dataset.bound = '1';
+      toggleBtn.addEventListener('click', function () {
+        setAdminEmailPreviewCollapsed(!agencyEmailPreviewCollapsed);
+      });
+    }
+    var composeBtn = document.getElementById('admin-email-compose-btn');
+    if (composeBtn && composeBtn.dataset.bound !== '1') {
+      composeBtn.dataset.bound = '1';
+      composeBtn.addEventListener('click', openAdminClientEmailDrawer);
+    }
+    var drawer = ensureAdminClientEmailDrawer();
+    if (drawer && drawer.dataset.bound !== '1') {
+      drawer.dataset.bound = '1';
+      drawer.addEventListener('click', function (e) {
+        if (e.target && e.target.hasAttribute('data-email-drawer-close')) closeAdminClientEmailDrawer();
+      });
+      var closeBtn = drawer.querySelector('#admin-email-drawer-close');
+      if (closeBtn) closeBtn.addEventListener('click', closeAdminClientEmailDrawer);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeAdminClientEmailDrawer();
+      });
+    }
+  }
+
+  // ── RTDB subscriptions ──────────────────────────────────────────────────────
+  function rebuildAndRender() {
+    buildEmailThreads();
+    // Auto-select first thread if nothing selected
+    if (!agencyEmailSelectedThread && agencyEmailThreads.length) {
+      agencyEmailSelectedThread = agencyEmailThreads[0].threadKey;
+    }
+    renderAdminEmailThreadList();
+    renderAdminEmailThreadDetail();
+  }
+
+  function applyAgencyInboundSnapshot(val) {
+    agencyInboundList = val && typeof val === 'object'
+      ? Object.keys(val).map(function (id) { return Object.assign({ id: id }, val[id] || {}); })
+      : [];
+    agencyInboundListenFailed = false;
+    agencyEmailLiveSynced = true;
+    rebuildAndRender();
+    writeAgencyEmailCache();
+  }
+
+  function applyAgencyOutboundSnapshot(val) {
+    agencyOutboundList = val && typeof val === 'object'
+      ? Object.keys(val).map(function (id) { return Object.assign({ id: id }, val[id] || {}); })
+      : [];
+    agencyOutboundListenFailed = false;
+    agencyEmailLiveSynced = true;
+    rebuildAndRender();
+    writeAgencyEmailCache();
+  }
+
+  function applyAgencyOutboundRepliesSnapshot(val) {
+    var serverRows = val && typeof val === 'object'
+      ? Object.keys(val).map(function (id) { return Object.assign({ id: id }, val[id] || {}); })
+      : [];
+    agencyOutboundRepliesList = mergeOutboundRepliesRows(serverRows);
+    agencyOutboundRepliesListenFailed = false;
+    agencyEmailLiveSynced = true;
+    rebuildAndRender();
+    writeAgencyEmailCache();
+  }
+
+  function subscribeAgencyInboundFromRtdb() {
+    if (typeof isAdmin !== 'function' || !isAdmin()) return;
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
+    if (agencyInboundUnsub && !agencyInboundListenFailed) return;
+    if (typeof agencyInboundUnsub === 'function') { try { agencyInboundUnsub(); } catch (e) {} agencyInboundUnsub = null; }
+    agencyInboundListenFailed = false;
+    var ref = window.rtdbRef(window.rtdb, AGENCY_INBOUND_RTD_PATH);
+    agencyInboundUnsub = window.rtdbOnValue(ref, function (snap) {
+      applyAgencyInboundSnapshot(snap.val());
+    }, function (err) {
+      console.error('agencyInboundEmails listen failed', err);
+      agencyInboundListenFailed = true;
+      agencyInboundUnsub = null;
+      agencyEmailLiveSynced = false;
+      var listEl = document.getElementById('admin-email-thread-list');
+      if (listEl) listEl.innerHTML = '<div class="no-messages"><ion-icon name="alert-circle-outline"></ion-icon><p>Could not load mail. Deploy database rules and try again.</p></div>';
+    });
+  }
+
+  function subscribeAgencyOutboundFromRtdb() {
+    if (typeof isAdmin !== 'function' || !isAdmin()) return;
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
+    if (agencyOutboundUnsub && !agencyOutboundListenFailed) return;
+    if (typeof agencyOutboundUnsub === 'function') { try { agencyOutboundUnsub(); } catch (e) {} agencyOutboundUnsub = null; }
+
+    agencyOutboundListenFailed = false;
+    var ref = window.rtdbRef(window.rtdb, AGENCY_OUTBOUND_RTD_PATH);
+    agencyOutboundUnsub = window.rtdbOnValue(ref, function (snap) {
+      applyAgencyOutboundSnapshot(snap.val());
+    }, function (err) {
+      console.error('agencyOutboundEvents listen failed', err);
+      agencyOutboundListenFailed = true;
+      agencyOutboundUnsub = null;
+      agencyEmailLiveSynced = false;
+    });
+  }
+
+  function subscribeAgencyOutboundRepliesFromRtdb() {
+    if (typeof isAdmin !== 'function' || !isAdmin()) return;
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
+    if (agencyOutboundRepliesUnsub && !agencyOutboundRepliesListenFailed) return;
+    if (typeof agencyOutboundRepliesUnsub === 'function') { try { agencyOutboundRepliesUnsub(); } catch (e) {} agencyOutboundRepliesUnsub = null; }
+
+    agencyOutboundRepliesListenFailed = false;
+    var ref = window.rtdbRef(window.rtdb, AGENCY_OUTBOUND_REPLIES_RTD_PATH);
+    agencyOutboundRepliesUnsub = window.rtdbOnValue(ref, function (snap) {
+      applyAgencyOutboundRepliesSnapshot(snap.val());
+    }, function (err) {
+      console.error('agencyOutboundReplies listen failed', err);
+      agencyOutboundRepliesListenFailed = true;
+      agencyOutboundRepliesUnsub = null;
+      agencyEmailLiveSynced = false;
+    });
+  }
+
+  function unsubscribeAgencyInboundFromRtdb() {
+    if (typeof agencyInboundUnsub === 'function') { try { agencyInboundUnsub(); } catch (e) {} }
+    agencyInboundUnsub = null;
+    agencyInboundListenFailed = false;
+  }
+
+  function unsubscribeAgencyOutboundFromRtdb() {
+    if (typeof agencyOutboundUnsub === 'function') { try { agencyOutboundUnsub(); } catch (e) {} }
+    agencyOutboundUnsub = null;
+    agencyOutboundListenFailed = false;
+  }
+
+  function unsubscribeAgencyOutboundRepliesFromRtdb() {
+    if (typeof agencyOutboundRepliesUnsub === 'function') { try { agencyOutboundRepliesUnsub(); } catch (e) {} }
+    agencyOutboundRepliesUnsub = null;
+    agencyOutboundRepliesListenFailed = false;
+  }
+
+  async function initAdminEmailPanel() {
+    try {
+      var savedPreview = sessionStorage.getItem(AGENCY_EMAIL_PREVIEW_KEY);
+      if (savedPreview === '0' || savedPreview === '1') agencyEmailPreviewCollapsed = savedPreview === '1';
+      var savedThread = sessionStorage.getItem(AGENCY_EMAIL_THREAD_KEY);
+      if (savedThread) agencyEmailSelectedThread = savedThread;
+    } catch (e) {}
+    bindAdminEmailActions();
+    bindAdminEmailThreadsUi();
+    setAdminEmailPreviewCollapsed(agencyEmailPreviewCollapsed);
+    // Stale-while-revalidate: render cached data instantly, then sync live.
+    var cached = await readAgencyEmailCache();
+    if (cached && typeof cached === 'object') {
+      agencyInboundList = Array.isArray(cached.inbound) ? cached.inbound : [];
+      agencyOutboundList = Array.isArray(cached.outbound) ? cached.outbound : [];
+      agencyOutboundRepliesList = Array.isArray(cached.replies) ? cached.replies : [];
+      agencyEmailLoadedFromCache = agencyInboundList.length > 0 || agencyOutboundList.length > 0 || agencyOutboundRepliesList.length > 0;
+      agencyEmailLiveSynced = false;
+      rebuildAndRender();
+    }
+    subscribeAgencyInboundFromRtdb();
+    subscribeAgencyOutboundFromRtdb();
+    subscribeAgencyOutboundRepliesFromRtdb();
+    rebuildAndRender();
+  }
+
+  window.subscribeAgencyInboundFromRtdb = subscribeAgencyInboundFromRtdb;
+  window.unsubscribeAgencyInboundFromRtdb = unsubscribeAgencyInboundFromRtdb;
+  window.subscribeAgencyOutboundFromRtdb = subscribeAgencyOutboundFromRtdb;
+  window.unsubscribeAgencyOutboundFromRtdb = unsubscribeAgencyOutboundFromRtdb;
+  window.subscribeAgencyOutboundRepliesFromRtdb = subscribeAgencyOutboundRepliesFromRtdb;
+  window.unsubscribeAgencyOutboundRepliesFromRtdb = unsubscribeAgencyOutboundRepliesFromRtdb;
+  window.initAdminEmailPanel = initAdminEmailPanel;
+  window.initAdminInboundPanel = initAdminEmailPanel;
 
   var adminBookingsSendingId = null;
   var pendingCancelBookingId = null;
@@ -11380,6 +12347,10 @@ window.addEventListener('load', function() {
   function updateAdminBookingsSummary() {
     var el = document.getElementById('admin-bookings-summary');
     if (!el) return;
+    if (!window.AdminLoading.is('bookings')) {
+      el.textContent = '\u2014';
+      return;
+    }
     var active = (agencyBookingsList || []).filter(isActiveAgencyBooking);
     var total = active.length;
     if (!total) {
@@ -11641,7 +12612,9 @@ window.addEventListener('load', function() {
     fillBookingsListEl(
       dayList,
       dayRows,
-      '<div class="admin-bookings-empty"><p class="form-hint">No calls on this day. Pick a highlighted date on the calendar.</p></div>'
+      window.AdminLoading.is('bookings')
+        ? '<div class="admin-bookings-empty"><p class="form-hint">No calls on this day. Pick a highlighted date on the calendar.</p></div>'
+        : window.AdminLoading.list(2)
     );
 
     if (window.AgencyTools && typeof window.AgencyTools.syncPlannerSelectedDay === 'function') {
@@ -14539,11 +15512,11 @@ window.addEventListener('load', function() {
       'overview', 'crm-hub', 'content-hub', 'ops', 'referrals', 'studio-costs'
     ];
     var VALID_TAB = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
-    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, docs: 1, 'client-email': 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
     if (!tabBar) return;
@@ -15206,22 +16179,24 @@ window.addEventListener('load', function() {
 
   // Mobile admin — CRM section hub + docked subtab bar (Pipeline · Clients · Messages · Docs · Email)
   (function initAdminMobileCRMSubtabBar() {
-    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'planner', 'messages', 'docs', 'client-email'];
+    var CRM_SUB_TAB_IDS = ['pipeline', 'client-projects', 'planner', 'messages', 'email', 'docs'];
     var CRM_SUB_TAB_META = {
       pipeline:          { label: 'Pipeline', icon: 'git-network-outline' },
       'client-projects': { label: 'Clients',  icon: 'briefcase-outline' },
       planner:           { label: 'Planner',  icon: 'calendar-outline' },
       messages:          { label: 'Messages', icon: 'mail-outline' },
+      email:             { label: 'Email',    icon: 'mail-unread-outline' },
       docs:              { label: 'Docs',     icon: 'document-text-outline' },
-      'client-email':    { label: 'Email',    icon: 'send-outline' }
+      'client-email':    { label: 'Sender',   icon: 'send-outline' }
     };
     var CRM_SUB_META = {
       pipeline:          { label: 'Pipeline', icon: 'git-network-outline' },
       'client-projects': { label: 'Clients',  icon: 'briefcase-outline' },
       planner:           { label: 'Planner',  icon: 'calendar-outline' },
       messages:          { label: 'Messages', icon: 'mail-outline' },
+      email:             { label: 'Email',    icon: 'mail-unread-outline' },
       docs:              { label: 'Docs',     icon: 'document-text-outline' },
-      'client-email':    { label: 'Email',    icon: 'send-outline' }
+      'client-email':    { label: 'Sender',   icon: 'send-outline' }
     };
     var LAST_CRM_KEY = 'adminLastCRMTab';
     var crmSubtabRoot = null;
@@ -15345,11 +16320,11 @@ window.addEventListener('load', function() {
     }
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1 };
-    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, docs: 1, 'client-email': 1 };
+    var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
     var AGENCY_TABS = { 'client-projects': 1, planner: 1, referrals: 1 };
     var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
     var navGroups = tabBar.querySelectorAll('.admin-nav-group');
@@ -15420,6 +16395,9 @@ window.addEventListener('load', function() {
       } catch (e) {}
       if (tabId === 'testimonials' && typeof window.loadTestimonialAdminPanel === 'function') {
         window.loadTestimonialAdminPanel();
+      }
+      if (tabId === 'email' && typeof window.initAdminEmailPanel === 'function') {
+        window.initAdminEmailPanel();
       }
       if (tabId === 'planner' || tabId === 'bookings') {
         if (typeof window.subscribeAgencyBookingsFromRtdb === 'function') {
@@ -15714,6 +16692,7 @@ window.addEventListener('load', function() {
     pipelineUnsubscribe = window.rtdbOnValue(
       ref,
       function (snap) {
+        window.AdminLoading.mark('pipeline');
         var val = snap.val();
         var leads = [];
         if (val && typeof val === 'object') {
@@ -15861,7 +16840,9 @@ window.addEventListener('load', function() {
       var container = document.getElementById('pipeline-cards-' + st);
       if (!container) return;
       if (!counts[st]) {
-        container.innerHTML = '<p class="pipeline-empty">No leads yet.</p>';
+        container.innerHTML = window.AdminLoading.is('pipeline')
+          ? '<p class="pipeline-empty">No leads yet.</p>'
+          : window.AdminLoading.list(3);
       }
     });
   }
@@ -16810,9 +17791,14 @@ window.addEventListener('load', function() {
     var agency = overviewGetAgencySnapshot();
     var doToday = overviewBuildDoTodayQueue(agency);
 
-    doTodayList.innerHTML = doToday.length
-      ? doToday.map(overviewListItem).join('')
-      : overviewEmpty("You're caught up — nothing urgent on your list today.");
+    // Derived from pipeline + bookings, so it must wait on both before it can
+    // honestly claim you're caught up.
+    var overviewReady = window.AdminLoading.is('pipeline') && window.AdminLoading.is('bookings');
+    doTodayList.innerHTML = !overviewReady
+      ? window.AdminLoading.list(3)
+      : doToday.length
+        ? doToday.map(overviewListItem).join('')
+        : overviewEmpty("You're caught up — nothing urgent on your list today.");
 
     var inboxList = document.getElementById('admin-cc-inbox-list');
     var inboxRows = [];
@@ -17668,6 +18654,7 @@ window.addEventListener('load', function() {
       const q = window.query(messagesRef, window.orderBy('timestamp', 'desc'));
 
       const snapUnsub = window.onSnapshot(q, (snapshot) => {
+        window.AdminLoading.mark('messages');
         const messages = [];
         snapshot.forEach((doc) => {
           const data = doc.data();
@@ -18037,6 +19024,10 @@ window.addEventListener('load', function() {
   function renderMessages(messages) {
     if (!messagesList) return;
 
+    if (!window.AdminLoading.is('messages')) {
+      messagesList.innerHTML = window.AdminLoading.list(3);
+      return;
+    }
     if (messages.length === 0) {
       lastContactFormMessages = [];
       contactDetailOpenId = null;

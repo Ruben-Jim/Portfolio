@@ -4,6 +4,7 @@ const admin = require("firebase-admin");
 const { onRequest } = require("firebase-functions/v2/https");
 const { defineSecret, defineString } = require("firebase-functions/params");
 const { Resend } = require("resend");
+const { Webhook } = require("svix");
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -77,9 +78,13 @@ function buildBookingIcs({ uid, startISO, endISO, summary, description, organize
 }
 
 const resendApiKey = defineSecret("RESEND_API_KEY");
+const resendWebhookSecret = defineSecret("RESEND_WEBHOOK_SECRET");
+const resendOutboundWebhookSecret = defineSecret("RESEND_OUTBOUND_WEBHOOK_SECRET");
+const DEFAULT_RESEND_FROM = "CodeWithRuben <contact@rubenjimenez.dev>";
 const resendFrom = defineString("RESEND_FROM", {
-  default: "Portfolio <onboarding@resend.dev>",
+  default: DEFAULT_RESEND_FROM,
 });
+const RESEND_INBOUND_DOMAIN = "ouuldeaulk.resend.app";
 const notifyToEmail = defineString("NOTIFY_TO_EMAIL", { default: "" });
 
 const MAX_BODY_BYTES = 48 * 1024;
@@ -104,6 +109,76 @@ function isNonEmptyString(v) {
 function validEmail(v) {
   if (!isNonEmptyString(v)) return false;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+}
+
+function resolveResendFrom(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return DEFAULT_RESEND_FROM;
+  // Guard against legacy no-reply sender leaking into customer-visible emails.
+  if (/noreply@/i.test(value) || /no-reply@/i.test(value)) {
+    return DEFAULT_RESEND_FROM;
+  }
+  return value;
+}
+
+function parseFromHeader(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return { from: "", fromEmail: "", fromName: "" };
+  const angle = /^(.+?)\s*<([^>]+)>$/.exec(value);
+  if (angle) {
+    const name = angle[1].replace(/^["']|["']$/g, "").trim();
+    const email = angle[2].trim().toLowerCase();
+    return {
+      from: value,
+      fromEmail: email,
+      fromName: name || email,
+    };
+  }
+  const email = value.toLowerCase();
+  return { from: value, fromEmail: email, fromName: email };
+}
+
+function getHeaderValue(headers, name) {
+  if (!headers || typeof headers !== "object") return "";
+  const target = String(name || "").toLowerCase();
+  const direct = headers[target];
+  if (direct != null && String(direct).trim()) return String(direct).trim();
+  const keys = Object.keys(headers);
+  for (let i = 0; i < keys.length; i += 1) {
+    const key = String(keys[i] || "");
+    if (key.toLowerCase() === target) {
+      const val = headers[key];
+      if (val != null && String(val).trim()) return String(val).trim();
+    }
+  }
+  return "";
+}
+
+function isResendInboundAddress(addr) {
+  const email = String(addr || "").trim().toLowerCase();
+  return email.endsWith("@" + RESEND_INBOUND_DOMAIN);
+}
+
+function hasResendInboundRecipient(list) {
+  if (!Array.isArray(list)) return false;
+  return list.some(isResendInboundAddress);
+}
+
+async function fetchReceivedEmailBody(emailId, apiKey) {
+  const res = await fetch("https://api.resend.com/emails/receiving/" + encodeURIComponent(emailId), {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + apiKey,
+      Accept: "application/json",
+    },
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(function () {
+      return "";
+    });
+    throw new Error("Receiving API " + res.status + ": " + (errText || res.statusText));
+  }
+  return res.json();
 }
 
 function normalizePublicOrigin(raw) {
@@ -161,7 +236,7 @@ exports.sendPortfolioEmail = onRequest(
     const type = body.type;
     const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
 
-    const from = resendFrom.value();
+    const from = resolveResendFrom(resendFrom.value());
     const notifyTo = notifyToEmail.value().trim();
     const resend = new Resend(resendApiKey.value());
 
@@ -612,13 +687,21 @@ exports.sendPortfolioEmail = onRequest(
           header_subtitle: String(payload.header_subtitle || "").trim(),
           timestamp: String(payload.timestamp || ""),
         });
-        const { data, error } = await resend.emails.send({
+        const sendOpts = {
           from,
           to: [toEmail],
           replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
           subject,
           html,
-        });
+        };
+        const inReplyTo = String(payload.in_reply_to || "").trim();
+        const references = String(payload.references || "").trim();
+        if (inReplyTo || references) {
+          sendOpts.headers = {};
+          if (inReplyTo) sendOpts.headers["In-Reply-To"] = inReplyTo;
+          if (references) sendOpts.headers["References"] = references;
+        }
+        const { data, error } = await resend.emails.send(sendOpts);
         if (error) {
           console.error("Resend error (admin_reply):", error);
           res.status(502).json({ ok: false, error: error.message || "Resend failed" });
@@ -632,6 +715,201 @@ exports.sendPortfolioEmail = onRequest(
     } catch (err) {
       console.error("sendPortfolioEmail:", err);
       res.status(500).json({ ok: false, error: err.message || "Server error" });
+    }
+  }
+);
+
+exports.resendInboundWebhook = onRequest(
+  {
+    region: "us-central1",
+    cors: false,
+    invoker: "public",
+    secrets: [resendApiKey, resendWebhookSecret],
+    memory: "256MiB",
+    timeoutSeconds: 60,
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method not allowed");
+      return;
+    }
+
+    const rawBody = req.rawBody
+      ? req.rawBody.toString("utf8")
+      : typeof req.body === "string"
+        ? req.body
+        : JSON.stringify(req.body || {});
+
+    let event;
+    try {
+      const wh = new Webhook(resendWebhookSecret.value());
+      event = wh.verify(rawBody, {
+        "svix-id": req.headers["svix-id"],
+        "svix-timestamp": req.headers["svix-timestamp"],
+        "svix-signature": req.headers["svix-signature"],
+      });
+    } catch (err) {
+      console.warn("resendInboundWebhook verify:", err.message || err);
+      res.status(401).send("Invalid webhook");
+      return;
+    }
+
+    if (!event || event.type !== "email.received") {
+      res.status(200).json({ ok: true, skipped: true });
+      return;
+    }
+
+    const data = event.data && typeof event.data === "object" ? event.data : {};
+    const emailId = String(data.email_id || "").trim();
+    const toList = Array.isArray(data.to) ? data.to.map(String) : [];
+
+    if (!emailId || !hasResendInboundRecipient(toList)) {
+      res.status(200).json({ ok: true, skipped: true });
+      return;
+    }
+
+    const db = admin.database();
+    const dedupeRef = db.ref("agencyInboundDedupe/" + emailId);
+
+    try {
+      const dedupeSnap = await dedupeRef.once("value");
+      if (dedupeSnap.exists()) {
+        res.status(200).json({ ok: true, duplicate: true });
+        return;
+      }
+
+      const apiKey = resendApiKey.value();
+      const full = await fetchReceivedEmailBody(emailId, apiKey);
+      const headers = full && full.headers && typeof full.headers === "object" ? full.headers : {};
+      const fromParsed = parseFromHeader(headers.from || full.from || data.from || "");
+      const receivedAt =
+        String(full.created_at || data.created_at || event.created_at || "").trim() ||
+        new Date().toISOString();
+      const subject = String(full.subject || data.subject || "").trim();
+      const text = full.text != null ? String(full.text) : "";
+      const html = full.html != null ? String(full.html) : "";
+      const recipients = Array.isArray(full.to) && full.to.length ? full.to.map(String) : toList;
+      const messageId =
+        getHeaderValue(headers, "message-id")
+          .replace(/^<|>$/g, "")
+          .trim() || String(full.message_id || "").trim();
+      const references = getHeaderValue(headers, "references");
+
+      const record = {
+        from: fromParsed.from || String(data.from || "").trim(),
+        fromEmail: fromParsed.fromEmail,
+        fromName: fromParsed.fromName,
+        to: recipients,
+        subject,
+        text,
+        html,
+        messageId,
+        references,
+        receivedAt,
+        createdAt: admin.database.ServerValue.TIMESTAMP,
+      };
+
+      const inboundRef = db.ref("agencyInboundEmails").push();
+      await inboundRef.set(record);
+      await dedupeRef.set({
+        inboundId: inboundRef.key,
+        createdAt: admin.database.ServerValue.TIMESTAMP,
+      });
+
+      res.status(200).json({ ok: true, id: inboundRef.key });
+    } catch (err) {
+      console.error("resendInboundWebhook ingest:", err);
+      res.status(500).json({ ok: false, error: err.message || "Ingest failed" });
+    }
+  }
+);
+
+exports.resendOutboundWebhook = onRequest(
+  {
+    region: "us-central1",
+    cors: false,
+    invoker: "public",
+    secrets: [resendOutboundWebhookSecret],
+    memory: "256MiB",
+    timeoutSeconds: 60,
+  },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).send("Method not allowed");
+      return;
+    }
+
+    const rawBody = req.rawBody
+      ? req.rawBody.toString("utf8")
+      : typeof req.body === "string"
+        ? req.body
+        : JSON.stringify(req.body || {});
+
+    let event;
+    try {
+      const wh = new Webhook(resendOutboundWebhookSecret.value());
+      event = wh.verify(rawBody, {
+        "svix-id": req.headers["svix-id"],
+        "svix-timestamp": req.headers["svix-timestamp"],
+        "svix-signature": req.headers["svix-signature"],
+      });
+    } catch (err) {
+      console.warn("resendOutboundWebhook verify:", err.message || err);
+      res.status(401).send("Invalid webhook");
+      return;
+    }
+
+    const type = String((event && event.type) || "");
+    const supported = {
+      "email.delivered": true,
+      "email.bounced": true,
+      "email.complained": true,
+    };
+    if (!supported[type]) {
+      res.status(200).json({ ok: true, skipped: true });
+      return;
+    }
+
+    const data = event && typeof event.data === "object" && event.data ? event.data : {};
+    const emailId = String(data.email_id || "").trim();
+    const dedupeKey = type + ":" + emailId;
+
+    try {
+      const db = admin.database();
+      if (emailId) {
+        const dedupeRef = db.ref("agencyOutboundDedupe/" + dedupeKey);
+        const dedupeSnap = await dedupeRef.once("value");
+        if (dedupeSnap.exists()) {
+          res.status(200).json({ ok: true, duplicate: true });
+          return;
+        }
+        await dedupeRef.set({
+          createdAt: admin.database.ServerValue.TIMESTAMP,
+        });
+      }
+
+      const record = {
+        type,
+        emailId,
+        from: String(data.from || ""),
+        to: Array.isArray(data.to) ? data.to.map(String) : [],
+        subject: String(data.subject || ""),
+        createdAt: admin.database.ServerValue.TIMESTAMP,
+        eventAt: String(data.created_at || event.created_at || ""),
+      };
+      if (data.bounce) {
+        record.bounce = data.bounce;
+      }
+      if (data.complaint) {
+        record.complaint = data.complaint;
+      }
+
+      const outRef = db.ref("agencyOutboundEvents").push();
+      await outRef.set(record);
+      res.status(200).json({ ok: true, id: outRef.key });
+    } catch (err) {
+      console.error("resendOutboundWebhook ingest:", err);
+      res.status(500).json({ ok: false, error: err.message || "Ingest failed" });
     }
   }
 );
