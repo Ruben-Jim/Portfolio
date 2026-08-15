@@ -13611,6 +13611,9 @@ window.addEventListener('load', function() {
         blockedList.appendChild(createSchedBlockedDateRowEl(d));
       });
     }
+
+    // Saved settings arrive after init, so refresh the collapsed step summaries.
+    if (typeof syncSchedStepSummaries === 'function') syncSchedStepSummaries();
   }
 
   async function loadAgencySchedulingSettings() {
@@ -13718,14 +13721,80 @@ window.addEventListener('load', function() {
     });
   }
 
+  /**
+   * Scheduling settings opens onto four stacked steps rather than one long form.
+   * Accordion, so only the step being edited is on screen — the panel used to
+   * dump timezone, seven day rows, call types and blocked dates all at once.
+   */
+  function initSchedSettingsSteps() {
+    var wrap = document.getElementById('admin-sched-steps');
+    if (!wrap || wrap.dataset.boundSteps === '1') return;
+    wrap.dataset.boundSteps = '1';
+
+    function setStepOpen(step, open) {
+      step.classList.toggle('is-open', !!open);
+      var btn = step.querySelector('[data-sched-step-toggle]');
+      if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    wrap.querySelectorAll('.admin-sched-step').forEach(function (step) {
+      setStepOpen(step, false);
+    });
+
+    wrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-sched-step-toggle]');
+      if (!btn || !wrap.contains(btn)) return;
+      var step = btn.closest('.admin-sched-step');
+      if (!step) return;
+      var willOpen = !step.classList.contains('is-open');
+      wrap.querySelectorAll('.admin-sched-step').forEach(function (other) {
+        setStepOpen(other, false);
+      });
+      if (willOpen) setStepOpen(step, true);
+    });
+  }
+
+  /** Keeps each collapsed step's subtitle showing what is currently configured. */
+  function syncSchedStepSummaries() {
+    var tz = document.getElementById('admin-sched-timezone');
+    var tzSub = document.getElementById('admin-sched-step-sub-timezone');
+    if (tzSub) tzSub.textContent = (tz && tz.value.trim()) || 'Not set';
+
+    var daysSub = document.getElementById('admin-sched-step-sub-hours');
+    if (daysSub) {
+      var enabled = document.querySelectorAll(
+        '#admin-sched-days input[type="checkbox"]:checked'
+      ).length;
+      daysSub.textContent = enabled
+        ? enabled + ' day' + (enabled === 1 ? '' : 's') + ' open'
+        : 'No days open — clients see no times';
+    }
+
+    var ctSub = document.getElementById('admin-sched-step-sub-call-types');
+    if (ctSub) {
+      var ct = document.querySelectorAll('#admin-sched-call-types > *').length;
+      ctSub.textContent = ct
+        ? ct + ' call type' + (ct === 1 ? '' : 's')
+        : 'None — clients see no times';
+    }
+
+    var blSub = document.getElementById('admin-sched-step-sub-blocked');
+    if (blSub) {
+      var bl = document.querySelectorAll('#admin-sched-blocked-dates > *').length;
+      blSub.textContent = bl ? bl + ' blocked date' + (bl === 1 ? '' : 's') : 'None';
+    }
+  }
+
   function initSchedSettingsControls() {
     initSchedSettingsCollapse();
+    initSchedSettingsSteps();
     renderSchedDayRows();
     var addCallTypeBtn = document.getElementById('admin-sched-add-call-type-btn');
     var callTypesList = document.getElementById('admin-sched-call-types');
     if (addCallTypeBtn && callTypesList) {
       addCallTypeBtn.addEventListener('click', function () {
         callTypesList.appendChild(createSchedCallTypeRowEl(null));
+        syncSchedStepSummaries();
       });
     }
     var addBlockedBtn = document.getElementById('admin-sched-add-blocked-date-btn');
@@ -13733,12 +13802,26 @@ window.addEventListener('load', function() {
     if (addBlockedBtn && blockedList) {
       addBlockedBtn.addEventListener('click', function () {
         blockedList.appendChild(createSchedBlockedDateRowEl(''));
+        syncSchedStepSummaries();
       });
     }
     var saveBtn = document.getElementById('admin-sched-save-btn');
     if (saveBtn) {
       saveBtn.addEventListener('click', saveAgencySchedulingSettings);
     }
+
+    // Any edit inside the panel can change a collapsed step's summary — one
+    // delegated listener rather than wiring every generated row.
+    var schedSection = document.getElementById('admin-sched-section');
+    if (schedSection && schedSection.dataset.boundStepSync !== '1') {
+      schedSection.dataset.boundStepSync = '1';
+      schedSection.addEventListener('input', syncSchedStepSummaries);
+      schedSection.addEventListener('change', syncSchedStepSummaries);
+      schedSection.addEventListener('click', function (e) {
+        if (e.target.closest('button')) setTimeout(syncSchedStepSummaries, 0);
+      });
+    }
+    syncSchedStepSummaries();
   }
 
   initSchedSettingsControls();

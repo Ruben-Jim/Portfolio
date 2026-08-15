@@ -131,14 +131,11 @@
       hoursIncluded: 2,
       slaHours: 120,
       features: [
-        '2 hours per month · 1 work session',
-        'We reply within 5 business days',
-        'We look at bugs and broken flows (after Standard and Priority)',
-        'If the site or app goes down, you’ll hear from us within 1 business day (weekdays)',
-        'App updates to Apple and Google 4 times a year, during your work session',
-        'Content and copy updates during your work session',
-        'New features and add-ons are quoted separately',
-        'Hosting, updates, monitoring · website, iPhone, and Android'
+        'Hosting, updates, monitoring',
+        'Reply in 5 business days · downtime in 1 business day (weekdays)',
+        'Bug fixes after Standard and Priority',
+        'Store updates 4×/year in your session',
+        'New features quoted separately'
       ]
     },
     {
@@ -157,17 +154,11 @@
       slaHours: 72,
       recommended: true,
       features: [
-        '6 hours per month · 2 work sessions',
-        'We reply within 3 business days',
-        'We look at bugs and broken flows — ahead of Essential',
-        'If the site or app goes down, you’ll hear from us within 4 hours',
-        'Evenings and weekends included if the site or app goes down',
-        'App updates to Apple and Google every month, both stores',
-        'Monthly content updates (photos, prices, hours, copy) — separate from work sessions',
-        'One small new feature each month (uses your hours)',
-        'One smaller add-on each quarter (a new tool for one job)',
-        'One larger add-on each year (a whole new part of the product)',
-        'Hosting, updates, monitoring · website, iPhone, and Android'
+        'Hosting, updates, monitoring',
+        'Reply in 3 business days · downtime in 4 hours (nights/weekends too)',
+        'Monthly store + content updates',
+        '1 small feature/month (uses your hours)',
+        '1 smaller add-on/quarter · 1 larger add-on/year'
       ]
     },
     {
@@ -185,18 +176,11 @@
       hoursIncluded: 10,
       slaHours: 24,
       features: [
-        '10 hours per month · 3 work sessions',
-        'We reply within 1 business day',
-        'We look at bugs and broken flows — ahead of Standard',
-        'If the site or app goes down, you’ll hear from us within 2 hours',
-        'Evenings and weekends included if the site or app goes down — ahead of Standard',
-        'App updates to Apple and Google as often as you need, both stores',
-        'Weekly content updates (photos, prices, hours, copy) — separate from work sessions',
-        'Small new features in your hours, as they fit',
-        'One smaller add-on each month (a new tool for one job) — ahead of Standard',
-        'One larger add-on every 6 months (a whole new part of the product)',
-        'Unused hours carry over 30 days',
-        'Hosting, updates, monitoring · website, iPhone, and Android'
+        'Hosting, updates, monitoring · first in line',
+        'Reply in 1 business day · downtime in 2 hours (nights/weekends too)',
+        'Store updates as needed · weekly content',
+        'Smaller add-on monthly · larger add-on every 6 months',
+        'Unused hours carry 30 days'
       ]
     }
   ];

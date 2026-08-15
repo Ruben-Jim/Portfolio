@@ -13252,6 +13252,115 @@ body.portfolio-project-modal-open .cp-client-drawer {
   font-size: var(--fs-8);
 }
 
+/* ——— Scheduling settings steps ———
+   Four collapsed rows instead of one long form; accordion, one open at a time. */
+.admin-sched-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.admin-sched-step {
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+  transition: border-color 0.18s ease;
+}
+
+.admin-sched-step.is-open {
+  border-color: hsla(45, 100%, 72%, 0.32);
+  background: rgba(0, 0, 0, 0.24);
+}
+
+.admin-sched-step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-sched-step-header:hover,
+.admin-sched-step-header:focus-visible {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-sched-step-index {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  color: var(--orange-yellow-crayola);
+  font-size: 12px;
+  font-weight: var(--fw-600);
+}
+
+.admin-sched-step.is-open .admin-sched-step-index {
+  background: var(--orange-yellow-crayola);
+  border-color: var(--orange-yellow-crayola);
+  color: var(--smoky-black);
+}
+
+.admin-sched-step-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-sched-step-title {
+  display: block;
+  font-size: var(--fs-7);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+}
+
+.admin-sched-step-sub {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.admin-sched-step-chevron {
+  flex: 0 0 auto;
+  font-size: 18px;
+  color: var(--light-gray-70);
+  transition: transform 0.22s ease;
+}
+
+.admin-sched-step.is-open .admin-sched-step-chevron {
+  transform: rotate(180deg);
+}
+
+.admin-sched-step-body {
+  display: none;
+  padding: 0 14px 14px;
+}
+
+.admin-sched-step.is-open .admin-sched-step-body {
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sched-step,
+  .admin-sched-step-chevron {
+    transition: none;
+  }
+}
+
 .admin-sched-subsection {
   margin-top: 18px;
   padding-top: 16px;
