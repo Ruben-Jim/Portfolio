@@ -31,6 +31,22 @@ See [CANVAS-TO-MARKDOWN.md](./CANVAS-TO-MARKDOWN.md) for converting canvas → m
 /assets/docs/projects/project-rizopizzeria.md              ← public portfolio
 /assets/docs/projects/lawncare/admin-guide.md              ← hub Docs & guides
 /assets/docs/projects/rizo-pizzeria/rizo-features-guide.md ← hub Docs & guides
+/assets/docs/projects/aimnshootrecords/admin-guide.md      ← hub Docs & guides
+/assets/docs/projects/procleaning-team/android-access-guide.md   ← hub Docs & guides
+/assets/docs/projects/procleaning-team/tap-to-pay-guide.md       ← hub Docs & guides
+/assets/docs/projects/procleaning-team/admin-app-walkthrough.md  ← hub Docs & guides
 ```
+
+### ProCleaning Team (client portal)
+
+Add up to three **Docs & guides** rows for the ProCleaning client:
+
+| Section title (example) | Path |
+|-------------------------|------|
+| Android access | `/assets/docs/projects/procleaning-team/android-access-guide.md` |
+| Tap to Pay | `/assets/docs/projects/procleaning-team/tap-to-pay-guide.md` |
+| App walkthrough | `/assets/docs/projects/procleaning-team/admin-app-walkthrough.md` |
+
+WebP screenshots live next to the guides under `procleaning-team/screenshots/` (see `SCREENSHOT-CHECKLIST.md`).
 
 There is no file upload in admin — add each `.md` in the repo, then in Clients → **Docs & guides** add a row per file (path + section title) → **Save docs & guides**. Each guide appears in the portal as its own open section (not inside collapsed Project showcase). Up to 8 guides per client.
