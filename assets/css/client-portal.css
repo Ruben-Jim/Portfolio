@@ -545,12 +545,8 @@ body.client-portal-page {
   padding: 0 18px 24px;
 }
 
-/* ——— Card treatment: two options, toggle the class on .portal-guide-sheet ———
-   A (default) .portal-guide-sheet--flat-shell
-       Shell goes flat; the guide keeps the document card it uses everywhere else.
-   B           .portal-guide-sheet--flat-guide
-       Shell stays the card; the guide's own framing is stripped.
-   Flip the class in devtools, then tell me which to keep. */
+/* Card treatment: the sheet IS the card, so the guide's own framing is stripped
+   and its content sits directly on the sheet surface. */
 
 /* The pane is the scroll container, so the guide must not add its own. */
 .portal-guide-sheet-pane--reader .portfolio-detail-page {
@@ -561,29 +557,7 @@ body.client-portal-page {
   box-shadow: none;
 }
 
-/* A — flat shell, guide keeps its card (default) */
-.portal-guide-sheet--flat-shell {
-  background: transparent;
-  border-color: transparent;
-}
-
-.portal-guide-sheet--flat-shell .portal-guide-sheet-head {
-  background: var(--eerie-black-2, hsl(240, 2%, 12%));
-  border-radius: 14px 14px 0 0;
-}
-
-.portal-guide-sheet--flat-shell .portal-guide-sheet-pane--list {
-  background: var(--eerie-black-2, hsl(240, 2%, 12%));
-  border-radius: 0 0 14px 14px;
-}
-
-/* Without this the reader pane is transparent and the portal shows through. */
-.portal-guide-sheet--flat-shell .portal-guide-sheet-pane--reader {
-  background: var(--eerie-black-2, hsl(240, 2%, 12%));
-}
-
-/* B — shell is the card, guide content sits flat on it */
-.portal-guide-sheet--flat-guide .portal-guide-sheet-pane--reader .project-detail-canvas-doc {
+.portal-guide-sheet-pane--reader .project-detail-canvas-doc {
   margin: 0;
   padding: 0;
   border: 0;

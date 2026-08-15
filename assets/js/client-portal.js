@@ -1757,7 +1757,7 @@
     return (
       '<div class="portal-guide-sheet-root" id="portal-guide-sheet-root" aria-hidden="true">' +
       '<div class="portal-guide-sheet-backdrop" id="portal-guide-sheet-backdrop"></div>' +
-      '<div class="portal-guide-sheet portal-guide-sheet--flat-shell" role="dialog" aria-modal="true" ' +
+      '<div class="portal-guide-sheet" role="dialog" aria-modal="true" ' +
       'aria-labelledby="portal-guide-sheet-title">' +
       '<div class="portal-guide-sheet-head">' +
       '<button type="button" class="portal-guide-sheet-back" id="portal-guide-sheet-back" ' +
