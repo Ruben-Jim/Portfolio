@@ -5459,6 +5459,22 @@ async function sendPortfolioEmailRequest(body, options) {
   return data;
 }
 
+function initServicesAgencyReveal() {
+  var btn = document.getElementById('services-agency-reveal-btn');
+  var grid = document.getElementById('services-agency-grid');
+  var wrap = document.getElementById('services-agency-reveal');
+  if (!btn || !grid || btn._agencyRevealBound) return;
+  btn._agencyRevealBound = true;
+  btn.addEventListener('click', function () {
+    grid.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    if (wrap) wrap.hidden = true;
+    if (typeof grid.scrollIntoView === 'function') {
+      grid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+}
+
 function initClientPortalRecovery() {
   var root = document.getElementById('client-portal-recovery');
   if (!root) return;
@@ -6611,7 +6627,7 @@ function resolveNavPageName(navText) {
   return navPageName;
 }
 
-var HIRE_ME_PACKAGE_IDS = ['linktree', 'starter', 'growth', 'agency', 'studio'];
+var HIRE_ME_PACKAGE_IDS = ['linktree', 'website', 'starter', 'growth', 'agency', 'studio'];
 
 var HIRE_ME_GENERIC = {
   heroLabel: 'Open to new projects',
@@ -6659,31 +6675,57 @@ var HIRE_ME_PACKAGES = {
       'Interested in a Link Tree ($99–$199). I need a branded bio link page for Instagram/TikTok with my links and brand colors.',
     messagePlaceholder: 'What should visitors do from your bio link, and which links belong on the page?'
   },
+  website: {
+    id: 'website',
+    pill: 'Business Website',
+    price: '$799 fixed',
+    bannerNote: 'Website only · 1–3 pages · ~1–2 weeks · 1 month maintenance included',
+    heroLabel: 'Business Website',
+    heroTitle: 'Launch with a',
+    heroTitleAccent: 'Business Website',
+    heroSub:
+      'A branded 1–3 page site so customers can find you, see your work, and request a quote or booking — no app required.',
+    timelineLabel: 'Your website path',
+    timelineSteps: [
+      { title: 'Quick intake', desc: 'Brand basics, pages, and how customers should reach you.' },
+      { title: 'Design & build', desc: 'Home, services, contact, forms, and gallery.' },
+      { title: 'Review & revise', desc: 'One focused feedback round before launch.' },
+      { title: 'Go live', desc: 'Hosting, SEO basics, and analytics.' },
+      { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
+    ],
+    formTitle: 'Start Business Website',
+    formLead: 'Tell me about your business and what the site should do — I\'ll confirm fit for the $799 website package.',
+    projectType: 'Business Website',
+    budget: '$799',
+    message:
+      'Interested in a Business Website ($799). I need a branded 1–3 page site with quote/booking forms, gallery, and hosting setup — no app.',
+    messagePlaceholder: 'What does your business do, and what should customers do on the website?'
+  },
   starter: {
     id: 'starter',
     pill: 'Starter Presence · Website + App',
     price: '$1,500 fixed',
-    bannerNote: 'Website + iOS/Android · 1–3 pages · ~2–3 weeks · 1 month maintenance included',
+    bannerNote: 'Website + iOS/Android · quotes & chat · ~2–3 weeks · 1 month maintenance included',
     heroLabel: 'Starter Presence · Website + App',
     heroTitle: 'Launch with',
     heroTitleAccent: 'Website + App',
     heroSub:
-      'A polished 1–3 page website or starter storefront plus a branded iOS and Android app so customers can find you and inquire from either place — within about two to three weeks.',
+      'The same branded website, plus iOS and Android for you and the team. Customers stay on the site — quotes and chat, not a full ops dashboard.',
     timelineLabel: 'Your starter launch path',
     timelineSteps: [
-      { title: 'Quick intake', desc: 'Brand basics, pages, app screens, and inquiry flow.' },
-      { title: 'Design & build', desc: 'Website pages, phone app, forms, and alerts.' },
+      { title: 'Quick intake', desc: 'Brand basics, pages, and how the team should get alerts.' },
+      { title: 'Design & build', desc: 'Website, staff app, forms, and chat.' },
       { title: 'Review & revise', desc: 'One focused feedback round before launch.' },
       { title: 'Go live', desc: 'Hosting, store setup support, SEO basics, and analytics.' },
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
     formTitle: 'Start Starter Presence',
-    formLead: 'Tell me about your business and what you need on web and in the app — I\'ll confirm fit for the $1,500 Website + App package.',
+    formLead: 'Tell me about your business — I\'ll confirm fit for the $1,500 Website + App package.',
     projectType: 'Starter Presence — Website + App',
     budget: '$1,500',
     message:
-      'Interested in Starter Presence ($1,500) — Website + App. I need a fast-launch site/store plus iOS/Android app with inquiry forms and setup support.',
-    messagePlaceholder: 'What does your business do, and what should customers do on the website and in the app?'
+      'Interested in Starter Presence ($1,500) — Website + App. I need a branded site for customers plus iOS/Android for the team (quotes and chat, not full admin).',
+    messagePlaceholder: 'What does your business do, and who on the team needs the phone app?'
   },
   growth: {
     id: 'growth',
@@ -6691,25 +6733,25 @@ var HIRE_ME_PACKAGES = {
     price: '$3,500 fixed',
     bannerNote: 'Website + iOS/Android + admin · 3–4 weeks · 1 month maintenance included',
     heroLabel: 'Growth Platform · Website + App',
-    heroTitle: 'Grow with',
-    heroTitleAccent: 'Website + App',
+    heroTitle: 'Run the business with',
+    heroTitleAccent: 'Growth Platform',
     heroSub:
-      'Up to five website pages plus an iOS and Android app and an admin so leads and bookings land in one dashboard — not scattered texts and DMs.',
+      'One branded website for customers, iOS and Android for the crew, and an admin to run leads, jobs, money, and the team.',
     timelineLabel: 'Your growth platform path',
     timelineSteps: [
-      { title: 'Scope & content', desc: 'Website pages, app flows, and admin needs.' },
-      { title: 'Design system', desc: 'Branding across web and mobile.' },
-      { title: 'Build & integrate', desc: 'Forms, notifications, payments, and admin login.' },
-      { title: 'Test & train', desc: 'Walkthrough so you can manage leads yourself.' },
-      { title: 'Launch + month 1', desc: 'Go live with maintenance included.' }
+      { title: 'Scope & content', desc: 'Website pages, crew app, and admin needs.' },
+      { title: 'Design system', desc: 'Branding across web and the staff app.' },
+      { title: 'Build & integrate', desc: 'Quotes, Stripe, jobs, calendar, and inbox.' },
+      { title: 'Test & train', desc: 'Walkthrough so you and the crew can run day one.' },
+      { title: 'Launch + month 1', desc: 'Stores, hosting, and maintenance included.' }
     ],
     formTitle: 'Start Growth Platform',
-    formLead: 'Share your lead flow and branding goals — I\'ll confirm scope for the $3,500 Website + App package.',
+    formLead: 'Share how jobs, crews, and payments work today — I\'ll confirm scope for the $3,500 Growth Platform.',
     projectType: 'Growth Platform — Website + App',
     budget: '$3,500',
     message:
-      'Interested in the Growth Platform package ($3,500) — Website + App. I want up to 5 pages, iOS/Android app, lead capture, and an admin dashboard.',
-    messagePlaceholder: 'Who are your customers and how should leads reach you on web and in the app?'
+      'Interested in the Growth Platform ($3,500) — website for customers, iOS/Android staff app, and admin for leads, jobs, Stripe, crew, and Tap to Pay.',
+    messagePlaceholder: 'How do jobs get booked, assigned, and paid today?'
   },
   agency: {
     id: 'agency',
@@ -7684,6 +7726,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initHireMeInquiryRecall();
   initContactConversationRecall();
   initClientPortalRecovery();
+  initServicesAgencyReveal();
   setTimeout(restoreActivePage, 50);
 });
 
@@ -7693,6 +7736,7 @@ if (document.readyState !== 'loading') {
   initHireMeInquiryRecall();
   initContactConversationRecall();
   initClientPortalRecovery();
+  initServicesAgencyReveal();
   setTimeout(restoreActivePage, 50);
 }
 
@@ -13317,7 +13361,9 @@ window.addEventListener('load', function() {
       }
       var tcActionBtn = e.target.closest('[data-tc-action]');
       if (tcActionBtn && section.contains(tcActionBtn) && window.AgencyTools && typeof window.AgencyTools.handlePlannerAction === 'function') {
-        window.AgencyTools.handlePlannerAction(tcActionBtn);
+        // Pass the event so the planner can ignore a duplicate delivery —
+        // agency-tools.js delegates the same click on its own panel.
+        window.AgencyTools.handlePlannerAction(tcActionBtn, e);
         return;
       }
       var actionBtn = e.target.closest('[data-booking-action]');

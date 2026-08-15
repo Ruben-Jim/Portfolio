@@ -5539,12 +5539,14 @@
 
   function normalizeTimeEntry(id, row) {
     row = row || {};
-    var kind = String(row.kind || 'build').toLowerCase() === 'maint' ? 'maint' : 'build';
+    var rawKind = String(row.kind || 'build').toLowerCase();
+    var kind = rawKind === 'maint' ? 'maint' : rawKind === 'custom' ? 'custom' : 'build';
     return {
       id: id,
       date: String(row.date || '').slice(0, 10),
       projectId: String(row.projectId || ''),
       maintenanceId: String(row.maintenanceId || ''),
+      customKey: String(row.customKey || '').slice(0, 40),
       clientName: String(row.clientName || '').slice(0, 120),
       kind: kind,
       plannedHours: Math.max(0, Number(row.plannedHours) || 0),
@@ -5782,6 +5784,29 @@
     }
   }
 
+  /**
+   * Non-client time buckets, pinned to the top of every client dropdown.
+   *
+   * These carry no projectId or maintenanceId, so they roll up to no client —
+   * syncLoggedTotalsFromEntries() is a no-op for them. They still count toward
+   * the day's logged hours, because they are real hours worked.
+   */
+  var TC_CUSTOM_TARGETS = [
+    { key: 'cwr', label: 'CodeWithRuben · Internal' },
+    { key: 'multi', label: 'Multiple clients / projects' },
+    { key: 'admin', label: 'Admin' },
+    { key: 'sales', label: 'Sales' },
+    { key: 'learning', label: 'Learning' }
+  ];
+
+  function getTcCustomTarget(key) {
+    return (
+      TC_CUSTOM_TARGETS.find(function (t) {
+        return t.key === key;
+      }) || null
+    );
+  }
+
   function getTcAddTargetOptions() {
     var list = [];
     agencyProjects.filter(shouldShowBuildCapacity).forEach(function (p) {
@@ -5796,7 +5821,10 @@
         label: (m.clientName || 'Client') + ' · Maintenance'
       });
     });
-    return list;
+    // Buckets first — non-client time is the common case for a quick log.
+    return TC_CUSTOM_TARGETS.map(function (t) {
+      return { value: 'custom:' + t.key, label: t.label };
+    }).concat(list);
   }
 
   function syncTcAddTargetSelect(keepValue) {
@@ -6208,9 +6236,20 @@
 
   function resolveTcTimerTarget(target) {
     var parts = String(target || '').split(':');
-    var kind = parts[0] === 'maint' ? 'maint' : 'build';
+    var kind = parts[0] === 'maint' ? 'maint' : parts[0] === 'custom' ? 'custom' : 'build';
     var refId = parts.slice(1).join(':');
     if (!refId) return null;
+    if (kind === 'custom') {
+      var bucket = getTcCustomTarget(refId);
+      if (!bucket) return null;
+      return {
+        kind: 'custom',
+        projectId: '',
+        maintenanceId: '',
+        customKey: bucket.key,
+        clientName: bucket.label
+      };
+    }
     if (kind === 'build') {
       var hub = getHubById(refId);
       if (!hub || !shouldShowBuildCapacity(hub)) return null;
@@ -6238,9 +6277,10 @@
     var hours = roundHours(opts.hours);
     if (hours <= 0) throw new Error('Nothing to log.');
     var date = todayTcDayKey();
-    var kind = opts.kind === 'maint' ? 'maint' : 'build';
+    var kind = opts.kind === 'maint' ? 'maint' : opts.kind === 'custom' ? 'custom' : 'build';
     var projectId = opts.projectId || '';
     var maintenanceId = opts.maintenanceId || '';
+    var customKey = opts.customKey || '';
     var clientName = opts.clientName || 'Client';
     var notes = String(opts.notes || '').slice(0, 500);
 
@@ -6249,7 +6289,8 @@
         e.date === date &&
         e.kind === kind &&
         ((kind === 'build' && e.projectId === projectId) ||
-          (kind === 'maint' && e.maintenanceId === maintenanceId))
+          (kind === 'maint' && e.maintenanceId === maintenanceId) ||
+          (kind === 'custom' && e.customKey === customKey))
       );
     });
 
@@ -6279,6 +6320,7 @@
         date: date,
         projectId: projectId,
         maintenanceId: maintenanceId,
+        customKey: customKey,
         clientName: clientName,
         kind: kind,
         plannedHours: 0,
@@ -6289,7 +6331,7 @@
       };
       var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.timeEntries));
       await window.rtdbSet(ref, payload);
-      agencyTimeEntries.push(normalizeTimeEntry(ref.key, payload));
+      addTimeEntryToCache(ref.key, payload);
     }
 
     try {
@@ -6309,8 +6351,18 @@
     tcSelectedDay = todayTcDayKey();
   }
 
-  function handlePlannerAction(actionBtn) {
+  /**
+   * Two delegated listeners reach this — one here on the planner panel, one in
+   * script.js on the bookings section — so a single click arrives twice. That is
+   * invisible for open/save/delete but fatal for a toggle, which opened and then
+   * immediately closed again. Stamping the event makes the second call a no-op.
+   */
+  function handlePlannerAction(actionBtn, evt) {
     if (!actionBtn) return;
+    if (evt) {
+      if (evt.__tcPlannerHandled) return;
+      evt.__tcPlannerHandled = true;
+    }
     var action = actionBtn.getAttribute('data-tc-action');
     if (!action) return;
 
@@ -6333,6 +6385,34 @@
           return x.id === maintId;
         });
         if (m && m.projectId) openClientProjectWorkspace(m.projectId);
+      }
+      return;
+    }
+
+    if (action === 'toggle-entry') {
+      var toggleCard = actionBtn.closest('[data-tc-entry-id]');
+      if (!toggleCard) return;
+      var willOpen = !toggleCard.classList.contains('is-open');
+      // Accordion: only one entry is ever open, so the day list stays short.
+      var list = toggleCard.parentNode;
+      if (list) {
+        list.querySelectorAll('.tc-entry-card.is-open').forEach(function (card) {
+          card.classList.remove('is-open');
+          var btn = card.querySelector('[data-tc-action="toggle-entry"]');
+          if (btn) {
+            btn.setAttribute('aria-expanded', 'false');
+            btn.textContent = 'Edit';
+          }
+        });
+      }
+      if (willOpen) {
+        toggleCard.classList.add('is-open');
+        actionBtn.setAttribute('aria-expanded', 'true');
+        actionBtn.textContent = 'Close';
+        var firstField = toggleCard.querySelector('[data-tc-field="loggedHours"]');
+        if (firstField && typeof firstField.focus === 'function') {
+          firstField.focus({ preventScroll: true });
+        }
       }
       return;
     }
@@ -6561,7 +6641,7 @@
 
       var actionBtn = e.target.closest('[data-tc-action]');
       if (!actionBtn || !panel.contains(actionBtn)) return;
-      handlePlannerAction(actionBtn);
+      handlePlannerAction(actionBtn, e);
     });
   }
 
@@ -6995,10 +7075,20 @@
               esc(e.clientName || 'Client') +
               '</span>' +
               '<span class="tc-entry-meta">' +
-              esc(e.kind === 'maint' ? 'Maintenance' : 'Build') +
+              esc(
+                (e.kind === 'maint' ? 'Maintenance' : e.kind === 'custom' ? 'Internal' : 'Build') +
+                  ' · ' +
+                  formatHours(e.plannedHours) +
+                  ' planned · ' +
+                  formatHours(e.loggedHours) +
+                  ' logged'
+              ) +
               '</span></button>' +
-              '<button type="button" class="btn btn-danger btn-sm" data-tc-action="delete-entry">Delete</button>' +
+              '<button type="button" class="btn btn-secondary btn-sm tc-entry-toggle" ' +
+              'data-tc-action="toggle-entry" aria-expanded="false">Edit</button>' +
               '</div>' +
+              // Saved notes stay readable while collapsed — the textarea and Save
+              // are what get tucked away, not the record of what was done.
               (e.notes
                 ? '<p class="tc-entry-notes">' + esc(e.notes) + '</p>'
                 : '') +
@@ -7015,7 +7105,10 @@
               '<textarea class="form-input tc-input" data-tc-field="notes" rows="2">' +
               esc(e.notes || '') +
               '</textarea></label>' +
+              '<div class="tc-entry-actions">' +
+              '<button type="button" class="btn btn-danger btn-sm" data-tc-action="delete-entry">Delete</button>' +
               '<button type="button" class="btn btn-secondary btn-sm" data-tc-action="save-entry">Save</button>' +
+              '</div>' +
               '</div></article>'
             );
           })
@@ -7303,8 +7396,27 @@
     );
   }
 
+  /**
+   * Seeds the local cache with a freshly written entry, but only if the
+   * timeEntries subscription has not already delivered it. Without the id check
+   * the panel double-renders the row until the next full snapshot.
+   */
+  function addTimeEntryToCache(id, payload) {
+    if (!id) return;
+    var exists = agencyTimeEntries.some(function (e) {
+      return e.id === id;
+    });
+    if (exists) return;
+    agencyTimeEntries.push(normalizeTimeEntry(id, payload));
+  }
+
+  // Serialises saves. A second trigger while one is in flight would run its
+  // duplicate check against pre-write state and write a second row.
+  var tcAddInFlight = false;
+
   async function addTimeEntryFromForm() {
     if (!rtdbReady()) return;
+    if (tcAddInFlight) return;
     ensureTcCalState();
     var targetEl = document.getElementById('tc-add-target');
     var plannedEl = document.getElementById('tc-add-planned');
@@ -7312,7 +7424,7 @@
     var target = targetEl ? String(targetEl.value || '') : '';
     if (!target) throw new Error('Choose a client.');
     var parts = target.split(':');
-    var kind = parts[0] === 'maint' ? 'maint' : 'build';
+    var kind = parts[0] === 'maint' ? 'maint' : parts[0] === 'custom' ? 'custom' : 'build';
     var refId = parts.slice(1).join(':');
     var planned = Math.max(0, Number(plannedEl && plannedEl.value) || 0);
     var logged = Math.max(0, Number(loggedEl && loggedEl.value) || 0);
@@ -7321,7 +7433,13 @@
     var clientName = '';
     var projectId = '';
     var maintenanceId = '';
-    if (kind === 'build') {
+    var customKey = '';
+    if (kind === 'custom') {
+      var bucket = getTcCustomTarget(refId);
+      if (!bucket) throw new Error('Pick a valid option.');
+      clientName = bucket.label;
+      customKey = bucket.key;
+    } else if (kind === 'build') {
       var hub = getHubById(refId);
       if (!hub || !shouldShowBuildCapacity(hub)) throw new Error('Client project not found.');
       clientName = hub.clientName || hub.title || 'Untitled';
@@ -7336,47 +7454,67 @@
       projectId = m.projectId || '';
     }
 
-    var dup = agencyTimeEntries.find(function (e) {
+    function matchesTarget(e) {
       return (
         e.date === tcSelectedDay &&
         e.kind === kind &&
         ((kind === 'build' && e.projectId === projectId) ||
-          (kind === 'maint' && e.maintenanceId === maintenanceId))
+          (kind === 'maint' && e.maintenanceId === maintenanceId) ||
+          (kind === 'custom' && e.customKey === customKey))
       );
-    });
-    if (dup) {
-      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id));
-      var row = snap.val() || {};
-      await window.rtdbSet(
-        window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id),
-        Object.assign({}, row, {
+    }
+
+    tcAddInFlight = true;
+    try {
+      var dup = agencyTimeEntries.find(matchesTarget);
+
+      if (dup) {
+        var snap = await window.rtdbGet(
+          window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id)
+        );
+        var row = snap.val() || {};
+        await window.rtdbSet(
+          window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + dup.id),
+          Object.assign({}, row, {
+            plannedHours: planned,
+            loggedHours: logged,
+            clientName: clientName,
+            updatedAt: ts()
+          })
+        );
+        var cached = agencyTimeEntries.find(matchesTarget);
+        if (cached) {
+          cached.plannedHours = planned;
+          cached.loggedHours = logged;
+          cached.clientName = clientName;
+        }
+        await syncLoggedTotalsFromEntries({ projectId: projectId, maintenanceId: maintenanceId });
+      } else {
+        var payload = {
+          date: tcSelectedDay,
+          projectId: projectId,
+          maintenanceId: maintenanceId,
+          customKey: customKey,
+          clientName: clientName,
+          kind: kind,
           plannedHours: planned,
           loggedHours: logged,
-          clientName: clientName,
+          notes: '',
+          createdAt: ts(),
           updatedAt: ts()
-        })
-      );
-      dup.plannedHours = planned;
-      dup.loggedHours = logged;
-      dup.clientName = clientName;
-      await syncLoggedTotalsFromEntries({ projectId: projectId, maintenanceId: maintenanceId });
-    } else {
-      var payload = {
-        date: tcSelectedDay,
-        projectId: projectId,
-        maintenanceId: maintenanceId,
-        clientName: clientName,
-        kind: kind,
-        plannedHours: planned,
-        loggedHours: logged,
-        notes: '',
-        createdAt: ts(),
-        updatedAt: ts()
-      };
-      var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.timeEntries));
-      await window.rtdbSet(ref, payload);
-      agencyTimeEntries.push(normalizeTimeEntry(ref.key, payload));
-      await syncLoggedTotalsFromEntries({ projectId: projectId, maintenanceId: maintenanceId });
+        };
+        var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.timeEntries));
+        await window.rtdbSet(ref, payload);
+        // Only seed the cache if the timeEntries snapshot has not already
+        // delivered this row. The await usually resolves AFTER onValue has
+        // rebuilt agencyTimeEntries, so an unconditional push appends a second
+        // copy of an entry that is already there — one save, two rows on screen,
+        // correct again after a reload.
+        addTimeEntryToCache(ref.key, payload);
+        await syncLoggedTotalsFromEntries({ projectId: projectId, maintenanceId: maintenanceId });
+      }
+    } finally {
+      tcAddInFlight = false;
     }
 
     if (plannedEl) plannedEl.value = '';

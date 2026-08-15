@@ -3948,8 +3948,11 @@ main::-webkit-scrollbar { display: none; }
   margin-top: 14px;
 }
 
+/* The whole block is a disclosure now: one collapsed row that opens straight to
+   the email form. Previously the label and a separate "Open your portal" button
+   both sat exposed, which cost two clicks to reach the input. */
 .client-portal-recovery-lead {
-  margin: 0 0 8px;
+  margin: 0;
   color: var(--light-gray-70);
   font-size: var(--fs-8);
   text-transform: uppercase;
@@ -3957,6 +3960,11 @@ main::-webkit-scrollbar { display: none; }
 }
 
 .client-portal-recovery-open {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
   padding: 0;
   border: none;
   background: none;
@@ -3964,14 +3972,44 @@ main::-webkit-scrollbar { display: none; }
   font-family: var(--ff-poppins);
   font-size: var(--fs-7);
   font-weight: var(--fw-500);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.client-portal-recovery-open:hover .client-portal-recovery-lead,
+.client-portal-recovery-open:focus-visible .client-portal-recovery-lead {
+  color: var(--orange-yellow-crayola);
+}
+
+.client-portal-recovery-chevron {
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 14px;
+  transition: transform 0.25s ease;
+}
+
+.client-portal-recovery-open[aria-expanded="true"] .client-portal-recovery-chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-portal-recovery-chevron {
+    transition: none;
+  }
 }
 
 .client-portal-recovery-form {
   margin-top: 10px;
   display: grid;
   gap: 8px;
+}
+
+/* Required, or the form never hides. `display: grid` above is an author style
+   and beats the UA stylesheet's `[hidden] { display: none }` regardless of
+   specificity, so the hidden attribute alone does nothing here. Same pattern as
+   .cp-client-drawer[hidden] and friends. */
+.client-portal-recovery-form[hidden] {
+  display: none;
 }
 
 .client-portal-recovery-input {
@@ -5112,8 +5150,56 @@ article.about .about-founder {
   margin-bottom: 14px;
 }
 
-.services-pricing .standard-bundles-grid + .standard-addons-heading {
+.services-pricing .standard-bundles-grid + .standard-addons-heading,
+.services-pricing .services-agency-grid + .standard-addons-heading {
   margin-top: 8px;
+}
+
+@media (min-width: 768px) {
+  .standard-bundles-grid > .featured-card {
+    grid-column: 1 / -1;
+  }
+
+  .standard-bundles-grid > .featured-card .enterprise-feature-list {
+    columns: 2;
+    column-gap: 32px;
+  }
+
+  .standard-bundles-grid > .featured-card .enterprise-feature-list li {
+    break-inside: avoid;
+  }
+}
+
+.services-agency-reveal {
+  margin: -8px 0 20px;
+  text-align: center;
+}
+
+.services-agency-reveal-btn {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--light-gray);
+  font-family: var(--ff-poppins);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+  line-height: 1.5;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: hsla(45, 70%, 55%, 0.42);
+  text-underline-offset: 3px;
+}
+
+.services-agency-reveal-btn:hover,
+.services-agency-reveal-btn:focus-visible {
+  color: var(--orange-yellow-crayola);
+  text-decoration-color: var(--orange-yellow-crayola);
+}
+
+.services-agency-grid[hidden] {
+  display: none !important;
+  margin: 0;
 }
 
 .services-pricing .maintenance-policies-note {
@@ -5363,6 +5449,13 @@ article.about .about-founder {
 }
 
 .maintenance-billing-row .maintenance-billing-block {
+  margin-bottom: 0;
+}
+
+.maintenance-plan-card .enterprise-card-badge {
+  align-self: flex-start;
+  width: max-content;
+  padding: 3px 8px;
   margin-bottom: 0;
 }
 

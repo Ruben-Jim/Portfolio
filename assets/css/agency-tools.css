@@ -3908,20 +3908,45 @@ body.tc-timer-drawer-open > .tc-timer-chip {
 }
 
 .tc-entry-card {
+  width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--jet);
   border-radius: 12px;
   background: rgba(0, 0, 0, 0.14);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+/* Collapsed rows are scanned, not read — keep them tight. */
+.tc-entry-card:not(.is-open) {
+  padding: 10px 12px;
+  gap: 6px;
+}
+
+.tc-entry-card:not(.is-open):hover {
+  border-color: hsla(45, 100%, 72%, 0.28);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.tc-entry-card.is-open {
+  border-color: hsla(45, 100%, 72%, 0.3);
+  background: rgba(0, 0, 0, 0.28);
 }
 
 .tc-entry-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+/* Compact, fixed-size control so every row's button lines up. */
+.tc-entry-toggle {
+  flex: 0 0 auto;
+  min-width: 62px;
+  padding: 6px 12px;
 }
 
 .tc-entry-open {
@@ -3976,11 +4001,49 @@ body.tc-timer-drawer-open > .tc-timer-chip {
   align-items: end;
 }
 
+/* Collapsed by default — the card shows its summary and saved notes, and the
+   form only appears once Edit is pressed. Accordion is enforced in JS. */
+.tc-entry-card .tc-entry-edit {
+  display: none;
+}
+
+.tc-entry-card.is-open .tc-entry-edit {
+  display: grid;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.07);
+}
+
+/* Long notes must not undo the collapse — cap the preview and let the full text
+   show in the textarea when expanded. */
+.tc-entry-card:not(.is-open) .tc-entry-notes {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tc-entry-card.is-open .tc-entry-notes {
+  display: none;
+}
+
+.tc-entry-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .tc-entry-edit .tc-field--grow {
   grid-column: 1 / -1;
 }
 
-.tc-entry-edit .btn {
+.tc-entry-edit .tc-entry-actions .btn {
+  grid-column: auto;
+  justify-self: auto;
+}
+
+.tc-entry-edit > .btn {
   grid-column: 1 / -1;
   justify-self: end;
 }
@@ -4354,7 +4417,7 @@ body.tc-add-drawer-open {
     grid-template-columns: 1fr 1fr;
   }
 
-  .tc-entry-edit .btn {
+  .tc-entry-edit > .btn {
     grid-column: 1 / -1;
   }
 }

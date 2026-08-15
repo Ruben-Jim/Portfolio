@@ -112,20 +112,23 @@ Every package includes **1 month of the maintenance plan the customer picks** af
 
 | Package | Platform | Price | Typical fit | Timeline (marketing) |
 |---------|----------|-------|-------------|----------------------|
-| **Starter Presence** | Website + App | $1,500 fixed | 1–3 page site + iOS/Android; inquiries & light booking | ~2–3 weeks |
-| **Growth Platform** | Website + App | $3,500 fixed (Most Popular) | Up to ~5 pages + iOS/Android + admin for leads / bookings | 3–4 weeks |
-| **Business Platform** | Website + App | $6k – $12k (scoped) | Web + mobile for crews; payments, jobs, ops dashboard | After discovery |
-| **Studio Build** | Website + App | $15k – $40k (custom) | Full field-service ops platform | After discovery |
+| **Business Website** | Website | $799 fixed | Marketing site only; customers on the web; no app, no admin | ~1–2 weeks |
+| **Starter Presence** | Website + App | $1,500 fixed | Same site + iOS/Android for the team (quotes/chat); customers stay on the web | ~2–3 weeks |
+| **Growth Platform** | Website + App | $3,500 fixed (Most Popular) | ProCleaning-class template: customer site, crew app, full admin (Stripe, jobs, Tap to Pay) | 3–4 weeks |
+| **Business Platform** | Website + App | $6k – $12k (scoped) | Custom / larger ops beyond the fixed Growth template | After discovery |
+| **Studio Build** | Website + App | $15k – $40k (custom) | Full custom field-service ops platform | After discovery |
 
-Every build package includes a **branded Link Tree** (Instagram / TikTok bio link page) pointing into the product. **All build packages are Website + App** (Starter through Studio); Link Tree remains bio-link only.
+Every build package includes a **branded Link Tree** (Instagram / TikTok bio link page) pointing into the product. **Customers use the website.** Native iOS/Android is the **staff app** (owner/crew), not a customer storefront app. Business Website is site-only.
 
-**Home price line:** Packages from **$1,500** · Maintenance from about **$44/mo** (annual Essential Care).
+**Home price line:** Packages from **$799** · Maintenance from about **$44/mo** (annual Essential Care).
 
 ### 5.2 Typical package themes
 
-**Starter Presence (Website + App)** — Branded website (1–3 pages) + iOS/Android app, quote/booking forms on web and in-app, gallery/reviews, chat, bilingual option, push/in-app alerts, store setup support, basic SEO/analytics, launch + hosting, branded Link Tree.
+**Business Website** — Branded marketing site (home, services, work, contact), quote/booking forms, gallery/reviews, chat, click-to-call/text, bilingual EN/ES, SEO/analytics, launch + hosting, Link Tree. No app, no admin.
 
-**Growth (Website + App)** — Website (up to 5 pages) + iOS/Android, online quote capture, booking → admin, Stripe cards/tips, PDF estimates/invoices, crew scheduling, before/after portfolio approval, recurring billing, owner login, inquiry notifications, Link Tree.
+**Starter Presence (Website + App)** — Same customer website plus iOS/Android for you and the team. Quotes and chat. Not the full jobs/payments admin. Store setup, SEO, hosting, Link Tree.
+
+**Growth (Website + App)** — The live template (ProCleaning-class): customer site (Home, Services, Work, Reviews, Contact), staff iOS/Android, admin for leads/jobs/calendar/customers/inbox, Stripe (tips, tax, subscriptions), PDFs, crew hours, before/after approval, reminders, Tap to Pay, store setup, Link Tree. GHL and similar integrations are not promised on this card — they stay in scoped Field Ops / Studio.
 
 **Business Platform (Website + App)** — Shared web + iOS + Android app, staff roles, Stripe, job scheduling/history, admin for quotes/bookings/customers, branded Link Tree.
 
@@ -286,7 +289,7 @@ The portfolio site is also the studio’s back office:
 | Tagline | Web & Mobile Dev Studio |
 | Hero | Run your business from your phone |
 | Proof | Fresno-based studio · Web + iOS + Android · Real-time admin dashboards |
-| Price anchor | From $1,500 · care from ~$44/mo annual |
+| Price anchor | From $799 · care from ~$44/mo annual |
 | Ownership default | Studio owns code until Ownership Upgrade |
 | Differentiator | Local founder builds it — no offshore handoff |
 
