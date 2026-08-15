@@ -5094,7 +5094,11 @@ article.about .about-founder {
   }
 
   .enterprise-grid.maintenance-tier-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .maintenance-tier-grid .maintenance-plan-card--wide {
+    grid-column: 1 / -1;
   }
 
   .enterprise-card.full-width {
@@ -5350,6 +5354,47 @@ article.about .about-founder {
 
 .maintenance-billing-block .enterprise-price {
   margin-bottom: 6px;
+}
+
+.maintenance-billing-row {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.maintenance-billing-row .maintenance-billing-block {
+  margin-bottom: 0;
+}
+
+.maintenance-plan-card .enterprise-card-sub {
+  margin-bottom: 14px;
+  max-width: 46em;
+}
+
+.maintenance-plan-features {
+  margin-bottom: 0;
+}
+
+.maintenance-plan-features li {
+  margin-bottom: 6px;
+}
+
+@media (min-width: 640px) {
+  .maintenance-billing-row {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+}
+
+@media (min-width: 768px) {
+  .maintenance-plan-card--wide .maintenance-plan-features {
+    columns: 2;
+    column-gap: 32px;
+  }
+
+  .maintenance-plan-card--wide .maintenance-plan-features li {
+    break-inside: avoid;
+  }
 }
 
 .services-pricing .standard-addon-cta-wrap {

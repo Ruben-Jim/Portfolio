@@ -461,7 +461,7 @@
                 <span class="cwr-landing-step-num">04</span>
                 <div class="cwr-landing-step-body">
                   <h3 data-i18n="home.step4_title">Launch &amp; support</h3>
-                  <p data-i18n="home.step4_desc">Ship to web and app stores with docs, training, and 1 month of maintenance.</p>
+                  <p data-i18n="home.step4_desc">Ship to web and app stores with docs, training, and 1 month of the maintenance plan you pick.</p>
                 </div>
               </li>
             </ol>
@@ -1665,7 +1665,7 @@
 
         <section class="about-text">
           <p data-i18n="services.intro">
-            Fixed packages for service businesses — booking, crews, payments, and admin in one place. Every build includes 1 month of maintenance. Add proven modules à la carte, or go all-in with a Studio Build — the same platform we use for live field-service businesses today.
+            Fixed packages for service businesses — booking, crews, payments, and admin in one place. Every build includes 1 month of the maintenance plan you pick. Add proven modules à la carte, or go all-in with a Studio Build — the same platform we use for live field-service businesses today.
           </p>
         </section>
 
@@ -1811,19 +1811,20 @@
             </div>
 
             <h3 class="h3 service-title standard-addons-heading" data-i18n="services.maint_title">Maintenance Plans</h3>
-            <p class="maintenance-billing-lead" data-i18n="services.maint_lead">After your first included month: pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
+            <p class="maintenance-billing-lead" data-i18n="services.maint_lead">After your first included month (the plan you pick): pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
             <div class="enterprise-grid maintenance-tier-grid">
-              <div class="enterprise-card">
+              <div class="enterprise-card maintenance-plan-card">
                 <span class="enterprise-card-badge">Essential</span>
                 <div class="enterprise-card-title" data-i18n="services.ess_title">Essential Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.ess_sub">
-                  Keep hosting, updates, and monitoring healthy between busy seasons — slower response, same web + mobile coverage.
+                  Keep hosting, updates, and monitoring healthy between busy seasons — weekday replies, one work session.
                 </div>
 
+                <div class="maintenance-billing-row">
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$79<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_mo_note">5 business days · 1 maintenance window/month</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_mo_note">5 business days · 2 hrs · 1 work session</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
@@ -1831,26 +1832,32 @@
                   <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_ann_note">Same as ~$44/mo · billed once per year</div>
                 </div>
+                </div>
 
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.ess_f1">Response within 5 business days</li>
-                  <li data-i18n="services.ess_f2">1 maintenance window per month</li>
-                  <li data-i18n="services.ess_f3">Hosting, updates, monitoring, minor fixes</li>
-                  <li data-i18n="services.ess_f4">Web + iOS + Android support</li>
+                <ul class="enterprise-feature-list maintenance-plan-features">
+                  <li data-i18n="services.ess_f1">2 hours per month · 1 work session</li>
+                  <li data-i18n="services.ess_f2">We reply within 5 business days</li>
+                  <li data-i18n="services.ess_f3">We look at bugs and broken flows (after Standard and Priority)</li>
+                  <li data-i18n="services.ess_f4">If the site or app goes down, you’ll hear from us within 1 business day (weekdays)</li>
+                  <li data-i18n="services.ess_f5">App updates to Apple and Google 4 times a year, during your work session</li>
+                  <li data-i18n="services.ess_f6">Content and copy updates during your work session</li>
+                  <li data-i18n="services.ess_f7">New features and add-ons are quoted separately</li>
+                  <li data-i18n="services.ess_f8">Hosting, updates, monitoring · website, iPhone, and Android</li>
                 </ul>
               </div>
 
-              <div class="enterprise-card featured-card">
+              <div class="enterprise-card featured-card maintenance-plan-card">
                 <span class="enterprise-card-badge">Standard</span>
                 <div class="enterprise-card-title" data-i18n="services.std_title">Standard Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.std_sub">
-                  Recommended for live day-to-day ops — faster response than Essential, plus live-ops triage and small content tweaks in your monthly window (web, iOS &amp; Android).
+                  Recommended for live day-to-day ops — evenings and weekends if something is down, monthly content, and add-ons on a set cadence.
                 </div>
 
+                <div class="maintenance-billing-row">
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$150<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_mo_note">72-hour response · 1 maintenance window/month</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_mo_note">3 business days · 6 hrs · 2 work sessions</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
@@ -1858,28 +1865,35 @@
                   <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_ann_note">Same as ~$83/mo · billed once per year</div>
                 </div>
+                </div>
 
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.std_f1">Response within 72 business hours</li>
-                  <li data-i18n="services.std_f2">1 maintenance window per month</li>
-                  <li data-i18n="services.std_f3">Hosting, updates, monitoring, minor fixes</li>
-                  <li data-i18n="services.std_f4">Live-ops triage for bugs &amp; broken flows</li>
-                  <li data-i18n="services.std_f5">Small content &amp; copy tweaks in your window</li>
-                  <li data-i18n="services.std_f6">Web + iOS + Android support</li>
+                <ul class="enterprise-feature-list maintenance-plan-features">
+                  <li data-i18n="services.std_f1">6 hours per month · 2 work sessions</li>
+                  <li data-i18n="services.std_f2">We reply within 3 business days</li>
+                  <li data-i18n="services.std_f3">We look at bugs and broken flows — ahead of Essential</li>
+                  <li data-i18n="services.std_f4">If the site or app goes down, you’ll hear from us within 4 hours</li>
+                  <li data-i18n="services.std_f5">Evenings and weekends included if the site or app goes down</li>
+                  <li data-i18n="services.std_f6">App updates to Apple and Google every month, both stores</li>
+                  <li data-i18n="services.std_f7">Monthly content updates (photos, prices, hours, copy) — separate from work sessions</li>
+                  <li data-i18n="services.std_f8">One small new feature each month (uses your hours)</li>
+                  <li data-i18n="services.std_f9">One smaller add-on each quarter (a new tool for one job)</li>
+                  <li data-i18n="services.std_f10">One larger add-on each year (a whole new part of the product)</li>
+                  <li data-i18n="services.std_f11">Hosting, updates, monitoring · website, iPhone, and Android</li>
                 </ul>
               </div>
 
-              <div class="enterprise-card">
+              <div class="enterprise-card maintenance-plan-card maintenance-plan-card--wide">
                 <span class="enterprise-card-badge">Priority</span>
                 <div class="enterprise-card-title" data-i18n="services.pri_title">Priority Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.pri_sub">
-                  Same coverage as Standard with faster response and more maintenance windows for high-volume teams.
+                  Everything in Standard, with more hours, faster replies, weekly content, and add-ons more often.
                 </div>
 
+                <div class="maintenance-billing-row">
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$300<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">24-hour response · 2 maintenance windows/month</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">1 business day · 10 hrs · 3 work sessions</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
@@ -1887,27 +1901,33 @@
                   <div class="enterprise-price">$1,980<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_ann_note">Same as ~$165/mo · billed once per year</div>
                 </div>
+                </div>
 
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.pri_f1">Response within 24 business hours</li>
-                  <li data-i18n="services.pri_f2">2 maintenance windows per month</li>
-                  <li data-i18n="services.pri_f3">Hosting, updates, monitoring, minor fixes</li>
-                  <li data-i18n="services.pri_f4">Web + iOS + Android support</li>
+                <ul class="enterprise-feature-list maintenance-plan-features">
+                  <li data-i18n="services.pri_f1">10 hours per month · 3 work sessions</li>
+                  <li data-i18n="services.pri_f2">We reply within 1 business day</li>
+                  <li data-i18n="services.pri_f3">We look at bugs and broken flows — ahead of Standard</li>
+                  <li data-i18n="services.pri_f4">If the site or app goes down, you’ll hear from us within 2 hours</li>
+                  <li data-i18n="services.pri_f5">Evenings and weekends included if the site or app goes down — ahead of Standard</li>
+                  <li data-i18n="services.pri_f6">App updates to Apple and Google as often as you need, both stores</li>
+                  <li data-i18n="services.pri_f7">Weekly content updates (photos, prices, hours, copy) — separate from work sessions</li>
+                  <li data-i18n="services.pri_f8">Small new features in your hours, as they fit</li>
+                  <li data-i18n="services.pri_f9">One smaller add-on each month (a new tool for one job) — ahead of Standard</li>
+                  <li data-i18n="services.pri_f10">One larger add-on every 6 months (a whole new part of the product)</li>
+                  <li data-i18n="services.pri_f11">Unused hours carry over 30 days</li>
+                  <li data-i18n="services.pri_f12">Hosting, updates, monitoring · website, iPhone, and Android</li>
                 </ul>
               </div>
             </div>
 
-
-            <!-- <div class="enterprise-note-box maintenance-policies-note">
-              <p>
-                <strong>New features and major scope changes</strong> are quoted separately.
-                Update frequency: Web only = 1 maintenance window/month. Web + Mobile = 2 maintenance windows/month.
-                Emergency incidents acknowledged in 4–12 hours during business hours.
+            <div class="enterprise-note-box maintenance-policies-note">
+              <p data-i18n="services.maint_policy">
+                Your first included month is the plan you pick. Custom work beyond the add-on cadence is quoted separately. We reply on the clock; the repair uses leftover hours. Weekdays 10am–6pm Pacific. Portal preferred; email and text also count.
               </p>
-            </div> -->
+            </div>
 
             <div class="standard-addon-cta-wrap">
-              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month — Essential $79/mo or $522/yr, Standard $150/mo or $990/yr (recommended), or Priority $300/mo or $1,980/yr (annual save 45% vs monthly).'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month (the plan I pick) — Essential $79/mo or $522/yr (2 hrs · 1 work session), Standard $150/mo or $990/yr (6 hrs · 2 work sessions, recommended), or Priority $300/mo or $1,980/yr (10 hrs · 3 work sessions). Annual save 45% vs monthly.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                 <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                 <span data-i18n="services.maint_cta">Discuss Plan</span>
               </a>
@@ -1938,7 +1958,7 @@
 
             <section class="about-text" style="margin-top: 30px;">
               <p>
-                <span data-i18n="services.note"><strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes maintenance for the first month only. Code ownership remains with the studio until an Ownership Upgrade is completed.</span>
+                <span data-i18n="services.note"><strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes the first month of the maintenance plan you pick. Code ownership remains with the studio until an Ownership Upgrade is completed.</span>
               </p>
             </section>
           </div>
@@ -6462,15 +6482,15 @@
             </div>
             <div class="phase-box">
               <p class="question">2. App Store Ownership</p>
-              <p class="text-sm opacity-80">A: Agency model (Ruben owns/publishes).<br>B: Client owns (pays Apple $99/yr + Google $25/yr fees).</p>
+              <p class="text-sm opacity-80">CodeWithRuben owns the store accounts and absorbs Apple/Google fees. App is named for the client. Listings transfer on buyout. Client owns Stripe.</p>
             </div>
             <div class="phase-box">
               <p class="question">3. Payment Structure</p>
               <p class="text-sm opacity-80">Stripe or PayPal business account. Preferred: send textable Checkout link for 50% deposit.</p>
             </div>
             <div class="phase-box">
-              <p class="question">4. Emergency SLA ($49/mo)</p>
-              <p class="text-sm opacity-80">Standard: 48-hour response. Instant/weekend fixes only with Premium SLA add-on.</p>
+              <p class="question">4. Maintenance reply clocks</p>
+              <p class="text-sm opacity-80">Essential: 5 business days (weekdays 10am–6pm Pacific). Standard: 3 business days; down-reply 4 hours including evenings/weekends. Priority: 1 business day; down-reply 2 hours, ahead of Standard.</p>
             </div>
             <div class="phase-box">
               <p class="question">5. Content Collection</p>
@@ -7148,15 +7168,15 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
         <input type="hidden" id="maint-edit-id">
         <div class="form-group"><label for="maint-client-name">Client name</label><input type="text" id="maint-client-name"></div>
         <div class="form-row">
-          <div class="form-group form-group-half"><label for="maint-hours-included">Hours included</label><input type="number" id="maint-hours-included" min="0" value="4"></div>
+          <div class="form-group form-group-half"><label for="maint-hours-included">Hours included</label><input type="number" id="maint-hours-included" min="0" value="6"></div>
           <div class="form-group form-group-half"><label for="maint-hours-used">Hours used</label><input type="number" id="maint-hours-used" min="0" value="0"></div>
         </div>
         <div class="form-row">
           <div class="form-group form-group-half"><label for="maint-renewal">Renewal date</label><input type="date" id="maint-renewal"></div>
           <div class="form-group form-group-half">
             <label for="maint-sla">Service level agreement (hours)</label>
-            <input type="number" id="maint-sla" min="1" value="48" placeholder="Service level agreement" title="Service level agreement — promised response time in hours (e.g. 48 = within 48 hours)">
-            <span class="form-hint">Service level agreement — hours until you respond (Standard 72, Priority 24).</span>
+            <input type="number" id="maint-sla" min="1" value="72" placeholder="Service level agreement" title="Service level agreement — promised response time in hours (Essential 120 = 5 days, Standard 72 = 3 days, Priority 24 = 1 day)">
+            <span class="form-hint">Hours until you respond (Essential 120, Standard 72, Priority 24). Down-replies on Standard/Priority are 4h / 2h.</span>
           </div>
         </div>
         <div class="form-group"><label for="maint-notes">Notes</label><textarea id="maint-notes" class="has-scrollbar" rows="3"></textarea></div>

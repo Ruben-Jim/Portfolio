@@ -22,6 +22,7 @@ ROUTES=(
   hire-me
   contact
   messages
+  schedule
 )
 
 cp "$SRC" "$ROOT/404.html"

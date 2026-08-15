@@ -128,11 +128,17 @@
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$44/mo equivalent · billed once per year',
       slaLabel: '5 business days',
+      hoursIncluded: 2,
+      slaHours: 120,
       features: [
-        'Response within 5 business days',
-        '1 maintenance window per month',
-        'Hosting, updates, monitoring, minor fixes',
-        'Web + iOS + Android support'
+        '2 hours per month · 1 work session',
+        'We reply within 5 business days',
+        'We look at bugs and broken flows (after Standard and Priority)',
+        'If the site or app goes down, you’ll hear from us within 1 business day (weekdays)',
+        'App updates to Apple and Google 4 times a year, during your work session',
+        'Content and copy updates during your work session',
+        'New features and add-ons are quoted separately',
+        'Hosting, updates, monitoring · website, iPhone, and Android'
       ]
     },
     {
@@ -146,15 +152,22 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
-      slaLabel: '72 business hours',
+      slaLabel: '3 business days',
+      hoursIncluded: 6,
+      slaHours: 72,
       recommended: true,
       features: [
-        'Response within 72 business hours',
-        '1 maintenance window per month',
-        'Hosting, updates, monitoring, minor fixes',
-        'Live-ops triage for bugs & broken flows',
-        'Small content & copy tweaks in your window',
-        'Web + iOS + Android support'
+        '6 hours per month · 2 work sessions',
+        'We reply within 3 business days',
+        'We look at bugs and broken flows — ahead of Essential',
+        'If the site or app goes down, you’ll hear from us within 4 hours',
+        'Evenings and weekends included if the site or app goes down',
+        'App updates to Apple and Google every month, both stores',
+        'Monthly content updates (photos, prices, hours, copy) — separate from work sessions',
+        'One small new feature each month (uses your hours)',
+        'One smaller add-on each quarter (a new tool for one job)',
+        'One larger add-on each year (a whole new part of the product)',
+        'Hosting, updates, monitoring · website, iPhone, and Android'
       ]
     },
     {
@@ -168,12 +181,22 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$165/mo equivalent · billed once per year',
-      slaLabel: '24 business hours',
+      slaLabel: '1 business day',
+      hoursIncluded: 10,
+      slaHours: 24,
       features: [
-        'Response within 24 business hours',
-        '2 maintenance windows per month',
-        'Hosting, updates, monitoring, minor fixes',
-        'Web + iOS + Android support'
+        '10 hours per month · 3 work sessions',
+        'We reply within 1 business day',
+        'We look at bugs and broken flows — ahead of Standard',
+        'If the site or app goes down, you’ll hear from us within 2 hours',
+        'Evenings and weekends included if the site or app goes down — ahead of Standard',
+        'App updates to Apple and Google as often as you need, both stores',
+        'Weekly content updates (photos, prices, hours, copy) — separate from work sessions',
+        'Small new features in your hours, as they fit',
+        'One smaller add-on each month (a new tool for one job) — ahead of Standard',
+        'One larger add-on every 6 months (a whole new part of the product)',
+        'Unused hours carry over 30 days',
+        'Hosting, updates, monitoring · website, iPhone, and Android'
       ]
     }
   ];
@@ -838,7 +861,7 @@
     var cards = [];
     for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
       var plan = MAINTENANCE_PLANS[i];
-      var feat = (plan.features || []).slice(0, 3);
+      var feat = (plan.features || []).slice(0, 6);
       var lis = '';
       for (var j = 0; j < feat.length; j++) {
         lis += '<li>' + escapeHtml(feat[j]) + '</li>';
@@ -1146,7 +1169,7 @@
       'If a payment is not received by its due date, the following schedule applies:</p>' +
       '<ul class="scope-feature-list">' +
       '<li><span class="bullet-li-text"><strong>Days 1&ndash;14 (grace period):</strong> CWR notifies Client by email. Hosting and support continue uninterrupted.</span></li>' +
-      '<li><span class="bullet-li-text"><strong>Day 15:</strong> Support response times and scheduled maintenance windows under the plan above are paused until payment is received. The application remains live.</span></li>' +
+      '<li><span class="bullet-li-text"><strong>Day 15:</strong> Support response times and scheduled work sessions under the plan above are paused until payment is received. The application remains live.</span></li>' +
       '<li><span class="bullet-li-text"><strong>Day 30:</strong> Hosting is suspended and the application is taken offline until payment is received in full, plus a reactivation fee equal to one month of the plan above.</span></li>' +
       '<li><span class="bullet-li-text"><strong>Day 60:</strong> If payment still has not been received, CWR may archive Client’s data, remove the application from CWR’s hosting, and close the account.</span></li>' +
       '</ul>' +

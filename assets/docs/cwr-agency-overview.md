@@ -108,7 +108,7 @@ Primary: **local / service businesses** that need booking, crews, payments, admi
 
 ### 5.1 Build packages (public site)
 
-Every package includes **1 month of maintenance** after launch unless otherwise agreed. Final scope is confirmed on a discovery call.
+Every package includes **1 month of the maintenance plan the customer picks** after launch unless otherwise agreed. Final scope is confirmed on a discovery call.
 
 | Package | Platform | Price | Typical fit | Timeline (marketing) |
 |---------|----------|-------|-------------|----------------------|
@@ -119,7 +119,7 @@ Every package includes **1 month of maintenance** after launch unless otherwise 
 
 Every build package includes a **branded Link Tree** (Instagram / TikTok bio link page) pointing into the product. **All build packages are Website + App** (Starter through Studio); Link Tree remains bio-link only.
 
-**Home price line:** Packages from **$1,500** · Maintenance from about **$44/mo** (annual Standard Care).
+**Home price line:** Packages from **$1,500** · Maintenance from about **$44/mo** (annual Essential Care).
 
 ### 5.2 Typical package themes
 
@@ -144,14 +144,19 @@ Every build package includes a **branded Link Tree** (Instagram / TikTok bio lin
 
 ### 5.3 Maintenance plans (public site)
 
-After the included first month:
+After the included first month (whichever plan they pick):
 
-| Plan | Monthly | Annual | Response | Windows |
-|------|---------|--------|----------|---------|
-| **Standard Care** | $79/mo | $522/yr (~$44/mo) | ~72h | 1 / month |
-| **Priority Care** | $150/mo | $990/yr (~$83/mo) | ~24h | 2 / month |
+| Plan | Monthly | Annual | Hours · sessions | Normal reply | If site/app is down |
+|------|---------|--------|------------------|--------------|---------------------|
+| **Essential Care** | $79/mo | $522/yr (~$44/mo) | 2 hrs · 1 work session | 5 business days | 1 business day, weekdays only |
+| **Standard Care** (recommended) | $150/mo | $990/yr (~$83/mo) | 6 hrs · 2 work sessions | 3 business days | 4 hours, evenings/weekends included |
+| **Priority Care** | $300/mo | $1,980/yr (~$165/mo) | 10 hrs · 3 work sessions | 1 business day | 2 hours, evenings/weekends, ahead of Standard |
 
-> **Note (internal):** Contract / client-portal catalog also lists Standard **$150/mo** and Priority **$300/mo** in places. Treat the **Services & Pricing page** as the public marketing numbers until those are reconciled. **To confirm** which set is canonical for new contracts.
+**Also on Standard / Priority:** separate content cadence (monthly / weekly), small features in hours, modest add-ons (quarterly / monthly), large add-ons (yearly / every 6 months). Essential quotes new features and add-ons. Weekdays **10am–6pm Pacific**. US federal holidays pause the weekday clock. Store accounts: **CodeWithRuben**; app named for the client; listings transfer on buyout. Payments: client Stripe only.
+
+**Intake:** portal preferred; email and text also start the reply clock.
+
+> Public Services & Pricing, portal catalog, and proposal/contract cards share this catalog. Internal tracker defaults: hours 2 / 6 / 10 and SLA hours 120 / 72 / 24.
 
 ### 5.4 Ownership upgrade (buyout)
 
@@ -296,7 +301,7 @@ The portfolio site is also the studio’s back office:
 Use this checklist when tightening legal or sales materials:
 
 1. Formal entity (sole prop DBA only vs LLC) and any EIN / business license details  
-2. Canonical maintenance prices (site $79/$150 vs older portal $150/$300) and “first month” vs any “first year” wording  
+2. ~~Canonical maintenance prices~~ — site, portal, and contracts: Essential $79 / Standard $150 / Priority $300. First month = the plan they pick.  
 3. Standard change-order rate and export/migration fee  
 4. Exact founding month/day (year is 2022)  
 5. Any regular contractors or partners to list on an org chart  

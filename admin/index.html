@@ -381,6 +381,21 @@
           </div>
         </section>
 
+        <!-- Section: App Store / Google Play -->
+        <section class="cwr-landing-band cwr-landing-band--dark" aria-labelledby="cwr-stores-title">
+          <div class="cwr-landing-band-inner cwr-landing-stores-inner">
+            <header class="cwr-landing-band-header cwr-landing-band-header--center">
+              <p class="cwr-landing-band-kicker" data-i18n="home.stores_kicker">From idea to launch</p>
+              <h2 class="cwr-landing-band-title" id="cwr-stores-title" data-i18n="home.stores_title">We put your app on the App Store and Google Play</h2>
+              <p class="cwr-landing-band-lead" data-i18n="home.stores_lead">Full native builds, submitted and published under your name — not just a website wrapped in a shell.</p>
+            </header>
+            <div class="cwr-landing-stores-badges">
+              <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" loading="lazy" width="162" height="54">
+              <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" loading="lazy" width="182" height="54">
+            </div>
+          </div>
+        </section>
+
         <!-- Section 2: Demo reel -->
         <section class="cwr-landing-band cwr-landing-band--light" aria-labelledby="cwr-demo-title">
           <div class="cwr-landing-band-inner cwr-landing-demo-grid">
@@ -446,7 +461,7 @@
                 <span class="cwr-landing-step-num">04</span>
                 <div class="cwr-landing-step-body">
                   <h3 data-i18n="home.step4_title">Launch &amp; support</h3>
-                  <p data-i18n="home.step4_desc">Ship to web and app stores with docs, training, and 1 month of maintenance.</p>
+                  <p data-i18n="home.step4_desc">Ship to web and app stores with docs, training, and 1 month of the maintenance plan you pick.</p>
                 </div>
               </li>
             </ol>
@@ -1650,7 +1665,7 @@
 
         <section class="about-text">
           <p data-i18n="services.intro">
-            Fixed packages for service businesses — booking, crews, payments, and admin in one place. Every build includes 1 month of maintenance. Add proven modules à la carte, or go all-in with a Studio Build — the same platform we use for live field-service businesses today.
+            Fixed packages for service businesses — booking, crews, payments, and admin in one place. Every build includes 1 month of the maintenance plan you pick. Add proven modules à la carte, or go all-in with a Studio Build — the same platform we use for live field-service businesses today.
           </p>
         </section>
 
@@ -1796,19 +1811,20 @@
             </div>
 
             <h3 class="h3 service-title standard-addons-heading" data-i18n="services.maint_title">Maintenance Plans</h3>
-            <p class="maintenance-billing-lead" data-i18n="services.maint_lead">After your first included month: pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
+            <p class="maintenance-billing-lead" data-i18n="services.maint_lead">After your first included month (the plan you pick): pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
             <div class="enterprise-grid maintenance-tier-grid">
-              <div class="enterprise-card">
+              <div class="enterprise-card maintenance-plan-card">
                 <span class="enterprise-card-badge">Essential</span>
                 <div class="enterprise-card-title" data-i18n="services.ess_title">Essential Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.ess_sub">
-                  Keep hosting, updates, and monitoring healthy between busy seasons — slower response, same web + mobile coverage.
+                  Keep hosting, updates, and monitoring healthy between busy seasons — weekday replies, one work session.
                 </div>
 
+                <div class="maintenance-billing-row">
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$79<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_mo_note">5 business days · 1 maintenance window/month</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_mo_note">5 business days · 2 hrs · 1 work session</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
@@ -1816,26 +1832,32 @@
                   <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_ann_note">Same as ~$44/mo · billed once per year</div>
                 </div>
+                </div>
 
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.ess_f1">Response within 5 business days</li>
-                  <li data-i18n="services.ess_f2">1 maintenance window per month</li>
-                  <li data-i18n="services.ess_f3">Hosting, updates, monitoring, minor fixes</li>
-                  <li data-i18n="services.ess_f4">Web + iOS + Android support</li>
+                <ul class="enterprise-feature-list maintenance-plan-features">
+                  <li data-i18n="services.ess_f1">2 hours per month · 1 work session</li>
+                  <li data-i18n="services.ess_f2">We reply within 5 business days</li>
+                  <li data-i18n="services.ess_f3">We look at bugs and broken flows (after Standard and Priority)</li>
+                  <li data-i18n="services.ess_f4">If the site or app goes down, you’ll hear from us within 1 business day (weekdays)</li>
+                  <li data-i18n="services.ess_f5">App updates to Apple and Google 4 times a year, during your work session</li>
+                  <li data-i18n="services.ess_f6">Content and copy updates during your work session</li>
+                  <li data-i18n="services.ess_f7">New features and add-ons are quoted separately</li>
+                  <li data-i18n="services.ess_f8">Hosting, updates, monitoring · website, iPhone, and Android</li>
                 </ul>
               </div>
 
-              <div class="enterprise-card featured-card">
+              <div class="enterprise-card featured-card maintenance-plan-card">
                 <span class="enterprise-card-badge">Standard</span>
                 <div class="enterprise-card-title" data-i18n="services.std_title">Standard Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.std_sub">
-                  Recommended for live day-to-day ops — faster response than Essential, plus live-ops triage and small content tweaks in your monthly window (web, iOS &amp; Android).
+                  Recommended for live day-to-day ops — evenings and weekends if something is down, monthly content, and add-ons on a set cadence.
                 </div>
 
+                <div class="maintenance-billing-row">
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$150<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_mo_note">72-hour response · 1 maintenance window/month</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_mo_note">3 business days · 6 hrs · 2 work sessions</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
@@ -1843,28 +1865,35 @@
                   <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_ann_note">Same as ~$83/mo · billed once per year</div>
                 </div>
+                </div>
 
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.std_f1">Response within 72 business hours</li>
-                  <li data-i18n="services.std_f2">1 maintenance window per month</li>
-                  <li data-i18n="services.std_f3">Hosting, updates, monitoring, minor fixes</li>
-                  <li data-i18n="services.std_f4">Live-ops triage for bugs &amp; broken flows</li>
-                  <li data-i18n="services.std_f5">Small content &amp; copy tweaks in your window</li>
-                  <li data-i18n="services.std_f6">Web + iOS + Android support</li>
+                <ul class="enterprise-feature-list maintenance-plan-features">
+                  <li data-i18n="services.std_f1">6 hours per month · 2 work sessions</li>
+                  <li data-i18n="services.std_f2">We reply within 3 business days</li>
+                  <li data-i18n="services.std_f3">We look at bugs and broken flows — ahead of Essential</li>
+                  <li data-i18n="services.std_f4">If the site or app goes down, you’ll hear from us within 4 hours</li>
+                  <li data-i18n="services.std_f5">Evenings and weekends included if the site or app goes down</li>
+                  <li data-i18n="services.std_f6">App updates to Apple and Google every month, both stores</li>
+                  <li data-i18n="services.std_f7">Monthly content updates (photos, prices, hours, copy) — separate from work sessions</li>
+                  <li data-i18n="services.std_f8">One small new feature each month (uses your hours)</li>
+                  <li data-i18n="services.std_f9">One smaller add-on each quarter (a new tool for one job)</li>
+                  <li data-i18n="services.std_f10">One larger add-on each year (a whole new part of the product)</li>
+                  <li data-i18n="services.std_f11">Hosting, updates, monitoring · website, iPhone, and Android</li>
                 </ul>
               </div>
 
-              <div class="enterprise-card">
+              <div class="enterprise-card maintenance-plan-card maintenance-plan-card--wide">
                 <span class="enterprise-card-badge">Priority</span>
                 <div class="enterprise-card-title" data-i18n="services.pri_title">Priority Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.pri_sub">
-                  Same coverage as Standard with faster response and more maintenance windows for high-volume teams.
+                  Everything in Standard, with more hours, faster replies, weekly content, and add-ons more often.
                 </div>
 
+                <div class="maintenance-billing-row">
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$300<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">24-hour response · 2 maintenance windows/month</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">1 business day · 10 hrs · 3 work sessions</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
@@ -1872,27 +1901,33 @@
                   <div class="enterprise-price">$1,980<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_ann_note">Same as ~$165/mo · billed once per year</div>
                 </div>
+                </div>
 
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.pri_f1">Response within 24 business hours</li>
-                  <li data-i18n="services.pri_f2">2 maintenance windows per month</li>
-                  <li data-i18n="services.pri_f3">Hosting, updates, monitoring, minor fixes</li>
-                  <li data-i18n="services.pri_f4">Web + iOS + Android support</li>
+                <ul class="enterprise-feature-list maintenance-plan-features">
+                  <li data-i18n="services.pri_f1">10 hours per month · 3 work sessions</li>
+                  <li data-i18n="services.pri_f2">We reply within 1 business day</li>
+                  <li data-i18n="services.pri_f3">We look at bugs and broken flows — ahead of Standard</li>
+                  <li data-i18n="services.pri_f4">If the site or app goes down, you’ll hear from us within 2 hours</li>
+                  <li data-i18n="services.pri_f5">Evenings and weekends included if the site or app goes down — ahead of Standard</li>
+                  <li data-i18n="services.pri_f6">App updates to Apple and Google as often as you need, both stores</li>
+                  <li data-i18n="services.pri_f7">Weekly content updates (photos, prices, hours, copy) — separate from work sessions</li>
+                  <li data-i18n="services.pri_f8">Small new features in your hours, as they fit</li>
+                  <li data-i18n="services.pri_f9">One smaller add-on each month (a new tool for one job) — ahead of Standard</li>
+                  <li data-i18n="services.pri_f10">One larger add-on every 6 months (a whole new part of the product)</li>
+                  <li data-i18n="services.pri_f11">Unused hours carry over 30 days</li>
+                  <li data-i18n="services.pri_f12">Hosting, updates, monitoring · website, iPhone, and Android</li>
                 </ul>
               </div>
             </div>
 
-
-            <!-- <div class="enterprise-note-box maintenance-policies-note">
-              <p>
-                <strong>New features and major scope changes</strong> are quoted separately.
-                Update frequency: Web only = 1 maintenance window/month. Web + Mobile = 2 maintenance windows/month.
-                Emergency incidents acknowledged in 4–12 hours during business hours.
+            <div class="enterprise-note-box maintenance-policies-note">
+              <p data-i18n="services.maint_policy">
+                Your first included month is the plan you pick. Custom work beyond the add-on cadence is quoted separately. We reply on the clock; the repair uses leftover hours. Weekdays 10am–6pm Pacific. Portal preferred; email and text also count.
               </p>
-            </div> -->
+            </div>
 
             <div class="standard-addon-cta-wrap">
-              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month — Essential $79/mo or $522/yr, Standard $150/mo or $990/yr (recommended), or Priority $300/mo or $1,980/yr (annual save 45% vs monthly).'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month (the plan I pick) — Essential $79/mo or $522/yr (2 hrs · 1 work session), Standard $150/mo or $990/yr (6 hrs · 2 work sessions, recommended), or Priority $300/mo or $1,980/yr (10 hrs · 3 work sessions). Annual save 45% vs monthly.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                 <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                 <span data-i18n="services.maint_cta">Discuss Plan</span>
               </a>
@@ -1923,7 +1958,7 @@
 
             <section class="about-text" style="margin-top: 30px;">
               <p>
-                <span data-i18n="services.note"><strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes maintenance for the first month only. Code ownership remains with the studio until an Ownership Upgrade is completed.</span>
+                <span data-i18n="services.note"><strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes the first month of the maintenance plan you pick. Code ownership remains with the studio until an Ownership Upgrade is completed.</span>
               </p>
             </section>
           </div>
@@ -4311,7 +4346,7 @@
                   </div>
                   <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-template-scripts">
                     <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="chatbubbles-outline" class="text-2xl"></ion-icon>Template Outreach Scripts</h2>
-                    <p class="text-zinc-400">ProcCleaning (email), Field Trades (cold call + voicemail + text), HOA (email), generic follow-up — swap placeholders</p>
+                    <p class="text-zinc-400">Realtor &amp; Insurance, Lawnscaper, Trade Services, Salon/Barber/Tattoo — text first, then email, then call — swap placeholders</p>
                   </div>
                   <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-turnkey">
                     <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="build-outline" class="text-2xl"></ion-icon>Turn-Key Client Architecture</h2>
@@ -4631,6 +4666,26 @@
           </section>
         </div>
 
+        <!-- Delete time entry confirmation -->
+        <div class="modal-container" id="delete-time-entry-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="delete-time-entry-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-time-entry-confirm-title" aria-describedby="delete-time-entry-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="delete-time-entry-confirm-title">Delete time entry?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="delete-time-entry-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="delete-time-entry-confirm-desc">This permanently removes this planned/logged time entry. This cannot be undone.</p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="delete-time-entry-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-danger" id="delete-time-entry-confirm-delete">Delete</button>
+            </div>
+          </section>
+        </div>
+
         <!-- Delete pipeline lead confirmation -->
         <div class="modal-container" id="delete-lead-confirm-modal" aria-hidden="true">
           <div class="overlay" id="delete-lead-confirm-overlay"></div>
@@ -4841,43 +4896,51 @@
 
 
         <!-- Time Capacity: focus timer drawer / bottom sheet -->
-        <div class="tc-add-drawer-overlay" id="tc-timer-drawer-overlay" hidden aria-hidden="true"></div>
-        <aside class="tc-add-drawer tc-timer-drawer" id="tc-timer-drawer" hidden aria-hidden="true" aria-labelledby="tc-timer-drawer-title" data-lenis-prevent>
-          <div class="tc-add-drawer-header">
-            <div class="tc-add-drawer-heading">
-              <h3 class="h3" id="tc-timer-drawer-title">Focus session</h3>
-              <p class="tc-add-drawer-subtitle">Optional client — logs to today when you stop.</p>
+        <div class="modal-container tc-timer-modal" id="tc-timer-drawer" aria-hidden="true">
+          <div class="overlay" id="tc-timer-drawer-overlay"></div>
+          <section class="confirm-delete-modal" role="dialog" aria-modal="true" aria-labelledby="tc-timer-drawer-title">
+            <div class="confirm-delete-modal__header">
+              <h3 id="tc-timer-drawer-title">Log focus time</h3>
+              <button type="button" class="confirm-delete-modal__close" id="tc-timer-drawer-close" aria-label="Close">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
             </div>
-            <button type="button" class="tc-add-drawer-close" id="tc-timer-drawer-close" aria-label="Close">
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-          </div>
-          <div class="tc-add-drawer-body has-scrollbar">
-            <div class="tc-add-form tc-add-form--stack">
-              <div class="tc-field tc-field--grow">
-                <span id="tc-timer-target-label">Client <span class="tc-optional-hint">(optional)</span></span>
-                <div class="business-doc-select" data-select-name="tc-timer-target">
-                  <input type="hidden" id="tc-timer-target" name="tc-timer-target" value="" autocomplete="off">
-                  <button type="button" class="business-doc-select-trigger form-input tc-input" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="tc-timer-target-label">
-                    <span class="business-doc-select-trigger-label">No client — just focus</span>
-                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
-                  </button>
-                  <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
-                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">No client — just focus</button>
+            <div class="confirm-delete-modal__body">
+              <p class="tc-add-drawer-subtitle">Review the time and client, add a note, then log it to today.</p>
+              <div class="tc-add-form tc-add-form--stack">
+                <div class="tc-field tc-field--grow">
+                  <span id="tc-timer-target-label">Client</span>
+                  <div class="business-doc-select" data-select-name="tc-timer-target">
+                    <input type="hidden" id="tc-timer-target" name="tc-timer-target" value="" autocomplete="off">
+                    <button type="button" class="business-doc-select-trigger form-input tc-input" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="tc-timer-target-label">
+                      <span class="business-doc-select-trigger-label">Choose client…</span>
+                      <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                    </button>
+                    <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                      <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Choose client…</button>
+                    </div>
                   </div>
                 </div>
+                <div class="tc-field tc-field--grow" id="tc-timer-log-fields">
+                  <label class="tc-field" for="tc-timer-log-hours"><span>Hours to log</span>
+                    <input type="number" id="tc-timer-log-hours" class="form-input tc-input" min="0.1" step="0.1" inputmode="decimal">
+                  </label>
+                  <label class="tc-field" for="tc-timer-log-notes"><span>What was done <span class="tc-optional-hint">(optional)</span></span>
+                    <textarea id="tc-timer-log-notes" class="form-input tc-input" rows="3" placeholder="e.g. Fixed booking calendar bug, reviewed proposal draft…"></textarea>
+                  </label>
+                </div>
+                <p class="tc-add-feedback form-hint" id="tc-timer-feedback" role="status"></p>
               </div>
-              <p class="tc-add-feedback form-hint" id="tc-timer-feedback" role="status"></p>
             </div>
-          </div>
-          <div class="tc-add-drawer-footer">
-            <button type="button" class="btn btn-secondary" id="tc-timer-drawer-cancel">Cancel</button>
-            <button type="button" class="btn btn-primary" id="tc-timer-start">
-              <ion-icon name="play-outline" aria-hidden="true"></ion-icon>
-              Start
-            </button>
-          </div>
-        </aside>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="tc-timer-drawer-cancel">Cancel</button>
+              <button type="button" class="btn btn-primary" id="tc-timer-start">
+                <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>
+                Log to today
+              </button>
+            </div>
+          </section>
+        </div>
 
         <!-- Time Capacity: add hours drawer (desktop) / bottom sheet (mobile) -->
         <div class="tc-add-drawer-overlay" id="tc-add-drawer-overlay" hidden aria-hidden="true"></div>
@@ -6419,15 +6482,15 @@
             </div>
             <div class="phase-box">
               <p class="question">2. App Store Ownership</p>
-              <p class="text-sm opacity-80">A: Agency model (Ruben owns/publishes).<br>B: Client owns (pays Apple $99/yr + Google $25/yr fees).</p>
+              <p class="text-sm opacity-80">CodeWithRuben owns the store accounts and absorbs Apple/Google fees. App is named for the client. Listings transfer on buyout. Client owns Stripe.</p>
             </div>
             <div class="phase-box">
               <p class="question">3. Payment Structure</p>
               <p class="text-sm opacity-80">Stripe or PayPal business account. Preferred: send textable Checkout link for 50% deposit.</p>
             </div>
             <div class="phase-box">
-              <p class="question">4. Emergency SLA ($49/mo)</p>
-              <p class="text-sm opacity-80">Standard: 48-hour response. Instant/weekend fixes only with Premium SLA add-on.</p>
+              <p class="question">4. Maintenance reply clocks</p>
+              <p class="text-sm opacity-80">Essential: 5 business days (weekdays 10am–6pm Pacific). Standard: 3 business days; down-reply 4 hours including evenings/weekends. Priority: 1 business day; down-reply 2 hours, ahead of Standard.</p>
             </div>
             <div class="phase-box">
               <p class="question">5. Content Collection</p>
@@ -6511,18 +6574,24 @@
           <div class="template-script-accordion" id="template-script-accordion">
             <details class="template-script-accordion-item">
               <summary class="template-script-accordion-summary">
-                <span class="tag">ProcCleaning (reference demo)</span>
+                <span class="tag">Realtor &amp; Insurance Platform</span>
                 <span class="template-script-accordion-titles">
-                  <span class="template-script-accordion-title accent">Cold DM / email — cleaning vertical</span>
+                  <span class="template-script-accordion-title accent">Text → email → call — real estate &amp; insurance offices</span>
                 </span>
                 <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
               </summary>
               <div class="template-script-accordion-panel">
                 <div class="template-script-sub-accordion">
                   <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Text (first touch)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">[Name] — this is Ruben, I build client portals for real estate & insurance offices. Listings or plans, quotes, signed docs, and messages — all in one branded app instead of split across email and DocuSign. Worth a 2-minute look? [demo link]</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
                     <summary class="template-script-sub-summary">Subject line</summary>
                     <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — crews + spotty signal?</pre>
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — one place for listings, quotes & client docs?</pre>
                     </div>
                   </details>
                   <details class="template-script-sub-item">
@@ -6530,129 +6599,21 @@
                     <div class="template-script-sub-body">
                       <pre class="template-script-pre template-script-pre--sub">Hi [Name],
 
-Most cleaning ops I talk to in [City] juggle scheduling, job photos, and customer updates across texts and calls—and the app flakes when crews are actually on site.
+Most real estate and insurance offices I talk to in [City] are juggling listings or plans, quote requests, signed documents, and client messages across email, DocuSign, and text — easy for something to slip through.
 
-I white-label a mobile flow built for that (offline-friendly where it matters). Reference build (cleaning): https://procleaning.expo.app
+I build a branded platform that puts all of it in one place: property or plan browsing, a guided quote flow, a client portal for documents and payments, and direct messaging — plus an admin dashboard for leads and policies.
 
-If it’s relevant for [Company], I’ll send a tight one-pager and block 15 minutes—fit call, not a pitch deck—to see if your workflow maps.
+If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how your office runs today.
 
 — Ruben</pre>
                     </div>
                   </details>
-                </div>
-              </div>
-            </details>
-            <details class="template-script-accordion-item">
-              <summary class="template-script-accordion-summary">
-                <span class="tag">Field Trades Template</span>
-                <span class="template-script-accordion-titles">
-                  <span class="template-script-accordion-title accent">Cold call script (service businesses)</span>
-                </span>
-                <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
-              </summary>
-              <div class="template-script-accordion-panel">
-                <div class="template-script-sub-accordion">
                   <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Mindset (before you dial)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">You’re selling speed and clarity: a branded booking + job flow—not a science project. They don’t need to care how it’s built.
-Win on the call: a 15-minute demo, or a one-pager + short Loom—not a closed deal.</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Opening (permission + relevance)</summary>
+                    <summary class="template-script-sub-summary">Call opener (if they pick up)</summary>
                     <div class="template-script-sub-body">
                       <pre class="template-script-pre template-script-pre--sub">You:
-"Hi, is this [Name]? [Your name] — I’m reaching out to a few [city] [roof / lawn / plumbing / HVAC] shops. We set up a ready-made customer booking flow—schedule, deposit, reminders—so small crews spend less time on phone tag.
-Have I caught you for 20 seconds, or is [later today / tomorrow morning] better?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Bad time vs. good time</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Bad time → book a specific callback. Good time → continue.</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Bridge (one breath)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"Totally fine if it’s not a fit—I just want to see if how you take jobs today is anything like what we built for."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">One-line value (pick by trade)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Roof / exterior: "Homeowners pick package, property size, and a time slot—you see everything in one queue instead of scattered DMs."
-Lawn: "Recurring routes and seasonal add-ons without re-explaining pricing in texts every week."
-Plumber / HVAC: "Emergency vs. standard intake, clearer dispatch, card on file so you’re not chasing checks after the job."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Template positioning</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"It’s not a ground-up custom build—it’s a template you brand, so you’re live in days, not months, without agency-style pricing."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Qualification (2–3 questions)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"Where do most new jobs come in today—phone, Google, text, or a form?"
-"When you’re on a job, what slips first—returning calls, quoting, or collecting deposits?"
-"If fewer no-shows and money up front moved the needle, would 15 minutes on a screen share be reasonable?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Transition to demo</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">You:
-"Rather than describe it—I’ll show you what the homeowner sees and what you see on your side: appointments, jobs, estimates or invoicing if you use them.
-Are you open [Option A: e.g. tomorrow 10] or [Option B: e.g. Thursday 2] for a quick share?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">If they hedge</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"No worries—I can record a 3-minute walkthrough for [their trade] and drop you a link. Best email or cell?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Objections</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">They say                         You say
-"We’re too small."              "That’s the sweet spot—one crew still pays for missed calls and no-shows."
-"We have a website."            "Perfect—this sits under that: booking, payments, job flow. A lot of folks link out from the site or replace the contact form."
-"Sounds expensive."             "Fair—on the demo I’ll show exactly what’s included so you can compare to hiring it out or building it yourself."
-"I don’t have time."            "That’s why it’s 15 minutes—you’ll know fast if it’s wrong, and we stop."
-"Just send info."               "Will do—one page plus a short video. Best email? And mostly residential or commercial so I don’t waste your time?"</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Close</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">You:
-"Great—I’ll [send the calendar link / hold Thursday 2]. You’ll walk through customer booking into your dashboard end to end. If it’s not a match, no hard feelings.
-Thanks [Name]—talk [day/time]."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Voicemail (~25 seconds)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"Hi [Name], [Your name]. We help [trade] owners run bookings and deposits through a branded app—less phone tag, fewer no-shows. It’s a fast-launch template, not a custom dev project. I’ll text a one-liner and link from this number—thanks."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Text (after no pickup)</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">"[Name] — [Your name], booking flow for [trade] crews. Most of your jobs still phone/text? We bundle book + deposit + reminders in one place. 15-min demo if useful: [link or two time options]."</pre>
-                    </div>
-                  </details>
-                  <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Conversion habits</summary>
-                    <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">• Lead with trade + city in the first sentence.
-• Say "booking, deposits, reminders" before "app" or "template."
-• One clear ask: demo, video, or email—never all three at once.
-• After a demo: 3-bullet recap—what they saw, what pain it removes, "starts at" or range if you’re comfortable.</pre>
+"Hi, is this [Name]? This is Ruben — I build client portals for real estate and insurance offices in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"
+[continue] "It’s one branded app for listings or plans, quotes, signed docs, and client messages — instead of split across email, DocuSign, and text. Worth a 15-minute look at how it’d fit [Company]?"</pre>
                     </div>
                   </details>
                 </div>
@@ -6660,18 +6621,24 @@ Thanks [Name]—talk [day/time]."</pre>
             </details>
             <details class="template-script-accordion-item">
               <summary class="template-script-accordion-summary">
-                <span class="tag">HOA App Template</span>
+                <span class="tag">Lawnscaper Platform</span>
                 <span class="template-script-accordion-titles">
-                  <span class="template-script-accordion-title accent">Board / manager outreach</span>
+                  <span class="template-script-accordion-title accent">Text → email → call — lawn &amp; landscape crews</span>
                 </span>
                 <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
               </summary>
               <div class="template-script-accordion-panel">
                 <div class="template-script-sub-accordion">
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Text (first touch)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">[Name] — this is Ruben, I build scheduling apps for lawn & landscape crews. Recurring routes, seasonal add-ons, and deposits — no more re-quoting pricing in a text thread every week. Worth a 2-minute look? [demo link]</pre>
+                    </div>
+                  </details>
                   <details class="template-script-sub-item">
                     <summary class="template-script-sub-summary">Subject line</summary>
                     <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Subject: Fewer email chains for [Association name]?</pre>
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — routes & pricing off of text threads?</pre>
                     </div>
                   </details>
                   <details class="template-script-sub-item">
@@ -6679,13 +6646,21 @@ Thanks [Name]—talk [day/time]."</pre>
                     <div class="template-script-sub-body">
                       <pre class="template-script-pre template-script-pre--sub">Hi [Name],
 
-Boards and managers usually want announcements, documents, and resident questions in one place—without another 40-reply thread.
+Most lawn and landscape crews I talk to in [City] are running recurring routes and seasonal add-ons over text — re-explaining pricing every week and chasing payment after the job is done.
 
-I deliver a branded HOA community app template: push notifications, shared docs, and resident messaging in a single app experience. Product walkthrough: https://hoa-community-app--a7f6nhxo8x.expo.app
+I build a branded scheduling app for lawn care crews: customers book recurring service, add seasonal work, and pay through the app — you see every route and job in one dashboard instead of a group chat.
 
-If [Association] is comparing options this season, I can send scope + pricing (base template vs. premium customizations) and do a short call on your timeline—no pressure.
+If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it matches how your crew runs routes today.
 
 — Ruben</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Call opener (if they pick up)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Hi, is this [Name]? This is Ruben — I build scheduling apps for lawn and landscape crews in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"
+[continue] "Customers book recurring routes and seasonal add-ons right from their phone, and it’s all in one dashboard for you — no more re-quoting in texts. Worth a 15-minute look?"</pre>
                     </div>
                   </details>
                 </div>
@@ -6693,36 +6668,93 @@ If [Association] is comparing options this season, I can send scope + pricing (b
             </details>
             <details class="template-script-accordion-item">
               <summary class="template-script-accordion-summary">
-                <span class="tag">Follow-up (any vertical)</span>
+                <span class="tag">Trade Services Platform (reference demo)</span>
                 <span class="template-script-accordion-titles">
-                  <span class="template-script-accordion-title accent">Bump after no reply</span>
+                  <span class="template-script-accordion-title accent">Text → email → call — roofing, plumbing, HVAC, electrical</span>
                 </span>
                 <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
               </summary>
               <div class="template-script-accordion-panel">
                 <div class="template-script-sub-accordion">
                   <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Opening + context</summary>
+                    <summary class="template-script-sub-summary">Text (first touch)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">[Name] — this is Ruben, I build booking apps for [trade] crews in [City]. Customers pick a service and time slot and pay a deposit up front, so you’re not chasing calls. Worth a 2-minute look? https://tradeservice.expo.app</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Subject line</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — fewer calls, more booked jobs?</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Email body</summary>
                     <div class="template-script-sub-body">
                       <pre class="template-script-pre template-script-pre--sub">Hi [Name],
 
-Quick bump on the branded app we discussed for [Company].
+Most [trade] crews I talk to in [City] are still running scheduling through phone tag and texts — and it’s easy for a job to slip through the cracks between the quote and the deposit.
 
-I can re-label the demo for [trade] in [City] before we meet so you’re not judging a generic example.</pre>
+I build a branded booking app for trade crews: customers pick a service, a time slot, and pay a deposit before you show up — you see every request and job status in one dashboard. Live reference build: https://tradeservice.expo.app
+
+If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.
+
+— Ruben</pre>
                     </div>
                   </details>
                   <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Link + next step</summary>
+                    <summary class="template-script-sub-summary">Call opener (if they pick up)</summary>
                     <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">Same link: [paste demo URL]
-
-If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute look still makes sense, send two times that work.</pre>
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Hi, is this [Name]? This is Ruben — I’m reaching out to a few [City] [roof / plumbing / HVAC / electrical] shops. We set up a ready-made customer booking flow — schedule, deposit, reminders — so small crews spend less time on phone tag. Have I caught you for 20 seconds, or is [later today / tomorrow morning] better?"
+[continue] "Rather than describe it — I’ll show you what the homeowner sees and what you see on your side. Are you open [Option A] or [Option B] for a quick share?"</pre>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            </details>
+            <details class="template-script-accordion-item">
+              <summary class="template-script-accordion-summary">
+                <span class="tag">Salon / Barber / Tattoo Platform (reference demo)</span>
+                <span class="template-script-accordion-titles">
+                  <span class="template-script-accordion-title accent">Text → email → call — appearance-based businesses</span>
+                </span>
+                <span class="template-script-accordion-chevron" aria-hidden="true"><ion-icon name="chevron-down-outline"></ion-icon></span>
+              </summary>
+              <div class="template-script-accordion-panel">
+                <div class="template-script-sub-accordion">
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Text (first touch)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">[Name] — this is Ruben, I build booking apps for salons, barbershops & tattoo studios. Clients pick a stylist or artist, book a slot, and pay a deposit — no more DMs at 11pm. Worth a 2-minute look? https://rosasalon.expo.app</pre>
                     </div>
                   </details>
                   <details class="template-script-sub-item">
-                    <summary class="template-script-sub-summary">Sign-off</summary>
+                    <summary class="template-script-sub-summary">Subject line</summary>
                     <div class="template-script-sub-body">
-                      <pre class="template-script-pre template-script-pre--sub">— Ruben</pre>
+                      <pre class="template-script-pre template-script-pre--sub">Subject: [Company] — still booking through IG DMs?</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Email body</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">Hi [Name],
+
+Most salons, barbershops, and tattoo studios I talk to in [City] are still booking through Instagram DMs and texts — easy to lose track of who’s confirmed and who’s a no-show.
+
+I build a branded booking app for appearance-based businesses: clients pick a stylist or artist, a service, and a time slot, and pay a deposit up front — you see your whole day in one dashboard. Reference build: https://rosasalon.expo.app
+
+If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it fits your shop.
+
+— Ruben</pre>
+                    </div>
+                  </details>
+                  <details class="template-script-sub-item">
+                    <summary class="template-script-sub-summary">Call opener (if they pick up)</summary>
+                    <div class="template-script-sub-body">
+                      <pre class="template-script-pre template-script-pre--sub">You:
+"Hi, is this [Name]? This is Ruben — I build booking apps for salons, barbershops, and tattoo studios in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"
+[continue] "Clients book a stylist or artist and a time slot right from their phone, deposit included — instead of DMs and no-shows. Worth a 15-minute look?"</pre>
                     </div>
                   </details>
                 </div>
@@ -7136,15 +7168,15 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
         <input type="hidden" id="maint-edit-id">
         <div class="form-group"><label for="maint-client-name">Client name</label><input type="text" id="maint-client-name"></div>
         <div class="form-row">
-          <div class="form-group form-group-half"><label for="maint-hours-included">Hours included</label><input type="number" id="maint-hours-included" min="0" value="4"></div>
+          <div class="form-group form-group-half"><label for="maint-hours-included">Hours included</label><input type="number" id="maint-hours-included" min="0" value="6"></div>
           <div class="form-group form-group-half"><label for="maint-hours-used">Hours used</label><input type="number" id="maint-hours-used" min="0" value="0"></div>
         </div>
         <div class="form-row">
           <div class="form-group form-group-half"><label for="maint-renewal">Renewal date</label><input type="date" id="maint-renewal"></div>
           <div class="form-group form-group-half">
             <label for="maint-sla">Service level agreement (hours)</label>
-            <input type="number" id="maint-sla" min="1" value="48" placeholder="Service level agreement" title="Service level agreement — promised response time in hours (e.g. 48 = within 48 hours)">
-            <span class="form-hint">Service level agreement — hours until you respond (Standard 72, Priority 24).</span>
+            <input type="number" id="maint-sla" min="1" value="72" placeholder="Service level agreement" title="Service level agreement — promised response time in hours (Essential 120 = 5 days, Standard 72 = 3 days, Priority 24 = 1 day)">
+            <span class="form-hint">Hours until you respond (Essential 120, Standard 72, Priority 24). Down-replies on Standard/Priority are 4h / 2h.</span>
           </div>
         </div>
         <div class="form-group"><label for="maint-notes">Notes</label><textarea id="maint-notes" class="has-scrollbar" rows="3"></textarea></div>
@@ -7276,6 +7308,7 @@ If now’s a bad quarter, reply "later" and I’ll check back. If a 15-minute lo
       </div>
     </div>
   </div>
+
 
   <script src="/assets/js/portfolio-built-in-data.js?v=poster-webp-20260729"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>

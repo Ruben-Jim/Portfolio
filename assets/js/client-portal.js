@@ -59,11 +59,17 @@
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$44/mo equivalent · billed once per year',
       slaLabel: '5 business days',
+      hoursIncluded: 2,
+      slaHours: 120,
       features: [
-        'Response within 5 business days',
-        '1 maintenance window per month',
-        'Hosting, updates, monitoring, minor fixes',
-        'Web + iOS + Android support'
+        '2 hours per month · 1 work session',
+        'We reply within 5 business days',
+        'We look at bugs and broken flows (after Standard and Priority)',
+        'If the site or app goes down, you’ll hear from us within 1 business day (weekdays)',
+        'App updates to Apple and Google 4 times a year, during your work session',
+        'Content and copy updates during your work session',
+        'New features and add-ons are quoted separately',
+        'Hosting, updates, monitoring · website, iPhone, and Android'
       ]
     },
     {
@@ -77,15 +83,22 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
-      slaLabel: '72 business hours',
+      slaLabel: '3 business days',
+      hoursIncluded: 6,
+      slaHours: 72,
       recommended: true,
       features: [
-        'Response within 72 business hours',
-        '1 maintenance window per month',
-        'Hosting, updates, monitoring, minor fixes',
-        'Live-ops triage for bugs & broken flows',
-        'Small content & copy tweaks in your window',
-        'Web + iOS + Android support'
+        '6 hours per month · 2 work sessions',
+        'We reply within 3 business days',
+        'We look at bugs and broken flows — ahead of Essential',
+        'If the site or app goes down, you’ll hear from us within 4 hours',
+        'Evenings and weekends included if the site or app goes down',
+        'App updates to Apple and Google every month, both stores',
+        'Monthly content updates (photos, prices, hours, copy) — separate from work sessions',
+        'One small new feature each month (uses your hours)',
+        'One smaller add-on each quarter (a new tool for one job)',
+        'One larger add-on each year (a whole new part of the product)',
+        'Hosting, updates, monitoring · website, iPhone, and Android'
       ]
     },
     {
@@ -99,12 +112,22 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$165/mo equivalent · billed once per year',
-      slaLabel: '24 business hours',
+      slaLabel: '1 business day',
+      hoursIncluded: 10,
+      slaHours: 24,
       features: [
-        'Response within 24 business hours',
-        '2 maintenance windows per month',
-        'Hosting, updates, monitoring, minor fixes',
-        'Web + iOS + Android support'
+        '10 hours per month · 3 work sessions',
+        'We reply within 1 business day',
+        'We look at bugs and broken flows — ahead of Standard',
+        'If the site or app goes down, you’ll hear from us within 2 hours',
+        'Evenings and weekends included if the site or app goes down — ahead of Standard',
+        'App updates to Apple and Google as often as you need, both stores',
+        'Weekly content updates (photos, prices, hours, copy) — separate from work sessions',
+        'Small new features in your hours, as they fit',
+        'One smaller add-on each month (a new tool for one job) — ahead of Standard',
+        'One larger add-on every 6 months (a whole new part of the product)',
+        'Unused hours carry over 30 days',
+        'Hosting, updates, monitoring · website, iPhone, and Android'
       ]
     }
   ];
@@ -136,8 +159,22 @@
     return 'none';
   }
 
+  function planDefaultsForTier(tier) {
+    var t = String(tier || 'standard').toLowerCase();
+    for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
+      if (MAINTENANCE_PLANS[i].id === t) {
+        return {
+          hoursIncluded: MAINTENANCE_PLANS[i].hoursIncluded,
+          slaHours: MAINTENANCE_PLANS[i].slaHours
+        };
+      }
+    }
+    return { hoursIncluded: 6, slaHours: 72 };
+  }
+
   function normalizeMaintenanceRecord(id, row) {
     row = row || {};
+    var defs = planDefaultsForTier(row.planTier);
     var m = {
       id: id,
       clientName: String(row.clientName || '').slice(0, 120),
@@ -146,10 +183,10 @@
       planStatus: String(row.planStatus || '').toLowerCase().slice(0, 20),
       billingPreference: String(row.billingPreference || 'monthly').slice(0, 20),
       planRequestedAt: row.planRequestedAt || null,
-      hoursIncluded: Number(row.hoursIncluded) || 4,
+      hoursIncluded: Number(row.hoursIncluded) || defs.hoursIncluded,
       hoursUsed: Number(row.hoursUsed) || 0,
       renewalDate: String(row.renewalDate || ''),
-      slaHours: Number(row.slaHours) || 48
+      slaHours: Number(row.slaHours) || defs.slaHours
     };
     m.effectivePlanStatus = inferMaintenancePlanStatus(m);
     return m;
@@ -241,6 +278,7 @@
         return (
           '<label class="client-portal-plan-card' +
           (plan.recommended ? ' is-recommended' : '') +
+          (plan.id === 'priority' ? ' client-portal-plan-card--wide' : '') +
           '">' +
           '<input type="radio" name="portal-plan-tier" value="' +
           esc(plan.id) +
@@ -297,12 +335,15 @@
         ' hours used' +
         (maint.renewalDate ? ' · Renews ' + esc(formatDocDate(maint.renewalDate)) : '') +
         '</p>' +
-        '<p class="client-portal-maint-meta">Response target: within ' +
-        esc(String(maint.slaHours)) +
-        (String(maint.planTier || '').toLowerCase() === 'essential'
-          ? ' business days'
-          : ' business hours') +
-        '. Major features and scope changes are quoted separately.</p></div>'
+        '<p class="client-portal-maint-meta">We reply within ' +
+        esc((function () {
+          var t = String(maint.planTier || 'standard').toLowerCase();
+          for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
+            if (MAINTENANCE_PLANS[i].id === t) return MAINTENANCE_PLANS[i].slaLabel;
+          }
+          return String(maint.slaHours) + ' hours';
+        })()) +
+        '. Repair uses leftover hours. Custom work beyond the add-on cadence is quoted separately.</p></div>'
       );
     }
 
@@ -324,8 +365,7 @@
     return (
       '<div class="client-portal-maint-block" id="portal-maint-picker">' +
       '<h3 class="client-portal-support-subhead">Choose a maintenance plan</h3>' +
-      '<p class="client-portal-maint-lead">After your first included year, ongoing support keeps hosting, updates, and minor fixes on track.</p>' +
-      renderMaintenancePlanCards('standard') +
+      '<p class="client-portal-maint-lead">After your first included month, ongoing support keeps hosting, updates, and minor fixes on track.</p>' +
       '<fieldset class="client-portal-billing-pref">' +
       '<legend>Billing preference</legend>' +
       '<div class="client-portal-billing-toggle">' +
@@ -333,6 +373,7 @@
       '<label><input type="radio" name="portal-billing-pref" value="annual"><span>Annual <em class="client-portal-billing-save">Save 45%</em></span></label>' +
       '</div>' +
       '</fieldset>' +
+      renderMaintenancePlanCards('standard') +
       '<button type="button" class="btn btn-primary" id="portal-request-plan-btn">Request this plan</button>' +
       '<p class="client-portal-maint-feedback" id="portal-maint-feedback" role="status"></p></div>'
     );
@@ -394,6 +435,7 @@
       feedback.textContent = 'Submitting…';
       feedback.classList.remove('is-error');
     }
+    var defs = planDefaultsForTier(tier);
     var payload = {
       clientName: ctx.clientName || '',
       projectId: ctx.projectId || '',
@@ -401,10 +443,10 @@
       billingPreference: billingPref,
       planStatus: 'pending',
       planRequestedAt: window.rtdbServerTimestamp(),
-      hoursIncluded: 4,
+      hoursIncluded: defs.hoursIncluded,
       hoursUsed: 0,
       renewalDate: '',
-      slaHours: tier === 'priority' ? 24 : 72,
+      slaHours: defs.slaHours,
       notes: '',
       tickets: [],
       updatedAt: window.rtdbServerTimestamp()

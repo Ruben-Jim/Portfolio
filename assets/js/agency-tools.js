@@ -637,12 +637,12 @@
   function maintenanceTierDefaults(tier) {
     var t = String(tier || 'standard').toLowerCase();
     if (t === 'priority') {
-      return { planTier: 'priority', slaHours: 24, hoursIncluded: 8 };
+      return { planTier: 'priority', slaHours: 24, hoursIncluded: 10 };
     }
     if (t === 'essential') {
-      return { planTier: 'essential', slaHours: 5, hoursIncluded: 2 };
+      return { planTier: 'essential', slaHours: 120, hoursIncluded: 2 };
     }
-    return { planTier: 'standard', slaHours: 72, hoursIncluded: 4 };
+    return { planTier: 'standard', slaHours: 72, hoursIncluded: 6 };
   }
 
   function normalizeMaintenance(id, row) {
@@ -656,10 +656,10 @@
       planStatus: String(row.planStatus || '').toLowerCase().slice(0, 20),
       billingPreference: String(row.billingPreference || 'monthly').slice(0, 20),
       planRequestedAt: row.planRequestedAt || null,
-      hoursIncluded: Number(row.hoursIncluded) || 4,
+      hoursIncluded: Number(row.hoursIncluded) || 6,
       hoursUsed: Number(row.hoursUsed) || 0,
       renewalDate: String(row.renewalDate || ''),
-      slaHours: Number(row.slaHours) || 48,
+      slaHours: Number(row.slaHours) || 72,
       notes: String(row.notes || '').slice(0, 2000),
       tickets: Array.isArray(row.tickets) ? row.tickets : [],
       updatedAt: row.updatedAt || null
@@ -1898,10 +1898,10 @@
         planTier: 'standard',
         planStatus: 'active',
         billingPreference: 'monthly',
-        hoursIncluded: 4,
+        hoursIncluded: 6,
         hoursUsed: 0,
         renewalDate: '',
-        slaHours: 48,
+        slaHours: 72,
         notes: ''
       };
     }
@@ -1921,10 +1921,10 @@
     var existing = id ? agencyMaintenance.find(function (x) { return x.id === id; }) : null;
     var payload = {
       clientName: document.getElementById('maint-client-name').value.trim(),
-      hoursIncluded: Number(document.getElementById('maint-hours-included').value) || 4,
+      hoursIncluded: Number(document.getElementById('maint-hours-included').value) || 6,
       hoursUsed: Number(document.getElementById('maint-hours-used').value) || 0,
       renewalDate: document.getElementById('maint-renewal').value,
-      slaHours: Number(document.getElementById('maint-sla').value) || 48,
+      slaHours: Number(document.getElementById('maint-sla').value) || 72,
       notes: document.getElementById('maint-notes').value.trim(),
       updatedAt: ts()
     };
@@ -4877,10 +4877,10 @@
       clientName: hub ? hub.clientName : '',
       leadId: hub ? hub.leadId : '',
       projectId: clientProjectsSelectedId,
-      hoursIncluded: Number((document.getElementById('cp-maint-hours-included') || {}).value) || 4,
+      hoursIncluded: Number((document.getElementById('cp-maint-hours-included') || {}).value) || 6,
       hoursUsed: Number((document.getElementById('cp-maint-hours-used') || {}).value) || 0,
       renewalDate: (document.getElementById('cp-maint-renewal') || {}).value || '',
-      slaHours: Number((document.getElementById('cp-maint-sla') || {}).value) || 48,
+      slaHours: Number((document.getElementById('cp-maint-sla') || {}).value) || 72,
       notes: (document.getElementById('cp-maint-notes') || {}).value.trim(),
       updatedAt: ts()
     };
@@ -4943,10 +4943,10 @@
       planTier: 'standard',
       planStatus: 'active',
       billingPreference: 'monthly',
-      hoursIncluded: 4,
+      hoursIncluded: 6,
       hoursUsed: 0,
       renewalDate: '',
-      slaHours: 48,
+      slaHours: 72,
       notes: '',
       tickets: [],
       createdAt: ts(),
