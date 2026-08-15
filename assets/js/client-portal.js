@@ -62,10 +62,9 @@
       hoursIncluded: 2,
       slaHours: 120,
       features: [
-        'Hosting, updates, monitoring',
-        'Reply in 5 business days · downtime in 1 business day (weekdays)',
+        'If you’re down, we reply within 1 business day (weekdays)',
         'Bug fixes after Standard and Priority',
-        'Store updates 4×/year in your session',
+        'Store updates 4×/year',
         'New features quoted separately'
       ]
     },
@@ -85,11 +84,10 @@
       slaHours: 72,
       recommended: true,
       features: [
-        'Hosting, updates, monitoring',
-        'Reply in 3 business days · downtime in 4 hours (nights/weekends too)',
+        'If you’re down, we reply within 4 hours (nights and weekends too)',
         'Monthly store + content updates',
-        '1 small feature/month (uses your hours)',
-        '1 smaller add-on/quarter · 1 larger add-on/year'
+        'One small upgrade each month',
+        'One extra tool each quarter · one bigger addition each year'
       ]
     },
     {
@@ -107,10 +105,9 @@
       hoursIncluded: 10,
       slaHours: 24,
       features: [
-        'Hosting, updates, monitoring · first in line',
-        'Reply in 1 business day · downtime in 2 hours (nights/weekends too)',
+        'First in line · if you’re down, we reply within 2 hours (nights and weekends too)',
         'Store updates as needed · weekly content',
-        'Smaller add-on monthly · larger add-on every 6 months',
+        'One extra tool each month · one bigger addition every 6 months',
         'Unused hours carry 30 days'
       ]
     }
