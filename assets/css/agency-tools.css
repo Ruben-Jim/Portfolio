@@ -3551,13 +3551,20 @@ body:not(.admin-page-active) > .tc-timer-chip {
   display: none !important;
 }
 
-/* Push timer chip behind any open drawer or modal */
+/* Push timer chip behind any open drawer or modal.
+   The body-class list only covers drawers that happen to set one. The :has()
+   line below is the general case: .agency-modal, .add-blog-modal and
+   .business-doc-modal all sit at z-index 10050, under the chip's 10060, so
+   every one of them was being overlapped by the corner control. */
 body.admin-email-drawer-open > .tc-timer-chip,
 body.lead-drawer-open > .tc-timer-chip,
 body.cp-client-drawer-open > .tc-timer-chip,
 body.admin-contact-detail-open > .tc-timer-chip,
 body.admin-email-reply-modal-open > .tc-timer-chip,
-body.tc-timer-drawer-open > .tc-timer-chip {
+body.tc-timer-drawer-open > .tc-timer-chip,
+body:has(.agency-modal.active) > .tc-timer-chip,
+body:has(.add-blog-modal.active) > .tc-timer-chip,
+body:has(.business-doc-modal.active) > .tc-timer-chip {
   z-index: 10035 !important;
   pointer-events: none !important;
 }
@@ -3622,6 +3629,12 @@ body.tc-timer-drawer-open > .tc-timer-chip {
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.02em;
+  }
+
+  /* Guard the attribute explicitly — this file sets display on most chip parts,
+     and an author display rule silently beats the UA's [hidden] { display:none }. */
+  .tc-timer-chip-time[hidden] {
+    display: none;
   }
 
   .tc-timer-chip-time {
@@ -3721,16 +3734,31 @@ body.tc-timer-drawer-open > .tc-timer-chip {
 
 .tc-timer-chip-segment {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   font-size: 12px;
-  padding: 6px 8px;
+  padding: 7px 9px;
   border-radius: 8px;
+  border-left: 2px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* Same omission as the review list — no colour here meant the name inherited a
+   dark value and rendered near-black on the panel. */
+.tc-timer-chip-segment-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--white-2, #fafafa);
+}
+
 .tc-timer-chip-segment-time {
+  flex: 0 0 auto;
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
   color: var(--tc-chip-accent);
 }
 
@@ -3743,6 +3771,7 @@ body.tc-timer-drawer-open > .tc-timer-chip {
 .tc-timer-chip-panel-actions .btn[hidden],
 .tc-timer-chip-panel-actions[hidden],
 .tc-timer-chip-panel-select[hidden],
+.tc-timer-chip-segments[hidden],
 .tc-timer-chip-review[hidden] {
   display: none !important;
 }
@@ -3765,32 +3794,61 @@ body.tc-timer-drawer-open > .tc-timer-chip {
 }
 
 .tc-timer-chip-review-item {
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 2px solid var(--tc-chip-accent);
   background: rgba(255, 255, 255, 0.03);
 }
 
+/* Skipped segments are marked with a muted rail and dimmer meta rather than a
+   blanket opacity — dimming the whole row made the client name unreadable. */
 .tc-timer-chip-review-item.is-skip {
-  opacity: 0.72;
+  border-left-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .tc-timer-chip-review-main {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
 }
 
+/* Was inheriting its colour from the panel and rendering near-black on the dark
+   sheet. Needs an explicit value. */
+.tc-timer-chip-review-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--white-2, #fafafa);
+}
+
+.tc-timer-chip-review-item.is-skip .tc-timer-chip-review-name {
+  color: var(--light-gray, #d6d6d6);
+  font-weight: 500;
+}
+
 .tc-timer-chip-review-time {
+  flex: 0 0 auto;
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
   color: var(--tc-chip-accent);
 }
 
+.tc-timer-chip-review-item.is-skip .tc-timer-chip-review-time {
+  color: var(--light-gray-70, rgba(214, 214, 214, 0.7));
+  font-weight: 500;
+}
+
 .tc-timer-chip-review-meta {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
   font-size: 11px;
-  color: var(--light-gray, #d6d6d6);
+  line-height: 1.4;
+  color: var(--light-gray-70, rgba(214, 214, 214, 0.7));
 }
 
 .tc-timer-chip-review-empty {

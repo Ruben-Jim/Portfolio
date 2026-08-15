@@ -1141,26 +1141,64 @@
   function buildContractOwnershipClauseHtml(mode) {
     if (String(mode || '').toLowerCase() === 'buyout') {
       return (
-        '<p>Upon receipt of final payment in full, all ownership of the source code, design assets, and related ' +
-        'intellectual property developed under this Agreement transfers to Client. No license or ownership ' +
-        'interest transfers before final payment clears.</p>'
+        '<p>This Agreement includes an Ownership Upgrade (Buyout). Upon receipt of final payment in full, CWR will ' +
+        'transfer to Client (or Client’s designated developer) the site, application, source code, design assets, ' +
+        'related intellectual property developed under this Agreement, store listings, and applicable accounts and ' +
+        'documentation. No license or ownership interest transfers before that payment clears and handoff is complete.</p>' +
+        '<p>After handoff is complete, CWR’s hosting, maintenance, and support obligations under this Agreement end. ' +
+        'CWR will no longer offer those services for the transferred product. Client (or Client’s developer) is solely ' +
+        'responsible for hosting, operating, maintaining, and supporting the product thereafter.</p>'
       );
     }
     return (
-      '<p>CWR retains ownership of the underlying source code, design system, and reusable components. Upon final ' +
-      'payment, Client receives a perpetual, non-exclusive license to use the delivered application for its ' +
-      'business. Full ownership transfer of source code and design assets is available separately via CWR’s IP ' +
-      'Buyout add-on. In all cases, no license or ownership interest transfers until final payment has cleared in full.</p>'
+      '<p>CWR retains ownership of the delivered website and application, including source code, design system, ' +
+      'reusable components, hosting, and store accounts (Apple App Store and Google Play, where applicable). ' +
+      'Client’s Stripe account remains Client’s.</p>' +
+      '<p>Upon final payment of the setup package in full, Client receives a non-exclusive, non-transferable license ' +
+      'to use the delivered product for Client’s business, solely as hosted and operated by CWR. This license is not ' +
+      'a sale. It does not include source code, store listings, account credentials, or any right to copy, self-host, ' +
+      'sublicense, or transfer the product.</p>' +
+      '<p>The license continues only while Client maintains an active care plan under Clause 7 (or during the 14-day ' +
+      'warranty window in Clause 9 if no care plan is attached). If the care plan lapses or this Agreement ends ' +
+      'without an Ownership Upgrade, the license ends and CWR may take the product offline.</p>' +
+      '<p>Full ownership &mdash; including source code, files, store listings, and accounts &mdash; is available ' +
+      'separately via CWR’s Ownership Upgrade (Buyout). Until a buyout is paid in full and handoff is complete, no ' +
+      'ownership interest transfers to Client.</p>'
     );
   }
 
   function buildMaintenanceLapseClauseHtml(doc) {
+    var isBuyout = String((doc && doc.ipTransferMode) || '').toLowerCase() === 'buyout';
+    if (isBuyout) {
+      var buyoutPlan = findMaintenancePlan(doc && doc.maintenancePlanId);
+      var untilHandoff = buyoutPlan
+        ? '<p>If a care plan is selected above (' +
+          escapeHtml(buyoutPlan.title) +
+          ' &mdash; ' +
+          escapeHtml(buyoutPlan.badge) +
+          '), it applies only until handoff is complete.</p>'
+        : '';
+      return (
+        '<p>This Agreement includes an Ownership Upgrade (Buyout). Until handoff is complete, CWR may host the ' +
+        'application as needed to finish delivery.</p>' +
+        untilHandoff +
+        '<p>Upon completed handoff of code, files, store listings, and accounts, CWR’s hosting, maintenance, and ' +
+        'support obligations end. CWR will not continue a care plan after handoff. Client (or Client’s developer) is ' +
+        'solely responsible for hosting, maintenance, and support thereafter.</p>'
+      );
+    }
     var plan = findMaintenancePlan(doc && doc.maintenancePlanId);
+    var noSource =
+      '<p>The license in Clause 5 is a right to use the product as hosted by CWR. It does not include source code, ' +
+      'self-hosting, or transfer of store accounts. If Client wants to own the product or move it off CWR hosting, ' +
+      'Client must purchase an Ownership Upgrade (Buyout). Without a completed buyout, Client has no right to source ' +
+      'code, a migration package, or a copy of the application for self-hosting.</p>';
     if (!plan) {
       return (
         '<p>No maintenance plan is attached to this Agreement. CWR’s warranty support under Clause 9 covers defects ' +
         'reported within 14 days of launch; beyond that window, CWR has no obligation to continue hosting, updating, ' +
-        'or supporting the delivered application unless Client purchases a maintenance plan separately.</p>'
+        'or supporting the delivered application unless Client purchases a care plan separately.</p>' +
+        noSource
       );
     }
     return (
@@ -1173,10 +1211,9 @@
       '<li><span class="bullet-li-text"><strong>Day 30:</strong> Hosting is suspended and the application is taken offline until payment is received in full, plus a reactivation fee equal to one month of the plan above.</span></li>' +
       '<li><span class="bullet-li-text"><strong>Day 60:</strong> If payment still has not been received, CWR may archive Client’s data, remove the application from CWR’s hosting, and close the account.</span></li>' +
       '</ul>' +
-      '<p>Because Client holds a license to the delivered application under Clause 5 independent of maintenance status, Client ' +
-      'may at any time &mdash; including during or after a lapse &mdash; request an export of the application’s source code and ' +
-      'data to self-host or migrate to another provider, subject to CWR’s standard export/migration fee. If Client has separately ' +
-      'purchased the IP Buyout under Clause 5, no export fee applies.</p>'
+      noSource +
+      '<p>Taking the application offline under this schedule does not entitle Client to source code or a copy of the ' +
+      'application.</p>'
     );
   }
 

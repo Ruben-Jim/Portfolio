@@ -6185,8 +6185,13 @@
       chip.hidden = false;
     }
     if (chipTime) {
-      chipTime.hidden = !(active || reviewing);
-      chipTime.textContent = formatTcDurationHm(elapsed);
+      // Only surface a duration once there is real time on the clock. Timer state
+      // is restored from storage and isTcTimerActive() counts 'paused', so a
+      // stale or paused-at-zero session left the chip reading "Timer 0h 0m"
+      // when nothing was actually running.
+      var showChipTime = (active || reviewing) && elapsed > 0;
+      chipTime.hidden = !showChipTime;
+      if (showChipTime) chipTime.textContent = formatTcDurationHm(elapsed);
     }
     if (chipLabel) {
       chipLabel.textContent = reviewing ? 'Review' : active ? 'Focus' : 'Timer';
@@ -6999,7 +7004,9 @@
       return;
     }
     quickStartTcTimer(target, resolved ? resolved.clientName : '');
-    setTcChipExpanded(true);
+    // Close on start — the running session is already visible on the chip button
+    // itself (Focus + elapsed), so holding the sheet open just covers the page.
+    setTcChipExpanded(false);
   }
 
   function formatTcDayTitle(dayKey) {

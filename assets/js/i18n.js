@@ -89,7 +89,7 @@
 
       /* ── Services & Pricing ─────────────────────────────── */
       'services.title':        'Services &amp; Pricing',
-      'services.intro':        'Housecall Pro, Jobber, GoDaddy, and tools like them rent you a template — monthly fees, their rules, and a ceiling you can\u2019t outgrow. We build your website and app around how you actually work, so you own booking, crews, payments, and admin in one place — not limited to what a national SaaS decided to ship. Every build includes 1 month of the maintenance plan you pick.',
+      'services.intro':        'Housecall Pro, Jobber, GoDaddy, and tools like them rent you a template — monthly fees, their rules, and no way to own it. We license a branded website and app built around how you actually work. You pay a setup package, then a monthly care plan for hosting, updates, and support. CodeWithRuben owns the product until you buy it out. Every package includes 1 month of the care plan you pick.',
       'services.agency_reveal': 'Larger company or studio? See Field Ops &amp; Studio \u2192',
 
       'services.platform_website': 'Website',
@@ -240,13 +240,13 @@
       'services.buyout_h3':     'Ownership Upgrade (Buyout)',
       'services.buyout_badge':  'Optional',
       'services.buyout_title':  'Ownership Upgrade (Buyout Option)',
-      'services.buyout_sub':    'Want to fully own what we build? This one-time upgrade transfers everything \u2014 all files, code, and accounts \u2014 directly to you or your team.',
-      'services.buyout_note':   'One-time fee \u00b7 Scope-based \u00b7 Separate from fixed tiers',
-      'services.buyout_f1':     'Full ownership of everything we built \u2014 yours to keep',
-      'services.buyout_f2':     'All files and code delivered to your team or developer',
-      'services.buyout_f3':     'Accounts, logins, and documentation handed over to you',
+      'services.buyout_sub':    'Ready to own it outright? This one-time buyout transfers the site, app, code, stores, and accounts to you. After handoff, CodeWithRuben no longer hosts, maintains, or supports the product — it\u2019s yours to run or hand to another developer.',
+      'services.buyout_note':   'One-time fee \u00b7 Scope-based \u00b7 Separate from setup packages and monthly care',
+      'services.buyout_f1':     'Full ownership — code, files, and store listings transfer to you',
+      'services.buyout_f2':     'Accounts, logins, and documentation handed to you or your developer',
+      'services.buyout_f3':     'CWR hosting, maintenance, and support stop at handoff',
       'services.buyout_cta':    'Discuss Ownership Transfer',
-      'services.note':          '<strong>Note:</strong> Final scope is confirmed after a discovery call; package pricing above includes the first month of the maintenance plan you pick. Code ownership remains with the studio until an Ownership Upgrade is completed.',
+      'services.note':          '<strong>Note:</strong> Packages are a license to use what we build, plus the monthly care plan you pick (first month included). CodeWithRuben owns the product until an Ownership Upgrade (buyout) is completed. After buyout, hosting, maintenance, and support from CWR end.',
 
       /* ── Hire Me form ───────────────────────────────────── */
       'hire.package_label':       'Package or service',
@@ -365,7 +365,7 @@
 
       /* ── Services & Pricing ─────────────────────────────── */
       'services.title':       'Servicios y Precios',
-      'services.intro':       'Housecall Pro, Jobber, GoDaddy y herramientas as\u00ed te rentan una plantilla \u2014 cuotas mensuales, sus reglas y un techo que no puedes superar. Armamos tu sitio y app alrededor de c\u00f3mo trabajas de verdad, para que reservas, equipos, pagos y administraci\u00f3n sean tuyos en un solo lugar \u2014 sin el l\u00edmite de lo que un SaaS nacional decidi\u00f3 incluir. Cada proyecto incluye 1 mes del plan de mantenimiento que elijas.',
+      'services.intro':       'Housecall Pro, Jobber, GoDaddy y herramientas as\u00ed te rentan una plantilla \u2014 cuotas mensuales, sus reglas y sin forma de ser due\u00f1o. Licenciamos un sitio y app con tu marca, armados alrededor de c\u00f3mo trabajas. Pagas un paquete de arranque y luego un plan mensual de cuidado (hospedaje, actualizaciones y soporte). CodeWithRuben es due\u00f1o del producto hasta que lo compres. Cada paquete incluye 1 mes del plan de cuidado que elijas.',
       'services.agency_reveal': '\u00bfEmpresa m\u00e1s grande o studio? Ver Operaciones de Campo y Studio \u2192',
 
       'services.platform_website': 'Sitio web',
@@ -516,13 +516,13 @@
       'services.buyout_h3':     'Mejora de Propiedad (Compra)',
       'services.buyout_badge':  'Opcional',
       'services.buyout_title':  'Mejora de Propiedad (Opci\u00f3n de Compra)',
-      'services.buyout_sub':    '\u00bfQuieres ser due\u00f1o total de lo que construimos? Esta mejora \u00fanica transfiere todo \u2014 archivos, c\u00f3digo y cuentas \u2014 directamente a ti o tu equipo.',
-      'services.buyout_note':   'Pago \u00fanico \u00b7 Basado en alcance \u00b7 Separado de los paquetes fijos',
-      'services.buyout_f1':     'Propiedad total de todo lo construido \u2014 para siempre tuyo',
-      'services.buyout_f2':     'Todos los archivos y c\u00f3digo entregados a tu equipo o desarrollador',
-      'services.buyout_f3':     'Cuentas, accesos y documentaci\u00f3n entregados a ti',
+      'services.buyout_sub':    '\u00bfListo para ser due\u00f1o total? Esta compra \u00fanica te transfiere el sitio, la app, el c\u00f3digo, las tiendas y las cuentas. Despu\u00e9s de la entrega, CodeWithRuben ya no hospeda, mantiene ni da soporte \u2014 lo corres t\u00fa o tu desarrollador.',
+      'services.buyout_note':   'Pago \u00fanico \u00b7 Basado en alcance \u00b7 Separado de los paquetes de arranque y el cuidado mensual',
+      'services.buyout_f1':     'Propiedad total \u2014 c\u00f3digo, archivos y fichas de tienda pasan a ti',
+      'services.buyout_f2':     'Cuentas, accesos y documentaci\u00f3n para ti o tu desarrollador',
+      'services.buyout_f3':     'El hospedaje, mantenimiento y soporte de CWR terminan en la entrega',
       'services.buyout_cta':    'Hablar sobre la Transferencia',
-      'services.note':          '<strong>Nota:</strong> El alcance final se confirma despu\u00e9s de una llamada de descubrimiento; el precio del paquete incluye el primer mes del plan de mantenimiento que elijas. La propiedad del c\u00f3digo permanece con el estudio hasta que se complete una Mejora de Propiedad.',
+      'services.note':          '<strong>Nota:</strong> Los paquetes son una licencia para usar lo que construimos, m\u00e1s el plan de cuidado mensual que elijas (primer mes incluido). CodeWithRuben es due\u00f1o del producto hasta que se complete una Mejora de Propiedad (compra). Despu\u00e9s de la compra, el hospedaje, mantenimiento y soporte de CWR terminan.',
 
       /* ── Hire Me form ───────────────────────────────────── */
       'hire.package_label':       'Paquete o servicio',

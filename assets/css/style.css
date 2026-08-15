@@ -2288,6 +2288,17 @@ article.home.has-hire-inquiry-banner .cwr-landing-nav-cta {
   display: block;
 }
 
+/* Google's badge PNG is 646x250 with 41px of transparent clear-space baked into
+   every side, so only 67.2% of its height is actual badge. At a shared 54px it
+   rendered ~36px tall next to Apple's edge-to-edge SVG. Scale it to 80px so the
+   visible box lands at ~54px, then pull the transparent margin back in
+   (41/250 * 80 = 13px) so spacing and row height stay honest.
+   Matched on src rather than alt — alt text is translated by i18n. */
+.cwr-landing-stores-badges img[src*="play.google.com"] {
+  height: 80px;
+  margin: -13px;
+}
+
 .cwr-landing-demo-grid {
   display: grid;
   gap: clamp(28px, 4vw, 48px);

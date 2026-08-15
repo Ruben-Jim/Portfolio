@@ -167,9 +167,11 @@ After the included first month (whichever plan they pick):
 |--|--|
 | Offer | Ownership Upgrade (Buyout) |
 | Price range | **$8,000 – $15,000** one-time (scope-based) |
-| Intent | Transfer files, code, and accounts so the client fully owns the deliverable |
+| Intent | Full transfer of site, app, code, store listings, and accounts |
 
-**Default without buyout:** CWR keeps ownership of underlying source, design system, and reusable components; client gets a perpetual non-exclusive license to use the delivered app for their business after final payment.
+**Default without buyout:** Setup package + monthly care plan (Essential / Standard / Priority) is a **license to use**. CWR owns the product, hosting, and store accounts. First month of the chosen care plan is included with the package.
+
+**After buyout (hard stop):** Code, files, listings, and logins transfer to the client or their developer. CWR **stops** hosting, maintenance, and support. No ongoing CWR care plan after handoff.
 
 ### 5.5 À la carte / modules (examples)
 
@@ -290,7 +292,7 @@ The portfolio site is also the studio’s back office:
 | Hero | Run your business from your phone |
 | Proof | Fresno-based studio · Web + iOS + Android · Real-time admin dashboards |
 | Price anchor | From $799 · care from ~$44/mo annual |
-| Ownership default | Studio owns code until Ownership Upgrade |
+| Ownership default | License + monthly care; studio owns until buyout, then CWR services end |
 | Differentiator | Local founder builds it — no offshore handoff |
 
 **SEO-style description**
@@ -305,7 +307,7 @@ Use this checklist when tightening legal or sales materials:
 
 1. Formal entity (sole prop DBA only vs LLC) and any EIN / business license details  
 2. ~~Canonical maintenance prices~~ — site, portal, and contracts: Essential $79 / Standard $150 / Priority $300. First month = the plan they pick.  
-3. Standard change-order rate and export/migration fee  
+3. Standard change-order rate (source/export is buyout-only; no migration package without buyout)  
 4. Exact founding month/day (year is 2022)  
 5. Any regular contractors or partners to list on an org chart  
 6. Preferred geographic claim (Central Valley / California / worldwide)  
