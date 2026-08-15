@@ -319,131 +319,379 @@ body.client-portal-page {
   box-shadow: none;
 }
 
-/* Docs & guide — open by default (separate from collapsed showcase) */
-.client-portal-guide {
+/* ——— Guide picker ———
+   Guides sit behind a launcher instead of stacking open, so the portal shows one
+   control rather than every guide body at once. */
+.client-portal-guides {
   margin: 0 0 20px;
-  border: 1px solid hsla(45, 100%, 72%, 0.16);
-  border-radius: 12px;
-  background: hsla(240, 2%, 14%, 0.85);
-  overflow: hidden;
 }
 
-.client-portal-guide + .client-portal-guide {
-  margin-top: -4px;
-}
-
-.client-portal-guide summary {
-  cursor: pointer;
-  padding: 12px 16px;
-  color: var(--white-1);
-  font-weight: var(--fw-600);
-  list-style: none;
-  display: flex;
+/* Sized to its content — a control, not a panel.
+   NOTE the two-class selector: `.client-portal-page .btn` sets display:inline-block
+   and border:none at (0,2,0), which outranks a bare `.client-portal-guide-launcher`.
+   Matching its specificity is what keeps this a flex row with a visible border. */
+.client-portal-page .client-portal-guide-launcher {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.client-portal-guide summary::-webkit-details-marker,
-.client-portal-guide summary::marker {
-  display: none;
-  content: '';
-}
-
-.client-portal-guide summary::after {
-  content: '';
-  flex-shrink: 0;
-  width: 0.55em;
-  height: 0.55em;
-  border-right: 2px solid var(--orange-yellow-crayola);
-  border-bottom: 2px solid var(--orange-yellow-crayola);
-  transform: rotate(45deg);
-  transition: transform 0.2s ease;
-  opacity: 0.9;
-}
-
-.client-portal-guide[open] summary::after {
-  transform: rotate(225deg);
-  margin-top: 0.25em;
-}
-
-.client-portal-guide-body {
-  padding: 0 12px 12px;
-  border-top: 1px solid hsla(45, 100%, 72%, 0.1);
-}
-
-.client-portal-guide-body .portfolio-detail-page {
-  border-radius: 14px;
-  box-shadow: none;
-  border: 1px solid hsla(45, 100%, 72%, 0.12);
-}
-
-.project-detail-media {
-  margin: 0;
-  width: 100%;
-  height: auto;
-  min-height: 220px;
-  max-height: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px 18px 12px;
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 15% 10%, hsla(45, 100%, 72%, 0.14), transparent 46%),
-    linear-gradient(145deg, hsla(45, 100%, 72%, 0.1), hsla(240, 2%, 14%, 0.95));
-  border-bottom: 1px solid hsla(45, 100%, 72%, 0.12);
-  box-sizing: border-box;
-}
-
-.project-detail-media .portfolio-carousel,
-.project-detail-media .project-detail-carousel {
-  position: relative;
-  width: 100%;
+  justify-content: flex-start;
+  gap: 9px;
+  width: auto;
   max-width: 100%;
-  height: 100%;
-  max-height: 100%;
-  min-height: 180px;
+  border: 1px solid hsla(45, 100%, 72%, 0.3);
+  color: var(--light-gray);
+}
+
+.client-portal-page .client-portal-guide-launcher:hover,
+.client-portal-page .client-portal-guide-launcher:focus-visible {
+  border-color: hsla(45, 100%, 72%, 0.55);
+  color: var(--white-1);
+}
+
+.client-portal-guide-launcher-icon {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  overflow: visible;
+  flex: 0 0 auto;
+  font-size: 17px;
 }
 
-.project-detail-media .portfolio-carousel-track {
-  position: relative;
-  flex: 1 1 auto;
-  width: 100%;
-  min-height: 180px;
-  aspect-ratio: 16 / 10;
-  max-height: min(48vh, 420px);
+.client-portal-guide-launcher-label {
+  min-width: 0;
   overflow: hidden;
-  padding-bottom: 28px;
-  box-sizing: border-box;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.project-detail-media .portfolio-carousel-slide {
+.client-portal-guide-launcher-count {
+  flex: 0 0 auto;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: hsla(45, 100%, 72%, 0.16);
+  color: var(--orange-yellow-crayola, hsl(45, 100%, 72%));
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* visibility + pointer-events rather than display:none — display cannot be
+   transitioned, so a display-toggled sheet snaps open instead of animating.
+   Same pattern as .portal-dm-sheet-root. */
+.portal-guide-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0.32s step-end;
+}
+
+.portal-guide-sheet-root.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  transition: visibility 0s step-start;
+}
+
+.portal-guide-sheet-backdrop {
   position: absolute;
   inset: 0;
+  background: hsla(0, 0%, 0%, 0.72);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.portal-guide-sheet-root.is-open .portal-guide-sheet-backdrop {
+  opacity: 1;
+}
+
+/* Desktop: large centred reading panel — a guide is a document, not a dialog. */
+.portal-guide-sheet {
+  position: relative;
+  /* Compact by default — this is the picker. Height is set in px by
+     syncGuideSheetSize() so it can animate; width transitions here. */
+  width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  border-radius: 14px;
+  background: var(--eerie-black-2, hsl(240, 2%, 12%));
+  overflow: hidden;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale(0.985);
+  transition: opacity 0.2s ease, transform 0.2s ease,
+    width 0.34s cubic-bezier(0.32, 0.72, 0, 1),
+    height 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.portal-guide-sheet-root.is-open .portal-guide-sheet {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Reading a guide — grow to a document-sized surface. */
+.portal-guide-sheet-root.is-reading .portal-guide-sheet {
+  width: min(900px, 100%);
+}
+
+.portal-guide-sheet-head {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.08);
+}
+
+.portal-guide-sheet-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.portal-guide-sheet-back,
+.portal-guide-sheet-close {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 8px;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
-  pointer-events: none;
-  box-sizing: border-box;
-  z-index: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.75;
 }
 
-.project-detail-media .portfolio-carousel-slide.is-active {
+.portal-guide-sheet-back svg,
+.portal-guide-picker-item-chevron svg,
+.client-portal-guide-launcher-icon svg {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.portal-guide-sheet-close {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.portal-guide-sheet-back:hover,
+.portal-guide-sheet-back:focus-visible,
+.portal-guide-sheet-close:hover,
+.portal-guide-sheet-close:focus-visible {
   opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  z-index: 1;
+  background: hsla(0, 0%, 100%, 0.07);
+}
+
+.portal-guide-sheet-back[hidden] {
+  display: none;
+}
+
+/* Panes slide individually rather than riding a 200%-wide track. A track that
+   wide overflows its flex parent and a percentage translate is measured against
+   the track's own width, which is easy to get wrong; positioning each pane is
+   predictable. The list stays in flow so it can define the sheet's height in
+   picker mode; the reader is absolute so its long content never does. */
+.portal-guide-sheet-panes {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.portal-guide-sheet-pane {
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.portal-guide-sheet-pane--list {
+  position: relative;
+  transform: translate3d(0, 0, 0);
+}
+
+.portal-guide-sheet-pane--reader {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(100%, 0, 0);
+}
+
+.portal-guide-sheet-root.is-reading .portal-guide-sheet-pane--list {
+  transform: translate3d(-100%, 0, 0);
+}
+
+.portal-guide-sheet-root.is-reading .portal-guide-sheet-pane--reader {
+  transform: translate3d(0, 0, 0);
+}
+
+.portal-guide-sheet-pane--list {
+  padding: 8px;
+}
+
+.portal-guide-sheet-pane--reader {
+  padding: 0 18px 24px;
+}
+
+/* ——— Card treatment: two options, toggle the class on .portal-guide-sheet ———
+   A (default) .portal-guide-sheet--flat-shell
+       Shell goes flat; the guide keeps the document card it uses everywhere else.
+   B           .portal-guide-sheet--flat-guide
+       Shell stays the card; the guide's own framing is stripped.
+   Flip the class in devtools, then tell me which to keep. */
+
+/* The pane is the scroll container, so the guide must not add its own. */
+.portal-guide-sheet-pane--reader .portfolio-detail-page {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* A — flat shell, guide keeps its card (default) */
+.portal-guide-sheet--flat-shell {
+  background: transparent;
+  border-color: transparent;
+}
+
+.portal-guide-sheet--flat-shell .portal-guide-sheet-head {
+  background: var(--eerie-black-2, hsl(240, 2%, 12%));
+  border-radius: 14px 14px 0 0;
+}
+
+.portal-guide-sheet--flat-shell .portal-guide-sheet-pane--list {
+  background: var(--eerie-black-2, hsl(240, 2%, 12%));
+  border-radius: 0 0 14px 14px;
+}
+
+/* Without this the reader pane is transparent and the portal shows through. */
+.portal-guide-sheet--flat-shell .portal-guide-sheet-pane--reader {
+  background: var(--eerie-black-2, hsl(240, 2%, 12%));
+}
+
+/* B — shell is the card, guide content sits flat on it */
+.portal-guide-sheet--flat-guide .portal-guide-sheet-pane--reader .project-detail-canvas-doc {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.portal-guide-picker-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.portal-guide-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.portal-guide-picker-item:hover,
+.portal-guide-picker-item:focus-visible {
+  background: hsla(45, 100%, 72%, 0.1);
+}
+
+.portal-guide-picker-item-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.portal-guide-picker-item-chevron {
+  display: flex;
+  flex: 0 0 auto;
+  opacity: 0.6;
+}
+
+body.portal-guide-sheet-open {
+  overflow: hidden;
+}
+
+/* Mobile: near-fullscreen bottom sheet, matching the messages sheet. */
+@media (max-width: 640px) {
+  .portal-guide-sheet-root {
+    align-items: flex-end;
+    justify-content: stretch;
+    padding: 0;
+  }
+
+  .portal-guide-sheet {
+    width: 100%;
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    box-shadow: 0 -16px 56px hsla(0, 0%, 0%, 0.5);
+    opacity: 1;
+    transform: translate3d(0, 100%, 0);
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .portal-guide-sheet-root.is-open .portal-guide-sheet {
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Width is already full-bleed on mobile; only height changes. */
+  .portal-guide-sheet-root.is-reading .portal-guide-sheet {
+    width: 100%;
+  }
+
+  /* Grabber affordance so it reads as a sheet. */
+  .portal-guide-sheet-head {
+    padding-top: 22px;
+  }
+
+  .portal-guide-sheet-head::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 38px;
+    height: 4px;
+    border-radius: 999px;
+    background: hsla(0, 0%, 100%, 0.22);
+  }
+
+  .portal-guide-picker-item {
+    padding: 15px 14px;
+  }
+
+  .portal-guide-sheet-pane--reader {
+    padding: 0 14px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-guide-sheet,
+  .portal-guide-sheet-backdrop,
+  .portal-guide-sheet-panes {
+    transition: none;
+  }
 }
 
 /* Match portfolio page: keep intrinsic ratio so video letterboxing matches images */

@@ -1695,25 +1695,268 @@
     return normalizePortalGuides(hubRow || project || {});
   }
 
+  /**
+   * Guides live entirely inside a sheet — never in the portal's main content.
+   *
+   * They used to render as stacked open <details>, so a client with four guides
+   * scrolled past four full documents to reach anything else. Now the portal
+   * shows one button; the sheet holds a list pane and a reader pane side by
+   * side and slides between them, so switching guides is one tap rather than
+   * close-and-reopen. Guide bodies are built on selection, so nothing is
+   * rendered for guides nobody opens.
+   */
+  var portalGuideState = { guides: [], base: null, selectedIndex: -1, rendered: {} };
+
+  // portal.html never loads the ionicons bundle, so icon custom elements render
+  // as nothing here. These are inline SVG and inherit currentColor.
+  function guideIconSvg(path, size) {
+    return (
+      '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size +
+      '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+      'stroke-linejoin="round" aria-hidden="true" focusable="false">' + path + '</svg>'
+    );
+  }
+  var GUIDE_ICON_BOOK =
+    '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>' +
+    '<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>';
+  var GUIDE_ICON_BACK = '<path d="M15 18l-6-6 6-6"/>';
+  var GUIDE_ICON_FORWARD = '<path d="M9 18l6-6-6-6"/>';
+
+  function guideRecordFor(index) {
+    var guide = portalGuideState.guides[index];
+    if (!guide) return null;
+    return Object.assign({}, portalGuideState.base || {}, {
+      canvasDocUrl: guide.url,
+      canvasDocTitle: guide.title
+    });
+  }
+
   function renderGuideSectionsHtml(guides, baseRecord) {
     if (!guides.length || !window.PortfolioDetailShared) return '';
-    return guides
-      .map(function (guide) {
-        var record = Object.assign({}, baseRecord || {}, {
-          canvasDocUrl: guide.url,
-          canvasDocTitle: guide.title
-        });
-        return wrapGuideSection(
-          window.PortfolioDetailShared.renderPortfolioDetailHtml(record, {
-            hideBuyButtons: true,
-            hideQuoteButton: true,
-            showLiveButton: false,
-            guideOnly: true
-          }),
-          guide.title
-        );
-      })
-      .join('');
+    portalGuideState = { guides: guides, base: baseRecord || {}, selectedIndex: -1, rendered: {} };
+    return (
+      '<section class="client-portal-guides" id="portal-guides-section">' +
+      '<button type="button" class="btn btn-secondary client-portal-guide-launcher" ' +
+      'id="portal-guide-launcher" aria-haspopup="dialog" aria-expanded="false">' +
+      '<span class="client-portal-guide-launcher-icon" aria-hidden="true">' +
+      guideIconSvg(GUIDE_ICON_BOOK, 17) +
+      '</span>' +
+      '<span class="client-portal-guide-launcher-label">' +
+      (guides.length === 1 ? 'View guide' : 'View guides') +
+      '</span>' +
+      '<span class="client-portal-guide-launcher-count">' +
+      guides.length +
+      '</span>' +
+      '</button>' +
+      renderGuideSheetHtml(guides) +
+      '</section>'
+    );
+  }
+
+  function renderGuideSheetHtml(guides) {
+    return (
+      '<div class="portal-guide-sheet-root" id="portal-guide-sheet-root" aria-hidden="true">' +
+      '<div class="portal-guide-sheet-backdrop" id="portal-guide-sheet-backdrop"></div>' +
+      '<div class="portal-guide-sheet portal-guide-sheet--flat-shell" role="dialog" aria-modal="true" ' +
+      'aria-labelledby="portal-guide-sheet-title">' +
+      '<div class="portal-guide-sheet-head">' +
+      '<button type="button" class="portal-guide-sheet-back" id="portal-guide-sheet-back" ' +
+      'aria-label="Back to guide list" hidden>' +
+      guideIconSvg(GUIDE_ICON_BACK, 20) +
+      '</button>' +
+      '<h2 class="portal-guide-sheet-title" id="portal-guide-sheet-title">' +
+      (guides.length === 1 ? 'Your guide' : 'Choose a guide') +
+      '</h2>' +
+      '<button type="button" class="portal-guide-sheet-close" id="portal-guide-sheet-close" ' +
+      'aria-label="Close">&times;</button>' +
+      '</div>' +
+      '<div class="portal-guide-sheet-panes" id="portal-guide-sheet-panes">' +
+      '<div class="portal-guide-sheet-pane portal-guide-sheet-pane--list has-scrollbar">' +
+      '<ul class="portal-guide-picker-list">' +
+      guides
+        .map(function (guide, i) {
+          return (
+            '<li><button type="button" class="portal-guide-picker-item" data-guide-index="' +
+            i +
+            '">' +
+            '<span class="portal-guide-picker-item-title">' +
+            esc(guide.title || 'Project guide') +
+            '</span>' +
+            '<span class="portal-guide-picker-item-chevron" aria-hidden="true">' +
+            guideIconSvg(GUIDE_ICON_FORWARD, 18) +
+            '</span>' +
+            '</button></li>'
+          );
+        })
+        .join('') +
+      '</ul></div>' +
+      '<div class="portal-guide-sheet-pane portal-guide-sheet-pane--reader has-scrollbar" ' +
+      'id="portal-guide-reader"></div>' +
+      '</div></div></div>'
+    );
+  }
+
+  function guideSheetRoot() {
+    return document.getElementById('portal-guide-sheet-root');
+  }
+
+  /**
+   * The sheet is compact for the list and large for a guide. Height has to be an
+   * explicit px value in both states because CSS cannot transition to `auto`,
+   * so it is measured here rather than left to the stylesheet.
+   */
+  function syncGuideSheetSize() {
+    var root = guideSheetRoot();
+    if (!root) return;
+    var sheet = root.querySelector('.portal-guide-sheet');
+    if (!sheet) return;
+    var mobile = window.innerWidth <= 640;
+    var vh = window.innerHeight;
+
+    if (root.classList.contains('is-reading')) {
+      sheet.style.height = Math.round(vh * (mobile ? 0.95 : 0.9)) + 'px';
+      return;
+    }
+    var head = sheet.querySelector('.portal-guide-sheet-head');
+    var list = sheet.querySelector('.portal-guide-sheet-pane--list');
+    // Borders are outside offsetHeight/scrollHeight here, and sub-pixel layout
+    // rounds down — without this slack the list overflows by a pixel and the
+    // pane grows a scrollbar for a list that actually fits.
+    var borders = sheet.offsetHeight - sheet.clientHeight;
+    var wanted =
+      (head ? head.offsetHeight : 0) +
+      (list ? list.scrollHeight : 0) +
+      (borders > 0 ? borders : 2) +
+      1;
+    var cap = Math.round(vh * (mobile ? 0.8 : 0.7));
+    sheet.style.height = Math.max(120, Math.ceil(Math.min(wanted, cap))) + 'px';
+  }
+
+  function openGuideSheet() {
+    var root = guideSheetRoot();
+    var launcher = document.getElementById('portal-guide-launcher');
+    if (!root) return;
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('portal-guide-sheet-open');
+    if (launcher) launcher.setAttribute('aria-expanded', 'true');
+
+    // Resume where they left off; the back arrow is always there to reach the list.
+    if (portalGuideState.selectedIndex >= 0) {
+      showGuideReader(portalGuideState.selectedIndex, false);
+    } else {
+      showGuideList(false);
+    }
+  }
+
+  function closeGuideSheet(returnFocus) {
+    var root = guideSheetRoot();
+    var launcher = document.getElementById('portal-guide-launcher');
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('portal-guide-sheet-open');
+    if (launcher) {
+      launcher.setAttribute('aria-expanded', 'false');
+      if (returnFocus && typeof launcher.focus === 'function') launcher.focus();
+    }
+  }
+
+  function showGuideList(focus) {
+    var root = guideSheetRoot();
+    if (!root) return;
+    root.classList.remove('is-reading');
+    var titleEl = document.getElementById('portal-guide-sheet-title');
+    var backBtn = document.getElementById('portal-guide-sheet-back');
+    if (titleEl) {
+      titleEl.textContent = portalGuideState.guides.length === 1 ? 'Your guide' : 'Choose a guide';
+    }
+    if (backBtn) backBtn.hidden = true;
+    syncGuideSheetSize();
+    if (focus) {
+      var first = root.querySelector('.portal-guide-picker-item');
+      if (first && typeof first.focus === 'function') first.focus();
+    }
+  }
+
+  function showGuideReader(index, focus) {
+    var root = guideSheetRoot();
+    var reader = document.getElementById('portal-guide-reader');
+    var record = guideRecordFor(index);
+    if (!root || !reader || !record || !window.PortfolioDetailShared) return;
+
+    portalGuideState.selectedIndex = index;
+
+    // Build each guide once, then keep it — re-rendering would drop scroll
+    // position and re-run init on every switch.
+    if (!portalGuideState.rendered[index]) {
+      reader.innerHTML = window.PortfolioDetailShared.renderPortfolioDetailHtml(record, {
+        hideBuyButtons: true,
+        hideQuoteButton: true,
+        showLiveButton: false,
+        guideOnly: true
+      });
+      // The guide body needs the same init the inline path used to get, or its
+      // interactive pieces stay dead.
+      window.PortfolioDetailShared.initPortfolioDetailPage(reader, record, { guideOnly: true });
+      portalGuideState.rendered = {};
+      portalGuideState.rendered[index] = true;
+    }
+
+    var titleEl = document.getElementById('portal-guide-sheet-title');
+    var backBtn = document.getElementById('portal-guide-sheet-back');
+    if (titleEl) titleEl.textContent = portalGuideState.guides[index].title || 'Project guide';
+    if (backBtn) backBtn.hidden = false;
+    root.classList.add('is-reading');
+    syncGuideSheetSize();
+    reader.scrollTop = 0;
+    if (focus && typeof reader.focus === 'function') reader.focus();
+  }
+
+  function bindGuideSheet(root) {
+    if (!root) return;
+    var launcher = root.querySelector('#portal-guide-launcher');
+    if (!launcher) return;
+
+    launcher.addEventListener('click', openGuideSheet);
+
+    var closeBtn = root.querySelector('#portal-guide-sheet-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        closeGuideSheet(true);
+      });
+    }
+    var backdrop = root.querySelector('#portal-guide-sheet-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', function () {
+        closeGuideSheet(true);
+      });
+    }
+    var backBtn = root.querySelector('#portal-guide-sheet-back');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        showGuideList(true);
+      });
+    }
+    root.querySelectorAll('.portal-guide-picker-item').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        showGuideReader(Number(btn.getAttribute('data-guide-index')), true);
+      });
+    });
+
+    window.addEventListener('resize', function () {
+      var sheetRoot = guideSheetRoot();
+      if (sheetRoot && sheetRoot.classList.contains('is-open')) syncGuideSheetSize();
+    });
+
+    document.addEventListener('keydown', function portalGuideEsc(e) {
+      if (e.key !== 'Escape' && e.keyCode !== 27) return;
+      var sheetRoot = guideSheetRoot();
+      if (!sheetRoot || !sheetRoot.classList.contains('is-open')) return;
+      // Escape steps back to the list first, then closes — matches the back arrow.
+      if (sheetRoot.classList.contains('is-reading')) showGuideList(true);
+      else closeGuideSheet(true);
+    });
   }
 
   function wrapShowcaseSection(innerHtml) {
@@ -1722,19 +1965,6 @@
       '<details class="client-portal-showcase">' +
       '<summary>Project showcase</summary>' +
       '<div class="client-portal-showcase-body">' +
-      innerHtml +
-      '</div></details>'
-    );
-  }
-
-  function wrapGuideSection(innerHtml, title) {
-    if (!innerHtml) return '';
-    return (
-      '<details class="client-portal-guide" open>' +
-      '<summary>' +
-      esc(title || 'Docs & guide') +
-      '</summary>' +
-      '<div class="client-portal-guide-body">' +
       innerHtml +
       '</div></details>'
     );
@@ -1780,7 +2010,6 @@
     var showcaseWillRender = !!(hasShowcase && detailRecord && window.PortfolioDetailShared);
     var brand = renderBrandHeader(project, detailRecord, detailOptions, showcaseWillRender);
 
-    var hasGuide = portalGuides.length > 0;
     var guideBase = detailRecord || {
       title: (project && (project.title || project.clientName)) || 'Your project',
       description: ''
@@ -1811,9 +2040,10 @@
       '<div class="client-portal-grid">' + docsSection + supportSection + footer + '</div>';
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
-    } else if (hasGuide && window.PortfolioDetailShared) {
-      window.PortfolioDetailShared.initPortfolioDetailPage(inner, guideBase, { guideOnly: true });
     }
+    // Guides are no longer in the DOM at first paint — selectGuide() runs
+    // initPortfolioDetailPage on the chosen guide when it mounts.
+    bindGuideSheet(inner);
     bindShowcaseCollapse(inner);
     bindDemoHintScroll(inner);
     bindPortalSignButtons(inner, portalCtx);
