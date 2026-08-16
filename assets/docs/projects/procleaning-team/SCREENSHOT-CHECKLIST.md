@@ -20,8 +20,8 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 | `03-loading-brand.webp` | DONE | Staff app loading / brand screen |
 | `04-admin-overview.webp` | DONE | Your Android Overview screenshot (Aug 14) |
 | `05-worker-my-jobs.webp` | DONE | Worker My Jobs |
-| `06-enable-notifications-admin.webp` | NEED DEVICE | Admin Inbox |
-| `07-enable-notifications-worker.webp` | NEED DEVICE | Worker Account |
+| `06-enable-notifications-admin.webp` | DONE | Admin Inbox (Turn on banner) |
+| `07-enable-notifications-worker.webp` | NEED DEVICE | Worker Account (preview has no Account screen) |
 | `08-update-ready.webp` | DONE | After a newer OTA is downloaded |
 
 ---
@@ -30,11 +30,11 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 
 | Filename | Status |
 |----------|--------|
-| `01-hero.webp` | NEED DEVICE |
-| `02-enable-card.webp` | NEED DEVICE |
-| `03-education.webp` | NEED DEVICE |
-| `04-collect-payment.webp` | NEED DEVICE |
-| `05-payment-success.webp` | NEED DEVICE |
+| `01-hero.webp` | NEED DEVICE | First-time intro did not appear on this device |
+| `02-enable-card.webp` | DONE | Admin Inbox Enable banner |
+| `03-education.webp` | DONE | How Tap to Pay works |
+| `04-collect-payment.webp` | DONE | Ready to pay → Collect payment |
+| `05-payment-success.webp` | NEED DEVICE | Do not capture with a live customer charge |
 
 ---
 
@@ -60,17 +60,17 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 | Filename | Status |
 |----------|--------|
 | `01-overview.webp` | DONE (same as access Overview) |
-| `02-orders.webp` | NEED DEVICE (or signed-in web `/admin?tab=orders`) |
-| `03-manage-job.webp` | NEED DEVICE |
-| `04-subscriptions.webp` | NEED DEVICE |
-| `05-calendar.webp` | NEED DEVICE |
-| `06-quotes.webp` | NEED DEVICE |
-| `07-customers.webp` | NEED DEVICE |
-| `08-inbox.webp` | NEED DEVICE |
-| `09-documents.webp` | NEED DEVICE |
-| `10-reports.webp` | NEED DEVICE |
-| `11-dash.webp` | NEED DEVICE |
-| `12-more-sheet.webp` | NEED DEVICE |
+| `02-orders.webp` | DONE |
+| `03-manage-job.webp` | DONE |
+| `04-subscriptions.webp` | DONE |
+| `05-calendar.webp` | DONE |
+| `06-quotes.webp` | DONE |
+| `07-customers.webp` | DONE |
+| `08-inbox.webp` | DONE |
+| `09-documents.webp` | DONE |
+| `10-reports.webp` | DONE |
+| `11-dash.webp` | DONE |
+| `12-more-sheet.webp` | DONE |
 
 ---
 
@@ -78,10 +78,10 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 
 | Filename | Status |
 |----------|--------|
-| `01-my-jobs.webp` | NEED DEVICE |
-| `02-timesheet.webp` | NEED DEVICE |
-| `03-job-detail.webp` | NEED DEVICE |
-| `04-account.webp` | NEED DEVICE |
+| `01-my-jobs.webp` | DONE | Worker preview (Omar Mendoza) |
+| `02-timesheet.webp` | DONE | Worker preview |
+| `03-job-detail.webp` | DONE | Worker preview → View details / Job management |
+| `04-account.webp` | NEED DEVICE | Worker preview has no Account screen |
 
 ---
 
