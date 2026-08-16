@@ -912,17 +912,20 @@
     var links = [];
 
     // Client delivery stage: hub URL is live product — never label it "View demo".
+    // The hub URL is the Expo *web* build, so it is labelled "Open web app" —
+    // the native apps now have their own App Store / Play Store badges, and
+    // calling this one "the app" alongside them was ambiguous.
     if (isClientLive) {
       if (liveUrl && hubUrl && normalizePortalUrl(liveUrl) !== normalizePortalUrl(hubUrl)) {
         links.push({ url: liveUrl, label: 'View website', primary: true });
-        links.push({ url: hubUrl, label: 'Open live app', primary: false });
+        links.push({ url: hubUrl, label: 'Open web app', primary: false });
         return links;
       }
       var site = liveUrl || hubUrl;
       if (!site) return links;
       links.push({
         url: site,
-        label: looksLikeDemoUrl(site) ? 'Open live app' : 'View website',
+        label: looksLikeDemoUrl(site) ? 'Open web app' : 'View website',
         primary: true
       });
       return links;
@@ -998,6 +1001,103 @@
       }).join('') +
       '</div>'
     );
+  }
+
+  function installPageUrl(projectId) {
+    if (!projectId) return '';
+    return location.origin + '/get/' + projectId;
+  }
+
+  /**
+   * Lets the client hand the app to their own crew without coming through us.
+   * Deliberately NOT their portal link — that carries invoices, contracts and
+   * milestones. The /get page shows only the store buttons and the web app.
+   */
+  function renderTeamShareSection(project) {
+    if (!project || project.deliveryStage !== 'client') return '';
+    var hasSomething =
+      project.appStoreUrl || project.playStoreUrl || project.expoUrl;
+    if (!hasSomething) return '';
+    var url = installPageUrl(project.id);
+    if (!url) return '';
+    return (
+      '<details class="client-portal-share-footer" open data-install-url="' +
+      esc(url) +
+      '">' +
+      '<summary>Share the app with your team</summary>' +
+      '<div class="client-portal-share-body">' +
+      '<p class="client-portal-share-lead">Send this link to your crew. It opens a simple page with the download buttons — no billing or project details.</p>' +
+      // The URL itself is never shown — it is an opaque id nobody needs to read,
+      // and printing it just invites someone to retype it wrong.
+      '<div class="client-portal-share-actions">' +
+      '<button type="button" class="btn btn-primary" id="portal-install-copy">Copy link</button>' +
+      '<button type="button" class="btn btn-secondary" id="portal-install-share" hidden>Share…</button>' +
+      '<a class="btn btn-secondary" href="' +
+      esc(url) +
+      '" target="_blank" rel="noopener noreferrer">Preview</a>' +
+      '</div>' +
+      '<p class="client-portal-share-status" id="portal-install-status" role="status" aria-live="polite"></p>' +
+      '</div></details>'
+    );
+  }
+
+  function bindTeamShareSection(root) {
+    if (!root) return;
+    var section = root.querySelector('.client-portal-share-footer');
+    if (!section) return;
+    var url = section.getAttribute('data-install-url') || '';
+    var copyBtn = root.querySelector('#portal-install-copy');
+    var shareBtn = root.querySelector('#portal-install-share');
+    var status = root.querySelector('#portal-install-status');
+    if (!url) return;
+
+    function say(msg) {
+      if (status) status.textContent = msg || '';
+    }
+
+    /** Clipboard API needs a secure context; fall back to a throwaway field. */
+    function legacyCopy() {
+      var tmp = document.createElement('textarea');
+      tmp.value = url;
+      tmp.setAttribute('readonly', '');
+      tmp.style.position = 'fixed';
+      tmp.style.opacity = '0';
+      document.body.appendChild(tmp);
+      tmp.select();
+      var ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (e) {
+        ok = false;
+      }
+      document.body.removeChild(tmp);
+      return ok;
+    }
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard
+            .writeText(url)
+            .then(function () {
+              say('Link copied — paste it into a text or email.');
+            })
+            .catch(function () {
+              say(legacyCopy() ? 'Link copied.' : 'Copy failed — use Preview and copy from the address bar.');
+            });
+          return;
+        }
+        say(legacyCopy() ? 'Link copied.' : 'Copy failed — use Preview and copy from the address bar.');
+      });
+    }
+
+    // Native share sheet on phones — the fastest route into a group text.
+    if (shareBtn && navigator.share) {
+      shareBtn.hidden = false;
+      shareBtn.addEventListener('click', function () {
+        navigator.share({ title: 'Install our app', url: url }).catch(function () {});
+      });
+    }
   }
 
   function renderProjectVisitLinks(project, detailRecord, options) {
@@ -2243,12 +2343,18 @@
       brand +
       showcaseHtml +
       guideHtml +
-      '<div class="client-portal-grid">' + docsSection + supportSection + footer + '</div>';
+      '<div class="client-portal-grid">' +
+      renderTeamShareSection(project) +
+      docsSection +
+      supportSection +
+      footer +
+      '</div>';
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
     }
     // Guides are no longer in the DOM at first paint — selectGuide() runs
     // initPortfolioDetailPage on the chosen guide when it mounts.
+    bindTeamShareSection(inner);
     bindGuideSheet(inner);
     bindShowcaseCollapse(inner);
     bindDemoHintScroll(inner);

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Install the app — CodeWithRuben</title>
+  <link rel="shortcut icon" href="/assets/images/logo/logo.jpg" type="image/x-icon">
+  <link rel="stylesheet" href="/assets/css/client-portal.css?v=portal-share-buttons-20260816i">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="client-portal-page install-page has-scrollbar">
+
+  <main class="install-page-inner" id="install-page-inner" role="main">
+    <p class="client-portal-loading">Loading…</p>
+  </main>
+
+  <script src="/assets/js/config.js?v=install-page-20260816f"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    window.initializeApp = initializeApp;
+    window.getDatabase = getDatabase;
+    window.rtdbRef = ref;
+    window.rtdbGet = get;
+  </script>
+  <script src="/assets/js/install-page.js?v=portal-share-buttons-20260816i"></script>
+
+</body>
+
+</html>

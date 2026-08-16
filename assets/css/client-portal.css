@@ -1643,6 +1643,22 @@ body.portal-guide-sheet-open {
   }
 }
 
+/* Full-width section: all three plans read side by side, so Priority is no
+   longer stranded on its own row below the other two. */
+@media (min-width: 1000px) {
+  .client-portal-plan-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .client-portal-plan-card--wide {
+    grid-column: auto;
+  }
+
+  .client-portal-plan-card--wide .client-portal-plan-features {
+    columns: 1;
+  }
+}
+
 .client-portal-plan-card {
   display: block;
   position: relative;
@@ -2461,11 +2477,154 @@ body.portal-dm-sheet-open {
 
   .client-portal-grid > .client-portal-docs-footer,
   .client-portal-grid > .client-portal-support-footer,
+  .client-portal-grid > .client-portal-share-footer,
   .client-portal-grid > .client-portal-status-footer {
     margin: 0;
   }
 
+  /* Share + Proposals sit side by side; Maintenance and Project status span the
+     full width. Maintenance is by far the tallest block, and leaving it in one
+     column left the other as a tall empty gutter. */
+  .client-portal-grid > .client-portal-support-footer,
   .client-portal-grid > .client-portal-status-footer {
     grid-column: 1 / -1;
+  }
+}
+
+/* ——— Public install page (/get/<id>) ———
+   Sent by a client to their own crew. Standalone from the portal chrome. */
+.install-page {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+
+.install-page-inner {
+  width: 100%;
+  max-width: 460px;
+}
+
+.install-page-card {
+  padding: 28px 24px 24px;
+  border: 1px solid hsla(45, 100%, 72%, 0.2);
+  border-radius: 18px;
+  background: linear-gradient(150deg, hsl(240, 2%, 16%) 0%, hsl(240, 2%, 12%) 100%);
+  box-shadow: 0 18px 50px hsla(0, 0%, 0%, 0.45);
+  text-align: center;
+}
+
+.install-page-kicker {
+  margin: 0 0 6px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange-yellow-crayola);
+}
+
+.install-page-title {
+  margin: 0 0 10px;
+  font-size: clamp(22px, 5vw, 28px);
+  line-height: 1.2;
+  color: var(--white-2);
+}
+
+.install-page-lead {
+  margin: 0 0 22px;
+  font-size: var(--fs-7);
+  line-height: 1.6;
+  color: var(--light-gray);
+}
+
+.install-page-badges {
+  justify-content: center;
+}
+
+.install-page-web {
+  margin: 20px 0 0;
+  font-size: var(--fs-7);
+}
+
+.install-page-web a {
+  color: var(--orange-yellow-crayola);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.install-page-share {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.08);
+}
+
+.install-page-share-status {
+  min-height: 16px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+/* ——— Share the app with your team ———
+   Client-facing: hands the /get page to their crew without exposing the portal.
+   Chrome matches .client-portal-support-footer so it reads as a portal section. */
+.client-portal-share-footer {
+  margin: 0 0 20px;
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  border-radius: 12px;
+  background: hsla(240, 2%, 14%, 0.85);
+  overflow: hidden;
+}
+
+.client-portal-share-footer summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  color: var(--white-1);
+  font-weight: var(--fw-600);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.client-portal-share-footer summary::-webkit-details-marker,
+.client-portal-share-footer summary::marker {
+  display: none;
+}
+
+.client-portal-share-body {
+  padding: 0 16px 16px;
+}
+
+.client-portal-share-lead {
+  margin: 0 0 14px;
+  font-size: var(--fs-8);
+  line-height: 1.55;
+  color: var(--light-gray-70);
+}
+
+.client-portal-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.client-portal-share-status {
+  min-height: 16px;
+  margin: 10px 0 0;
+  font-size: var(--fs-8);
+  color: var(--orange-yellow-crayola);
+}
+
+@media (max-width: 480px) {
+  .client-portal-share-actions .btn {
+    flex: 1 1 auto;
+    text-align: center;
   }
 }

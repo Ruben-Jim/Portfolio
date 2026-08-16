@@ -1307,6 +1307,25 @@
       savedId = ref.key;
       await window.rtdbSet(ref, payload);
     }
+    // Public projection for the /get/<id> install page: only the fields that
+    // page shows, so crew never need read access to the full hub record.
+    // Best-effort — a permission error must not fail the hub save.
+    try {
+      await window.rtdbSet(
+        window.rtdbRef(window.rtdb, 'agencyInstallPages/' + savedId),
+        {
+          clientName: payload.clientName || '',
+          title: payload.title || '',
+          expoUrl: payload.expoUrl || '',
+          appStoreUrl: payload.appStoreUrl || '',
+          playStoreUrl: payload.playStoreUrl || '',
+          updatedAt: ts()
+        }
+      );
+    } catch (e) {
+      console.warn('Install page projection not written (rules not deployed?)', e);
+    }
+
     await fetchAgencyProjectsOnce();
     if (closeModalAfter) closeModal('project-hub-editor-modal');
     return savedId;
@@ -4162,6 +4181,11 @@
     return out;
   }
 
+  function installPageUrlFor(hubId) {
+    if (!hubId) return '';
+    return location.origin + '/get/' + hubId;
+  }
+
   function renderClientProjectsWorkspace() {
     var workspace = document.getElementById('client-projects-workspace');
     var titleEl = document.getElementById('cp-client-drawer-title');
@@ -4376,6 +4400,16 @@
       '</div></fieldset>' +
       '<div class="cp-form-grid">' +
       '<div class="form-group form-group--full"><label for="cp-hub-notes">Notes</label><textarea id="cp-hub-notes" class="form-input has-scrollbar" rows="3">' + esc(hub.notes) + '</textarea></div>' +
+      '</div>' +
+      '<div class="cp-install-link-row">' +
+      '<label for="cp-install-link">Worker install link</label>' +
+      '<div class="cp-install-link-controls">' +
+      '<input id="cp-install-link" class="form-input" type="text" readonly value="' +
+      esc(installPageUrlFor(hub.id)) +
+      '">' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="copy-install-link">Copy</button>' +
+      '</div>' +
+      '<p class="form-hint">Public page with the App Store / Play Store buttons. Safe to send to crew — it shows no billing or project detail.</p>' +
       '</div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-hub">Save hub</button>' +
@@ -5239,6 +5273,27 @@
       if (maintId) openDeleteMaintConfirmModal(maintId);
       return;
     }
+    if (action === 'copy-install-link') {
+      var linkEl = document.getElementById('cp-install-link');
+      if (!linkEl) return;
+      var value = linkEl.value;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(value)
+          .then(function () {
+            setCpFeedback('hub', 'Install link copied.', false);
+          })
+          .catch(function () {
+            linkEl.select();
+            setCpFeedback('hub', 'Press Cmd+C to copy.', true);
+          });
+      } else {
+        linkEl.select();
+        setCpFeedback('hub', 'Press Cmd+C to copy.', true);
+      }
+      return;
+    }
+
     if (action === 'save-hub') {
       saveHubFromClientWorkspace('hub').catch(console.error);
       return;
