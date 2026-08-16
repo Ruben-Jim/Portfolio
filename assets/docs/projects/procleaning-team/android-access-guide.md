@@ -99,7 +99,7 @@ Push alerts are how you hear about new messages, jobs, quotes, and payments on t
 
 ### Admin
 
-**1.** Open **Inbox** (Messages) — under **More** if it is not on the main tab bar.  
+**1.** Open **More** → tap the **Account** icon (person).  
 **2.** Tap **Enable notifications** and allow permission when Android asks.
 
 ![Enable notifications — admin](screenshots/access/06-enable-notifications-admin.webp)

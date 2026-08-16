@@ -30,7 +30,7 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 
 | Filename | Status |
 |----------|--------|
-| `01-hero.webp` | NEED DEVICE | First-time intro did not appear on this device |
+| `01-hero.webp` | DONE | First-time intro |
 | `02-enable-card.webp` | DONE | Admin Inbox Enable banner |
 | `03-education.webp` | DONE | How Tap to Pay works |
 | `04-collect-payment.webp` | DONE | Ready to pay → Collect payment |

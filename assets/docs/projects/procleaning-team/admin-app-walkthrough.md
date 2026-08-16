@@ -255,7 +255,7 @@ Keep these in mind; details live in the access & Tap to Pay guides.
 
 - Prefer **push on phones** for staff day-to-day.
 - Customer emails (booking confirmations, receipts, reminders) still go through the normal email path.
-- Admins should enable notifications on Inbox after install.
+- Admins should enable notifications in **More → Account** after install.
 
 ### Data truth
 

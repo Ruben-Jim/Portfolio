@@ -40,12 +40,12 @@ The first time, you may see a **hero** explaining Tap to Pay. Dismiss / continue
 
 ### 3. Enable Tap to Pay on this phone
 
-Look for the **Enable Tap to Pay** card:
+Look for the **Enable Tap to Pay** card under **Account** (this phone):
 
-- **Admins:** often on **Inbox**  
-- **Workers:** often under **Account** settings  
+- **Admins:** **More** → Account icon  
+- **Workers:** tap your name / avatar → **Account**
 
-Tap the enable button and accept any **Apple / Google / Stripe** system sheets. Do this once per device (or again after reinstall).
+Tap **Enable** and accept any **Apple / Google / Stripe** system sheets. Do this once per device (or again after reinstall). This does **not** collect a payment — it only links the phone as a reader.
 
 ![Enable Tap to Pay](screenshots/tap-to-pay/02-enable-card.webp)
 
@@ -116,7 +116,7 @@ Do not ask them to open the ProCleaning website for Tap to Pay — that path is 
 
 | Symptom | What to try |
 |---|---|
-| No Enable card | Confirm staff build + signed in; check Inbox (admin) or Account (worker) |
+| No Enable card | Confirm staff build + signed in; check **More → Account** (admin) or **Account** (worker) |
 | Enable fails | Stable internet; finish OS terms; try again after force-close |
 | Waiting forever | Customer NFC payment method; remove thick case; hold still; NFC on |
 | “Not supported” | Device may not support Tap to Pay — use link or cash/check |
