@@ -70,10 +70,15 @@ Use **Google** or **Microsoft**. Use email/password only if an owner gave you a 
 
 ![Sign in](screenshots/access/02-sign-in.webp)
 
-**4. Wait through “Successfully signed in” → “Loading…”**  
+**4. Wait through “Signed in” → “Loading…”**  
 The app stays on the brand loading screen until Overview or My Jobs data is ready. That is normal.
 
 ![Loading](screenshots/access/03-loading-brand.webp)
+
+**5. Allow the post–sign-in prompts**  
+On this phone the app asks **notifications first**, then **Tap to Pay** (location, Bluetooth on newer Android, Apple/Google/Stripe terms). You do **not** need to open Account and tap Enable. Admins and workers both get this — each phone is set up on its own.
+
+If a sheet was missed or denied, you can still turn things on later under **Account** (see below).
 
 ---
 
@@ -93,21 +98,21 @@ You see **My Jobs** with tabs for jobs and timesheet. No full admin CMS.
 
 ---
 
-## Enable notifications (recommended)
+## Notifications & Tap to Pay
 
-Push alerts are how you hear about new messages, jobs, quotes, and payments on the phone.
+After sign-in, the app asks for **notifications**, then **Tap to Pay**, on this phone. Allow those system sheets when they appear.
+
+**Account** is only a backup if you skipped or denied a prompt:
 
 ### Admin
 
-**1.** Open **More** → tap the **Account** icon (person).  
-**2.** Tap **Enable notifications** and allow permission when Android asks.
+**More** → **Account** icon (person) → **This phone** — Enable notifications and Enable Tap to Pay if they still show.
 
 ![Enable notifications — admin](screenshots/access/06-enable-notifications-admin.webp)
 
 ### Worker
 
-**1.** Open **Account** (tap your name / avatar at the top).  
-**2.** Tap **Enable notifications** and allow permission.
+Tap your name / avatar → **Account** → **This phone** — same backup Enable cards if needed.
 
 ![Enable notifications — worker](screenshots/access/07-enable-notifications-worker.webp)
 
@@ -132,7 +137,7 @@ Push alerts are how you hear about new messages, jobs, quotes, and payments on t
 
 1. Open the app at the start of the day (or after a long time closed) so updates and notifications stay current.  
 2. If something looks “stuck” or missing a recent fix, force-close the app and reopen (or tap **Restart** if Update ready appears).  
-3. Keep notifications enabled on the phone you carry on jobs.  
+3. Allow notifications and Tap to Pay when the app asks after sign-in (Account is only if you missed a sheet).  
 4. Workers: confirm you are assigned on the job before starting; use Manage Job for clock / notes / payment as trained.
 
 ---
@@ -144,7 +149,8 @@ Push alerts are how you hear about new messages, jobs, quotes, and payments on t
 | **OAuth setup needed** | App build is missing sign-in config. Ask the owner for a newer Play build / update, then restart. |
 | Can’t install from Play | Confirm the phone’s Play account was added as a tester, then open the [web join link](https://play.google.com/apps/testing/com.procleaning.app) → Become a tester, then the [Play install link](https://play.google.com/store/apps/details?id=com.procleaning.app). |
 | Signed in but empty screen for a while | Wait for Loading to finish; check network. |
-| No push notifications | Re-open Enable notifications; check Android app notification settings; confirm you granted permission. |
+| No push notifications | Allow the post–sign-in prompt; or **Account → Enable notifications**; check Android app notification settings. |
+| Tap to Pay still asks to enable | Finish the post–sign-in Tap to Pay sheets, or **Account → Enable Tap to Pay**. See the [Tap to Pay guide](./tap-to-pay-guide.md). |
 | Old UI after an update was announced | Force-close → reopen, or Restart when prompted. |
 | Expo Go / simulator | Staff push and Tap to Pay need a real installed Play/App Store (or EAS) build on a physical device. |
 
@@ -152,5 +158,5 @@ Push alerts are how you hear about new messages, jobs, quotes, and payments on t
 
 ## Related guides
 
-- [Tap to Pay guide](./tap-to-pay-guide.md) — taking contactless payments on Android & iOS  
+- [Tap to Pay guide](./tap-to-pay-guide.md) — contactless payments (asked after sign-in; Account is backup)  
 - [App walkthrough](./admin-app-walkthrough.md) — public site, admin tabs, and worker screens

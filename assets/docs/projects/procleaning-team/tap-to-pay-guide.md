@@ -21,7 +21,7 @@ It is available in the **staff app only** (not the public website checkout). Onl
 | **Supported phone** | Modern Android or iPhone with NFC; Tap to Pay–capable model |
 | **Staff app installed** | ProCleaning Team from Play Closed testing / App Store build — not Expo Go |
 | **Signed in** | Admin or worker account |
-| **Tap to Pay enabled on this device** | One-time enable + OS/Stripe terms when prompted |
+| **Tap to Pay enabled on this device** | Asked automatically after sign-in (notifications first, then Tap to Pay). Accept the OS/Stripe terms when they appear. You do **not** need to open Account and tap Enable. |
 | **Job / order context** | Usually started from **Manage Job** on a real order |
 
 ---
@@ -32,24 +32,38 @@ It is available in the **staff app only** (not the public website checkout). Onl
 
 Open ProCleaning Team and sign in as admin or worker.
 
-### 2. Read the Tap to Pay intro (if shown)
+### 2. Allow the post–sign-in prompts
 
-The first time, you may see a **hero** explaining Tap to Pay. Dismiss / continue when ready — that can also trigger a one-time announcement notification.
+Right after the first successful sign-in on this install, the app asks on this phone — **notifications first**, then **Tap to Pay**. You do **not** need to open Account or tap **Enable**.
+
+When Tap to Pay starts, accept:
+
+- Location (required by card networks)  
+- Bluetooth on Android 12+ if asked  
+- **Apple / Google / Stripe** Tap to Pay terms on this device  
+
+Admins and workers both get this sequence. Each phone is linked as a reader on its own — workers do not wait for an admin to enable Tap to Pay first. This does **not** collect a payment.
+
+If you already allowed notifications on an earlier update, you may only see the Tap to Pay sheets this time.
+
+### 3. Read the Tap to Pay intro (if shown)
+
+You may see a **hero** explaining Tap to Pay. Dismiss / continue when ready — that can also trigger a one-time announcement notification.
 
 ![Tap to Pay hero](screenshots/tap-to-pay/01-hero.webp)
 
-### 3. Enable Tap to Pay on this phone
+### 4. If the sheets were missed or denied
 
-Look for the **Enable Tap to Pay** card under **Account** (this phone):
+**Enable Tap to Pay** remains under **Account** (this phone) as a backup:
 
 - **Admins:** **More** → Account icon  
 - **Workers:** tap your name / avatar → **Account**
 
-Tap **Enable** and accept any **Apple / Google / Stripe** system sheets. Do this once per device (or again after reinstall). This does **not** collect a payment — it only links the phone as a reader.
+Tap **Enable** only if collect-card still asks you to turn Tap to Pay on, or after a reinstall.
 
 ![Enable Tap to Pay](screenshots/tap-to-pay/02-enable-card.webp)
 
-### 4. Education screens
+### 5. Education screens
 
 Before collecting, the app may show short **education** cards (what Tap to Pay is, wallets, fallback). Read once, then continue.
 
@@ -98,7 +112,7 @@ Do not ask them to open the ProCleaning website for Tap to Pay — that path is 
 | | Android | iPhone |
 |---|---|---|
 | Install | Play Closed testing build | App Store / TestFlight staff build |
-| Enable | In-app card + Google / Stripe prompts | In-app card + Apple Tap to Pay terms sheet |
+| Enable | After sign-in: Google / Stripe sheets (Account → Enable only if missed) | After sign-in: Apple Tap to Pay terms sheet (Account → Enable only if missed) |
 | NFC | Must be on; case/metal can block taps | Same — clear the back of the phone |
 | Iconography | Follow in-app prompts | Apple requires specific Tap to Pay visuals in-app (already built in) |
 
@@ -108,7 +122,7 @@ Do not ask them to open the ProCleaning website for Tap to Pay — that path is 
 
 - **Pay Now / checkout link** — email or inbox to the customer  
 - **Cash or check** — record in Manage Job  
-- **Retry later** — if NFC is blocked or the device isn’t enabled yet  
+- **Retry later** — if NFC is blocked, or finish the post–sign-in Tap to Pay sheets / Account → Enable if they were denied  
 
 ---
 
@@ -116,8 +130,9 @@ Do not ask them to open the ProCleaning website for Tap to Pay — that path is 
 
 | Symptom | What to try |
 |---|---|
-| No Enable card | Confirm staff build + signed in; check **More → Account** (admin) or **Account** (worker) |
-| Enable fails | Stable internet; finish OS terms; try again after force-close |
+| No Tap to Pay prompt after sign-in | Wait until the dashboard/jobs screen appears; allow notifications first if asked; confirm a real staff build (not Expo Go) |
+| Still asked to enable | **More → Account** (admin) or **Account** (worker) → **Enable**; finish OS terms |
+| Enable / connect fails | Stable internet; finish OS terms; try Account → Enable after force-close |
 | Waiting forever | Customer NFC payment method; remove thick case; hold still; NFC on |
 | “Not supported” | Device may not support Tap to Pay — use link or cash/check |
 | Payment took but order looks unpaid | Pull to refresh / reopen order; ask admin to verify in Orders |

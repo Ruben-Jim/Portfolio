@@ -150,7 +150,7 @@ Customer list built from orders, quotes, and estimates. Open a customer for addr
 
 ### Inbox
 
-In-app customer conversations. Enable **notifications** and **Tap to Pay** cards often live here. Open a thread to reply.
+In-app customer conversations only (open a thread from the list). Notification and Tap to Pay setup are **not** in Inbox — they are asked after sign-in, with a backup under **More → Account**.
 
 ![Inbox](screenshots/walkthrough/admin/08-inbox.webp)
 
@@ -191,7 +191,7 @@ Content and ops settings for the business:
 
 ### More
 
-Bottom sheet for tabs that are not on the primary bar (e.g. Messages, Documents, Dash). Same drag-to-dismiss feel as the inbox chat sheet. Account delete control can appear in the sheet header.
+Bottom sheet for tabs that are not on the primary bar (e.g. Messages, Documents, Dash). Same drag-to-dismiss feel as the inbox chat sheet. The **Account** icon in the header is where you can retry **notifications** or **Tap to Pay** if the post–sign-in sheets were missed.
 
 ![More sheet](screenshots/walkthrough/admin/12-more-sheet.webp)
 
@@ -215,13 +215,13 @@ Hours for the week from job timers and logged shifts.
 
 ### Job on site
 
-Start / clock, notes, navigation to address, complete job, and payment options (including Tap to Pay when enabled).
+Start / clock, notes, navigation to address, complete job, and payment options (including Tap to Pay after this phone has accepted the post–sign-in terms).
 
 ![Job detail](screenshots/walkthrough/worker/03-job-detail.webp)
 
 ### Account
 
-Language, notifications, Tap to Pay enable, logout, delete access.
+Language, logout, delete access. **This phone** can show Enable notifications / Enable Tap to Pay **only if** those were skipped or denied after sign-in — you should not need them on a normal first login.
 
 ![Account](screenshots/walkthrough/worker/04-account.webp)
 
@@ -253,9 +253,9 @@ Keep these in mind; details live in the access & Tap to Pay guides.
 
 ### Notifications vs email
 
-- Prefer **push on phones** for staff day-to-day.
+- Prefer **push on phones** for staff day-to-day. After sign-in the app asks for notifications (then Tap to Pay) automatically.
 - Customer emails (booking confirmations, receipts, reminders) still go through the normal email path.
-- Admins should enable notifications in **More → Account** after install.
+- If push never arrived, retry from **More → Account** (admin) or **Account** (worker).
 
 ### Data truth
 
