@@ -1744,6 +1744,16 @@
     '<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>';
   var GUIDE_ICON_BACK = '<path d="M15 18l-6-6 6-6"/>';
   var GUIDE_ICON_FORWARD = '<path d="M9 18l6-6-6-6"/>';
+  var GUIDE_ICON_DOWNLOAD =
+    '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>' +
+    '<polyline points="7 10 12 15 17 10"/>' +
+    '<line x1="12" y1="15" x2="12" y2="3"/>';
+  var GUIDE_ICON_SHARE =
+    '<circle cx="18" cy="5" r="3"/>' +
+    '<circle cx="6" cy="12" r="3"/>' +
+    '<circle cx="18" cy="19" r="3"/>' +
+    '<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>' +
+    '<line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>';
 
   function guideRecordFor(index) {
     var guide = portalGuideState.guides[index];
@@ -1790,6 +1800,16 @@
       '<h2 class="portal-guide-sheet-title" id="portal-guide-sheet-title">' +
       (guides.length === 1 ? 'Your guide' : 'Choose a guide') +
       '</h2>' +
+      '<div class="portal-guide-sheet-actions" id="portal-guide-sheet-actions" hidden>' +
+      '<button type="button" class="portal-guide-sheet-action" id="portal-guide-download" ' +
+      'aria-label="Download guide">' +
+      guideIconSvg(GUIDE_ICON_DOWNLOAD, 18) +
+      '</button>' +
+      '<button type="button" class="portal-guide-sheet-action" id="portal-guide-share" ' +
+      'aria-label="Share guide">' +
+      guideIconSvg(GUIDE_ICON_SHARE, 18) +
+      '</button>' +
+      '</div>' +
       '<button type="button" class="portal-guide-sheet-close" id="portal-guide-sheet-close" ' +
       'aria-label="Close">&times;</button>' +
       '</div>' +
@@ -1895,6 +1915,7 @@
       titleEl.textContent = portalGuideState.guides.length === 1 ? 'Your guide' : 'Choose a guide';
     }
     if (backBtn) backBtn.hidden = true;
+    setGuideSheetActionsVisible(false);
     syncGuideSheetSize();
     if (focus) {
       var first = root.querySelector('.portal-guide-picker-item');
@@ -1930,10 +1951,98 @@
     var backBtn = document.getElementById('portal-guide-sheet-back');
     if (titleEl) titleEl.textContent = portalGuideState.guides[index].title || 'Project guide';
     if (backBtn) backBtn.hidden = false;
+    setGuideSheetActionsVisible(true);
     root.classList.add('is-reading');
     syncGuideSheetSize();
     reader.scrollTop = 0;
     if (focus && typeof reader.focus === 'function') reader.focus();
+  }
+
+  function setGuideSheetActionsVisible(visible) {
+    var actions = document.getElementById('portal-guide-sheet-actions');
+    if (actions) actions.hidden = !visible;
+  }
+
+  function currentGuideFileHref() {
+    var guide = portalGuideState.guides[portalGuideState.selectedIndex];
+    if (!guide || !guide.url || !window.PortfolioDetailShared) return '';
+    var src = window.PortfolioDetailShared.displayCanvasDocSrc(guide.url);
+    if (!src) return '';
+    try {
+      return new URL(src, window.location.href).href;
+    } catch (e) {
+      return src;
+    }
+  }
+
+  function currentGuideFilename() {
+    var guide = portalGuideState.guides[portalGuideState.selectedIndex];
+    var url = String((guide && guide.url) || '').split('?')[0];
+    var name = url.split('/').pop();
+    return name || 'guide.md';
+  }
+
+  function downloadCurrentGuide() {
+    var href = currentGuideFileHref();
+    if (!href) return;
+    var filename = currentGuideFilename();
+    fetch(href)
+      .then(function (res) {
+        if (!res.ok) throw new Error('download failed');
+        return res.blob();
+      })
+      .then(function (blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () {
+          URL.revokeObjectURL(a.href);
+        }, 1000);
+      })
+      .catch(function () {
+        window.open(href, '_blank', 'noopener,noreferrer');
+      });
+  }
+
+  function shareCurrentGuide() {
+    var href = currentGuideFileHref();
+    var guide = portalGuideState.guides[portalGuideState.selectedIndex];
+    if (!href) return;
+    var title = (guide && guide.title) || 'Project guide';
+    var shareBtn = document.getElementById('portal-guide-share');
+
+    function copied() {
+      if (!shareBtn) return;
+      var prev = shareBtn.getAttribute('aria-label');
+      shareBtn.setAttribute('aria-label', 'Link copied');
+      setTimeout(function () {
+        shareBtn.setAttribute('aria-label', prev || 'Share guide');
+      }, 1600);
+    }
+
+    function copyLink() {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(href).then(copied).catch(function () {
+          window.prompt('Copy this guide link', href);
+        });
+      } else {
+        window.prompt('Copy this guide link', href);
+      }
+    }
+
+    if (navigator.share) {
+      navigator
+        .share({ title: title, text: title, url: href })
+        .catch(function (err) {
+          if (err && err.name === 'AbortError') return;
+          copyLink();
+        });
+      return;
+    }
+    copyLink();
   }
 
   function bindGuideSheet(root) {
@@ -1966,6 +2075,19 @@
         showGuideReader(Number(btn.getAttribute('data-guide-index')), true);
       });
     });
+
+    var downloadBtn = root.querySelector('#portal-guide-download');
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', function () {
+        downloadCurrentGuide();
+      });
+    }
+    var shareBtn = root.querySelector('#portal-guide-share');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', function () {
+        shareCurrentGuide();
+      });
+    }
 
     window.addEventListener('resize', function () {
       var sheetRoot = guideSheetRoot();

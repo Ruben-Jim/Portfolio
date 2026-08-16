@@ -49,4 +49,4 @@ Add up to three **Docs & guides** rows for the ProCleaning client:
 
 WebP screenshots live next to the guides under `procleaning-team/screenshots/` (see `SCREENSHOT-CHECKLIST.md`).
 
-There is no file upload in admin — add each `.md` in the repo, then in Clients → **Docs & guides** add a row per file (path + section title) → **Save docs & guides**. Each guide appears in the portal as its own open section (not inside collapsed Project showcase). Up to 8 guides per client.
+There is no file upload in admin — add each `.md` in the repo, then in Clients → **Docs & guides** add a row per file (path + section title) → **Save docs & guides**. Guides open from **View guides** in the client portal. While a guide is open, the client can **download** the file or **share** it (system share sheet, or copy link).

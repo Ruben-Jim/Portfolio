@@ -234,7 +234,9 @@ Keep these in mind; details live in the access & Tap to Pay guides.
 ### Distribution
 
 - **Android “live” for staff** = Google Play **Closed testing** (not public Production unless you intentionally go public).
-- Invite each staff Google account to Closed testing; share the opt-in link.
+- Invite each staff **Play Store Gmail** to Closed testing, then send:
+  - Web (Become a tester): [play.google.com/apps/testing/com.procleaning.app](https://play.google.com/apps/testing/com.procleaning.app)
+  - Android (Install): [play.google.com/store/apps/details?id=com.procleaning.app](https://play.google.com/store/apps/details?id=com.procleaning.app)
 - **iOS** uses your App Store / TestFlight staff build process separately.
 
 ### Updates

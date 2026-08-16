@@ -459,7 +459,8 @@ body.client-portal-page {
 }
 
 .portal-guide-sheet-back,
-.portal-guide-sheet-close {
+.portal-guide-sheet-close,
+.portal-guide-sheet-action {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
@@ -477,9 +478,21 @@ body.client-portal-page {
 
 .portal-guide-sheet-back svg,
 .portal-guide-picker-item-chevron svg,
-.client-portal-guide-launcher-icon svg {
+.client-portal-guide-launcher-icon svg,
+.portal-guide-sheet-action svg {
   display: block;
   flex: 0 0 auto;
+}
+
+.portal-guide-sheet-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.portal-guide-sheet-actions[hidden] {
+  display: none;
 }
 
 .portal-guide-sheet-close {
@@ -490,7 +503,9 @@ body.client-portal-page {
 .portal-guide-sheet-back:hover,
 .portal-guide-sheet-back:focus-visible,
 .portal-guide-sheet-close:hover,
-.portal-guide-sheet-close:focus-visible {
+.portal-guide-sheet-close:focus-visible,
+.portal-guide-sheet-action:hover,
+.portal-guide-sheet-action:focus-visible {
   opacity: 1;
   background: hsla(0, 0%, 100%, 0.07);
 }

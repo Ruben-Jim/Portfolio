@@ -891,6 +891,7 @@
     initPortfolioDetailPage: initPortfolioDetailPage,
     initCanvasDoc: initCanvasDoc,
     normalizeCanvasDocUrl: normalizeCanvasDocUrl,
+    displayCanvasDocSrc: displayCanvasDocSrc,
     resolveLiveUrl: resolveLiveUrl
   };
 })(typeof window !== 'undefined' ? window : this);

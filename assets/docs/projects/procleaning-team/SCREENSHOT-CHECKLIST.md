@@ -15,14 +15,14 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 
 | Filename | Status | Source |
 |----------|--------|--------|
-| `01-play-closed-testing.webp` | NEED DEVICE / Play Console | Closed testing opt-in or Play listing |
+| `01-play-closed-testing.webp` | DONE / Play Console | Closed testing opt-in or Play listing |
 | `02-sign-in.webp` | DONE | Live web `/admin` (mobile viewport) |
-| `03-loading-brand.webp` | NEED DEVICE | Staff app loading / brand screen |
+| `03-loading-brand.webp` | DONE | Staff app loading / brand screen |
 | `04-admin-overview.webp` | DONE | Your Android Overview screenshot (Aug 14) |
-| `05-worker-my-jobs.webp` | NEED DEVICE | Worker My Jobs |
+| `05-worker-my-jobs.webp` | DONE | Worker My Jobs |
 | `06-enable-notifications-admin.webp` | NEED DEVICE | Admin Inbox |
 | `07-enable-notifications-worker.webp` | NEED DEVICE | Worker Account |
-| `08-update-ready.webp` | NEED DEVICE | After a newer OTA is downloaded |
+| `08-update-ready.webp` | DONE | After a newer OTA is downloaded |
 
 ---
 
