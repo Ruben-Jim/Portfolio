@@ -20,8 +20,8 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 | `03-loading-brand.webp` | DONE | Staff app loading / brand screen |
 | `04-admin-overview.webp` | DONE | Your Android Overview screenshot (Aug 14) |
 | `05-worker-my-jobs.webp` | DONE | Worker My Jobs |
-| `06-more-sheet.webp` | NEED DEVICE | Admin **More** bottom sheet |
-| `07-account-settings.webp` | NEED DEVICE | Account modal (Enable notifications). Drop next to More, side by side in the guides |
+| `06-more-sheet.webp` | DONE | Admin **More** bottom sheet |
+| `07-account-settings.webp` | DONE | Account modal (Enable notifications). Drop next to More, side by side in the guides |
 | `08-update-ready.webp` | DONE | After a newer OTA is downloaded |
 
 ---
