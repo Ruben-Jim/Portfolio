@@ -92,6 +92,45 @@ body.client-portal-page {
   color: var(--light-gray-70);
 }
 
+/* ——— Store badges ———
+   Official Apple/Google artwork. Google's PNG is 646x250 with 41px of
+   transparent clear-space baked into every side, so only 67.2% of its height is
+   badge — it needs a taller box and a negative margin to sit level with Apple's
+   edge-to-edge SVG. Same compensation as the landing page. */
+.client-portal-store-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.client-portal-store-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.client-portal-store-badge img {
+  display: block;
+  height: 44px;
+  width: auto;
+}
+
+.client-portal-store-badge--play img {
+  height: 65px;
+  margin: -11px;
+}
+
+.client-portal-store-badge.is-disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.client-portal-store-badge.is-disabled img {
+  filter: grayscale(1);
+  opacity: 0.38;
+}
+
 .client-portal-visit-links {
   display: flex;
   flex-wrap: wrap;

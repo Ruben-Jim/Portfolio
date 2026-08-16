@@ -554,6 +554,8 @@
       title: existing.title || '',
       repoUrl: existing.repoUrl || '',
       expoUrl: existing.expoUrl || '',
+      appStoreUrl: existing.appStoreUrl || '',
+      playStoreUrl: existing.playStoreUrl || '',
       firebaseProjectId: existing.firebaseProjectId || '',
       businessDocId: existing.businessDocId || '',
       portfolioProjectId: existing.portfolioProjectId || '',
@@ -586,6 +588,8 @@
       title: String(row.title || '').slice(0, 200),
       repoUrl: String(row.repoUrl || '').slice(0, 500),
       expoUrl: String(row.expoUrl || '').slice(0, 500),
+      appStoreUrl: String(row.appStoreUrl || '').slice(0, 500),
+      playStoreUrl: String(row.playStoreUrl || '').slice(0, 500),
       firebaseProjectId: String(row.firebaseProjectId || '').slice(0, 120),
       businessDocId: String(row.businessDocId || '').slice(0, 80),
       portfolioProjectId: String(row.portfolioProjectId || '').slice(0, 80),
@@ -1234,6 +1238,10 @@
     document.getElementById('hub-title').value = p.title || '';
     document.getElementById('hub-repo-url').value = p.repoUrl || '';
     document.getElementById('hub-expo-url').value = p.expoUrl || '';
+    var appStoreEl = document.getElementById('hub-app-store-url');
+    if (appStoreEl) appStoreEl.value = p.appStoreUrl || '';
+    var playStoreEl = document.getElementById('hub-play-store-url');
+    if (playStoreEl) playStoreEl.value = p.playStoreUrl || '';
     document.getElementById('hub-firebase-id').value = p.firebaseProjectId || '';
     document.getElementById('hub-business-doc-id').value = p.businessDocId || '';
     var demoBranchEl = document.getElementById('hub-demo-branch');
@@ -1323,6 +1331,12 @@
       title: document.getElementById('hub-title').value.trim(),
       repoUrl: document.getElementById('hub-repo-url').value.trim(),
       expoUrl: document.getElementById('hub-expo-url').value.trim(),
+      appStoreUrl: (document.getElementById('hub-app-store-url') || {}).value
+        ? document.getElementById('hub-app-store-url').value.trim()
+        : '',
+      playStoreUrl: (document.getElementById('hub-play-store-url') || {}).value
+        ? document.getElementById('hub-play-store-url').value.trim()
+        : '',
       firebaseProjectId: document.getElementById('hub-firebase-id').value.trim(),
       businessDocId: document.getElementById('hub-business-doc-id').value.trim(),
       portfolioProjectId: portfolioProjectId,
@@ -4339,6 +4353,14 @@
       '<input id="cp-hub-client-repo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="New codebase after they continue" value="' +
       esc(hub.clientRepoUrl || '') +
       '"></div>' +
+      '<div class="form-group"><label for="cp-hub-app-store">App Store URL</label>' +
+      '<input id="cp-hub-app-store" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://apps.apple.com/app/id…" value="' +
+      esc(hub.appStoreUrl || '') +
+      '"></div>' +
+      '<div class="form-group"><label for="cp-hub-play-store">Play Store URL</label>' +
+      '<input id="cp-hub-play-store" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://play.google.com/store/apps/details?id=…" value="' +
+      esc(hub.playStoreUrl || '') +
+      '"></div>' +
       '<div class="form-group"><label for="cp-hub-firebase" id="cp-hub-firebase-label">' +
       esc(fbLabel) +
       '</label><input id="cp-hub-firebase" class="form-input" type="text" value="' +
@@ -4357,7 +4379,10 @@
       '</div>' +
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-hub">Save hub</button>' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="graduate-client">Graduate to client</button>' +
+      // Already a client — graduating again is a no-op that only invites mistakes.
+      (stage === 'client'
+        ? ''
+        : '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="graduate-client">Graduate to client</button>') +
       '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-hub">Delete client</button>' +
       '<p class="cp-section-feedback" data-cp-feedback="hub" role="status"></p></div>';
 
@@ -4772,6 +4797,8 @@
       title: cpFieldValue('cp-hub-title'),
       repoUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-repo')),
       expoUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-expo')),
+      appStoreUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-app-store')),
+      playStoreUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-play-store')),
       firebaseProjectId: cpFieldValue('cp-hub-firebase'),
       businessDocId: cpFieldValue('cp-hub-doc-id'),
       portfolioProjectId: templateId,
@@ -4791,8 +4818,12 @@
     });
     try {
       await saveProjectHubRecord(hubId, payload, false);
-      setCpFeedback(feedbackSection, feedbackSection === 'milestones' ? 'Milestones saved.' : 'Hub saved.', false);
+      // Re-render FIRST. renderClientProjectsWorkspace() rebuilds the workspace
+      // markup, which destroys the feedback element — setting the message before
+      // it meant "Hub saved." was written to a node that was then thrown away,
+      // so the confirmation never appeared.
       renderClientProjectsWorkspace();
+      setCpFeedback(feedbackSection, feedbackSection === 'milestones' ? 'Milestones saved.' : 'Hub saved.', false);
       renderTimeCapacityPanel();
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
@@ -4858,8 +4889,8 @@
   async function saveMaintPortalVisibilityFromClientWorkspace() {
     try {
       await updateHubShowMaintenanceInPortal();
-      setCpFeedback('maint', 'Portal visibility saved.', false);
       renderClientProjectsWorkspace();
+      setCpFeedback('maint', 'Portal visibility saved.', false);
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
       console.error(err);
@@ -4894,8 +4925,8 @@
     try {
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
       await updateHubShowMaintenanceInPortal();
-      setCpFeedback('maint', 'Maintenance saved.', false);
       renderClientProjectsWorkspace();
+      setCpFeedback('maint', 'Maintenance saved.', false);
       renderTimeCapacityPanel();
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
@@ -4976,8 +5007,8 @@
     try {
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.firebaseHealth + '/' + hubId), payload);
       agencyHealthByProject[hubId] = normalizeHealthRecord(payload);
-      setCpFeedback('health', 'Health check saved.', false);
       renderClientProjectsWorkspace();
+      setCpFeedback('health', 'Health check saved.', false);
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
       console.error(err);
@@ -4994,8 +5025,8 @@
         value: (document.getElementById('cp-pipeline-value') || {}).value,
         notes: (document.getElementById('cp-pipeline-notes') || {}).value
       });
-      setCpFeedback('pipeline', 'Pipeline saved.', false);
       renderClientProjectsWorkspace();
+      setCpFeedback('pipeline', 'Pipeline saved.', false);
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
       console.error(err);
@@ -5010,8 +5041,8 @@
     var payload = buildHubWritePayload(existing, { portfolioProjectId: portfolioId });
     await saveProjectHubRecord(hubId, payload, false);
     if (clientProjectsSelectedId === hubId) {
-      setCpFeedback('portfolio', 'Client showcase created and linked.', false);
       renderClientProjectsWorkspace();
+      setCpFeedback('portfolio', 'Client showcase created and linked.', false);
     }
   }
 
@@ -5028,8 +5059,8 @@
     var payload = buildHubWritePayload(existing, { portfolioProjectId: portfolioId });
     try {
       await saveProjectHubRecord(hubId, payload, false);
-      setCpFeedback('portfolio', 'Showcase link saved — refresh the client portal to see changes.', false);
       renderClientProjectsWorkspace();
+      setCpFeedback('portfolio', 'Showcase link saved — refresh the client portal to see changes.', false);
     } catch (err) {
       console.error(err);
       setCpFeedback('portfolio', (err && err.message) || 'Save failed.', true);
@@ -5056,8 +5087,8 @@
     var payload = buildHubWritePayload(existing, { portfolioProjectId: '' });
     try {
       await saveProjectHubRecord(hubId, payload, false);
-      setCpFeedback('portfolio', 'Showcase unlinked — refresh the client portal to see changes.', false);
       renderClientProjectsWorkspace();
+      setCpFeedback('portfolio', 'Showcase unlinked — refresh the client portal to see changes.', false);
     } catch (err) {
       console.error(err);
       setCpFeedback('portfolio', (err && err.message) || 'Unlink failed.', true);
@@ -5257,8 +5288,8 @@
       if (!approveId) return;
       approveMaintenancePlan(approveId)
         .then(function () {
-          setCpFeedback('maint', 'Plan approved and activated.', false);
           renderClientProjectsWorkspace();
+          setCpFeedback('maint', 'Plan approved and activated.', false);
           if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
         })
         .catch(function (err) {
@@ -5272,8 +5303,8 @@
       if (!declineId) return;
       declineMaintenancePlan(declineId)
         .then(function () {
-          setCpFeedback('maint', 'Plan request declined.', false);
           renderClientProjectsWorkspace();
+          setCpFeedback('maint', 'Plan request declined.', false);
         })
         .catch(function (err) {
           console.error(err);

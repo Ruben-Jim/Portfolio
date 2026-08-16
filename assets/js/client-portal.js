@@ -827,6 +827,10 @@
       clientName: String(row.clientName || '').slice(0, 120),
       title: String(row.title || '').slice(0, 200),
       expoUrl: String(row.expoUrl || '').slice(0, 500),
+      // The portal builds its own whitelisted view of the hub record — a field
+      // not listed here never reaches the page, however well it saved.
+      appStoreUrl: String(row.appStoreUrl || '').slice(0, 500),
+      playStoreUrl: String(row.playStoreUrl || '').slice(0, 500),
       deliveryStage: stage,
       portfolioProjectId: String(row.portfolioProjectId || '').slice(0, 80),
       businessDocId: String(row.businessDocId || '').slice(0, 80),
@@ -941,9 +945,65 @@
     return links;
   }
 
+  var STORE_BADGES = [
+    {
+      key: 'appStoreUrl',
+      name: 'App Store',
+      src: 'https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg',
+      cls: 'client-portal-store-badge--apple'
+    },
+    {
+      key: 'playStoreUrl',
+      name: 'Google Play',
+      src: 'https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png',
+      cls: 'client-portal-store-badge--play'
+    }
+  ];
+
+  /**
+   * Both badges always render. An unset one is shown disabled rather than
+   * omitted, so a client on one platform can see the other is still to come.
+   */
+  function renderStoreBadges(project) {
+    return (
+      '<div class="client-portal-store-badges">' +
+      STORE_BADGES.map(function (badge) {
+        var url = ensureAbsolutePortalUrl(project && project[badge.key]);
+        var img =
+          '<img src="' +
+          esc(badge.src) +
+          '" alt="' +
+          esc(url ? 'Get it on ' + badge.name : badge.name + ' — not published yet') +
+          '" loading="lazy">';
+        if (!url) {
+          return (
+            '<span class="client-portal-store-badge ' +
+            badge.cls +
+            ' is-disabled" aria-disabled="true" title="' +
+            esc(badge.name + ' link not available yet') +
+            '">' +
+            img +
+            '</span>'
+          );
+        }
+        return (
+          '<a class="client-portal-store-badge ' +
+          badge.cls +
+          '" href="' +
+          esc(url) +
+          '" target="_blank" rel="noopener noreferrer">' +
+          img +
+          '</a>'
+        );
+      }).join('') +
+      '</div>'
+    );
+  }
+
   function renderProjectVisitLinks(project, detailRecord, options) {
     var links = collectProjectVisitLinks(project, detailRecord, options);
-    if (!links.length) return '';
+    var badges = renderStoreBadges(project);
+    if (!links.length && !badges) return '';
     return (
       '<div class="client-portal-visit-links">' +
       links
@@ -959,6 +1019,7 @@
           );
         })
         .join('') +
+      badges +
       '</div>'
     );
   }
