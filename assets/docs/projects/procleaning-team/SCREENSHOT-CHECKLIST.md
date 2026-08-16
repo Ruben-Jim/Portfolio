@@ -20,8 +20,8 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 | `03-loading-brand.webp` | DONE | Staff app loading / brand screen |
 | `04-admin-overview.webp` | DONE | Your Android Overview screenshot (Aug 14) |
 | `05-worker-my-jobs.webp` | DONE | Worker My Jobs |
-| `06-enable-notifications-admin.webp` | DONE | Admin Inbox (Turn on banner) |
-| `07-enable-notifications-worker.webp` | NEED DEVICE | Worker Account (preview has no Account screen) |
+| `06-more-sheet.webp` | NEED DEVICE | Admin **More** bottom sheet |
+| `07-account-settings.webp` | NEED DEVICE | Account modal (Enable notifications). Drop next to More, side by side in the guides |
 | `08-update-ready.webp` | DONE | After a newer OTA is downloaded |
 
 ---
@@ -31,7 +31,7 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 | Filename | Status |
 |----------|--------|
 | `01-hero.webp` | DONE | First-time intro |
-| `02-enable-card.webp` | DONE | Admin Inbox Enable banner |
+| `02-enable-card.webp` | optional | Replaced in guides by Account modal (`access/07-account-settings.webp`) |
 | `03-education.webp` | DONE | How Tap to Pay works |
 | `04-collect-payment.webp` | DONE | Ready to pay → Collect payment |
 | `05-payment-success.webp` | NEED DEVICE | Do not capture with a live customer charge |
@@ -70,7 +70,7 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 | `09-documents.webp` | DONE |
 | `10-reports.webp` | DONE |
 | `11-dash.webp` | DONE |
-| `12-more-sheet.webp` | DONE |
+| `12-more-sheet.webp` | optional | Guides now use `access/06-more-sheet.webp` next to Account |
 
 ---
 
