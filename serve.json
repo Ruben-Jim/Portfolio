@@ -6,14 +6,6 @@
       "destination": "/portal.html"
     },
     {
-      "source": "/get",
-      "destination": "/get.html"
-    },
-    {
-      "source": "/get/**",
-      "destination": "/get.html"
-    },
-    {
       "source": "/",
       "destination": "/index.html"
     },

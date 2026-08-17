@@ -1005,7 +1005,10 @@
 
   function installPageUrl(projectId) {
     if (!projectId) return '';
-    return location.origin + '/get/' + projectId;
+    // Query form: the site is static GitHub Pages with no rewrite support, so
+    // /get/<id> 404s into 404.html. Mirrors the /portal.html?token=… convention.
+    var base = String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '');
+    return base + '/get.html?id=' + encodeURIComponent(projectId);
   }
 
   /**

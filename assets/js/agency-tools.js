@@ -4183,7 +4183,11 @@
 
   function installPageUrlFor(hubId) {
     if (!hubId) return '';
-    return location.origin + '/get/' + hubId;
+    // Query form, matching clientPortalUrl(). The site is static GitHub Pages —
+    // it has no rewrite support, so /get/<id> 404s. Same reason portal links are
+    // /portal.html?token=… rather than /portal/<token>.
+    var base = String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '');
+    return base + '/get.html?id=' + encodeURIComponent(hubId);
   }
 
   function renderClientProjectsWorkspace() {
