@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=studio-docs-20260817w">
+  <link rel="stylesheet" href="/assets/css/style.css?v=studio-docs-cards-20260817x">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -4384,21 +4384,14 @@
                 <div class="ops-docs-head">
                   <div class="ops-docs-head-copy">
                     <p class="ops-manual-section-label">Studio docs</p>
-                    <p class="ops-docs-lead">Your own <code>cwr-*.md</code> files in <code>/assets/docs/</code>. Add the filename once and it opens here.</p>
+                    <p class="ops-docs-lead">Reference Markdown from <code>/assets/docs/</code>, read without leaving admin.</p>
                   </div>
-                  <div class="ops-docs-head-actions">
-                    <button type="button" class="btn btn-secondary ops-docs-launcher" id="ops-docs-launcher" aria-haspopup="dialog" aria-expanded="false" hidden>
-                      <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
-                      <span>View docs</span>
-                      <span class="ops-docs-launcher-count" id="ops-docs-count">0</span>
-                    </button>
-                    <button type="button" class="btn btn-primary" id="ops-doc-add-btn">
-                      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-                      Add doc
-                    </button>
-                  </div>
+                  <button type="button" class="btn btn-primary ops-docs-add" id="ops-doc-add-btn">
+                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                    Add doc
+                  </button>
                 </div>
-                <div class="ops-docs-list" id="ops-docs-list"></div>
+                <div class="ops-docs-grid" id="ops-docs-list"></div>
               </section>
 
               <nav class="ops-manual-protocols" aria-label="Protocol shortcuts">
@@ -7442,7 +7435,7 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
   <script src="/assets/js/script.js?v=email-archive-fix-20260817t"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=studio-docs-20260817w"></script>
+  <script src="/assets/js/agency-tools.js?v=studio-docs-cards-20260817x"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
