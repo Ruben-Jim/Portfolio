@@ -22234,6 +22234,473 @@ body.modal-open {
   margin: 0 0 0.85rem;
 }
 
+/* ─── Studio docs (Ops tab) ───────────────────────────────── */
+
+#admin-panel-ops .ops-docs {
+  margin-bottom: 2rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid hsla(0, 0%, 22%, 0.85);
+}
+
+#admin-panel-ops .ops-docs-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.1rem;
+}
+
+#admin-panel-ops .ops-docs-head-copy {
+  min-width: 0;
+}
+
+#admin-panel-ops .ops-docs-head-copy .ops-manual-section-label {
+  margin-bottom: 0.35rem;
+}
+
+#admin-panel-ops .ops-docs-lead {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: hsl(0, 0%, 72%);
+}
+
+#admin-panel-ops .ops-docs-lead code {
+  font-size: 0.75rem;
+  color: var(--vegas-gold);
+}
+
+#admin-panel-ops .ops-docs-add {
+  flex: 0 0 auto;
+}
+
+/* Docs read as the same kind of thing as the protocol tiles below — a card you
+   click to open a document — so they share that grid and card treatment. */
+#admin-panel-ops .ops-docs-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  #admin-panel-ops .ops-docs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.125rem;
+  }
+}
+
+#admin-panel-ops .ops-docs-grid .agency-skeleton-list,
+#admin-panel-ops .ops-docs-empty {
+  grid-column: 1 / -1;
+}
+
+#admin-panel-ops .ops-docs-empty {
+  margin: 0;
+  padding: 1.5rem 1.35rem;
+  border: 1px dashed var(--jet);
+  border-radius: 14px;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: hsl(0, 0%, 72%);
+}
+
+#admin-panel-ops .ops-doc-card {
+  position: relative;
+  border: 1px solid var(--jet);
+  border-left: 4px solid var(--vegas-gold);
+  border-radius: 14px;
+  background: var(--eerie-black-2);
+  box-shadow: 0 16px 30px hsla(0, 0%, 0%, 0.25);
+  transition: border-color 0.2s ease, box-shadow 0.22s ease, transform 0.2s ease;
+}
+
+#admin-panel-ops .ops-doc-card:hover,
+#admin-panel-ops .ops-doc-card:focus-within {
+  border-left-color: var(--orange-yellow-crayola);
+  box-shadow: 0 14px 42px hsla(0, 0%, 0%, 0.38);
+  transform: translateY(-2px);
+}
+
+#admin-panel-ops .ops-doc-card-open {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 7.25rem;
+  padding: 1.2rem 1.35rem 1.1rem;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+#admin-panel-ops .ops-doc-card-open:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 3px;
+}
+
+#admin-panel-ops .ops-doc-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  /* Keeps a long title clear of the edit and remove buttons. */
+  padding-right: 3.75rem;
+  margin-bottom: 0.4rem;
+}
+
+#admin-panel-ops .ops-doc-card-head ion-icon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  font-size: 1.65rem;
+}
+
+#admin-panel-ops .ops-doc-card-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--white-2);
+}
+
+#admin-panel-ops .ops-doc-card-file {
+  flex: 1;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: hsl(0, 0%, 62%);
+  overflow-wrap: anywhere;
+}
+
+#admin-panel-ops .ops-doc-card-open::after {
+  content: "Open →";
+  align-self: flex-end;
+  margin-top: 0.65rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange-yellow-crayola);
+  opacity: 0.75;
+}
+
+/* Managing a doc is rare next to reading one, so the controls stay out of the
+   way until the card is hovered or keyboard focus lands inside it. */
+#admin-panel-ops .ops-doc-card-actions {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.85rem;
+  display: flex;
+  gap: 0.2rem;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+#admin-panel-ops .ops-doc-card:hover .ops-doc-card-actions,
+#admin-panel-ops .ops-doc-card:focus-within .ops-doc-card-actions {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  #admin-panel-ops .ops-doc-card-actions {
+    opacity: 1;
+  }
+}
+
+#admin-panel-ops .ops-doc-card-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: hsla(0, 0%, 100%, 0.05);
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+#admin-panel-ops .ops-doc-card-action ion-icon {
+  font-size: 15px;
+  color: var(--light-gray-70) !important;
+  transition: color 0.18s ease;
+}
+
+#admin-panel-ops .ops-doc-card-action:hover,
+#admin-panel-ops .ops-doc-card-action:focus-visible {
+  background: hsla(0, 0%, 100%, 0.11);
+}
+
+#admin-panel-ops .ops-doc-card-action:hover ion-icon,
+#admin-panel-ops .ops-doc-card-action:focus-visible ion-icon {
+  color: var(--white-2) !important;
+}
+
+#admin-panel-ops .ops-doc-card-action--delete:hover ion-icon,
+#admin-panel-ops .ops-doc-card-action--delete:focus-visible ion-icon {
+  color: hsl(0, 72%, 68%) !important;
+}
+
+/* Reader sheet — mirrors the client portal guide sheet. */
+.ops-doc-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0.32s step-end;
+}
+
+.ops-doc-sheet-root.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  transition: visibility 0s step-start;
+}
+
+.ops-doc-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: hsla(0, 0%, 0%, 0.72);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+
+.ops-doc-sheet-root.is-open .ops-doc-sheet-backdrop {
+  opacity: 1;
+}
+
+.ops-doc-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, 100%);
+  height: min(88vh, 900px);
+  min-height: 0;
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  border-radius: 14px;
+  background: var(--eerie-black-2);
+  overflow: hidden;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale(0.985);
+  transition: opacity 0.2s ease, transform 0.2s ease, width 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.ops-doc-sheet-root.is-open .ops-doc-sheet {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.ops-doc-sheet-root.is-reading .ops-doc-sheet {
+  width: min(900px, 100%);
+}
+
+.ops-doc-sheet-head {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.08);
+}
+
+.ops-doc-sheet-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--white-2);
+}
+
+.ops-doc-sheet-back,
+.ops-doc-sheet-close,
+.ops-doc-sheet-action {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--white-2);
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.ops-doc-sheet-back:hover,
+.ops-doc-sheet-back:focus-visible,
+.ops-doc-sheet-close:hover,
+.ops-doc-sheet-close:focus-visible,
+.ops-doc-sheet-action:hover,
+.ops-doc-sheet-action:focus-visible {
+  opacity: 1;
+  background: hsla(0, 0%, 100%, 0.07);
+}
+
+.ops-doc-sheet-back[hidden],
+.ops-doc-sheet-actions[hidden] {
+  display: none;
+}
+
+.ops-doc-sheet-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+}
+
+.ops-doc-sheet-panes {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ops-doc-sheet-pane {
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.ops-doc-sheet-pane--list {
+  position: relative;
+  height: 100%;
+  padding: 8px;
+  transform: translate3d(0, 0, 0);
+}
+
+.ops-doc-sheet-pane--reader {
+  position: absolute;
+  inset: 0;
+  padding: 0 18px 24px;
+  transform: translate3d(100%, 0, 0);
+}
+
+.ops-doc-sheet-root.is-reading .ops-doc-sheet-pane--list {
+  transform: translate3d(-100%, 0, 0);
+}
+
+.ops-doc-sheet-root.is-reading .ops-doc-sheet-pane--reader {
+  transform: translate3d(0, 0, 0);
+}
+
+.ops-doc-sheet-pane--reader .project-detail-canvas-doc {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+/* The sheet head already names the doc — repeating it above the body is noise. */
+.ops-doc-sheet-pane--reader .project-detail-section-title {
+  display: none;
+}
+
+.ops-doc-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ops-doc-picker-item:hover,
+.ops-doc-picker-item:focus-visible {
+  background: hsla(0, 0%, 100%, 0.05);
+}
+
+.ops-doc-picker-item-copy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ops-doc-picker-item-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--white-2);
+}
+
+.ops-doc-picker-item-file {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--light-gray-70);
+}
+
+body.ops-doc-sheet-open {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .ops-doc-sheet-root {
+    align-items: flex-end;
+    justify-content: stretch;
+    padding: 0;
+  }
+
+  .ops-doc-sheet {
+    width: 100%;
+    height: 92vh;
+    border-bottom: none;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    box-shadow: 0 -16px 56px hsla(0, 0%, 0%, 0.5);
+    opacity: 1;
+    transform: translate3d(0, 100%, 0);
+    transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .ops-doc-sheet-root.is-open .ops-doc-sheet {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .ops-doc-sheet-root.is-reading .ops-doc-sheet {
+    width: 100%;
+  }
+
+  .ops-doc-sheet-pane--reader {
+    padding: 0 14px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ops-doc-sheet,
+  .ops-doc-sheet-backdrop,
+  .ops-doc-sheet-pane {
+    transition: none;
+  }
+}
+
 #ops-modal .ops-manual-protocols,
 #admin-panel-ops .ops-manual-protocols {
   margin-bottom: 2rem;

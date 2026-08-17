@@ -11,6 +11,7 @@
     maintenance: 'agencyMaintenance',
     referrals: 'agencyReferrals',
     studioCosts: 'agencyStudioCosts',
+    studioDocs: 'agencyStudioDocs',
     clientPortals: 'agencyClientPortals',
     firebaseHealth: 'agencyFirebaseHealth',
     timeEntries: 'agencyTimeEntries'
@@ -71,6 +72,7 @@
   var agencyTimeEntries = [];
   var agencyReferrals = [];
   var agencyStudioCosts = [];
+  var agencyStudioDocs = [];
   var studioCostsSeedAttempted = false;
   var agencyUnsubs = [];
 
@@ -83,7 +85,8 @@
     maintenance: false,
     timeEntries: false,
     referrals: false,
-    studioCosts: false
+    studioCosts: false,
+    studioDocs: false
   };
 
   function resetAgencyLoaded() {
@@ -468,6 +471,13 @@
     );
 
     agencyUnsubs.push(
+      window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.studioDocs), function (snap) {
+        agencyLoaded.studioDocs = true;
+        applyStudioDocsFromVal(snap.val());
+      })
+    );
+
+    agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.firebaseHealth), function (snap) {
         mergeHealthSnapshot(snap.val());
         refreshHealthUiAfterData(false);
@@ -490,6 +500,8 @@
     agencyTimeEntries = [];
     agencyReferrals = [];
     agencyStudioCosts = [];
+    agencyStudioDocs = [];
+    closeOpsDocSheet();
     resetAgencyLoaded();
     studioCostsSeedAttempted = false;
     agencyHealthByProject = {};
@@ -2903,6 +2915,412 @@
         confirmStudioCostPaid().catch(console.error);
       });
     }
+  }
+
+  // ——— Studio Docs ———
+  // Reference markdown that ships with the site (the cwr-*.md files in
+  // /assets/docs) read inside admin instead of in an editor. Hosting has no
+  // directory listing, so the list is the paths saved here — not a folder scan.
+  var MAX_STUDIO_DOCS = 24;
+  var opsDocState = { selectedIndex: -1, lastOpener: null };
+
+  function normalizeStudioDocPath(input) {
+    var s = String(input || '').trim();
+    if (!s) return '';
+    if (/^https?:\/\//i.test(s)) return s.slice(0, 500);
+    s = s.replace(/^\.?\//, '');
+    // A bare filename is the common case — these all live in the docs root.
+    if (s.indexOf('/') === -1) s = 'assets/docs/' + s;
+    if (!/^assets\//i.test(s)) return '';
+    return ('/' + s).slice(0, 500);
+  }
+
+  function studioDocFilename(doc) {
+    var url = String((doc && doc.url) || '').split('?')[0];
+    return url.split('/').filter(Boolean).pop() || url;
+  }
+
+  function normalizeStudioDoc(id, row) {
+    row = row || {};
+    var url = normalizeStudioDocPath(row.url);
+    return {
+      id: id,
+      title: String(row.title || '').trim().slice(0, 120) || studioDocFilename({ url: url }) || 'Document',
+      url: url,
+      order: Number(row.order) || 0,
+      updatedAt: row.updatedAt || null,
+      createdAt: row.createdAt || null
+    };
+  }
+
+  function applyStudioDocsFromVal(val) {
+    agencyStudioDocs = [];
+    if (val && typeof val === 'object') {
+      Object.keys(val).forEach(function (id) {
+        var doc = normalizeStudioDoc(id, val[id]);
+        if (doc.url) agencyStudioDocs.push(doc);
+      });
+    }
+    agencyStudioDocs.sort(function (a, b) {
+      if (a.order !== b.order) return a.order - b.order;
+      return a.title.localeCompare(b.title);
+    });
+    renderStudioDocsList();
+    // A doc can disappear from under an open sheet on another device.
+    if (opsDocState.selectedIndex >= agencyStudioDocs.length) closeOpsDocSheet();
+  }
+
+  function studioDocIcon(doc) {
+    return /\.pdf(\?|$)/i.test((doc && doc.url) || '') ? 'document-outline' : 'document-text-outline';
+  }
+
+  function renderStudioDocsList() {
+    var list = document.getElementById('ops-docs-list');
+    if (!list) return;
+
+    if (!agencyLoaded.studioDocs) {
+      list.innerHTML = skeletonListHtml(2);
+      return;
+    }
+    if (!agencyStudioDocs.length) {
+      list.innerHTML =
+        '<p class="ops-docs-empty">No docs yet. Add one with the filename of a Markdown file in ' +
+        '<code>/assets/docs/</code> — for example <code>cwr-agency-overview.md</code>.</p>';
+      return;
+    }
+
+    list.innerHTML = agencyStudioDocs
+      .map(function (doc, i) {
+        return (
+          '<div class="ops-doc-card">' +
+          '<button type="button" class="ops-doc-card-open" data-ops-doc-open="' +
+          String(i) +
+          '" aria-label="Open ' +
+          esc(doc.title) +
+          '">' +
+          '<span class="ops-doc-card-head">' +
+          '<ion-icon name="' +
+          studioDocIcon(doc) +
+          '" aria-hidden="true"></ion-icon>' +
+          '<span class="ops-doc-card-title">' +
+          esc(doc.title) +
+          '</span>' +
+          '</span>' +
+          '<span class="ops-doc-card-file">' +
+          esc(studioDocFilename(doc)) +
+          '</span>' +
+          '</button>' +
+          '<div class="ops-doc-card-actions">' +
+          '<button type="button" class="ops-doc-card-action" data-ops-doc-edit="' +
+          esc(doc.id) +
+          '" aria-label="Edit ' +
+          esc(doc.title) +
+          '"><ion-icon name="create-outline" aria-hidden="true"></ion-icon></button>' +
+          '<button type="button" class="ops-doc-card-action ops-doc-card-action--delete" data-ops-doc-delete="' +
+          esc(doc.id) +
+          '" aria-label="Remove ' +
+          esc(doc.title) +
+          '"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon></button>' +
+          '</div></div>'
+        );
+      })
+      .join('');
+
+    list.querySelectorAll('[data-ops-doc-open]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openOpsDocSheet(Number(btn.getAttribute('data-ops-doc-open')), btn);
+      });
+    });
+    list.querySelectorAll('[data-ops-doc-edit]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        openStudioDocEditor(btn.getAttribute('data-ops-doc-edit'));
+      });
+    });
+    list.querySelectorAll('[data-ops-doc-delete]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        deleteStudioDoc(btn.getAttribute('data-ops-doc-delete')).catch(console.error);
+      });
+    });
+  }
+
+  function openStudioDocEditor(id) {
+    var row = agencyStudioDocs.find(function (x) {
+      return x.id === id;
+    });
+    if (!row && id !== 'new') return;
+    if (id === 'new') row = { id: '', title: '', url: '' };
+    var titleEl = document.getElementById('ops-doc-modal-title');
+    if (titleEl) titleEl.textContent = row.id ? 'Edit doc' : 'Add doc';
+    document.getElementById('ops-doc-edit-id').value = row.id || '';
+    document.getElementById('ops-doc-title').value = row.title || '';
+    document.getElementById('ops-doc-path').value = row.url || '';
+    openModal('ops-doc-editor-modal');
+  }
+
+  async function saveStudioDoc() {
+    if (!rtdbReady()) return;
+    var id = document.getElementById('ops-doc-edit-id').value.trim();
+    var pathInput = document.getElementById('ops-doc-path').value;
+    var url = normalizeStudioDocPath(pathInput);
+    if (!url) {
+      alert('Enter a filename in /assets/docs/ (for example cwr-agency-overview.md) or a full /assets/… path.');
+      return;
+    }
+    if (!/\.(md|markdown|pdf)(\?|$)/i.test(url)) {
+      alert('Only Markdown (.md) and PDF files can be read here.');
+      return;
+    }
+    if (!id && agencyStudioDocs.length >= MAX_STUDIO_DOCS) {
+      alert('That is the maximum of ' + MAX_STUDIO_DOCS + ' docs.');
+      return;
+    }
+    var title =
+      document.getElementById('ops-doc-title').value.trim().slice(0, 120) ||
+      studioDocFilename({ url: url });
+    var payload = { title: title, url: url, updatedAt: ts() };
+    if (id) {
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, PATHS.studioDocs + '/' + id), payload);
+    } else {
+      payload.order = agencyStudioDocs.length;
+      payload.createdAt = ts();
+      await window.rtdbSet(window.rtdbPush(window.rtdbRef(window.rtdb, PATHS.studioDocs)), payload);
+    }
+    closeModal('ops-doc-editor-modal');
+  }
+
+  async function deleteStudioDoc(id) {
+    if (!id || !rtdbReady()) return;
+    var row = agencyStudioDocs.find(function (x) {
+      return x.id === id;
+    });
+    var label = row ? row.title || 'this doc' : 'this doc';
+    if (!window.confirm('Remove “' + label + '” from the docs list? The file itself is not deleted.')) return;
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.studioDocs + '/' + id));
+  }
+
+  function opsDocSheetRoot() {
+    return document.getElementById('ops-doc-sheet-root');
+  }
+
+  function renderOpsDocPickerHtml() {
+    return agencyStudioDocs
+      .map(function (doc, i) {
+        return (
+          '<button type="button" class="ops-doc-picker-item" data-ops-doc-index="' +
+          String(i) +
+          '">' +
+          '<span class="ops-doc-picker-item-copy">' +
+          '<span class="ops-doc-picker-item-title">' +
+          esc(doc.title) +
+          '</span>' +
+          '<span class="ops-doc-picker-item-file">' +
+          esc(studioDocFilename(doc)) +
+          '</span>' +
+          '</span>' +
+          '<ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>' +
+          '</button>'
+        );
+      })
+      .join('');
+  }
+
+  function showOpsDocReader(index) {
+    var root = opsDocSheetRoot();
+    var reader = document.getElementById('ops-doc-sheet-reader');
+    var doc = agencyStudioDocs[index];
+    if (!root || !reader || !doc || !window.PortfolioDetailShared) return;
+
+    opsDocState.selectedIndex = index;
+    reader.innerHTML =
+      '<section class="project-detail-canvas-doc" data-portfolio-canvas-doc data-canvas-doc-url="' +
+      esc(doc.url) +
+      '" data-canvas-doc-title="' +
+      esc(doc.title) +
+      '">' +
+      '<div class="project-detail-canvas-body" data-portfolio-canvas-body>' +
+      '<p class="project-detail-canvas-loading">Loading document…</p>' +
+      '</div></section>';
+    window.PortfolioDetailShared.initCanvasDoc(reader, {
+      canvasDocUrl: doc.url,
+      canvasDocTitle: doc.title
+    });
+
+    var titleEl = document.getElementById('ops-doc-sheet-title');
+    if (titleEl) titleEl.textContent = doc.title;
+    var backBtn = document.getElementById('ops-doc-sheet-back');
+    if (backBtn) backBtn.hidden = agencyStudioDocs.length < 2;
+    var actions = document.getElementById('ops-doc-sheet-actions');
+    if (actions) actions.hidden = false;
+    root.classList.add('is-reading');
+    reader.scrollTop = 0;
+  }
+
+  function showOpsDocPicker() {
+    var root = opsDocSheetRoot();
+    if (!root) return;
+    opsDocState.selectedIndex = -1;
+    root.classList.remove('is-reading');
+    var titleEl = document.getElementById('ops-doc-sheet-title');
+    if (titleEl) titleEl.textContent = 'Studio docs';
+    var backBtn = document.getElementById('ops-doc-sheet-back');
+    if (backBtn) backBtn.hidden = true;
+    var actions = document.getElementById('ops-doc-sheet-actions');
+    if (actions) actions.hidden = true;
+  }
+
+  /**
+   * The cards in the panel already are the doc list, so the sheet opens
+   * straight into reading. Its list pane is only what the back arrow returns
+   * to, for switching docs without closing.
+   */
+  function openOpsDocSheet(index, opener) {
+    var doc = agencyStudioDocs[index];
+    var root = opsDocSheetRoot();
+    if (!root || !doc) return;
+    opsDocState.lastOpener = opener || null;
+
+    var listPane = document.getElementById('ops-doc-sheet-list');
+    if (listPane) {
+      listPane.innerHTML = renderOpsDocPickerHtml();
+      listPane.querySelectorAll('[data-ops-doc-index]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          showOpsDocReader(Number(btn.getAttribute('data-ops-doc-index')));
+        });
+      });
+    }
+
+    root.setAttribute('aria-hidden', 'false');
+    root.classList.add('is-open');
+    document.body.classList.add('ops-doc-sheet-open');
+
+    showOpsDocReader(index);
+  }
+
+  function closeOpsDocSheet() {
+    var root = opsDocSheetRoot();
+    if (!root || !root.classList.contains('is-open')) return;
+    root.classList.remove('is-open', 'is-reading');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('ops-doc-sheet-open');
+    opsDocState.selectedIndex = -1;
+    var reader = document.getElementById('ops-doc-sheet-reader');
+    if (reader) reader.innerHTML = '';
+    if (opsDocState.lastOpener && typeof opsDocState.lastOpener.focus === 'function') {
+      opsDocState.lastOpener.focus();
+    }
+    opsDocState.lastOpener = null;
+  }
+
+  function currentOpsDoc() {
+    return agencyStudioDocs[opsDocState.selectedIndex] || null;
+  }
+
+  function downloadCurrentOpsDoc() {
+    var doc = currentOpsDoc();
+    if (!doc) return;
+    var href = window.PortfolioDetailShared
+      ? window.PortfolioDetailShared.displayCanvasDocSrc(doc.url)
+      : doc.url;
+    fetch(href)
+      .then(function (res) {
+        if (!res.ok) throw new Error('download failed');
+        return res.blob();
+      })
+      .then(function (blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = studioDocFilename(doc);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(function () {
+          URL.revokeObjectURL(a.href);
+        }, 1000);
+      })
+      .catch(function () {
+        window.open(href, '_blank', 'noopener,noreferrer');
+      });
+  }
+
+  /**
+   * Prints the rendered document rather than the raw file, so "save as PDF"
+   * produces the formatted page. A PDF already prints itself, so that just
+   * opens in a tab.
+   */
+  function printCurrentOpsDoc() {
+    var doc = currentOpsDoc();
+    if (!doc) return;
+    var href = window.PortfolioDetailShared
+      ? window.PortfolioDetailShared.displayCanvasDocSrc(doc.url)
+      : doc.url;
+    if (/\.pdf(\?|$)/i.test(doc.url)) {
+      window.open(href, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    var body = document.querySelector('#ops-doc-sheet-reader [data-portfolio-canvas-body]');
+    if (!body) return;
+    var win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(
+      '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' +
+        esc(doc.title) +
+        '</title>' +
+        '<link rel="stylesheet" href="/assets/css/portfolio-markdown.css">' +
+        '<style>body{margin:0;padding:32px;background:#fff;color:#111;' +
+        'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}' +
+        '.portfolio-markdown{max-width:44rem;margin:0 auto;}' +
+        'a{color:#0645ad;}img{max-width:100%;}</style></head><body>' +
+        body.innerHTML +
+        '</body></html>'
+    );
+    win.document.close();
+    // Images and the stylesheet need to land before the print dialog measures.
+    win.addEventListener('load', function () {
+      win.focus();
+      win.print();
+    });
+  }
+
+  function initStudioDocs() {
+    var add = document.getElementById('ops-doc-add-btn');
+    if (add && !add.dataset.bound) {
+      add.dataset.bound = '1';
+      add.addEventListener('click', function () {
+        openStudioDocEditor('new');
+      });
+    }
+    bindModalClose('ops-doc-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
+    var save = document.getElementById('ops-doc-save-btn');
+    if (save && !save.dataset.bound) {
+      save.dataset.bound = '1';
+      save.addEventListener('click', function () {
+        saveStudioDoc().catch(console.error);
+      });
+    }
+
+    var root = opsDocSheetRoot();
+    if (root && !root.dataset.bound) {
+      root.dataset.bound = '1';
+      var backdrop = document.getElementById('ops-doc-sheet-backdrop');
+      if (backdrop) backdrop.addEventListener('click', closeOpsDocSheet);
+      var closeBtn = document.getElementById('ops-doc-sheet-close');
+      if (closeBtn) closeBtn.addEventListener('click', closeOpsDocSheet);
+      var backBtn = document.getElementById('ops-doc-sheet-back');
+      if (backBtn) backBtn.addEventListener('click', showOpsDocPicker);
+      var downloadBtn = document.getElementById('ops-doc-download');
+      if (downloadBtn) downloadBtn.addEventListener('click', downloadCurrentOpsDoc);
+      var printBtn = document.getElementById('ops-doc-print');
+      if (printBtn) printBtn.addEventListener('click', printCurrentOpsDoc);
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        if (!root.classList.contains('is-open')) return;
+        // Esc backs out one level, matching the portal guide sheet.
+        if (root.classList.contains('is-reading') && agencyStudioDocs.length > 1) showOpsDocPicker();
+        else closeOpsDocSheet();
+      });
+    }
+
+    renderStudioDocsList();
   }
 
   // ——— Firebase Health ———
@@ -7944,6 +8362,7 @@
     initContentRepurposing();
     initReferrals();
     initStudioCosts();
+    initStudioDocs();
     initFirebaseHealth();
     initClientProjects();
     initTimeCapacity();

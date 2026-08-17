@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=admin-nav-rail-align-20260817v">
+  <link rel="stylesheet" href="/assets/css/style.css?v=studio-docs-20260817w">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -4380,6 +4380,27 @@
           </div>
           <div class="ops-body has-scrollbar" id="ops-body">
             <div class="ops-wrapper">
+              <section class="ops-docs" id="ops-docs">
+                <div class="ops-docs-head">
+                  <div class="ops-docs-head-copy">
+                    <p class="ops-manual-section-label">Studio docs</p>
+                    <p class="ops-docs-lead">Your own <code>cwr-*.md</code> files in <code>/assets/docs/</code>. Add the filename once and it opens here.</p>
+                  </div>
+                  <div class="ops-docs-head-actions">
+                    <button type="button" class="btn btn-secondary ops-docs-launcher" id="ops-docs-launcher" aria-haspopup="dialog" aria-expanded="false" hidden>
+                      <ion-icon name="book-outline" aria-hidden="true"></ion-icon>
+                      <span>View docs</span>
+                      <span class="ops-docs-launcher-count" id="ops-docs-count">0</span>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="ops-doc-add-btn">
+                      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                      Add doc
+                    </button>
+                  </div>
+                </div>
+                <div class="ops-docs-list" id="ops-docs-list"></div>
+              </section>
+
               <nav class="ops-manual-protocols" aria-label="Protocol shortcuts">
                 <p class="ops-manual-section-label">Open a protocol</p>
                 <div class="ops-manual-protocols-grid">
@@ -7356,6 +7377,59 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
     </div>
   </div>
 
+  <div class="agency-modal" id="ops-doc-editor-modal" aria-hidden="true">
+    <div class="agency-modal-overlay"></div>
+    <div class="agency-modal-content">
+      <div class="agency-modal-header">
+        <h3 id="ops-doc-modal-title">Add doc</h3>
+        <button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      <div class="agency-modal-body has-scrollbar">
+        <input type="hidden" id="ops-doc-edit-id">
+        <p class="form-hint" style="margin-top:0;">Point at a Markdown or PDF file that ships with the site. Nothing is uploaded here — the file has to be deployed.</p>
+        <div class="form-group">
+          <label for="ops-doc-title">Title</label>
+          <input type="text" id="ops-doc-title" maxlength="120" placeholder="e.g. Agency overview">
+        </div>
+        <div class="form-group">
+          <label for="ops-doc-path">File</label>
+          <input type="text" id="ops-doc-path" maxlength="500" placeholder="cwr-agency-overview.md">
+          <p class="form-hint">Type just the filename for studio docs and it resolves to <code>/assets/docs/</code>. Full paths like <code>/assets/docs/projects/lawncare/admin-guide.md</code> also work.</p>
+        </div>
+      </div>
+      <div class="agency-modal-footer">
+        <button type="button" class="btn btn-primary" id="ops-doc-save-btn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ops-doc-sheet-root" id="ops-doc-sheet-root" aria-hidden="true">
+    <div class="ops-doc-sheet-backdrop" id="ops-doc-sheet-backdrop"></div>
+    <div class="ops-doc-sheet" role="dialog" aria-modal="true" aria-labelledby="ops-doc-sheet-title">
+      <div class="ops-doc-sheet-head">
+        <button type="button" class="ops-doc-sheet-back" id="ops-doc-sheet-back" aria-label="Back to doc list" hidden>
+          <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+        </button>
+        <h2 class="ops-doc-sheet-title" id="ops-doc-sheet-title">Studio docs</h2>
+        <div class="ops-doc-sheet-actions" id="ops-doc-sheet-actions" hidden>
+          <button type="button" class="ops-doc-sheet-action" id="ops-doc-download" aria-label="Download file" title="Download file">
+            <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+          </button>
+          <button type="button" class="ops-doc-sheet-action" id="ops-doc-print" aria-label="Print or save as PDF" title="Print or save as PDF">
+            <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+        <button type="button" class="ops-doc-sheet-close" id="ops-doc-sheet-close" aria-label="Close">
+          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        </button>
+      </div>
+      <div class="ops-doc-sheet-panes" id="ops-doc-sheet-panes">
+        <div class="ops-doc-sheet-pane ops-doc-sheet-pane--list has-scrollbar" id="ops-doc-sheet-list"></div>
+        <div class="ops-doc-sheet-pane ops-doc-sheet-pane--reader has-scrollbar" id="ops-doc-sheet-reader" tabindex="-1"></div>
+      </div>
+    </div>
+  </div>
+
 
   <script src="/assets/js/portfolio-built-in-data.js?v=poster-webp-20260729"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
@@ -7368,7 +7442,7 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
   <script src="/assets/js/script.js?v=email-archive-fix-20260817t"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=portal-color-scheme-20260817n"></script>
+  <script src="/assets/js/agency-tools.js?v=studio-docs-20260817w"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
