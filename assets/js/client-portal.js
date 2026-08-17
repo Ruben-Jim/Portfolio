@@ -86,8 +86,8 @@
       features: [
         'If you’re down, we reply within 4 hours (nights and weekends too)',
         'Monthly store + content updates',
-        'One small upgrade each month',
-        'One extra tool each quarter · one bigger addition each year'
+        'New features and improvements each month',
+        'A bigger addition each quarter · one major app or site overhaul each year'
       ]
     },
     {
@@ -101,14 +101,14 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$165/mo equivalent · billed once per year',
-      slaLabel: '1 business day',
+      slaLabel: '24 hours',
       hoursIncluded: 10,
       slaHours: 24,
       features: [
         'First in line · if you’re down, we reply within 2 hours (nights and weekends too)',
         'Store updates as needed · weekly content',
-        'One extra tool each month · one bigger addition every 6 months',
-        'Unused hours carry 30 days'
+        'New features and improvements each month · a bigger addition each quarter',
+        'A major app or site overhaul every 6 months'
       ]
     }
   ];
@@ -266,6 +266,8 @@
           '"' +
           checked +
           '>' +
+          '<span class="client-portal-plan-head">' +
+          '<span class="client-portal-plan-headline">' +
           '<span class="client-portal-plan-badges">' +
           '<span class="client-portal-plan-badge">' +
           esc(plan.badge) +
@@ -286,6 +288,18 @@
           '">' +
           esc(plan.monthlyNote || '') +
           '</p>' +
+          '</span>' +
+          // Response time was already in the data but never shown — it is the
+          // thing a client most wants to compare between tiers.
+          (plan.slaLabel
+            ? '<p class="client-portal-plan-sla">' +
+              '<span class="client-portal-plan-sla-label">We reply in</span>' +
+              '<span class="client-portal-plan-sla-value">' +
+              esc(plan.slaLabel) +
+              '</span>' +
+              '</p>'
+            : '') +
+          '</span>' +
           '<ul class="client-portal-plan-features">' +
           plan.features
             .map(function (f) {

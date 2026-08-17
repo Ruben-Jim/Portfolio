@@ -9618,6 +9618,19 @@ window.addEventListener('load', function() {
         'Talk soon,\nCodeWithRuben'
     },
     {
+      id: 'app-live',
+      label: 'App is live on the stores',
+      defaultSubject: 'Your app is live on the App Store and Google Play',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'Your app is approved and live — you can download it now.\n\n' +
+        'Everything is in your portal: the App Store and Google Play buttons, ' +
+        'your setup guides, and a link you can send your team so they can install it too.\n\n' +
+        '{{linkLine}}\n' +
+        'Next step: {{nextStep}}\n\n' +
+        'Congrats — this is the fun part,\nCodeWithRuben'
+    },
+    {
       id: 'maintenance-setup',
       label: 'Maintenance setup',
       defaultSubject: 'Set up maintenance & support for {{projectName}}',

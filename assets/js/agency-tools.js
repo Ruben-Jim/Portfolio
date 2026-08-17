@@ -4605,6 +4605,9 @@
       '<div class="cp-section-actions">' +
       '<button type="button" class="btn btn-primary btn-sm" data-cp-action="open-email">Compose email →</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="invite-schedule">Invite to schedule →</button>' +
+      (hub.appStoreUrl || hub.playStoreUrl
+        ? '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-app-live">Email: app is live →</button>'
+        : '') +
       '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-setup">Email: set up maintenance →</button>' +
       '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-invoice">Email: invoice ready →</button>' +
       '</div>';
@@ -5159,6 +5162,30 @@
         if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
         if (typeof window.prefillAdminClientEmail === 'function') {
           window.prefillAdminClientEmail({ name: emailName, email: emailAddr, link: emailLink });
+        }
+      });
+      return;
+    }
+    if (action === 'email-app-live') {
+      if (!hub) return;
+      var liveName = String(
+        (document.getElementById('cp-hub-client') || {}).value || hub.clientName || ''
+      ).trim();
+      var liveAddr = String(
+        (document.getElementById('cp-hub-client-email') || {}).value || hub.clientEmail || ''
+      ).trim();
+      var liveLink = hub.portalToken ? clientPortalUrl(hub.portalToken) : '';
+      closeCpClientDrawer();
+      window.requestAnimationFrame(function () {
+        if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
+        if (typeof window.prefillAdminClientEmail === 'function') {
+          window.prefillAdminClientEmail({
+            name: liveName,
+            email: liveAddr,
+            link: liveLink,
+            templateId: 'app-live',
+            nextStep: 'Download the app and share the team link with your crew'
+          });
         }
       });
       return;

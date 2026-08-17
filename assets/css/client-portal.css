@@ -1662,6 +1662,10 @@ body.portal-guide-sheet-open {
 .client-portal-plan-card {
   display: block;
   position: relative;
+  /* Lets the head respond to THIS card's width rather than the viewport — the
+     card is 1, 2 or 3 across depending on breakpoint, so a media query would
+     guess wrong. */
+  container-type: inline-size;
   padding: 14px;
   border-radius: 10px;
   border: 1px solid hsla(45, 100%, 72%, 0.2);
@@ -2626,5 +2630,80 @@ body.portal-dm-sheet-open {
   .client-portal-share-actions .btn {
     flex: 1 1 auto;
     text-align: center;
+  }
+}
+
+/* Response time per tier — the comparison a client actually cares about.
+   Narrow cards stack it under the price; once the card is wide enough it moves
+   to the top right, filling the space beside the badges and price. */
+.client-portal-plan-head {
+  display: block;
+}
+
+.client-portal-plan-headline {
+  display: block;
+  min-width: 0;
+}
+
+
+
+.client-portal-plan-sla {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin: 10px 0 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  background: hsla(45, 100%, 72%, 0.06);
+}
+
+.client-portal-plan-sla-label {
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.client-portal-plan-sla-value {
+  font-size: var(--fs-7);
+  font-weight: var(--fw-600);
+  color: var(--orange-yellow-crayola);
+}
+
+
+/* Placed after the base rules on purpose: an @container block carries the
+   specificity of its inner selector, so sitting before .client-portal-plan-sla
+   meant the base rule won and the side-by-side layout never applied.
+   Threshold is 300px because at three-across these cards are ~330px wide. */
+@container (min-width: 300px) {
+  .client-portal-plan-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .client-portal-plan-headline {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .client-portal-plan-sla {
+    flex: 0 0 auto;
+    display: block;
+    max-width: 46%;
+    margin: 0;
+    padding: 7px 9px;
+    text-align: right;
+  }
+
+  .client-portal-plan-sla-label,
+  .client-portal-plan-sla-value {
+    display: block;
+    text-align: right;
+  }
+
+  .client-portal-plan-sla-value {
+    line-height: 1.25;
   }
 }
