@@ -1522,21 +1522,25 @@
     return mountPortalContractFrame(host, docId);
   }
 
-  function renderContractFrameHtml(docId) {
+  function renderContractFrameHtml(docId, label) {
+    var aria = esc(label || 'Document');
     return (
       '<div class="client-portal-contract-preview">' +
-      '<div class="client-portal-contract-frame" title="Contract agreement" data-portal-contract-frame="' +
+      '<div class="client-portal-contract-frame" title="' +
+      aria +
+      '" data-portal-contract-frame="' +
       esc(docId) +
-      '" role="region" aria-label="Contract agreement"></div>' +
+      '" role="region" aria-label="' +
+      aria +
+      '"></div>' +
       '</div>'
     );
   }
 
-  function renderContractSignPanelHtml(doc) {
+  function renderContractSignFormHtml(doc) {
     var docId = esc(doc.id);
     return (
-      '<div class="client-portal-sign-panel" data-portal-sign-panel="' + docId + '" hidden>' +
-      renderContractFrameHtml(doc.id) +
+      '<div class="portal-doc-sheet-sign">' +
       '<p class="client-portal-sign-intro">Read the full agreement, then sign below.</p>' +
       '<form class="client-portal-sign-form" data-portal-sign-form="' + docId + '">' +
       '<label class="client-portal-sign-label" for="portal-sign-name-' + docId + '">Type your full legal name</label>' +
@@ -1551,21 +1555,6 @@
       '<span class="client-portal-sign-feedback" data-portal-sign-feedback></span>' +
       '<button type="submit" class="btn btn-primary btn-sm">Sign agreement</button>' +
       '</div></form></div>'
-    );
-  }
-
-  function renderContractSignedPanelHtml(doc) {
-    var docId = esc(doc.id);
-    return (
-      '<div class="client-portal-sign-panel client-portal-signed-panel" data-portal-signed-panel="' +
-      docId +
-      '" hidden>' +
-      renderContractFrameHtml(doc.id) +
-      '<div class="client-portal-signed-actions">' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-portal-download-doc="' +
-      docId +
-      '">Download PDF</button>' +
-      '</div></div>'
     );
   }
 
@@ -1590,10 +1579,11 @@
       esc(signedAtLabel) +
       (signedName ? ' by ' + esc(signedName) : '') +
       '</p></div>' +
+      '<div class="client-portal-doc-actions">' +
       '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
       docId +
       '">View signed contract</button>' +
-      renderContractSignedPanelHtml(doc)
+      '</div>'
     );
   }
 
@@ -1643,21 +1633,18 @@
               '">View signed contract</button>';
             metaExtra =
               ' · Signed ' + esc(formatDocDate(signature.signedAt)) + ' by ' + esc(signature.signedByName || '');
-            panelHtml = renderContractSignedPanelHtml(d);
           } else if (isContract) {
             actionHtml =
               '<button type="button" class="btn btn-primary btn-sm client-portal-doc-sign-btn" data-portal-sign-doc="' +
               esc(d.id) +
               '">Review &amp; sign</button>';
             metaExtra = ' · Awaiting your signature';
-            panelHtml = renderContractSignPanelHtml(d);
           } else if (isInvoice && invoicePaid) {
             actionHtml =
               '<span class="client-portal-doc-status client-portal-doc-status--paid">Paid</span>' +
               '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
               esc(d.id) +
               '">View invoice</button>';
-            panelHtml = renderContractSignedPanelHtml(d);
           } else if (isInvoice) {
             actionHtml =
               '<button type="button" class="btn btn-secondary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
@@ -1666,13 +1653,12 @@
               '<button type="button" class="btn btn-primary btn-sm client-portal-doc-pay-btn" data-portal-pay-doc="' +
               esc(d.id) +
               '">Pay now →</button>';
-            panelHtml = renderContractSignedPanelHtml(d) + renderInvoicePayPanelHtml(d);
+            panelHtml = renderInvoicePayPanelHtml(d);
           } else {
             actionHtml =
               '<button type="button" class="btn btn-primary btn-sm client-portal-doc-view-btn" data-portal-signed-view="' +
               esc(d.id) +
               '">View document</button>';
-            panelHtml = renderContractSignedPanelHtml(d);
           }
           return (
             '<li class="client-portal-doc-card' +
@@ -1716,6 +1702,237 @@
     return !!window.BusinessDocShared.openPrintWindow(doc, signature, opts);
   }
 
+  var portalDocState = { docId: '', lastOpener: null };
+
+  function docSheetRoot() {
+    return document.getElementById('portal-doc-sheet-root');
+  }
+
+  function portalDocSheetTitle(doc) {
+    if (!doc) return 'Document';
+    if (isInvoiceDoc(doc)) return 'Invoice ' + invoiceDisplayNumber(doc);
+    return docTypeLabel(doc.type) || 'Document';
+  }
+
+  function renderPortalDocSheetHtml() {
+    return (
+      '<div class="portal-guide-sheet-root portal-doc-sheet-root is-reading" id="portal-doc-sheet-root" aria-hidden="true">' +
+      '<div class="portal-guide-sheet-backdrop" id="portal-doc-sheet-backdrop"></div>' +
+      '<div class="portal-guide-sheet portal-doc-sheet" role="dialog" aria-modal="true" ' +
+      'aria-labelledby="portal-doc-sheet-title">' +
+      '<div class="portal-guide-sheet-head">' +
+      '<h2 class="portal-guide-sheet-title" id="portal-doc-sheet-title">Document</h2>' +
+      '<div class="portal-guide-sheet-actions" id="portal-doc-sheet-actions">' +
+      '<button type="button" class="portal-guide-sheet-action" id="portal-doc-download" ' +
+      'aria-label="Download PDF">' +
+      guideIconSvg(GUIDE_ICON_DOWNLOAD, 18) +
+      '</button>' +
+      '<button type="button" class="portal-guide-sheet-action" id="portal-doc-share" ' +
+      'aria-label="Share document">' +
+      guideIconSvg(GUIDE_ICON_SHARE, 18) +
+      '</button>' +
+      '</div>' +
+      '<button type="button" class="portal-guide-sheet-close" id="portal-doc-sheet-close" ' +
+      'aria-label="Close">&times;</button>' +
+      '</div>' +
+      '<div class="portal-guide-sheet-panes">' +
+      '<div class="portal-guide-sheet-pane portal-guide-sheet-pane--reader has-scrollbar" ' +
+      'id="portal-doc-reader" tabindex="-1"></div>' +
+      '</div></div></div>'
+    );
+  }
+
+  function syncDocSheetSize() {
+    var root = docSheetRoot();
+    if (!root) return;
+    var sheet = root.querySelector('.portal-doc-sheet');
+    if (!sheet) return;
+    var mobile = window.innerWidth <= 640;
+    var vh = window.innerHeight;
+    sheet.style.height = Math.round(vh * (mobile ? 0.95 : 0.9)) + 'px';
+  }
+
+  function filenameSlug(text) {
+    return String(text || '')
+      .trim()
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  function filenameMonth(iso) {
+    if (!iso) return '';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).replace(' ', '-');
+  }
+
+  /**
+   * Type first, so a client's downloads folder groups by document kind. Invoices
+   * add the month they were issued — clients recognise "Aug-2026" where an
+   * invoice number means nothing to them, and repeat invoices stay distinct.
+   */
+  function portalDocFilename(doc) {
+    if (!doc) return 'Document.html';
+    var type = String(doc.type || '').toLowerCase();
+    var client = filenameSlug(doc.clientName);
+    var parts;
+    if (type === 'invoice') {
+      parts = ['Invoice', client, filenameMonth(doc.createdAt)];
+    } else if (type === 'contract') {
+      parts = ['Service-Agreement', client];
+    } else {
+      parts = [filenameSlug(docTypeLabel(doc.type)) || 'Document', client];
+    }
+    return parts.filter(Boolean).join('-') + '.html';
+  }
+
+  /**
+   * Business documents have no public URL — they are built in the browser — so
+   * sharing sends the document itself. Desktop browsers reject file shares, and
+   * there is no link worth copying instead, so those fall back to the print
+   * window where the client can save a PDF and attach it themselves.
+   */
+  function shareCurrentPortalDoc() {
+    var docId = portalDocState.docId;
+    var doc = getPortalContractDoc(docId);
+    if (!doc) return;
+
+    function fallbackToPrint() {
+      if (!openPortalBusinessDoc(docId, { autoPrint: false })) {
+        alert('Unable to share this document. Please allow popups for this site.');
+      }
+    }
+
+    var html = buildPortalContractHtml(docId);
+    if (!html || typeof File !== 'function' || !navigator.canShare) {
+      fallbackToPrint();
+      return;
+    }
+
+    var file;
+    try {
+      file = new File([html], portalDocFilename(doc), { type: 'text/html' });
+    } catch (err) {
+      fallbackToPrint();
+      return;
+    }
+    if (!navigator.canShare({ files: [file] })) {
+      fallbackToPrint();
+      return;
+    }
+
+    navigator
+      .share({ files: [file], title: portalDocSheetTitle(doc) })
+      .catch(function (err) {
+        if (err && err.name === 'AbortError') return;
+        fallbackToPrint();
+      });
+  }
+
+  function hidePortalPayPanel(docId) {
+    if (!docId) return;
+    var panel = document.querySelector('[data-portal-pay-panel="' + docId + '"]');
+    if (panel) panel.hidden = true;
+    document.querySelectorAll('[data-portal-pay-doc="' + docId + '"].client-portal-doc-pay-btn').forEach(function (btn) {
+      btn.setAttribute('aria-expanded', 'false');
+    });
+  }
+
+  function fillPortalDocReader(docId, options) {
+    var reader = document.getElementById('portal-doc-reader');
+    var doc = getPortalContractDoc(docId);
+    var opts = options && typeof options === 'object' ? options : {};
+    if (!reader || !doc) return false;
+
+    var title = portalDocSheetTitle(doc);
+    var titleEl = document.getElementById('portal-doc-sheet-title');
+    if (titleEl) titleEl.textContent = title;
+
+    reader.innerHTML =
+      renderContractFrameHtml(docId, title) +
+      (opts.sign ? renderContractSignFormHtml(doc) : '');
+
+    if (!ensurePortalContractFrame(reader, docId)) return false;
+    if (opts.sign) bindPortalSignForms(reader, window.portalDocCtx);
+    return true;
+  }
+
+  function openPortalDocSheet(docId, options) {
+    var root = docSheetRoot();
+    var opts = options && typeof options === 'object' ? options : {};
+    var doc = getPortalContractDoc(docId);
+    if (!root || !doc) return false;
+    hidePortalPayPanel(docId);
+    if (!fillPortalDocReader(docId, opts)) {
+      alert(opts.sign ? 'Unable to load the agreement right now.' : 'Unable to load this document right now.');
+      return false;
+    }
+    portalDocState.docId = docId;
+    if (opts.opener) portalDocState.lastOpener = opts.opener;
+    root.classList.add('is-open', 'is-reading');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('portal-doc-sheet-open');
+    syncDocSheetSize();
+    var reader = document.getElementById('portal-doc-reader');
+    if (reader) reader.scrollTop = 0;
+    return true;
+  }
+
+  function closePortalDocSheet(returnFocus) {
+    var root = docSheetRoot();
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('portal-doc-sheet-open');
+    var opener = portalDocState.lastOpener;
+    if (returnFocus && opener && typeof opener.focus === 'function' && document.contains(opener)) {
+      opener.focus();
+    }
+  }
+
+  function bindPortalDocSheet() {
+    var root = docSheetRoot();
+    if (!root || root.dataset.portalDocSheetBound) return;
+    root.dataset.portalDocSheetBound = '1';
+
+    var closeBtn = document.getElementById('portal-doc-sheet-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        closePortalDocSheet(true);
+      });
+    }
+    var backdrop = document.getElementById('portal-doc-sheet-backdrop');
+    if (backdrop) {
+      backdrop.addEventListener('click', function () {
+        closePortalDocSheet(true);
+      });
+    }
+    var downloadBtn = document.getElementById('portal-doc-download');
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', function () {
+        if (!openPortalBusinessDoc(portalDocState.docId, { autoPrint: true })) {
+          alert('Unable to download. Please allow popups for this site.');
+        }
+      });
+    }
+    var shareBtn = document.getElementById('portal-doc-share');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', shareCurrentPortalDoc);
+    }
+
+    window.addEventListener('resize', function () {
+      var sheetRoot = docSheetRoot();
+      if (sheetRoot && sheetRoot.classList.contains('is-open')) syncDocSheetSize();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' && e.keyCode !== 27) return;
+      var sheetRoot = docSheetRoot();
+      if (!sheetRoot || !sheetRoot.classList.contains('is-open')) return;
+      closePortalDocSheet(true);
+    });
+  }
+
   function bindPortalSignedViewButtons(root) {
     if (!root) return;
     root.querySelectorAll('[data-portal-signed-view]').forEach(function (btn) {
@@ -1723,28 +1940,7 @@
       btn.dataset.portalSignedBound = '1';
       btn.addEventListener('click', function () {
         var docId = btn.getAttribute('data-portal-signed-view');
-        var panel = root.querySelector('[data-portal-signed-panel="' + docId + '"]');
-        if (!panel) return;
-        var opening = panel.hidden;
-        panel.hidden = !opening;
-        if (opening) {
-          var payPanel = root.querySelector('[data-portal-pay-panel="' + docId + '"]');
-          if (payPanel) payPanel.hidden = true;
-          if (!ensurePortalContractFrame(panel, docId)) {
-            alert('Unable to load this document right now.');
-            panel.hidden = true;
-          }
-        }
-      });
-    });
-    root.querySelectorAll('[data-portal-download-doc]').forEach(function (btn) {
-      if (btn.dataset.portalDownloadBound) return;
-      btn.dataset.portalDownloadBound = '1';
-      btn.addEventListener('click', function () {
-        var docId = btn.getAttribute('data-portal-download-doc');
-        if (!openPortalBusinessDoc(docId, { autoPrint: true })) {
-          alert('Unable to download. Please allow popups for this site.');
-        }
+        openPortalDocSheet(docId, { opener: btn });
       });
     });
   }
@@ -1761,8 +1957,6 @@
         var opening = panel.hidden;
         panel.hidden = !opening;
         if (opening) {
-          var viewPanel = root.querySelector('[data-portal-signed-panel="' + docId + '"]');
-          if (viewPanel) viewPanel.hidden = true;
           btn.setAttribute('aria-expanded', 'true');
         } else {
           btn.setAttribute('aria-expanded', 'false');
@@ -1849,17 +2043,16 @@
     try {
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATH_CONTRACT_SIGNATURES + '/' + docId), payload);
       if (window.portalContractSignaturesById) window.portalContractSignaturesById[docId] = payload;
-      var card = form.closest('.client-portal-doc-card');
+      var signBtn = document.querySelector('[data-portal-sign-doc="' + docId + '"]');
+      var card = signBtn ? signBtn.closest('.client-portal-doc-card') : null;
       var doc = getPortalContractDoc(docId) || { id: docId, clientName: name, type: 'contract' };
       if (card) {
         card.innerHTML = renderSignedContractCardHtml(doc, payload);
         bindPortalSignedViewButtons(card);
-        var signedPanel = card.querySelector('[data-portal-signed-panel="' + docId + '"]');
-        if (signedPanel) {
-          signedPanel.hidden = false;
-          ensurePortalContractFrame(signedPanel, docId);
-        }
+        var viewBtn = card.querySelector('[data-portal-signed-view]');
+        if (viewBtn) portalDocState.lastOpener = viewBtn;
       }
+      fillPortalDocReader(docId, { sign: false });
     } catch (err) {
       console.error(err);
       if (submitBtn) submitBtn.disabled = false;
@@ -1870,14 +2063,20 @@
           : (err && err.message) || 'Could not sign right now. Please try again.';
         feedback.classList.add('is-error');
       }
-      if (denied) {
-        var deniedCard = form.closest('.client-portal-doc-card');
-        if (deniedCard) {
-          var panel = deniedCard.querySelector('[data-portal-sign-panel]');
-          if (panel) panel.hidden = true;
-        }
-      }
     }
+  }
+
+  function bindPortalSignForms(root, portalCtx) {
+    if (!root) return;
+    root.querySelectorAll('[data-portal-sign-form]').forEach(function (form) {
+      if (form.dataset.portalSignFormBound) return;
+      form.dataset.portalSignFormBound = '1';
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var docId = form.getAttribute('data-portal-sign-form');
+        submitContractSignature(form, docId, portalCtx || window.portalDocCtx);
+      });
+    });
   }
 
   function bindPortalSignButtons(root, portalCtx) {
@@ -1887,25 +2086,10 @@
       btn.dataset.portalSignBound = '1';
       btn.addEventListener('click', function () {
         var docId = btn.getAttribute('data-portal-sign-doc');
-        var panel = root.querySelector('[data-portal-sign-panel="' + docId + '"]');
-        if (!panel) return;
-        var opening = panel.hidden;
-        panel.hidden = !opening;
-        if (opening && !ensurePortalContractFrame(panel, docId)) {
-          alert('Unable to load the agreement right now.');
-          panel.hidden = true;
-        }
+        openPortalDocSheet(docId, { sign: true, opener: btn });
       });
     });
-    root.querySelectorAll('[data-portal-sign-form]').forEach(function (form) {
-      if (form.dataset.portalSignFormBound) return;
-      form.dataset.portalSignFormBound = '1';
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var docId = form.getAttribute('data-portal-sign-form');
-        submitContractSignature(form, docId, portalCtx);
-      });
-    });
+    bindPortalSignForms(root, portalCtx);
   }
 
   function collectPortalGuides(hubRow, project) {
@@ -2349,6 +2533,7 @@
       if (d && d.id) window.portalBusinessDocsById[d.id] = d;
     });
     window.portalContractSignaturesById = contractSignatures;
+    window.portalDocCtx = portalCtx;
     var showcaseWillRender = !!(hasShowcase && detailRecord && window.PortfolioDetailShared);
     var brand = renderBrandHeader(project, detailRecord, detailOptions, showcaseWillRender);
 
@@ -2384,7 +2569,8 @@
       docsSection +
       supportSection +
       footer +
-      '</div>';
+      '</div>' +
+      (docsSection ? renderPortalDocSheetHtml() : '');
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
     }
@@ -2394,6 +2580,7 @@
     bindGuideSheet(inner);
     bindShowcaseCollapse(inner);
     bindDemoHintScroll(inner);
+    bindPortalDocSheet();
     bindPortalSignButtons(inner, portalCtx);
     bindPortalSignedViewButtons(inner);
     bindPortalPayButtons(inner);

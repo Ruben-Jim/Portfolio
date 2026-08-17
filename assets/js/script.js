@@ -9549,6 +9549,9 @@ window.addEventListener('load', function() {
     if (typeof window.initAdminBookingsPanel === 'function') {
       window.initAdminBookingsPanel();
     }
+    if (typeof window.initAdminNavCollapse === 'function') {
+      window.initAdminNavCollapse();
+    }
     if (typeof window.syncAdminMobileTabBarDock === 'function') {
       window.syncAdminMobileTabBarDock();
     }
@@ -11507,7 +11510,6 @@ window.addEventListener('load', function() {
   var agencyInboundListenFailed = false;
   var agencyOutboundListenFailed = false;
   var agencyOutboundRepliesListenFailed = false;
-  var agencyEmailPreviewCollapsed = true;
   var agencyEmailThreads        = [];   // [{contactEmail, contactName, subject, lastAt, messages:[]}]
   var agencyEmailSelectedThread = '';   // contactEmail key
   var agencyEmailThreadSearch   = '';
@@ -11519,7 +11521,6 @@ window.addEventListener('load', function() {
   var AGENCY_EMAIL_CACHE_STORE = 'kv';
   var AGENCY_EMAIL_CACHE_KEY = 'adminEmailThreadsCacheV1';
   var AGENCY_EMAIL_CACHE_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
-  var AGENCY_EMAIL_PREVIEW_KEY  = 'adminEmailPreviewCollapsed';
   var AGENCY_EMAIL_THREAD_KEY   = 'adminEmailThread';
 
   // ── Shared helpers ──────────────────────────────────────────────────────────
@@ -11537,8 +11538,101 @@ window.addEventListener('load', function() {
     } catch (e) { return String(iso); }
   }
 
+  /** Higher wins when collapsing several events for one email into one row. */
+  /**
+   * Splits a reply's HTML into the new text and the quoted history beneath it.
+   *
+   * Mail clients append the whole previous message to every reply, so without
+   * this each bubble renders the entire chain again — which is why one reply
+   * showed a full white copy of the original email inside the dark thread.
+   *
+   * Detects the three common markers: a Gmail-style quote container, a
+   * <blockquote>, and an "On <date> ... wrote:" line.
+   */
+  function splitQuotedEmailHtml(html) {
+    var raw = String(html || '');
+    if (!raw.trim()) return { main: '', quoted: '' };
+    if (typeof DOMParser !== 'function') return { main: raw, quoted: '' };
+    try {
+      var doc = new DOMParser().parseFromString('<div id="cwr-root">' + raw + '</div>', 'text/html');
+      var root = doc.getElementById('cwr-root');
+      if (!root) return { main: raw, quoted: '' };
+
+      var nodes = Array.prototype.slice.call(root.childNodes);
+      var cutAt = -1;
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        if (n.nodeType === 1) {
+          var cls = String(n.className || '');
+          var tag = String(n.tagName || '').toUpperCase();
+          if (tag === 'BLOCKQUOTE' || /gmail_quote|yahoo_quoted|moz-cite-prefix/i.test(cls)) {
+            cutAt = i;
+            break;
+          }
+          if (n.querySelector && n.querySelector('.gmail_quote, blockquote')) {
+            // A wrapper whose own text is just the "On … wrote:" attribution.
+            var own = String(n.textContent || '').trim();
+            if (/^On\b[\s\S]{5,200}?\bwrote:/i.test(own)) {
+              cutAt = i;
+              break;
+            }
+          }
+        }
+        var txt = String(n.textContent || '').trim();
+        if (txt && /^On\b[\s\S]{5,200}?\bwrote:\s*$/i.test(txt)) {
+          cutAt = i;
+          break;
+        }
+      }
+      if (cutAt < 0) return { main: raw, quoted: '' };
+
+      var mainHtml = '';
+      var quotedHtml = '';
+      for (var j = 0; j < nodes.length; j++) {
+        var piece = nodes[j].nodeType === 1 ? nodes[j].outerHTML : escapeEmailHtml(nodes[j].textContent || '');
+        if (j < cutAt) mainHtml += piece;
+        else quotedHtml += piece;
+      }
+      if (!mainHtml.trim()) return { main: raw, quoted: '' };
+      return { main: mainHtml, quoted: quotedHtml };
+    } catch (e) {
+      return { main: raw, quoted: '' };
+    }
+  }
+
+  /**
+   * Your own sent email, collapsed. You wrote it, so it starts closed — inbound
+   * replies stay open because those are what you opened the thread to read.
+   * Body arrives on the email.sent event; older rows predate that and show
+   * nothing, which is expected rather than broken.
+   */
+  function renderOutboundBodyHtml(msg) {
+    var html = msg && msg.html ? sanitizeBlogContentHtml(msg.html) : '';
+    var text = msg && msg.text ? String(msg.text) : '';
+    if (!html && !text) return '';
+    var inner = html
+      ? '<div class="admin-email-bubble-body admin-email-bubble-body--html">' + splitQuotedEmailHtml(html).main + '</div>'
+      : '<div class="admin-email-bubble-body admin-email-bubble-body--text">' + escapeEmailHtml(text) + '</div>';
+    return (
+      '<details class="admin-email-quoted admin-email-sent-body">' +
+      '<summary>Show message</summary>' +
+      '<div class="admin-email-quoted-body">' + inner + '</div>' +
+      '</details>'
+    );
+  }
+
+  function outboundStatusRank(type) {
+    var t = String(type || '').toLowerCase();
+    if (t === 'email.bounced') return 4;
+    if (t === 'email.complained') return 3;
+    if (t === 'email.delivered') return 2;
+    if (t === 'email.sent') return 1;
+    return 0;
+  }
+
   function outboundTypeTone(type) {
     var t = String(type || '').toLowerCase();
+    if (t === 'email.sent')      return 'sent';
     if (t === 'email.delivered') return 'delivered';
     if (t === 'email.bounced')   return 'bounced';
     if (t === 'email.complained') return 'complained';
@@ -11547,6 +11641,7 @@ window.addEventListener('load', function() {
 
   function outboundTypeLabel(type) {
     var t = String(type || '').toLowerCase();
+    if (t === 'email.sent')      return 'Sent';
     if (t === 'email.delivered') return 'Delivered';
     if (t === 'email.bounced')   return 'Bounced';
     if (t === 'email.complained') return 'Complained';
@@ -11684,6 +11779,10 @@ window.addEventListener('load', function() {
       });
     });
 
+    // One row per email, not per event. Resend fires email.sent then
+    // email.delivered for the same message, which rendered as two bubbles;
+    // furthest status wins so a bounce is never hidden behind an earlier "Sent".
+    var outboundByEmailId = {};
     agencyOutboundList.forEach(function (row) {
       var contactEmail = outboundContactEmail(row);
       if (!contactEmail) return;
@@ -11698,16 +11797,38 @@ window.addEventListener('load', function() {
           messages: []
         };
       }
-      map[key].messages.push({
-        kind: 'outbound',
-        id: row.id,
-        subject: row.subject || '(No subject)',
-        at: row.eventAt || row.createdAt || '',
-        statusType: row.type || '',
-        emailId: row.emailId || '',
-        from: row.from || '',
-        to: Array.isArray(row.to) ? row.to : []
-      });
+      var groupKey = key + '||' + (row.emailId || row.id);
+      var at = row.eventAt || row.createdAt || '';
+      var existing = outboundByEmailId[groupKey];
+      if (!existing) {
+        var msg = {
+          kind: 'outbound',
+          id: row.id,
+          subject: row.subject || '(No subject)',
+          at: at,
+          statusType: row.type || '',
+          emailId: row.emailId || '',
+          from: row.from || '',
+          to: Array.isArray(row.to) ? row.to : [],
+          html: row.html || '',
+          text: row.text || ''
+        };
+        outboundByEmailId[groupKey] = msg;
+        map[key].messages.push(msg);
+        return;
+      }
+      // Keep the earliest timestamp (when it was sent) and the latest status.
+      if (at && (!existing.at || Date.parse(at) < Date.parse(existing.at))) existing.at = at;
+      if (outboundStatusRank(row.type) > outboundStatusRank(existing.statusType)) {
+        existing.statusType = row.type || existing.statusType;
+      }
+      if (!existing.subject || existing.subject === '(No subject)') {
+        existing.subject = row.subject || existing.subject;
+      }
+      // The body rides on the email.sent event only, so keep it when merging
+      // the later delivered/bounced events for the same message.
+      if (!existing.html && row.html) existing.html = row.html;
+      if (!existing.text && row.text) existing.text = row.text;
     });
 
     agencyOutboundRepliesList.forEach(function (row) {
@@ -11755,10 +11876,86 @@ window.addEventListener('load', function() {
     });
   }
 
+  /**
+   * Archived threads — hidden from the tab, never deleted.
+   *
+   * Kept in localStorage rather than RTDB on purpose: agencyInboundEmails and
+   * agencyOutboundEvents are .write:false (server-only), so the browser cannot
+   * touch those records at all, and "which threads have I cleared" is a view
+   * preference rather than business data. Nothing here removes anything from
+   * Resend, Gmail, or the database.
+   */
+  var AGENCY_EMAIL_ARCHIVED_KEY = 'agencyEmailArchived.v1';
+  var agencyEmailShowArchived = false;
+
+  function loadArchivedThreads() {
+    try {
+      var raw = localStorage.getItem(AGENCY_EMAIL_ARCHIVED_KEY);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveArchivedThreads(map) {
+    try {
+      localStorage.setItem(AGENCY_EMAIL_ARCHIVED_KEY, JSON.stringify(map || {}));
+    } catch (e) {}
+  }
+
+  function isThreadArchived(key) {
+    return !!loadArchivedThreads()[String(key || '')];
+  }
+
+  function setThreadArchived(key, archived) {
+    var map = loadArchivedThreads();
+    if (archived) map[String(key)] = Date.now();
+    else delete map[String(key)];
+    saveArchivedThreads(map);
+  }
+
+  function archivedThreadCount() {
+    var map = loadArchivedThreads();
+    return agencyEmailThreads.filter(function (t) {
+      return !!map[t.threadKey];
+    }).length;
+  }
+
+  /** Local day key, so "clear this day" matches what the timestamps read. */
+  function emailDayKey(at) {
+    var d = new Date(at || 0);
+    if (isNaN(d.getTime())) return 'unknown';
+    return (
+      d.getFullYear() +
+      '-' +
+      String(d.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(d.getDate()).padStart(2, '0')
+    );
+  }
+
+  function emailDayLabel(at) {
+    var d = new Date(at || 0);
+    if (isNaN(d.getTime())) return 'Undated';
+    var today = new Date();
+    var isToday = emailDayKey(d) === emailDayKey(today);
+    var y = new Date(today.getTime() - 86400000);
+    if (isToday) return 'Today';
+    if (emailDayKey(d) === emailDayKey(y)) return 'Yesterday';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
   function getFilteredThreads() {
     var q = agencyEmailThreadSearch.toLowerCase().trim();
-    if (!q) return agencyEmailThreads;
-    return agencyEmailThreads.filter(function (t) {
+    var archivedMap = loadArchivedThreads();
+    var base = agencyEmailThreads.filter(function (t) {
+      var archived = !!archivedMap[t.threadKey];
+      return agencyEmailShowArchived ? archived : !archived;
+    });
+    if (!q) return base;
+    return base.filter(function (t) {
       return t.contactEmail.indexOf(q) >= 0 ||
         t.contactName.toLowerCase().indexOf(q) >= 0 ||
         t.messages.some(function (m) { return m.subject.toLowerCase().indexOf(q) >= 0; });
@@ -11767,9 +11964,17 @@ window.addEventListener('load', function() {
 
   function getSelectedThread() {
     if (!agencyEmailSelectedThread) return null;
-    return agencyEmailThreads.find(function (t) {
+    var found = agencyEmailThreads.find(function (t) {
       return t.threadKey === agencyEmailSelectedThread;
     }) || null;
+    // Respect the hidden/visible split, or archiving a thread leaves its detail
+    // stranded on the right while the list says there is nothing here.
+    // Deliberately ignores the search box — filtering the list should not close
+    // whatever you were reading.
+    if (found && isThreadArchived(found.threadKey) !== agencyEmailShowArchived) {
+      return null;
+    }
+    return found;
   }
 
   // ── Thread list rendering ───────────────────────────────────────────────────
@@ -11778,14 +11983,42 @@ window.addEventListener('load', function() {
     if (!listEl) return;
     var threads = getFilteredThreads();
     if (!threads.length) {
+      var hiddenCount = archivedThreadCount();
       listEl.innerHTML =
         '<div class="no-messages">' +
         '<ion-icon name="mail-unread-outline"></ion-icon>' +
-        '<p>' + (agencyEmailThreadSearch ? 'No threads match your search.' : 'No threads yet') + '</p>' +
-        '</div>';
+        '<p>' +
+        (agencyEmailThreadSearch
+          ? 'No threads match your search.'
+          : agencyEmailShowArchived
+            ? 'Nothing hidden.'
+            : hiddenCount
+              ? 'All threads are hidden.'
+              : 'No threads yet') +
+        '</p>' +
+        '</div>' +
+        // Must still render, or hiding everything leaves no way back.
+        (hiddenCount || agencyEmailShowArchived
+          ? '<button type="button" class="admin-email-archived-toggle" data-toggle-archived="1">' +
+            (agencyEmailShowArchived ? '&larr; Back to inbox' : 'Show hidden (' + hiddenCount + ')') +
+            '</button>'
+          : '');
       return;
     }
-    listEl.innerHTML = threads.map(function (thread) {
+    // Group by day so each day gets its own "Clear" control.
+    var dayOrder = [];
+    var byDay = {};
+    threads.forEach(function (t) {
+      var latestAt = (t.messages[0] || {}).at || '';
+      var key = emailDayKey(latestAt);
+      if (!byDay[key]) {
+        byDay[key] = { label: emailDayLabel(latestAt), threads: [] };
+        dayOrder.push(key);
+      }
+      byDay[key].threads.push(t);
+    });
+
+    function threadCardHtml(thread) {
       var active = thread.threadKey === agencyEmailSelectedThread ? ' is-active' : '';
       var latest = thread.messages[0] || {};
       var hasComplained = thread.messages.some(function (m) { return m.kind === 'outbound' && m.statusType === 'email.complained'; });
@@ -11801,6 +12034,7 @@ window.addEventListener('load', function() {
         ? '<span class="admin-email-chip admin-email-status-chip admin-email-status-chip--' + escapeEmailHtml(healthTone) + '">' + escapeEmailHtml(healthLabel) + '</span>'
         : '';
       return (
+        '<div class="admin-email-thread-row">' +
         '<button type="button" class="admin-email-thread-card' + active + '" ' +
           'data-thread-key="' + escapeEmailHtml(thread.threadKey) + '" tabindex="0" ' +
           'role="option" aria-selected="' + (active ? 'true' : 'false') + '">' +
@@ -11810,9 +12044,42 @@ window.addEventListener('load', function() {
         '<span class="admin-email-chip admin-email-chip--time">' + escapeEmailHtml(formatEmailWhen(latest.at)) + '</span>' +
         unreadBadge + healthBadge +
         '</div>' +
-        '</button>'
+        '</button>' +
+        '<button type="button" class="admin-email-thread-archive" ' +
+        'data-thread-archive="' + escapeEmailHtml(thread.threadKey) + '" ' +
+        'title="' + (agencyEmailShowArchived ? 'Restore to inbox' : 'Hide from this list') + '" ' +
+        'aria-label="' + (agencyEmailShowArchived ? 'Restore thread' : 'Hide thread') + '">' +
+        (agencyEmailShowArchived ? '&#8630;' : '&times;') +
+        '</button>' +
+        '</div>'
       );
-    }).join('');
+    }
+
+    var archivedCount = archivedThreadCount();
+    listEl.innerHTML =
+      dayOrder
+        .map(function (key) {
+          var group = byDay[key];
+          return (
+            '<div class="admin-email-day-head">' +
+            '<span class="admin-email-day-label">' + escapeEmailHtml(group.label) + '</span>' +
+            '<button type="button" class="admin-email-day-clear" data-clear-day="' +
+            escapeEmailHtml(key) +
+            '">' +
+            (agencyEmailShowArchived ? 'Restore' : 'Clear') +
+            ' (' + group.threads.length + ')</button>' +
+            '</div>' +
+            group.threads.map(threadCardHtml).join('')
+          );
+        })
+        .join('') +
+      (archivedCount || agencyEmailShowArchived
+        ? '<button type="button" class="admin-email-archived-toggle" data-toggle-archived="1">' +
+          (agencyEmailShowArchived
+            ? '&larr; Back to inbox'
+            : 'Show hidden (' + archivedCount + ')') +
+          '</button>'
+        : '');
   }
 
   // ── Thread detail rendering ─────────────────────────────────────────────────
@@ -11869,9 +12136,25 @@ window.addEventListener('load', function() {
 
       if (msg.kind === 'inbound') {
         var htmlBody = sanitizeBlogContentHtml(msg.html || '');
-        var bodyContent = htmlBody
-          ? '<div class="admin-email-bubble-body admin-email-bubble-body--html">' + htmlBody + '</div>'
-          : '<div class="admin-email-bubble-body admin-email-bubble-body--text">' + escapeEmailHtml(msg.text || '(No body)') + '</div>';
+        var bodyContent;
+        if (htmlBody) {
+          var parts = splitQuotedEmailHtml(htmlBody);
+          bodyContent =
+            '<div class="admin-email-bubble-body admin-email-bubble-body--html">' +
+            parts.main +
+            '</div>' +
+            (parts.quoted
+              ? '<details class="admin-email-quoted">' +
+                '<summary>Show quoted text</summary>' +
+                '<div class="admin-email-quoted-body">' + parts.quoted + '</div>' +
+                '</details>'
+              : '');
+        } else {
+          bodyContent =
+            '<div class="admin-email-bubble-body admin-email-bubble-body--text">' +
+            escapeEmailHtml(msg.text || '(No body)') +
+            '</div>';
+        }
         return (
           '<div class="admin-email-bubble admin-email-bubble--inbound">' +
           '<div class="admin-email-bubble-meta">' +
@@ -11907,6 +12190,7 @@ window.addEventListener('load', function() {
         '<span class="admin-email-chip admin-email-status-chip admin-email-status-chip--' + escapeEmailHtml(tone) + '">' + escapeEmailHtml(label) + '</span>' +
         '</div>' +
         (showSubject ? '<div class="admin-email-bubble-subject">' + escapeEmailHtml(msg.subject) + '</div>' : '') +
+        renderOutboundBodyHtml(msg) +
         '</div>'
       );
     }).join('');
@@ -12070,7 +12354,6 @@ window.addEventListener('load', function() {
   // ── Thread selection ────────────────────────────────────────────────────────
   function selectEmailThread(contactEmail) {
     agencyEmailSelectedThread = contactEmail;
-    if (agencyEmailPreviewCollapsed) setAdminEmailPreviewCollapsed(false);
     renderAdminEmailThreadList();
     renderAdminEmailThreadDetail();
     try { sessionStorage.setItem(AGENCY_EMAIL_THREAD_KEY, contactEmail); } catch (e) {}
@@ -12082,6 +12365,45 @@ window.addEventListener('load', function() {
     if (listEl && !listEl.dataset.bound) {
       listEl.dataset.bound = '1';
       listEl.addEventListener('click', function (e) {
+        var toggle = e.target.closest('[data-toggle-archived]');
+        if (toggle) {
+          agencyEmailShowArchived = !agencyEmailShowArchived;
+          agencyEmailSelectedThread = null;
+          renderAdminEmailThreadList();
+          renderAdminEmailThreadDetail();
+          return;
+        }
+
+        var archiveBtn = e.target.closest('[data-thread-archive]');
+        if (archiveBtn) {
+          e.stopPropagation();
+          var key = archiveBtn.getAttribute('data-thread-archive');
+          setThreadArchived(key, !agencyEmailShowArchived);
+          if (agencyEmailSelectedThread === key) agencyEmailSelectedThread = null;
+          renderAdminEmailThreadList();
+          renderAdminEmailThreadDetail();
+          return;
+        }
+
+        var dayBtn = e.target.closest('[data-clear-day]');
+        if (dayBtn) {
+          e.stopPropagation();
+          var dayKey = dayBtn.getAttribute('data-clear-day');
+          var affected = getFilteredThreads().filter(function (t) {
+            return emailDayKey((t.messages[0] || {}).at || '') === dayKey;
+          });
+          if (!affected.length) return;
+          var verb = agencyEmailShowArchived ? 'Restore' : 'Hide';
+          if (!window.confirm(verb + ' ' + affected.length + ' thread' + (affected.length === 1 ? '' : 's') + '? Nothing is deleted — this only changes what shows here.')) return;
+          affected.forEach(function (t) {
+            setThreadArchived(t.threadKey, !agencyEmailShowArchived);
+            if (agencyEmailSelectedThread === t.threadKey) agencyEmailSelectedThread = null;
+          });
+          renderAdminEmailThreadList();
+          renderAdminEmailThreadDetail();
+          return;
+        }
+
         var card = e.target.closest('[data-thread-key]');
         if (!card) return;
         selectEmailThread(card.getAttribute('data-thread-key'));
@@ -12142,19 +12464,6 @@ window.addEventListener('load', function() {
     });
   }
 
-  // ── Preview collapse ────────────────────────────────────────────────────────
-  function setAdminEmailPreviewCollapsed(collapsed) {
-    agencyEmailPreviewCollapsed = !!collapsed;
-    var section = document.getElementById('admin-email-section');
-    var toggleBtn = document.getElementById('admin-email-toggle-preview');
-    if (section) section.classList.toggle('admin-email-preview-collapsed', agencyEmailPreviewCollapsed);
-    if (toggleBtn) {
-      toggleBtn.textContent = agencyEmailPreviewCollapsed ? 'Show Preview' : 'Hide Preview';
-      toggleBtn.setAttribute('aria-pressed', agencyEmailPreviewCollapsed ? 'false' : 'true');
-    }
-    try { sessionStorage.setItem(AGENCY_EMAIL_PREVIEW_KEY, agencyEmailPreviewCollapsed ? '1' : '0'); } catch (e) {}
-  }
-
   // ── Compose drawer ──────────────────────────────────────────────────────────
   function ensureAdminClientEmailDrawer() {
     var existing = document.getElementById('admin-email-compose-drawer');
@@ -12203,13 +12512,6 @@ window.addEventListener('load', function() {
   }
 
   function bindAdminEmailActions() {
-    var toggleBtn = document.getElementById('admin-email-toggle-preview');
-    if (toggleBtn && toggleBtn.dataset.bound !== '1') {
-      toggleBtn.dataset.bound = '1';
-      toggleBtn.addEventListener('click', function () {
-        setAdminEmailPreviewCollapsed(!agencyEmailPreviewCollapsed);
-      });
-    }
     var composeBtn = document.getElementById('admin-email-compose-btn');
     if (composeBtn && composeBtn.dataset.bound !== '1') {
       composeBtn.dataset.bound = '1';
@@ -12346,14 +12648,11 @@ window.addEventListener('load', function() {
 
   async function initAdminEmailPanel() {
     try {
-      var savedPreview = sessionStorage.getItem(AGENCY_EMAIL_PREVIEW_KEY);
-      if (savedPreview === '0' || savedPreview === '1') agencyEmailPreviewCollapsed = savedPreview === '1';
       var savedThread = sessionStorage.getItem(AGENCY_EMAIL_THREAD_KEY);
       if (savedThread) agencyEmailSelectedThread = savedThread;
     } catch (e) {}
     bindAdminEmailActions();
     bindAdminEmailThreadsUi();
-    setAdminEmailPreviewCollapsed(agencyEmailPreviewCollapsed);
     // Stale-while-revalidate: render cached data instantly, then sync live.
     var cached = await readAgencyEmailCache();
     if (cached && typeof cached === 'object') {
@@ -13321,6 +13620,54 @@ window.addEventListener('load', function() {
       true
     );
   }
+
+  /**
+   * Desktop sidebar collapse — the 236px nav becomes a ~56px icon rail.
+   *
+   * The toggle is injected from JS rather than added to markup because the admin
+   * shell is duplicated across 14 HTML files; one insertion keeps them in step.
+   * Every tab already carries an aria-label, so the collapsed rail gets hover
+   * tooltips and stays correctly announced with no markup changes.
+   */
+  var ADMIN_NAV_COLLAPSED_KEY = 'adminNavCollapsed.v1';
+
+  function isAdminNavCollapsed() {
+    try {
+      return localStorage.getItem(ADMIN_NAV_COLLAPSED_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function setAdminNavCollapsed(collapsed) {
+    try {
+      localStorage.setItem(ADMIN_NAV_COLLAPSED_KEY, collapsed ? '1' : '0');
+    } catch (e) {}
+    document.body.classList.toggle('admin-nav-collapsed', !!collapsed);
+    var btn = document.getElementById('admin-nav-collapse-btn');
+    if (btn) {
+      btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      btn.setAttribute('aria-label', collapsed ? 'Expand navigation' : 'Collapse navigation');
+      btn.setAttribute('title', collapsed ? 'Expand navigation' : 'Collapse navigation');
+    }
+  }
+
+  function initAdminNavCollapse() {
+    var bar = document.querySelector('#admin-dashboard-content > .admin-tabs > .admin-tab-bar');
+    if (!bar || document.getElementById('admin-nav-collapse-btn')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'admin-nav-collapse-btn';
+    btn.id = 'admin-nav-collapse-btn';
+    btn.innerHTML = '<ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>';
+    bar.insertBefore(btn, bar.firstChild);
+    btn.addEventListener('click', function () {
+      setAdminNavCollapsed(!document.body.classList.contains('admin-nav-collapsed'));
+    });
+    setAdminNavCollapsed(isAdminNavCollapsed());
+  }
+
+  window.initAdminNavCollapse = initAdminNavCollapse;
 
   function initAdminBookingsPanel() {
     var section = document.getElementById('admin-bookings-section');

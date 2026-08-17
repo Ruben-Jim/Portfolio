@@ -85,6 +85,10 @@ const resendFrom = defineString("RESEND_FROM", {
   default: DEFAULT_RESEND_FROM,
 });
 const RESEND_INBOUND_DOMAIN = "ouuldeaulk.resend.app";
+// Client-facing mail replies here so responses come back through Resend's
+// inbound webhook and thread in the Email tab. Admin notification emails keep
+// replyTo = the customer's address, so replying from Gmail still reaches them.
+const RESEND_REPLY_TO = "replies@" + RESEND_INBOUND_DOMAIN;
 const notifyToEmail = defineString("NOTIFY_TO_EMAIL", { default: "" });
 
 const MAX_BODY_BYTES = 48 * 1024;
@@ -177,6 +181,27 @@ async function fetchReceivedEmailBody(emailId, apiKey) {
       return "";
     });
     throw new Error("Receiving API " + res.status + ": " + (errText || res.statusText));
+  }
+  return res.json();
+}
+
+/**
+ * Body of an email WE sent. Resend's webhook payload carries only metadata, so
+ * the thread had a subject and no message. Mirrors fetchReceivedEmailBody().
+ */
+async function fetchSentEmailBody(emailId, apiKey) {
+  const res = await fetch("https://api.resend.com/emails/" + encodeURIComponent(emailId), {
+    method: "GET",
+    headers: {
+      Authorization: "Bearer " + apiKey,
+      Accept: "application/json",
+    },
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(function () {
+      return "";
+    });
+    throw new Error("Emails API " + res.status + ": " + (errText || res.statusText));
   }
   return res.json();
 }
@@ -388,7 +413,7 @@ exports.sendPortfolioEmail = onRequest(
         const { error: clientError } = await resend.emails.send({
           from,
           to: [email],
-          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+          replyTo: RESEND_REPLY_TO,
           subject: "Your call with CWR is booked",
           html: clientHtml,
           attachments: icsAttachment ? [icsAttachment] : undefined,
@@ -452,7 +477,7 @@ exports.sendPortfolioEmail = onRequest(
         const { data, error } = await resend.emails.send({
           from,
           to: [email],
-          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+          replyTo: RESEND_REPLY_TO,
           subject: "Your Google Meet link for our call",
           html,
         });
@@ -492,7 +517,7 @@ exports.sendPortfolioEmail = onRequest(
           testimonial_url: testimonialUrl,
           subject,
         });
-        const replyTo = notifyToEmail.value().trim() || ADMIN_ALLOWLIST_EMAILS[0];
+        const replyTo = RESEND_REPLY_TO;
         const { data, error } = await resend.emails.send({
           from,
           to: [toEmail],
@@ -538,7 +563,7 @@ exports.sendPortfolioEmail = onRequest(
         const { data, error } = await resend.emails.send({
           from,
           to: [toEmail],
-          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+          replyTo: RESEND_REPLY_TO,
           subject,
           html,
         });
@@ -647,7 +672,7 @@ exports.sendPortfolioEmail = onRequest(
         const { data, error } = await resend.emails.send({
           from,
           to: [email],
-          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+          replyTo: RESEND_REPLY_TO,
           subject,
           html,
         });
@@ -690,7 +715,7 @@ exports.sendPortfolioEmail = onRequest(
         const sendOpts = {
           from,
           to: [toEmail],
-          replyTo: notifyTo || ADMIN_ALLOWLIST_EMAILS[0],
+          replyTo: RESEND_REPLY_TO,
           subject,
           html,
         };
@@ -718,6 +743,13 @@ exports.sendPortfolioEmail = onRequest(
     }
   }
 );
+
+/** Makes a string safe to use as a Realtime Database key. */
+function rtdbSafeKey(value) {
+  return String(value || "")
+    .replace(/[.#$/[\]]/g, "_")
+    .slice(0, 200);
+}
 
 exports.resendInboundWebhook = onRequest(
   {
@@ -769,7 +801,9 @@ exports.resendInboundWebhook = onRequest(
     }
 
     const db = admin.database();
-    const dedupeRef = db.ref("agencyInboundDedupe/" + emailId);
+    // Sanitised for the same reason as the outbound key — an id with a dot in
+    // it would throw here and 500 the webhook.
+    const dedupeRef = db.ref("agencyInboundDedupe/" + rtdbSafeKey(emailId));
 
     try {
       const dedupeSnap = await dedupeRef.once("value");
@@ -829,7 +863,7 @@ exports.resendOutboundWebhook = onRequest(
     region: "us-central1",
     cors: false,
     invoker: "public",
-    secrets: [resendOutboundWebhookSecret],
+    secrets: [resendOutboundWebhookSecret, resendApiKey],
     memory: "256MiB",
     timeoutSeconds: 60,
   },
@@ -860,7 +894,11 @@ exports.resendOutboundWebhook = onRequest(
     }
 
     const type = String((event && event.type) || "");
+    // email.sent is what puts a composer-sent message in the Emails tab at all —
+    // delivered/bounced/complained only add status on top of it. Subscribe to
+    // email.sent in the Resend dashboard or nothing will appear.
     const supported = {
+      "email.sent": true,
       "email.delivered": true,
       "email.bounced": true,
       "email.complained": true,
@@ -872,7 +910,11 @@ exports.resendOutboundWebhook = onRequest(
 
     const data = event && typeof event.data === "object" && event.data ? event.data : {};
     const emailId = String(data.email_id || "").trim();
-    const dedupeKey = type + ":" + emailId;
+    // RTDB keys cannot contain . # $ [ ] or / — and every event type has a dot
+    // in it ("email.delivered"). Building the key raw made db.ref() throw before
+    // the event was ever written, so every webhook call 500'd and nothing
+    // reached agencyOutboundEvents. That is also what got the webhook disabled.
+    const dedupeKey = rtdbSafeKey(type + ":" + emailId);
 
     try {
       const db = admin.database();
@@ -902,6 +944,22 @@ exports.resendOutboundWebhook = onRequest(
       }
       if (data.complaint) {
         record.complaint = data.complaint;
+      }
+
+      // Only on email.sent — the later delivered/bounced events describe the
+      // same message, so one fetch per email is enough. Best-effort: a failure
+      // here must not 500 the webhook and get it disabled again.
+      if (type === "email.sent" && emailId) {
+        try {
+          const full = await fetchSentEmailBody(emailId, resendApiKey.value());
+          if (full && typeof full === "object") {
+            if (full.html) record.html = String(full.html);
+            if (full.text) record.text = String(full.text);
+            if (!record.subject && full.subject) record.subject = String(full.subject);
+          }
+        } catch (bodyErr) {
+          console.warn("resendOutboundWebhook body fetch:", bodyErr.message || bodyErr);
+        }
       }
 
       const outRef = db.ref("agencyOutboundEvents").push();

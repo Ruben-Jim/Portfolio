@@ -666,7 +666,8 @@ body.client-portal-page {
   opacity: 0.6;
 }
 
-body.portal-guide-sheet-open {
+body.portal-guide-sheet-open,
+body.portal-doc-sheet-open {
   overflow: hidden;
 }
 
@@ -730,6 +731,31 @@ body.portal-guide-sheet-open {
   .portal-guide-sheet-panes {
     transition: none;
   }
+}
+
+/* Document viewer reuses the guide sheet chrome. The card already picked the
+   document, so there is no list pane — the sheet opens in reading mode. */
+.portal-doc-sheet-root .portal-guide-sheet-pane--reader {
+  transform: none;
+}
+
+.portal-doc-sheet-root .client-portal-contract-preview {
+  margin: 16px 0 0;
+  border-radius: 10px;
+  overflow: visible;
+}
+
+.portal-doc-sheet-root .client-portal-contract-frame {
+  background: transparent;
+}
+
+.portal-doc-sheet-sign {
+  margin-top: 4px;
+  padding: 8px 2px 12px;
+}
+
+.portal-doc-sheet-sign .client-portal-sign-form {
+  padding-top: 14px;
 }
 
 /* Match portfolio page: keep intrinsic ratio so video letterboxing matches images */

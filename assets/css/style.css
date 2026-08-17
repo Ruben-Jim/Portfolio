@@ -16089,14 +16089,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
   gap: 10px;
 }
 
-.admin-email-preview-collapsed .admin-inbound-detail {
-  display: none !important;
-}
-
-.admin-email-preview-collapsed .admin-inbound-layout {
-  grid-template-columns: minmax(280px, 520px);
-}
-
 .admin-inbound-layout {
   display: grid;
   grid-template-columns: minmax(240px, 360px) minmax(0, 1fr);
@@ -16200,6 +16192,14 @@ body.portfolio-project-modal-open .cp-client-drawer {
   background: rgba(255, 99, 132, 0.18);
 }
 
+/* email.sent — the message left Resend. Deliberately cooler than the green
+   "Delivered", so the two read as different stages rather than duplicates. */
+.admin-email-status-chip--sent {
+  color: #cfe3ff;
+  border-color: rgba(90, 150, 240, 0.5);
+  background: rgba(90, 150, 240, 0.16);
+}
+
 .admin-email-status-chip--neutral {
   color: rgba(230, 233, 242, 0.92);
   border-color: rgba(160, 170, 190, 0.45);
@@ -16225,6 +16225,11 @@ body.portfolio-project-modal-open .cp-client-drawer {
 .admin-email-status-meta--complained {
   border-color: rgba(255, 99, 132, 0.4);
   background: rgba(255, 99, 132, 0.12);
+}
+
+.admin-email-status-meta--sent {
+  border-color: rgba(90, 150, 240, 0.32);
+  background: rgba(90, 150, 240, 0.1);
 }
 
 .admin-email-status-meta--neutral {
@@ -27740,4 +27745,284 @@ body.admin-tab-reorder-active::before {
 .testimonials-quote {
   margin: 0;
   line-height: 1.6;
+}
+
+/* Collapsed quoted history inside an inbound reply. Mail clients append the
+   whole previous message to every reply; showing it inline rendered a full
+   light-themed copy of the original email inside the dark thread. */
+.admin-email-quoted {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 8px;
+}
+
+.admin-email-quoted > summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  font-size: 12px;
+  color: rgba(230, 233, 242, 0.75);
+}
+
+.admin-email-quoted > summary::-webkit-details-marker,
+.admin-email-quoted > summary::marker {
+  display: none;
+}
+
+.admin-email-quoted > summary:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.admin-email-quoted[open] > summary {
+  margin-bottom: 10px;
+}
+
+/* Someone else's email HTML brings its own light palette — contain it so it
+   cannot blow out the thread width or the dark theme around it. */
+.admin-email-quoted-body {
+  max-height: 420px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  opacity: 0.72;
+}
+
+.admin-email-quoted-body img,
+.admin-email-quoted-body table {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Your own sent email — same collapse chrome as quoted text, but full opacity
+   since this is your content, not someone else's pasted history. */
+.admin-email-sent-body > .admin-email-quoted-body {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ——— Email thread list: day groups + hide controls ———
+   "Hide" only filters this list. Nothing is removed from the database, Resend,
+   or your Gmail. */
+.admin-email-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 10px 6px;
+}
+
+.admin-email-day-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(230, 233, 242, 0.55);
+}
+
+.admin-email-day-clear {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(230, 233, 242, 0.7);
+  font-size: 11px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.admin-email-day-clear:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.admin-email-thread-row {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.admin-email-thread-row > .admin-email-thread-card {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.admin-email-thread-archive {
+  flex: 0 0 auto;
+  width: 30px;
+  border: 0;
+  background: transparent;
+  color: rgba(230, 233, 242, 0.35);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.admin-email-thread-row:hover .admin-email-thread-archive,
+.admin-email-thread-archive:focus-visible {
+  opacity: 1;
+}
+
+.admin-email-thread-archive:hover {
+  color: #fff;
+}
+
+.admin-email-archived-toggle {
+  display: block;
+  width: calc(100% - 20px);
+  margin: 10px;
+  padding: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: transparent;
+  color: rgba(230, 233, 242, 0.6);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.admin-email-archived-toggle:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ——— Desktop sidebar collapse (icon rail) ———
+   Desktop only: below 768px the nav is a fixed bottom bar, where collapsing
+   makes no sense. Tabs already carry aria-label, so the rail keeps its
+   accessible names and gets hover tooltips from the same attribute. */
+.admin-nav-collapse-btn {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .admin-nav-collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-end;
+    width: 30px;
+    height: 30px;
+    margin-bottom: 4px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--light-gray-70);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, transform 0.2s ease;
+  }
+
+  .admin-nav-collapse-btn:hover,
+  .admin-nav-collapse-btn:focus-visible {
+    color: var(--white-2);
+    border-color: var(--jet);
+  }
+
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar {
+    transition: width 0.22s ease;
+  }
+
+  body.admin-nav-collapsed #admin-dashboard-content > .admin-tabs > .admin-tab-bar {
+    width: 60px !important;
+  }
+
+  body.admin-nav-collapsed .admin-nav-collapse-btn {
+    align-self: center;
+    transform: rotate(180deg);
+  }
+
+  /* Labels and group chrome go; icons stay. */
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab-label,
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab-label-desktop,
+  body.admin-nav-collapsed .admin-nav-group-label,
+  body.admin-nav-collapsed .admin-nav-group-toggle ion-icon:last-child {
+    display: none !important;
+  }
+
+  /* These must match the sidebar block's own ID + !important specificity, or
+     `justify-content: flex-start !important; padding: 10px 12px !important`
+     wins and the icons stay left-aligned and cramped in a 60px rail. */
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group-toggle {
+    justify-content: center !important;
+    padding: 4px 0 !important;
+    min-height: 0;
+  }
+
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab {
+    justify-content: center !important;
+    padding: 12px 0 !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab ion-icon {
+    font-size: 20px;
+  }
+
+  /* Collapsed: drop the group rail and indent so every icon — grouped or not —
+     sits on the same centre line as Overview. */
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group-items {
+    border-left: 0 !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  /* Beats `.admin-nav-group-items .admin-tab { padding-left: 10px !important }`,
+     which is (1,4,0) and would otherwise nudge grouped icons off centre. */
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group-items .admin-tab {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    font-size: inherit;
+  }
+
+  /* Hover tooltip built from the existing aria-label. */
+  body.admin-nav-collapsed .admin-tab {
+    position: relative;
+  }
+
+  body.admin-nav-collapsed .admin-tab::after {
+    content: attr(aria-label);
+    position: absolute;
+    left: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 60;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--jet);
+    background: var(--eerie-black-2);
+    color: var(--white-2);
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+  }
+
+  body.admin-nav-collapsed .admin-tab:hover::after,
+  body.admin-nav-collapsed .admin-tab:focus-visible::after {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #admin-dashboard-content > .admin-tabs > .admin-tab-bar,
+  .admin-nav-collapse-btn,
+  body.admin-nav-collapsed .admin-tab::after {
+    transition: none;
+  }
 }
