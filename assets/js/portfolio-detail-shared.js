@@ -196,7 +196,7 @@
     return raw.map(function (x) { return String(x || '').trim(); }).filter(Boolean).slice(0, 12);
   }
 
-  var CANVAS_DOC_CACHE_BUST = '20260608a';
+  var CANVAS_DOC_CACHE_BUST = '20260817a';
 
   function extractCanvasDocPath(url) {
     var s = cleanImageUrlInput(url);
@@ -493,17 +493,36 @@
 
       var imageMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
       if (imageMatch) {
-        html.push(
-          '<figure class="portfolio-md-figure">' +
-            '<img src="' +
-            esc(displayDocAssetSrc(imageMatch[2], docUrl)) +
-            '" alt="' +
-            esc(imageMatch[1]) +
-            '" loading="lazy">' +
-            '<figcaption>' +
-            esc(imageMatch[1]) +
-            '</figcaption></figure>'
-        );
+        var mediaSrc = imageMatch[2];
+        var mediaAlt = imageMatch[1];
+        var mediaUrl = displayDocAssetSrc(mediaSrc, docUrl);
+        var isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(mediaSrc);
+        if (isVideo) {
+          var posterSrc = mediaSrc.replace(/\.(mp4|webm|mov)(\?.*)?$/i, '.webp');
+          html.push(
+            '<figure class="portfolio-md-figure portfolio-md-figure-video">' +
+              '<video src="' +
+              esc(mediaUrl) +
+              '" controls playsinline preload="metadata" poster="' +
+              esc(displayDocAssetSrc(posterSrc, docUrl)) +
+              '"></video>' +
+              '<figcaption>' +
+              esc(mediaAlt) +
+              '</figcaption></figure>'
+          );
+        } else {
+          html.push(
+            '<figure class="portfolio-md-figure">' +
+              '<img src="' +
+              esc(mediaUrl) +
+              '" alt="' +
+              esc(mediaAlt) +
+              '" loading="lazy">' +
+              '<figcaption>' +
+              esc(mediaAlt) +
+              '</figcaption></figure>'
+          );
+        }
         i++;
         continue;
       }

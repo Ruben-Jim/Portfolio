@@ -1,3 +1,13 @@
+/* The portal and install page are dark-only (both set data-theme="dark" and
+   neither ships a light palette). Without color-scheme the browser renders
+   native UI — checkbox and radio chrome, scrollbars, autofill backgrounds,
+   focus rings — against its default LIGHT scheme, which is why they showed up
+   white on a dark page. This has to sit on the root element. */
+:root,
+html {
+  color-scheme: dark;
+}
+
 /**
  * Standalone client portal page — no dependency on style.css
  */

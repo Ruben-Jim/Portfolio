@@ -202,6 +202,7 @@
 }
 
 .portfolio-md-figure img,
+.portfolio-md-figure video,
 .portfolio-md-inline-img {
   display: block;
   width: 100%;
@@ -212,6 +213,12 @@
   border: 1px solid hsla(45, 100%, 72%, 0.14);
   box-shadow: 0 12px 28px hsla(0, 0%, 0%, 0.32);
   background: hsla(240, 2%, 8%, 0.88);
+}
+
+.portfolio-md-figure-video video {
+  max-height: min(72vh, 640px);
+  object-fit: contain;
+  background: #0f172a;
 }
 
 .portfolio-md-inline-img {

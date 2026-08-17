@@ -16,6 +16,7 @@ Capture from the **live** apps/sites. Save as **WebP** using the exact filenames
 | Filename | Status | Source |
 |----------|--------|--------|
 | `01-play-closed-testing.webp` | DONE / Play Console | Closed testing opt-in or Play listing |
+| `09-become-tester-play.mp4` | NEED DEVICE | Portrait screen recording: Become a tester → Accept → Download / Install on Google Play. Same clip for admin and worker. Optional poster: `09-become-tester-play.webp` |
 | `02-sign-in.webp` | DONE | Live web `/admin` (mobile viewport) |
 | `03-loading-brand.webp` | DONE | Staff app loading / brand screen |
 | `04-admin-overview.webp` | DONE | Your Android Overview screenshot (Aug 14) |
