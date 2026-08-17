@@ -18,9 +18,7 @@ Play will not find this app in a normal search. Use the **same Gmail** on the ph
 
 **[ProCleaning Team on Google Play](https://play.google.com/store/apps/details?id=com.procleaning.app)**
 
-![Become a tester, then Download on Google Play](screenshots/access/09-become-tester-play.mp4)
-
-![Play Closed testing](screenshots/access/01-play-closed-testing.webp)
+![Tap Google Play, then Install](screenshots/access/09-become-tester-play.webp)
 
 ---
 
