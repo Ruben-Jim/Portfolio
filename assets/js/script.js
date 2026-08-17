@@ -10733,17 +10733,20 @@ window.addEventListener('load', function() {
   const BUSINESS_DOC_CLIENT_LOGOS_KEY = 'businessDocClientLogos.v1';
 
   /** Preset company logos for invoice Bill to (same assets as testimonial logo presets). */
-  var BUSINESS_DOC_LOGO_PRESETS = [
-    { src: '/assets/images/logo/logo-1-color.png', label: 'Logo 1' },
-    { src: '/assets/images/logo/logo-2-color.png', label: 'Logo 2' },
-    { src: '/assets/images/logo/logo-3-color.png', label: 'Logo 3' },
-    { src: '/assets/images/logo/logo-4-color.png', label: 'Logo 4' },
-    { src: '/assets/images/logo/logo-5-color.png', label: 'Logo 5' },
-    { src: '/assets/images/logo/logo-6-color.png', label: 'Logo 6' },
-    { src: '/assets/images/logo/logo-7-color.png', label: 'Logo 7' },
-    { src: '/assets/images/logo/logo-8-color.png', label: 'Logo 8' },
-    { src: '/assets/images/logo/logo--3-color.png', label: 'Logo alt' }
-  ];
+  // Single source of truth lives in business-doc-shared.js so the client portal
+  // can validate the same whitelist. Inline copy is only a load-order fallback.
+  var BUSINESS_DOC_LOGO_PRESETS =
+    (window.BusinessDocShared && window.BusinessDocShared.clientLogoPresets) || [
+      { src: '/assets/images/logo/logo-1-color.png', label: 'Logo 1' },
+      { src: '/assets/images/logo/logo-2-color.png', label: 'Logo 2' },
+      { src: '/assets/images/logo/logo-3-color.png', label: 'Logo 3' },
+      { src: '/assets/images/logo/logo-4-color.png', label: 'Logo 4' },
+      { src: '/assets/images/logo/logo-5-color.png', label: 'Logo 5' },
+      { src: '/assets/images/logo/logo-6-color.png', label: 'Logo 6' },
+      { src: '/assets/images/logo/logo-7-color.png', label: 'Logo 7' },
+      { src: '/assets/images/logo/logo-8-color.png', label: 'Logo 8' },
+      { src: '/assets/images/logo/logo--3-color.png', label: 'Logo alt' }
+    ];
 
   function normalizeBusinessDocClientLogo(value) {
     var s = String(value || '').trim();

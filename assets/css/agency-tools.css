@@ -4510,3 +4510,38 @@ body.tc-add-drawer-open {
 .cp-install-link-controls .btn {
   flex: 0 0 auto;
 }
+
+/* Company logo picker in the client workspace hub form */
+.cp-logo-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cp-logo-thumb {
+  width: 52px;
+  height: 52px;
+  padding: 5px;
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.cp-logo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.cp-logo-thumb:hover {
+  border-color: hsla(45, 100%, 72%, 0.4);
+}
+
+.cp-logo-thumb.is-selected {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 1px hsla(45, 100%, 72%, 0.35);
+}

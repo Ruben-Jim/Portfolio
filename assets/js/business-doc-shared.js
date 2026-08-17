@@ -1846,6 +1846,33 @@
     return true;
   }
 
+  /**
+   * Client logos committed under /assets/images/logo/. Kept here rather than in
+   * script.js because the client portal loads this file but not that one, and
+   * both need the same whitelist.
+   */
+  var CLIENT_LOGO_PRESETS = [
+    { src: '/assets/images/logo/logo-1-color.png', label: 'Logo 1' },
+    { src: '/assets/images/logo/logo-2-color.png', label: 'Logo 2' },
+    { src: '/assets/images/logo/logo-3-color.png', label: 'Logo 3' },
+    { src: '/assets/images/logo/logo-4-color.png', label: 'Logo 4' },
+    { src: '/assets/images/logo/logo-5-color.png', label: 'Logo 5' },
+    { src: '/assets/images/logo/logo-6-color.png', label: 'Logo 6' },
+    { src: '/assets/images/logo/logo-7-color.png', label: 'Logo 7' },
+    { src: '/assets/images/logo/logo-8-color.png', label: 'Logo 8' },
+    { src: '/assets/images/logo/logo--3-color.png', label: 'Logo alt' }
+  ];
+
+  /** Whitelist check — never render an arbitrary path from the record. */
+  function normalizeClientLogo(value) {
+    var v = String(value || '').trim();
+    if (!v) return '';
+    for (var i = 0; i < CLIENT_LOGO_PRESETS.length; i++) {
+      if (CLIENT_LOGO_PRESETS[i].src === v) return v;
+    }
+    return '';
+  }
+
   global.BusinessDocShared = {
     formatCurrency: formatCurrency,
     formatDateDisplay: formatDateDisplay,
@@ -1857,6 +1884,8 @@
     listDocThemes: listDocThemes,
     normalizeDocThemeId: normalizeDocThemeId,
     resolveDocTheme: resolveDocTheme,
-    resolveColorMode: resolveColorMode
+    resolveColorMode: resolveColorMode,
+    clientLogoPresets: CLIENT_LOGO_PRESETS,
+    normalizeClientLogo: normalizeClientLogo
   };
 })(typeof window !== 'undefined' ? window : this);

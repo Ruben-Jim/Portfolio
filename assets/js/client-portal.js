@@ -841,6 +841,7 @@
       clientName: String(row.clientName || '').slice(0, 120),
       title: String(row.title || '').slice(0, 200),
       expoUrl: String(row.expoUrl || '').slice(0, 500),
+      clientLogo: String(row.clientLogo || '').slice(0, 200),
       // The portal builds its own whitelisted view of the hub record — a field
       // not listed here never reaches the page, however well it saved.
       appStoreUrl: String(row.appStoreUrl || '').slice(0, 500),
@@ -1176,12 +1177,30 @@
   }
 
   function renderBrandHeader(project, detailRecord, options, hasShowcase) {
+    // Whitelist-validated against the shared preset list — never render an
+    // arbitrary path that happens to be sitting on the record.
+    var logo =
+      window.BusinessDocShared && window.BusinessDocShared.normalizeClientLogo
+        ? window.BusinessDocShared.normalizeClientLogo(project.clientLogo)
+        : '';
     return (
       '<div class="client-portal-brand">' +
+      // Logo and name form one lockup so the mark reads as part of the title
+      // rather than floating above it.
+      '<div class="client-portal-brand-lockup' + (logo ? ' has-logo' : '') + '">' +
+      (logo
+        ? '<img class="client-portal-brand-logo" src="' +
+          esc(logo) +
+          '" alt="' +
+          esc((project.clientName || 'Client') + ' logo') +
+          '">'
+        : '') +
+      '<div class="client-portal-brand-text">' +
       '<h1>' +
       esc(project.clientName || project.title || 'Your project') +
       '</h1>' +
       '<p class="client-portal-tagline">CodeWithRuben client portal</p>' +
+      '</div></div>' +
       renderStatusSummaryStrip(project) +
       renderProjectVisitLinks(project, detailRecord, options) +
       (hasShowcase

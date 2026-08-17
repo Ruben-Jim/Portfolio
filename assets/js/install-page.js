@@ -35,6 +35,28 @@
     }
   }
 
+  /**
+   * Same whitelist business-doc-shared.js enforces. Duplicated deliberately:
+   * this page loads no other project script, and a logo path must never be
+   * rendered straight from the record.
+   */
+  var CLIENT_LOGO_PRESETS = [
+    '/assets/images/logo/logo-1-color.png',
+    '/assets/images/logo/logo-2-color.png',
+    '/assets/images/logo/logo-3-color.png',
+    '/assets/images/logo/logo-4-color.png',
+    '/assets/images/logo/logo-5-color.png',
+    '/assets/images/logo/logo-6-color.png',
+    '/assets/images/logo/logo-7-color.png',
+    '/assets/images/logo/logo-8-color.png',
+    '/assets/images/logo/logo--3-color.png'
+  ];
+
+  function normalizeClientLogo(value) {
+    var v = String(value || '').trim();
+    return CLIENT_LOGO_PRESETS.indexOf(v) >= 0 ? v : '';
+  }
+
   var STORE_BADGES = [
     {
       key: 'appStoreUrl',
@@ -131,6 +153,7 @@
     return {
       clientName: row.clientName || '',
       title: row.title || '',
+      clientLogo: row.clientLogo || '',
       expoUrl: row.expoUrl || '',
       appStoreUrl: row.appStoreUrl || '',
       playStoreUrl: row.playStoreUrl || ''
@@ -149,8 +172,16 @@
   function render(inner, record) {
     var name = record.clientName || record.title || 'Your team app';
     var webUrl = absoluteUrl(record.expoUrl);
+    var logo = normalizeClientLogo(record.clientLogo);
     inner.innerHTML =
       '<div class="install-page-card">' +
+      (logo
+        ? '<img class="install-page-logo" src="' +
+          esc(logo) +
+          '" alt="' +
+          esc(name + ' logo') +
+          '">'
+        : '') +
       '<p class="install-page-kicker">Install the app</p>' +
       '<h1 class="install-page-title">' +
       esc(name) +

@@ -80,7 +80,7 @@ body.client-portal-page {
 }
 
 .client-portal-brand h1 {
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   font-size: clamp(22px, 4vw, 28px);
   color: var(--white-1);
   font-weight: var(--fw-600);
@@ -2706,4 +2706,84 @@ body.portal-dm-sheet-open {
   .client-portal-plan-sla-value {
     line-height: 1.25;
   }
+}
+
+/* Client company logo in the portal header. Same contain-fit + subtle plate the
+   invoice uses for .inv-client-logo, so a logo looks the same in both places. */
+/* Logo + name as a single centred lockup. Stacked on phones, side by side once
+   there is room, so the mark reads as part of the title instead of hovering
+   above it. */
+/* Logo + name as a single centred lockup, side by side at every width. */
+.client-portal-brand-lockup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.client-portal-brand-lockup.has-logo {
+  text-align: left;
+}
+
+.client-portal-brand-text {
+  min-width: 0;
+}
+
+.client-portal-brand-logo {
+  display: block;
+  flex: 0 0 auto;
+  width: 80px;
+  height: 80px;
+  padding: 8px;
+  box-sizing: border-box;
+  object-fit: contain;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid hsla(45, 100%, 72%, 0.18);
+}
+
+@media (min-width: 560px) {
+  .client-portal-brand-lockup {
+    gap: 18px;
+  }
+
+  .client-portal-brand-logo {
+    width: 104px;
+    height: 104px;
+    padding: 10px;
+    border-radius: 20px;
+  }
+}
+
+/* Very narrow phones: keep the row, just ease the mark down a little so the
+   name still has room to breathe beside it. */
+@media (max-width: 380px) {
+  .client-portal-brand-lockup {
+    gap: 10px;
+  }
+
+  .client-portal-brand-logo {
+    width: 64px;
+    height: 64px;
+    padding: 6px;
+    border-radius: 13px;
+  }
+}
+
+/* Client logo on the public install page — larger than the portal's, since it
+   is the only branding a crew member sees on that page. */
+.install-page-logo {
+  display: block;
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 16px;
+  /* Box stays 88px; the trimmed padding is what makes the mark inside larger —
+     box-sizing: border-box means padding eats into the content area. */
+  padding: 4px;
+  box-sizing: border-box;
+  object-fit: contain;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid hsla(45, 100%, 72%, 0.18);
 }

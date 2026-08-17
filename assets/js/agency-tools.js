@@ -554,6 +554,7 @@
       title: existing.title || '',
       repoUrl: existing.repoUrl || '',
       expoUrl: existing.expoUrl || '',
+      clientLogo: existing.clientLogo || '',
       appStoreUrl: existing.appStoreUrl || '',
       playStoreUrl: existing.playStoreUrl || '',
       firebaseProjectId: existing.firebaseProjectId || '',
@@ -588,6 +589,7 @@
       title: String(row.title || '').slice(0, 200),
       repoUrl: String(row.repoUrl || '').slice(0, 500),
       expoUrl: String(row.expoUrl || '').slice(0, 500),
+      clientLogo: String(row.clientLogo || '').slice(0, 200),
       appStoreUrl: String(row.appStoreUrl || '').slice(0, 500),
       playStoreUrl: String(row.playStoreUrl || '').slice(0, 500),
       firebaseProjectId: String(row.firebaseProjectId || '').slice(0, 120),
@@ -1316,6 +1318,7 @@
         {
           clientName: payload.clientName || '',
           title: payload.title || '',
+          clientLogo: payload.clientLogo || '',
           expoUrl: payload.expoUrl || '',
           appStoreUrl: payload.appStoreUrl || '',
           playStoreUrl: payload.playStoreUrl || '',
@@ -4181,6 +4184,10 @@
     return out;
   }
 
+  function cpLogoPresets() {
+    return (window.BusinessDocShared && window.BusinessDocShared.clientLogoPresets) || [];
+  }
+
   function installPageUrlFor(hubId) {
     if (!hubId) return '';
     // Query form, matching clientPortalUrl(). The site is static GitHub Pages —
@@ -4381,6 +4388,31 @@
       '<input id="cp-hub-client-repo" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="New codebase after they continue" value="' +
       esc(hub.clientRepoUrl || '') +
       '"></div>' +
+      '<div class="form-group form-group--full"><label>Company logo</label>' +
+      '<input type="hidden" id="cp-hub-client-logo" value="' + esc(hub.clientLogo || '') + '">' +
+      '<div class="cp-logo-picker" id="cp-logo-picker">' +
+      cpLogoPresets()
+        .map(function (preset) {
+          return (
+            '<button type="button" class="cp-logo-thumb' +
+            (hub.clientLogo === preset.src ? ' is-selected' : '') +
+            '" data-cp-action="pick-logo" data-cp-logo="' +
+            esc(preset.src) +
+            '" title="' +
+            esc(preset.label) +
+            '" aria-pressed="' +
+            (hub.clientLogo === preset.src ? 'true' : 'false') +
+            '"><img src="' +
+            esc(preset.src) +
+            '" alt="' +
+            esc(preset.label) +
+            '" loading="lazy"></button>'
+          );
+        })
+        .join('') +
+      '</div>' +
+      '<p class="form-hint">Shown in the client portal header. Same presets as the invoice logo.</p>' +
+      '</div>' +
       '<div class="form-group"><label for="cp-hub-app-store">App Store URL</label>' +
       '<input id="cp-hub-app-store" class="form-input" type="text" inputmode="url" autocomplete="off" placeholder="https://apps.apple.com/app/id…" value="' +
       esc(hub.appStoreUrl || '') +
@@ -4838,6 +4870,7 @@
       title: cpFieldValue('cp-hub-title'),
       repoUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-repo')),
       expoUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-expo')),
+      clientLogo: cpFieldValue('cp-hub-client-logo'),
       appStoreUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-app-store')),
       playStoreUrl: normalizeHubExternalUrl(cpFieldValue('cp-hub-play-store')),
       firebaseProjectId: cpFieldValue('cp-hub-firebase'),
@@ -5304,6 +5337,23 @@
       if (maintId) openDeleteMaintConfirmModal(maintId);
       return;
     }
+    if (action === 'pick-logo') {
+      // NOTE: this dispatcher receives (action, el) — there is no actionBtn here.
+      var logoVal = (el && el.getAttribute('data-cp-logo')) || '';
+      var hidden = document.getElementById('cp-hub-client-logo');
+      var picker = document.getElementById('cp-logo-picker');
+      if (!hidden || !picker) return;
+      // Click the selected one again to clear it.
+      var next = hidden.value === logoVal ? '' : logoVal;
+      hidden.value = next;
+      picker.querySelectorAll('[data-cp-logo]').forEach(function (btn) {
+        var on = btn.getAttribute('data-cp-logo') === next && next !== '';
+        btn.classList.toggle('is-selected', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      return;
+    }
+
     if (action === 'copy-install-link') {
       var linkEl = document.getElementById('cp-install-link');
       if (!linkEl) return;
