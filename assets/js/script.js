@@ -6573,7 +6573,7 @@ function updateUrlForPage(pageName, replace, queryParams) {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
     return;
   }
-  var url = pageName === 'home' ? '/' : '/' + pageName + '/';
+  var url = pageName === 'home' ? '/' : '/' + pageName;
   if (queryParams && typeof queryParams === 'object') {
     var params = new URLSearchParams();
     Object.keys(queryParams).forEach(function (key) {
@@ -7417,6 +7417,9 @@ function switchToPage(pageName, skipSave, pageOptions) {
     skipSave = false;
   }
   pageOptions = pageOptions || {};
+  if (window.CWR_SEO && typeof window.CWR_SEO.apply === 'function') {
+    window.CWR_SEO.apply(pageName);
+  }
   if (!skipSave) {
     invalidateRestoreNavigationTimers();
   }

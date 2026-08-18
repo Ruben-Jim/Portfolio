@@ -18,23 +18,15 @@
   <script>
     (function () {
       var pathname = location.pathname;
-      if (pathname === '/admin') {
-        location.replace('/admin/' + location.search + location.hash);
-        return;
-      }
-      if (pathname === '/about') {
-        location.replace('/about/' + location.search + location.hash);
-        return;
-      }
       var m = pathname.match(/^\/portal\/([a-f0-9]{16,64})/i);
       if (m) location.replace('/portal.html?token=' + encodeURIComponent(m[1]));
     })();
   </script>
   
-  <!-- Primary Meta Tags -->
-  <title>CodeWithRuben</title>
-  <meta name="title" content="CodeWithRuben — Web & Mobile Dev Studio | Fresno, California">
-  <meta name="description" content="Fresno-based dev studio specializing in React Native, Firebase, and Node.js. We build production-grade web and mobile apps for local businesses. Available for new projects.">
+  <!-- Primary Meta Tags (homepage fallback; CWR_SEO overwrites from the URL) -->
+  <title>CodeWithRuben — Web & Mobile Dev Studio | Fresno, CA</title>
+  <meta name="title" content="CodeWithRuben — Web & Mobile Dev Studio | Fresno, CA">
+  <meta name="description" content="Fresno studio that builds web and mobile apps for local businesses. React Native, Firebase, Node. Available for new projects.">
   <meta name="keywords" content="fullstack developer, web developer, mobile app developer, React Native developer, JavaScript developer, Firebase developer, Node.js developer, portfolio, Fresno developer, California developer, hire developer, web development services, mobile app development">
   <meta name="author" content="Ruben Jimenez">
   <meta name="robots" content="index, follow">
@@ -45,21 +37,35 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://rubenjimenez.dev/">
-  <meta property="og:title" content="CodeWithRuben — Web & Mobile Dev Studio | Fresno, California">
-  <meta property="og:description" content="Fresno-based dev studio building production-grade web and mobile apps for local businesses. React Native, Firebase, Node.js.">
-  <meta property="og:image" content="https://rubenjimenez.dev/assets/images/logo/logo.svg">
+  <meta property="og:title" content="CodeWithRuben — Web & Mobile Dev Studio | Fresno, CA">
+  <meta property="og:description" content="Fresno studio that builds web and mobile apps for local businesses. React Native, Firebase, Node. Available for new projects.">
+  <meta property="og:image" content="https://rubenjimenez.dev/assets/images/og/og-card.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:alt" content="CodeWithRuben — Web & Mobile Dev Studio">
   <meta property="og:site_name" content="CodeWithRuben">
   <meta property="og:locale" content="en_US">
   
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://rubenjimenez.dev/">
-  <meta property="twitter:title" content="CodeWithRuben — Web & Mobile Dev Studio | Fresno, California">
-  <meta property="twitter:description" content="Fresno-based dev studio building production-grade web and mobile apps for local businesses. React Native, Firebase, Node.js.">
-  <meta property="twitter:image" content="https://rubenjimenez.dev/assets/images/logo/logo.svg">
+  <meta property="twitter:title" content="CodeWithRuben — Web & Mobile Dev Studio | Fresno, CA">
+  <meta property="twitter:description" content="Fresno studio that builds web and mobile apps for local businesses. React Native, Firebase, Node. Available for new projects.">
+  <meta property="twitter:image" content="https://rubenjimenez.dev/assets/images/og/og-card.jpg">
   
   <!-- Canonical URL -->
   <link rel="canonical" href="https://rubenjimenez.dev/">
+  <script>
+    (function () {
+      var p = (location.pathname || '').replace(/\/+$/, '').toLowerCase();
+      if (/^\/(admin|messages|blog|resume|schedule|portal)(\/|$)/.test(p) || p.indexOf('/portal') === 0) {
+        var r = document.querySelector('meta[name="robots"]');
+        if (r) r.setAttribute('content', 'noindex, nofollow');
+      }
+    })();
+  </script>
+  <script src="/assets/js/seo.js?v=seo-map-20260817"></script>
   
   <!-- Sitemap -->
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
@@ -147,7 +153,7 @@
         </figure>
 
         <div class="info-content">
-          <h1 class="name" title="CodeWithRuben">CodeWithRuben</h1>
+          <p class="name" title="CodeWithRuben">CodeWithRuben</p>
 
           <p class="title">Web & Mobile Dev Studio</p>
         </div>
@@ -6847,88 +6853,74 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Person",
-    "name": "Ruben Jimenez",
-    "jobTitle": "Fullstack Developer",
-    "url": "https://rubenjimenez.dev",
-    "image": "https://rubenjimenez.dev/assets/images/logo/logo.svg",
-    "email": "Ruben.Jim.co@gmail.com",
-    "telephone": "+1-559-653-7380",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Fresno",
-      "addressRegion": "CA",
-      "addressCountry": "US"
-    },
-    "alumniOf": {
-      "@type": "EducationalOrganization",
-      "name": "Clovis Community College"
-    },
-    "knowsAbout": [
-      "Web Development",
-      "Mobile App Development",
-      "React Native",
-      "JavaScript",
-      "Firebase",
-      "Node.js",
-      "C++",
-      "Full Stack Development"
-    ],
-    "sameAs": [
-      "https://github.com/Ruben-Jim",
-      "https://www.linkedin.com/in/rubenjimenezavila/",
-      "https://www.facebook.com/ruben.jimenez.avila.2025/"
-    ],
-    "offers": {
-      "@type": "Offer",
-      "itemOffered": {
-        "@type": "Service",
-        "serviceType": "Web Development",
-        "description": "Professional web development services including custom websites, web applications, and mobile apps"
+    "@graph": [
+      {
+        "@type": ["Organization", "LocalBusiness", "ProfessionalService"],
+        "@id": "https://rubenjimenez.dev/#organization",
+        "name": "CodeWithRuben",
+        "legalName": "CodeWithRuben",
+        "url": "https://rubenjimenez.dev",
+        "image": "https://rubenjimenez.dev/assets/images/og/og-card.jpg",
+        "logo": "https://rubenjimenez.dev/assets/images/logo/logo.jpg",
+        "email": "Ruben.Jim.co@gmail.com",
+        "telephone": "+1-559-653-7380",
+        "description": "Fresno studio that builds web and mobile apps for local businesses.",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Fresno",
+          "addressRegion": "CA",
+          "addressCountry": "US"
+        },
+        "areaServed": ["Fresno", "California", "US"],
+        "serviceType": [
+          "Web Development",
+          "Mobile App Development",
+          "Full Stack Development",
+          "React Native Development"
+        ],
+        "founder": { "@id": "https://rubenjimenez.dev/#person" },
+        "sameAs": [
+          "https://github.com/Ruben-Jim",
+          "https://www.linkedin.com/in/rubenjimenezavila/",
+          "https://www.facebook.com/ruben.jimenez.avila.2025/"
+        ]
+      },
+      {
+        "@type": "Person",
+        "@id": "https://rubenjimenez.dev/#person",
+        "name": "Ruben Jimenez",
+        "jobTitle": "Founder",
+        "url": "https://rubenjimenez.dev",
+        "image": "https://rubenjimenez.dev/assets/images/logo/logo.jpg",
+        "email": "Ruben.Jim.co@gmail.com",
+        "telephone": "+1-559-653-7380",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Fresno",
+          "addressRegion": "CA",
+          "addressCountry": "US"
+        },
+        "alumniOf": {
+          "@type": "EducationalOrganization",
+          "name": "Clovis Community College"
+        },
+        "worksFor": { "@id": "https://rubenjimenez.dev/#organization" },
+        "sameAs": [
+          "https://github.com/Ruben-Jim",
+          "https://www.linkedin.com/in/rubenjimenezavila/",
+          "https://www.facebook.com/ruben.jimenez.avila.2025/"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://rubenjimenez.dev/#website",
+        "name": "CodeWithRuben",
+        "url": "https://rubenjimenez.dev",
+        "description": "Fresno studio that builds web and mobile apps for local businesses.",
+        "publisher": { "@id": "https://rubenjimenez.dev/#organization" },
+        "author": { "@id": "https://rubenjimenez.dev/#person" }
       }
-    }
-  }
-  </script>
-  
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "Ruben Jimenez Portfolio",
-    "url": "https://rubenjimenez.dev",
-    "description": "Portfolio website of Ruben Jimenez, Fullstack Developer specializing in web and mobile app development",
-    "author": {
-      "@type": "Person",
-      "name": "Ruben Jimenez"
-    },
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": "https://rubenjimenez.dev/?s={search_term_string}",
-      "query-input": "required name=search_term_string"
-    }
-  }
-  </script>
-  
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "ProfessionalService",
-    "name": "Ruben Jimenez - Web & Mobile Development Services",
-    "description": "Professional web development and mobile app development services",
-    "url": "https://rubenjimenez.dev",
-    "telephone": "+1-559-653-7380",
-    "email": "Ruben.Jim.co@gmail.com",
-    "areaServed": "Worldwide",
-    "serviceType": [
-      "Web Development",
-      "Mobile App Development",
-      "Full Stack Development",
-      "React Native Development"
-    ],
-    "provider": {
-      "@type": "Person",
-      "name": "Ruben Jimenez"
-    }
+    ]
   }
   </script>
 
@@ -7436,7 +7428,7 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=priority-24h-20260817g"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=hire-recall-top-20260817b"></script>
+  <script src="/assets/js/script.js?v=seo-map-20260817"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=lead-email-20260817a"></script>
   <script src="/assets/js/dm-migration.js"></script>

@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /admin/
+Disallow: /messages
+Disallow: /messages/
+Disallow: /blog
+Disallow: /blog/
+Disallow: /portal
+Disallow: /portal/
+Disallow: /portal.html
+Disallow: /resume
+Disallow: /resume/
+Disallow: /schedule
+Disallow: /schedule/
+Disallow: /get.html
+Disallow: /testimonial.html
+
+Sitemap: https://rubenjimenez.dev/sitemap.xml
