@@ -555,8 +555,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/realtor-template/video-home.mp4",
-        "name": "video-home.mp4",
+        "path": "/assets/images/projects/realtor-template/video-home.webm",
+        "name": "video-home.webm",
         "kind": "video",
         "poster": "/assets/images/projects/realtor-template/video-home-poster.webp"
       },
