@@ -5,7 +5,7 @@
   'use strict';
 
   var PLACEHOLDER_IMAGE = '/assets/images/projects/project-comingsoon.svg';
-  var IMAGE_CACHE_BUST = '20260518b';
+  var IMAGE_CACHE_BUST = '20260818n';
   var MAX_DETAIL_SECTIONS = 8;
   var ASSET_MEDIA_EXT = '(?:png|jpe?g|webp|svg|gif|mp4|webm|mov)';
 

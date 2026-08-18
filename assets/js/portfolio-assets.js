@@ -219,6 +219,11 @@ window.PORTFOLIO_ASSET_GROUPS = [
     "group": "grippysocks",
     "files": [
       {
+        "path": "/assets/images/projects/grippysocks/2026-08-18 00-37-27.mp4",
+        "name": "2026-08-18 00-37-27.mp4",
+        "kind": "video"
+      },
+      {
         "path": "/assets/images/projects/grippysocks/grippysocks-1.webp",
         "name": "grippysocks-1.webp",
         "kind": "image"
@@ -775,6 +780,11 @@ window.PORTFOLIO_ASSET_GROUPS = [
       {
         "path": "/assets/images/projects/tradeservice/tradeservice-4.webp",
         "name": "tradeservice-4.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/tradeservice/tradeservice-5.png",
+        "name": "tradeservice-5.png",
         "kind": "image"
       },
       {
