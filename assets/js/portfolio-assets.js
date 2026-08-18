@@ -229,6 +229,16 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "kind": "image"
       },
       {
+        "path": "/assets/images/projects/grippysocks/grippysocks-3.webp",
+        "name": "grippysocks-3.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/grippysocks/grippysocks-4.webp",
+        "name": "grippysocks-4.webp",
+        "kind": "image"
+      },
+      {
         "path": "/assets/images/projects/grippysocks/grippysocks-demo.webm",
         "name": "grippysocks-demo.webm",
         "kind": "video",
@@ -263,33 +273,33 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
-    "group": "homeContractors",
+    "group": "homecontractors",
     "files": [
       {
-        "path": "/assets/images/projects/homeContractors/homecontractors-1.webp",
+        "path": "/assets/images/projects/homecontractors/homecontractors-1.webp",
         "name": "homecontractors-1.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/homeContractors/homecontractors-2.webp",
+        "path": "/assets/images/projects/homecontractors/homecontractors-2.webp",
         "name": "homecontractors-2.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/homeContractors/homecontractors-3.webp",
+        "path": "/assets/images/projects/homecontractors/homecontractors-3.webp",
         "name": "homecontractors-3.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/homeContractors/homecontractors-4.webp",
+        "path": "/assets/images/projects/homecontractors/homecontractors-4.webp",
         "name": "homecontractors-4.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/homeContractors/homecontractors-demo.webm",
+        "path": "/assets/images/projects/homecontractors/homecontractors-demo.webm",
         "name": "homecontractors-demo.webm",
         "kind": "video",
-        "poster": "/assets/images/projects/homeContractors/homecontractors-demo-poster.webp"
+        "poster": "/assets/images/projects/homecontractors/homecontractors-demo-poster.webp"
       }
     ]
   },
@@ -411,44 +421,44 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
-    "group": "pawShine",
+    "group": "pawshine",
     "files": [
       {
-        "path": "/assets/images/projects/pawShine/pawshine-1.webp",
+        "path": "/assets/images/projects/pawshine/pawshine-1.webp",
         "name": "pawshine-1.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/pawShine/pawshine-2.webp",
+        "path": "/assets/images/projects/pawshine/pawshine-2.webp",
         "name": "pawshine-2.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/pawShine/pawshine-3.webp",
+        "path": "/assets/images/projects/pawshine/pawshine-3.webp",
         "name": "pawshine-3.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/pawShine/pawshine-4.webp",
+        "path": "/assets/images/projects/pawshine/pawshine-4.webp",
         "name": "pawshine-4.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/pawShine/pawshine-5.webp",
+        "path": "/assets/images/projects/pawshine/pawshine-5.webp",
         "name": "pawshine-5.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/pawShine/pawshine-demo.mp4",
+        "path": "/assets/images/projects/pawshine/pawshine-demo.mp4",
         "name": "pawshine-demo.mp4",
         "kind": "video",
-        "poster": "/assets/images/projects/pawShine/pawshine-demo-poster.webp"
+        "poster": "/assets/images/projects/pawshine/pawshine-demo-poster.webp"
       },
       {
-        "path": "/assets/images/projects/pawShine/pawshine-demo.webm",
+        "path": "/assets/images/projects/pawshine/pawshine-demo.webm",
         "name": "pawshine-demo.webm",
         "kind": "video",
-        "poster": "/assets/images/projects/pawShine/pawshine-demo-poster.webp"
+        "poster": "/assets/images/projects/pawshine/pawshine-demo-poster.webp"
       }
     ]
   },
@@ -794,33 +804,33 @@ window.PORTFOLIO_ASSET_GROUPS = [
     "group": "zoomrealty",
     "files": [
       {
-        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-40-09.png",
-        "name": "Screenshot 2026-08-18 00-40-09.png",
+        "path": "/assets/images/projects/zoomrealty/zoomrealty-1.webp",
+        "name": "zoomrealty-1.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-40-19.png",
-        "name": "Screenshot 2026-08-18 00-40-19.png",
+        "path": "/assets/images/projects/zoomrealty/zoomrealty-2.webp",
+        "name": "zoomrealty-2.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-40-34.png",
-        "name": "Screenshot 2026-08-18 00-40-34.png",
+        "path": "/assets/images/projects/zoomrealty/zoomrealty-3.webp",
+        "name": "zoomrealty-3.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-41-12.png",
-        "name": "Screenshot 2026-08-18 00-41-12.png",
+        "path": "/assets/images/projects/zoomrealty/zoomrealty-4.webp",
+        "name": "zoomrealty-4.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-41-18.png",
-        "name": "Screenshot 2026-08-18 00-41-18.png",
+        "path": "/assets/images/projects/zoomrealty/zoomrealty-5.webp",
+        "name": "zoomrealty-5.webp",
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-41-21.png",
-        "name": "Screenshot 2026-08-18 00-41-21.png",
+        "path": "/assets/images/projects/zoomrealty/zoomrealty-6.webp",
+        "name": "zoomrealty-6.webp",
         "kind": "image"
       },
       {
