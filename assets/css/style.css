@@ -6614,7 +6614,8 @@ article.about .about-founder {
 
 .project-item-icon-box ion-icon { --ionicon-stroke-width: 50px; }
 
-.project-img img {
+.project-img img,
+.project-img video {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -6958,7 +6959,8 @@ article.about .about-founder {
     background: linear-gradient(160deg, hsla(240, 4%, 14%, 0.95), hsla(240, 4%, 10%, 0.98));
   }
 
-  .project-img img {
+  .project-img img,
+.project-img video {
     object-fit: contain;
     object-position: center center;
     padding: 2px;

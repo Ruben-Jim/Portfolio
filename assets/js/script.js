@@ -4402,9 +4402,93 @@ function initPortfolioFilterControls() {
   });
 }
 
+/**
+ * Plays [data-portfolio-autoplay] videos while they are on screen and pauses
+ * them once they leave, so a page of video cards only ever streams what the
+ * visitor can actually see. Without this every card would download in full on
+ * load — these clips run 1.4-14 MB each.
+ *
+ * src is held in data-src until first intersection: preload="none" stops the
+ * body downloading but some browsers still fetch metadata for a real src.
+ */
+var portfolioAutoplayObserver = null;
+
+function portfolioObserveAutoplayVideos(root) {
+  var scope = root || document;
+  var videos = scope.querySelectorAll('video[data-portfolio-autoplay]');
+  if (!videos.length) return;
+
+  // No IntersectionObserver (very old browsers): just play them all.
+  if (typeof IntersectionObserver !== 'function') {
+    Array.prototype.forEach.call(videos, function (v) {
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {});
+    });
+    return;
+  }
+
+  if (!portfolioAutoplayObserver) {
+    portfolioAutoplayObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          var v = entry.target;
+          if (entry.isIntersecting) {
+            var promise = v.play();
+            // Autoplay can still be refused (Low Power Mode, data saver).
+            // The poster stays visible in that case, which is the old behaviour.
+            if (promise && promise.catch) promise.catch(function () {});
+          } else if (!v.paused) {
+            v.pause();
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+  }
+
+  Array.prototype.forEach.call(videos, function (v) {
+    if (v.dataset.portfolioAutoplayBound) return;
+    v.dataset.portfolioAutoplayBound = '1';
+    portfolioAutoplayObserver.observe(v);
+  });
+}
+
+/**
+ * Cover media for a public card.
+ * A video cover plays inline instead of showing its poster still — see
+ * portfolioObserveAutoplayVideos() for the scroll-into-view wiring. The poster
+ * stays on the element so there is something to paint before the first frame
+ * decodes, and preload="none" keeps offscreen cards off the network entirely.
+ */
+function portfolioRenderCardCoverHtml(p, alt) {
+  const urls = portfolioImageUrlsFromRecord(p);
+  const cover = urls.length ? urls[0] : '';
+  if (cover && portfolioIsVideoUrl(cover)) {
+    const poster = portfolioVideoPosterUrlBest(cover);
+    return (
+      '<video class="project-cover-video" src="' +
+      portfolioEscapeHtml(portfolioDisplayMediaSrc(cover)) +
+      '"' +
+      (poster
+        ? ' poster="' + portfolioEscapeHtml(portfolioDisplayMediaSrc(poster)) + '"'
+        : '') +
+      ' muted loop playsinline disablepictureinpicture preload="none"' +
+      ' data-portfolio-autoplay aria-label="' +
+      portfolioEscapeHtml(alt) +
+      '"></video>'
+    );
+  }
+  return (
+    '<img src="' +
+    portfolioEscapeHtml(portfolioDisplayImageSrc(portfolioPrimaryImageUrl(p) || p.imageUrl)) +
+    '" alt="' +
+    portfolioEscapeHtml(alt) +
+    '" loading="lazy" onerror="portfolioHandleImageError(this)">'
+  );
+}
+
 function buildPortfolioProjectCardHtml(p) {
   const liveHref = portfolioSafeProjectUrl(p.projectUrl);
-  const imgSrc = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(p) || p.imageUrl);
   const nicheSlugs = portfolioCuratedNichesForProject(p).join(' ');
   return (
     '<li class="project-item active" data-filter-item data-niches="' +
@@ -4420,11 +4504,7 @@ function buildPortfolioProjectCardHtml(p) {
     '<div class="project-item-icon-box">' +
     '<ion-icon name="eye-outline"></ion-icon>' +
     '</div>' +
-    '<img src="' +
-    portfolioEscapeHtml(imgSrc) +
-    '" alt="' +
-    portfolioEscapeHtml(p.imageAlt || p.title || '') +
-    '" loading="lazy" onerror="portfolioHandleImageError(this)">' +
+    portfolioRenderCardCoverHtml(p, p.imageAlt || p.title || '') +
     '</figure>' +
     '<div class="project-content">' +
     '<h3 class="project-title">' +
@@ -4457,6 +4537,7 @@ function renderPublicPortfolioProjects() {
   syncWindowPortfolioProjectsRef();
   renderPortfolioNicheFilters();
   applyPortfolioFilters();
+  portfolioObserveAutoplayVideos(ul);
 }
 
 function applyCurrentPortfolioFilter() {
