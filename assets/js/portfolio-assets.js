@@ -72,6 +72,26 @@ window.PORTFOLIO_ASSET_GROUPS = [
     "group": "barbershop",
     "files": [
       {
+        "path": "/assets/images/projects/barbershop/barbershop-1.webp",
+        "name": "barbershop-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/barbershop/barbershop-2.webp",
+        "name": "barbershop-2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/barbershop/barbershop-3.webp",
+        "name": "barbershop-3.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/barbershop/barbershop-4.webp",
+        "name": "barbershop-4.webp",
+        "kind": "image"
+      },
+      {
         "path": "/assets/images/projects/barbershop/barbershop.webp",
         "name": "barbershop.webp",
         "kind": "image"
@@ -199,6 +219,22 @@ window.PORTFOLIO_ASSET_GROUPS = [
     "group": "grippysocks",
     "files": [
       {
+        "path": "/assets/images/projects/grippysocks/grippysocks-1.webp",
+        "name": "grippysocks-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/grippysocks/grippysocks-2.webp",
+        "name": "grippysocks-2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/grippysocks/grippysocks-demo.webm",
+        "name": "grippysocks-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/grippysocks/grippysocks-demo-poster.webp"
+      },
+      {
         "path": "/assets/images/projects/grippysocks/grippysocks.webp",
         "name": "grippysocks.webp",
         "kind": "image"
@@ -260,6 +296,36 @@ window.PORTFOLIO_ASSET_GROUPS = [
   {
     "group": "homeverse",
     "files": [
+      {
+        "path": "/assets/images/projects/homeverse/homeverse-1.webp",
+        "name": "homeverse-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeverse/homeverse-2.webp",
+        "name": "homeverse-2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeverse/homeverse-3.webp",
+        "name": "homeverse-3.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeverse/homeverse-4.webp",
+        "name": "homeverse-4.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeverse/homeverse-5.webp",
+        "name": "homeverse-5.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeverse/homeverse-6.webp",
+        "name": "homeverse-6.webp",
+        "kind": "image"
+      },
       {
         "path": "/assets/images/projects/homeverse/homeverse.webp",
         "name": "homeverse.webp",
@@ -587,6 +653,51 @@ window.PORTFOLIO_ASSET_GROUPS = [
     "group": "rosasalon",
     "files": [
       {
+        "path": "/assets/images/projects/rosasalon/rosasalon-1.webp",
+        "name": "rosasalon-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rosasalon/rosasalon-2.webp",
+        "name": "rosasalon-2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rosasalon/rosasalon-3.webp",
+        "name": "rosasalon-3.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rosasalon/rosasalon-4.webp",
+        "name": "rosasalon-4.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rosasalon/rosasalon-5.webp",
+        "name": "rosasalon-5.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rosasalon/rosasalon-6.webp",
+        "name": "rosasalon-6.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rosasalon/rosasalon-7.webp",
+        "name": "rosasalon-7.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rosasalon/rosasalon-8.webp",
+        "name": "rosasalon-8.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rosasalon/rosasalon-9.webp",
+        "name": "rosasalon-9.webp",
+        "kind": "image"
+      },
+      {
         "path": "/assets/images/projects/rosasalon/rosasalon.webp",
         "name": "rosasalon.webp",
         "kind": "image"
@@ -682,6 +793,36 @@ window.PORTFOLIO_ASSET_GROUPS = [
   {
     "group": "zoomrealty",
     "files": [
+      {
+        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-40-09.png",
+        "name": "Screenshot 2026-08-18 00-40-09.png",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-40-19.png",
+        "name": "Screenshot 2026-08-18 00-40-19.png",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-40-34.png",
+        "name": "Screenshot 2026-08-18 00-40-34.png",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-41-12.png",
+        "name": "Screenshot 2026-08-18 00-41-12.png",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-41-18.png",
+        "name": "Screenshot 2026-08-18 00-41-18.png",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/zoomrealty/Screenshot 2026-08-18 00-41-21.png",
+        "name": "Screenshot 2026-08-18 00-41-21.png",
+        "kind": "image"
+      },
       {
         "path": "/assets/images/projects/zoomrealty/zoomrealty.webp",
         "name": "zoomrealty.webp",
