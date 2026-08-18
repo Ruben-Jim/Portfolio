@@ -1341,6 +1341,22 @@ article.home.has-hire-inquiry-banner .cwr-landing-nav-cta {
   color: var(--light-gray-70);
 }
 
+/* Quiet one-line variant that leads the Hire Me page above the hero */
+.hire-inquiry-recall--slim {
+  margin: 0 0 16px;
+  max-width: none;
+}
+
+.hire-inquiry-recall--slim .hire-inquiry-recall-hint,
+.hire-inquiry-recall--slim .hire-inquiry-recall-status {
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.hire-inquiry-recall--slim .hire-inquiry-recall-form {
+  max-width: 32rem;
+}
+
 .contact-page-lead {
   margin: 0 0 18px;
   max-width: 36rem;
@@ -9368,10 +9384,6 @@ article.messages.messages-dm-active > header .article-title {
   font-size: var(--fs-7);
   line-height: 1.55;
   color: var(--light-gray-70);
-}
-
-.hire-me [data-hire-form-panel] .hire-inquiry-recall--hire {
-  margin-bottom: 22px;
 }
 
 .hire-discovery-block {

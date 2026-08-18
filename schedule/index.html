@@ -78,7 +78,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=lead-email-20260817a">
+  <link rel="stylesheet" href="/assets/css/style.css?v=hire-recall-top-20260817b">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -2348,27 +2348,29 @@
             align-items: flex-start;
             margin-bottom: 20px;
           }
-          .hire-timeline::before {
-            content: '';
-            position: absolute;
-            top: 13px;
-            left: 10%;
-            right: 10%;
-            height: 1px;
-            background: hsla(0,0%,100%,0.1);
-            z-index: 0;
-          }
           .hire-timeline-step {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            gap: 7px;
+            gap: 8px;
             position: relative;
             z-index: 1;
-            padding: 0 4px;
+            padding: 0 10px;
           }
+          /* Connector is drawn node-to-node so it fits any number of steps */
+          .hire-timeline-step::before {
+            content: '';
+            position: absolute;
+            z-index: -1;
+            top: 13px;
+            left: 50%;
+            right: -50%;
+            height: 1px;
+            background: hsla(0,0%,100%,0.1);
+          }
+          .hire-timeline-step:last-child::before { content: none; }
           .hire-timeline-node {
             width: 28px; height: 28px; border-radius: 50%;
             border: 1.5px solid var(--orange-yellow-crayola);
@@ -2382,20 +2384,27 @@
             color: var(--white-1); line-height: 1.3;
           }
           .hire-timeline-desc {
-            font-size: 10px; color: var(--light-gray-70); line-height: 1.45;
+            font-size: var(--fs-8); color: var(--light-gray-70); line-height: 1.5;
+            max-width: 26ch;
           }
           @media (max-width: 560px) {
-            .hire-timeline { flex-direction: column; gap: 12px; }
-            .hire-timeline::before {
-              top: 14px; bottom: 14px;
+            .hire-timeline { flex-direction: column; gap: 14px; }
+            .hire-timeline-step {
+              flex-direction: row; flex-wrap: wrap; text-align: left;
+              gap: 6px 12px; align-items: center;
+              padding: 0;
+            }
+            .hire-timeline-step::before {
+              top: 28px; bottom: -14px;
               left: 13px; right: auto;
               width: 1px; height: auto;
             }
-            .hire-timeline-step {
-              flex-direction: row; text-align: left;
-              gap: 12px; align-items: flex-start;
-            }
             .hire-timeline-node { flex-shrink: 0; }
+            .hire-timeline-desc {
+              flex: 1 0 100%;
+              padding-left: 40px;
+              max-width: none;
+            }
           }
                   @media (max-width: 480px) {
             /* Hero tighter */
@@ -2496,6 +2505,21 @@
 
         <div data-hire-main-content>
 
+        <div class="hire-inquiry-recall hire-inquiry-recall--slim" id="hire-inquiry-recall-hire" data-hire-inquiry-recall hidden>
+          <p class="hire-inquiry-recall-hint">
+            Already submitted on another device?
+            <button type="button" class="hire-inquiry-recall-toggle" data-hire-inquiry-recall-toggle aria-expanded="false">Open with your email</button>
+          </p>
+          <form class="hire-inquiry-recall-form" data-hire-inquiry-recall-form hidden>
+            <div class="hire-inquiry-recall-fields">
+              <input type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
+              <input type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
+            </div>
+            <p class="hire-inquiry-recall-status" data-hire-inquiry-recall-status role="status" aria-live="polite" hidden></p>
+            <button type="submit" class="hire-inquiry-recall-submit">Open my inquiry</button>
+          </form>
+        </div>
+
         <div class="hire-package-banner" data-hire-package-banner hidden>
           <div class="hire-package-banner-inner">
             <div class="hire-package-banner-head">
@@ -2544,18 +2568,8 @@
           </div>
           <div class="hire-timeline-step">
             <div class="hire-timeline-node">3</div>
-            <h4 class="hire-timeline-title">Proposal &amp; kickoff</h4>
-            <p class="hire-timeline-desc">Clear milestones and pricing, then we build.</p>
-          </div>
-          <div class="hire-timeline-step">
-            <div class="hire-timeline-node">4</div>
-            <h4 class="hire-timeline-title">Build &amp; review</h4>
-            <p class="hire-timeline-desc">Check-ins and previews throughout.</p>
-          </div>
-          <div class="hire-timeline-step">
-            <div class="hire-timeline-node">5</div>
-            <h4 class="hire-timeline-title">Launch &amp; support</h4>
-            <p class="hire-timeline-desc">Post-launch support after go-live.</p>
+            <h4 class="hire-timeline-title">Build &amp; launch</h4>
+            <p class="hire-timeline-desc">Proposal and milestones, previews as we build, support after launch.</p>
           </div>
         </div>
 
@@ -2565,21 +2579,6 @@
             <div class="hire-form-header">
               <h3 class="h3 form-title" data-hire-form-title>Start a Project</h3>
               <p data-hire-form-lead>Give me the details and I'll get back to you within 24 hours.</p>
-            </div>
-
-            <div class="hire-inquiry-recall hire-inquiry-recall--hire" id="hire-inquiry-recall-hire" data-hire-inquiry-recall hidden>
-              <p class="hire-inquiry-recall-hint">
-                Already submitted on another device?
-                <button type="button" class="hire-inquiry-recall-toggle" data-hire-inquiry-recall-toggle aria-expanded="false">Open with your email</button>
-              </p>
-              <form class="hire-inquiry-recall-form" data-hire-inquiry-recall-form hidden>
-                <div class="hire-inquiry-recall-fields">
-                  <input type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
-                  <input type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
-                </div>
-                <p class="hire-inquiry-recall-status" data-hire-inquiry-recall-status role="status" aria-live="polite" hidden></p>
-                <button type="submit" class="hire-inquiry-recall-submit">Open my inquiry</button>
-              </form>
             </div>
 
             <form class="form" data-form>
@@ -7437,7 +7436,7 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=priority-24h-20260817g"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=lead-email-20260817a"></script>
+  <script src="/assets/js/script.js?v=hire-recall-top-20260817b"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=lead-email-20260817a"></script>
   <script src="/assets/js/dm-migration.js"></script>

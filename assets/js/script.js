@@ -6639,9 +6639,7 @@ var HIRE_ME_GENERIC = {
   timelineSteps: [
     { title: 'Share your idea', desc: 'Project goals, timeline, and budget.' },
     { title: 'Discovery call', desc: '15–30 min to align on scope and approach.' },
-    { title: 'Proposal & kickoff', desc: 'Clear milestones and pricing, then we build.' },
-    { title: 'Build & review', desc: 'Check-ins and previews throughout.' },
-    { title: 'Launch & support', desc: 'Post-launch support after go-live.' }
+    { title: 'Build & launch', desc: 'Proposal and milestones, previews as we build, support after launch.' }
   ],
   formTitle: 'Start a Project',
   formLead: "Give me the details and I'll get back to you within 24 hours.",
