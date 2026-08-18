@@ -13,7 +13,9 @@
   var PATH_MAINTENANCE = 'agencyMaintenance';
 
   /**
-   * How CWR receives invoice payments in the portal (Zelle / PayPal / Venmo).
+   * How CWR receives portal payments — invoices and maintenance plans both use
+   * these (Zelle / PayPal / Venmo). Hints point at the memo line rendered above
+   * them rather than naming an invoice, since plans have no invoice number.
    * Update handles here when accounts change — keep in sync with invoice PDF copy
    * in business-doc-shared.js (CWR_INVOICE_PAYMENT_METHODS).
    */
@@ -25,14 +27,14 @@
       handle: 'ruben.jim.co@gmail.com',
       altHandleLabel: 'Or phone',
       altHandle: '559 653 7380',
-      hint: 'Open your bank app → Zelle → Send. Use the invoice # as the memo.'
+      hint: 'Open your bank app → Zelle → Send. Copy the memo above into the memo field.'
     },
     {
       id: 'paypal',
       label: 'PayPal',
       handleLabel: 'Send to',
       handle: 'jruben447@gmail.com',
-      hint: 'PayPal → Send. Include the invoice # in the note.',
+      hint: 'PayPal → Send. Copy the memo above into the note.',
       link: ''
     },
     {
@@ -40,7 +42,7 @@
       label: 'Venmo',
       handleLabel: 'Username',
       handle: '@RubenDEV',
-      hint: 'Venmo → Pay. Include the invoice # in the note.',
+      hint: 'Venmo → Pay. Copy the memo above into the note.',
       link: 'https://venmo.com/RubenDEV'
     }
   ];
@@ -162,6 +164,9 @@
       projectId: String(row.projectId || ''),
       planTier: String(row.planTier || 'standard').slice(0, 40),
       planStatus: String(row.planStatus || '').toLowerCase().slice(0, 20),
+      // Plans that predate self-serve signup have no paymentStatus and are
+      // already being billed, so a missing value means paid, not awaiting.
+      paymentStatus: String(row.paymentStatus || 'paid').toLowerCase().slice(0, 20),
       billingPreference: String(row.billingPreference || 'monthly').slice(0, 20),
       planRequestedAt: row.planRequestedAt || null,
       hoursIncluded: Number(row.hoursIncluded) || defs.hoursIncluded,
@@ -225,6 +230,84 @@
       return plan.annualNote + (plan.annualEquiv ? ' · ' + plan.annualEquiv : '');
     }
     return plan.monthlyNote || '';
+  }
+
+  function maintenancePlanById(tier) {
+    var t = String(tier || 'standard').toLowerCase();
+    for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
+      if (MAINTENANCE_PLANS[i].id === t) return MAINTENANCE_PLANS[i];
+    }
+    return MAINTENANCE_PLANS[1] || MAINTENANCE_PLANS[0];
+  }
+
+  function isAnnualBilling(maint) {
+    return String((maint && maint.billingPreference) || 'monthly').toLowerCase() === 'annual';
+  }
+
+  /** Matches the wording on the plan cards ($150/mo, $990/yr) so the price the
+   *  client picked is the price they are asked to send. */
+  function maintenancePayAmountLabel(maint) {
+    var plan = maintenancePlanById(maint && maint.planTier);
+    return isAnnualBilling(maint) ? plan.annual : plan.monthly;
+  }
+
+  /**
+   * Payments arrive as plain bank transfers with no invoice attached, so the
+   * memo has to say which plan and which period the money covers.
+   */
+  function maintenancePayMemo(maint) {
+    var period = new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    return (
+      'Maintenance · ' +
+      planTierLabel(maint && maint.planTier) +
+      ' · ' +
+      period +
+      (isAnnualBilling(maint) ? ' (annual)' : '')
+    );
+  }
+
+  function renderMaintenancePayPanelHtml(maint) {
+    var methodsHtml = PORTAL_PAYMENT_METHODS.map(function (m) {
+      return (
+        '<button type="button" class="client-portal-pay-method-btn" data-portal-maint-pay-method="' +
+        esc(m.id) +
+        '">' +
+        esc(m.label) +
+        '</button>'
+      );
+    }).join('');
+    return (
+      '<div class="client-portal-sign-panel client-portal-pay-panel" data-portal-maint-pay-panel hidden>' +
+      '<p class="client-portal-pay-ask">How would you like to pay?</p>' +
+      '<p class="client-portal-pay-ask-sub">Zelle, PayPal, or Venmo — pick one and we’ll show where to send it.</p>' +
+      '<div class="client-portal-pay-methods" role="group" aria-label="Payment methods">' +
+      methodsHtml +
+      '</div>' +
+      '<div class="client-portal-pay-detail" data-portal-maint-pay-detail hidden></div>' +
+      '</div>'
+    );
+  }
+
+  /** Plans stay payable for every renewal, so the button never goes away. */
+  function renderMaintenancePayBlockHtml(maint) {
+    var annual = isAnnualBilling(maint);
+    return (
+      '<div class="client-portal-maint-pay">' +
+      (maint.paymentStatus === 'awaiting'
+        ? '<p class="client-portal-maint-awaiting" role="status">' +
+          'Your plan is set up. Send your first ' +
+          (annual ? 'yearly' : 'monthly') +
+          ' payment to start it — we’ll confirm once it clears.</p>'
+        : '') +
+      '<div class="client-portal-maint-pay-row">' +
+      '<span class="client-portal-maint-pay-amount">' +
+      esc(maintenancePayAmountLabel(maint)) +
+      '</span>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-portal-maint-pay-btn aria-expanded="false">Pay now →</button>' +
+      '</div>' +
+      renderMaintenancePayPanelHtml(maint) +
+      '</div>'
+    );
   }
 
   function updatePortalMaintPlanPrices(pickerEl) {
@@ -318,7 +401,9 @@
 
     if (status === 'active' && maint) {
       return (
-        '<div class="client-portal-maint-block">' +
+        '<div class="client-portal-maint-block' +
+        (maint.paymentStatus === 'awaiting' ? ' is-awaiting-payment' : '') +
+        '">' +
         '<h3 class="client-portal-support-subhead">Your maintenance plan</h3>' +
         '<p class="client-portal-maint-active">' +
         '<strong>' +
@@ -338,7 +423,9 @@
           }
           return String(maint.slaHours) + ' hours';
         })()) +
-        '. Repair uses leftover hours. Custom work beyond the add-on cadence is quoted separately.</p></div>'
+        '. Repair uses leftover hours. Custom work beyond the add-on cadence is quoted separately.</p>' +
+        renderMaintenancePayBlockHtml(maint) +
+        '</div>'
       );
     }
 
@@ -369,7 +456,8 @@
       '</div>' +
       '</fieldset>' +
       renderMaintenancePlanCards('standard') +
-      '<button type="button" class="btn btn-primary" id="portal-request-plan-btn">Request this plan</button>' +
+      '<button type="button" class="btn btn-primary" id="portal-request-plan-btn">Start this plan</button>' +
+      '<p class="client-portal-maint-picker-note">You’ll get payment details on the next screen. Your plan starts once your first payment clears.</p>' +
       '<p class="client-portal-maint-feedback" id="portal-maint-feedback" role="status"></p></div>'
     );
   }
@@ -423,11 +511,16 @@
     );
   }
 
-  async function submitMaintenancePlanRequest(ctx, tier, billingPref) {
+  /**
+   * Picking a plan activates it outright — there is no approval step. The plan
+   * is flagged awaiting payment until CWR confirms the money landed, since
+   * Zelle / PayPal / Venmo cannot tell us on their own.
+   */
+  async function submitMaintenancePlanSelection(ctx, tier, billingPref) {
     if (!rtdbWriteReady() || !ctx) return;
     var feedback = document.getElementById('portal-maint-feedback');
     if (feedback) {
-      feedback.textContent = 'Submitting…';
+      feedback.textContent = 'Setting up your plan…';
       feedback.classList.remove('is-error');
     }
     var defs = planDefaultsForTier(tier);
@@ -436,7 +529,8 @@
       projectId: ctx.projectId || '',
       planTier: tier,
       billingPreference: billingPref,
-      planStatus: 'pending',
+      planStatus: 'active',
+      paymentStatus: 'awaiting',
       planRequestedAt: window.rtdbServerTimestamp(),
       hoursIncluded: defs.hoursIncluded,
       hoursUsed: 0,
@@ -459,13 +553,15 @@
         await window.rtdbSet(ref, payload);
         ctx.maintId = ref.key;
       }
-      if (feedback) feedback.textContent = 'Request sent. We will confirm your plan soon.';
+      if (feedback) feedback.textContent = '';
       var allMaint = await loadAllMaintenanceRecords();
       var hubRow = { clientName: ctx.clientName, id: ctx.projectId };
       var maint = findMaintenanceForHub(hubRow, ctx.projectId, allMaint);
       var picker = document.getElementById('portal-maint-picker');
       if (picker && picker.parentNode) {
+        var host = picker.parentNode;
         picker.outerHTML = renderMaintenanceBlock(maint, { clientName: ctx.clientName });
+        bindMaintenancePayPanel(host, maint);
       }
     } catch (err) {
       console.error(err);
@@ -797,9 +893,10 @@
         var tier = tierInput ? tierInput.value : 'standard';
         var billing = billInput ? billInput.value : 'monthly';
         ctx.maintId = maint && maint.id ? maint.id : ctx.maintId;
-        submitMaintenancePlanRequest(ctx, tier, billing);
+        submitMaintenancePlanSelection(ctx, tier, billing);
       });
     }
+    bindMaintenancePayPanel(root, maint);
   }
 
   function normalizePortalGuides(row) {
@@ -1318,9 +1415,12 @@
     );
   }
 
-  function renderInvoicePayDetailHtml(doc, method) {
-    var amount = formatMoneyDetailed(doc.total);
-    var invNo = invoiceDisplayNumber(doc);
+  /**
+   * Shared by invoices and maintenance plans — both are paid the same way
+   * (Zelle / PayPal / Venmo by hand), only the amount, memo, and closing note
+   * differ.
+   */
+  function renderPayDetailHtml(method, opts) {
     var linkHtml = method.link
       ? '<a class="client-portal-pay-link" href="' +
         esc(method.link) +
@@ -1337,20 +1437,30 @@
     }
     return (
       '<p class="client-portal-pay-detail-lead">Pay <strong>' +
-      esc(amount) +
+      esc(opts.amountLabel) +
       '</strong> via ' +
       esc(method.label) +
       '</p>' +
       handlesHtml +
       '<p class="client-portal-pay-memo">Memo / note: <strong>' +
-      esc(invNo) +
+      esc(opts.memo) +
       '</strong></p>' +
       '<p class="client-portal-pay-hint">' +
       esc(method.hint) +
       '</p>' +
       linkHtml +
-      '<p class="client-portal-pay-confirm">After you send, keep your receipt. We’ll mark this invoice paid once payment clears.</p>'
+      '<p class="client-portal-pay-confirm">' +
+      esc(opts.confirmNote) +
+      '</p>'
     );
+  }
+
+  function renderInvoicePayDetailHtml(doc, method) {
+    return renderPayDetailHtml(method, {
+      amountLabel: formatMoneyDetailed(doc.total),
+      memo: invoiceDisplayNumber(doc),
+      confirmNote: 'After you send, keep your receipt. We’ll mark this invoice paid once payment clears.'
+    });
   }
 
   function renderInvoicePayPanelHtml(doc) {
@@ -1981,28 +2091,68 @@
             b.classList.toggle('is-selected', b === btn);
           });
         }
-        detail.querySelectorAll('[data-portal-pay-copy]').forEach(function (copyBtn) {
-          if (copyBtn.dataset.portalPayCopyBound) return;
-          copyBtn.dataset.portalPayCopyBound = '1';
-          copyBtn.addEventListener('click', function () {
-            var row = copyBtn.closest('.client-portal-pay-handle-row');
-            var handleEl = row ? row.querySelector('[data-portal-pay-handle]') : null;
-            var text = handleEl ? handleEl.textContent : method.handle;
-            var done = function () {
-              copyBtn.textContent = 'Copied';
-              setTimeout(function () {
-                copyBtn.textContent = 'Copy';
-              }, 1600);
-            };
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(text).then(done).catch(function () {
-                window.prompt('Copy this payment handle:', text);
-              });
-            } else {
-              window.prompt('Copy this payment handle:', text);
-            }
+        bindPayCopyButtons(detail, method.handle);
+      });
+    });
+  }
+
+  function bindPayCopyButtons(detail, fallbackHandle) {
+    if (!detail) return;
+    detail.querySelectorAll('[data-portal-pay-copy]').forEach(function (copyBtn) {
+      if (copyBtn.dataset.portalPayCopyBound) return;
+      copyBtn.dataset.portalPayCopyBound = '1';
+      copyBtn.addEventListener('click', function () {
+        var row = copyBtn.closest('.client-portal-pay-handle-row');
+        var handleEl = row ? row.querySelector('[data-portal-pay-handle]') : null;
+        var text = handleEl ? handleEl.textContent : fallbackHandle;
+        var done = function () {
+          copyBtn.textContent = 'Copied';
+          setTimeout(function () {
+            copyBtn.textContent = 'Copy';
+          }, 1600);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done).catch(function () {
+            window.prompt('Copy this payment handle:', text);
           });
+        } else {
+          window.prompt('Copy this payment handle:', text);
+        }
+      });
+    });
+  }
+
+  function bindMaintenancePayPanel(root, maint) {
+    if (!root || !maint) return;
+    var toggle = root.querySelector('[data-portal-maint-pay-btn]');
+    var panel = root.querySelector('[data-portal-maint-pay-panel]');
+    var detail = root.querySelector('[data-portal-maint-pay-detail]');
+    if (!toggle || !panel || !detail) return;
+    if (!toggle.dataset.portalMaintPayBound) {
+      toggle.dataset.portalMaintPayBound = '1';
+      toggle.addEventListener('click', function () {
+        var opening = panel.hidden;
+        panel.hidden = !opening;
+        toggle.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      });
+    }
+    panel.querySelectorAll('[data-portal-maint-pay-method]').forEach(function (btn) {
+      if (btn.dataset.portalMaintPayMethodBound) return;
+      btn.dataset.portalMaintPayMethodBound = '1';
+      btn.addEventListener('click', function () {
+        var method = paymentMethodById(btn.getAttribute('data-portal-maint-pay-method'));
+        if (!method) return;
+        detail.innerHTML = renderPayDetailHtml(method, {
+          amountLabel: maintenancePayAmountLabel(maint),
+          memo: maintenancePayMemo(maint),
+          confirmNote:
+            'After you send, keep your receipt. We’ll confirm your plan once payment clears.'
         });
+        detail.hidden = false;
+        panel.querySelectorAll('[data-portal-maint-pay-method]').forEach(function (b) {
+          b.classList.toggle('is-selected', b === btn);
+        });
+        bindPayCopyButtons(detail, method.handle);
       });
     });
   }

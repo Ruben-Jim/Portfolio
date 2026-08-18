@@ -9572,10 +9572,13 @@ window.addEventListener('load', function() {
     {
       id: 'delivery-handoff',
       label: 'Delivery handoff',
-      defaultSubject: '{{projectName}} is ready for your review',
+      // Worded without {{projectName}} on purpose — it resolves to the literal
+      // words "your project", which read wrong at the start of a sentence and
+      // doubled up as "your latest your project update".
+      defaultSubject: 'Your project is ready for your review',
       defaultBody:
         'Hey {{clientName}},\n\n' +
-        'Your latest {{projectName}} update is ready for review.\n\n' +
+        'Your latest update is ready for review.\n\n' +
         'What to do next:\n' +
         '1) Open the link below\n' +
         '2) Test your main flow\n' +
@@ -9671,6 +9674,37 @@ window.addEventListener('load', function() {
         'Thank you,\nCodeWithRuben'
     },
     {
+      // Short cold-open for a brand new pipeline lead. Shares the demo picker
+      // with 'send-demo' so {{vertical}} and the template URL match the niche,
+      // but keeps its own shorter copy.
+      id: 'lead-intro',
+      label: 'New lead intro',
+      defaultSubject: '{{projectName}} — I already built one for your type of business',
+      defaultBody:
+        'Hey — love the work {{projectName}} does 🔥\n\n' +
+        'I’m a local app developer from Fresno. I build booking and operations platforms for {{vertical}} in the Central Valley.\n\n' +
+        'I already built one for your type of business — just needs your logo, colors, and info to make it yours.\n\n' +
+        'Here’s what it looks like:\n' +
+        '{{linkLine}}\n' +
+        'Worth a quick look?'
+    },
+    {
+      id: 'send-proposal',
+      label: 'Send proposal & invoice',
+      defaultSubject: 'Your proposal and invoice are ready',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'Your proposal is ready to review, and the deposit invoice is in there with it.\n\n' +
+        'Everything lives in your portal:\n' +
+        '1) Read the proposal and scope\n' +
+        '2) Sign the agreement\n' +
+        '3) Pay the deposit to lock in your start date\n\n' +
+        '{{linkLine}}\n' +
+        'Next step: {{nextStep}}\n\n' +
+        'Any questions, just reply here and I’ll walk you through it.\n\n' +
+        'Talk soon,\nCodeWithRuben'
+    },
+    {
       id: 'send-demo',
       label: 'Send demo',
       defaultSubject: '{{projectName}} — product demo',
@@ -9687,6 +9721,8 @@ window.addEventListener('load', function() {
     {
       id: 'realtor',
       label: 'Realtor & insurance',
+      // Plain-language niche used by the short lead-intro email.
+      vertical: 'real estate and insurance offices',
       defaultLink: '',
       defaultSubject: '{{projectName}} — one place for listings, quotes & client docs?',
       defaultBody:
@@ -9700,6 +9736,7 @@ window.addEventListener('load', function() {
     {
       id: 'lawn',
       label: 'Lawn & landscape',
+      vertical: 'lawn care and landscape crews',
       defaultLink: '',
       defaultSubject: '{{projectName}} — routes & pricing off of text threads?',
       defaultBody:
@@ -9713,6 +9750,7 @@ window.addEventListener('load', function() {
     {
       id: 'trades',
       label: 'Trade services',
+      vertical: 'trade crews',
       defaultLink: 'https://tradeservice.expo.app',
       defaultSubject: '{{projectName}} — fewer calls, more booked jobs?',
       defaultBody:
@@ -9726,6 +9764,7 @@ window.addEventListener('load', function() {
     {
       id: 'salon',
       label: 'Salon / barber / tattoo',
+      vertical: 'barbers, salons, and tattoo studios',
       defaultLink: 'https://rosasalon.expo.app',
       defaultSubject: '{{projectName}} — still booking through IG DMs?',
       defaultBody:
@@ -9762,6 +9801,14 @@ window.addEventListener('load', function() {
     'send-demo': {
       cta_label: 'View demo website/app →',
       header_subtitle: 'Product demo'
+    },
+    'lead-intro': {
+      cta_label: 'Take a look →',
+      header_subtitle: 'Built for your type of business'
+    },
+    'send-proposal': {
+      cta_label: 'View proposal & invoice →',
+      header_subtitle: 'Your proposal'
     }
   };
 
@@ -9811,7 +9858,15 @@ window.addEventListener('load', function() {
     return templateId === 'schedule-call' || templateId === 'reschedule-call';
   }
 
+  /** Cold outreach: shows the niche picker, treats "Next step" as the company
+   *  name, and defaults the link to that niche's demo build. */
   function isDemoOutreachEmailTemplate(templateId) {
+    return templateId === 'send-demo' || templateId === 'lead-intro';
+  }
+
+  /** Only 'send-demo' swaps in the niche's long-form copy; 'lead-intro' keeps
+   *  its own short copy and just borrows the niche wording. */
+  function usesDemoCopyEmailTemplate(templateId) {
     return templateId === 'send-demo';
   }
 
@@ -9889,7 +9944,7 @@ window.addEventListener('load', function() {
 
   function getActiveEmailCopyTemplate(els, templateId) {
     var template = getTemplateById(templateId);
-    if (!isDemoOutreachEmailTemplate(template.id)) return template;
+    if (!usesDemoCopyEmailTemplate(template.id)) return template;
     var demo = getSelectedAdminDemo(els);
     return {
       id: template.id,
@@ -9967,9 +10022,11 @@ window.addEventListener('load', function() {
           : 'Link: (add your portal or preview link here)');
     var nextRaw = String((els.nextStep && els.nextStep.value) || '').trim();
     var isDemo = isDemoOutreachEmailTemplate(templateId);
+    var demo = isDemo ? getSelectedAdminDemo(els) : null;
     return {
       clientName: String((els.toName && els.toName.value) || '').trim() || 'there',
       projectName: isDemo ? nextRaw || 'your company' : 'your project',
+      vertical: (demo && demo.vertical) || 'local service businesses',
       nextStep: nextRaw || 'Reply with your notes when ready',
       callType: formatAdminCallTypeLabel(ct),
       link: link,
@@ -9985,6 +10042,7 @@ window.addEventListener('load', function() {
       .replace(/\{\{\s*projectName\s*\}\}/g, vars.projectName)
       .replace(/\{\{\s*nextStep\s*\}\}/g, vars.nextStep)
       .replace(/\{\{\s*callType\s*\}\}/g, vars.callType || 'call')
+      .replace(/\{\{\s*vertical\s*\}\}/g, vars.vertical || 'local service businesses')
       .replace(/\{\{\s*agreedTimeBlock\s*\}\}/g, vars.agreedTimeBlock || '')
       .replace(/\{\{\s*agreedTime\s*\}\}/g, vars.agreedTime || '')
       .replace(/\{\{\s*linkLine\s*\}\}/g, vars.linkLine)
@@ -10223,6 +10281,7 @@ window.addEventListener('load', function() {
     if (templateId === 'maintenance-setup') return 'Pick a plan in your portal';
     if (templateId === 'maintenance-invoice') return 'Open the portal and review your invoice';
     if (templateId === 'maintenance-grace') return 'Review the invoice and get current today';
+    if (templateId === 'send-proposal') return 'Review the proposal, sign, and pay the deposit';
     return '';
   }
 
@@ -14864,17 +14923,74 @@ window.addEventListener('load', function() {
   // ----------------------------
 
   function closeBusinessDocSelect(wrap) {
-    wrap.classList.remove('is-open');
+    wrap.classList.remove('is-open', 'is-drop-up');
     var trigger = wrap.querySelector('.business-doc-select-trigger');
     var menu = wrap.querySelector('.business-doc-select-menu');
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
     if (menu) menu.setAttribute('aria-hidden', 'true');
   }
 
+  /** The box the menu has to stay inside: the window, tightened to the nearest
+   *  ancestor that clips its overflow. */
+  function businessDocSelectBounds(wrap) {
+    var top = 0;
+    var bottom = window.innerHeight;
+    var node = wrap.parentElement;
+    while (node && node !== document.body && node !== document.documentElement) {
+      var cs = window.getComputedStyle(node);
+      if (cs.overflowY !== 'visible' || cs.overflowX !== 'visible') {
+        var rect = node.getBoundingClientRect();
+        top = Math.max(top, rect.top);
+        bottom = Math.min(bottom, rect.bottom);
+        break;
+      }
+      node = node.parentElement;
+    }
+    return { top: top, bottom: bottom };
+  }
+
+  /**
+   * Opens upward when there is no room below — the case that matters is a
+   * select on the last card of a pipeline column, where dropping down puts the
+   * options past the edge of a container that clips them.
+   */
+  function positionBusinessDocSelectMenu(wrap, trigger, menu) {
+    wrap.classList.remove('is-drop-up');
+    if (!trigger || !menu) return;
+    var menuHeight = menu.offsetHeight || 0;
+    if (!menuHeight) return;
+    var rect = trigger.getBoundingClientRect();
+    var bounds = businessDocSelectBounds(wrap);
+    var gap = 6;
+    var spaceBelow = bounds.bottom - rect.bottom - gap;
+    var spaceAbove = rect.top - bounds.top - gap;
+    if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+      wrap.classList.add('is-drop-up');
+    }
+  }
+
   function closeAllBusinessDocSelects(except) {
     document.querySelectorAll('.business-doc-select.is-open').forEach(function (wrap) {
       if (wrap !== except) closeBusinessDocSelect(wrap);
     });
+  }
+
+  /**
+   * Multi-select mode: set data-select-multi="true" on the wrap. The hidden
+   * input then holds a comma-separated list, options toggle instead of
+   * replacing, and the menu stays open so several can be picked in one go.
+   */
+  function businessDocSelectIsMulti(wrap) {
+    return !!wrap && wrap.getAttribute('data-select-multi') === 'true';
+  }
+
+  function parseBusinessDocMultiValue(value) {
+    return String(value == null ? '' : value)
+      .split(',')
+      .map(function (v) {
+        return v.trim();
+      })
+      .filter(Boolean);
   }
 
   /** Re-renders a custom dropdown's trigger label + active option from its hidden input's current value. */
@@ -14884,6 +15000,25 @@ window.addEventListener('load', function() {
     if (!wrap) return;
     var label = wrap.querySelector('.business-doc-select-trigger-label');
     var options = wrap.querySelectorAll('.business-doc-select-option');
+
+    if (businessDocSelectIsMulti(wrap)) {
+      var selected = parseBusinessDocMultiValue(hiddenInput.value);
+      var picked = [];
+      options.forEach(function (opt) {
+        var isActive = selected.indexOf(opt.getAttribute('data-value') || '') >= 0;
+        opt.classList.toggle('is-active', isActive);
+        opt.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        if (isActive) picked.push(opt.textContent.trim());
+      });
+      if (label) {
+        label.textContent = picked.length
+          ? picked.join(', ')
+          : wrap.getAttribute('data-select-placeholder') || 'None';
+      }
+      wrap.classList.toggle('has-value', picked.length > 0);
+      return;
+    }
+
     var matched = false;
     options.forEach(function (opt) {
       var isActive = opt.getAttribute('data-value') === hiddenInput.value;
@@ -15020,16 +15155,31 @@ window.addEventListener('load', function() {
           wrap.classList.add('is-open');
           trigger.setAttribute('aria-expanded', 'true');
           menu.setAttribute('aria-hidden', 'false');
+          positionBusinessDocSelectMenu(wrap, trigger, menu);
         } else {
           closeBusinessDocSelect(wrap);
         }
       });
+
+      if (businessDocSelectIsMulti(wrap)) menu.setAttribute('aria-multiselectable', 'true');
 
       // Delegate so setBusinessDocSelectOptions() can rebuild the menu without re-wiring.
       menu.addEventListener('click', function (e) {
         var opt = e.target.closest('.business-doc-select-option');
         if (!opt || !menu.contains(opt)) return;
         e.stopPropagation();
+
+        if (businessDocSelectIsMulti(wrap)) {
+          var value = opt.getAttribute('data-value') || '';
+          var selected = parseBusinessDocMultiValue(hiddenInput.value);
+          var at = selected.indexOf(value);
+          if (at >= 0) selected.splice(at, 1);
+          else selected.push(value);
+          setBusinessDocHiddenValue(hiddenInput, selected.join(','));
+          syncBusinessDocSelectUI(hiddenInput);
+          return;
+        }
+
         setBusinessDocHiddenValue(hiddenInput, opt.getAttribute('data-value') || '');
         syncBusinessDocSelectUI(hiddenInput);
         closeBusinessDocSelect(wrap);
@@ -17047,6 +17197,7 @@ window.addEventListener('load', function() {
   var leadDrawerClose = document.getElementById('lead-drawer-close');
   var leadDrawerBody = document.getElementById('lead-drawer-body');
   var leadDrawerEditBtn = document.getElementById('lead-drawer-edit-btn');
+  var leadDrawerEmailBtn = document.getElementById('lead-drawer-email-btn');
   var leadDrawerDeleteBtn = document.getElementById('lead-drawer-delete-btn');
   var adminAddLeadBtn = document.getElementById('admin-add-lead-btn');
 
@@ -17115,6 +17266,46 @@ window.addEventListener('load', function() {
     return map[source] || source;
   }
 
+  // Outreach is a map of method -> when it was last logged, so a lead can carry
+  // several touches at once and the card can surface the most recent one.
+  var PIPELINE_OUTREACH_METHODS = ['email', 'text', 'call'];
+  var PIPELINE_OUTREACH_LABELS = { email: 'Emailed', text: 'Texted', call: 'Called' };
+
+  function normalizePipelineOutreach(raw) {
+    var out = {};
+    if (!raw || typeof raw !== 'object') return out;
+    PIPELINE_OUTREACH_METHODS.forEach(function (method) {
+      var at = Number(raw[method]);
+      if (at > 0) out[method] = at;
+    });
+    return out;
+  }
+
+  /** Most recent touch, or null when the lead has never been contacted. */
+  function pipelineLastTouch(lead) {
+    var best = null;
+    PIPELINE_OUTREACH_METHODS.forEach(function (method) {
+      var at = lead && lead.outreach ? lead.outreach[method] : 0;
+      if (at && (!best || at > best.at)) best = { method: method, at: at };
+    });
+    return best;
+  }
+
+  function pipelineTouchAgo(ms) {
+    var diff = Date.now() - Number(ms || 0);
+    if (!(diff >= 0)) return 'just now';
+    var mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    var hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    var days = Math.floor(hours / 24);
+    if (days < 30) return days + 'd ago';
+    var months = Math.floor(days / 30);
+    if (months < 12) return months + 'mo ago';
+    return Math.floor(months / 12) + 'y ago';
+  }
+
   function normalizePipelineLead(id, row) {
     if (!row || typeof row !== 'object') row = {};
     var stage = String(row.stage || 'lead').toLowerCase();
@@ -17138,6 +17329,7 @@ window.addEventListener('load', function() {
       stage: stage,
       source: source,
       notes: String(row.notes || '').slice(0, 8000),
+      outreach: normalizePipelineOutreach(row.outreach),
       createdAt: row.createdAt || null,
       updatedAt: row.updatedAt || null
     };
@@ -17154,7 +17346,9 @@ window.addEventListener('load', function() {
       value: norm.value,
       stage: norm.stage,
       source: norm.source,
-      notes: norm.notes
+      notes: norm.notes,
+      // RTDB drops empty objects, which is what "never contacted" should be.
+      outreach: Object.keys(norm.outreach).length ? norm.outreach : null
     };
   }
 
@@ -17235,20 +17429,114 @@ window.addEventListener('load', function() {
     if (kpiActive) kpiActive.textContent = String(leads.length);
   }
 
-  function buildPipelineStageSelect(leadId, currentStage) {
-    var html = '<select class="pipeline-card-stage-select" data-lead-id="' + escapeHtml(leadId) + '" aria-label="Change stage">';
-    PIPELINE_STAGES.forEach(function (st) {
+  /**
+   * Both card dropdowns are .business-doc-select instances so they match the
+   * lead form and the rest of admin. initBusinessDocCustomSelects() wires them
+   * after the board renders; the hidden input carries the value.
+   */
+  function buildPipelineCardSelect(cfg) {
+    var triggerLabel = cfg.placeholder || '';
+    if (cfg.multi) {
+      var picked = cfg.options.filter(function (opt) {
+        return cfg.selected.indexOf(opt.value) >= 0;
+      });
+      if (picked.length) {
+        triggerLabel = picked
+          .map(function (opt) {
+            return opt.label;
+          })
+          .join(', ');
+      }
+    } else {
+      cfg.options.forEach(function (opt) {
+        if (opt.value === cfg.value) triggerLabel = opt.label;
+      });
+    }
+
+    var html =
+      '<div class="business-doc-select business-doc-select--compact pipeline-card-select" ' +
+      'data-pipeline-select="' +
+      escapeHtml(cfg.kind) +
+      '" data-lead-id="' +
+      escapeHtml(cfg.leadId) +
+      '"' +
+      (cfg.multi
+        ? ' data-select-multi="true" data-select-placeholder="' + escapeHtml(cfg.placeholder || 'None') + '"'
+        : '') +
+      '>' +
+      '<button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" ' +
+      'aria-expanded="false" aria-label="' +
+      escapeHtml(cfg.ariaLabel) +
+      '">' +
+      '<span class="business-doc-select-trigger-label">' +
+      escapeHtml(triggerLabel) +
+      '</span>' +
+      '<ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>' +
+      '</button>' +
+      '<div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"' +
+      (cfg.multi ? ' aria-multiselectable="true"' : '') +
+      '>';
+
+    cfg.options.forEach(function (opt) {
+      var isActive = cfg.multi ? cfg.selected.indexOf(opt.value) >= 0 : opt.value === cfg.value;
       html +=
-        '<option value="' +
-        st +
-        '"' +
-        (st === currentStage ? ' selected' : '') +
-        '>' +
-        pipelineStageLabel(st) +
-        '</option>';
+        '<button type="button" class="business-doc-select-option' +
+        (isActive ? ' is-active' : '') +
+        '" role="option" aria-selected="' +
+        (isActive ? 'true' : 'false') +
+        '" data-value="' +
+        escapeHtml(opt.value) +
+        '">' +
+        escapeHtml(opt.label) +
+        '</button>';
     });
-    html += '</select>';
+
+    html +=
+      '</div><input type="hidden" value="' +
+      escapeHtml(cfg.multi ? cfg.selected.join(',') : cfg.value) +
+      '"></div>';
     return html;
+  }
+
+  function buildPipelineStageSelect(leadId, currentStage) {
+    return buildPipelineCardSelect({
+      kind: 'stage',
+      leadId: leadId,
+      ariaLabel: 'Change stage',
+      value: currentStage,
+      options: PIPELINE_STAGES.map(function (st) {
+        return { value: st, label: pipelineStageLabel(st) };
+      })
+    });
+  }
+
+  function buildPipelineOutreachSelect(lead) {
+    var selected = PIPELINE_OUTREACH_METHODS.filter(function (method) {
+      return !!(lead.outreach && lead.outreach[method]);
+    });
+    return buildPipelineCardSelect({
+      kind: 'outreach',
+      leadId: lead.id,
+      ariaLabel: 'Log outreach for this lead',
+      multi: true,
+      placeholder: 'No outreach',
+      selected: selected,
+      options: PIPELINE_OUTREACH_METHODS.map(function (method) {
+        return { value: method, label: PIPELINE_OUTREACH_LABELS[method] };
+      })
+    });
+  }
+
+  function buildPipelineTouchLine(lead) {
+    var last = pipelineLastTouch(lead);
+    if (!last) return '';
+    return (
+      '<p class="pipeline-card-touch">' +
+      escapeHtml(PIPELINE_OUTREACH_LABELS[last.method]) +
+      ' · ' +
+      escapeHtml(pipelineTouchAgo(last.at)) +
+      '</p>'
+    );
   }
 
   function renderPipelineBoard(leads) {
@@ -17321,6 +17609,8 @@ window.addEventListener('load', function() {
         '</div>' +
         '<div class="pipeline-card-footer">' +
         buildPipelineStageSelect(lead.id, lead.stage) +
+        buildPipelineOutreachSelect(lead) +
+        buildPipelineTouchLine(lead) +
         '</div>';
 
       container.appendChild(card);
@@ -17337,6 +17627,8 @@ window.addEventListener('load', function() {
           : window.AdminLoading.list(3);
       }
     });
+
+    initBusinessDocCustomSelects();
   }
 
   function findPipelineLead(id) {
@@ -17559,6 +17851,70 @@ window.addEventListener('load', function() {
     document.body.classList.add('lead-drawer-open');
   }
 
+  /** Each stage opens the email you'd actually send at that point in the deal. */
+  var PIPELINE_STAGE_EMAIL_TEMPLATES = {
+    lead: 'lead-intro',
+    'discovery-call': 'schedule-call',
+    proposal: 'send-proposal',
+    deposit: 'delivery-handoff'
+  };
+
+  function leadPortalLink(lead) {
+    var tools = window.AgencyTools;
+    if (!tools || typeof tools.getHubByLeadId !== 'function') return '';
+    var hub = tools.getHubByLeadId(lead.id);
+    if (!hub || !hub.portalToken) return '';
+    if (hub.portalExpiresAt && hub.portalExpiresAt < Date.now()) return '';
+    return typeof tools.clientPortalUrl === 'function' ? tools.clientPortalUrl(hub.portalToken) : '';
+  }
+
+  /**
+   * Opens the compose drawer preloaded with the template for the lead's stage.
+   * The proposal email is useless without a portal to point at, so that stage
+   * offers to set the client project up first.
+   */
+  function composeEmailForLead(lead) {
+    var templateId = PIPELINE_STAGE_EMAIL_TEMPLATES[lead.stage] || 'lead-intro';
+    var portalLink = leadPortalLink(lead);
+
+    if (templateId === 'send-proposal' && !portalLink) {
+      var setUpNow = window.confirm(
+        'This lead has no client portal yet, so there is nowhere to send the proposal and invoice.\n\n' +
+          'OK — set up the client project now.\n' +
+          'Cancel — write the email anyway and paste a link yourself.'
+      );
+      if (setUpNow) {
+        if (leadDrawerHubBtn) leadDrawerHubBtn.click();
+        return;
+      }
+    }
+
+    // Every field is set explicitly: the compose form is shared and keeps its
+    // last values, so leaving one out would carry the previous lead's company
+    // name or portal link into this email.
+    var prefill = {
+      name: lead.name || '',
+      email: lead.email || '',
+      templateId: templateId,
+      nextStep: '',
+      link: ''
+    };
+    if (isDemoOutreachEmailTemplate(templateId)) {
+      // Cold outreach reuses "Next step" as the company name, and clearing the
+      // link lets the chosen niche's demo build fill it in.
+      prefill.nextStep = lead.company || lead.name || '';
+    } else if (!isScheduleInviteEmailTemplate(templateId)) {
+      // Schedule emails build their own booking link; the rest point at the portal.
+      prefill.link = portalLink;
+    }
+
+    closeLeadDetail();
+    if (typeof window.prefillAdminClientEmail === 'function') {
+      window.prefillAdminClientEmail(prefill);
+    }
+    openAdminClientEmailDrawer();
+  }
+
   var leadDrawerHubBtn = document.getElementById('lead-drawer-hub-btn');
   if (leadDrawerHubBtn && !leadDrawerHubBtn.dataset.bound) {
     leadDrawerHubBtn.dataset.bound = '1';
@@ -17633,6 +17989,36 @@ window.addEventListener('load', function() {
     } catch (err) {
       console.error('saveLeadFromForm', err);
       alert('Could not save lead. Check console and RTDB rules.');
+    }
+  }
+
+  /**
+   * Stamps newly ticked methods with the current time and keeps the existing
+   * stamp on ones already logged, so re-opening the dropdown to add a second
+   * method does not reset when the first one happened.
+   */
+  async function saveLeadOutreach(leadId, csv) {
+    if (!leadId) return;
+    if (!window.rtdb || !window.rtdbUpdate) return;
+    if (!isAdmin()) return;
+    var lead = findPipelineLead(leadId);
+    if (!lead) return;
+
+    var previous = lead.outreach || {};
+    var next = {};
+    var now = Date.now();
+    parseBusinessDocMultiValue(csv).forEach(function (method) {
+      if (PIPELINE_OUTREACH_METHODS.indexOf(method) < 0) return;
+      next[method] = previous[method] || now;
+    });
+
+    try {
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + leadId), {
+        outreach: Object.keys(next).length ? next : null,
+        updatedAt: window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now()
+      });
+    } catch (err) {
+      console.error('saveLeadOutreach', err);
     }
   }
 
@@ -17757,6 +18143,10 @@ window.addEventListener('load', function() {
     board.dataset.pipelineDndInit = '1';
 
     board.addEventListener('dragstart', function (e) {
+      if (e.target.closest('.business-doc-select')) {
+        e.preventDefault();
+        return;
+      }
       var card = e.target.closest('.pipeline-card');
       if (!card) return;
       pipelineDragLeadId = card.getAttribute('data-lead-id');
@@ -17814,7 +18204,7 @@ window.addEventListener('load', function() {
     board.dataset.pipelineClickInit = '1';
 
     board.addEventListener('click', function (e) {
-      if (e.target.closest('.pipeline-card-stage-select')) return;
+      if (e.target.closest('.business-doc-select')) return;
       var card = e.target.closest('.pipeline-card');
       if (!card) return;
       var lead = findPipelineLead(card.getAttribute('data-lead-id'));
@@ -17822,16 +18212,22 @@ window.addEventListener('load', function() {
     });
 
     board.addEventListener('change', function (e) {
-      var sel = e.target.closest('.pipeline-card-stage-select');
-      if (!sel) return;
+      var wrap = e.target.closest('[data-pipeline-select]');
+      if (!wrap) return;
       e.stopPropagation();
-      var leadId = sel.getAttribute('data-lead-id');
-      var stage = sel.value;
-      if (leadId && stage) moveLeadStage(leadId, stage);
+      var leadId = wrap.getAttribute('data-lead-id');
+      if (!leadId) return;
+      var kind = wrap.getAttribute('data-pipeline-select');
+      if (kind === 'stage') {
+        if (e.target.value) moveLeadStage(leadId, e.target.value);
+      } else if (kind === 'outreach') {
+        saveLeadOutreach(leadId, e.target.value);
+      }
     });
 
+    // Cards are draggable; a press inside a dropdown must not start a drag.
     board.addEventListener('mousedown', function (e) {
-      if (e.target.closest('.pipeline-card-stage-select')) e.stopPropagation();
+      if (e.target.closest('.business-doc-select')) e.stopPropagation();
     });
   }
 
@@ -17872,6 +18268,12 @@ window.addEventListener('load', function() {
           closeLeadDetail();
           openLeadModal(lead);
         }
+      });
+    }
+    if (leadDrawerEmailBtn) {
+      leadDrawerEmailBtn.addEventListener('click', function () {
+        var lead = findPipelineLead(pipelineDetailLeadId);
+        if (lead) composeEmailForLead(lead);
       });
     }
     if (leadDrawerDeleteBtn) {

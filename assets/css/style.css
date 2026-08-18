@@ -12571,6 +12571,11 @@ body.portfolio-project-modal-open .cp-client-drawer {
   display: flex;
 }
 
+.business-doc-select.is-drop-up .business-doc-select-menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
 .business-doc-select-option {
   width: 100%;
   padding: 10px 12px;
@@ -12594,6 +12599,29 @@ body.portfolio-project-modal-open .cp-client-drawer {
   background: rgba(255, 193, 7, 0.16);
   color: var(--orange-yellow-crayola);
   font-weight: var(--fw-600);
+}
+
+/* Multi-select: options are toggles, so each carries its own tick box and the
+   menu stays open while several are picked. */
+.business-doc-select[data-select-multi="true"] .business-doc-select-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.business-doc-select[data-select-multi="true"] .business-doc-select-option::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  border: 1px solid var(--jet);
+  border-radius: 4px;
+  background: var(--eerie-black-2);
+}
+
+.business-doc-select[data-select-multi="true"] .business-doc-select-option.is-active::before {
+  border-color: var(--orange-yellow-crayola);
+  background: var(--orange-yellow-crayola) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23191919' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-6'/%3E%3C/svg%3E") center / 12px 12px no-repeat;
 }
 
 /* Toggle / segmented control (replaces native <select> for a two-option field) */
@@ -25924,6 +25952,13 @@ body.admin-testimonial-detail-open {
   letter-spacing: 0.5px;
 }
 
+/* The collapsible body clips its overflow to animate open/closed, which cut off
+   dropdown menus on the lowest card in a column. Once open there is nothing
+   left to animate, so it can stop clipping. */
+#pipeline-section.admin-collapsible-open > .admin-collapsible-content > .admin-collapsible-inner-content {
+  overflow: visible;
+}
+
 .pipeline-board {
   display: grid;
   gap: 14px;
@@ -26064,20 +26099,51 @@ body.admin-testimonial-detail-open {
 }
 
 .pipeline-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin-top: 10px;
   padding-top: 8px;
   border-top: 1px solid var(--jet);
 }
 
-.pipeline-card-stage-select {
+.pipeline-card-select.business-doc-select {
   width: 100%;
+  min-width: 0;
+}
+
+.pipeline-card-select .business-doc-select-trigger {
+  min-height: 32px;
+  padding: 6px 9px;
   font-size: 11px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--jet);
-  background: var(--eerie-black-2);
-  color: var(--white-2);
-  cursor: pointer;
+}
+
+.pipeline-card-select .business-doc-select-trigger-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pipeline-card-select .business-doc-select-option {
+  font-size: 12px;
+  padding: 8px 10px;
+}
+
+/* Nothing logged yet reads as a prompt rather than a value. */
+.pipeline-card-select[data-select-multi]:not(.has-value) .business-doc-select-trigger-label {
+  color: var(--light-gray-70);
+}
+
+.pipeline-card-touch {
+  margin: 0;
+  font-size: 10px;
+  color: var(--light-gray-70);
+}
+
+/* An open menu hangs over the cards below it in the same column. */
+.pipeline-card:has(.business-doc-select.is-open) {
+  position: relative;
+  z-index: 5;
 }
 
 .pipeline-card.is-dragging {
@@ -26257,14 +26323,18 @@ body.lead-drawer-open {
 
 .lead-drawer-footer {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 16px 20px;
   border-top: 1px solid var(--jet);
   flex-shrink: 0;
 }
 
+/* Four actions rarely fit on one row in a drawer this narrow, so they wrap
+   rather than squeezing the labels. */
 .lead-drawer-footer .btn {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 132px;
 }
 
 .lead-drawer-delete-btn {
@@ -26538,15 +26608,17 @@ body.lead-drawer-open {
   }
 
   .pipeline-card-footer {
-    flex-wrap: wrap;
     gap: 8px;
   }
 
-  .pipeline-card-stage-select {
-    width: 100%;
-    max-width: 100%;
-    min-height: 36px;
-    font-size: 16px; /* avoid iOS zoom */
+  .pipeline-card-select .business-doc-select-trigger {
+    min-height: 38px;
+    font-size: 13px;
+  }
+
+  .pipeline-card-select .business-doc-select-option {
+    padding: 11px 12px;
+    font-size: 14px;
   }
 }
 

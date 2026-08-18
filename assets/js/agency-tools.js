@@ -645,6 +645,17 @@
     ];
   }
 
+  function formatMaintTimestamp(value) {
+    if (!value) return '';
+    try {
+      var d = new Date(value);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+      return '';
+    }
+  }
+
   function inferMaintenancePlanStatus(row) {
     var ps = String((row && row.planStatus) || '').toLowerCase();
     if (ps === 'pending' || ps === 'active' || ps === 'none') return ps;
@@ -672,6 +683,9 @@
       projectId: String(row.projectId || ''),
       planTier: String(row.planTier || 'standard').slice(0, 40),
       planStatus: String(row.planStatus || '').toLowerCase().slice(0, 20),
+      // Plans created before self-serve signup have no paymentStatus and are
+      // already being billed, so a missing value means paid, not awaiting.
+      paymentStatus: String(row.paymentStatus || 'paid').toLowerCase().slice(0, 20),
       billingPreference: String(row.billingPreference || 'monthly').slice(0, 20),
       planRequestedAt: row.planRequestedAt || null,
       hoursIncluded: Number(row.hoursIncluded) || 6,
@@ -1979,6 +1993,7 @@
     if (existing) {
       payload.planTier = existing.planTier;
       payload.planStatus = existing.planStatus || existing.effectivePlanStatus || 'active';
+      payload.paymentStatus = existing.paymentStatus || 'paid';
       payload.billingPreference = existing.billingPreference || 'monthly';
       payload.planRequestedAt = existing.planRequestedAt || null;
       payload.projectId = existing.projectId || '';
@@ -3897,6 +3912,7 @@
         healthLabel: 'Health —',
         healthClass: '',
         maintPending: false,
+        maintAwaitingPayment: false,
         hasGuide: false
       };
     }
@@ -3917,6 +3933,11 @@
       : 'Health —';
     var maint = findMaintenanceForHub(hub);
     var maintPending = !!(maint && maint.effectivePlanStatus === 'pending');
+    var maintAwaitingPayment = !!(
+      maint &&
+      maint.effectivePlanStatus === 'active' &&
+      maint.paymentStatus === 'awaiting'
+    );
     return {
       milestones: done + '/' + (total || 0),
       milestonesPct: total ? Math.round((done / total) * 100) : 0,
@@ -3926,6 +3947,7 @@
       healthClass: healthClass,
       healthMissing: !health,
       maintPending: maintPending,
+      maintAwaitingPayment: maintAwaitingPayment,
       maintTier: maint && maint.planTier ? maint.planTier : '',
       hasGuide: hubHasPortalGuide(hub)
     };
@@ -3992,7 +4014,9 @@
     var initials = clientPickerInitials(title);
     var maintBadge = meta.maintPending
       ? '<span class="cp-client-picker-badge is-pending">Plan pending</span>'
-      : '';
+      : meta.maintAwaitingPayment
+        ? '<span class="cp-client-picker-badge is-pending">Awaiting payment</span>'
+        : '';
     var guideCount = normalizePortalGuides(p).length;
     var guideBadge = meta.hasGuide
       ? '<span class="cp-client-picker-badge is-guide">' +
@@ -4078,7 +4102,7 @@
   function clientHubAttentionScore(hub) {
     var meta = getClientPickerMeta(hub);
     var score = 0;
-    if (meta.maintPending) score += 100;
+    if (meta.maintPending || meta.maintAwaitingPayment) score += 100;
     if (meta.healthMissing || meta.healthClass === 'is-bad') score += 40;
     else if (meta.healthClass === 'is-warn') score += 20;
     if (!meta.milestonesTotal) score += 10;
@@ -4103,8 +4127,10 @@
         var hasA = findMaintenanceForHub(a) ? 0 : 1;
         var hasB = findMaintenanceForHub(b) ? 0 : 1;
         if (hasA !== hasB) return hasA - hasB;
-        var pendingA = getClientPickerMeta(a).maintPending ? 0 : 1;
-        var pendingB = getClientPickerMeta(b).maintPending ? 0 : 1;
+        var metaA = getClientPickerMeta(a);
+        var metaB = getClientPickerMeta(b);
+        var pendingA = metaA.maintPending || metaA.maintAwaitingPayment ? 0 : 1;
+        var pendingB = metaB.maintPending || metaB.maintAwaitingPayment ? 0 : 1;
         if (pendingA !== pendingB) return pendingA - pendingB;
       } else if (mode === 'added') {
         var ca = clientHubCreatedMs(a);
@@ -4934,13 +4960,19 @@
       ? '<span class="cp-section-status-pill is-set">' + hubGuides.length + ' added</span>'
       : '<span class="cp-section-status-pill is-empty">Missing</span>';
 
+    var maintPlanSummary = maint
+      ? esc((maint.planTier || 'standard').charAt(0).toUpperCase() + (maint.planTier || 'standard').slice(1)) +
+        ' · ' +
+        esc(maint.billingPreference === 'annual' ? 'Annual billing' : 'Monthly billing')
+      : '';
+
+    // Legacy records only — clients now activate their own plan and land in the
+    // awaiting-payment state below instead of waiting on an approval.
     var maintPendingBlock =
       maint && maint.effectivePlanStatus === 'pending'
         ? '<div class="cp-maint-pending-alert" role="status">' +
           '<p><strong>Plan request pending</strong> — ' +
-          esc((maint.planTier || 'standard').charAt(0).toUpperCase() + (maint.planTier || 'standard').slice(1)) +
-          ' · ' +
-          esc(maint.billingPreference === 'annual' ? 'Annual billing' : 'Monthly billing') +
+          maintPlanSummary +
           '</p>' +
           '<div class="cp-section-actions">' +
           '<button type="button" class="btn btn-primary btn-sm" data-cp-action="approve-maint-plan">Approve plan</button>' +
@@ -4948,9 +4980,26 @@
           '</div></div>'
         : '';
 
+    var maintAwaitingBlock =
+      maint && maint.effectivePlanStatus === 'active' && maint.paymentStatus === 'awaiting'
+        ? '<div class="cp-maint-pending-alert" role="status">' +
+          '<p><strong>Awaiting first payment</strong> — ' +
+          maintPlanSummary +
+          (maint.planRequestedAt
+            ? ' · Started ' + esc(formatMaintTimestamp(maint.planRequestedAt))
+            : '') +
+          '</p>' +
+          '<p class="form-hint">The client picked this plan themselves and has payment instructions in their portal. Confirm once the money lands.</p>' +
+          '<div class="cp-section-actions">' +
+          '<button type="button" class="btn btn-primary btn-sm" data-cp-action="mark-maint-paid">Mark payment received</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="decline-maint-plan">Cancel plan</button>' +
+          '</div></div>'
+        : '';
+
     var maintBody = maint
       ? '<input type="hidden" id="cp-maint-id" value="' + esc(maint.id) + '">' +
         maintPendingBlock +
+        maintAwaitingBlock +
         renderCpShowMaintPortalHtml(hub) +
         '<div class="cp-form-grid cp-form-grid--can-split">' +
         '<div class="form-group"><label for="cp-maint-hours-included">Hours included</label><input id="cp-maint-hours-included" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursIncluded)) + '"></div>' +
@@ -5410,6 +5459,7 @@
     if (existing) {
       payload.planTier = existing.planTier;
       payload.planStatus = existing.planStatus || existing.effectivePlanStatus || 'active';
+      payload.paymentStatus = existing.paymentStatus || 'paid';
       payload.billingPreference = existing.billingPreference || 'monthly';
       payload.planRequestedAt = existing.planRequestedAt || null;
       payload.tickets = existing.tickets || [];
@@ -5442,6 +5492,19 @@
     await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
   }
 
+  async function markMaintenancePaid(maintId) {
+    if (!maintId || !rtdbReady()) return;
+    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId));
+    var row = snap.val() || {};
+    var payload = Object.assign({}, row, {
+      planStatus: 'active',
+      paymentStatus: 'paid',
+      paymentConfirmedAt: ts(),
+      updatedAt: ts()
+    });
+    await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
+  }
+
   async function declineMaintenancePlan(maintId) {
     if (!maintId || !rtdbReady()) return;
     var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId));
@@ -5450,6 +5513,7 @@
     var declineNote = 'Plan request declined ' + new Date().toLocaleDateString() + '.';
     var payload = Object.assign({}, row, {
       planStatus: 'none',
+      paymentStatus: null,
       planRequestedAt: null,
       notes: note ? note + '\n' + declineNote : declineNote,
       updatedAt: ts()
@@ -5849,6 +5913,21 @@
         .catch(function (err) {
           console.error(err);
           setCpFeedback('maint', (err && err.message) || 'Approve failed.', true);
+        });
+      return;
+    }
+    if (action === 'mark-maint-paid') {
+      var paidId = (document.getElementById('cp-maint-id') || {}).value.trim();
+      if (!paidId) return;
+      markMaintenancePaid(paidId)
+        .then(function () {
+          renderClientProjectsWorkspace();
+          setCpFeedback('maint', 'Payment confirmed. Plan is fully active.', false);
+          if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+        })
+        .catch(function (err) {
+          console.error(err);
+          setCpFeedback('maint', (err && err.message) || 'Could not confirm payment.', true);
         });
       return;
     }
@@ -8211,6 +8290,10 @@
         reasons.push('Plan pending');
         priority = Math.min(priority, 0);
       }
+      if (meta.maintAwaitingPayment) {
+        reasons.push('Awaiting plan payment');
+        priority = Math.min(priority, 0);
+      }
       if (meta.healthClass !== 'is-good') {
         var health = agencyHealthByProject[p.id];
         var healthDone = health ? healthCheckedCount(health) : 0;
@@ -8340,6 +8423,7 @@
       if (!leadId) return null;
       return agencyProjects.find(function (p) { return p.leadId === leadId; }) || null;
     },
+    clientPortalUrl: clientPortalUrl,
     deliveryStageLabel: deliveryStageLabel,
     openProjectHub: function (leadId) {
       var existing = agencyProjects.find(function (p) { return p.leadId === leadId; });

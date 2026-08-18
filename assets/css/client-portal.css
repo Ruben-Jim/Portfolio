@@ -1920,6 +1920,46 @@ body.portal-doc-sheet-open {
   color: var(--light-gray-70);
 }
 
+.client-portal-maint-picker-note {
+  margin: 10px 0 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+  line-height: 1.5;
+}
+
+.client-portal-maint-pay {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--jet);
+}
+
+.client-portal-maint-awaiting {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: hsla(45, 100%, 72%, 0.08);
+  border: 1px solid hsla(45, 100%, 72%, 0.25);
+  font-size: var(--fs-8);
+  line-height: 1.5;
+}
+
+.client-portal-maint-pay-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.client-portal-maint-pay-amount {
+  font-size: var(--fs-6);
+  font-weight: var(--fw-600);
+  color: var(--white-1);
+}
+
+.client-portal-maint-pay .client-portal-pay-panel {
+  margin-top: 14px;
+}
+
 /* Floating messages button */
 .portal-dm-fab {
   position: fixed;
