@@ -206,12 +206,54 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "handyman",
+    "files": [
+      {
+        "path": "/assets/images/projects/handyman/handyman-demo.webm",
+        "name": "handyman-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/handyman/handyman-demo-poster.webp"
+      }
+    ]
+  },
+  {
     "group": "hoa",
     "files": [
       {
         "path": "/assets/images/projects/hoa/hoa.webp",
         "name": "hoa.webp",
         "kind": "image"
+      }
+    ]
+  },
+  {
+    "group": "homeContractors",
+    "files": [
+      {
+        "path": "/assets/images/projects/homeContractors/homecontractors-1.webp",
+        "name": "homecontractors-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeContractors/homecontractors-2.webp",
+        "name": "homecontractors-2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeContractors/homecontractors-3.webp",
+        "name": "homecontractors-3.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeContractors/homecontractors-4.webp",
+        "name": "homecontractors-4.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/homeContractors/homecontractors-demo.webm",
+        "name": "homecontractors-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/homeContractors/homecontractors-demo-poster.webp"
       }
     ]
   },
@@ -231,8 +273,60 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "inktattoo",
+    "files": [
+      {
+        "path": "/assets/images/projects/inktattoo/inktattoo-1.webp",
+        "name": "inktattoo-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/inktattoo/inktattoo-2.webp",
+        "name": "inktattoo-2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/inktattoo/inktattoo-demo.webm",
+        "name": "inktattoo-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/inktattoo/inktattoo-demo-poster.webp"
+      }
+    ]
+  },
+  {
     "group": "lawncare",
     "files": [
+      {
+        "path": "/assets/images/projects/lawncare/lawncare-1.webp",
+        "name": "lawncare-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/lawncare/lawncare-2.webp",
+        "name": "lawncare-2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/lawncare/lawncare-3.webp",
+        "name": "lawncare-3.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/lawncare/lawncare-4.webp",
+        "name": "lawncare-4.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/lawncare/lawncare-5.webp",
+        "name": "lawncare-5.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/lawncare/lawncare-demo.webm",
+        "name": "lawncare-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/lawncare/lawncare-demo-poster.webp"
+      },
       {
         "path": "/assets/images/projects/lawncare/lawncare.webp",
         "name": "lawncare.webp",
@@ -525,8 +619,49 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "sunergy",
+    "files": [
+      {
+        "path": "/assets/images/projects/sunergy/sunergy-1.webp",
+        "name": "sunergy-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/sunergy/sunergy-2.webp",
+        "name": "sunergy-2.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
     "group": "tradeservice",
     "files": [
+      {
+        "path": "/assets/images/projects/tradeservice/tradeservice-1.webp",
+        "name": "tradeservice-1.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/tradeservice/tradeservice-2.webp",
+        "name": "tradeservice-2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/tradeservice/tradeservice-3.webp",
+        "name": "tradeservice-3.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/tradeservice/tradeservice-4.webp",
+        "name": "tradeservice-4.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/tradeservice/tradeservice-demo.webm",
+        "name": "tradeservice-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/tradeservice/tradeservice-demo-poster.webp"
+      },
       {
         "path": "/assets/images/projects/tradeservice/tradeservice.webp",
         "name": "tradeservice.webp",

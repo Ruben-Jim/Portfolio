@@ -3495,6 +3495,29 @@ function portfolioRenderCarousel(rootEl, options) {
  * image looks, not by its name. Reads the generated manifest so it always shows
  * what is actually on disk.
  */
+// null = showing the folder list; a group name = showing that folder's media.
+var portfolioAssetOpenGroup = null;
+
+function portfolioAssetThumbHtml(f) {
+  var thumbSrc = f.kind === 'video' ? f.poster : f.path;
+  var media = thumbSrc
+    ? '<span class="portfolio-asset-media">' +
+      '<img src="' + portfolioEscapeHtml(thumbSrc) + '" alt="" loading="lazy">' +
+      (f.kind === 'video'
+        ? '<span class="portfolio-asset-play" aria-hidden="true">\u25B6</span>'
+        : '') +
+      '</span>'
+    : '<span class="portfolio-asset-video" aria-hidden="true">\u25B6</span>';
+  return (
+    '<button type="button" class="portfolio-asset-thumb" ' +
+    'data-asset-path="' + portfolioEscapeHtml(f.path) + '" ' +
+    'title="' + portfolioEscapeHtml(f.name) + '">' +
+    media +
+    '<span class="portfolio-asset-thumb-name">' + portfolioEscapeHtml(f.name) + '</span>' +
+    '</button>'
+  );
+}
+
 function renderPortfolioAssetGrid() {
   var wrap = document.getElementById('portfolio-asset-grid');
   if (!wrap) return;
@@ -3508,44 +3531,67 @@ function renderPortfolioAssetGrid() {
     .toLowerCase()
     .trim();
 
-  var html = '';
-  groups.forEach(function (g) {
-    var files = g.files.filter(function (f) {
-      return !q || f.name.toLowerCase().indexOf(q) >= 0 || g.group.toLowerCase().indexOf(q) >= 0;
+  // Searching cuts across folders — hunting for a filename should not require
+  // remembering which project it belongs to.
+  if (q) {
+    var hits = [];
+    groups.forEach(function (g) {
+      g.files.forEach(function (f) {
+        if (f.name.toLowerCase().indexOf(q) >= 0 || g.group.toLowerCase().indexOf(q) >= 0) {
+          hits.push(f);
+        }
+      });
     });
-    if (!files.length) return;
-    html +=
-      '<div class="portfolio-asset-group">' +
-      '<p class="portfolio-asset-group-label">' + portfolioEscapeHtml(g.group) +
-      ' <span>' + files.length + '</span></p>' +
-      '<div class="portfolio-asset-thumbs">' +
-      files
-        .map(function (f) {
-          // Videos show their generated -poster.webp frame; the play chip sits on
-          // top so it still reads as video. Only falls back to a bare chip when
-          // no poster exists.
-          var thumbSrc = f.kind === 'video' ? f.poster : f.path;
-          var media = thumbSrc
-            ? '<span class="portfolio-asset-media">' +
-              '<img src="' + portfolioEscapeHtml(thumbSrc) + '" alt="" loading="lazy">' +
-              (f.kind === 'video'
-                ? '<span class="portfolio-asset-play" aria-hidden="true">\u25B6</span>'
-                : '') +
-              '</span>'
-            : '<span class="portfolio-asset-video" aria-hidden="true">\u25B6</span>';
-          return (
-            '<button type="button" class="portfolio-asset-thumb" ' +
-            'data-asset-path="' + portfolioEscapeHtml(f.path) + '" ' +
-            'title="' + portfolioEscapeHtml(f.name) + '">' +
-            media +
-            '<span class="portfolio-asset-thumb-name">' + portfolioEscapeHtml(f.name) + '</span>' +
-            '</button>'
-          );
-        })
-        .join('') +
-      '</div></div>';
-  });
-  wrap.innerHTML = html || '<p class="form-hint">No media matches that search.</p>';
+    wrap.innerHTML = hits.length
+      ? '<div class="portfolio-asset-thumbs">' + hits.map(portfolioAssetThumbHtml).join('') + '</div>'
+      : '<p class="form-hint">No media matches that search.</p>';
+    return;
+  }
+
+  // Level 2 — inside a folder.
+  if (portfolioAssetOpenGroup) {
+    var g = groups.find(function (x) { return x.group === portfolioAssetOpenGroup; });
+    if (!g) {
+      portfolioAssetOpenGroup = null;
+    } else {
+      wrap.innerHTML =
+        '<div class="portfolio-asset-crumb">' +
+        '<button type="button" class="portfolio-asset-back" data-asset-back="1">' +
+        '\u2190 All folders</button>' +
+        '<span class="portfolio-asset-crumb-name">' + portfolioEscapeHtml(g.group) +
+        ' <span>' + g.files.length + '</span></span>' +
+        '</div>' +
+        '<div class="portfolio-asset-thumbs">' + g.files.map(portfolioAssetThumbHtml).join('') + '</div>';
+      return;
+    }
+  }
+
+  // Level 1 — folder tiles, each showing a cover image and a count.
+  wrap.innerHTML =
+    '<div class="portfolio-asset-folders">' +
+    groups
+      .map(function (g) {
+        var cover = null;
+        for (var i = 0; i < g.files.length; i++) {
+          var f = g.files[i];
+          var src = f.kind === 'video' ? f.poster : f.path;
+          if (src) { cover = src; break; }
+        }
+        return (
+          '<button type="button" class="portfolio-asset-folder" data-asset-group="' +
+          portfolioEscapeHtml(g.group) + '">' +
+          (cover
+            ? '<img src="' + portfolioEscapeHtml(cover) + '" alt="" loading="lazy">'
+            : '<span class="portfolio-asset-folder-empty" aria-hidden="true"></span>') +
+          '<span class="portfolio-asset-folder-meta">' +
+          '<span class="portfolio-asset-folder-name">' + portfolioEscapeHtml(g.group) + '</span>' +
+          '<span class="portfolio-asset-folder-count">' + g.files.length + ' file' +
+          (g.files.length === 1 ? '' : 's') + '</span>' +
+          '</span></button>'
+        );
+      })
+      .join('') +
+    '</div>';
 }
 
 function initPortfolioAssetGrid() {
@@ -3554,6 +3600,20 @@ function initPortfolioAssetGrid() {
   wrap.dataset.bound = '1';
 
   wrap.addEventListener('click', function (e) {
+    var folder = e.target.closest('[data-asset-group]');
+    if (folder) {
+      e.preventDefault();
+      portfolioAssetOpenGroup = folder.getAttribute('data-asset-group');
+      renderPortfolioAssetGrid();
+      return;
+    }
+    if (e.target.closest('[data-asset-back]')) {
+      e.preventDefault();
+      portfolioAssetOpenGroup = null;
+      renderPortfolioAssetGrid();
+      return;
+    }
+
     var btn = e.target.closest('[data-asset-path]');
     if (!btn) return;
     e.preventDefault();
@@ -3763,6 +3823,7 @@ async function loadPortfolioProjectsFromRtdb() {
   if (typeof populatePortfolioImageAssetSelect === 'function') {
     populatePortfolioImageAssetSelect();
   initPortfolioAssetGrid();
+  portfolioAssetOpenGroup = null;
   renderPortfolioAssetGrid();
   }
 }
