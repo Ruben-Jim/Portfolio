@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=hire-recall-top-20260817b">
+  <link rel="stylesheet" href="/assets/css/style.css?v=variant-tabs-row-20260818l">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -407,17 +407,17 @@
           <div class="cwr-landing-band-inner cwr-landing-demo-grid">
             <div class="cwr-landing-demo-media">
               <div class="cwr-landing-demo-reel" aria-hidden="true">
-                <img src="/assets/images/projects/project-realtor&broker.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-realtor&broker-1.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-rizopizzeria1.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-homeverse2.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-realestate.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-tradeservice.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-procleaning-img2.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-sheltonsprings1.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-barbershop.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-lawncare.png" alt="" loading="lazy">
-                <img src="/assets/images/projects/project-rosasalon.png" alt="" loading="lazy">
+                <img src="/assets/images/projects/realtor-broker/realtor-broker.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/realtor-broker/realtor-broker-1.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/rizopizzeria/rizopizzeria1.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/homeverse/homeverse2.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/realestate/realestate.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/tradeservice/tradeservice.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/procleaning/procleaning-img2.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/sheltonsprings/sheltonsprings1.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/barbershop/barbershop.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/lawncare/lawncare.webp" alt="" loading="lazy">
+                <img src="/assets/images/projects/rosasalon/rosasalon.webp" alt="" loading="lazy">
               </div>
               <span class="cwr-landing-demo-badge" data-i18n="home.demo_badge"><ion-icon name="play-circle-outline"></ion-icon> Live demos</span>
             </div>
@@ -1254,6 +1254,7 @@
             </div>
           </figure>
 
+          <div class="project-detail-variant-tabs" id="project-detail-variant-tabs" role="tablist" aria-label="Builds using this template" hidden></div>
           <div class="project-detail-body">
             <div class="project-detail-scroll has-scrollbar is-detail-compact" id="project-detail-scroll">
             <div class="project-detail-meta">
@@ -1293,6 +1294,11 @@
               <div class="project-detail-canvas-body" id="project-detail-canvas-body" data-portfolio-canvas-body></div>
             </section>
 
+                <section class="project-detail-section project-detail-built-with" id="project-detail-built-with" hidden>
+                  <h4 class="h4 project-detail-section-title">Built with this template</h4>
+                  <p class="project-detail-built-with-lead" id="project-detail-built-with-lead"></p>
+                  <ul class="project-detail-built-with-list" id="project-detail-built-with-list"></ul>
+                </section>
             <section class="project-detail-section project-detail-extra-sections" id="project-detail-extra-sections" hidden>
               <h4 class="h4 project-detail-section-title">Project details</h4>
               <div class="project-detail-page-accordion" id="project-detail-sections-accordion" role="region" aria-label="Project detail sections"></div>
@@ -6133,21 +6139,12 @@
                 </div>
                 <p class="form-hint">First slide is the card thumbnail. Add images or MP4 from <code>assets/images</code>, or paste a URL — drag to reorder.</p>
                 <div class="portfolio-slides-add-bar">
-                  <div class="portfolio-slides-add-field">
-                    <label id="portfolio-project-image-asset-label" for="portfolio-project-image-asset">From repo</label>
-                    <div class="portfolio-slides-add-row">
-                      <div class="business-doc-select" data-select-name="portfolio-image-asset">
-                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="portfolio-project-image-asset-label">
-                          <span class="business-doc-select-trigger-label">Choose a file…</span>
-                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
-                        </button>
-                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
-                          <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Choose a file…</button>
-                        </div>
-                        <input type="hidden" id="portfolio-project-image-asset" value="">
-                      </div>
-                      <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-add-from-asset" title="Add selected file">Add</button>
+                  <div class="portfolio-asset-picker">
+                    <div class="portfolio-asset-picker-head">
+                      <label for="portfolio-asset-search">Project media</label>
+                      <input type="search" id="portfolio-asset-search" class="form-input" placeholder="Search files or project…" autocomplete="off">
                     </div>
+                    <div class="portfolio-asset-grid has-scrollbar" id="portfolio-asset-grid"></div>
                   </div>
                   <div class="portfolio-slides-add-field">
                     <label for="portfolio-project-image">Custom URL</label>
@@ -6270,6 +6267,11 @@
                 </label>
                 <p class="form-hint">Base product you branch from for demos. Shows in Project Hub → Assign template.</p>
               </div>
+                <div class="form-group">
+                  <label for="portfolio-project-built-from">Built from starter template</label>
+                  <select id="portfolio-project-built-from"></select>
+                  <p class="form-hint">Shows this project under that template’s “Built with this template” section on the public portfolio.</p>
+                </div>
               <div class="portfolio-editor-template-fields" id="portfolio-editor-template-fields" hidden>
                 <div class="form-row">
                   <div class="form-group form-group-half">
@@ -7419,16 +7421,17 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   </div>
 
 
-  <script src="/assets/js/portfolio-built-in-data.js?v=poster-webp-20260729"></script>
+  <script src="/assets/js/portfolio-built-in-data.js?v=asset-picker-final-20260818f"></script>
+  <script src="/assets/js/portfolio-assets.js?v=asset-posters-20260818g"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
   <script src="/assets/js/business-doc-shared.js?v=portal-color-scheme-20260817n"></script>
   <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
-  <script src="/assets/js/portfolio-detail-shared.js?v=multi-guides-20260729"></script>
+  <script src="/assets/js/portfolio-detail-shared.js?v=variant-tabs-private-20260818j"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=priority-24h-20260817g"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=seo-map-20260817"></script>
+  <script src="/assets/js/script.js?v=variant-tab-platform-20260818m"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=lead-email-20260817a"></script>
   <script src="/assets/js/dm-migration.js"></script>

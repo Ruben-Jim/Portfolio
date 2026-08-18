@@ -680,6 +680,60 @@
     return '';
   }
 
+  /**
+   * "Built with this template" — the real client builds derived from a starter
+   * template. Reads builtFromTemplateId off the public portfolioProjects list,
+   * so it works on the public site (agencyProjects is admin-only).
+   * Only shown on template records, and only for projects already public.
+   */
+  function renderBuiltWithTemplateHtml(record, options) {
+    options = options || {};
+    if (!record || record.isTemplate !== true) return '';
+    // portfolioProjectsAll is the unfiltered list. Private builds are included
+    // deliberately — this shows their media only, it does not publish them as
+    // browsable portfolio entries.
+    var all = options.allProjects ||
+      (typeof window !== 'undefined'
+        ? window.portfolioProjectsAll || window.portfolioProjects
+        : null) || [];
+    var id = String(record.id || '');
+    if (!id || !all.length) return '';
+
+    var builds = all.filter(function (p) {
+      return p && String(p.builtFromTemplateId || '') === id;
+    });
+    if (!builds.length) return '';
+
+    return (
+      '<section class="project-detail-section project-detail-built-with">' +
+      '<h4 class="project-detail-section-title">Built with this template</h4>' +
+      '<p class="project-detail-built-with-lead">' +
+      esc(builds.length === 1 ? 'One live business runs on this template.'
+        : builds.length + ' live businesses run on this template.') +
+      '</p>' +
+      '<ul class="project-detail-built-with-list">' +
+      builds
+        .map(function (p) {
+          var img = (Array.isArray(p.imageUrls) && p.imageUrls[0]) || p.imageUrl || '';
+          return (
+            '<li class="project-detail-built-with-item">' +
+            (img
+              ? '<img class="project-detail-built-with-thumb" src="' + esc(img) +
+                '" alt="" loading="lazy">'
+              : '<span class="project-detail-built-with-thumb is-empty" aria-hidden="true"></span>') +
+            '<span class="project-detail-built-with-text">' +
+            '<span class="project-detail-built-with-name">' + esc(p.title || 'Project') + '</span>' +
+            (p.category
+              ? '<span class="project-detail-built-with-meta">' + esc(p.category) + '</span>'
+              : '') +
+            '</span></li>'
+          );
+        })
+        .join('') +
+      '</ul></section>'
+    );
+  }
+
   function renderPortfolioDetailHtml(record, options) {
     options = options || {};
     record = record || {};
@@ -786,6 +840,7 @@
       (guideOnly ? '' : adminHtml) +
       canvasDocHtml +
       (guideOnly ? '' : accordionHtml) +
+      (guideOnly ? '' : renderBuiltWithTemplateHtml(record, options)) +
       '</div>' +
       actionsHtml +
       '</div></article>'

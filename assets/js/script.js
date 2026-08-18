@@ -3075,25 +3075,10 @@ let portfolioProjectsRtdb = [];
 const PORTFOLIO_PLACEHOLDER_IMAGE = '/assets/images/projects/project-comingsoon.svg';
 
 /** Fallback if portfolio-built-in-data.js fails to load (e.g. /admin/ + relative script path). */
-const PORTFOLIO_ASSET_IMAGE_FALLBACK = [
-  '/assets/images/projects/project-procleaning.png',
-  '/assets/images/projects/project-grippysocks.png',
-  '/assets/images/projects/project-barbershop.png',
-  '/assets/images/projects/project-rizopizzeria.png',
-  '/assets/images/projects/project-sheltonsprings.png',
-  '/assets/images/projects/project-gadgetgarage.png',
-  '/assets/images/projects/project-rosasalon.png',
-  '/assets/images/projects/project-zoomrealty.png',
-  '/assets/images/projects/project-realestate.png',
-  '/assets/images/projects/project-homeverse.png',
-  '/assets/images/projects/project-lawncare.png',
-  '/assets/images/projects/project-procleaning1.png',
-  '/assets/images/projects/project-rizopizzeria1.png',
-  '/assets/images/projects/project-sheltonsprings1.png',
-  '/assets/images/projects/project-rosasalon1.png',
-  '/assets/images/projects/project-gadgetgarage2.png',
-  '/assets/images/projects/project-homeverse2.png'
-];
+// Superseded by the generated manifest in assets/js/portfolio-assets.js
+// (window.PORTFOLIO_ASSET_GROUPS). This used to hold 17 hardcoded paths, every
+// one of which broke when project media was renamed and moved into folders.
+const PORTFOLIO_ASSET_IMAGE_FALLBACK = [];
 
 function portfolioEscapeHtml(str) {
   if (str == null || str === '') return '';
@@ -3503,6 +3488,92 @@ function portfolioRenderCarousel(rootEl, options) {
   goTo(index);
 }
 
+/**
+ * Thumbnail grid for picking slideshow media, grouped by project folder.
+ *
+ * Replaces a flat dropdown of filenames: for a slideshow you choose by how an
+ * image looks, not by its name. Reads the generated manifest so it always shows
+ * what is actually on disk.
+ */
+function renderPortfolioAssetGrid() {
+  var wrap = document.getElementById('portfolio-asset-grid');
+  if (!wrap) return;
+  var groups = window.PORTFOLIO_ASSET_GROUPS || [];
+  if (!groups.length) {
+    wrap.innerHTML =
+      '<p class="form-hint">No media found. Run <code>./scripts/build-portfolio-assets.sh</code> after adding images.</p>';
+    return;
+  }
+  var q = String((document.getElementById('portfolio-asset-search') || {}).value || '')
+    .toLowerCase()
+    .trim();
+
+  var html = '';
+  groups.forEach(function (g) {
+    var files = g.files.filter(function (f) {
+      return !q || f.name.toLowerCase().indexOf(q) >= 0 || g.group.toLowerCase().indexOf(q) >= 0;
+    });
+    if (!files.length) return;
+    html +=
+      '<div class="portfolio-asset-group">' +
+      '<p class="portfolio-asset-group-label">' + portfolioEscapeHtml(g.group) +
+      ' <span>' + files.length + '</span></p>' +
+      '<div class="portfolio-asset-thumbs">' +
+      files
+        .map(function (f) {
+          // Videos show their generated -poster.webp frame; the play chip sits on
+          // top so it still reads as video. Only falls back to a bare chip when
+          // no poster exists.
+          var thumbSrc = f.kind === 'video' ? f.poster : f.path;
+          var media = thumbSrc
+            ? '<span class="portfolio-asset-media">' +
+              '<img src="' + portfolioEscapeHtml(thumbSrc) + '" alt="" loading="lazy">' +
+              (f.kind === 'video'
+                ? '<span class="portfolio-asset-play" aria-hidden="true">\u25B6</span>'
+                : '') +
+              '</span>'
+            : '<span class="portfolio-asset-video" aria-hidden="true">\u25B6</span>';
+          return (
+            '<button type="button" class="portfolio-asset-thumb" ' +
+            'data-asset-path="' + portfolioEscapeHtml(f.path) + '" ' +
+            'title="' + portfolioEscapeHtml(f.name) + '">' +
+            media +
+            '<span class="portfolio-asset-thumb-name">' + portfolioEscapeHtml(f.name) + '</span>' +
+            '</button>'
+          );
+        })
+        .join('') +
+      '</div></div>';
+  });
+  wrap.innerHTML = html || '<p class="form-hint">No media matches that search.</p>';
+}
+
+function initPortfolioAssetGrid() {
+  var wrap = document.getElementById('portfolio-asset-grid');
+  if (!wrap || wrap.dataset.bound === '1') return;
+  wrap.dataset.bound = '1';
+
+  wrap.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-asset-path]');
+    if (!btn) return;
+    e.preventDefault();
+    var path = btn.getAttribute('data-asset-path');
+    var input = document.getElementById('portfolio-project-image');
+    if (input) input.value = path;
+    // Add straight to the slideshow — picking a thumbnail is the intent.
+    var addBtn = document.getElementById('portfolio-project-add-image-btn');
+    if (addBtn) addBtn.click();
+    btn.classList.add('is-just-added');
+    setTimeout(function () { btn.classList.remove('is-just-added'); }, 600);
+  });
+
+  var search = document.getElementById('portfolio-asset-search');
+  if (search && search.dataset.bound !== '1') {
+    search.dataset.bound = '1';
+    search.addEventListener('input', renderPortfolioAssetGrid);
+  }
+}
+
 function populatePortfolioImageAssetSelect() {
   var select = document.getElementById('portfolio-project-image-asset');
   var datalist = document.getElementById('portfolio-project-image-options');
@@ -3614,6 +3685,12 @@ function getEffectivePortfolioProjects() {
 
 function syncWindowPortfolioProjectsRef() {
   window.portfolioProjects = getEffectivePortfolioProjects();
+  // Unfiltered — includes private projects. Only for media-only surfaces like
+  // a template's variant tabs, where we show screenshots without publishing the
+  // project as its own portfolio entry.
+  window.portfolioProjectsAll = (
+    portfolioProjectsRtdb.length > 0 ? portfolioProjectsRtdb.slice() : getBuiltInPortfolioProjects()
+  ).sort(comparePortfolioProjectsByOrder);
   try {
     document.dispatchEvent(new CustomEvent('portfolioProjectsLoaded'));
   } catch (e) {
@@ -3685,6 +3762,8 @@ async function loadPortfolioProjectsFromRtdb() {
   syncWindowPortfolioProjectsRef();
   if (typeof populatePortfolioImageAssetSelect === 'function') {
     populatePortfolioImageAssetSelect();
+  initPortfolioAssetGrid();
+  renderPortfolioAssetGrid();
   }
 }
 
@@ -3822,6 +3901,12 @@ function portfolioSanitizeDocumentPayload(data) {
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
       : [],
     isTemplate: data.isTemplate === true || data.isTemplate === 'true' || data.isTemplate === 1,
+    // Id of the starter template this project was built from. Lives on
+    // portfolioProjects (publicly readable) rather than being derived from
+    // agencyProjects, which is admin-read-only and invisible to the public site.
+    builtFromTemplateId: String(
+      data.builtFromTemplateId != null ? data.builtFromTemplateId : ''
+    ).trim().slice(0, 80),
     templateRepoUrl: String(data.templateRepoUrl != null ? data.templateRepoUrl : '').trim().slice(0, 500),
     demoFirebaseProjectId: String(
       data.demoFirebaseProjectId != null ? data.demoFirebaseProjectId : ''
@@ -4451,6 +4536,41 @@ function renderAdminPortfolioSectionHtml(title, hint, projects, groupKey) {
   );
 }
 
+/** Options are projects flagged isTemplate; a project can't be built from itself. */
+/**
+ * Options are projects flagged isTemplate; a project can't be built from itself.
+ *
+ * Built with DOM APIs rather than an HTML string: escapeHtml() lives inside a
+ * different scope in this file, and calling it from here threw a ReferenceError
+ * that killed the whole open/edit handler. textContent needs no escaping.
+ */
+function fillPortfolioBuiltFromSelect(selectedId, currentProjectId) {
+  var sel = document.getElementById('portfolio-project-built-from');
+  if (!sel) return;
+  var list =
+    (typeof portfolioProjectsRtdb !== 'undefined' && portfolioProjectsRtdb && portfolioProjectsRtdb.length)
+      ? portfolioProjectsRtdb
+      : (window.portfolioProjects || []);
+  var templates = (list || []).filter(function (p) {
+    return p && p.isTemplate === true && String(p.id) !== String(currentProjectId || '');
+  });
+
+  sel.textContent = '';
+  var none = document.createElement('option');
+  none.value = '';
+  none.textContent = 'Not built from a template';
+  sel.appendChild(none);
+
+  templates.forEach(function (p) {
+    var opt = document.createElement('option');
+    opt.value = String(p.id);
+    opt.textContent = String(p.title || p.id);
+    sel.appendChild(opt);
+  });
+
+  sel.value = selectedId || '';
+}
+
 function renderAdminPortfolioProjects() {
   const listEl = document.getElementById('admin-portfolio-projects-list');
   if (!listEl) return;
@@ -4891,6 +5011,7 @@ function openPortfolioProjectModal(isNew, project) {
       : '';
     const isTemplateEl = document.getElementById('portfolio-project-is-template');
     if (isTemplateEl) isTemplateEl.checked = project.isTemplate === true;
+    fillPortfolioBuiltFromSelect(project.builtFromTemplateId || '', project.id);
     const templateRepoEl = document.getElementById('portfolio-project-template-repo');
     if (templateRepoEl) templateRepoEl.value = project.templateRepoUrl || '';
     const demoFbEl = document.getElementById('portfolio-project-demo-firebase');
@@ -4913,6 +5034,7 @@ function openPortfolioProjectModal(isNew, project) {
     if (showPublicElDefault) showPublicElDefault.checked = true;
     const isTemplateDefault = document.getElementById('portfolio-project-is-template');
     if (isTemplateDefault) isTemplateDefault.checked = false;
+    fillPortfolioBuiltFromSelect('', '');
     const templateRepoDefault = document.getElementById('portfolio-project-template-repo');
     if (templateRepoDefault) templateRepoDefault.value = '';
     const demoFbDefault = document.getElementById('portfolio-project-demo-firebase');
@@ -5157,8 +5279,46 @@ function setupPortfolioAdminControls() {
       if (e.target && e.target.closest('button')) return;
       e.preventDefault();
     });
+    var saveBtnEl = document.getElementById('portfolio-project-form-save');
+
+    /**
+     * The editor's required fields (title, description) sit inside collapsible
+     * <details> sections. If one is collapsed, the browser cannot focus the
+     * field to show its validation bubble, so it silently refuses to submit and
+     * logs "An invalid form control with name='' is not focusable" — Save just
+     * appears dead. Open the offending section first, then let the browser
+     * report as normal.
+     */
+    function revealInvalidPortfolioFields() {
+      var invalid = form.querySelectorAll(':invalid');
+      if (!invalid.length) return true;
+      Array.prototype.forEach.call(invalid, function (el) {
+        var node = el.parentElement;
+        while (node && node !== form) {
+          if (node.tagName === 'DETAILS') node.open = true;
+          node = node.parentElement;
+        }
+      });
+      var first = invalid[0];
+      if (first && typeof first.reportValidity === 'function') {
+        try {
+          first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (scrollErr) {}
+        first.reportValidity();
+      }
+      return false;
+    }
+
+    if (saveBtnEl && !saveBtnEl.dataset.revealBound) {
+      saveBtnEl.dataset.revealBound = '1';
+      saveBtnEl.addEventListener('click', function () {
+        revealInvalidPortfolioFields();
+      });
+    }
+
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
+      if (!revealInvalidPortfolioFields()) return;
       if (!isAdmin()) {
         showErrorMessage('Admin privileges required.');
         return;
@@ -5198,6 +5358,9 @@ function setupPortfolioAdminControls() {
         isTemplate: document.getElementById('portfolio-project-is-template')
           ? document.getElementById('portfolio-project-is-template').checked
           : false,
+        builtFromTemplateId: document.getElementById('portfolio-project-built-from')
+          ? document.getElementById('portfolio-project-built-from').value
+          : '',
         templateRepoUrl: document.getElementById('portfolio-project-template-repo')
           ? document.getElementById('portfolio-project-template-repo').value
           : '',
@@ -5792,6 +5955,130 @@ function trackEvent(eventName, eventLabel, eventValue) {
 }
 
 // Track project clicks + modern project detail modal (delegated on #portfolio-project-list)
+/**
+ * "Built with this template" for the public project modal.
+ *
+ * Only renders on a starter template, and only lists derived projects that are
+ * themselves public — a private client build must not surface here.
+ */
+/**
+ * Tabs above the project carousel: the template's own media, then one tab per
+ * public build derived from it. Selecting a tab re-renders the same carousel
+ * with that build's images and video. Display only — tabs never navigate away.
+ */
+function getPortfolioDerivedBuilds(record) {
+  if (!record || record.isTemplate !== true || !record.id) return [];
+  // Private builds are included on purpose: this surface shows their media only,
+  // it does not publish them as browsable portfolio entries. A build with no
+  // images contributes nothing, so it is skipped.
+  var all = window.portfolioProjectsAll || window.portfolioProjects || [];
+  return all.filter(function (p) {
+    if (!p || String(p.builtFromTemplateId || '') !== String(record.id)) return false;
+    return portfolioImageUrlsFromRecord(p).length > 0;
+  });
+}
+
+function renderPortfolioVariantTabs(record) {
+  var wrap = document.getElementById('project-detail-variant-tabs');
+  if (!wrap) return;
+  var builds = getPortfolioDerivedBuilds(record);
+  if (!builds.length) {
+    wrap.hidden = true;
+    wrap.innerHTML = '';
+    return;
+  }
+
+  var tabs = [{ label: 'Platform', record: record }].concat(
+    builds.map(function (p) { return { label: p.title || 'Build', record: p }; })
+  );
+
+  wrap.innerHTML = tabs
+    .map(function (t, i) {
+      return (
+        '<button type="button" class="project-detail-variant-tab' +
+        (i === 0 ? ' is-active' : '') +
+        '" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') +
+        '" data-variant-index="' + i + '">' +
+        portfolioEscapeHtml(t.label) +
+        '</button>'
+      );
+    })
+    .join('');
+  wrap.hidden = false;
+
+  wrap._variantRecords = tabs.map(function (t) { return t.record; });
+
+  if (wrap.dataset.bound !== '1') {
+    wrap.dataset.bound = '1';
+    wrap.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-variant-index]');
+      if (!btn) return;
+      var idx = Number(btn.getAttribute('data-variant-index'));
+      var recs = wrap._variantRecords || [];
+      var target = recs[idx];
+      if (!target) return;
+      wrap.querySelectorAll('[data-variant-index]').forEach(function (b) {
+        var on = b === btn;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      var carousel = document.getElementById('project-detail-carousel');
+      if (!carousel) return;
+      portfolioRenderCarousel(carousel, {
+        urls: portfolioImageUrlsFromRecord(target),
+        altBase: target.imageAlt || target.title || 'Project preview'
+      });
+    });
+  }
+}
+
+function renderPublicBuiltWithTemplate(record) {
+  var wrap = document.getElementById('project-detail-built-with');
+  var lead = document.getElementById('project-detail-built-with-lead');
+  var list = document.getElementById('project-detail-built-with-list');
+  if (!wrap || !list) return;
+
+  if (!record || record.isTemplate !== true || !record.id) {
+    wrap.hidden = true;
+    list.innerHTML = '';
+    return;
+  }
+
+  var builds = getPortfolioDerivedBuilds(record);
+
+  if (!builds.length) {
+    wrap.hidden = true;
+    list.innerHTML = '';
+    return;
+  }
+
+  if (lead) {
+    lead.textContent = builds.length === 1
+      ? 'One live business runs on this template.'
+      : builds.length + ' live businesses run on this template.';
+  }
+
+  list.innerHTML = builds
+    .map(function (p) {
+      var urls = portfolioImageUrlsFromRecord(p);
+      var img = urls && urls.length ? urls[0] : '';
+      return (
+        '<li class="project-detail-built-with-item">' +
+        (img
+          ? '<img class="project-detail-built-with-thumb" src="' + portfolioEscapeHtml(img) + '" alt="" loading="lazy">'
+          : '<span class="project-detail-built-with-thumb is-empty" aria-hidden="true"></span>') +
+        '<span class="project-detail-built-with-text">' +
+        '<span class="project-detail-built-with-name">' + portfolioEscapeHtml(p.title || 'Project') + '</span>' +
+        (p.category
+          ? '<span class="project-detail-built-with-meta">' + portfolioEscapeHtml(p.category) + '</span>'
+          : '') +
+        '</span></li>'
+      );
+    })
+    .join('');
+  wrap.hidden = false;
+}
+
 function initPortfolioProjectModal() {
   const modal = document.getElementById('project-detail-modal');
   const overlay = document.getElementById('project-detail-overlay');
@@ -6050,6 +6337,9 @@ function initPortfolioProjectModal() {
     }
 
     var slideUrls = record ? portfolioImageUrlsFromRecord(record) : [];
+    // On a starter template, tabs let the same carousel show each derived build's
+    // media — the point of the template page is proving it works across verticals.
+    renderPortfolioVariantTabs(record);
     if (!slideUrls.length && cardImage && cardImage.getAttribute('src')) {
       var cardSrc = cardImage.getAttribute('src') || '';
       var fromCard = portfolioNormalizeAssetImageUrl(
@@ -6126,6 +6416,11 @@ function initPortfolioProjectModal() {
         extraSectionsWrap.hidden = true;
       }
     }
+
+    // Client builds derived from this starter template. The public modal is
+    // hand-built rather than going through renderPortfolioDetailHtml(), so this
+    // has to be populated here as well as in the shared renderer.
+    renderPublicBuiltWithTemplate(record);
 
     if (canvasSection && canvasBody) {
       var canvasUrl = record ? portfolioNormalizeCanvasDocUrl(record.canvasDocUrl) : '';
@@ -6287,18 +6582,18 @@ const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
 var LANDING_MARQUEE_PROJECTS = [
-  { src: '/assets/images/projects/project-procleaning.png', label: 'Cleaning &amp; field service' },
-  { src: '/assets/images/projects/project-rizopizzeria.png', label: 'Restaurants &amp; ordering' },
-  { src: '/assets/images/projects/project-realestate.png', label: 'Real estate &amp; insurance' },
-  { src: '/assets/images/projects/project-tradeservice.png', label: 'Trades &amp; contractors' },
-  { src: '/assets/images/projects/project-sheltonsprings.png', label: 'HOA &amp; communities' },
-  { src: '/assets/images/projects/project-barbershop.png', label: 'Local service brands' },
-  { src: '/assets/images/projects/project-zoomrealty.png', label: 'Real estate portal' },
-  { src: '/assets/images/projects/project-lawncare.png', label: 'Lawn care' },
-  { src: '/assets/images/projects/project-merchstore.png', label: 'E-commerce' },
-  { src: '/assets/images/projects/project-gadgetgarage.png', label: 'Retail &amp; repair' },
-  { src: '/assets/images/projects/project-rosasalon.png', label: 'Salon booking' },
-  { src: '/assets/images/projects/project-hoa.png', label: 'HOA management' }
+  { src: '/assets/images/projects/procleaning/procleaning.webp', label: 'Cleaning &amp; field service' },
+  { src: '/assets/images/projects/rizopizzeria/rizopizzeria.webp', label: 'Restaurants &amp; ordering' },
+  { src: '/assets/images/projects/realestate/realestate.webp', label: 'Real estate &amp; insurance' },
+  { src: '/assets/images/projects/tradeservice/tradeservice.webp', label: 'Trades &amp; contractors' },
+  { src: '/assets/images/projects/sheltonsprings/sheltonsprings.webp', label: 'HOA &amp; communities' },
+  { src: '/assets/images/projects/barbershop/barbershop.webp', label: 'Local service brands' },
+  { src: '/assets/images/projects/zoomrealty/zoomrealty.webp', label: 'Real estate portal' },
+  { src: '/assets/images/projects/lawncare/lawncare.webp', label: 'Lawn care' },
+  { src: '/assets/images/projects/merchstore/merchstore.webp', label: 'E-commerce' },
+  { src: '/assets/images/projects/gadgetgarage/gadgetgarage.webp', label: 'Retail &amp; repair' },
+  { src: '/assets/images/projects/rosasalon/rosasalon.webp', label: 'Salon booking' },
+  { src: '/assets/images/projects/hoa/hoa.webp', label: 'HOA management' }
 ];
 
 function buildLandingMarqueeTile(project, eager) {
@@ -8566,7 +8861,7 @@ window.addEventListener('load', function() {
         '</div>' +
         '<div class="admin-t-avatar-grid">' + presetThumbs + '</div>' +
         '<div class="admin-t-avatar-custom">' +
-          '<label class="admin-t-avatar-custom-label" for="admin-t-avatar-path-input">Custom path <span style="opacity:.55;font-weight:400;">(e.g. /assets/images/projects/project-procleaning.png)</span></label>' +
+          '<label class="admin-t-avatar-custom-label" for="admin-t-avatar-path-input">Custom path <span style="opacity:.55;font-weight:400;">(e.g. /assets/images/projects/procleaning/procleaning.webp)</span></label>' +
           '<input type="text" id="admin-t-avatar-path-input" class="form-input admin-t-avatar-path-input" data-avatar-path-input placeholder="/assets/images/..." value="' + esc(currentAvatarPath) + '">' +
         '</div>' +
         '<button type="button" class="btn btn-primary admin-t-avatar-save-btn" data-avatar-save style="margin-top:10px;">Save image</button>' +

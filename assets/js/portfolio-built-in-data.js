@@ -8,7 +8,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Pro Cleaning',
     projectUrl: 'https://roof-cleaning-template.expo.app',
-    imageUrl: '/assets/images/projects/project-procleaning.png',
+    imageUrl: '/assets/images/projects/procleaning/procleaning.webp',
     imageAlt: 'Pro Cleaning App',
     description:
       'A comprehensive mobile app for professional cleaning services featuring job scheduling, customer management, service tracking, and payment processing. Built to streamline operations for cleaning businesses and enhance customer experience.',
@@ -24,7 +24,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Grippy Socks',
     projectUrl: 'https://grippysocks.expo.app',
-    imageUrl: '/assets/images/projects/project-grippysocks.png',
+    imageUrl: '/assets/images/projects/grippysocks/grippysocks.webp',
     imageAlt: 'Grippy Socks App',
     description:
       'An Expo + Firebase e-commerce app for Grippy Socks with a soccer-themed storefront, single-page shop + cart flow, and admin order management at /admin. MVP checkout is Cash on Delivery, with Stripe card payments prepared for later activation.',
@@ -38,7 +38,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Barber Shop',
     projectUrl: '#',
-    imageUrl: '/assets/images/projects/project-barbershop.png',
+    imageUrl: '/assets/images/projects/barbershop/barbershop.webp',
     imageAlt: 'Barber Shop App',
     description:
       'A barber shop management app built with Expo Router, React Native, NativeWind, and Firebase Realtime Database. It supports both owner workflows (admin login, dashboard, appointments, services, customers, messages) and customer flows (booking and messaging).',
@@ -52,7 +52,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Rizo Pizzeria',
     projectUrl: 'https://rizo-pizza--by3ty9xb6t.expo.app',
-    imageUrl: '/assets/images/projects/project-rizopizzeria.png',
+    imageUrl: '/assets/images/projects/rizopizzeria/rizopizzeria.webp',
     imageAlt: 'Rizo Pizzeria',
     description:
       'A production-ready mobile app for Rizo Pizzeria featuring online ordering, real-time order tracking, menu browsing, and seamless payment integration. Built to enhance customer experience and streamline restaurant operations.',
@@ -68,7 +68,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Shelton Springs Home Owners Association App',
     projectUrl: 'https://hoa-demo--l91yvra8kn.expo.app',
-    imageUrl: '/assets/images/projects/project-sheltonsprings.png',
+    imageUrl: '/assets/images/projects/sheltonsprings/sheltonsprings.webp',
     imageAlt: 'Shelton Springs HOA App',
     description:
       'A production-ready mobile app for HOA community management with real-time notifications, document sharing, and resident communication.',
@@ -84,7 +84,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Gadget Garage',
     projectUrl: 'https://gadgetgarage.app',
-    imageUrl: '/assets/images/projects/project-gadgetgarage.png',
+    imageUrl: '/assets/images/projects/gadgetgarage/gadgetgarage.webp',
     imageAlt: 'Gadget Garage App',
     description:
       'A comprehensive mobile app for managing and tracking your tech gadgets, warranties, and maintenance schedules. Built with modern mobile technologies.',
@@ -99,7 +99,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: "Rosa's Beauty Salon",
     projectUrl: 'https://rosasalon.expo.app',
-    imageUrl: '/assets/images/projects/project-rosasalon.png',
+    imageUrl: '/assets/images/projects/rosasalon/rosasalon.webp',
     imageAlt: "Rosa's Beauty Salon",
     description:
       'A modern booking and management system for beauty salons. Features appointment scheduling, client management, and service tracking.',
@@ -111,7 +111,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Zoom Realty',
     projectUrl: 'https://ruben-jim.github.io/ZoomRealty2025-main/',
-    imageUrl: '/assets/images/projects/project-zoomrealty.png',
+    imageUrl: '/assets/images/projects/zoomrealty/zoomrealty.webp',
     imageAlt: 'Zoom Realty',
     description:
       'A modern real estate website with property listings, search functionality, and agent profiles. Responsive design optimized for all devices.',
@@ -125,7 +125,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'creative',
     title: 'Estate',
     projectUrl: 'https://ruben-jim.github.io/Real-Estate/',
-    imageUrl: '/assets/images/projects/project-realestate.png',
+    imageUrl: '/assets/images/projects/realestate/realestate.webp',
     imageAlt: 'Real Estate',
     description:
       'A clean and modern real estate platform showcasing properties with advanced filtering and search capabilities.',
@@ -137,7 +137,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'creative',
     title: 'Homeverse',
     projectUrl: 'https://ruben-jim.github.io/DEMO/',
-    imageUrl: '/assets/images/projects/project-homeverse.png',
+    imageUrl: '/assets/images/projects/homeverse/homeverse.webp',
     imageAlt: 'Homeverse',
     description:
       'An elegant real estate website featuring property showcases, virtual tours, and seamless user experience.',
@@ -149,7 +149,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     category: 'professional',
     title: 'Lawn Care',
     projectUrl: '#',
-    imageUrl: '/assets/images/projects/project-lawncare.png',
+    imageUrl: '/assets/images/projects/lawncare/lawncare.webp',
     imageAlt: 'Lawn Care App',
     description:
       'A lawn care and landscaping business app with service booking, recurring routes, and seasonal add-ons—built for crews that want less back-and-forth over pricing in texts.',
@@ -160,6 +160,12 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
 
 /** Local media under assets/images/ (screenshots + optional MP4 demos). */
 window.PORTFOLIO_ASSET_IMAGES = (function () {
+  // Paths now come from the generated manifest (assets/js/portfolio-assets.js).
+  // If that file loaded first it already populated this; otherwise fall back to
+  // whatever the built-in projects reference.
+  if (Array.isArray(window.PORTFOLIO_ASSET_IMAGES) && window.PORTFOLIO_ASSET_IMAGES.length) {
+    return window.PORTFOLIO_ASSET_IMAGES;
+  }
   var seen = {};
   var list = [];
   function add(url) {
@@ -170,62 +176,7 @@ window.PORTFOLIO_ASSET_IMAGES = (function () {
   }
   (window.DEFAULT_PORTFOLIO_PROJECTS || []).forEach(function (p) {
     add(p.imageUrl);
-    if (Array.isArray(p.imageUrls)) {
-      p.imageUrls.forEach(add);
-    }
+    if (Array.isArray(p.imageUrls)) p.imageUrls.forEach(add);
   });
-  [
-    '/assets/images/projects/project-lawncare.png',
-    '/assets/images/projects/project-realestate.png',
-    '/assets/images/projects/project-zoomrealty.png',
-    '/assets/images/projects/project-procleaning1.png',
-    '/assets/images/projects/project-rizopizzeria1.png',
-    '/assets/images/projects/project-sheltonsprings1.png',
-    '/assets/images/projects/project-rosasalon1.png',
-    '/assets/images/projects/project-gadgetgarage2.png',
-    '/assets/images/projects/project-homeverse2.png',
-    // Project folders — add new files here so they appear in admin “From repo”
-    '/assets/images/projects/dls/dls-video.mp4',
-    '/assets/images/projects/dls/dls-video.webp',
-    '/assets/images/projects/dls/admin-overview.png',
-    '/assets/images/projects/dls/admin-orders.png',
-    '/assets/images/projects/dls/admin-calendar.png',
-    '/assets/images/projects/dls/admin-docs.png',
-    '/assets/images/projects/dls/admin-docs-pdf.png',
-    '/assets/images/projects/dls/admin-inbox.png',
-    '/assets/images/projects/dls/admin-subs.png',
-    '/assets/images/projects/dls/admin-customers.png',
-    '/assets/images/projects/dls/admin-dash.png',
-    '/assets/images/projects/dls/admin-quotes.png',
-    '/assets/images/projects/dls/dls-admin-order-management.mp4',
-    // Realtor template hero/listing demos (classic -poster.jpg naming)
-    '/assets/images/projects/video-home.mp4',
-    '/assets/images/projects/video-home-poster.webp',
-    '/assets/images/projects/video-listing.mp4',
-    '/assets/images/projects/video-listing-poster.webp',
-    '/assets/images/projects/realtor-template/admin-clients.png',
-    '/assets/images/projects/realtor-template/admin-dashboard.png',
-    '/assets/images/projects/realtor-template/admin-docs.png',
-    '/assets/images/projects/realtor-template/admin-leads.png',
-    '/assets/images/projects/realtor-template/admin-policies.png',
-    '/assets/images/projects/realtor-template/admin-properties-details.png',
-    '/assets/images/projects/realtor-template/admin-properties.png',
-    '/assets/images/projects/realtor-template/client-dashboard.png',
-    '/assets/images/projects/realtor-template/client-dm.png',
-    '/assets/images/projects/realtor-template/client-policies.png',
-    '/assets/images/projects/realtor-template/client-propeties.png',
-    '/assets/images/projects/realtor-template/clients-docs.png',
-    '/assets/images/projects/realtor-template/clients-payments.png',
-    '/assets/images/projects/realtor-template/home-desktop.png',
-    '/assets/images/projects/realtor-template/home-hero-desktop.png',
-    '/assets/images/projects/realtor-template/insurance-plans.png',
-    '/assets/images/projects/realtor-template/listing-desktop.png',
-    '/assets/images/projects/realtor-template/listing-details-desktop.png',
-    '/assets/images/projects/realtor-template/listing-details-mobile.png',
-    '/assets/images/projects/realtor-template/login.png',
-    '/assets/images/projects/realtor-template/quote-review.png',
-    '/assets/images/projects/realtor-template/quote-step1.png',
-    '/assets/images/projects/realtor-template/quote-success.png'
-  ].forEach(add);
-  return list.sort();
+  return list;
 })();

@@ -10356,8 +10356,8 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   position: relative;
   z-index: 2;
   width: min(1080px, calc(100vw - 48px));
-  max-height: min(92vh, 880px);
-  height: min(92vh, 880px);
+  max-height: min(94vh, 960px);
+  height: min(94vh, 960px);
   display: grid;
   grid-template-columns: minmax(280px, 40%) minmax(0, 1fr);
   align-items: stretch;
@@ -10416,6 +10416,8 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
 }
 
 .project-detail-media {
+  /* Positioning context for .project-detail-variant-tabs. */
+  position: relative;
   margin: 0;
   height: 100%;
   min-height: 0;
@@ -10467,9 +10469,19 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
 @media (min-width: 901px) {
   .project-detail-content {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(260px, 46vh) minmax(0, 1fr);
-    height: min(92vh, 900px);
-    max-height: min(92vh, 900px);
+    /* Media band trimmed 46vh -> 38vh and the modal grown, so the text section
+       below roughly doubles instead of being squeezed into the remainder. */
+    grid-template-rows: minmax(240px, 38vh) minmax(0, 1fr);
+    height: min(94vh, 960px);
+    max-height: min(94vh, 960px);
+  }
+
+  /* Templates with variant tabs get a third row and a little extra height, so
+     the tab strip does not come out of the reading area. */
+  .project-detail-content:has(.project-detail-variant-tabs:not([hidden])) {
+    grid-template-rows: minmax(240px, 38vh) auto minmax(0, 1fr);
+    height: min(94vh, 1000px);
+    max-height: min(94vh, 1000px);
   }
 
   .project-detail-media {
@@ -28576,4 +28588,285 @@ body.admin-tab-reorder-active::before {
   body.admin-nav-collapsed .admin-tab::after {
     transition: none;
   }
+}
+
+/* ——— "Built with this template" ———
+   Client builds derived from a starter template, shown on the template's own
+   detail page. Sourced from builtFromTemplateId on portfolioProjects, which is
+   publicly readable — agencyProjects is admin-only and unusable here. */
+.project-detail-built-with-lead {
+  margin: 0 0 12px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.project-detail-built-with-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.project-detail-built-with-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  border-radius: 10px;
+  background: hsla(240, 2%, 14%, 0.6);
+}
+
+.project-detail-built-with-thumb {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: hsla(0, 0%, 100%, 0.05);
+}
+
+.project-detail-built-with-text {
+  min-width: 0;
+}
+
+.project-detail-built-with-name {
+  display: block;
+  font-size: var(--fs-7);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-detail-built-with-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+/* ——— Project detail modal: readable measure ———
+   The modal is up to ~1100px wide and the copy had no max-width, so bullets ran
+   ~130 characters per line — roughly double a comfortable measure. Media stays
+   full width; only the reading column is constrained. */
+@media (min-width: 900px) {
+  .project-detail-modal .project-detail-description,
+  .project-detail-modal .project-detail-outcome,
+  .project-detail-modal .project-detail-admin-text,
+  .project-detail-modal .portfolio-preserve-breaks,
+  .project-detail-modal .project-detail-section-title,
+  .project-detail-modal .project-detail-page-body,
+  .project-detail-modal .project-detail-built-with-lead {
+    max-width: 72ch;
+  }
+
+  .project-detail-modal .project-detail-title {
+    max-width: 24ch;
+  }
+
+  /* Shorter lines read better a touch tighter. */
+  .project-detail-modal .project-detail-description {
+    line-height: 1.7;
+  }
+
+  .project-detail-modal .project-detail-scroll {
+    padding: 26px 34px 18px;
+  }
+}
+
+/* ——— Portfolio media picker (thumbnail grid) ———
+   Replaces a flat filename dropdown. Fed by the generated manifest in
+   assets/js/portfolio-assets.js — regenerate with scripts/build-portfolio-assets.sh. */
+.portfolio-asset-picker {
+  /* Spans the add-bar now that the redundant "From repo" dropdown is gone. */
+  grid-column: 1 / -1;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.portfolio-asset-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.portfolio-asset-picker-head input[type="search"] {
+  max-width: 220px;
+}
+
+.portfolio-asset-grid {
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.portfolio-asset-group + .portfolio-asset-group {
+  margin-top: 14px;
+}
+
+.portfolio-asset-group-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--light-gray-70);
+}
+
+.portfolio-asset-group-label span {
+  opacity: 0.6;
+}
+
+.portfolio-asset-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+}
+
+.portfolio-asset-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.portfolio-asset-thumb img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+
+.portfolio-asset-video {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--orange-yellow-crayola);
+  font-size: 20px;
+}
+
+.portfolio-asset-thumb-name {
+  font-size: 10px;
+  line-height: 1.25;
+  color: var(--light-gray-70);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portfolio-asset-thumb:hover {
+  border-color: hsla(45, 100%, 72%, 0.5);
+  transform: translateY(-1px);
+}
+
+.portfolio-asset-thumb.is-just-added {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 2px hsla(45, 100%, 72%, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-asset-thumb { transition: none; }
+}
+
+/* Video tiles in the media picker: poster frame with a play chip over it. */
+.portfolio-asset-media {
+  position: relative;
+  display: block;
+}
+
+.portfolio-asset-play {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
+}
+
+/* ——— Template variant tabs ———
+   On a starter template's modal, switches the carousel between the template's
+   own media and each public build derived from it. */
+/* Its own row between the media and the text, so it never covers a screenshot.
+   The carousel dots already overlay the image at bottom:10px, so there was no
+   free space left inside the media band. */
+.project-detail-variant-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 8px 14px;
+  border-bottom: 1px solid hsla(45, 100%, 72%, 0.14);
+  background: hsla(240, 6%, 10%, 0.6);
+}
+
+.project-detail-variant-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.project-detail-variant-tabs[hidden] {
+  display: none;
+}
+
+.project-detail-variant-tab {
+  padding: 5px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--light-gray-70);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: var(--fw-600);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.project-detail-variant-tab:hover {
+  color: var(--white-2);
+}
+
+.project-detail-variant-tab.is-active {
+  background: var(--orange-yellow-crayola);
+  color: var(--smoky-black);
+}
+
+@media (max-width: 640px) {
+  .project-detail-variant-tabs {
+    padding: 6px 10px;
+  }
+
+  .project-detail-variant-tab {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-detail-variant-tab { transition: none; }
 }
