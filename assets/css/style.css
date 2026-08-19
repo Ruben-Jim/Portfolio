@@ -28942,3 +28942,62 @@ body.admin-tab-reorder-active::before {
 @media (prefers-reduced-motion: reduce) {
   .project-detail-variant-tab { transition: none; }
 }
+
+/* ---------------------------------------------------------------------------
+   Starter-template "builds" count
+   Shown on the portfolio card and under the detail modal title so the signal is
+   visible while browsing, not only after opening the project.
+   Non-interactive: the whole card is already a single <a>.
+--------------------------------------------------------------------------- */
+.project-builds-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: hsla(240, 2%, 12%, 0.82);
+  border: 1px solid hsla(0, 0%, 100%, 0.14);
+  color: var(--orange-yellow-crayola);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.project-builds-badge ion-icon {
+  font-size: 14px;
+}
+
+.project-builds-badge-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.project-detail-builds-line {
+  margin: 2px 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--orange-yellow-crayola);
+}
+
+.project-detail-builds-line[hidden] {
+  display: none;
+}
+
+/* Visually hidden but read by screen readers. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

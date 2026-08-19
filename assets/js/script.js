@@ -4487,6 +4487,34 @@ function portfolioRenderCardCoverHtml(p, alt) {
   );
 }
 
+/**
+ * Count of real businesses running on a starter template, shown on its card so
+ * the signal is visible while browsing rather than only after opening the modal.
+ *
+ * Informational only — no click target. The whole card is already one <a>, and
+ * nesting an interactive element inside it produces invalid markup and swallows
+ * the card's own click on touch devices.
+ */
+function portfolioRenderBuildsBadgeHtml(p) {
+  var builds = getPortfolioDerivedBuilds(p);
+  if (!builds.length) return '';
+  return (
+    '<span class="project-builds-badge" title="' +
+    portfolioEscapeHtml(
+      builds.length === 1
+        ? '1 business is built on this platform'
+        : builds.length + ' businesses are built on this platform'
+    ) +
+    '">' +
+    '<ion-icon name="layers-outline" aria-hidden="true"></ion-icon>' +
+    '<span class="project-builds-badge-count">' +
+    builds.length +
+    '</span>' +
+    '<span class="sr-only"> businesses built on this platform</span>' +
+    '</span>'
+  );
+}
+
 function buildPortfolioProjectCardHtml(p) {
   const liveHref = portfolioSafeProjectUrl(p.projectUrl);
   const nicheSlugs = portfolioCuratedNichesForProject(p).join(' ');
@@ -4505,6 +4533,7 @@ function buildPortfolioProjectCardHtml(p) {
     '<ion-icon name="eye-outline"></ion-icon>' +
     '</div>' +
     portfolioRenderCardCoverHtml(p, p.imageAlt || p.title || '') +
+    portfolioRenderBuildsBadgeHtml(p) +
     '</figure>' +
     '<div class="project-content">' +
     '<h3 class="project-title">' +
@@ -6174,10 +6203,28 @@ function renderPortfolioVariantTabs(record) {
   }
 }
 
+/** Summary line under the modal title: the same count the card badge shows. */
+function renderPortfolioBuildsLine(record) {
+  var el = document.getElementById('project-detail-builds-line');
+  if (!el) return;
+  var builds = getPortfolioDerivedBuilds(record);
+  if (!builds.length) {
+    el.hidden = true;
+    el.textContent = '';
+    return;
+  }
+  el.textContent =
+    builds.length === 1
+      ? '1 business is built on this platform'
+      : builds.length + ' businesses are built on this platform';
+  el.hidden = false;
+}
+
 function renderPublicBuiltWithTemplate(record) {
   var wrap = document.getElementById('project-detail-built-with');
   var lead = document.getElementById('project-detail-built-with-lead');
   var list = document.getElementById('project-detail-built-with-list');
+  renderPortfolioBuildsLine(record);
   if (!wrap || !list) return;
 
   if (!record || record.isTemplate !== true || !record.id) {
