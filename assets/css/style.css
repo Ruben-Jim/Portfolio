@@ -29001,3 +29001,130 @@ body.admin-tab-reorder-active::before {
   white-space: nowrap;
   border: 0;
 }
+
+/* ---------------------------------------------------------------------------
+   Best For — two balanced columns
+   Entries are capability phrases, so a wrapping-pill flex row collapsed to one
+   item per line. A rigid grid fixed that but filled row-major, which orphaned a
+   lone entry on the last row and paired 1-line items against 2-line ones.
+
+   CSS multi-column balances the two columns itself, so there is no empty cell
+   and no dead space. Capped at 2 so phrases keep a readable measure.
+
+   Note: column layout has no row-gap between items - the vertical rhythm comes
+   from margin-bottom on the item, not gap.
+
+   Declared after the 767px/480px blocks on purpose - equal specificity, so
+   source order decides and these win at every width.
+--------------------------------------------------------------------------- */
+.project-fit-list {
+  --fit-col-gap: 16px;
+  --fit-row-gap: 9px;
+
+  display: block;
+  column-count: 2;
+  column-gap: var(--fit-col-gap);
+}
+
+/* Checkmark lines, not tags: sentence-length text inside a rounded pill reads
+   as a boxy paragraph. Border/background/radius are cleared explicitly because
+   the pill styling lives in earlier rules. */
+.project-fit-list li {
+  /* Never let an entry split across the column break. */
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  page-break-inside: avoid;
+
+  display: grid;
+  grid-template-columns: 1em 1fr;
+  gap: 7px;
+  align-items: start;
+  margin: 0 0 var(--fit-row-gap);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--light-gray);
+  font-size: 12px;
+  font-weight: var(--fw-400);
+  line-height: 1.45;
+  text-align: left;
+  white-space: normal;
+  hyphens: auto;
+}
+
+.project-fit-list li:last-child {
+  margin-bottom: 0;
+}
+
+.project-fit-list li::before {
+  content: "\2713";
+  color: var(--orange-yellow-crayola);
+  font-weight: var(--fw-600);
+  line-height: inherit;
+}
+
+@media (max-width: 480px) {
+  .project-fit-list {
+    --fit-col-gap: 12px;
+  }
+
+  .project-fit-list li {
+    gap: 5px;
+    font-size: 11.5px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Best For heading rule
+   One rule across the whole block: gold for the width of the label, then a
+   hairline to the card edge. The full-width line gives the two-column list a
+   top edge to sit under, so the section reads as a framed block rather than a
+   label floating above it.
+
+   --fit-rule-gold is set to span the words "BEST FOR" at 13px/0.04em. It is a
+   hard stop in the gradient, not a fade, so the mark stays crisp.
+--------------------------------------------------------------------------- */
+.project-fit-title {
+  --fit-rule-gold: 80px;
+
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.project-fit-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--orange-yellow-crayola) 0,
+    var(--orange-yellow-crayola) var(--fit-rule-gold),
+    hsla(0, 0%, 100%, 0.09) var(--fit-rule-gold),
+    hsla(0, 0%, 100%, 0.09) 100%
+  );
+}
+
+/* ---------------------------------------------------------------------------
+   Card video frame — matched to 1920x1200 sources
+   The card frame is 16/11 (1.4545) but the demo videos are 16/10 (1.6), so
+   object-fit: contain letterboxed every clip with bars top and bottom. When the
+   cover is a video the frame switches to 16/10 so the picture fills it exactly.
+
+   Cards only: the detail modal and bottom sheet keep their own sizing.
+   :has() outranks the plain .project-img aspect-ratio rules, including the ones
+   inside the breakpoint blocks above.
+--------------------------------------------------------------------------- */
+.project-img:has(.project-cover-video) {
+  aspect-ratio: 16 / 10;
+}
+
+.project-img .project-cover-video {
+  /* Ratios now match, so cover == contain but without a sub-pixel hairline at
+     the edges. A non-16:10 clip crops a sliver instead of showing bars. */
+  object-fit: cover;
+  padding: 0;
+}

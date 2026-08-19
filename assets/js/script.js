@@ -4101,7 +4101,7 @@ const PORTFOLIO_CURATED_NICHES = [
   {
     id: 'home-services',
     label: 'Home services',
-    titleMatch: /cleaning|pro cleaning|roof|field trade|trade service|handyman|pressure wash/i,
+    titleMatch: /cleaning|pro cleaning|roof|field trade|trade service|handyman|pressure wash|lawn|landscap/i,
     slugMatch: [
       'cleaning-companies',
       'roof-cleaning-teams',
@@ -4115,7 +4115,7 @@ const PORTFOLIO_CURATED_NICHES = [
   {
     id: 'realtor-broker',
     label: 'Realtor & broker agent',
-    titleMatch: /realtor|broker|realty|real[\s-]?estate|homeverse|zoom|insurance/i,
+    titleMatch: /realtor|broker|realty|real[\s-]?estate|estate|homeverse|zoom|insurance/i,
     slugMatch: [
       'real-estate-agencies',
       'property-teams',
