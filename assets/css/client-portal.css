@@ -1795,7 +1795,7 @@ body.portal-doc-sheet-open {
 }
 
 .client-portal-plan-features {
-  margin: 0;
+  margin: 10px 0 0;
   padding: 0;
   list-style: none;
   font-size: var(--fs-8);
@@ -1805,16 +1805,21 @@ body.portal-doc-sheet-open {
 
 .client-portal-plan-features li {
   position: relative;
-  padding-left: 14px;
+  padding-left: 18px;
   margin-bottom: 5px;
   break-inside: avoid;
 }
 
 .client-portal-plan-features li::before {
-  content: "•";
+  content: "";
   position: absolute;
-  left: 0;
-  color: var(--orange-yellow-crayola);
+  left: 1px;
+  top: 0.42em;
+  width: 0.36em;
+  height: 0.2em;
+  border-left: 2px solid var(--orange-yellow-crayola);
+  border-bottom: 2px solid var(--orange-yellow-crayola);
+  transform: rotate(-45deg);
 }
 
 .client-portal-billing-pref {
@@ -2706,79 +2711,6 @@ body.portal-dm-sheet-open {
   .client-portal-share-actions .btn {
     flex: 1 1 auto;
     text-align: center;
-  }
-}
-
-/* Fix order per tier — Priority, then Standard, then Essential. */
-.client-portal-plan-head {
-  display: block;
-}
-
-.client-portal-plan-headline {
-  display: block;
-  min-width: 0;
-}
-
-
-
-.client-portal-plan-queue {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px;
-  margin: 10px 0 12px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid hsla(45, 100%, 72%, 0.16);
-  background: hsla(45, 100%, 72%, 0.06);
-}
-
-.client-portal-plan-queue-label {
-  font-size: var(--fs-8);
-  color: var(--light-gray-70);
-}
-
-.client-portal-plan-queue-value {
-  font-size: var(--fs-7);
-  font-weight: var(--fw-600);
-  color: var(--orange-yellow-crayola);
-}
-
-
-/* Placed after the base rules on purpose: an @container block carries the
-   specificity of its inner selector, so sitting before .client-portal-plan-queue
-   meant the base rule won and the side-by-side layout never applied.
-   Threshold is 300px because at three-across these cards are ~330px wide. */
-@container (min-width: 300px) {
-  .client-portal-plan-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .client-portal-plan-headline {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .client-portal-plan-queue {
-    flex: 0 0 auto;
-    display: block;
-    max-width: 46%;
-    margin: 0;
-    padding: 7px 9px;
-    text-align: right;
-  }
-
-  .client-portal-plan-queue-label,
-  .client-portal-plan-queue-value {
-    display: block;
-    text-align: right;
-  }
-
-  .client-portal-plan-queue-value {
-    line-height: 1.25;
   }
 }
 

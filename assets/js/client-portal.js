@@ -60,8 +60,6 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$44/mo equivalent · billed once per year',
-      queueLabel: 'If something breaks',
-      queueValue: 'After Priority & Standard',
       hoursIncluded: 2,
       slaHours: 120,
       features: [
@@ -81,8 +79,6 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
-      queueLabel: 'If something breaks',
-      queueValue: 'After Priority',
       hoursIncluded: 6,
       slaHours: 72,
       recommended: true,
@@ -104,8 +100,6 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$165/mo equivalent · billed once per year',
-      queueLabel: 'If something breaks',
-      queueValue: 'We help you first',
       hoursIncluded: 10,
       slaHours: 24,
       features: [
@@ -155,17 +149,6 @@
       }
     }
     return { hoursIncluded: 6, slaHours: 72 };
-  }
-
-  function planQueueBlurb(tier) {
-    var t = String(tier || 'standard').toLowerCase();
-    if (t === 'priority') {
-      return 'If something breaks, we help you first — before Standard and Essential clients.';
-    }
-    if (t === 'essential') {
-      return 'If something breaks, we help Priority and Standard clients first, then you.';
-    }
-    return 'If something breaks, we help you before Essential clients, and after Priority.';
   }
 
   function normalizeMaintenanceRecord(id, row) {
@@ -385,16 +368,6 @@
           esc(plan.monthlyNote || '') +
           '</p>' +
           '</span>' +
-          (plan.queueValue
-            ? '<p class="client-portal-plan-queue">' +
-              '<span class="client-portal-plan-queue-label">' +
-              esc(plan.queueLabel || 'If something breaks') +
-              '</span>' +
-              '<span class="client-portal-plan-queue-value">' +
-              esc(plan.queueValue) +
-              '</span>' +
-              '</p>'
-            : '') +
           '</span>' +
           '<ul class="client-portal-plan-features">' +
           plan.features
@@ -428,9 +401,7 @@
         ' hours used' +
         (maint.renewalDate ? ' · Renews ' + esc(formatDocDate(maint.renewalDate)) : '') +
         '</p>' +
-        '<p class="client-portal-maint-meta">' +
-        esc(planQueueBlurb(maint.planTier)) +
-        ' Fixes use the hours left on your plan. Bigger custom work is priced separately.</p>' +
+        '<p class="client-portal-maint-meta">Fixes use the hours left on your plan. Bigger custom work is priced separately.</p>' +
         renderMaintenancePayBlockHtml(maint) +
         '</div>'
       );
@@ -454,7 +425,7 @@
     return (
       '<div class="client-portal-maint-block" id="portal-maint-picker">' +
       '<h3 class="client-portal-support-subhead">Choose a maintenance plan</h3>' +
-      '<p class="client-portal-maint-lead">After your first included month, a care plan keeps your site or app running — hosting, updates, and small fixes. When more than one client needs help, we help Priority first, then Standard, then Essential.</p>' +
+      '<p class="client-portal-maint-lead">After your first included month, a care plan keeps your site or app running — hosting, updates, and small fixes.</p>' +
       '<fieldset class="client-portal-billing-pref">' +
       '<legend>Billing preference</legend>' +
       '<div class="client-portal-billing-toggle">' +
