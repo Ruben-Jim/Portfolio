@@ -2709,9 +2709,7 @@ body.portal-dm-sheet-open {
   }
 }
 
-/* Response time per tier — the comparison a client actually cares about.
-   Narrow cards stack it under the price; once the card is wide enough it moves
-   to the top right, filling the space beside the badges and price. */
+/* Fix order per tier — Priority, then Standard, then Essential. */
 .client-portal-plan-head {
   display: block;
 }
@@ -2723,7 +2721,7 @@ body.portal-dm-sheet-open {
 
 
 
-.client-portal-plan-sla {
+.client-portal-plan-queue {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -2735,12 +2733,12 @@ body.portal-dm-sheet-open {
   background: hsla(45, 100%, 72%, 0.06);
 }
 
-.client-portal-plan-sla-label {
+.client-portal-plan-queue-label {
   font-size: var(--fs-8);
   color: var(--light-gray-70);
 }
 
-.client-portal-plan-sla-value {
+.client-portal-plan-queue-value {
   font-size: var(--fs-7);
   font-weight: var(--fw-600);
   color: var(--orange-yellow-crayola);
@@ -2748,7 +2746,7 @@ body.portal-dm-sheet-open {
 
 
 /* Placed after the base rules on purpose: an @container block carries the
-   specificity of its inner selector, so sitting before .client-portal-plan-sla
+   specificity of its inner selector, so sitting before .client-portal-plan-queue
    meant the base rule won and the side-by-side layout never applied.
    Threshold is 300px because at three-across these cards are ~330px wide. */
 @container (min-width: 300px) {
@@ -2764,7 +2762,7 @@ body.portal-dm-sheet-open {
     min-width: 0;
   }
 
-  .client-portal-plan-sla {
+  .client-portal-plan-queue {
     flex: 0 0 auto;
     display: block;
     max-width: 46%;
@@ -2773,13 +2771,13 @@ body.portal-dm-sheet-open {
     text-align: right;
   }
 
-  .client-portal-plan-sla-label,
-  .client-portal-plan-sla-value {
+  .client-portal-plan-queue-label,
+  .client-portal-plan-queue-value {
     display: block;
     text-align: right;
   }
 
-  .client-portal-plan-sla-value {
+  .client-portal-plan-queue-value {
     line-height: 1.25;
   }
 }

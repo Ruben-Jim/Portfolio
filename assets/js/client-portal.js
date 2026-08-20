@@ -60,12 +60,12 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$44/mo equivalent · billed once per year',
-      slaLabel: '5 business days',
+      queueLabel: 'Fix order',
+      queueValue: '3rd',
       hoursIncluded: 2,
       slaHours: 120,
       features: [
-        'If you’re down, we reply within 1 business day (weekdays)',
-        'Bug fixes after Standard and Priority',
+        'Repairs are queued after Priority and Standard',
         'Store updates 4×/year',
         'New features quoted separately'
       ]
@@ -81,12 +81,13 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
-      slaLabel: '3 business days',
+      queueLabel: 'Fix order',
+      queueValue: '2nd',
       hoursIncluded: 6,
       slaHours: 72,
       recommended: true,
       features: [
-        'If you’re down, we reply within 4 hours (nights and weekends too)',
+        'Repairs come before Essential · after Priority',
         'Monthly store + content updates',
         'New features and improvements each month',
         'A bigger addition each quarter · one major app or site overhaul each year'
@@ -103,11 +104,12 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$165/mo equivalent · billed once per year',
-      slaLabel: '24 hours',
+      queueLabel: 'Fix order',
+      queueValue: '1st',
       hoursIncluded: 10,
       slaHours: 24,
       features: [
-        'First in line · if you’re down, we reply within 2 hours (nights and weekends too)',
+        'Your repairs come first — before Standard and Essential',
         'Store updates as needed · weekly content',
         'New features and improvements each month · a bigger addition each quarter',
         'A major app or site overhaul every 6 months'
@@ -153,6 +155,17 @@
       }
     }
     return { hoursIncluded: 6, slaHours: 72 };
+  }
+
+  function planQueueBlurb(tier) {
+    var t = String(tier || 'standard').toLowerCase();
+    if (t === 'priority') {
+      return 'On this plan, your repairs are handled first — before Standard and Essential.';
+    }
+    if (t === 'essential') {
+      return 'On this plan, repairs are queued after Priority and Standard.';
+    }
+    return 'On this plan, your repairs come before Essential and after Priority.';
   }
 
   function normalizeMaintenanceRecord(id, row) {
@@ -372,13 +385,13 @@
           esc(plan.monthlyNote || '') +
           '</p>' +
           '</span>' +
-          // Response time was already in the data but never shown — it is the
-          // thing a client most wants to compare between tiers.
-          (plan.slaLabel
-            ? '<p class="client-portal-plan-sla">' +
-              '<span class="client-portal-plan-sla-label">We reply in</span>' +
-              '<span class="client-portal-plan-sla-value">' +
-              esc(plan.slaLabel) +
+          (plan.queueValue
+            ? '<p class="client-portal-plan-queue">' +
+              '<span class="client-portal-plan-queue-label">' +
+              esc(plan.queueLabel || 'Fix order') +
+              '</span>' +
+              '<span class="client-portal-plan-queue-value">' +
+              esc(plan.queueValue) +
               '</span>' +
               '</p>'
             : '') +
@@ -415,15 +428,9 @@
         ' hours used' +
         (maint.renewalDate ? ' · Renews ' + esc(formatDocDate(maint.renewalDate)) : '') +
         '</p>' +
-        '<p class="client-portal-maint-meta">We reply within ' +
-        esc((function () {
-          var t = String(maint.planTier || 'standard').toLowerCase();
-          for (var i = 0; i < MAINTENANCE_PLANS.length; i++) {
-            if (MAINTENANCE_PLANS[i].id === t) return MAINTENANCE_PLANS[i].slaLabel;
-          }
-          return String(maint.slaHours) + ' hours';
-        })()) +
-        '. Repair uses leftover hours. Custom work beyond the add-on cadence is quoted separately.</p>' +
+        '<p class="client-portal-maint-meta">' +
+        esc(planQueueBlurb(maint.planTier)) +
+        ' Repair uses leftover hours. Custom work beyond the add-on cadence is quoted separately.</p>' +
         renderMaintenancePayBlockHtml(maint) +
         '</div>'
       );
@@ -447,7 +454,7 @@
     return (
       '<div class="client-portal-maint-block" id="portal-maint-picker">' +
       '<h3 class="client-portal-support-subhead">Choose a maintenance plan</h3>' +
-      '<p class="client-portal-maint-lead">After your first included month, ongoing support keeps hosting, updates, and minor fixes on track.</p>' +
+      '<p class="client-portal-maint-lead">After your first included month, ongoing support keeps hosting, updates, and minor fixes on track. If more than one business needs a fix, we work Priority first, then Standard, then Essential.</p>' +
       '<fieldset class="client-portal-billing-pref">' +
       '<legend>Billing preference</legend>' +
       '<div class="client-portal-billing-toggle">' +
