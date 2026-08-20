@@ -52,7 +52,7 @@
     {
       id: 'essential',
       badge: 'Essential',
-      title: 'Keep it healthy',
+      title: 'Cover the basics',
       monthly: '$79/mo',
       annual: '$522/yr',
       monthlyAmount: 79,
@@ -60,20 +60,20 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$44/mo equivalent · billed once per year',
-      queueLabel: 'Fix order',
-      queueValue: '3rd',
+      queueLabel: 'If something breaks',
+      queueValue: 'After Priority & Standard',
       hoursIncluded: 2,
       slaHours: 120,
       features: [
-        'Repairs are queued after Priority and Standard',
-        'Store updates 4×/year',
-        'New features quoted separately'
+        'We help Priority and Standard clients first',
+        'Site or app updates 4 times a year',
+        'New features are priced separately'
       ]
     },
     {
       id: 'standard',
       badge: 'Standard',
-      title: 'Recommended for live ops',
+      title: 'Best for most businesses',
       monthly: '$150/mo',
       annual: '$990/yr',
       monthlyAmount: 150,
@@ -81,22 +81,22 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$83/mo equivalent · billed once per year',
-      queueLabel: 'Fix order',
-      queueValue: '2nd',
+      queueLabel: 'If something breaks',
+      queueValue: 'After Priority',
       hoursIncluded: 6,
       slaHours: 72,
       recommended: true,
       features: [
-        'Repairs come before Essential · after Priority',
-        'Monthly store + content updates',
-        'New features and improvements each month',
-        'A bigger addition each quarter · one major app or site overhaul each year'
+        'We help you before Essential clients',
+        'Monthly updates to your site or app',
+        'Small new features each month',
+        'A bigger upgrade each quarter · one major refresh each year'
       ]
     },
     {
       id: 'priority',
       badge: 'Priority',
-      title: 'Faster turnaround',
+      title: 'Get help first',
       monthly: '$300/mo',
       annual: '$1,980/yr',
       monthlyAmount: 300,
@@ -104,15 +104,15 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs monthly',
       annualEquiv: '~$165/mo equivalent · billed once per year',
-      queueLabel: 'Fix order',
-      queueValue: '1st',
+      queueLabel: 'If something breaks',
+      queueValue: 'We help you first',
       hoursIncluded: 10,
       slaHours: 24,
       features: [
-        'Your repairs come first — before Standard and Essential',
-        'Store updates as needed · weekly content',
-        'New features and improvements each month · a bigger addition each quarter',
-        'A major app or site overhaul every 6 months'
+        'We help you first — before Standard and Essential',
+        'Updates when you need them · weekly content tweaks',
+        'Small new features each month · a bigger upgrade each quarter',
+        'A major refresh twice a year'
       ]
     }
   ];
@@ -160,12 +160,12 @@
   function planQueueBlurb(tier) {
     var t = String(tier || 'standard').toLowerCase();
     if (t === 'priority') {
-      return 'On this plan, your repairs are handled first — before Standard and Essential.';
+      return 'If something breaks, we help you first — before Standard and Essential clients.';
     }
     if (t === 'essential') {
-      return 'On this plan, repairs are queued after Priority and Standard.';
+      return 'If something breaks, we help Priority and Standard clients first, then you.';
     }
-    return 'On this plan, your repairs come before Essential and after Priority.';
+    return 'If something breaks, we help you before Essential clients, and after Priority.';
   }
 
   function normalizeMaintenanceRecord(id, row) {
@@ -388,7 +388,7 @@
           (plan.queueValue
             ? '<p class="client-portal-plan-queue">' +
               '<span class="client-portal-plan-queue-label">' +
-              esc(plan.queueLabel || 'Fix order') +
+              esc(plan.queueLabel || 'If something breaks') +
               '</span>' +
               '<span class="client-portal-plan-queue-value">' +
               esc(plan.queueValue) +
@@ -430,7 +430,7 @@
         '</p>' +
         '<p class="client-portal-maint-meta">' +
         esc(planQueueBlurb(maint.planTier)) +
-        ' Repair uses leftover hours. Custom work beyond the add-on cadence is quoted separately.</p>' +
+        ' Fixes use the hours left on your plan. Bigger custom work is priced separately.</p>' +
         renderMaintenancePayBlockHtml(maint) +
         '</div>'
       );
@@ -454,7 +454,7 @@
     return (
       '<div class="client-portal-maint-block" id="portal-maint-picker">' +
       '<h3 class="client-portal-support-subhead">Choose a maintenance plan</h3>' +
-      '<p class="client-portal-maint-lead">After your first included month, ongoing support keeps hosting, updates, and minor fixes on track. If more than one business needs a fix, we work Priority first, then Standard, then Essential.</p>' +
+      '<p class="client-portal-maint-lead">After your first included month, a care plan keeps your site or app running — hosting, updates, and small fixes. When more than one client needs help, we help Priority first, then Standard, then Essential.</p>' +
       '<fieldset class="client-portal-billing-pref">' +
       '<legend>Billing preference</legend>' +
       '<div class="client-portal-billing-toggle">' +
