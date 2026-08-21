@@ -14,36 +14,27 @@
 
   /**
    * How CWR receives portal payments — invoices and maintenance plans both use
-   * these (Zelle / PayPal / Venmo). Hints point at the memo line rendered above
-   * them rather than naming an invoice, since plans have no invoice number.
-   * Update handles here when accounts change — keep in sync with invoice PDF copy
-   * in business-doc-shared.js (CWR_INVOICE_PAYMENT_METHODS).
+   * these (Zelle / PayPal / Venmo). Each method shows a cropped QR, not the
+   * original screenshot. Keep QR files in assets/images/payments/.
    */
   var PORTAL_PAYMENT_METHODS = [
     {
       id: 'zelle',
       label: 'Zelle',
-      handleLabel: 'Email',
-      handle: 'ruben.jim.co@gmail.com',
-      altHandleLabel: 'Or phone',
-      altHandle: '559 653 7380',
-      hint: 'Open your bank app → Zelle → Send. Copy the memo above into the memo field.'
+      qr: '/assets/images/payments/zelle-qr.png',
+      hint: 'Open your bank or Zelle app and scan. Put the memo below in the note.'
     },
     {
       id: 'paypal',
       label: 'PayPal',
-      handleLabel: 'Send to',
-      handle: 'jruben447@gmail.com',
-      hint: 'PayPal → Send. Copy the memo above into the note.',
-      link: ''
+      qr: '/assets/images/payments/paypal-qr.png',
+      hint: 'Open PayPal and scan. Put the memo below in the note.'
     },
     {
       id: 'venmo',
       label: 'Venmo',
-      handleLabel: 'Username',
-      handle: '@RubenDEV',
-      hint: 'Venmo → Pay. Copy the memo above into the note.',
-      link: 'https://venmo.com/RubenDEV'
+      qr: '/assets/images/payments/venmo-qr.png',
+      hint: 'Open Venmo and scan. Put the memo below in the note.'
     }
   ];
 
@@ -275,7 +266,7 @@
     return (
       '<div class="client-portal-sign-panel client-portal-pay-panel" data-portal-maint-pay-panel hidden>' +
       '<p class="client-portal-pay-ask">How would you like to pay?</p>' +
-      '<p class="client-portal-pay-ask-sub">Zelle, PayPal, or Venmo — pick one and we’ll show where to send it.</p>' +
+      '<p class="client-portal-pay-ask-sub">Zelle, PayPal, or Venmo — pick one and scan the code.</p>' +
       '<div class="client-portal-pay-methods" role="group" aria-label="Payment methods">' +
       methodsHtml +
       '</div>' +
@@ -1379,54 +1370,37 @@
     return null;
   }
 
-  function renderPayHandleRowHtml(label, handle) {
+  function renderPayQrHtml(method) {
+    if (!method.qr) return '';
     return (
-      '<div class="client-portal-pay-handle-row">' +
-      '<span class="client-portal-pay-handle-label">' +
-      esc(label) +
-      '</span>' +
-      '<code class="client-portal-pay-handle" data-portal-pay-handle>' +
-      esc(handle) +
-      '</code>' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-portal-pay-copy>Copy</button>' +
+      '<div class="client-portal-pay-qr-wrap">' +
+      '<img class="client-portal-pay-qr" src="' +
+      esc(method.qr) +
+      '" alt="Scan to pay with ' +
+      esc(method.label) +
+      '" width="240" height="240">' +
       '</div>'
     );
   }
 
   /**
    * Shared by invoices and maintenance plans — both are paid the same way
-   * (Zelle / PayPal / Venmo by hand), only the amount, memo, and closing note
-   * differ.
+   * (Zelle / PayPal / Venmo). Show the cropped QR, not handles or screenshots.
    */
   function renderPayDetailHtml(method, opts) {
-    var linkHtml = method.link
-      ? '<a class="client-portal-pay-link" href="' +
-        esc(method.link) +
-        '" target="_blank" rel="noopener noreferrer">Open ' +
-        esc(method.label) +
-        '</a>'
-      : '';
-    var handlesHtml = renderPayHandleRowHtml(method.handleLabel, method.handle);
-    if (method.altHandle) {
-      handlesHtml += renderPayHandleRowHtml(
-        method.altHandleLabel || 'Or',
-        method.altHandle
-      );
-    }
     return (
       '<p class="client-portal-pay-detail-lead">Pay <strong>' +
       esc(opts.amountLabel) +
       '</strong> via ' +
       esc(method.label) +
       '</p>' +
-      handlesHtml +
+      renderPayQrHtml(method) +
       '<p class="client-portal-pay-memo">Memo / note: <strong>' +
       esc(opts.memo) +
       '</strong></p>' +
       '<p class="client-portal-pay-hint">' +
       esc(method.hint) +
       '</p>' +
-      linkHtml +
       '<p class="client-portal-pay-confirm">' +
       esc(opts.confirmNote) +
       '</p>'
@@ -1459,7 +1433,7 @@
       docId +
       '" hidden>' +
       '<p class="client-portal-pay-ask">How would you like to pay?</p>' +
-      '<p class="client-portal-pay-ask-sub">Zelle, PayPal, or Venmo — pick one and we’ll show where to send it.</p>' +
+      '<p class="client-portal-pay-ask-sub">Zelle, PayPal, or Venmo — pick one and scan the code.</p>' +
       '<div class="client-portal-pay-methods" role="group" aria-label="Payment methods">' +
       methodsHtml +
       '</div>' +
@@ -2069,33 +2043,6 @@
             b.classList.toggle('is-selected', b === btn);
           });
         }
-        bindPayCopyButtons(detail, method.handle);
-      });
-    });
-  }
-
-  function bindPayCopyButtons(detail, fallbackHandle) {
-    if (!detail) return;
-    detail.querySelectorAll('[data-portal-pay-copy]').forEach(function (copyBtn) {
-      if (copyBtn.dataset.portalPayCopyBound) return;
-      copyBtn.dataset.portalPayCopyBound = '1';
-      copyBtn.addEventListener('click', function () {
-        var row = copyBtn.closest('.client-portal-pay-handle-row');
-        var handleEl = row ? row.querySelector('[data-portal-pay-handle]') : null;
-        var text = handleEl ? handleEl.textContent : fallbackHandle;
-        var done = function () {
-          copyBtn.textContent = 'Copied';
-          setTimeout(function () {
-            copyBtn.textContent = 'Copy';
-          }, 1600);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(done).catch(function () {
-            window.prompt('Copy this payment handle:', text);
-          });
-        } else {
-          window.prompt('Copy this payment handle:', text);
-        }
       });
     });
   }
@@ -2130,7 +2077,6 @@
         panel.querySelectorAll('[data-portal-maint-pay-method]').forEach(function (b) {
           b.classList.toggle('is-selected', b === btn);
         });
-        bindPayCopyButtons(detail, method.handle);
       });
     });
   }

@@ -1420,6 +1420,23 @@ body.portal-doc-sheet-open {
   color: var(--white-1);
 }
 
+.client-portal-pay-qr-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0 0 14px;
+}
+
+.client-portal-pay-qr {
+  display: block;
+  width: min(240px, 100%);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  background: #fff;
+  padding: 10px;
+  border-radius: 12px;
+}
+
 .client-portal-pay-handle-row {
   display: flex;
   flex-wrap: wrap;
