@@ -5138,10 +5138,10 @@ article.about .about-founder {
 }
 
 .enterprise-examples-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  margin: -6px 0 14px;
+  margin: 10px 0 0;
   padding: 0;
   border: 0;
   background: none;
