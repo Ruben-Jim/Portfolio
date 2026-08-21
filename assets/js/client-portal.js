@@ -27,7 +27,7 @@
     {
       id: 'paypal',
       label: 'PayPal',
-      qr: '/assets/images/payments/paypal-qr.png',
+      qr: '/assets/images/payments/paypal-qr.png?v=full-20260820',
       hint: 'Open PayPal and scan. Put the memo below in the note.'
     },
     {
