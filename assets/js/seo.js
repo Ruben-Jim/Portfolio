@@ -33,9 +33,9 @@
     },
     'services-pricing': {
       path: '/services-pricing',
-      title: 'Services & Pricing | Web & Mobile Apps from $1,500',
+      title: 'Services & Pricing | Web & Mobile Apps from $499',
       description:
-        'Website, starter, growth, and agency packages. Year 1 maintenance included. Clear pricing before we start.',
+        'Starter Page, website, and app packages from $499. Year 1 maintenance included. Clear pricing before we start.',
       robots: INDEX
     },
     'business-systems': {
@@ -56,7 +56,7 @@
       path: '/hire-me',
       title: 'Start a Project | Hire CodeWithRuben',
       description:
-        'Tell us what you need — site, mobile app, or full operations system. Packages from $1,500. Remote-friendly.',
+        'Tell us what you need — site, mobile app, or full operations system. Packages from $499. Remote-friendly.',
       robots: INDEX
     },
     resume: {

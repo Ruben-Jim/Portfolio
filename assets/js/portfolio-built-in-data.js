@@ -154,6 +154,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     description:
       'A lawn care and landscaping business app with service booking, recurring routes, and seasonal add-ons—built for crews that want less back-and-forth over pricing in texts.',
     techTags: ['React Native', 'Expo', 'Firebase'],
+    pricingPackage: 'starter-page',
     showQuoteButton: true
   }
 ];

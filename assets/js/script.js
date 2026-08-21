@@ -3316,6 +3316,30 @@ function portfolioPrimaryImageUrl(row) {
   return urls[0];
 }
 
+/** Best still for compact previews (examples sheet): skip docs/video, prefer a cover or demo poster. */
+function portfolioCoverImageUrl(row) {
+  var urls = portfolioImageUrlsFromRecord(row) || [];
+  var stills = [];
+  urls.forEach(function (u) {
+    if (portfolioIsVideoUrl(u)) {
+      var poster = portfolioVideoPosterUrlBest(u);
+      if (poster) stills.push(poster);
+      return;
+    }
+    if (/\.md(?:\?|$)/i.test(u)) return;
+    stills.push(u);
+  });
+  var i;
+  for (i = 0; i < stills.length; i++) {
+    if (/demo-poster/i.test(stills[i])) return stills[i];
+  }
+  for (i = 0; i < stills.length; i++) {
+    var base = String(stills[i].split('/').pop() || '').split('?')[0];
+    if (/^[a-z0-9]+(?:-[a-z]+)*\.webp$/i.test(base) && !/-\d+\.webp$/i.test(base)) return stills[i];
+  }
+  return stills[0] || portfolioPrimaryImageUrl(row) || '';
+}
+
 function portfolioRenderCarouselSlideMedia(url, alt) {
   if (portfolioIsVideoUrl(url)) {
     var src = portfolioDisplayMediaSrc(url);
@@ -3957,6 +3981,7 @@ function portfolioSanitizeDocumentPayload(data) {
     buyNowLabel: data.buyNowLabel != null ? String(data.buyNowLabel).slice(0, 120) : '',
     buyPremiumLabel: data.buyPremiumLabel != null ? String(data.buyPremiumLabel).slice(0, 160) : '',
     showQuoteButton: data.showQuoteButton !== false,
+    pricingPackage: sanitizePricingPackage(data.pricingPackage),
     adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
@@ -4595,8 +4620,6 @@ function buildAdminPortfolioRowHtml(p, listPosition, groupKey) {
   const catClass =
     cat === 'templates' || cat === 'creative' || cat === 'professional' ? cat : 'professional';
   const thumb = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(p) || p.imageUrl);
-  const catLabel =
-    catClass === 'templates' ? 'Templates' : catClass === 'creative' ? 'Creative' : 'Professional';
   const isPublic = groupKey === 'public';
   const orderTitle = isPublic
     ? 'Position on the public portfolio page'
@@ -4619,11 +4642,6 @@ function buildAdminPortfolioRowHtml(p, listPosition, groupKey) {
     portfolioEscapeHtml(p.title || 'Untitled') +
     '</span>' +
     '<div class="admin-portfolio-meta-row">' +
-    '<span class="admin-portfolio-badge admin-portfolio-badge--' +
-    catClass +
-    '">' +
-    portfolioEscapeHtml(catLabel) +
-    '</span>' +
     (isPublic
       ? '<span class="admin-portfolio-badge admin-portfolio-badge--public">Public</span>'
       : '<span class="admin-portfolio-badge admin-portfolio-badge--private">Private</span>') +
@@ -4725,6 +4743,16 @@ function fillPortfolioBuiltFromSelect(selectedId, currentProjectId) {
   var templates = (list || []).filter(function (p) {
     return p && p.isTemplate === true && String(p.id) !== String(currentProjectId || '');
   });
+  var options = templates.map(function (p) {
+    return { value: String(p.id), label: String(p.title || p.id) };
+  });
+  if (typeof window.setBusinessDocSelectOptions === 'function' && sel.closest('.business-doc-select')) {
+    window.setBusinessDocSelectOptions(sel, options, {
+      placeholder: 'Not built from a template',
+      value: selectedId || ''
+    });
+    return;
+  }
 
   sel.textContent = '';
   var none = document.createElement('option');
@@ -4740,6 +4768,15 @@ function fillPortfolioBuiltFromSelect(selectedId, currentProjectId) {
   });
 
   sel.value = selectedId || '';
+}
+
+function syncPortfolioPricingPackageSelect(value) {
+  var el = document.getElementById('portfolio-project-pricing-package');
+  if (!el) return;
+  el.value = sanitizePricingPackage(value);
+  if (typeof window.syncBusinessDocSelectUI === 'function') {
+    window.syncBusinessDocSelectUI(el);
+  }
 }
 
 function renderAdminPortfolioProjects() {
@@ -5028,6 +5065,7 @@ function serializePortfolioProjectFormState() {
     'portfolio-project-outcome',
     'portfolio-project-buy-now',
     'portfolio-project-buy-premium',
+    'portfolio-project-pricing-package',
     'portfolio-project-admin-note',
     'portfolio-project-canvas-doc',
     'portfolio-project-canvas-title',
@@ -5173,6 +5211,11 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-outcome').value = project.outcome || '';
     document.getElementById('portfolio-project-buy-now').value = project.buyNowLabel || '';
     document.getElementById('portfolio-project-buy-premium').value = project.buyPremiumLabel || '';
+    var pricingPkgEl = document.getElementById('portfolio-project-pricing-package');
+    if (pricingPkgEl) pricingPkgEl.value = sanitizePricingPackage(project.pricingPackage);
+    if (typeof window.syncBusinessDocSelectUI === 'function' && pricingPkgEl) {
+      window.syncBusinessDocSelectUI(pricingPkgEl);
+    }
     document.getElementById('portfolio-project-show-quote').checked = project.showQuoteButton !== false;
     document.getElementById('portfolio-project-admin-note').value = project.adminModalNote || '';
     document.getElementById('portfolio-project-canvas-doc').value = project.canvasDocUrl || '';
@@ -5212,6 +5255,9 @@ function openPortfolioProjectModal(isNew, project) {
     if (demoFbDefault) demoFbDefault.value = '';
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
+  }
+  if (!project || isNew) {
+    syncPortfolioPricingPackageSelect((project && project.pricingPackage) || '');
   }
   // Keep primary sections open for both quick edits and brochure work.
   form.querySelectorAll('.portfolio-editor-section[data-portfolio-editor-section]').forEach(function (section) {
@@ -5517,6 +5563,9 @@ function setupPortfolioAdminControls() {
         outcome: document.getElementById('portfolio-project-outcome').value,
         buyNowLabel: document.getElementById('portfolio-project-buy-now').value,
         buyPremiumLabel: document.getElementById('portfolio-project-buy-premium').value,
+        pricingPackage: document.getElementById('portfolio-project-pricing-package')
+          ? document.getElementById('portfolio-project-pricing-package').value
+          : '',
         showQuoteButton: document.getElementById('portfolio-project-show-quote').checked,
         adminModalNote: document.getElementById('portfolio-project-admin-note').value,
         canvasDocUrl: document.getElementById('portfolio-project-canvas-doc').value,
@@ -6268,6 +6317,38 @@ function renderPublicBuiltWithTemplate(record) {
   wrap.hidden = false;
 }
 
+function sanitizePricingPackage(raw) {
+  var id = String(raw || '').trim().toLowerCase();
+  var allowed = ['starter-page', 'website', 'starter', 'growth', 'linktree'];
+  return allowed.indexOf(id) >= 0 ? id : '';
+}
+
+function getPortfolioPricingPackage(record) {
+  var pkg = sanitizePricingPackage(record && record.pricingPackage);
+  if (pkg) return pkg;
+  var title = String((record && record.title) || '');
+  var img = String((record && (record.imageUrl || (record.imageUrls && record.imageUrls[0]))) || '');
+  if (/lawn\s*care/i.test(title) || /\/lawncare\//i.test(img)) return 'starter-page';
+  return '';
+}
+
+function getProjectsForPricingPackage(packageId) {
+  var id = sanitizePricingPackage(packageId);
+  if (!id) return [];
+  var list = window.portfolioProjects || [];
+  return list.filter(function (p) {
+    return getPortfolioPricingPackage(p) === id;
+  });
+}
+
+function cwrText(key, fallback) {
+  if (typeof window.cwrT === 'function') {
+    var val = window.cwrT(key, fallback);
+    if (val) return val;
+  }
+  return fallback || key;
+}
+
 function initPortfolioProjectModal() {
   const modal = document.getElementById('project-detail-modal');
   const overlay = document.getElementById('project-detail-overlay');
@@ -6762,6 +6843,148 @@ function initPortfolioProjectModal() {
       }
     });
   }
+
+  window.openPortfolioProjectDetail = function (record) {
+    if (!record || !modal) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'project-item';
+    if (record.id) wrap.setAttribute('data-portfolio-id', record.id);
+    wrap.innerHTML =
+      '<article class="project-card"><a class="project-link" href="#"><figure class="project-img"><img alt=""></figure>' +
+      '<h3 class="project-title"></h3><p class="project-description"></p></a></article>';
+    wrap.querySelector('.project-title').textContent = record.title || 'Project';
+    var img = wrap.querySelector('img');
+    var urls = typeof portfolioImageUrlsFromRecord === 'function' ? portfolioImageUrlsFromRecord(record) : [];
+    if (urls[0]) img.setAttribute('src', urls[0]);
+    if (record.imageAlt) img.setAttribute('alt', record.imageAlt);
+    var link = wrap.querySelector('.project-link');
+    var href = String(record.projectUrl || '').trim() || '#';
+    link.setAttribute('href', href);
+    fillProjectModal(wrap.querySelector('.project-card'), link);
+    openProjectModal();
+  };
+}
+
+function initPackageExamplesSheet() {
+  var modal = document.getElementById('package-examples-modal');
+  var overlay = document.getElementById('package-examples-overlay');
+  var closeBtn = document.getElementById('package-examples-close');
+  var titleEl = document.getElementById('package-examples-title');
+  var listEl = document.getElementById('package-examples-list');
+  if (!modal || !listEl) return;
+
+  var TITLE_KEYS = {
+    'starter-page': 'services.examples_title_page',
+    website: 'services.examples_title_web',
+    starter: 'services.examples_title_starter',
+    growth: 'services.examples_title_growth',
+    linktree: 'services.examples_title_linktree'
+  };
+  var TITLE_FALLBACK = {
+    'starter-page': 'Starter Page examples',
+    website: 'Business Website examples',
+    starter: 'Starter Presence examples',
+    growth: 'Growth Platform examples',
+    linktree: 'Link Tree examples'
+  };
+
+  function closeExamplesSheet() {
+    if (document.activeElement && modal.contains(document.activeElement)) {
+      try {
+        document.activeElement.blur();
+      } catch (e) {
+        // no-op
+      }
+    }
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('package-examples-open');
+  }
+
+  function syncExampleButtons() {
+    document.querySelectorAll('[data-package-examples]').forEach(function (btn) {
+      var id = btn.getAttribute('data-package-examples');
+      var matches = getProjectsForPricingPackage(id);
+      btn.hidden = matches.length === 0;
+    });
+  }
+
+  function openExamplesSheet(packageId) {
+    var id = sanitizePricingPackage(packageId);
+    var matches = getProjectsForPricingPackage(id);
+    if (!id || !matches.length) return;
+    if (titleEl) {
+      titleEl.textContent = cwrText(TITLE_KEYS[id], TITLE_FALLBACK[id] || 'Examples');
+    }
+    listEl.innerHTML = matches
+      .map(function (p, i) {
+        var urls = typeof portfolioImageUrlsFromRecord === 'function' ? portfolioImageUrlsFromRecord(p) : [];
+        var img =
+          typeof portfolioCoverImageUrl === 'function'
+            ? portfolioCoverImageUrl(p)
+            : urls[0] || p.imageUrl || '';
+        var alt = p.imageAlt || p.title || '';
+        return (
+          '<li>' +
+          '<button type="button" class="package-examples-item" data-examples-index="' +
+          i +
+          '">' +
+          (img
+            ? '<span class="package-examples-thumb-wrap"><img class="package-examples-thumb" src="' +
+              portfolioEscapeHtml(img) +
+              '" alt="' +
+              portfolioEscapeHtml(alt) +
+              '" loading="lazy"></span>'
+            : '<span class="package-examples-thumb-wrap"><span class="package-examples-thumb is-empty" aria-hidden="true"></span></span>') +
+          '<span class="package-examples-item-text">' +
+          '<span class="package-examples-item-title">' +
+          portfolioEscapeHtml(p.title || 'Project') +
+          '</span>' +
+          '<span class="package-examples-item-hint">' +
+          cwrText('services.examples_open', 'Open details') +
+          '</span></span>' +
+          '<ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>' +
+          '</button></li>'
+        );
+      })
+      .join('');
+    listEl._records = matches;
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('package-examples-open');
+  }
+
+  if (!modal.dataset.bound) {
+    modal.dataset.bound = '1';
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-package-examples]');
+      if (!btn) return;
+      e.preventDefault();
+      openExamplesSheet(btn.getAttribute('data-package-examples'));
+    });
+    listEl.addEventListener('click', function (e) {
+      var item = e.target.closest('[data-examples-index]');
+      if (!item) return;
+      var idx = Number(item.getAttribute('data-examples-index'));
+      var recs = listEl._records || [];
+      var record = recs[idx];
+      if (!record) return;
+      closeExamplesSheet();
+      if (typeof window.openPortfolioProjectDetail === 'function') {
+        window.openPortfolioProjectDetail(record);
+      }
+    });
+    if (closeBtn) closeBtn.addEventListener('click', closeExamplesSheet);
+    if (overlay) overlay.addEventListener('click', closeExamplesSheet);
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && modal.classList.contains('active')) {
+        closeExamplesSheet();
+      }
+    });
+    document.addEventListener('portfolioProjectsLoaded', syncExampleButtons);
+  }
+
+  syncExampleButtons();
 }
 
 
@@ -7111,7 +7334,7 @@ function resolveNavPageName(navText) {
   return navPageName;
 }
 
-var HIRE_ME_PACKAGE_IDS = ['linktree', 'website', 'starter', 'growth', 'agency', 'studio'];
+var HIRE_ME_PACKAGE_IDS = ['linktree', 'starter-page', 'website', 'starter', 'growth', 'agency', 'studio'];
 
 var HIRE_ME_GENERIC = {
   heroLabel: 'Open to new projects',
@@ -7157,30 +7380,56 @@ var HIRE_ME_PACKAGES = {
       'Interested in a Link Tree ($99–$199). I need a branded bio link page for Instagram/TikTok with my links and brand colors.',
     messagePlaceholder: 'What should visitors do from your bio link, and which links belong on the page?'
   },
+  'starter-page': {
+    id: 'starter-page',
+    pill: 'Starter Page',
+    price: '$499 fixed',
+    bannerNote: 'One public page + owner admin · ~1 week · 1 month maintenance included',
+    heroLabel: 'Starter Page',
+    heroTitle: 'Launch with a',
+    heroTitleAccent: 'Starter Page',
+    heroSub:
+      'One branded page for customers, plus an admin so you can see quotes, messages, and jobs — and change the page yourself. No phone app.',
+    timelineLabel: 'Your Starter Page path',
+    timelineSteps: [
+      { title: 'Quick intake', desc: 'Logo, colors, services, and how customers should reach you.' },
+      { title: 'Design & build', desc: 'One public page plus owner admin (quotes, inbox, jobs).' },
+      { title: 'Review & revise', desc: 'One focused feedback round before launch.' },
+      { title: 'Go live', desc: 'You can edit services, photos, and hours from admin.' },
+      { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
+    ],
+    formTitle: 'Start Starter Page',
+    formLead: 'Tell me about your business — I\'ll confirm fit for the $499 Starter Page (one page + admin).',
+    projectType: 'Starter Page — one page + admin',
+    budget: '$499',
+    message:
+      'Interested in Starter Page ($499). I need one public page plus an owner admin for quotes, messages, a simple job list, and editing the page myself. English and Spanish. No phone app.',
+    messagePlaceholder: 'What does your business do, and what should customers do on the page?'
+  },
   website: {
     id: 'website',
     pill: 'Business Website',
-    price: '$799 fixed',
-    bannerNote: 'Website only · 1–3 pages · ~1–2 weeks · 1 month maintenance included',
+    price: '$999 fixed',
+    bannerNote: '1–3 pages + owner admin · ~1–2 weeks · 1 month maintenance included',
     heroLabel: 'Business Website',
     heroTitle: 'Launch with a',
     heroTitleAccent: 'Business Website',
     heroSub:
-      'A branded 1–3 page site so customers can find you, see your work, and request a quote or booking — no app required.',
+      'A branded 1–3 page site plus an owner admin for quotes, messages, and jobs — more room than Starter Page, still no phone app.',
     timelineLabel: 'Your website path',
     timelineSteps: [
       { title: 'Quick intake', desc: 'Brand basics, pages, and how customers should reach you.' },
-      { title: 'Design & build', desc: 'Home, services, contact, forms, and gallery.' },
+      { title: 'Design & build', desc: 'Home, services, contact, forms, gallery, and admin.' },
       { title: 'Review & revise', desc: 'One focused feedback round before launch.' },
-      { title: 'Go live', desc: 'Hosting, SEO basics, and analytics.' },
+      { title: 'Go live', desc: 'Hosting, SEO basics, and you can edit pages from admin.' },
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
     formTitle: 'Start Business Website',
-    formLead: 'Tell me about your business and what the site should do — I\'ll confirm fit for the $799 website package.',
+    formLead: 'Tell me about your business and what the site should do — I\'ll confirm fit for the $999 website + admin package.',
     projectType: 'Business Website',
-    budget: '$799',
+    budget: '$999',
     message:
-      'Interested in a Business Website ($799). I need a branded 1–3 page site with quote/booking forms, gallery, and hosting setup — no app.',
+      'Interested in a Business Website ($999). I need a branded 1–3 page site plus owner admin (quotes, inbox, jobs) with gallery, bilingual copy, and hosting — no phone app.',
     messagePlaceholder: 'What does your business do, and what should customers do on the website?'
   },
   starter: {
@@ -8519,6 +8768,7 @@ window.addEventListener('load', function() {
         renderPublicPortfolioProjects();
         applyCurrentPortfolioFilter();
         initPortfolioProjectModal();
+        initPackageExamplesSheet();
         setupPortfolioAdminControls();
         syncAdminPortfolioLocalBanner();
         ensurePortfolioRenderCompletes();
@@ -8527,6 +8777,7 @@ window.addEventListener('load', function() {
         renderPublicPortfolioProjects();
         applyCurrentPortfolioFilter();
         initPortfolioProjectModal();
+        initPackageExamplesSheet();
         ensurePortfolioRenderCompletes();
       }
     }
