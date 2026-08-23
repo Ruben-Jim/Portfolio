@@ -119,68 +119,70 @@
     {
       id: 'essential',
       badge: 'Essential',
-      title: 'Keep it healthy',
+      title: 'Essential Care',
       monthly: '$79/mo',
       annual: '$522/yr',
       monthlyAmount: 79,
       annualAmount: 522,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs monthly',
+      annualNote: 'Save 45% vs month-to-month',
       annualEquiv: '~$44/mo equivalent · billed once per year',
       slaLabel: '5 business days',
       hoursIncluded: 2,
       slaHours: 120,
       features: [
-        'Hosting, updates, monitoring',
-        'Reply in 5 business days · if you’re down, we reply within 1 business day (weekdays)',
-        'Bug fixes after Standard and Priority',
-        'Store updates 4×/year in your session',
-        'New features quoted separately'
+        'Website and app stay hosted, secure, and online',
+        'App Store and Play Store updates 4 times a year',
+        'Questions answered in 5 business days',
+        'If you are completely down, reply in 1 business day — weekdays only',
+        'Website content changes and new features are quoted separately'
       ]
     },
     {
       id: 'standard',
       badge: 'Standard',
-      title: 'Recommended for live ops',
+      title: 'Standard Care',
       monthly: '$150/mo',
       annual: '$990/yr',
       monthlyAmount: 150,
       annualAmount: 990,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs monthly',
+      annualNote: 'Save 45% vs month-to-month',
       annualEquiv: '~$83/mo equivalent · billed once per year',
       slaLabel: '3 business days',
       hoursIncluded: 6,
       slaHours: 72,
       recommended: true,
       features: [
-        'Hosting, updates, monitoring',
-        'Reply in 3 business days · if you’re down, we reply within 4 hours (nights and weekends too)',
-        'Monthly store + content updates',
-        'New features and improvements each month',
-        'A bigger addition each quarter · one major app or site overhaul each year'
+        'Everything in Essential Care',
+        'Send photos and videos any time — published every month',
+        'App Store updates every month if needed',
+        'New features included each month — not quoted separately',
+        'One bigger addition every 3 months · one large update each year',
+        'Questions in 3 business days · if you are down, reply in 4 hours including nights and weekends'
       ]
     },
     {
       id: 'priority',
       badge: 'Priority',
-      title: 'Faster turnaround',
+      title: 'Priority Care',
       monthly: '$300/mo',
       annual: '$1,980/yr',
       monthlyAmount: 300,
       annualAmount: 1980,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs monthly',
+      annualNote: 'Save 45% vs month-to-month',
       annualEquiv: '~$165/mo equivalent · billed once per year',
       slaLabel: '24 hours',
       hoursIncluded: 10,
       slaHours: 24,
       features: [
-        'Hosting, updates, monitoring · first in line',
-        'Reply within 24 hours · if you’re down, we reply within 2 hours (nights and weekends too)',
-        'Store updates as needed · weekly content',
-        'New features and improvements each month · a bigger addition each quarter',
-        'A major app or site overhaul every 6 months'
+        'Everything in Standard Care',
+        'Content published weekly',
+        'One large update every 6 months',
+        'Unused work in a month carries over 30 days',
+        'Questions in 24 hours · if you are down, reply in 2 hours including nights and weekends',
+        'First in line, ahead of every other client'
       ]
     }
   ];

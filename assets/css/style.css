@@ -5216,6 +5216,12 @@ article.about .about-founder {
   padding: 22px 20px 16px;
 }
 
+.package-examples-modal.is-previewing .package-examples-content {
+  width: min(920px, calc(100vw - 32px));
+  max-height: min(92vh, 900px);
+  height: min(92vh, 900px);
+}
+
 .package-examples-grab {
   display: none;
 }
@@ -5257,11 +5263,73 @@ article.about .about-founder {
   line-height: 1.45;
 }
 
+.package-examples-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--orange-yellow-crayola);
+  font-family: var(--ff-poppins);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+  cursor: pointer;
+}
+
+.package-examples-back ion-icon {
+  font-size: 16px;
+}
+
+.package-examples-list[hidden],
+.package-examples-frame-wrap[hidden],
+.package-examples-back[hidden],
+.package-examples-lead[hidden] {
+  display: none !important;
+}
+
+.package-examples-frame-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 -8px -8px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid hsla(45, 100%, 72%, 0.16);
+  background: hsl(240, 2%, 8%);
+}
+
+.package-examples-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 62vh;
+  border: 0;
+  background: #070e1a;
+}
+
+.package-examples-modal.is-device-preview .package-examples-title {
+  display: none;
+}
+
+.package-examples-modal.is-device-preview .package-examples-frame-wrap {
+  border: 0;
+  background: transparent;
+  margin: 0;
+}
+
+.package-examples-modal.is-device-preview .package-examples-frame {
+  background: transparent;
+  min-height: 68vh;
+}
+
 .package-examples-list {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 2px 0 0;
   overflow-y: auto;
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   gap: 8px;
 }
@@ -5355,6 +5423,13 @@ body.package-examples-open {
     display: flex;
     justify-content: center;
     padding: 6px 0 8px;
+  }
+
+  .package-examples-modal.is-previewing .package-examples-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: min(94dvh, 100%);
+    height: min(94dvh, 100%);
   }
 }
 

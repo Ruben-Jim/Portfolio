@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=examples-under-cta-20260820">
+  <link rel="stylesheet" href="/assets/css/style.css?v=linktree-logo-scroll-20260821">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -1378,8 +1378,15 @@
             <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
           </button>
           <h3 class="h3 package-examples-title" id="package-examples-title">Examples</h3>
-          <p class="package-examples-lead" data-i18n="services.examples_lead">Projects built at this package level.</p>
+          <p class="package-examples-lead" id="package-examples-lead" data-i18n="services.examples_lead">Projects built at this package level.</p>
+          <button type="button" class="package-examples-back" id="package-examples-back" hidden>
+            <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+            <span>All examples</span>
+          </button>
           <ul class="package-examples-list has-scrollbar" id="package-examples-list"></ul>
+          <div class="package-examples-frame-wrap" id="package-examples-frame-wrap" hidden>
+            <iframe class="package-examples-frame" id="package-examples-frame" title="Example preview"></iframe>
+          </div>
         </section>
       </div>
 
@@ -1905,13 +1912,13 @@
             </div>
 
             <h3 class="h3 service-title standard-addons-heading" data-i18n="services.maint_title">Maintenance Plans</h3>
-            <p class="maintenance-billing-lead" data-i18n="services.maint_lead">After your first included month (the plan you pick): pay monthly, or choose annual billing and <strong>save 45%</strong> compared to paying month-to-month.</p>
+            <p class="maintenance-billing-lead" data-i18n="services.maint_lead">Annual pricing: Essential $522/year · Standard $990/year · Priority $1,980/year. Paying annually <strong>saves 45%</strong> compared to month-to-month on any plan.</p>
             <div class="enterprise-grid maintenance-tier-grid">
               <div class="enterprise-card maintenance-plan-card">
                 <span class="enterprise-card-badge">Essential</span>
                 <div class="enterprise-card-title" data-i18n="services.ess_title">Essential Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.ess_sub">
-                  Keep hosting, updates, and monitoring healthy between busy seasons — weekday replies, one work session.
+                  Your website and app stay hosted, secure, and online. Content changes and new features are quoted separately.
                 </div>
 
                 <div class="maintenance-billing-row">
@@ -1929,11 +1936,11 @@
                 </div>
 
                 <ul class="enterprise-feature-list maintenance-plan-features">
-                  <li data-i18n="services.ess_f1">Hosting, updates, monitoring</li>
-                  <li data-i18n="services.ess_f2">Reply in 5 business days · if you’re down, we reply within 1 business day (weekdays)</li>
-                  <li data-i18n="services.ess_f3">Bug fixes after Standard and Priority</li>
-                  <li data-i18n="services.ess_f4">Store updates 4×/year in your session</li>
-                  <li data-i18n="services.ess_f5">New features quoted separately</li>
+                  <li data-i18n="services.ess_f1">Website and app stay hosted, secure, and online</li>
+                  <li data-i18n="services.ess_f2">App Store and Play Store updates 4 times a year</li>
+                  <li data-i18n="services.ess_f3">Questions answered in 5 business days</li>
+                  <li data-i18n="services.ess_f4">If you are completely down, reply in 1 business day — weekdays only</li>
+                  <li data-i18n="services.ess_f5">Website content changes and new features are quoted separately</li>
                 </ul>
               </div>
 
@@ -1941,7 +1948,7 @@
                 <span class="enterprise-card-badge">Standard</span>
                 <div class="enterprise-card-title" data-i18n="services.std_title">Standard Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.std_sub">
-                  Recommended for live day-to-day ops — evenings and weekends if something is down, monthly content, and add-ons on a set cadence.
+                  Everything in Essential, plus monthly content, included features, and faster replies — $468 more a year, about $39 a month.
                 </div>
 
                 <div class="maintenance-billing-row">
@@ -1960,10 +1967,10 @@
 
                 <ul class="enterprise-feature-list maintenance-plan-features">
                   <li data-i18n="services.std_f1">Everything in Essential Care</li>
-                  <li data-i18n="services.std_f2">Faster replies — 3 business days, 4 hours if you’re down (nights and weekends too)</li>
-                  <li data-i18n="services.std_f3">Monthly store + content updates</li>
-                  <li data-i18n="services.std_f4">New features and improvements each month</li>
-                  <li data-i18n="services.std_f5">A bigger addition each quarter · one major overhaul each year</li>
+                  <li data-i18n="services.std_f2">Send photos and videos any time — published every month</li>
+                  <li data-i18n="services.std_f3">App Store updates every month if needed · new features included each month</li>
+                  <li data-i18n="services.std_f4">One bigger addition every 3 months · one large update each year</li>
+                  <li data-i18n="services.std_f5">Questions in 3 business days · if you are down, 4 hours including nights and weekends</li>
                 </ul>
               </div>
 
@@ -1971,7 +1978,7 @@
                 <span class="enterprise-card-badge">Priority</span>
                 <div class="enterprise-card-title" data-i18n="services.pri_title">Priority Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.pri_sub">
-                  Everything in Standard, with more hours, faster replies, weekly content, and add-ons more often.
+                  Everything in Standard, plus weekly content, faster replies, and unused work that carries 30 days — $990 more a year, about $83 a month.
                 </div>
 
                 <div class="maintenance-billing-row">
@@ -1990,10 +1997,10 @@
 
                 <ul class="enterprise-feature-list maintenance-plan-features">
                   <li data-i18n="services.pri_f1">Everything in Standard Care</li>
-                  <li data-i18n="services.pri_f2">Faster replies — 24 hours, 2 hours if you’re down (nights and weekends too)</li>
-                  <li data-i18n="services.pri_f3">Store updates as needed · weekly content</li>
-                  <li data-i18n="services.pri_f4">Bigger additions more often · a major overhaul every 6 months</li>
-                  <li data-i18n="services.pri_f5">Unused hours carry 30 days</li>
+                  <li data-i18n="services.pri_f2">Content published weekly · one large update every 6 months</li>
+                  <li data-i18n="services.pri_f3">Unused work in a month carries over 30 days</li>
+                  <li data-i18n="services.pri_f4">Questions in 24 hours · if you are down, reply in 2 hours</li>
+                  <li data-i18n="services.pri_f5">First in line, ahead of every other client</li>
                 </ul>
               </div>
             </div>
@@ -7518,14 +7525,14 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   <script src="/assets/js/portfolio-built-in-data.js?v=pkg-examples-20260820"></script>
   <script src="/assets/js/portfolio-assets.js?v=newmedia-20260818r"></script>
   <script src="/assets/js/business-systems-data.js?v=tradeservice-demo-20260608"></script>
-  <script src="/assets/js/business-doc-shared.js?v=portal-color-scheme-20260817n"></script>
+  <script src="/assets/js/business-doc-shared.js?v=maint-proclean-copy-20260823"></script>
   <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/i18n.js?v=pkg-examples-20260820"></script>
+  <script src="/assets/js/i18n.js?v=maint-proclean-copy-20260823"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=hide-pro-badge-20260820"></script>
+  <script src="/assets/js/script.js?v=linktree-real-demos-20260821"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=lead-email-20260817a"></script>
   <script src="/assets/js/dm-migration.js"></script>

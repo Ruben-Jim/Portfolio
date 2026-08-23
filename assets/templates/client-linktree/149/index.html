@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Central Fades — Links</title>
+  <meta name="description" content="Book a fade in Fresno. Walk-ins after 2pm. Central Fades Barbershop." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../linktree.css" />
+  <style>
+    :root {
+      --bg: #0f1115;
+      --bg-accent: #151922;
+      --text: #f4f7fb;
+      --text-muted: rgba(244, 247, 251, 0.68);
+      --brand: #5a8ad8;
+      --brand-soft: rgba(90, 138, 216, 0.16);
+      --promo-bg: rgba(80, 140, 255, 0.12);
+      --promo-fg: #8ab4f8;
+      --link-bg: rgba(255, 255, 255, 0.06);
+      --link-bg-hover: rgba(255, 255, 255, 0.11);
+      --link-border: rgba(255, 255, 255, 0.1);
+      --radius: 14px;
+      --ff: 'DM Sans', system-ui, sans-serif;
+      --max: 420px;
+      --ease: 0.22s ease;
+    }
+  </style>
+</head>
+<body class="lt">
+  <main class="lt-page">
+    <div class="lt-promo">
+      <span data-en="10% off first cut" data-es="10% de descuento en el primer corte">10% off first cut</span>
+      <span class="lt-countdown" data-countdown>00:00:00</span>
+    </div>
+
+    <div class="lt-bar">
+      <div class="lt-lang" role="group" aria-label="Language">
+        <button type="button" class="is-on" data-lang="en">EN</button>
+        <button type="button" data-lang="es">ES</button>
+      </div>
+    </div>
+
+    <header class="lt-profile">
+      <div class="lt-avatar is-logo">
+        <img src="../media/fades-logo.svg" alt="Central Fades" />
+      </div>
+      <h1 class="lt-name">Central Fades</h1>
+      <p class="lt-bio" data-en="Fresno barbershop · Fades, lineups, and walk-ins after 2." data-es="Barbería en Fresno · Fades, lineups y walk-ins después de las 2.">Fresno barbershop · Fades, lineups, and walk-ins after 2.</p>
+      <p class="lt-hours" data-hours data-open="9" data-close="19" data-off="0">
+        <span class="lt-dot is-open" aria-hidden="true"></span>
+        <span data-hours-label data-en-open="Open now · Fresno · ★★★★★" data-es-open="Abierto ahora · Fresno · ★★★★★" data-en-closed="Closed · Opens 9am" data-es-closed="Cerrado · Abre a las 9am">Open now · Fresno · ★★★★★</span>
+      </p>
+    </header>
+
+    <section class="lt-section">
+      <h2 class="lt-label" data-en="Find us" data-es="Encuéntranos">Find us</h2>
+      <figure class="lt-mapbox">
+        <iframe
+          title="Central Fades — Fresno"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d102233.80387830337!2d-119.79417246963037!3d36.799192630660905!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80945de1549e4e9d%3A0x7b12406449a3b811!2sFresno%2C%20CA!5e0!3m2!1sen!2sus!4v1757977098812!5m2!1sen!2sus"></iframe>
+      </figure>
+    </section>
+
+    <nav class="lt-section" aria-label="Actions">
+      <ul class="lt-links">
+        <li>
+          <a class="is-primary" href="sms:+15555551490">
+            <span data-en="Book now" data-es="Reservar ahora">Book now</span>
+            <span class="lt-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        <li>
+          <a href="tel:+15555551490">
+            <span data-en="Call us" data-es="Llámanos">Call us</span>
+            <span class="lt-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        <li>
+          <button class="lt-btn" type="button" data-chat-open>
+            <span data-en="Chat with us" data-es="Chatea con nosotros">Chat with us</span>
+            <span class="lt-arrow" aria-hidden="true">→</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <section class="lt-section">
+      <h2 class="lt-label" data-en="People" data-es="Equipo">People</h2>
+      <div class="lt-track">
+        <button class="lt-card" type="button" data-open-dialog="owner-intro">
+          <span class="lt-play" aria-hidden="true">▶</span>
+          <b>Jay Ruiz</b>
+          <span data-en="30-sec intro" data-es="Intro de 30 seg">30-sec intro</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="lt-section">
+      <h2 class="lt-label" data-en="Media" data-es="Media">Media</h2>
+      <div class="lt-track">
+        <button class="lt-card" type="button" data-open-dialog="shop-video">
+          <img class="lt-card-media" src="../media/fades-shop.jpg" alt="" />
+          <b data-en="The shop" data-es="El local">The shop</b>
+        </button>
+      </div>
+      <div class="lt-ba" data-ba style="margin-top:10px" aria-label="Before and after">
+        <img src="../media/fades-tools.jpg" alt="Before" />
+        <img class="lt-ba-after" src="../media/fades-fade.jpg" alt="After" />
+        <span class="lt-ba-handle" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <section class="lt-section">
+      <h2 class="lt-label" data-en="Reviews" data-es="Reseñas">Reviews</h2>
+      <ul class="lt-list">
+        <li class="lt-review">
+          <div class="lt-review-stars">★★★★★</div>
+          <p data-en="&quot;Cleanest fade in Fresno, hands down.&quot;" data-es="&quot;El fade más limpio de Fresno, sin duda.&quot;"></p>
+          <cite>— Devon R.</cite>
+        </li>
+        <li class="lt-review">
+          <span class="lt-video-tag">▶ Video</span>
+          <div class="lt-review-stars">★★★★★</div>
+          <p data-en="&quot;Been coming here 3 years. Jay never misses.&quot;" data-es="&quot;Llevo 3 años viniendo. Jay nunca falla.&quot;"></p>
+          <cite>— Marcus L.</cite>
+        </li>
+      </ul>
+    </section>
+
+    <section class="lt-section lt-faq">
+      <h2 class="lt-label">FAQ</h2>
+      <details>
+        <summary data-en="Walk-ins welcome?" data-es="¿Aceptan walk-ins?">Walk-ins welcome?</summary>
+        <p data-en="Yes after 2pm. Mornings are appointment-only." data-es="Sí, después de las 2pm. Las mañanas son solo con cita."></p>
+      </details>
+      <details>
+        <summary data-en="Do you take cards?" data-es="¿Aceptan tarjetas?">Do you take cards?</summary>
+        <p data-en="Cash, cards, and Apple Pay." data-es="Efectivo, tarjetas y Apple Pay."></p>
+      </details>
+    </section>
+
+    <section class="lt-section">
+      <div class="lt-stats">
+        <div class="lt-stat"><b>142</b><span data-en="clicks" data-es="clics">clicks</span></div>
+        <div class="lt-stat"><b>38</b><span data-en="book taps" data-es="reservas">book taps</span></div>
+        <div class="lt-stat"><b>3</b><span data-en="top link" data-es="enlace top">top link</span></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog class="lt-dialog" id="owner-intro">
+    <div class="lt-dialog-body">
+      <img src="../media/fades-shop.jpg" alt="" />
+      <h3>Jay Ruiz</h3>
+      <p data-en="Owner · 12 years behind the chair. Book a fade and I'll take care of the rest." data-es="Dueño · 12 años detrás de la silla. Reserva un fade y yo me encargo del resto."></p>
+      <button class="lt-btn lt-dialog-close" type="button" data-close-dialog data-en="Close" data-es="Cerrar">Close</button>
+    </div>
+  </dialog>
+
+  <dialog class="lt-dialog" id="shop-video">
+    <div class="lt-dialog-body">
+      <img src="../media/fades-shop.jpg" alt="" />
+      <h3 data-en="Inside the shop" data-es="Dentro del local">Inside the shop</h3>
+      <p data-en="Demo still — your live page would play the shop reel here." data-es="Demo — en la página real se reproduce el reel del local."></p>
+      <button class="lt-btn lt-dialog-close" type="button" data-close-dialog data-en="Close" data-es="Cerrar">Close</button>
+    </div>
+  </dialog>
+
+  <aside class="lt-chat" data-chat aria-label="Chat">
+    <header>Central Fades</header>
+    <div class="lt-chat-log" data-chat-log>
+      <p data-en="Hi! Walk-ins after 2pm. What are you looking for?" data-es="¡Hola! Walk-ins después de las 2. ¿Qué buscas?"></p>
+    </div>
+    <form data-chat-form data-reply="Got it — we will text you back shortly.">
+      <input name="msg" autocomplete="off" data-en="Message…" data-es="Mensaje…" placeholder="Message…" />
+      <button type="submit">Send</button>
+    </form>
+  </aside>
+  <button class="lt-chat-fab" type="button" data-chat-open>Chat</button>
+
+  <script src="../linktree.js"></script>
+  <script>document.querySelectorAll('[data-en]').forEach(function(el){ if(!el.textContent.trim()) el.textContent = el.getAttribute('data-en'); });</script>
+</body>
+</html>

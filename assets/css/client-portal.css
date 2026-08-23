@@ -1828,6 +1828,41 @@ body.portal-doc-sheet-open {
   break-inside: avoid;
 }
 
+.client-portal-plan-compare {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.08);
+}
+
+.client-portal-plan-compare-lead {
+  margin: 0 0 8px;
+  font-size: var(--fs-8);
+  color: var(--white-2);
+  line-height: 1.45;
+}
+
+.client-portal-plan-compare ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.client-portal-plan-compare li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 6px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+  line-height: 1.4;
+}
+
+.client-portal-plan-compare li::before {
+  content: '–';
+  position: absolute;
+  left: 0;
+  color: var(--orange-yellow-crayola);
+}
+
 .client-portal-plan-features li::before {
   content: "";
   position: absolute;

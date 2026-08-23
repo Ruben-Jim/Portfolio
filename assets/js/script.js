@@ -6335,11 +6335,42 @@ function getPortfolioPricingPackage(record) {
 function getProjectsForPricingPackage(packageId) {
   var id = sanitizePricingPackage(packageId);
   if (!id) return [];
+  var staticList = PRICING_PACKAGE_STATIC_EXAMPLES[id] || [];
   var list = window.portfolioProjects || [];
-  return list.filter(function (p) {
+  var fromPortfolio = list.filter(function (p) {
     return getPortfolioPricingPackage(p) === id;
   });
+  return staticList.concat(fromPortfolio);
 }
+
+var PRICING_PACKAGE_STATIC_EXAMPLES = {
+  linktree: [
+    {
+      id: 'static-linktree-99',
+      title: 'Ruiz Lawn Care',
+      exampleHint: '$99 · Foundation',
+      exampleUrl: '/assets/templates/client-linktree/99/index.html'
+    },
+    {
+      id: 'static-linktree-149',
+      title: 'Central Fades Barbershop',
+      exampleHint: '$149 · Enhanced',
+      exampleUrl: '/assets/templates/client-linktree/149/index.html'
+    },
+    {
+      id: 'static-linktree-199',
+      title: 'ProCleaning Seattle',
+      exampleHint: '$199+ · Premium',
+      exampleUrl: '/assets/templates/client-linktree/199/index.html'
+    },
+    {
+      id: 'static-linktree-client',
+      title: 'Valley Green Lawn Care',
+      exampleHint: 'Starter template',
+      exampleUrl: '/assets/templates/client-linktree/index.html'
+    }
+  ]
+};
 
 function cwrText(key, fallback) {
   if (typeof window.cwrT === 'function') {
@@ -6870,7 +6901,11 @@ function initPackageExamplesSheet() {
   var overlay = document.getElementById('package-examples-overlay');
   var closeBtn = document.getElementById('package-examples-close');
   var titleEl = document.getElementById('package-examples-title');
+  var leadEl = document.getElementById('package-examples-lead');
   var listEl = document.getElementById('package-examples-list');
+  var backBtn = document.getElementById('package-examples-back');
+  var frameWrap = document.getElementById('package-examples-frame-wrap');
+  var frameEl = document.getElementById('package-examples-frame');
   if (!modal || !listEl) return;
 
   var TITLE_KEYS = {
@@ -6887,6 +6922,7 @@ function initPackageExamplesSheet() {
     growth: 'Growth Platform examples',
     linktree: 'Link Tree examples'
   };
+  var sheetPackageId = '';
 
   function closeExamplesSheet() {
     if (document.activeElement && modal.contains(document.activeElement)) {
@@ -6896,9 +6932,43 @@ function initPackageExamplesSheet() {
         // no-op
       }
     }
+    showExamplesList();
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('package-examples-open');
+  }
+
+  function showExamplesList() {
+    modal.classList.remove('is-previewing', 'is-device-preview');
+    if (listEl) listEl.hidden = false;
+    if (leadEl) leadEl.hidden = false;
+    if (backBtn) backBtn.hidden = true;
+    if (frameWrap) frameWrap.hidden = true;
+    if (frameEl) frameEl.src = 'about:blank';
+    if (titleEl) {
+      titleEl.hidden = false;
+      if (sheetPackageId) {
+        titleEl.textContent = cwrText(TITLE_KEYS[sheetPackageId], TITLE_FALLBACK[sheetPackageId] || 'Examples');
+      }
+    }
+  }
+
+  function showExampleFrame(record) {
+    var url = String((record && record.exampleUrl) || '').trim();
+    if (!url || !frameEl || !frameWrap) return false;
+    var isDevice = /\/examples\/linktree\//.test(url);
+    modal.classList.add('is-previewing');
+    modal.classList.toggle('is-device-preview', isDevice);
+    if (listEl) listEl.hidden = true;
+    if (leadEl) leadEl.hidden = true;
+    if (backBtn) backBtn.hidden = false;
+    frameWrap.hidden = false;
+    frameEl.src = url;
+    if (titleEl) {
+      titleEl.hidden = isDevice;
+      if (!isDevice) titleEl.textContent = record.title || 'Example';
+    }
+    return true;
   }
 
   function syncExampleButtons() {
@@ -6913,17 +6983,21 @@ function initPackageExamplesSheet() {
     var id = sanitizePricingPackage(packageId);
     var matches = getProjectsForPricingPackage(id);
     if (!id || !matches.length) return;
+    sheetPackageId = id;
+    showExamplesList();
     if (titleEl) {
       titleEl.textContent = cwrText(TITLE_KEYS[id], TITLE_FALLBACK[id] || 'Examples');
     }
     listEl.innerHTML = matches
       .map(function (p, i) {
         var urls = typeof portfolioImageUrlsFromRecord === 'function' ? portfolioImageUrlsFromRecord(p) : [];
-        var img =
-          typeof portfolioCoverImageUrl === 'function'
+        var img = p.exampleUrl
+          ? p.imageUrl || ''
+          : typeof portfolioCoverImageUrl === 'function'
             ? portfolioCoverImageUrl(p)
             : urls[0] || p.imageUrl || '';
         var alt = p.imageAlt || p.title || '';
+        var hint = p.exampleHint || cwrText('services.examples_open', 'Open details');
         return (
           '<li>' +
           '<button type="button" class="package-examples-item" data-examples-index="' +
@@ -6941,7 +7015,7 @@ function initPackageExamplesSheet() {
           portfolioEscapeHtml(p.title || 'Project') +
           '</span>' +
           '<span class="package-examples-item-hint">' +
-          cwrText('services.examples_open', 'Open details') +
+          portfolioEscapeHtml(hint) +
           '</span></span>' +
           '<ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>' +
           '</button></li>'
@@ -6969,17 +7043,22 @@ function initPackageExamplesSheet() {
       var recs = listEl._records || [];
       var record = recs[idx];
       if (!record) return;
+      if (showExampleFrame(record)) return;
       closeExamplesSheet();
       if (typeof window.openPortfolioProjectDetail === 'function') {
         window.openPortfolioProjectDetail(record);
       }
     });
+    if (backBtn) backBtn.addEventListener('click', showExamplesList);
     if (closeBtn) closeBtn.addEventListener('click', closeExamplesSheet);
     if (overlay) overlay.addEventListener('click', closeExamplesSheet);
     document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape' && modal.classList.contains('active')) {
-        closeExamplesSheet();
+      if (event.key !== 'Escape' || !modal.classList.contains('active')) return;
+      if (modal.classList.contains('is-previewing')) {
+        showExamplesList();
+        return;
       }
+      closeExamplesSheet();
     });
     document.addEventListener('portfolioProjectsLoaded', syncExampleButtons);
   }

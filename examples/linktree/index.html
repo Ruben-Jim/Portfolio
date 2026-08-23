@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Link Tree Examples — CodeWithRuben</title>
+<meta name="description" content="See three real Link Tree tiers — $99, $149, and $199 — branded for local Fresno businesses. Book yours with CodeWithRuben.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-deep:#070e1a;
+  --navy-panel:#0c1626;
+  --teal:#22d3c5;
+  --gold:#c9a15a;
+  --gold-bright:#e0b84a;
+  --white:#f4f7fb;
+  --slate:#7c8ca6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--navy-deep);
+  color:var(--white);
+  font-family:'Space Grotesk',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+.page-header{max-width:1080px;margin:0 auto;padding:56px 24px 32px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.06em;color:var(--teal);text-transform:uppercase;margin-bottom:20px}
+.eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal)}
+.page-header h1{font-size:clamp(32px,5vw,52px);font-weight:700;line-height:1.08;margin-bottom:16px}
+.page-header p{font-size:17px;color:var(--slate);max-width:560px;margin:0 auto;line-height:1.6}
+.back-link{display:inline-flex;align-items:center;gap:6px;margin-top:24px;font-size:13px;color:var(--slate);text-decoration:none;border-bottom:0.5px solid transparent}
+.back-link:hover{color:var(--teal);border-color:var(--teal)}
+
+.tier-nav{max-width:1080px;margin:0 auto;padding:0 24px 40px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.tier-btn{padding:12px 28px;font-size:15px;font-weight:600;font-family:inherit;border-radius:10px;border:0.5px solid rgba(255,255,255,0.14);background:var(--navy-panel);color:var(--white);cursor:pointer;transition:all 0.2s ease}
+.tier-btn:hover{border-color:rgba(255,255,255,0.28)}
+.tier-btn.active{background:rgba(34,211,197,0.12);border-color:var(--teal);color:var(--teal)}
+.tier-btn.active.gold{background:rgba(201,161,90,0.14);border-color:var(--gold);color:var(--gold-bright)}
+
+.tier-banner{max-width:640px;margin:0 auto 40px;padding:0 24px;text-align:center}
+.tier-price{font-size:15px;color:var(--slate);line-height:1.6}
+.tier-price strong{color:var(--white);font-size:17px}
+
+.examples-wrap{max-width:1080px;margin:0 auto;padding:0 24px 100px}
+.examples-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+@media(max-width:860px){.examples-grid{grid-template-columns:1fr;max-width:340px;margin:0 auto}}
+
+.example-col{display:flex;flex-direction:column;align-items:center}
+.example-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--slate);margin-bottom:16px;text-align:center}
+.example-label b{color:var(--white);display:block;font-size:13px;margin-bottom:2px}
+
+.tier-phone{position:relative;width:100%;max-width:300px;border-radius:22px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.14);background:#0f1115;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.bg-anim{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.bg-anim-99{background:linear-gradient(180deg,#171a20,#0f1115)}
+.bg-anim-99 .dot{position:absolute;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.12);animation:drift 14s linear infinite}
+.d1{left:15%;top:10%;animation-delay:0s}.d2{left:70%;top:30%;animation-delay:-4s}
+.d3{left:40%;top:60%;animation-delay:-8s}.d4{left:85%;top:75%;animation-delay:-11s}
+@keyframes drift{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-40px) translateX(20px);opacity:0}}
+
+.bg-anim-149{background:linear-gradient(160deg,#1b1f27,#0f1115)}
+.bg-anim-149 .beam{position:absolute;width:140%;height:60px;background:linear-gradient(90deg,transparent,rgba(80,140,255,0.06),transparent);left:-20%;animation:sweep 8s ease-in-out infinite}
+.b1{top:5%;animation-delay:0s}.b2{top:45%;animation-delay:-2.5s}.b3{top:80%;animation-delay:-5.5s}
+@keyframes sweep{0%,100%{transform:translateX(-30px) rotate(-8deg);opacity:0.3}50%{transform:translateX(30px) rotate(-8deg);opacity:0.7}}
+
+.bg-anim-199{background:linear-gradient(160deg,#242017,#0f1115)}
+.bg-anim-199 .orb{position:absolute;border-radius:50%;filter:blur(18px);opacity:0.35;animation:float 10s ease-in-out infinite}
+.o1{width:90px;height:90px;background:#c9a15a;left:-20px;top:10%;animation-delay:0s}
+.o2{width:70px;height:70px;background:#e0b84a;right:-10px;top:40%;animation-delay:-3s}
+.o3{width:100px;height:100px;background:#8a6a2a;left:30%;bottom:-30px;animation-delay:-6s}
+@keyframes float{0%,100%{transform:translateY(0) translateX(0)}50%{transform:translateY(-20px) translateX(15px)}}
+.bg-anim-199 .spark{position:absolute;width:3px;height:3px;border-radius:50%;background:#f0c96a;animation:twinkle 3s ease-in-out infinite}
+.s1{left:20%;top:15%;animation-delay:0s}.s2{left:75%;top:25%;animation-delay:-1s}
+.s3{left:60%;top:65%;animation-delay:-2s}.s4{left:15%;top:80%;animation-delay:-0.5s}
+@keyframes twinkle{0%,100%{opacity:0;transform:scale(0.5)}50%{opacity:1;transform:scale(1.3)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.75}}
+
+.top-row{position:relative;display:flex;align-items:center;gap:6px;margin:10px 18px 0}
+.url-bar{flex:1;padding:6px 10px;background:rgba(0,0,0,0.3);border:0.5px solid #2a2d34;border-radius:6px;font-size:9px;color:#8a8a8a;display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace}
+.icon-btn{width:24px;height:24px;border-radius:6px;background:rgba(0,0,0,0.3);border:0.5px solid #2a2d34;display:flex;align-items:center;justify-content:center;color:#8a8a8a;font-size:11px;flex-shrink:0}
+.hours-row{display:flex;align-items:center;justify-content:center;gap:5px;font-size:10px;color:#9a9a9a;margin-top:4px}
+.hours-dot{width:6px;height:6px;border-radius:50%}
+.hours-dot.open{background:#5dcaa5}
+.promo-banner{position:relative;margin:0;padding:6px 12px;background:rgba(80,140,255,0.1);color:#8ab4f8;font-size:9px;font-weight:600;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px}
+.countdown{font-family:'IBM Plex Mono',monospace;font-size:9px;background:rgba(0,0,0,0.25);padding:1px 5px;border-radius:4px}
+
+.avatar-photo{width:60px;height:60px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;color:#0f1115}
+.biz-name{color:#fff;font-size:15px;font-weight:600}
+
+.lt-link{position:relative;display:flex;align-items:center;gap:9px;padding:10px 13px;border-radius:9px;border:0.5px solid #2a2d34;background:rgba(24,27,33,0.85);color:#e8e8e8;font-size:12px;font-weight:500}
+.lt-link i{font-size:14px;color:#9a9a9a;font-style:normal}
+
+.section-lbl{font-size:10px;font-weight:600;margin-bottom:7px;color:#8a8a8a;font-family:'IBM Plex Mono',monospace;letter-spacing:0.03em}
+.map-embed{position:relative;height:70px;border-radius:9px;overflow:hidden;border:0.5px solid #2a2d34;background:#1a1d22}
+.map-grid{position:absolute;inset:0;background-image:linear-gradient(#23262c 1px,transparent 1px),linear-gradient(90deg,#23262c 1px,transparent 1px);background-size:14px 14px}
+.map-pin{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);color:#e24b4a;font-size:18px}
+
+.review-card{position:relative;background:rgba(24,27,33,0.85);border:0.5px solid #2a2d34;border-radius:9px;padding:9px 11px;margin-bottom:7px}
+.review-stars{font-size:10px;color:#e0b84a;letter-spacing:1px;margin-bottom:3px}
+.review-text{font-size:11px;color:#d8d8d8;line-height:1.45;margin-bottom:3px}
+.review-name{font-size:10px;color:#8a8a8a}
+.review-video-tag{display:inline-flex;align-items:center;gap:4px;font-size:9px;color:#e0b84a;background:rgba(201,161,90,0.12);padding:2px 6px;border-radius:4px;margin-bottom:4px}
+
+.faq-item{display:flex;align-items:center;justify-content:space-between;background:rgba(24,27,33,0.85);border:0.5px solid #2a2d34;border-radius:7px;padding:8px 11px;margin-bottom:5px;font-size:11px;color:#d8d8d8}
+
+.story-track{position:relative;display:flex;gap:8px;overflow-x:auto;padding:0 18px 4px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.story-track::-webkit-scrollbar{display:none}
+.story-card{scroll-snap-align:start;flex:0 0 92px;height:104px;border-radius:10px;background:rgba(24,27,33,0.85);border:0.5px solid #2a2d34;padding:8px 6px;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:flex-start}
+.story-card.gold{border-color:#3a2f1a}
+.story-tag{font-size:8px;font-weight:600;color:#6a6a6a;text-transform:uppercase;letter-spacing:0.3px;margin-bottom:6px;font-family:'IBM Plex Mono',monospace}
+.story-tag.gold{color:#c9a15a}
+.story-title{font-size:10px;font-weight:600;color:#e8e8e8;margin-top:5px}
+.story-sub{font-size:8px;color:#8a8a8a;line-height:1.3;margin-top:2px}
+.owner-avatar-lg{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#1a1a1a,#252525);display:flex;align-items:center;justify-content:center;color:#e8e8e8}
+.media-embed-sm{width:100%;height:46px;border-radius:7px;background:linear-gradient(135deg,#1a1a1a,#252525);border:0.5px solid #2a2d34;display:flex;align-items:center;justify-content:center;position:relative;margin-top:4px}
+.media-play-sm{position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;color:#111;font-size:8px}
+.ba-slider-sm{width:100%;height:46px;border-radius:7px;border:0.5px solid #2a2d34;display:flex;overflow:hidden;position:relative;margin-top:4px}
+.ba-half{flex:1;background:linear-gradient(135deg,#1a1a1a,#252525)}
+.ba-handle{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#5a8ad8}
+.media-thumb-lg{width:100%;height:46px;border-radius:7px;background:linear-gradient(135deg,#1a1a1a,#252525);border:0.5px solid #2a2d34;display:flex;align-items:center;justify-content:center;margin-top:4px}
+.team-avatar{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#1a1a1a,#252525);border:0.5px solid #3a2f1a}
+
+.mini-stats{position:relative;display:flex;gap:5px;border-top:0.5px solid #2a2d34;padding-top:9px}
+.mini-stat{flex:1;text-align:center;display:flex;flex-direction:column}
+.mini-num{font-size:12px;font-weight:600;color:#e8e8e8}
+.mini-lbl{font-size:8px;color:#6a6a6a;margin-top:1px}
+
+.cta-band{border-top:0.5px solid rgba(255,255,255,0.08);padding:64px 24px;text-align:center}
+.cta-band h2{font-size:26px;font-weight:700;margin-bottom:12px}
+.cta-band p{color:var(--slate);font-size:15px;margin-bottom:28px;max-width:440px;margin-left:auto;margin-right:auto;line-height:1.6}
+.cta-btn{display:inline-block;padding:14px 32px;background:var(--gold);color:#1a1204;font-weight:700;font-size:15px;text-decoration:none;border-radius:10px;transition:transform 0.15s ease,background 0.15s ease}
+.cta-btn:hover{background:var(--gold-bright);transform:translateY(-1px)}
+
+html.in-frame,
+body.in-frame{
+  background:transparent;
+  min-height:100%;
+}
+body.in-frame .page-header,
+body.in-frame .tier-nav,
+body.in-frame .tier-banner,
+body.in-frame .example-label,
+body.in-frame .cta-band{
+  display:none !important;
+}
+body.in-frame .examples-wrap{
+  max-width:none;
+  padding:12px 12px 20px;
+}
+body.in-frame .examples-grid{
+  grid-template-columns:1fr;
+  max-width:340px;
+  margin:0 auto;
+  gap:0;
+}
+body.in-frame .tier-phone{
+  max-width:340px;
+}
+.live-demo{
+  margin-top:14px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--teal);
+  text-decoration:none;
+}
+.live-demo.gold{color:var(--gold-bright)}
+body.in-frame .live-demo{display:none}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="eyebrow">CodeWithRuben · Link Tree Examples</div>
+  <h1>One link. Every reason to book.</h1>
+  <p>Three real tiers, three real Fresno businesses. Tap through each one below — this is exactly what your customers see when they scan your QR code or tap your Instagram bio link.</p>
+  <a href="/services-pricing" class="back-link" target="_top">&larr; Back to Services &amp; Pricing</a>
+</div>
+
+<div class="tier-nav">
+  <button class="tier-btn active" id="btn-99" onclick="showTier(99)">$99 &mdash; Foundation</button>
+  <button class="tier-btn" id="btn-149" onclick="showTier(149)">$149 &mdash; Enhanced</button>
+  <button class="tier-btn" id="btn-199" onclick="showTier(199)">$199+ &mdash; Premium</button>
+</div>
+
+<div class="tier-banner">
+  <p class="tier-price" id="tier-desc"><strong>$99 one-time.</strong> Custom domain, hours, embedded map, EN/ES toggle, 2 reviews, action links. Real trust-builders free tools don't give you.</p>
+</div>
+
+<div class="examples-wrap">
+  <div class="examples-grid">
+
+    <div class="example-col tier99-set">
+      <div class="example-label"><b>Ruiz Lawn Care</b>Lawn &amp; landscaping</div>
+      <div class="tier-phone">
+        <div class="bg-anim bg-anim-99"><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span><span class="dot d4"></span></div>
+        <div class="top-row">
+          <div class="url-bar">&#128274; ruizlawncare.expo.app</div>
+          <div class="icon-btn">A</div><div class="icon-btn">&#8599;</div>
+        </div>
+        <div style="position:relative;padding:14px 18px 0;text-align:center">
+          <div class="avatar-photo" style="background:linear-gradient(135deg,#7bc47f,#4a8f4e)">RL</div>
+          <div class="biz-name">Ruiz Lawn Care</div>
+          <div class="hours-row"><span class="hours-dot open"></span>Open now &middot; Fresno, CA</div>
+        </div>
+        <div style="position:relative;padding:10px 18px 0"><div class="section-lbl">FIND US</div><div class="map-embed"><div class="map-grid"></div><div class="map-pin">&#128205;</div></div></div>
+        <div style="position:relative;padding:10px 18px 4px;display:flex;flex-direction:column;gap:8px">
+          <div class="lt-link">&#128197; Book now</div>
+          <div class="lt-link">&#128222; Call us</div>
+          <div class="lt-link">&#9776; See services</div>
+        </div>
+        <div style="position:relative;padding:10px 18px 0">
+          <div class="section-lbl">REVIEWS</div>
+          <div class="review-card"><div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="review-text">"Reliable, on time, yard always looks sharp."</div><div class="review-name">&mdash; Marcus T.</div></div>
+          <div class="review-card"><div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="review-text">"Best lawn crew in the Central Valley."</div><div class="review-name">&mdash; Kim P.</div></div>
+        </div>
+        <div style="position:relative;padding:8px 18px 6px;text-align:center">
+          <div style="font-size:9px;color:#6a6a6a">142 clicks this month</div>
+        </div>
+        <div style="position:relative;padding:0 0 10px;text-align:center;font-size:8px;color:#555">Built by CodeWithRuben</div>
+      </div>
+      <a class="live-demo" href="/assets/templates/client-linktree/99/index.html">Open live demo →</a>
+    </div>
+
+    <div class="example-col tier149-set" style="display:none">
+      <div class="example-label"><b>Central Fades Barbershop</b>Barber &amp; beauty</div>
+      <div class="tier-phone">
+        <div class="bg-anim bg-anim-149"><span class="beam b1"></span><span class="beam b2"></span><span class="beam b3"></span></div>
+        <div class="promo-banner">10% off first cut <span class="countdown">02:14:36</span></div>
+        <div class="top-row">
+          <div class="url-bar">&#128274; centralfades.expo.app</div>
+          <div class="icon-btn">A</div><div class="icon-btn">&#8599;</div>
+        </div>
+        <div style="position:relative;padding:12px 18px 0;text-align:center">
+          <div class="avatar-photo" style="background:linear-gradient(135deg,#5a8ad8,#3a5f9e);animation:pulse 2.4s ease-in-out infinite">CF</div>
+          <div class="biz-name">Central Fades</div>
+          <div class="hours-row"><span class="hours-dot open"></span>Open now &middot; Fresno &middot; &#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        </div>
+        <div style="position:relative;padding:10px 18px 0"><div class="section-lbl">FIND US</div><div class="map-embed"><div class="map-grid"></div><div class="map-pin">&#128205;</div></div></div>
+        <div style="position:relative;padding:10px 18px 0;display:flex;flex-direction:column;gap:8px">
+          <div class="lt-link" style="border-color:#5a8ad8">&#128197; Book now</div>
+          <div class="lt-link">&#128222; Call us</div>
+          <div class="lt-link">&#128172; Chat with us</div>
+        </div>
+        <div style="position:relative;padding:10px 0 0"><div class="section-lbl" style="padding-left:18px">PEOPLE</div>
+          <div class="story-track"><div class="story-card"><div class="story-tag">Owner</div><div class="owner-avatar-lg">&#9654;</div><div class="story-title">Jay Ruiz</div><div class="story-sub">30-sec intro</div></div></div>
+        </div>
+        <div style="position:relative;padding:8px 0 0"><div class="section-lbl" style="padding-left:18px">MEDIA</div>
+          <div class="story-track">
+            <div class="story-card"><div class="story-tag">Video</div><div class="media-embed-sm">&#9654;<div class="media-play-sm">&#9654;</div></div></div>
+            <div class="story-card"><div class="story-tag">Before/after</div><div class="ba-slider-sm"><div class="ba-half"></div><div class="ba-half" style="background:linear-gradient(135deg,#2a2416,#3a3020)"></div><div class="ba-handle"></div></div></div>
+          </div>
+        </div>
+        <div style="position:relative;padding:10px 18px 0">
+          <div class="section-lbl">REVIEWS</div>
+          <div class="review-card"><div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="review-text">"Cleanest fade in Fresno, hands down."</div><div class="review-name">&mdash; Devon R.</div></div>
+          <div class="review-card"><div class="review-video-tag">&#9654; Video testimonial</div><div class="review-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="review-name">&mdash; Marcus L.</div></div>
+        </div>
+        <div style="position:relative;padding:8px 18px 0">
+          <div class="section-lbl">FAQ</div>
+          <div class="faq-item"><span>Walk-ins welcome?</span>&#9660;</div>
+          <div class="faq-item"><span>Do you take cards?</span>&#9660;</div>
+        </div>
+        <div style="position:relative;padding:8px 18px 6px">
+          <div class="mini-stats"><div class="mini-stat"><span class="mini-num">142</span><span class="mini-lbl">clicks</span></div><div class="mini-stat"><span class="mini-num">38</span><span class="mini-lbl">book taps</span></div><div class="mini-stat"><span class="mini-num">3</span><span class="mini-lbl">top link</span></div></div>
+        </div>
+        <div style="position:relative;padding:2px 0 12px;text-align:center;font-size:8px;color:#555">No CodeWithRuben branding</div>
+      </div>
+      <a class="live-demo" href="/assets/templates/client-linktree/149/index.html">Open live demo →</a>
+    </div>
+
+    <div class="example-col tier199-set" style="display:none">
+      <div class="example-label"><b>ProCleaning Seattle</b>Cleaning &amp; operations</div>
+      <div class="tier-phone">
+        <div class="bg-anim bg-anim-199"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span></div>
+        <div class="promo-banner" style="background:rgba(201,161,90,0.12);color:#e0b84a">10% off first clean <span class="countdown" style="color:#e0b84a">02:14:36</span></div>
+        <div class="top-row">
+          <div class="url-bar" style="color:#c9a15a">&#128274; procleaningseattle.com</div>
+          <div class="icon-btn" style="color:#c9a15a">A</div><div class="icon-btn" style="color:#c9a15a">&#8599;</div>
+        </div>
+        <div style="position:relative;padding:12px 18px 0;text-align:center">
+          <div class="avatar-photo" style="background:linear-gradient(135deg,#7ec8e3,#4a90a8);animation:pulse 2.4s ease-in-out infinite;box-shadow:0 0 0 3px rgba(201,161,90,0.25)">PC</div>
+          <div class="biz-name">ProCleaning Seattle</div>
+          <div class="hours-row" style="color:#c9a15a"><span class="hours-dot open" style="background:#e0b84a"></span>Open now &middot; Trusted locally</div>
+        </div>
+        <div style="position:relative;padding:10px 18px 0"><div class="section-lbl" style="color:#c9a15a">FIND US</div><div class="map-embed" style="border-color:#3a2f1a"><div class="map-grid"></div><div class="map-pin" style="color:#e0b84a">&#128205;</div></div></div>
+        <div style="position:relative;padding:10px 18px 0;display:flex;flex-direction:column;gap:8px">
+          <div class="lt-link" style="border-color:#c9a15a">&#128197; Book now</div>
+          <div class="lt-link">&#128222; Call us</div>
+          <div class="lt-link">&#128172; Chat with us</div>
+        </div>
+        <div style="position:relative;padding:10px 0 0"><div class="section-lbl" style="padding-left:18px;color:#c9a15a">PEOPLE</div>
+          <div class="story-track">
+            <div class="story-card gold"><div class="story-tag gold">Owner</div><div class="owner-avatar-lg" style="background:linear-gradient(135deg,#2a2416,#3a3020)">&#9654;</div><div class="story-title">Sarah Kim</div><div class="story-sub">30-sec intro</div></div>
+            <div class="story-card gold"><div class="story-tag gold">Team</div><div style="display:flex;gap:4px;margin-top:6px"><div class="team-avatar"></div><div class="team-avatar"></div><div class="team-avatar"></div></div><div class="story-sub" style="margin-top:5px">Meet the crew</div></div>
+          </div>
+        </div>
+        <div style="position:relative;padding:8px 0 0"><div class="section-lbl" style="padding-left:18px;color:#c9a15a">MEDIA</div>
+          <div class="story-track">
+            <div class="story-card gold"><div class="story-tag gold">Video</div><div class="media-embed-sm" style="border-color:#3a2f1a">&#9654;<div class="media-play-sm">&#9654;</div></div></div>
+            <div class="story-card gold"><div class="story-tag gold">IG post</div><div class="media-thumb-lg">&#128247;</div></div>
+            <div class="story-card gold"><div class="story-tag gold">Before/after</div><div class="ba-slider-sm" style="border-color:#3a2f1a"><div class="ba-half" style="background:linear-gradient(135deg,#1a1a1a,#252525)"></div><div class="ba-half" style="background:linear-gradient(135deg,#2a2416,#3a3020)"></div><div class="ba-handle" style="background:#e0b84a"></div></div></div>
+          </div>
+        </div>
+        <div style="position:relative;padding:10px 18px 0">
+          <div class="section-lbl" style="color:#c9a15a">REVIEWS</div>
+          <div class="review-card" style="border-color:#3a2f1a"><div class="review-stars" style="color:#c9a15a">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="review-text">"Booking app changed how we run the whole business."</div><div class="review-name">&mdash; Roberto M.</div></div>
+          <div class="review-card" style="border-color:#3a2f1a"><div class="review-video-tag">&#9654; Video testimonial</div><div class="review-stars" style="color:#c9a15a">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="review-name">&mdash; Jenny H.</div></div>
+          <div class="review-card" style="border-color:#3a2f1a"><div class="review-stars" style="color:#c9a15a">&#9733;&#9733;&#9733;&#9733;&#9733;</div><div class="review-text">"Professional, fast, fair pricing every time."</div><div class="review-name">&mdash; Priya K.</div></div>
+        </div>
+        <div style="position:relative;padding:8px 18px 0">
+          <div class="section-lbl" style="color:#c9a15a">FAQ</div>
+          <div class="faq-item" style="border-color:#3a2f1a"><span>Do you offer free estimates?</span>&#9660;</div>
+          <div class="faq-item" style="border-color:#3a2f1a"><span>What areas do you serve?</span>&#9660;</div>
+          <div class="faq-item" style="border-color:#3a2f1a"><span>Payment plans available?</span>&#9660;</div>
+        </div>
+        <div style="position:relative;padding:8px 18px 6px">
+          <div class="mini-stats" style="border-color:#3a2f1a"><div class="mini-stat"><span class="mini-num" style="color:#e0b84a">142</span><span class="mini-lbl">clicks</span></div><div class="mini-stat"><span class="mini-num" style="color:#e0b84a">38</span><span class="mini-lbl">book taps</span></div><div class="mini-stat"><span class="mini-num" style="color:#e0b84a">+18%</span><span class="mini-lbl">vs last wk</span></div></div>
+        </div>
+        <div style="position:relative;padding:2px 0 12px;text-align:center;font-size:8px;color:#6a5a3a">No branding &middot; full analytics dashboard</div>
+      </div>
+      <a class="live-demo gold" href="/assets/templates/client-linktree/199/index.html">Open live demo →</a>
+    </div>
+
+  </div>
+</div>
+
+<div class="cta-band">
+  <h2>Want one for your business?</h2>
+  <p>Pick a tier, tell me your business, and I'll have your branded Link Tree ready in 3&ndash;5 days.</p>
+  <a href="/hire-me" class="cta-btn" target="_top">Start from $99 &rarr;</a>
+</div>
+
+<script>
+const tierData = {
+  99: "<strong>$99 one-time.</strong> Custom domain, hours, embedded map, EN/ES toggle, 2 reviews, action links. Real trust-builders free tools don't give you.",
+  149: "<strong>$149 one-time.</strong> Everything in $99, plus: owner intro, video, before/after slider, FAQ, live chat, no CodeWithRuben branding, better analytics.",
+  199: "<strong>$199+ one-time.</strong> Everything in $149, plus: team bios, IG feed, video testimonial, full analytics dashboard. The + means custom add-ons are available."
+};
+function showTier(tier){
+  document.querySelectorAll('.tier-btn').forEach(function(b){b.classList.remove('active','gold')});
+  document.getElementById('btn-'+tier).classList.add('active');
+  if(tier===199) document.getElementById('btn-199').classList.add('gold');
+  document.querySelector('.tier99-set').style.display = tier===99 ? 'flex':'none';
+  document.querySelector('.tier149-set').style.display = tier===149 ? 'flex':'none';
+  document.querySelector('.tier199-set').style.display = tier===199 ? 'flex':'none';
+  document.getElementById('tier-desc').innerHTML = tierData[tier];
+}
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var requested = Number(params.get('tier') || '');
+  if (requested === 99 || requested === 149 || requested === 199) {
+    showTier(requested);
+  }
+  if (window.self !== window.top) {
+    document.documentElement.classList.add('in-frame');
+    document.body.classList.add('in-frame');
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -43,61 +43,84 @@
     {
       id: 'essential',
       badge: 'Essential',
-      title: 'Cover the basics',
+      title: 'Essential Care',
       monthly: '$79/mo',
       annual: '$522/yr',
       monthlyAmount: 79,
       annualAmount: 522,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs monthly',
-      annualEquiv: '~$44/mo equivalent · billed once per year',
+      annualNote: 'Save 45% vs month-to-month',
+      annualEquiv: '~$44/mo · billed once per year',
       hoursIncluded: 2,
       slaHours: 120,
       features: [
-        'We help Priority and Standard clients first',
-        'Site or app updates 4 times a year',
-        'New features are priced separately'
+        'Website and app stay hosted, secure, and online',
+        'App Store and Play Store updates 4 times a year',
+        'Questions answered in 5 business days',
+        'If you are completely down, reply in 1 business day — weekdays only',
+        'Website content changes and new features are quoted separately'
       ]
     },
     {
       id: 'standard',
       badge: 'Standard',
-      title: 'Best for most businesses',
+      title: 'Standard Care',
       monthly: '$150/mo',
       annual: '$990/yr',
       monthlyAmount: 150,
       annualAmount: 990,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs monthly',
-      annualEquiv: '~$83/mo equivalent · billed once per year',
+      annualNote: 'Save 45% vs month-to-month',
+      annualEquiv: '~$83/mo · billed once per year',
       hoursIncluded: 6,
       slaHours: 72,
       recommended: true,
       features: [
-        'We help you before Essential clients',
-        'Monthly updates to your site or app',
-        'Small new features each month',
-        'A bigger upgrade each quarter · one major refresh each year'
+        'Everything in Essential Care',
+        'Send photos and videos any time — published every month',
+        'App Store updates every month if needed',
+        'New features and improvements included each month — not quoted separately',
+        'One bigger addition every 3 months · one large update each year',
+        'Questions in 3 business days · if you are down, reply in 4 hours including nights and weekends',
+        'Your requests move ahead of Essential clients'
+      ],
+      compareLead: 'The difference is $468 a year — about $39 a month. What that $39 buys:',
+      compare: [
+        'Website content updates become included',
+        '3× more app store updates — monthly instead of 4× a year',
+        '6× faster when you are down — 4 hours instead of 1 business day, nights and weekends too',
+        '2 days faster on regular questions — 3 business days instead of 5',
+        'New features stop being a separate bill'
       ]
     },
     {
       id: 'priority',
       badge: 'Priority',
-      title: 'Get help first',
+      title: 'Priority Care',
       monthly: '$300/mo',
       annual: '$1,980/yr',
       monthlyAmount: 300,
       annualAmount: 1980,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs monthly',
-      annualEquiv: '~$165/mo equivalent · billed once per year',
+      annualNote: 'Save 45% vs month-to-month',
+      annualEquiv: '~$165/mo · billed once per year',
       hoursIncluded: 10,
       slaHours: 24,
       features: [
-        'We help you first — before Standard and Essential',
-        'Updates when you need them · weekly content tweaks',
-        'Small new features each month · a bigger upgrade each quarter',
-        'A major refresh twice a year'
+        'Everything in Standard Care',
+        'Content published weekly',
+        'One large update every 6 months',
+        'Unused work in a month carries over 30 days',
+        'Questions in 24 hours · if you are down, reply in 2 hours including nights and weekends',
+        'First in line, ahead of every other client'
+      ],
+      compareLead: '$990 a year more than Standard — about $83 a month. What it buys:',
+      compare: [
+        '4× more content updates — weekly instead of monthly',
+        '2× faster when you are down — 2 hours instead of 4',
+        '3× faster on regular questions — 24 hours instead of 3 business days',
+        '2× the major updates — every 6 months instead of once a year',
+        'First in line, ahead of every other client'
       ]
     }
   ];
@@ -351,12 +374,12 @@
           esc(plan.id) +
           '">' +
           '<span class="client-portal-plan-price-main">' +
-          esc(plan.monthly) +
+          esc(plan.annual) +
           '</span></p>' +
           '<p class="client-portal-plan-note" data-maint-plan="' +
           esc(plan.id) +
           '">' +
-          esc(plan.monthlyNote || '') +
+          esc(maintenancePlanPriceNote(plan, 'annual')) +
           '</p>' +
           '</span>' +
           '</span>' +
@@ -366,7 +389,21 @@
               return '<li>' + esc(f) + '</li>';
             })
             .join('') +
-          '</ul></label>'
+          '</ul>' +
+          (plan.compare && plan.compare.length
+            ? '<div class="client-portal-plan-compare">' +
+              '<p class="client-portal-plan-compare-lead">' +
+              esc(plan.compareLead || '') +
+              '</p>' +
+              '<ul>' +
+              plan.compare
+                .map(function (f) {
+                  return '<li>' + esc(f) + '</li>';
+                })
+                .join('') +
+              '</ul></div>'
+            : '') +
+          '</label>'
         );
       }).join('') +
       '</div>'
@@ -416,12 +453,12 @@
     return (
       '<div class="client-portal-maint-block" id="portal-maint-picker">' +
       '<h3 class="client-portal-support-subhead">Choose a maintenance plan</h3>' +
-      '<p class="client-portal-maint-lead">After your first included month, a care plan keeps your site or app running — hosting, updates, and small fixes.</p>' +
+      '<p class="client-portal-maint-lead">Annual pricing: Essential $522/year · Standard $990/year · Priority $1,980/year. Paying annually saves 45% compared to month-to-month on any plan.</p>' +
       '<fieldset class="client-portal-billing-pref">' +
       '<legend>Billing preference</legend>' +
       '<div class="client-portal-billing-toggle">' +
-      '<label><input type="radio" name="portal-billing-pref" value="monthly" checked><span>Monthly</span></label>' +
-      '<label><input type="radio" name="portal-billing-pref" value="annual"><span>Annual <em class="client-portal-billing-save">Save 45%</em></span></label>' +
+      '<label><input type="radio" name="portal-billing-pref" value="monthly"><span>Monthly</span></label>' +
+      '<label><input type="radio" name="portal-billing-pref" value="annual" checked><span>Annual <em class="client-portal-billing-save">Save 45%</em></span></label>' +
       '</div>' +
       '</fieldset>' +
       renderMaintenancePlanCards('standard') +

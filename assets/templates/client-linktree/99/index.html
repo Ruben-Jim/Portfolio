@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ruiz Lawn Care — Links</title>
+  <meta name="description" content="Book lawn care in Fresno. Weekly mows, cleanups, and curb appeal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../linktree.css" />
+  <style>
+    :root {
+      --bg: #10150f;
+      --bg-accent: #171c16;
+      --text: #f4f7f4;
+      --text-muted: rgba(244, 247, 244, 0.68);
+      --brand: #7bc47f;
+      --brand-soft: rgba(123, 196, 127, 0.16);
+      --link-bg: rgba(255, 255, 255, 0.06);
+      --link-bg-hover: rgba(255, 255, 255, 0.11);
+      --link-border: rgba(255, 255, 255, 0.1);
+      --radius: 14px;
+      --ff: 'DM Sans', system-ui, sans-serif;
+      --max: 420px;
+      --ease: 0.22s ease;
+    }
+  </style>
+</head>
+<body class="lt">
+  <main class="lt-page">
+    <div class="lt-bar">
+      <div class="lt-lang" role="group" aria-label="Language">
+        <button type="button" class="is-on" data-lang="en">EN</button>
+        <button type="button" data-lang="es">ES</button>
+      </div>
+    </div>
+
+    <header class="lt-profile">
+      <div class="lt-avatar is-logo">
+        <img src="../media/ruiz-logo.svg" alt="Ruiz Lawn Care" />
+      </div>
+      <h1 class="lt-name">Ruiz Lawn Care</h1>
+      <p class="lt-bio" data-en="Fresno lawn care · Weekly mows, cleanups, and curb appeal that shows." data-es="Cuidado de césped en Fresno · Cortes semanales, limpiezas y jardines que se ven.">Fresno lawn care · Weekly mows, cleanups, and curb appeal that shows.</p>
+      <p class="lt-hours" data-hours data-open="7" data-close="18" data-off="0">
+        <span class="lt-dot is-open" aria-hidden="true"></span>
+        <span data-hours-label data-en-open="Open now · Fresno, CA" data-es-open="Abierto ahora · Fresno, CA" data-en-closed="Closed · Opens 7am" data-es-closed="Cerrado · Abre a las 7am">Open now · Fresno, CA</span>
+      </p>
+    </header>
+
+    <img class="lt-work" src="../media/ruiz-yard.jpg" alt="Fresh-cut yard in Fresno" />
+
+    <section class="lt-section" aria-labelledby="find-us">
+      <h2 class="lt-label" id="find-us" data-en="Find us" data-es="Encuéntranos">Find us</h2>
+      <figure class="lt-mapbox">
+        <iframe
+          title="Ruiz Lawn Care — Fresno"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d102233.80387830337!2d-119.79417246963037!3d36.799192630660905!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80945de1549e4e9d%3A0x7b12406449a3b811!2sFresno%2C%20CA!5e0!3m2!1sen!2sus!4v1757977098812!5m2!1sen!2sus"></iframe>
+      </figure>
+    </section>
+
+    <nav class="lt-section" aria-label="Actions">
+      <ul class="lt-links">
+        <li>
+          <a class="is-primary" href="sms:+15555550199">
+            <span data-en="Book now" data-es="Reservar ahora">Book now</span>
+            <span class="lt-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        <li>
+          <a href="tel:+15555550199">
+            <span data-en="Call us" data-es="Llámanos">Call us</span>
+            <span class="lt-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        <li>
+          <a href="#services">
+            <span data-en="See services" data-es="Ver servicios">See services</span>
+            <span class="lt-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <section class="lt-section" id="services" aria-labelledby="reviews">
+      <h2 class="lt-label" id="reviews" data-en="Reviews" data-es="Reseñas">Reviews</h2>
+      <ul class="lt-list">
+        <li class="lt-review">
+          <div class="lt-review-stars" aria-label="5 stars">★★★★★</div>
+          <p data-en="&quot;Reliable, on time, yard always looks sharp.&quot;" data-es="&quot;Confiables, puntuales, el jardín siempre se ve impecable.&quot;"></p>
+          <cite>— Marcus T.</cite>
+        </li>
+        <li class="lt-review">
+          <div class="lt-review-stars" aria-label="5 stars">★★★★★</div>
+          <p data-en="&quot;Best lawn crew in the Central Valley.&quot;" data-es="&quot;El mejor equipo de césped del Valle Central.&quot;"></p>
+          <cite>— Kim P.</cite>
+        </li>
+      </ul>
+    </section>
+
+    <p class="lt-clicks" data-en="142 clicks this month" data-es="142 clics este mes">142 clicks this month</p>
+    <p class="lt-footer">
+      <span data-en="Built by" data-es="Hecho por">Built by</span>
+      <a href="https://rubenjimenez.dev" target="_blank" rel="noopener">CodeWithRuben</a>
+    </p>
+  </main>
+  <script src="../linktree.js"></script>
+  <script>document.querySelectorAll('[data-en]').forEach(function(el){ if(!el.textContent.trim()) el.textContent = el.getAttribute('data-en'); });</script>
+</body>
+</html>

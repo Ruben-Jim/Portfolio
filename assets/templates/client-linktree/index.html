@@ -31,6 +31,26 @@
     html {
       scroll-behavior: smooth;
       -webkit-text-size-adjust: 100%;
+      scrollbar-width: thin;
+      scrollbar-color: hsl(45, 100%, 72%) hsl(240, 1%, 17%);
+    }
+
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    html::-webkit-scrollbar-track,
+    body::-webkit-scrollbar-track {
+      background: hsl(240, 1%, 17%);
+      border-radius: 5px;
+    }
+
+    html::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb {
+      background: hsl(45, 100%, 72%);
+      border-radius: 5px;
     }
 
     body {
@@ -232,10 +252,8 @@
 <body>
   <main class="page">
     <header class="profile">
-      <div class="avatar" aria-hidden="true">
-        <!-- Replace with client logo/photo, or keep initials fallback -->
-        <!-- <img src="avatar.jpg" alt="" /> -->
-        <div class="avatar-fallback">VG</div>
+      <div class="avatar">
+        <img src="media/valley-logo.svg" alt="Valley Green Lawn Care" />
       </div>
       <h1 class="name">Valley Green Lawn Care</h1>
       <p class="bio">Fresno lawn care · Weekly mows, cleanups &amp; curb appeal that shows.</p>
