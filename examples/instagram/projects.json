@@ -1,0 +1,63 @@
+[
+  {
+    "id": "tradeservice",
+    "url": "https://tradeservice.expo.app",
+    "niche": "Booking apps for trade crews",
+    "ready": "Moss Removal"
+  },
+  {
+    "id": "procleaning",
+    "url": "https://procleaning.expo.app",
+    "niche": "Booking apps for cleaning crews",
+    "ready": "Moss Removal"
+  },
+  {
+    "id": "rosasalon",
+    "url": "https://beautysalon.expo.app",
+    "niche": "Booking apps for salons"
+  },
+  {
+    "id": "barbershop",
+    "url": "https://barbershoptemplate.expo.app",
+    "niche": "Booking apps for barbershops"
+  },
+  {
+    "id": "rizo",
+    "url": "https://rizo-pizza.expo.app",
+    "niche": "Ordering apps for restaurants"
+  },
+  {
+    "id": "grippysocks",
+    "url": "https://aimnshootrecords.expo.app",
+    "niche": "Soccer media and merch",
+    "ready": "Featured Video",
+    "alsoReady": "REELS",
+    "phoneUseDesktopUa": true,
+    "fitHome": true
+  },
+  {
+    "id": "hoa",
+    "url": "https://hoa-demo.expo.app",
+    "niche": "Apps for HOA communities"
+  },
+  {
+    "id": "gadgetgarage",
+    "url": "https://gadgetgarage.app",
+    "niche": "Apps for retail and repair"
+  },
+  {
+    "id": "zoomrealty",
+    "url": "https://ruben-jim.github.io/ZoomRealty2025-main/",
+    "niche": "Websites for real estate teams"
+  },
+  {
+    "id": "estate",
+    "url": "https://ruben-jim.github.io/Real-Estate/",
+    "niche": "Property listing websites"
+  },
+  {
+    "id": "homeverse",
+    "url": "https://ruben-jim.github.io/DEMO/",
+    "niche": "Real estate showcase sites"
+  }
+]
