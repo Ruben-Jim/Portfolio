@@ -1,0 +1,20 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isPortfolioAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'ruben.jim.co@gmail.com';
+    }
+
+    match /instagramPosts/{projectId}/{fileName} {
+      allow read: if true;
+      allow write: if isPortfolioAdmin()
+        && request.resource.size < 12 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

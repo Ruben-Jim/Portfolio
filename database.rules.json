@@ -139,6 +139,10 @@
     "agencyOutboundDedupe": {
       ".read": false,
       ".write": false
+    },
+    "instagramPosts": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     }
   }
 }

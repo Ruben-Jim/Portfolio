@@ -1,0 +1,505 @@
+/* Shared Instagram artboard styles — used by examples/instagram and Admin → Content */
+
+.ig-mockup-root {
+  --navy: #07090e;
+  --navy-2: #10131a;
+  --gold: #ffdb6e;
+  --gold-2: #ffbc5e;
+  --white: #f4f7fb;
+  --muted: #8b93a7;
+  font-family: Poppins, system-ui, sans-serif;
+  color: var(--white);
+  box-sizing: border-box;
+}
+
+.ig-mockup-root *,
+.ig-mockup-root *::before,
+.ig-mockup-root *::after {
+  box-sizing: border-box;
+}
+
+.ig-mockup-root .artboard {
+  position: relative;
+  margin: 0 auto 48px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255, 219, 110, 0.16), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 90%, rgba(34, 211, 197, 0.08), transparent 50%),
+    linear-gradient(180deg, #12151c 0%, var(--navy) 55%);
+  color: var(--white);
+}
+
+.ig-mockup-root .artboard--feed { width: 1080px; height: 1350px; }
+.ig-mockup-root .artboard--story { width: 1080px; height: 1920px; }
+
+.ig-mockup-root .brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ig-mockup-root .brand img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: block;
+}
+
+.ig-mockup-root .wordmark {
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.ig-mockup-root .wordmark span { color: var(--gold); }
+
+.ig-mockup-root .brand-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.ig-mockup-root .copy {
+  margin-top: 28px;
+}
+
+.ig-mockup-root .copy h2 {
+  font-size: 50px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+  margin: 0 0 12px;
+  max-width: 18ch;
+}
+
+.ig-mockup-root .niche {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.ig-mockup-root .proof {
+  font-size: 17px;
+  color: var(--muted);
+  line-height: 1.45;
+  max-width: 36em;
+}
+
+.ig-mockup-root .proof strong { color: var(--white); font-weight: 600; }
+
+.ig-mockup-root .stores {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ig-mockup-root .stores img {
+  display: block;
+  height: 48px;
+  width: auto;
+}
+
+/* Google's PNG has ~41px clear-space on every side of a 250px-tall asset. */
+.ig-mockup-root .stores img.play {
+  height: 72px;
+  margin: -12px;
+}
+
+.ig-mockup-root .devices {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+}
+
+.ig-mockup-root .stage {
+  position: relative;
+  width: 100%;
+  padding-bottom: 52px;
+}
+
+.ig-mockup-root .laptop {
+  position: relative;
+  width: 84%;
+  filter: drop-shadow(0 24px 40px rgba(0,0,0,0.5));
+}
+
+.ig-mockup-root .laptop-lid {
+  background: #1a1d24;
+  border: 10px solid #2a2e38;
+  border-bottom-width: 6px;
+  border-radius: 14px 14px 6px 6px;
+  overflow: hidden;
+}
+
+.ig-mockup-root .laptop-bar {
+  height: 22px;
+  background: #15181e;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.ig-mockup-root .laptop-bar i {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #3d424e;
+}
+
+.ig-mockup-root .laptop-bar i:nth-child(1) { background: #ff5f57; }
+.ig-mockup-root .laptop-bar i:nth-child(2) { background: #febc2e; }
+.ig-mockup-root .laptop-bar i:nth-child(3) { background: #28c840; }
+
+.ig-mockup-root .laptop-screen {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 5;
+  object-fit: contain;
+  object-position: center;
+  background: #0b0d12;
+  vertical-align: top;
+}
+
+.ig-mockup-root .laptop-base {
+  height: 14px;
+  background: linear-gradient(#3a3f4a, #252830);
+  border-radius: 0 0 18px 18px;
+  margin: 0 8%;
+}
+
+.ig-mockup-root .phone {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 252px;
+  background: linear-gradient(160deg, #3a3a42 0%, #141416 45%, #0a0a0c 100%);
+  border-radius: 44px;
+  padding: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 0 0 1px #4a4a52,
+    0 0 0 3px #1c1c20,
+    0 22px 44px rgba(0,0,0,0.55);
+  z-index: 2;
+}
+
+.ig-mockup-root .phone img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 390 / 844;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 34px;
+  background: #111;
+}
+
+.ig-mockup-root .foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-top: 8px;
+}
+
+.ig-mockup-root .foot-start {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ig-mockup-root .cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: #1a1204;
+  font-weight: 700;
+  font-size: 18px;
+  padding: 14px 22px;
+  border-radius: 999px;
+}
+
+.ig-mockup-root .url {
+  font-size: 15px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+.ig-mockup-root .artboard--feed .inner {
+  height: 100%;
+  padding: 52px 52px 44px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ig-mockup-root .artboard--feed .devices { margin: 8px 0 4px; }
+.ig-mockup-root .artboard--feed .laptop { width: 85%; }
+.ig-mockup-root .artboard--feed .phone { width: 248px; bottom: 0; }
+
+.ig-mockup-root .artboard--story .inner {
+  height: 100%;
+  padding: 156px 56px 136px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ig-mockup-root .artboard--story .copy { margin-top: 32px; }
+.ig-mockup-root .artboard--story .copy h2 { font-size: 56px; }
+.ig-mockup-root .artboard--story .laptop { width: 90%; }
+.ig-mockup-root .artboard--story .phone { width: 280px; bottom: 0; }
+.ig-mockup-root .artboard--story .devices { margin: 20px 0 8px; }
+.ig-mockup-root .artboard--story .stage { padding-bottom: 72px; }
+
+/* Standalone example page helpers */
+.ig-example-page {
+  font-family: Poppins, system-ui, sans-serif;
+  background: #1a1c22;
+  color: #f4f7fb;
+  padding: 32px 20px 80px;
+  margin: 0;
+}
+
+.ig-example-page .guide {
+  max-width: 1080px;
+  margin: 0 auto 28px;
+  color: #c8cdd8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ig-example-page .guide h1 {
+  font-size: 22px;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.ig-example-page .guide code { color: #ffdb6e; }
+
+.ig-example-page .board-label {
+  max-width: 1080px;
+  margin: 0 auto 10px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffdb6e;
+}
+
+@media (max-width: 1120px) {
+  .ig-example-page .artboard { transform-origin: top left; }
+  .ig-example-page .artboard--feed { transform: scale(0.72); margin-bottom: -340px; }
+  .ig-example-page .artboard--story { transform: scale(0.72); margin-bottom: -500px; }
+}
+
+html.export,
+html.export body {
+  margin: 0;
+  padding: 0;
+  background: #07090e;
+  overflow: hidden;
+}
+
+html.export .guide,
+html.export .board-label { display: none; }
+
+html.export .artboard {
+  transform: none !important;
+  margin: 0 !important;
+}
+
+html.export-feed .artboard--story { display: none; }
+html.export-story .artboard--feed { display: none; }
+
+/* Admin preview chrome */
+.ig-admin-preview-wrap {
+  overflow: hidden;
+  max-width: 100%;
+  border-radius: 12px;
+  background: #0b0d12;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 12px;
+}
+
+.ig-admin-preview-scale {
+  transform-origin: top left;
+  width: 1080px;
+}
+
+.ig-admin-preview-wrap:has([data-kind="feed"]) {
+  height: calc(12px * 2 + 1350px * 0.28);
+}
+
+.ig-admin-preview-wrap:has([data-kind="story"]) {
+  height: calc(12px * 2 + 1920px * 0.22);
+}
+
+.ig-admin-preview-scale[data-kind="feed"] {
+  height: 1350px;
+  transform: scale(0.28);
+}
+
+.ig-admin-preview-scale[data-kind="story"] {
+  height: 1920px;
+  transform: scale(0.22);
+}
+
+.ig-admin-preview-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .ig-admin-preview-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ig-admin-dropzone {
+  border: 1px dashed rgba(255, 219, 110, 0.35);
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.ig-admin-dropzone.is-dragover {
+  border-color: #ffdb6e;
+  background: rgba(255, 219, 110, 0.08);
+}
+
+.ig-admin-dropzone img {
+  max-width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #111;
+}
+
+.ig-admin-dropzone-label {
+  font-size: 13px;
+  color: var(--light-gray, #9ca3af);
+}
+
+.ig-admin-status {
+  font-size: 13px;
+  color: var(--light-gray, #9ca3af);
+  min-height: 1.2em;
+}
+
+.ig-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.ig-admin-export-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .ig-admin-export-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ig-admin-export-card {
+  margin: 0;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ig-admin-export-card figcaption {
+  font-size: 12px;
+  color: var(--light-gray, #9ca3af);
+  margin-bottom: 8px;
+}
+
+.ig-admin-export-card img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #0b0d12;
+}
+
+.ig-admin-library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.ig-admin-library-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+}
+
+.ig-admin-library-card:hover,
+.ig-admin-library-card.is-selected {
+  border-color: rgba(255, 219, 110, 0.55);
+  background: rgba(255, 219, 110, 0.08);
+}
+
+.ig-admin-library-card strong {
+  font-size: 13px;
+}
+
+.ig-admin-library-card span {
+  font-size: 11px;
+  color: var(--light-gray, #9ca3af);
+}
+
+.ig-admin-library-thumbs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.ig-admin-library-thumbs img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #0b0d12;
+}
+
+.ig-admin-library-thumbs img[data-kind="story"] {
+  aspect-ratio: 9 / 16;
+}
+
+.ig-render-host {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 1080px;
+  pointer-events: none;
+  opacity: 1;
+  z-index: -1;
+}

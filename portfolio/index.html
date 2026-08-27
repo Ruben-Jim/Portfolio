@@ -100,7 +100,8 @@
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/ig-mockup.css?v=ig-library-20260827">
   <script>
     (function() {
       var saved = localStorage.getItem('portfolio-theme');
@@ -3262,6 +3263,10 @@
                   <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Blog Management</span><span class="admin-tab-label-mobile">Blog</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-instagram" data-admin-tab="instagram" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-instagram" tabindex="-1" aria-label="Instagram posts">
+                  <ion-icon name="logo-instagram" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Instagram posts</span><span class="admin-tab-label-mobile">IG posts</span></span>
+                </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-testimonials" data-admin-tab="testimonials" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-testimonials" tabindex="-1" aria-label="Testimonial requests">
                   <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Testimonials</span><span class="admin-tab-label-mobile">Reviews</span></span>
@@ -3977,6 +3982,138 @@
             </div>
           </section>
           </div><!-- /admin-panel-blog -->
+
+          <!-- Instagram posts generator -->
+          <div id="admin-panel-instagram" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-instagram" data-admin-tab="instagram" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open" id="instagram-posts-section">
+          <div class="admin-panel-heading">
+            <h3 class="h3 admin-panel-title">Instagram posts</h3>
+            <p class="admin-panel-lead">Build feed (4:5) and story (9:16) mockups from laptop + phone screenshots, then share or save.</p>
+          </div>
+            <div class="admin-collapsible-content">
+            <div class="admin-collapsible-inner-content">
+              <div class="form-row">
+                <div class="form-group form-group-half">
+                  <label for="ig-project-select">Project</label>
+                  <div class="business-doc-select business-doc-select--compact admin-inline-select" data-select-name="ig-project">
+                    <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Instagram project">
+                      <span class="business-doc-select-trigger-label">Select project…</span>
+                      <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                    </button>
+                    <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                      <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Select project…</button>
+                    </div>
+                    <input type="hidden" id="ig-project-select" value="">
+                  </div>
+                </div>
+                <div class="form-group form-group-half">
+                  <label for="ig-project-id">Slug (for new / custom)</label>
+                  <input type="text" id="ig-project-id" maxlength="48" placeholder="e.g. mysalon" autocomplete="off">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="ig-niche">Niche line</label>
+                <input type="text" id="ig-niche" maxlength="80" placeholder="Booking apps for salons">
+              </div>
+              <div class="form-row">
+                <div class="form-group form-group-half">
+                  <label>Laptop screenshot</label>
+                  <div class="ig-admin-dropzone" id="ig-drop-laptop" tabindex="0" role="button" aria-label="Upload laptop screenshot">
+                    <span class="ig-admin-dropzone-label">Drop image or click to upload · or use existing capture</span>
+                    <img id="ig-preview-laptop" alt="" hidden>
+                    <input type="file" id="ig-file-laptop" accept="image/*" hidden>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" id="ig-use-existing-laptop" style="margin-top:8px;">Use existing capture</button>
+                </div>
+                <div class="form-group form-group-half">
+                  <label>Phone screenshot</label>
+                  <div class="ig-admin-dropzone" id="ig-drop-phone" tabindex="0" role="button" aria-label="Upload phone screenshot">
+                    <span class="ig-admin-dropzone-label">Drop image or click to upload · or use existing capture</span>
+                    <img id="ig-preview-phone" alt="" hidden>
+                    <input type="file" id="ig-file-phone" accept="image/*" hidden>
+                  </div>
+                  <button type="button" class="btn btn-secondary btn-sm" id="ig-use-existing-phone" style="margin-top:8px;">Use existing capture</button>
+                </div>
+              </div>
+              <div class="ig-admin-actions" style="margin: 12px 0 16px;">
+                <button type="button" class="btn btn-primary" id="ig-generate-btn">
+                  <ion-icon name="image-outline"></ion-icon>
+                  Generate feed + story
+                </button>
+                <button type="button" class="btn btn-secondary" id="ig-save-btn" disabled>
+                  <ion-icon name="cloud-upload-outline"></ion-icon>
+                  Save to Firebase
+                </button>
+                <button type="button" class="btn btn-secondary" id="ig-share-feed-btn" disabled>
+                  <ion-icon name="share-outline"></ion-icon>
+                  Share feed
+                </button>
+                <button type="button" class="btn btn-secondary" id="ig-share-story-btn" disabled>
+                  <ion-icon name="share-outline"></ion-icon>
+                  Share story
+                </button>
+                <button type="button" class="btn btn-secondary" id="ig-download-feed-btn" disabled>
+                  <ion-icon name="download-outline"></ion-icon>
+                  Download feed
+                </button>
+                <button type="button" class="btn btn-secondary" id="ig-download-story-btn" disabled>
+                  <ion-icon name="download-outline"></ion-icon>
+                  Download story
+                </button>
+                <button type="button" class="btn btn-secondary" id="ig-open-instagram-btn">
+                  <ion-icon name="logo-instagram"></ion-icon>
+                  Open Instagram
+                </button>
+              </div>
+              <p class="ig-admin-status" id="ig-status" role="status" aria-live="polite"></p>
+
+              <div class="ig-admin-exports" id="ig-exports-current" hidden>
+                <h4 class="h4" style="margin: 8px 0 10px;">Existing export · <code id="ig-exports-current-label"></code></h4>
+                <div class="ig-admin-export-row">
+                  <figure class="ig-admin-export-card">
+                    <figcaption>Feed · <span id="ig-export-feed-name"></span></figcaption>
+                    <a id="ig-export-feed-link" href="#" target="_blank" rel="noopener">
+                      <img id="ig-export-feed-img" alt="Existing feed PNG" hidden>
+                    </a>
+                    <p class="form-hint" id="ig-export-feed-missing" hidden>No feed PNG in examples/instagram yet.</p>
+                  </figure>
+                  <figure class="ig-admin-export-card">
+                    <figcaption>Story · <span id="ig-export-story-name"></span></figcaption>
+                    <a id="ig-export-story-link" href="#" target="_blank" rel="noopener">
+                      <img id="ig-export-story-img" alt="Existing story PNG" hidden>
+                    </a>
+                    <p class="form-hint" id="ig-export-story-missing" hidden>No story PNG in examples/instagram yet.</p>
+                  </figure>
+                </div>
+              </div>
+
+              <div class="ig-admin-library" style="margin-top: 20px;">
+                <h4 class="h4" style="margin: 0 0 8px;">Library · examples/instagram</h4>
+                <p class="form-hint" style="margin-top:0;">Saved <code>*-feed.png</code> and <code>*-story.png</code> files. Click a card to load that project.</p>
+                <div class="ig-admin-library-grid" id="ig-library-grid">
+                  <p class="form-hint">Scanning exports…</p>
+                </div>
+              </div>
+
+              <div class="ig-admin-preview-row" style="margin-top: 20px;">
+                <div>
+                  <p class="form-hint" style="margin-top:0;">Live compose · Feed · 1080×1350</p>
+                  <div class="ig-admin-preview-wrap">
+                    <div class="ig-admin-preview-scale ig-mockup-root" data-kind="feed" id="ig-preview-feed-scale"></div>
+                  </div>
+                </div>
+                <div>
+                  <p class="form-hint" style="margin-top:0;">Live compose · Story · 1080×1920</p>
+                  <div class="ig-admin-preview-wrap">
+                    <div class="ig-admin-preview-scale ig-mockup-root" data-kind="story" id="ig-preview-story-scale"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="ig-render-host ig-mockup-root" id="ig-render-host" aria-hidden="true"></div>
+            </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-instagram -->
 
           <!-- Portfolio Projects (Realtime Database) -->
           <div id="admin-panel-portfolio" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-portfolio" data-admin-tab="portfolio" hidden>
@@ -7050,6 +7187,7 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
     import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
@@ -7096,6 +7234,11 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
     window.rtdbStartAfter = rtdbStartAfter;
     window.rtdbServerTimestamp = rtdbServerTimestamp;
     window.rtdbIncrement = rtdbIncrement;
+
+    window.getStorage = getStorage;
+    window.storageRef = storageRef;
+    window.uploadBytes = uploadBytes;
+    window.getDownloadURL = getDownloadURL;
   </script>
 
   <!--
@@ -7532,9 +7675,10 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=maint-proclean-copy-20260823"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=linktree-real-demos-20260821"></script>
+  <script src="/assets/js/script.js?v=ig-posts-tabfix-20260827"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=lead-email-20260817a"></script>
+  <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
