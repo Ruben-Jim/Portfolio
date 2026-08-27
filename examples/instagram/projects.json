@@ -14,7 +14,8 @@
   {
     "id": "rosasalon",
     "url": "https://beautysalon.expo.app",
-    "niche": "Booking apps for salons"
+    "niche": "Booking apps for salons",
+    "ready": "Your Beauty"
   },
   {
     "id": "barbershop",

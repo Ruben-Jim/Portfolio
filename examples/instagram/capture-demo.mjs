@@ -136,25 +136,68 @@ async function openPublicHome(page) {
   await sleep(500);
   await page.evaluate(() => {
     const t = document.body?.innerText || "";
-    if (!/staff login|create your account|sign up|upcoming pop-up/i.test(t)) return;
-    const home = Array.from(document.querySelectorAll("a, button")).find((el) =>
-      /^(home|book now)$/i.test((el.textContent || "").trim())
-    );
-    if (home) home.click();
+    const offHome =
+      /staff login|create your account|sign up|upcoming pop-up|choose your stylist|choose your barber/i.test(
+        t
+      );
+    if (!offHome) return;
+
+    const clickHome = () => {
+      const home = Array.from(document.querySelectorAll("*")).find(
+        (el) => /^home$/i.test((el.textContent || "").trim()) && el.childElementCount === 0
+      );
+      if (!home) return false;
+      home.click();
+      if (home.parentElement) home.parentElement.click();
+      return true;
+    };
+    if (clickHome()) return;
+
+    const els = Array.from(document.querySelectorAll("button, [role='button'], div"));
+    let burger = null;
+    for (const el of els) {
+      const r = el.getBoundingClientRect();
+      if (
+        r.top > 4 &&
+        r.top < 72 &&
+        r.right > window.innerWidth - 88 &&
+        r.width >= 28 &&
+        r.width <= 72 &&
+        r.height >= 28 &&
+        r.height <= 72
+      ) {
+        burger = el;
+      }
+    }
+    if (burger) burger.click();
   });
-  await sleep(1600);
+  await sleep(700);
+  await page.evaluate(() => {
+    const t = document.body?.innerText || "";
+    if (/your beauty|precision cuts/i.test(t) && !/staff login|choose your stylist/i.test(t)) return;
+    const home = Array.from(document.querySelectorAll("*")).find(
+      (el) => /^home$/i.test((el.textContent || "").trim()) && el.childElementCount === 0
+    );
+    if (!home) return;
+    home.click();
+    if (home.parentElement) home.parentElement.click();
+  });
+  await sleep(1800);
 }
 
 async function shoot(page, project, outPath, viewport) {
   await page.setViewport(viewport);
   await page.goto(project.url, { waitUntil: "networkidle2", timeout: 90000 });
-  await waitReady(page, project.ready || "");
-  await waitForAlso(page, project.alsoReady || "");
-  await sleep(project.fitHome ? 2500 : 0);
+  await waitReady(page, "");
   await page.keyboard.press("Escape").catch(() => {});
   await sleep(300);
   await page.keyboard.press("Escape").catch(() => {});
   await openPublicHome(page);
+  if (project.ready) {
+    await waitReady(page, project.ready);
+  }
+  await waitForAlso(page, project.alsoReady || "");
+  await sleep(project.fitHome ? 2500 : 0);
   if (project.ready === "Featured Video") {
     await showFeaturedAndReels(page, viewport);
   }
