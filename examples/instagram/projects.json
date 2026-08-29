@@ -24,8 +24,9 @@
   },
   {
     "id": "rizo",
-    "url": "https://rizo-pizza.expo.app",
-    "niche": "Ordering apps for restaurants"
+    "url": "https://pizza.expo.app",
+    "niche": "Ordering apps for restaurants",
+    "ready": "View Menu"
   },
   {
     "id": "grippysocks",
