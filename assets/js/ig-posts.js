@@ -79,8 +79,8 @@
   function artboardHtml(kind, niche, laptopSrc, phoneSrc) {
     var proof =
       kind === 'story'
-        ? '<strong>Packages from $499</strong> · Maintenance from $44/mo<br>Fresno-based studio · Web + iOS + Android · Live admin dashboards'
-        : '<strong>Packages from $499</strong> · Maintenance from $44/mo · Web + iOS + Android';
+        ? '<strong>Packages from $499</strong> · Maintenance from $44/mo<br>Web + iOS + Android<br>Fresno-based studio · Live admin dashboards'
+        : '<strong>Packages from $499</strong> · Maintenance from $44/mo<br>Web + iOS + Android';
     var lap = laptopSrc || '';
     var pho = phoneSrc || '';
     return (
