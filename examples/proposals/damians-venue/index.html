@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meta Ads Proposal — Damian's Venue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c241c;
+      --muted: #5c6a5c;
+      --line: #d5ddd5;
+      --paper: #f7f5f0;
+      --card: #ffffff;
+      --moss: #3d5a45;
+      --moss-deep: #2a3f31;
+      --gold: #b8954a;
+      --cream: #ebe6dc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Source Sans 3", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(61, 90, 69, 0.12), transparent 55%),
+        linear-gradient(180deg, #f3f0e9 0%, var(--paper) 40%, #efeae2 100%);
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+    header.hero {
+      padding: 36px 0 28px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 32px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--moss);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      max-width: 16ch;
+    }
+    .lede {
+      margin-top: 14px;
+      max-width: 42em;
+      color: var(--muted);
+      font-size: 1.05rem;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+      margin-top: 18px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+    .meta-row strong { color: var(--ink); font-weight: 600; }
+
+    section {
+      margin: 36px 0;
+    }
+    h2 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 1.65rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--moss);
+      margin: 18px 0 8px;
+    }
+    p, li { font-size: 1rem; }
+    ul { padding-left: 1.15em; }
+    li { margin: 6px 0; color: var(--ink); }
+    .note {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 820px) {
+      .split { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px 22px 18px;
+    }
+
+    .ad-previews {
+      display: grid;
+      grid-template-columns: 1fr 0.72fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 820px) {
+      .ad-previews { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+    }
+    .ad-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .ad-card figcaption {
+      padding: 12px 14px 14px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .ad-card figcaption strong {
+      display: block;
+      color: var(--ink);
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+    .ad-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #111;
+    }
+    .ad-card--story {
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    .cta-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      background: var(--moss);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 12px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+    }
+    .cta-pill:hover { background: var(--moss-deep); }
+
+    .price-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 640px) {
+      .price-grid { grid-template-columns: 1fr; }
+    }
+    .price {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      background: var(--cream);
+    }
+    .price .label {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--moss);
+      font-weight: 700;
+    }
+    .price .amount {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 2rem;
+      font-weight: 600;
+      margin: 4px 0;
+    }
+    .price .hint { font-size: 0.88rem; color: var(--muted); }
+
+    .tag {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--moss-deep);
+      background: rgba(61, 90, 69, 0.12);
+      padding: 4px 8px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--moss-deep); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow">CodeWithRuben · Proposal</p>
+      <h1>Meta Ads for Damian’s Venue</h1>
+      <p class="lede">
+        A focused plan to run paid Facebook &amp; Instagram ads that send engaged couples to
+        <strong>damiansvenue.com</strong> to book a tour — using the garden, water, and mountain
+        views you already show on the site. Campaign settings and Ads Manager build notes are
+        delivered separately; this page is the client-facing overview and ad creative preview.
+      </p>
+      <div class="meta-row">
+        <span><strong>Prepared for</strong> Damian’s Venue</span>
+        <span><strong>Scope</strong> Meta Ads only</span>
+        <span><strong>Site</strong> damiansvenue.com (Squarespace — stays yours)</span>
+      </div>
+    </header>
+
+    <section>
+      <span class="tag">Ready-to-go ad views</span>
+      <h2>What the ads will look like</h2>
+      <p class="note" style="margin-bottom: 16px;">
+        Previews use venue-style creative aligned to your site messaging (“Where Beauty Meets Celebration,”
+        capacity, garden / water / mountain views). Final ads will use <strong>your real photos and short video</strong>
+        (same authentic on-location look your management guide recommends). These are mock Meta placements —
+        not live campaigns.
+      </p>
+      <div class="ad-previews">
+        <figure class="ad-card">
+          <img src="damians-venue-meta-ad-feed-preview.png" alt="Instagram feed ad preview for Damian's Venue" />
+          <figcaption>
+            <strong>Feed ad · 4:5</strong>
+            Facebook / Instagram feed placement. CTA: Book a Tour → your inquiry / call link on the website.
+          </figcaption>
+        </figure>
+        <figure class="ad-card ad-card--story">
+          <img src="damians-venue-meta-ad-story-preview.png" alt="Instagram Stories ad preview for Damian's Venue" />
+          <figcaption>
+            <strong>Stories / Reels ad · 9:16</strong>
+            Full-screen vertical. CTA: Schedule a Quick Call — matches the language already on your site.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="split">
+      <div>
+        <h2>What I will do</h2>
+        <h3>Setup (week 1)</h3>
+        <ul>
+          <li>Confirm Meta Business access (Page, Instagram, Ads Manager, Pixel)</li>
+          <li>Check Meta Pixel on Squarespace and that the inquiry / “Schedule a Quick Call” path is trackable</li>
+          <li>Select 3–6 of your strongest venue photos (and a short clip if available)</li>
+          <li>Build the first Ads Manager campaign (not a simple “boost post”)</li>
+        </ul>
+        <h3>Creative</h3>
+        <ul>
+          <li>2–3 ad variations at launch (different photo or photo + short video)</li>
+          <li>Copy drawn from your site: garden estate · Tacoma · water &amp; mountain views · up to 180 guests · limited events per year</li>
+          <li>Clear CTA: Book a Tour / Schedule a Quick Call → damiansvenue.com</li>
+        </ul>
+        <h3>Audience &amp; placements</h3>
+        <ul>
+          <li>Greater Puget Sound (Tacoma, Seattle, and surrounding)</li>
+          <li>People planning weddings / events (Meta interests + Advantage+ where useful)</li>
+          <li>Feed, Stories, and Reels placements for venue photography</li>
+        </ul>
+        <h3>Ongoing (pilot period)</h3>
+        <ul>
+          <li>Watch Results and Cost per Result after a few days — not day-one vanity metrics</li>
+          <li>Pause weak creatives; keep or refresh winners every few weeks</li>
+          <li>Once Pixel has data: retarget people who visited the site but didn’t inquire</li>
+          <li>Short written update: what’s running, spend, inquiries, next change</li>
+        </ul>
+        <p class="note">Organic posting and day-to-day Squarespace edits are <strong>out of scope</strong> for this ads-only proposal unless we add them later.</p>
+      </div>
+      <div class="panel">
+        <h2 style="font-size: 1.35rem;">What you keep</h2>
+        <ul>
+          <li>Ownership of Meta Business, Page, Instagram, and Squarespace</li>
+          <li>You pay Meta ad spend directly (I don’t mark up media)</li>
+          <li>Website stays on Squarespace — no rebuild required</li>
+        </ul>
+        <h3>What I need from you</h3>
+        <ul>
+          <li>Admin access to Meta Business Suite / Ads Manager</li>
+          <li>High-resolution photos (and video if you have it)</li>
+          <li>Preferred destination: contact form or Schedule a Quick Call link</li>
+          <li>Agreed daily or monthly ad budget for the pilot</li>
+        </ul>
+      </div>
+    </section>
+
+    <section>
+      <h2>Investment (proposed)</h2>
+      <p class="note" style="margin-bottom: 14px;">Adjust numbers before sending if needed. Ad spend is separate and paid by Damian’s Venue to Meta.</p>
+      <div class="price-grid">
+        <div class="price">
+          <div class="label">Setup</div>
+          <div class="amount">$350</div>
+          <div class="hint">One-time · Pixel check, creative pack, first campaign live</div>
+        </div>
+        <div class="price">
+          <div class="label">Management · 30-day pilot</div>
+          <div class="amount">$400</div>
+          <div class="hint">Optimization + creative refresh + report · then monthly if we continue</div>
+        </div>
+      </div>
+      <p class="note" style="margin-top: 12px;">
+        Suggested pilot media budget: modest daily spend for 2–4 weeks (exact amount set with you before launch).
+        After the pilot we can move to a monthly Ads Management retainer, with optional light website or organic add-ons.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2 style="font-size: 1.4rem;">Next step</h2>
+      <p>If this looks right, we’ll schedule a short kickoff, get Business Manager access, pick the first photo set, and go live with the feed + Stories creatives above (using your real assets).</p>
+      <a class="cta-pill" href="https://rubenjimenez.dev/hire-me">Start a project with CodeWithRuben →</a>
+      <p class="note">Campaign build details (objectives, budgets, audiences) are shared separately so this page stays focused on what you’ll see and what I’ll deliver.</p>
+    </section>
+
+    <footer>
+      <p>
+        Prepared by <a href="https://rubenjimenez.dev">CodeWithRuben</a>
+        · Fresno-based Web &amp; Mobile Dev Studio
+        · Proposal for Damian’s Venue · Meta Ads
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
