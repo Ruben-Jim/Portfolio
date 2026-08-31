@@ -16521,6 +16521,7 @@ window.addEventListener('load', function() {
     var sub = document.createElement('div');
     sub.className = 'business-docs-doc-sub';
     if (doc.type === 'invoice' && doc.invoiceNumber) {
+      sub.className = 'business-docs-doc-sub business-doc-invoice-no';
       sub.textContent = String(doc.invoiceNumber);
     } else if (doc.clientEmail) {
       sub.textContent = String(doc.clientEmail);
@@ -16594,6 +16595,16 @@ window.addEventListener('load', function() {
     } catch (e) {}
   }
 
+  function sortBusinessDocsNewestFirst(docs) {
+    return docs.slice().sort(function (a, b) {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
+  function businessDocStatusLabel(status) {
+    return String(status || '').toUpperCase();
+  }
+
   function buildBusinessDocClientDocsHeadEl() {
     var head = document.createElement('div');
     head.className = 'business-docs-docs-head';
@@ -16619,10 +16630,10 @@ window.addEventListener('load', function() {
         return (
           '<span class="business-doc-badge business-doc-status-' +
           s +
-          '">' +
+          ' business-docs-client-flag">' +
           statusCounts[s] +
           ' ' +
-          s +
+          businessDocStatusLabel(s) +
           '</span>'
         );
       })
@@ -16634,18 +16645,23 @@ window.addEventListener('load', function() {
     card.setAttribute('data-client-key', group.key);
 
     var panelId = 'business-docs-client-panel-' + String(group.key).replace(/[^a-z0-9_-]+/gi, '-');
+    var toggleLabel =
+      (isOpen ? 'Hide documents for ' : 'Show documents for ') + String(group.name || 'client');
     var toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'business-docs-client-toggle';
     toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     toggle.setAttribute('aria-controls', panelId);
+    toggle.setAttribute('aria-label', toggleLabel);
     toggle.innerHTML =
       '<span class="business-docs-client-accent" aria-hidden="true"></span>' +
       '<span class="business-docs-client-chevron-wrap" aria-hidden="true">' +
       '<ion-icon name="chevron-forward-outline" class="business-doc-client-chevron"></ion-icon>' +
       '</span>' +
       '<span class="business-docs-client-toggle-client">' +
-      '<span class="business-doc-client-name">' +
+      '<span class="business-doc-client-name" title="' +
+      escapeBusinessDocListHtml(group.name) +
+      '">' +
       escapeBusinessDocListHtml(group.name) +
       '</span>' +
       '</span>' +
@@ -16665,9 +16681,11 @@ window.addEventListener('load', function() {
     var body = document.createElement('div');
     body.className = 'business-docs-client-body';
     body.id = panelId;
+    body.setAttribute('role', 'region');
+    body.setAttribute('aria-label', 'Documents for ' + String(group.name || 'client'));
     if (isOpen) {
       body.appendChild(buildBusinessDocClientDocsHeadEl());
-      group.docs.forEach(function (doc) {
+      sortBusinessDocsNewestFirst(group.docs).forEach(function (doc) {
         body.appendChild(buildBusinessDocItemEl(doc));
       });
     }

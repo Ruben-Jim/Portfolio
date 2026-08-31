@@ -17763,6 +17763,9 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 }
 
 .business-docs-table-wrapper {
+  --business-docs-chevron-col: 40px;
+  --business-docs-docs-col: 96px;
+  --business-docs-doc-grid: minmax(0, 1.45fr) minmax(0, 1fr) 7.5rem minmax(7.75rem, auto);
   max-height: none;
   overflow: hidden;
   margin-top: 4px;
@@ -17770,6 +17773,7 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.2);
   padding: 0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .business-docs-client-list {
@@ -17781,10 +17785,10 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 .business-docs-list-columns,
 .business-docs-client-toggle {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1.5fr) 88px minmax(0, 1fr);
+  grid-template-columns: var(--business-docs-chevron-col) minmax(0, 1.5fr) var(--business-docs-docs-col) minmax(0, 1fr);
   align-items: center;
   gap: 12px 16px;
-  padding: 0 16px 0 12px;
+  padding: 0 18px 0 14px;
 }
 
 .business-docs-list-columns {
@@ -17829,6 +17833,11 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 
 .business-docs-client-card.is-expanded {
   background: rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 1px 0 rgba(255, 193, 7, 0.08);
+}
+
+.business-docs-client-card.is-expanded .business-doc-client-name {
+  color: var(--white-1);
 }
 
 .business-docs-client-accent {
@@ -17849,7 +17858,7 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 .business-docs-client-toggle {
   position: relative;
   width: 100%;
-  min-height: 52px;
+  min-height: 54px;
   margin: 0;
   border: 0;
   background: transparent;
@@ -17857,7 +17866,11 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.business-docs-client-card.is-expanded > .business-docs-client-toggle {
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .business-docs-client-toggle:hover {
@@ -17927,14 +17940,21 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   gap: 6px;
 }
 
+.business-doc-client-flags .business-docs-client-flag {
+  padding: 2px 8px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
 .business-docs-client-flags-empty {
   color: var(--light-gray-70);
+  font-size: var(--fs-8);
 }
 
 .business-docs-client-body {
   display: none;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.22);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.18) 100%);
 }
 
 .business-docs-client-card.is-expanded .business-docs-client-body {
@@ -17944,23 +17964,31 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 .business-docs-docs-head,
 .business-docs-doc-item {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto auto;
+  grid-template-columns: var(--business-docs-doc-grid);
   gap: 10px 14px;
-  align-items: center;
-  padding: 10px 16px 10px 52px;
+  align-items: start;
+  padding: 11px 18px 11px calc(14px + var(--business-docs-chevron-col));
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .business-docs-docs-head {
   min-height: 34px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  background: rgba(0, 0, 0, 0.18);
+  padding-top: 9px;
+  padding-bottom: 9px;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.22);
   font-size: 10px;
   font-weight: var(--fw-600);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--light-gray);
+  border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.business-docs-docs-head-date,
+.business-docs-doc-date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .business-docs-docs-head-actions {
@@ -17973,14 +18001,49 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   border-right: 0;
   border-top: 0;
   background: transparent;
+  transition: background 0.15s ease;
 }
 
 .business-docs-doc-item:last-child {
   border-bottom: none;
+  padding-bottom: 14px;
 }
 
 .business-docs-doc-item:hover {
   background: rgba(255, 255, 255, 0.04);
+}
+
+.business-docs-doc-status {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.business-docs-doc-item .business-doc-actions {
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  min-width: 7.75rem;
+  padding-top: 1px;
+}
+
+.business-docs-doc-date {
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  padding-top: 2px;
+}
+
+.business-doc-signed-badge--unsigned {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-400);
+  color: var(--light-gray-70);
+  text-transform: none;
+  letter-spacing: normal;
+  line-height: 1.35;
 }
 
 .business-docs-doc-primary {
@@ -18003,22 +18066,9 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   line-height: 1.35;
 }
 
-.business-docs-doc-status {
-  min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.business-docs-doc-date {
-  font-size: var(--fs-8);
-  color: var(--light-gray);
-  white-space: nowrap;
-}
-
-.business-docs-doc-item .business-doc-actions {
-  justify-content: flex-end;
+.business-docs-doc-sub.business-doc-invoice-no {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  letter-spacing: 0.03em;
 }
 
 .business-docs-table {
@@ -18272,30 +18322,36 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 10px;
+    gap: 4px 10px;
     padding: 12px 14px 12px 10px;
     min-height: 0;
   }
 
   .business-docs-client-chevron-wrap {
     flex-shrink: 0;
+    align-self: flex-start;
+    margin-top: 1px;
   }
 
   .business-docs-client-toggle-client {
     flex: 1 1 calc(100% - 44px);
     min-width: 0;
+    order: 1;
   }
 
   .business-docs-client-count {
     flex: 0 0 auto;
     text-align: left;
     padding-left: 38px;
+    order: 2;
   }
 
   .business-doc-client-flags {
     flex: 1 1 100%;
     justify-content: flex-start;
     padding-left: 38px;
+    order: 3;
+    margin-top: -2px;
   }
 
   .business-docs-docs-head,
@@ -18311,7 +18367,8 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 
   .business-docs-doc-item .business-docs-doc-primary::before,
   .business-docs-doc-item .business-docs-doc-status::before,
-  .business-docs-doc-item .business-docs-doc-date::before {
+  .business-docs-doc-item .business-docs-doc-date::before,
+  .business-docs-doc-item .business-doc-actions::before {
     display: block;
     font-size: 10px;
     font-weight: var(--fw-600);
@@ -18322,7 +18379,7 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   }
 
   .business-docs-doc-item .business-docs-doc-primary::before {
-    content: 'Type';
+    content: 'Document';
   }
 
   .business-docs-doc-item .business-docs-doc-status::before {
@@ -18333,10 +18390,18 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
     content: 'Created';
   }
 
+  .business-docs-doc-item .business-doc-actions::before {
+    content: 'Actions';
+  }
+
   .business-docs-doc-item .business-doc-actions {
     justify-content: flex-start;
-    padding-top: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+    padding-top: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 4px;
+    padding-top: 10px;
   }
 
   .business-docs-table thead {
