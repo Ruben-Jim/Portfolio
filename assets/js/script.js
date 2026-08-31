@@ -11617,6 +11617,7 @@ window.addEventListener('load', function() {
   // ----------------------------
 
   const BUSINESS_DOCS_STORAGE_KEY = 'businessDocs.v1';
+  const BUSINESS_DOCS_DELETED_IDS_KEY = 'businessDocs.deleted.v1';
   const BUSINESS_DOCS_RTD_PATH = 'agencyBusinessDocuments';
   const BUSINESS_DOC_CLIENT_LOGOS_KEY = 'businessDocClientLogos.v1';
 
@@ -11740,6 +11741,54 @@ window.addEventListener('load', function() {
     } catch (e) {
       console.warn('Failed to save business docs to localStorage', e);
     }
+  }
+
+  /** Tombstone ids so RTDB merge does not resurrect docs the user deleted locally. */
+  function loadBusinessDocDeletedIds() {
+    try {
+      var raw = localStorage.getItem(BUSINESS_DOCS_DELETED_IDS_KEY);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveBusinessDocDeletedIds(map) {
+    try {
+      localStorage.setItem(BUSINESS_DOCS_DELETED_IDS_KEY, JSON.stringify(map));
+    } catch (e) {
+      console.warn('Failed to save deleted business doc ids', e);
+    }
+  }
+
+  function markBusinessDocDeleted(docId) {
+    if (!docId) return;
+    var map = loadBusinessDocDeletedIds();
+    map[String(docId)] = Date.now();
+    saveBusinessDocDeletedIds(map);
+  }
+
+  function isBusinessDocDeleted(docId) {
+    return !!loadBusinessDocDeletedIds()[String(docId || '')];
+  }
+
+  /** Drop tombstones once RTDB no longer has the doc (delete succeeded). */
+  function pruneBusinessDocDeletedIds(remoteList) {
+    var map = loadBusinessDocDeletedIds();
+    var remoteIds = {};
+    (remoteList || []).forEach(function (d) {
+      if (d && d.id) remoteIds[d.id] = true;
+    });
+    var changed = false;
+    Object.keys(map).forEach(function (id) {
+      if (!remoteIds[id]) {
+        delete map[id];
+        changed = true;
+      }
+    });
+    if (changed) saveBusinessDocDeletedIds(map);
   }
 
   function sanitizeBusinessDocForRtdb(doc) {
@@ -11897,11 +11946,7 @@ window.addEventListener('load', function() {
 
   async function removeBusinessDocFromRtdb(docId) {
     if (!docId || !window.rtdb || !window.rtdbRef || !window.rtdbRemove) return;
-    try {
-      await window.rtdbRemove(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH + '/' + docId));
-    } catch (e) {
-      console.warn('Failed to remove business doc from RTDB', e);
-    }
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH + '/' + docId));
   }
 
   async function loadBusinessDocsFromRtdb() {
@@ -12132,12 +12177,18 @@ window.addEventListener('load', function() {
   function mergeBusinessDocLists(localList, remoteList) {
     var map = {};
     (localList || []).forEach(function (d) {
-      if (!d || !d.id) return;
+      if (!d || !d.id || isBusinessDocDeleted(d.id)) return;
       map[d.id] = normalizeBusinessDocRecord(d);
     });
     var toPush = [];
     (remoteList || []).forEach(function (d) {
       if (!d || !d.id) return;
+      if (isBusinessDocDeleted(d.id)) {
+        removeBusinessDocFromRtdb(d.id).catch(function (err) {
+          console.warn('Retry remove deleted business doc from RTDB', err);
+        });
+        return;
+      }
       var remote = normalizeBusinessDocRecord(d);
       var local = map[d.id];
       if (!local) {
@@ -12155,7 +12206,7 @@ window.addEventListener('load', function() {
       }
     });
     (localList || []).forEach(function (d) {
-      if (!d || !d.id) return;
+      if (!d || !d.id || isBusinessDocDeleted(d.id)) return;
       var existsRemote = (remoteList || []).some(function (r) {
         return r && r.id === d.id;
       });
@@ -12204,6 +12255,7 @@ window.addEventListener('load', function() {
       return true;
     }
     var merged = mergeBusinessDocLists(businessDocs, fromRtdb);
+    pruneBusinessDocDeletedIds(fromRtdb);
     applyBusinessDocsList(merged.docs);
     for (var p = 0; p < merged.toPush.length; p++) {
       await syncBusinessDocToRtdb(merged.toPush[p]);
@@ -12225,6 +12277,7 @@ window.addEventListener('load', function() {
         var remote = Object.keys(val).map(function (k) {
           return normalizeBusinessDocRecord(val[k], k);
         });
+        pruneBusinessDocDeletedIds(remote);
         var merged = mergeBusinessDocLists(businessDocs, remote);
         applyBusinessDocsList(merged.docs);
         merged.toPush.forEach(function (doc) {
@@ -16835,20 +16888,34 @@ window.addEventListener('load', function() {
     }
   }
 
-  function handleDeleteDocumentConfirmClick() {
+  async function handleDeleteDocumentConfirmClick() {
     var modal = document.getElementById('delete-document-confirm-modal');
     var docId = modal && modal.dataset ? modal.dataset.pendingDocumentId : '';
     if (!docId) {
       closeDeleteDocumentConfirmModal();
       return;
     }
+    markBusinessDocDeleted(docId);
     businessDocs = businessDocs.filter(function (d) {
       return d.id !== docId;
     });
     saveBusinessDocs(businessDocs);
-    removeBusinessDocFromRtdb(docId).catch(console.error);
     renderBusinessDocs();
     closeDeleteDocumentConfirmModal();
+    try {
+      await removeBusinessDocFromRtdb(docId);
+    } catch (err) {
+      console.warn('Failed to remove business doc from RTDB', err);
+      if (
+        window.firebaseAuth &&
+        !window.firebaseAuth.currentUser &&
+        typeof window.alert === 'function'
+      ) {
+        window.alert(
+          'Document removed here, but Firebase still has a copy. Sign in with Google (admin) so it can be deleted from the cloud too.'
+        );
+      }
+    }
     if (
       businessDocIdInput &&
       businessDocIdInput.value === docId &&
@@ -16873,7 +16940,9 @@ window.addEventListener('load', function() {
       btnClose.addEventListener('click', closeDeleteDocumentConfirmModal);
     }
     btnCancel.addEventListener('click', closeDeleteDocumentConfirmModal);
-    btnDelete.addEventListener('click', handleDeleteDocumentConfirmClick);
+    btnDelete.addEventListener('click', function () {
+      handleDeleteDocumentConfirmClick().catch(console.error);
+    });
     document.addEventListener(
       'keydown',
       function (ev) {
