@@ -16594,6 +16594,18 @@ window.addEventListener('load', function() {
     } catch (e) {}
   }
 
+  function buildBusinessDocClientDocsHeadEl() {
+    var head = document.createElement('div');
+    head.className = 'business-docs-docs-head';
+    head.setAttribute('aria-hidden', 'true');
+    head.innerHTML =
+      '<span class="business-docs-docs-head-type">Document</span>' +
+      '<span class="business-docs-docs-head-status">Status</span>' +
+      '<span class="business-docs-docs-head-date">Created</span>' +
+      '<span class="business-docs-docs-head-actions">Actions</span>';
+    return head;
+  }
+
   function buildBusinessDocClientCardEl(group, isOpen) {
     var statusCounts = {};
     group.docs.forEach(function (d) {
@@ -16628,20 +16640,22 @@ window.addEventListener('load', function() {
     toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     toggle.setAttribute('aria-controls', panelId);
     toggle.innerHTML =
-      '<ion-icon name="chevron-forward-outline" class="business-doc-client-chevron" aria-hidden="true"></ion-icon>' +
-      '<span class="business-docs-client-toggle-main">' +
+      '<span class="business-docs-client-accent" aria-hidden="true"></span>' +
+      '<span class="business-docs-client-chevron-wrap" aria-hidden="true">' +
+      '<ion-icon name="chevron-forward-outline" class="business-doc-client-chevron"></ion-icon>' +
+      '</span>' +
+      '<span class="business-docs-client-toggle-client">' +
       '<span class="business-doc-client-name">' +
       escapeBusinessDocListHtml(group.name) +
       '</span>' +
-      '<span class="business-docs-client-meta">' +
+      '</span>' +
       '<span class="business-docs-client-count">' +
       group.docs.length +
-      (group.docs.length === 1 ? ' document' : ' documents') +
+      (group.docs.length === 1 ? ' doc' : ' docs') +
       '</span>' +
       '<span class="business-doc-client-flags">' +
-      flagsHtml +
-      '</span>' +
-      '</span></span>';
+      (flagsHtml || '<span class="business-docs-client-flags-empty">—</span>') +
+      '</span>';
 
     toggle.addEventListener('click', function () {
       setBusinessDocsOpenClient(businessDocsOpenClientKey === group.key ? null : group.key);
@@ -16652,6 +16666,7 @@ window.addEventListener('load', function() {
     body.className = 'business-docs-client-body';
     body.id = panelId;
     if (isOpen) {
+      body.appendChild(buildBusinessDocClientDocsHeadEl());
       group.docs.forEach(function (doc) {
         body.appendChild(buildBusinessDocItemEl(doc));
       });
@@ -16660,6 +16675,18 @@ window.addEventListener('load', function() {
     card.appendChild(toggle);
     card.appendChild(body);
     return card;
+  }
+
+  function buildBusinessDocsListColumnsEl() {
+    var head = document.createElement('div');
+    head.className = 'business-docs-list-columns';
+    head.setAttribute('aria-hidden', 'true');
+    head.innerHTML =
+      '<span class="business-docs-list-col-spacer" aria-hidden="true"></span>' +
+      '<span class="business-docs-list-col-client">Client</span>' +
+      '<span class="business-docs-list-col-docs">Documents</span>' +
+      '<span class="business-docs-list-col-status">Status</span>';
+    return head;
   }
 
   function ensureBusinessDocsListRoot() {
@@ -16749,6 +16776,7 @@ window.addEventListener('load', function() {
 
         listRoot.className = 'business-docs-client-list';
         listRoot.innerHTML = '';
+        listRoot.appendChild(buildBusinessDocsListColumnsEl());
         groups.forEach(function (group) {
           var isOpen = businessDocsOpenClientKey === group.key;
           listRoot.appendChild(buildBusinessDocClientCardEl(group, isOpen));
