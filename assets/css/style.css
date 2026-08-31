@@ -17410,27 +17410,16 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 }
 
 .business-docs-content {
-  display: grid;
-  /* max-content when open so the client list can grow the page instead of
-     being clipped inside a 1fr + overflow:hidden track. */
-  grid-template-rows: minmax(0, max-content);
+  display: block;
   opacity: 1;
-  transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
 }
 
 .business-docs-section:not(.business-docs-open) .business-docs-content {
-  grid-template-rows: 0fr;
-  opacity: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .business-docs-content > .business-docs-layout {
   min-height: 0;
-  /* Keep hidden only while collapsing (0fr). When open, allow full height. */
-  overflow: hidden;
-}
-
-.business-docs-section.business-docs-open > .business-docs-content > .business-docs-layout {
   overflow: visible;
 }
 
@@ -17528,8 +17517,7 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 
 /* Mobile admin panels: don't stretch collapsible bodies (grid 1fr + heading flex-grow caused huge gaps) */
 @media (max-width: 767px) {
-  .admin-tabs .admin-collapsible-section.admin-collapsible-open > .admin-collapsible-content,
-  .admin-tabs .business-docs-section.business-docs-open > .business-docs-content {
+  .admin-tabs .admin-collapsible-section.admin-collapsible-open > .admin-collapsible-content {
     grid-template-rows: minmax(0, max-content);
   }
 
@@ -17791,6 +17779,7 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 }
 
 .business-docs-client-card {
+  display: block;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   background: var(--eerie-black-2);
