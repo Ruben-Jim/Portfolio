@@ -16651,15 +16651,17 @@ window.addEventListener('load', function() {
   }
 
   function ensureBusinessDocsListRoot() {
+    var panel = document.getElementById('admin-panel-docs');
     var wrap =
+      (panel && panel.querySelector('.business-docs-table-wrapper')) ||
       document.querySelector('#admin-dashboard-content .business-docs-table-wrapper') ||
       document.querySelector('.business-docs-table-wrapper');
     if (!wrap) return null;
     wrap.classList.remove('has-scrollbar');
-    var list = document.getElementById('business-docs-list');
-    if (list && wrap.contains(list)) return list;
+    var list = wrap.querySelector('#business-docs-list');
+    if (list) return list;
     wrap.innerHTML = '<div id="business-docs-list" class="business-docs-client-list" role="list"></div>';
-    return document.getElementById('business-docs-list');
+    return wrap.querySelector('#business-docs-list');
   }
 
   function renderBusinessDocs() {

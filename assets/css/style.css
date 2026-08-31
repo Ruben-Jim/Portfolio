@@ -17411,7 +17411,9 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 
 .business-docs-content {
   display: grid;
-  grid-template-rows: 1fr;
+  /* max-content when open so the client list can grow the page instead of
+     being clipped inside a 1fr + overflow:hidden track. */
+  grid-template-rows: minmax(0, max-content);
   opacity: 1;
   transition: grid-template-rows 0.3s ease, opacity 0.25s ease;
 }
@@ -17424,7 +17426,12 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 
 .business-docs-content > .business-docs-layout {
   min-height: 0;
+  /* Keep hidden only while collapsing (0fr). When open, allow full height. */
   overflow: hidden;
+}
+
+.business-docs-section.business-docs-open > .business-docs-content > .business-docs-layout {
+  overflow: visible;
 }
 
 /* Generic admin collapsible sections (Contact Messages, Blog Management) */
@@ -17787,6 +17794,7 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
   background: var(--eerie-black-2);
+  color: var(--white-2);
   overflow: hidden;
 }
 
