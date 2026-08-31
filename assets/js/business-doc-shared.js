@@ -90,9 +90,48 @@
     if (!doc) return 'DOCUMENT';
     if (doc.type === 'proposal') return 'PROPOSAL';
     if (doc.type === 'estimate') return 'ESTIMATE';
-    if (doc.type === 'invoice') return 'INVOICE';
+    if (doc.type === 'invoice') {
+      if (isMaintenanceOnlyInvoice(doc)) {
+        var kind = normalizeMaintenanceInvoiceKind(doc.maintenanceInvoiceKind) || 'maintenance';
+        if (kind === 'setup') return 'SETUP INVOICE';
+        if (kind === 'renewal') return 'RENEWAL INVOICE';
+        return 'MAINTENANCE INVOICE';
+      }
+      return 'INVOICE';
+    }
     if (doc.type === 'contract') return 'CONTRACT';
     return 'DOCUMENT';
+  }
+
+  function normalizeMaintenanceInvoiceKind(kind) {
+    var k = String(kind || '')
+      .toLowerCase()
+      .trim();
+    if (k === 'setup' || k === 'renewal' || k === 'maintenance') return k;
+    return '';
+  }
+
+  /**
+   * Care-plan billing only — plan selected and not mixed with a multi-line project invoice.
+   */
+  function isMaintenanceOnlyInvoice(doc) {
+    if (!doc || String(doc.type || '').toLowerCase() !== 'invoice') return false;
+    var planId = String(doc.maintenancePlanId || '').toLowerCase();
+    if (planId !== 'essential' && planId !== 'standard' && planId !== 'priority') return false;
+    if (normalizeMaintenanceInvoiceKind(doc.maintenanceInvoiceKind)) return true;
+    if (String(doc.sourceMaintenanceId || '').trim() || String(doc.maintenancePaymentKey || '').trim()) {
+      return true;
+    }
+    var addOns = Array.isArray(doc.addOns) ? doc.addOns : [];
+    return addOns.length <= 1;
+  }
+
+  function invoiceKindBadgeLabel(doc) {
+    if (!isMaintenanceOnlyInvoice(doc)) return 'Invoice';
+    var kind = normalizeMaintenanceInvoiceKind(doc.maintenanceInvoiceKind) || 'maintenance';
+    if (kind === 'setup') return 'Setup invoice';
+    if (kind === 'renewal') return 'Renewal invoice';
+    return 'Maintenance invoice';
   }
 
   function escapeHtml(str) {
@@ -1443,6 +1482,7 @@
   }
 
   function buildInvoicePlanFootnoteHtml(doc) {
+    if (isMaintenanceOnlyInvoice(doc)) return '';
     var planId = String((doc && doc.maintenancePlanId) || '').toLowerCase();
     if (planId !== 'essential' && planId !== 'standard' && planId !== 'priority') return '';
     var plan = findMaintenancePlan(planId);
@@ -1459,8 +1499,62 @@
   }
 
   /**
+   * Hybrid care-plan block for maintenance-only invoices: summary facts + short feature list.
+   */
+  function buildMaintenanceInvoicePlanSummaryHtml(doc) {
+    if (!isMaintenanceOnlyInvoice(doc)) return '';
+    var plan = findMaintenancePlan(doc.maintenancePlanId);
+    if (!plan) return '';
+    var billing =
+      String((doc && doc.maintenanceBilling) || '').toLowerCase() === 'annual' ? 'annual' : 'monthly';
+    var billingLabel = billing === 'annual' ? 'Annual' : 'Monthly';
+    var priceLabel = billing === 'annual' ? plan.annual : plan.monthly;
+    var hours =
+      typeof plan.hoursIncluded === 'number' ? plan.hoursIncluded : Number(plan.hoursIncluded) || 0;
+    var sla = String(plan.slaLabel || '').trim();
+    var feats = Array.isArray(plan.features) ? plan.features.slice(0, 4) : [];
+    var featLis = '';
+    for (var i = 0; i < feats.length; i++) {
+      featLis +=
+        '<li><span class="bullet-li-text">' + escapeHtml(feats[i]) + '</span></li>';
+    }
+    return (
+      '<div class="inv-plan-summary">' +
+      '<div class="inv-section-title">Care plan</div>' +
+      '<div class="inv-plan-summary-card">' +
+      '<div class="inv-plan-summary-head">' +
+      '<div class="inv-plan-summary-title">' +
+      escapeHtml(plan.title || plan.badge) +
+      '</div>' +
+      '<div class="inv-plan-summary-price">' +
+      escapeHtml(priceLabel) +
+      ' · ' +
+      escapeHtml(billingLabel) +
+      '</div>' +
+      '</div>' +
+      '<dl class="inv-plan-summary-kv">' +
+      (hours
+        ? '<div><dt>Hours included</dt><dd>' + escapeHtml(String(hours)) + '/mo</dd></div>'
+        : '') +
+      (sla
+        ? '<div><dt>Reply time</dt><dd>' + escapeHtml(sla) + '</dd></div>'
+        : '') +
+      '<div><dt>Billing</dt><dd>' +
+      escapeHtml(billingLabel) +
+      '</dd></div>' +
+      '</dl>' +
+      (featLis
+        ? '<div class="inv-plan-summary-includes"><div class="inv-plan-summary-includes-label">What\'s included</div><ul class="inv-plan-feature-list">' +
+          featLis +
+          '</ul></div>'
+        : '') +
+      '</div></div>'
+    );
+  }
+
+  /**
    * Classic bill layout for invoices — theme colors, clear line items, amount due.
-   * No estimate-style marketing sections or maintenance upsell cards.
+   * Maintenance-only invoices use a hybrid care-plan summary (not a full sales card).
    */
   function getInvoiceDocumentHtml(doc) {
     var C = resolveDocTheme(doc && doc.theme ? doc.theme : 'cwr');
@@ -1487,7 +1581,6 @@
       : doc && doc.dueDate
         ? formatDateDisplay(doc.dueDate)
         : 'Upon receipt';
-    var invoiceId = String((doc && doc.id) || '').trim();
     var displayId = formatInvoiceNumber(doc);
     var totalFormatted = formatCurrency(Number(doc && doc.total) || 0);
     var statusLabel =
@@ -1495,6 +1588,9 @@
     var amountLabel = isPaid ? 'Amount paid' : 'Amount due';
     var tableHtml = buildInvoiceLineItemsTableHtml(doc);
     var planNote = buildInvoicePlanFootnoteHtml(doc);
+    var planSummaryHtml = buildMaintenanceInvoicePlanSummaryHtml(doc);
+    var badgeLabel = invoiceKindBadgeLabel(doc);
+    var footerKind = badgeLabel;
     var notesRaw = String((doc && doc.notes) || '').trim();
     var hasAddOns = !!(doc && Array.isArray(doc.addOns) && doc.addOns.length);
     var memoHtml = '';
@@ -1536,7 +1632,9 @@
       : '<div class="inv-pay-methods">Pay via ' + buildInvoicePaymentMethodsHtml() + '. Include invoice # <strong>' + escapeHtml(displayId) + '</strong> in the memo.</div>';
 
     return (
-      '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>INVOICE — ' +
+      '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>' +
+      escapeHtml(badgeLabel.toUpperCase()) +
+      ' — ' +
       escapeHtml(clientName) +
       '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 12mm; }\n' +
@@ -1601,6 +1699,39 @@
       '.inv-section-title { font-family: \'Playfair Display\', serif; font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: ' +
       C.primary +
       '; margin: 0 0 10px; }\n' +
+      '.inv-plan-summary { margin: 0 0 28px; }\n' +
+      '.inv-plan-summary-card { border: 1px solid ' +
+      borderSoft +
+      '; border-radius: 12px; padding: 16px 18px; background: rgba(255,255,255,0.03); }\n' +
+      '.inv-plan-summary-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: baseline; margin-bottom: 14px; }\n' +
+      '.inv-plan-summary-title { font-size: 16px; font-weight: 600; color: ' +
+      C.text +
+      '; }\n' +
+      '.inv-plan-summary-price { font-size: 13px; font-weight: 600; color: ' +
+      C.primary +
+      '; }\n' +
+      '.inv-plan-summary-kv { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; margin: 0 0 14px; padding: 0; }\n' +
+      '@media (max-width: 640px) { .inv-plan-summary-kv { grid-template-columns: 1fr; } }\n' +
+      '.inv-plan-summary-kv div { margin: 0; }\n' +
+      '.inv-plan-summary-kv dt { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' +
+      C.muted +
+      '; margin: 0 0 4px; }\n' +
+      '.inv-plan-summary-kv dd { margin: 0; font-size: 13px; font-weight: 500; color: ' +
+      C.text +
+      '; }\n' +
+      '.inv-plan-summary-includes-label { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' +
+      C.primary +
+      '; margin: 0 0 8px; }\n' +
+      '.inv-plan-feature-list { list-style: none; margin: 0; padding: 0; }\n' +
+      '.inv-plan-feature-list li { position: relative; padding: 5px 0 5px 14px; font-size: 12px; line-height: 1.45; color: ' +
+      C.muted +
+      '; border-top: 1px solid ' +
+      borderSoft +
+      '; }\n' +
+      '.inv-plan-feature-list li:first-child { border-top: none; }\n' +
+      '.inv-plan-feature-list li::before { content: \'\'; position: absolute; left: 0; top: 11px; width: 5px; height: 5px; border-radius: 50%; background: ' +
+      C.primary +
+      '; }\n' +
       '.inv-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }\n' +
       '.inv-table th { text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: ' +
       C.muted +
@@ -1681,7 +1812,9 @@
       '</style>\n</head>\n<body>\n  <div class="doc">\n' +
       '    <div class="inv-top">\n' +
       '      <div><div class="inv-brand">Code<span>With</span>Ruben</div><div class="inv-brand-sub">rubenjimenez.dev</div></div>\n' +
-      '      <div class="inv-badge-wrap"><div class="inv-badge">Invoice</div></div>\n' +
+      '      <div class="inv-badge-wrap"><div class="inv-badge">' +
+      escapeHtml(badgeLabel) +
+      '</div></div>\n' +
       '    </div>\n' +
       '    <div class="inv-meta-grid">\n' +
       '      <div class="inv-panel"><div class="inv-panel-label">Bill to</div><div class="inv-bill-row">' +
@@ -1719,6 +1852,7 @@
       escapeHtml(dueOrPaidValue) +
       '</dd></dl></div>\n' +
       '    </div>\n' +
+      planSummaryHtml +
       '    <div class="inv-section-title">Line items</div>\n' +
       tableHtml +
       '\n' +
@@ -1735,7 +1869,9 @@
       '<a href="mailto:Ruben.Jim.co@gmail.com">Ruben.Jim.co@gmail.com</a>.' +
       payMethodsBlock +
       '</div>\n' +
-      '    <div class="inv-footer"><span>CodeWithRuben · Invoice</span><span>' +
+      '    <div class="inv-footer"><span>CodeWithRuben · ' +
+      escapeHtml(footerKind) +
+      '</span><span>' +
       escapeHtml(displayId) +
       '</span></div>\n' +
       '  </div>\n</body>\n</html>'
@@ -1883,6 +2019,9 @@
     buildPrintHtml: buildBusinessDocHtml,
     openPrintWindow: openPrintWindow,
     maintenancePlans: MAINTENANCE_PLANS,
+    isMaintenanceOnlyInvoice: isMaintenanceOnlyInvoice,
+    invoiceKindBadgeLabel: invoiceKindBadgeLabel,
+    normalizeMaintenanceInvoiceKind: normalizeMaintenanceInvoiceKind,
     listDocThemes: listDocThemes,
     normalizeDocThemeId: normalizeDocThemeId,
     resolveDocTheme: resolveDocTheme,

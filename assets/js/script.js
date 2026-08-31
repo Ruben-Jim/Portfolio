@@ -11704,6 +11704,9 @@ window.addEventListener('load', function() {
    * @property {BusinessDocAddOn[]=} addOns
    * @property {string=} maintenancePlanId - 'essential' | 'standard' | 'priority' (estimate/invoice); proposals ignore and show all
    * @property {'monthly'|'annual'=} maintenanceBilling - estimate/invoice billing display preference
+   * @property {'setup'|'maintenance'|'renewal'=} maintenanceInvoiceKind - invoice only; care-plan invoice label
+   * @property {string=} maintenancePaymentKey - invoice only; dedupe key for auto maintenance payment invoices
+   * @property {string=} sourceMaintenanceId - invoice only; agencyMaintenance id that spawned this invoice
    * @property {string=} sourceProposalId - contract only; id of the accepted proposal it was generated from
    * @property {'license'|'buyout'=} ipTransferMode - contract only; defaults to 'license'
    * @property {'onetime'|'deposit-final'|'deposit-milestone-final'|'custom'=} paymentScheduleType - contract only; defaults to 'deposit-milestone-final'
@@ -11826,7 +11829,17 @@ window.addEventListener('load', function() {
       out.maintenancePlanId = planId;
       var billing = String(doc.maintenanceBilling || 'monthly').toLowerCase();
       out.maintenanceBilling = billing === 'annual' ? 'annual' : 'monthly';
+      if (type === 'invoice') {
+        var invKind = String(doc.maintenanceInvoiceKind || '').toLowerCase().trim();
+        if (invKind === 'setup' || invKind === 'renewal' || invKind === 'maintenance') {
+          out.maintenanceInvoiceKind = invKind;
+        }
+      }
     }
+    var maintPayKey = String(doc.maintenancePaymentKey || '').trim().slice(0, 120);
+    if (maintPayKey) out.maintenancePaymentKey = maintPayKey;
+    var sourceMaintId = String(doc.sourceMaintenanceId || '').trim().slice(0, 80);
+    if (sourceMaintId) out.sourceMaintenanceId = sourceMaintId;
     var sourceProposalId = String(doc.sourceProposalId || '').trim().slice(0, 80);
     if (sourceProposalId) out.sourceProposalId = sourceProposalId;
     var themeId = 'cwr';
@@ -16102,8 +16115,45 @@ window.addEventListener('load', function() {
     if (businessDocMaintenanceHint) {
       businessDocMaintenanceHint.textContent = isProposal
         ? 'Proposals show Essential, Standard + Priority as compact cards beside the gold turn-key price.'
-        : 'Pick one portal plan for this document. Monthly also shows annual so the client can see savings; annual shows annual only.';
+        : type === 'invoice'
+          ? 'Pick a plan for a care-only invoice. The PDF shows plan summary + what’s included, labeled Setup / Maintenance / Renewal.'
+          : 'Pick one portal plan for this document. Monthly also shows annual so the client can see savings; annual shows annual only.';
     }
+    ensureMaintenanceInvoiceKindPicker(type === 'invoice');
+  }
+
+  function ensureMaintenanceInvoiceKindPicker(show) {
+    if (!businessDocMaintenancePickers) return;
+    var wrap = document.getElementById('business-doc-maintenance-invoice-kind-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.id = 'business-doc-maintenance-invoice-kind-wrap';
+      wrap.className = 'form-group';
+      wrap.innerHTML =
+        '<label id="business-doc-maintenance-invoice-kind-label">Invoice label</label>' +
+        '<div class="business-doc-toggle-group" data-toggle-name="maintenance-invoice-kind" role="radiogroup" aria-labelledby="business-doc-maintenance-invoice-kind-label">' +
+        '<button type="button" class="business-doc-toggle-btn is-active" role="radio" aria-checked="true" data-value="maintenance">Maintenance</button>' +
+        '<button type="button" class="business-doc-toggle-btn" role="radio" aria-checked="false" data-value="setup">Setup</button>' +
+        '<button type="button" class="business-doc-toggle-btn" role="radio" aria-checked="false" data-value="renewal">Renewal</button>' +
+        '</div>' +
+        '<input type="hidden" id="business-doc-maintenance-invoice-kind" value="maintenance">' +
+        '<p class="business-doc-scope-hint">Shown on the PDF badge and in the client portal.</p>';
+      businessDocMaintenancePickers.appendChild(wrap);
+      var hidden = document.getElementById('business-doc-maintenance-invoice-kind');
+      var group = wrap.querySelector('[data-toggle-name="maintenance-invoice-kind"]');
+      if (group && hidden) {
+        group.addEventListener('click', function (e) {
+          var btn = e.target && e.target.closest ? e.target.closest('.business-doc-toggle-btn') : null;
+          if (!btn || !group.contains(btn)) return;
+          var val = btn.getAttribute('data-value') || 'maintenance';
+          hidden.value = val;
+          syncBusinessDocToggleUI(hidden);
+        });
+      }
+    }
+    wrap.hidden = !show;
+    var kindInput = document.getElementById('business-doc-maintenance-invoice-kind');
+    if (kindInput) syncBusinessDocToggleUI(kindInput);
   }
 
   function updateBusinessDocContractVisibility() {
@@ -16211,6 +16261,8 @@ window.addEventListener('load', function() {
     if (businessDocNotesInput) businessDocNotesInput.value = '';
     if (businessDocMaintenancePlanInput) businessDocMaintenancePlanInput.value = '';
     if (businessDocMaintenanceBillingInput) businessDocMaintenanceBillingInput.value = 'monthly';
+    var kindReset = document.getElementById('business-doc-maintenance-invoice-kind');
+    if (kindReset) kindReset.value = 'maintenance';
     if (businessDocIpModeInput) businessDocIpModeInput.value = 'license';
     if (businessDocPaymentScheduleTypeInput) businessDocPaymentScheduleTypeInput.value = 'deposit-milestone-final';
     if (businessDocPaymentMethodsInput) businessDocPaymentMethodsInput.value = '';
@@ -16221,6 +16273,7 @@ window.addEventListener('load', function() {
     syncBusinessDocSelectUI(businessDocMaintenancePlanInput);
     syncBusinessDocSelectUI(businessDocPaymentScheduleTypeInput);
     syncBusinessDocToggleUI(businessDocMaintenanceBillingInput);
+    syncBusinessDocToggleUI(kindReset);
     fillBusinessDocPaymentStagesUI(PAYMENT_SCHEDULE_PRESETS['deposit-milestone-final']);
     clearBusinessDocCoreFeaturesUI();
     clearBusinessDocAddonsUI();
@@ -16279,6 +16332,12 @@ window.addEventListener('load', function() {
       businessDocMaintenanceBillingInput.value =
         String(doc.maintenanceBilling || '').toLowerCase() === 'annual' ? 'annual' : 'monthly';
     }
+    ensureMaintenanceInvoiceKindPicker(String(doc.type || '') === 'invoice');
+    var kindFill = document.getElementById('business-doc-maintenance-invoice-kind');
+    if (kindFill) {
+      var k = String(doc.maintenanceInvoiceKind || '').toLowerCase();
+      kindFill.value = k === 'setup' || k === 'renewal' || k === 'maintenance' ? k : 'maintenance';
+    }
     fillBusinessDocAddonsUI(doc);
     if (businessDocIpModeInput) {
       businessDocIpModeInput.value = String(doc.ipTransferMode || '').toLowerCase() === 'buyout' ? 'buyout' : 'license';
@@ -16299,6 +16358,7 @@ window.addEventListener('load', function() {
     syncBusinessDocSelectUI(businessDocMaintenancePlanInput);
     syncBusinessDocSelectUI(businessDocPaymentScheduleTypeInput);
     syncBusinessDocToggleUI(businessDocMaintenanceBillingInput);
+    syncBusinessDocToggleUI(document.getElementById('business-doc-maintenance-invoice-kind'));
     if (String(doc.type || '') === 'invoice') {
       var logo =
         normalizeBusinessDocClientLogo(doc.clientLogo) ||
@@ -16359,7 +16419,16 @@ window.addEventListener('load', function() {
 
     var typeTd = document.createElement('td');
     typeTd.setAttribute('data-label', 'Type');
-    typeTd.innerHTML = '<span class="business-doc-badge business-doc-type-' + doc.type + '">' + doc.type.charAt(0).toUpperCase() + doc.type.slice(1) + '</span>';
+    var typeBadge =
+      window.BusinessDocShared && typeof window.BusinessDocShared.typeLabelFor === 'function'
+        ? window.BusinessDocShared.typeLabelFor(doc)
+        : String(doc.type || 'document').toUpperCase();
+    typeTd.innerHTML =
+      '<span class="business-doc-badge business-doc-type-' +
+      escapeHtml(doc.type) +
+      '">' +
+      escapeHtml(typeBadge) +
+      '</span>';
     tr.appendChild(typeTd);
 
     var clientTd = document.createElement('td');
@@ -16757,6 +16826,7 @@ window.addEventListener('load', function() {
         }
         delete doc.maintenancePlanId;
         delete doc.maintenanceBilling;
+        delete doc.maintenanceInvoiceKind;
       } else {
         delete doc.foundationUrl;
         delete doc.proposalHeadline;
@@ -16817,9 +16887,18 @@ window.addEventListener('load', function() {
             String(businessDocMaintenanceBillingInput.value || '').toLowerCase() === 'annual'
               ? 'annual'
               : 'monthly';
+          if (docType === 'invoice') {
+            var kindEl = document.getElementById('business-doc-maintenance-invoice-kind');
+            var kindVal = kindEl ? String(kindEl.value || '').toLowerCase() : 'maintenance';
+            doc.maintenanceInvoiceKind =
+              kindVal === 'setup' || kindVal === 'renewal' ? kindVal : 'maintenance';
+          } else {
+            delete doc.maintenanceInvoiceKind;
+          }
         } else {
           delete doc.maintenancePlanId;
           delete doc.maintenanceBilling;
+          delete doc.maintenanceInvoiceKind;
         }
       }
 
@@ -16970,6 +17049,123 @@ window.addEventListener('load', function() {
     if (typeof window.adminActivateTab === 'function') window.adminActivateTab('docs');
     openBusinessDocModal();
     if (businessDocClientNameInput && clientName) businessDocClientNameInput.value = clientName;
+  };
+
+  /**
+   * Create (or reuse) a paid maintenance invoice when admin confirms payment.
+   * @param {{
+   *   clientName: string,
+   *   clientEmail?: string,
+   *   planId?: string,
+   *   billing?: string,
+   *   maintenanceId?: string,
+   *   paymentKey?: string
+   * }} opts
+   * @returns {Promise<{ doc: object, created: boolean }|null>}
+   */
+  window.createPaidMaintenanceInvoiceFromPlan = async function (opts) {
+    opts = opts || {};
+    var clientName = String(opts.clientName || '').trim();
+    if (!clientName) return null;
+
+    var planId = String(opts.planId || 'standard').toLowerCase();
+    if (planId !== 'essential' && planId !== 'standard' && planId !== 'priority') {
+      planId = 'standard';
+    }
+    var billing = String(opts.billing || 'monthly').toLowerCase() === 'annual' ? 'annual' : 'monthly';
+    var maintenanceId = String(opts.maintenanceId || '').trim();
+
+    var plan = null;
+    var plans =
+      window.BusinessDocShared && Array.isArray(window.BusinessDocShared.maintenancePlans)
+        ? window.BusinessDocShared.maintenancePlans
+        : [];
+    for (var pi = 0; pi < plans.length; pi++) {
+      if (plans[pi] && plans[pi].id === planId) {
+        plan = plans[pi];
+        break;
+      }
+    }
+    var amount =
+      billing === 'annual'
+        ? Number(plan && plan.annualAmount) || 0
+        : Number(plan && plan.monthlyAmount) || 0;
+    if (!amount) {
+      amount = billing === 'annual' ? (planId === 'priority' ? 1980 : planId === 'essential' ? 522 : 990) : planId === 'priority' ? 300 : planId === 'essential' ? 79 : 150;
+    }
+
+    var now = new Date();
+    var ymMonth = String(now.getMonth() + 1);
+    if (ymMonth.length < 2) ymMonth = '0' + ymMonth;
+    var periodKey =
+      String(opts.paymentKey || '').trim() ||
+      (billing === 'annual' ? now.getFullYear() + '-annual' : now.getFullYear() + '-' + ymMonth);
+    var paymentKey =
+      (maintenanceId ? maintenanceId + ':' : '') + periodKey;
+
+    var existing = businessDocs.find(function (d) {
+      if (!d || String(d.type || '').toLowerCase() !== 'invoice') return false;
+      if (String(d.maintenancePaymentKey || '') === paymentKey) return true;
+      return false;
+    });
+    if (existing) {
+      return { doc: normalizeBusinessDocRecord(existing), created: false };
+    }
+
+    var periodLabel =
+      billing === 'annual'
+        ? String(now.getFullYear())
+        : now.toLocaleString(undefined, { month: 'long', year: 'numeric' });
+    var planTitle = (plan && plan.title) || (planId.charAt(0).toUpperCase() + planId.slice(1) + ' Care');
+    var billingLabel = billing === 'annual' ? 'Annual' : 'Monthly';
+    var lineName = planTitle + ' — ' + periodLabel;
+    var lineDetail = billingLabel + ' maintenance · payment confirmed';
+    var paidAt = todayDateInputValue();
+    var nowIso = now.toISOString();
+
+    var doc = {
+      id: generateBusinessDocId(),
+      type: 'invoice',
+      clientName: clientName.slice(0, 120),
+      clientEmail: String(opts.clientEmail || '').trim().slice(0, 200),
+      total: amount,
+      status: 'paid',
+      dueDate: paidAt,
+      paidAt: paidAt,
+      theme: 'cwr',
+      notes: lineName + '\n' + lineDetail,
+      maintenancePlanId: planId,
+      maintenanceBilling: billing,
+      maintenanceInvoiceKind:
+        String(opts.invoiceKind || '').toLowerCase() === 'renewal'
+          ? 'renewal'
+          : String(opts.invoiceKind || '').toLowerCase() === 'maintenance'
+            ? 'maintenance'
+            : 'setup',
+      maintenancePaymentKey: paymentKey,
+      sourceMaintenanceId: maintenanceId || undefined,
+      addOns: [
+        {
+          name: lineName,
+          description: lineDetail,
+          priceOptions: [{ label: billingLabel, amount: amount }]
+        }
+      ],
+      createdAt: nowIso,
+      updatedAt: nowIso
+    };
+    if (!doc.sourceMaintenanceId) delete doc.sourceMaintenanceId;
+
+    ensureInvoiceNumberOnDoc(doc, businessDocs);
+    businessDocs.push(doc);
+    saveBusinessDocs(businessDocs);
+    try {
+      await syncBusinessDocToRtdb(doc);
+    } catch (err) {
+      console.warn('Maintenance invoice RTDB sync failed', err);
+    }
+    if (typeof renderBusinessDocs === 'function') renderBusinessDocs();
+    return { doc: normalizeBusinessDocRecord(doc), created: true };
   };
 
   // Mobile admin bottom tab bar — custom order (long-press to rearrange)

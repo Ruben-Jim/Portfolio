@@ -368,11 +368,16 @@ body.client-portal-page {
   box-shadow: none;
 }
 
-/* ——— Guide picker ———
-   Guides sit behind a launcher instead of stacking open, so the portal shows one
-   control rather than every guide body at once. */
-.client-portal-guides {
+/* ——— Guide + share launchers ———
+   Guides and team-share sit behind launchers instead of stacking open, so the
+   portal shows compact controls rather than every body at once. */
+.client-portal-guides,
+.client-portal-actions {
   margin: 0 0 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
 }
 
 /* Sized to its content — a control, not a panel.
@@ -2615,13 +2620,12 @@ body.portal-dm-sheet-open {
 
   .client-portal-grid > .client-portal-docs-footer,
   .client-portal-grid > .client-portal-support-footer,
-  .client-portal-grid > .client-portal-share-footer,
   .client-portal-grid > .client-portal-status-footer {
     margin: 0;
   }
 
-  /* Share + Proposals sit side by side; Maintenance and Project status span the
-     full width. Maintenance is by far the tallest block, and leaving it in one
+  /* Proposals sit in the grid; Maintenance and Project status span the full
+     width. Maintenance is by far the tallest block, and leaving it in one
      column left the other as a tall empty gutter. */
   .client-portal-grid > .client-portal-support-footer,
   .client-portal-grid > .client-portal-status-footer {
@@ -2709,34 +2713,11 @@ body.portal-dm-sheet-open {
 
 /* ——— Share the app with your team ———
    Client-facing: hands the /get page to their crew without exposing the portal.
-   Chrome matches .client-portal-support-footer so it reads as a portal section. */
-.client-portal-share-footer {
-  margin: 0 0 20px;
-  border: 1px solid hsla(45, 100%, 72%, 0.16);
-  border-radius: 12px;
-  background: hsla(240, 2%, 14%, 0.85);
-  overflow: hidden;
-}
-
-.client-portal-share-footer summary {
-  cursor: pointer;
-  padding: 12px 16px;
-  color: var(--white-1);
-  font-weight: var(--fw-600);
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.client-portal-share-footer summary::-webkit-details-marker,
-.client-portal-share-footer summary::marker {
-  display: none;
-}
-
-.client-portal-share-body {
-  padding: 0 16px 16px;
+   Launcher sits next to View guides; body opens in the shared sheet chrome. */
+.portal-share-sheet-body {
+  padding: 4px 18px 20px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .client-portal-share-lead {
@@ -2845,4 +2826,890 @@ body.portal-dm-sheet-open {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid hsla(45, 100%, 72%, 0.18);
+}
+
+/* ---------------------------------------------------------------------------
+   Maintenance payment states
+   Paid clients get a confirmation instead of a payment prompt; the prompt
+   returns on its own inside the renewal window (see MAINT_PAY_WINDOW_DAYS).
+--------------------------------------------------------------------------- */
+.client-portal-maint-paid {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: hsla(145, 55%, 45%, 0.10);
+  border: 1px solid hsla(145, 55%, 45%, 0.30);
+  font-size: var(--fs-8);
+  line-height: 1.5;
+}
+
+.client-portal-maint-paid-mark {
+  flex: none;
+  font-weight: 700;
+  color: hsl(145, 55%, 52%);
+}
+
+/* Due-soon notice: same shape as the awaiting notice, quieter than an alert. */
+.client-portal-maint-due {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: hsla(0, 0%, 100%, 0.04);
+  border: 1px solid hsla(0, 0%, 100%, 0.12);
+  font-size: var(--fs-8);
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------------------
+   Support tickets — trigger, sheet, and receipt printer
+   The trigger sits in the maintenance block; the form lives in a sheet that is
+   a centred modal on desktop and a bottom sheet on mobile (chrome inherited
+   from .portal-guide-sheet-root). Submitting feeds a branded stub out of a
+   printer slot, clipped by max-height so it emerges rather than slides in.
+--------------------------------------------------------------------------- */
+.portal-ticket-cta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.1);
+}
+
+/* Buttons keep their intrinsic width; only the note flexes. */
+.portal-ticket-cta > .btn { flex: none; }
+
+/* Specificity note: .client-portal-page .btn is (0,2,0) and sets
+   display:inline-block, so a bare .portal-ticket-open (0,1,0) loses and the
+   flex gap silently does nothing. Match the specificity to win. */
+.client-portal-page .portal-ticket-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 16px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.client-portal-page .portal-ticket-open-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  /* Optical centring: the ticket glyph reads slightly high against the
+     cap-height of the label without this nudge. */
+  margin-top: -1px;
+}
+
+.client-portal-page .portal-ticket-open-icon svg {
+  display: block;
+  width: 15px;
+  height: 15px;
+}
+
+.portal-ticket-cta-note {
+  font-size: var(--fs-8);
+  color: hsl(0, 0%, 62%);
+  flex: 1 1 12ch;
+  min-width: 0;
+  line-height: 1.4;
+}
+
+/* Below the buttons on narrow screens rather than wedged beside them. */
+@media (max-width: 520px) {
+  .portal-ticket-cta-note { flex-basis: 100%; }
+}
+
+.portal-ticket-sheet-body {
+  padding: 18px 20px 22px;
+  overflow-y: auto;
+}
+
+/* ---- form ---- */
+.portal-ticket-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  transition: opacity 0.3s ease;
+}
+
+@media (min-width: 620px) {
+  .portal-ticket-form { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+  .portal-ticket-field--full { grid-column: 1 / -1; }
+}
+
+.portal-ticket-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+
+.portal-ticket-field > label {
+  font-size: var(--fs-8);
+  font-weight: 500;
+  color: hsl(0, 0%, 78%);
+}
+
+.portal-ticket-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid hsla(0, 0%, 100%, 0.14);
+  background: hsla(0, 0%, 100%, 0.04);
+  color: inherit;
+  font: inherit;
+  font-size: var(--fs-8);
+}
+
+.portal-ticket-input:focus-visible {
+  outline: 2px solid hsl(45, 100%, 72%);
+  outline-offset: 1px;
+}
+
+textarea.portal-ticket-input { resize: vertical; min-height: 80px; }
+
+.portal-ticket-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+  transition: opacity 0.3s ease;
+}
+
+.portal-ticket-feedback { font-size: var(--fs-8); color: hsl(0, 0%, 68%); }
+
+/* Form steps aside once the stub prints — collapsed, not removed, so the
+   sheet height eases instead of jumping. */
+.portal-ticket-form.is-done,
+.portal-ticket-actions.is-done {
+  opacity: 0;
+  height: 0;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ---- the machine, in CWR gold ----
+   Phase classes are added by printTicketReceipt(): is-armed (slide in),
+   is-warming (LED), is-fed (stepped feed), is-torn (detach + settle),
+   is-done (confirmation). Durations here must match the JS timings. */
+.portal-printer { margin-top: 4px; }
+
+.portal-printer-body {
+  position: relative;
+  z-index: 2;
+  max-width: 300px;
+  margin: 0 auto;
+  height: 56px;
+  border-radius: 13px 13px 6px 6px;
+  background: linear-gradient(180deg, hsl(240, 3%, 24%), hsl(240, 5%, 15%));
+  border: 1px solid hsla(45, 100%, 72%, 0.28);
+  box-shadow:
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.12),
+    0 0 0 1px hsla(0, 0%, 0%, 0.4),
+    0 12px 30px hsla(0, 0%, 0%, 0.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 10px 14px 0;
+
+  /* starts below and dim; is-armed brings it in */
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.34s ease, transform 0.34s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.is-armed .portal-printer-body { opacity: 1; transform: none; }
+
+/* Once the stub is torn free the machine is no longer the subject. */
+.is-torn .portal-printer-body { opacity: 0.4; transition: opacity 0.5s ease; }
+
+.portal-printer-lights { display: flex; align-items: center; gap: 8px; }
+
+.portal-printer-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: hsl(45, 100%, 72%);
+  box-shadow: 0 0 8px hsl(45, 100%, 72%);
+  flex: none;
+  opacity: 0.3;
+}
+
+/* Blinks through warm-up and feed, then holds steady. */
+.is-warming .portal-printer-led { animation: portal-led-blink 0.42s steps(1, end) infinite; }
+.is-torn .portal-printer-led { animation: none; opacity: 1; }
+
+.portal-printer-vent {
+  flex: 1;
+  height: 2px;
+  border-radius: 999px;
+  background: hsla(45, 100%, 72%, 0.16);
+  max-width: 36px;
+}
+
+.portal-printer-slot {
+  width: 224px;
+  max-width: 100%;
+  margin: 0 auto;
+  height: 9px;
+  border-radius: 5px 5px 0 0;
+  background: hsl(240, 8%, 6%);
+  box-shadow:
+    inset 0 3px 7px hsla(0, 0%, 0%, 0.8),
+    0 -1px 0 hsla(45, 100%, 72%, 0.22);
+}
+
+/* A faint glow at the slot while paper is actually moving. */
+.portal-printer-body::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 224px;
+  max-width: calc(100% - 28px);
+  bottom: 0;
+  height: 9px;
+  border-radius: 5px 5px 0 0;
+  background: radial-gradient(ellipse at 50% 100%, hsla(45, 100%, 72%, 0.5), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.is-fed .portal-printer-body::after { opacity: 1; }
+.is-torn .portal-printer-body::after { opacity: 0; }
+
+/* ---- the paper ----
+   Clipped by the wrapper's max-height so it reads as emerging from the slot.
+   The stepped keyframes are what make it feel mechanical: each advance is
+   followed by a hold, the way a thermal printer feeds line by line. */
+.portal-printer-paper {
+  position: relative;
+  z-index: 1;
+  /* Narrower than the 300px machine: receipt stock is always inset from the
+     body it feeds out of, and matching widths read as a sliding panel. */
+  max-width: 216px;
+  margin: 0 auto;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.is-fed .portal-printer-paper {
+  animation: portal-paper-feed 1.85s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+/* Reduced-motion path sets every phase at once, so show it fully fed. */
+.portal-printer.is-fed.is-armed.is-torn.is-done .portal-printer-paper { max-height: 560px; }
+
+@keyframes portal-paper-feed {
+  0%   { max-height: 0; }
+  7%   { max-height: 34px; }
+  13%  { max-height: 34px; }
+  21%  { max-height: 86px; }
+  27%  { max-height: 86px; }
+  36%  { max-height: 148px; }
+  42%  { max-height: 148px; }
+  52%  { max-height: 224px; }
+  58%  { max-height: 224px; }
+  69%  { max-height: 316px; }
+  75%  { max-height: 316px; }
+  87%  { max-height: 430px; }
+  92%  { max-height: 430px; }
+  100% { max-height: 560px; }
+}
+
+/* Tiny lateral shudder while feeding — the tell that it is a machine. */
+.is-fed .portal-receipt { animation: portal-paper-shudder 0.21s steps(2, end) 9; }
+
+@keyframes portal-paper-shudder {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(0.6px); }
+}
+
+.portal-receipt {
+  background: hsl(42, 30%, 96%);
+  color: hsl(240, 6%, 13%);
+  padding: 14px 14px 10px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  box-shadow: 0 14px 30px hsla(0, 0%, 0%, 0.5);
+}
+
+.portal-receipt-brand {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.portal-receipt-rule {
+  margin: 10px 0;
+  height: 0;
+  border-top: 1px dashed hsla(240, 6%, 13%, 0.4);
+}
+
+/* Refs are now CWR-PRC-004 rather than CWR-3636, so the type steps down to
+   keep the whole reference on one line inside the 216px stub. */
+.portal-receipt-ref {
+  margin: 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.portal-receipt-subject {
+  margin: 6px 0 11px;
+  text-align: center;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.portal-receipt-meta { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+
+/* Label left, value right - but on a 216px stub a long value (a full SLA
+   phrase) will not sit beside its label, so it drops to its own line and
+   stays right-aligned rather than being squeezed. */
+.portal-receipt-meta > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+}
+
+.portal-receipt-meta dt {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  opacity: 0.7;
+}
+
+.portal-receipt-meta dd {
+  margin: 0 0 0 auto;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.portal-receipt-foot {
+  margin: 0;
+  text-align: center;
+  font-size: 10px;
+  opacity: 0.68;
+}
+
+.portal-receipt-tear {
+  height: 11px;
+  background: hsl(42, 30%, 96%);
+  clip-path: polygon(
+    0 0, 4% 62%, 8% 0, 12% 62%, 16% 0, 20% 62%, 24% 0, 28% 62%, 32% 0,
+    36% 62%, 40% 0, 44% 62%, 48% 0, 52% 62%, 56% 0, 60% 62%, 64% 0,
+    68% 62%, 72% 0, 76% 62%, 80% 0, 84% 62%, 88% 0, 92% 62%, 96% 0, 100% 62%, 100% 0
+  );
+  filter: drop-shadow(0 10px 18px hsla(0, 0%, 0%, 0.4));
+}
+
+/* Detach: the stub drops clear of the slot and settles. */
+.portal-printer-paper { transition: transform 0.42s cubic-bezier(0.34, 1.4, 0.5, 1); }
+.is-torn .portal-printer-paper { transform: translateY(7px); }
+
+.portal-ticket-done {
+  margin-top: 20px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.is-done .portal-ticket-done { opacity: 1; transform: none; }
+
+.portal-ticket-done-note {
+  margin: 0 0 12px;
+  font-size: var(--fs-8);
+  color: hsl(0, 0%, 70%);
+}
+
+@keyframes portal-led-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.18; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-printer-body,
+  .portal-printer-paper,
+  .portal-ticket-done { transition: none; }
+  .is-fed .portal-printer-paper,
+  .is-warming .portal-printer-led,
+  .is-fed .portal-receipt { animation: none; }
+  .is-fed .portal-printer-paper { max-height: 560px; }
+}
+
+/* ---------------------------------------------------------------------------
+   Book a call — in-portal booking sheet
+   The controller from hire-me-booking.js is shared with /schedule, so its
+   markup is too. These are the hire-booking-* rules from style.css, which the
+   portal does not load, scoped under .portal-booking-body so they cannot
+   leak into the rest of the portal.
+--------------------------------------------------------------------------- */
+.portal-booking-body .hire-booking-types {
+  display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 18px 0 4px;
+}
+
+.portal-booking-body .hire-booking-types[hidden] {
+  display: none;
+}
+
+.portal-booking-body .hire-booking-type-card {
+  flex: 1 1 160px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--jet);
+    background: var(--eerie-black-1, hsl(240, 2%, 13%));
+    color: var(--white-2);
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition-1, 0.25s ease);
+}
+
+.portal-booking-body .hire-booking-type-card:hover {
+  border-color: var(--orange-yellow-crayola);
+}
+
+.portal-booking-body .hire-booking-type-card.is-selected {
+  border-color: var(--orange-yellow-crayola);
+    background: hsla(45, 100%, 72%, 0.08);
+}
+
+.portal-booking-body .hire-booking-type-label {
+  display: block;
+    font-weight: var(--fw-600);
+    font-size: var(--fs-7);
+    color: var(--white-1);
+    margin-bottom: 2px;
+}
+
+.portal-booking-body .hire-booking-type-duration {
+  display: block;
+    font-size: var(--fs-8);
+    color: var(--light-gray-70);
+}
+
+.portal-booking-body .hire-booking-selected-type {
+  display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 18px 0 0;
+    padding: 10px 14px;
+    border: 1px solid var(--jet);
+    background: var(--eerie-black-1, hsl(240, 2%, 13%));
+    border-radius: 10px;
+}
+
+.portal-booking-body .hire-booking-selected-type[hidden] {
+  display: none;
+}
+
+.portal-booking-body .hire-booking-selected-type-label {
+  font-size: var(--fs-7);
+    font-weight: var(--fw-600);
+    color: var(--white-1);
+}
+
+.portal-booking-body .hire-booking-change-type-btn {
+  display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--jet);
+    background: var(--eerie-black-2);
+    color: var(--light-gray-70);
+    font-size: var(--fs-8);
+    cursor: pointer;
+    transition: var(--transition-1, 0.25s ease);
+    flex-shrink: 0;
+}
+
+.portal-booking-body .hire-booking-change-type-btn:hover {
+  border-color: var(--orange-yellow-crayola);
+    color: var(--orange-yellow-crayola);
+}
+
+.portal-booking-body .hire-booking-slots {
+  margin-top: 18px;
+}
+
+.portal-booking-body .hire-booking-calendar {
+  border: 1px solid var(--jet);
+    background: var(--eerie-black-1, hsl(240, 2%, 13%));
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+
+.portal-booking-body .hire-booking-cal-header {
+  display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.portal-booking-body .hire-booking-cal-month {
+  font-size: var(--fs-7);
+    font-weight: var(--fw-600);
+    color: var(--white-1);
+}
+
+.portal-booking-body .hire-booking-cal-nav {
+  display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--jet);
+    background: var(--eerie-black-2);
+    color: var(--light-gray-70);
+    cursor: pointer;
+    transition: var(--transition-1, 0.25s ease);
+}
+
+.portal-booking-body .hire-booking-cal-nav:hover:not(:disabled) {
+  border-color: var(--orange-yellow-crayola);
+    color: var(--orange-yellow-crayola);
+}
+
+.portal-booking-body .hire-booking-cal-nav:disabled {
+  opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.portal-booking-body .hire-booking-cal-weekdays {
+  display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.portal-booking-body .hire-booking-cal-weekdays span {
+  text-align: center;
+    font-size: var(--fs-9, 11px);
+    color: var(--light-gray-70);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.portal-booking-body .hire-booking-cal-grid {
+  display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.portal-booking-body .hire-booking-cal-cell {
+  aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.portal-booking-body .hire-booking-cal-day {
+  border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--light-gray-70);
+    font-size: var(--fs-8);
+    cursor: default;
+}
+
+.portal-booking-body .hire-booking-cal-day.has-slots {
+  background: var(--eerie-black-2);
+    border-color: var(--jet);
+    color: var(--white-2);
+    cursor: pointer;
+}
+
+.portal-booking-body .hire-booking-cal-day.has-slots:hover {
+  border-color: var(--orange-yellow-crayola);
+    color: var(--orange-yellow-crayola);
+}
+
+.portal-booking-body .hire-booking-cal-day.is-today:not(.is-selected) {
+  box-shadow: inset 0 0 0 1px var(--orange-yellow-crayola);
+}
+
+.portal-booking-body .hire-booking-cal-day.is-selected {
+  background: var(--orange-yellow-crayola);
+    border-color: var(--orange-yellow-crayola);
+    color: var(--smoky-black);
+    font-weight: var(--fw-600);
+}
+
+.portal-booking-body .hire-booking-cal-day.is-disabled {
+  color: var(--light-gray-70);
+    opacity: 0.35;
+}
+
+.portal-booking-body .hire-booking-slot-grid {
+  display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.portal-booking-body .hire-booking-slot {
+  padding: 9px 14px;
+    border-radius: 9px;
+    border: 1px solid var(--jet);
+    background: var(--eerie-black-1, hsl(240, 2%, 13%));
+    color: var(--white-2);
+    font-size: var(--fs-8);
+    cursor: pointer;
+}
+
+.portal-booking-body .hire-booking-slot:hover {
+  border-color: var(--orange-yellow-crayola);
+}
+
+.portal-booking-body .hire-booking-slot.is-selected {
+  background: var(--orange-yellow-crayola);
+    border-color: var(--orange-yellow-crayola);
+    color: var(--smoky-black);
+    font-weight: var(--fw-600);
+}
+
+.portal-booking-body .hire-booking-empty {
+  margin-top: 16px;
+    font-size: var(--fs-7);
+    color: var(--light-gray-70);
+    text-align: center;
+}
+
+.portal-booking-body .hire-booking-confirm-row {
+  display: grid;
+    grid-template-rows: 0fr;
+    margin-top: 0;
+    opacity: 0;
+    text-align: left;
+    transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease,
+      margin-top 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.portal-booking-body .hire-booking-confirm-row[hidden] {
+  display: none;
+}
+
+.portal-booking-body .hire-booking-confirm-row.is-visible {
+  grid-template-rows: 1fr;
+    margin-top: 18px;
+    opacity: 1;
+}
+
+.portal-booking-body .hire-booking-confirm-row-inner {
+  display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: 14px;
+    border-top: 1px solid var(--jet);
+}
+
+.portal-booking-body .hire-booking-selected-label {
+  font-size: var(--fs-7);
+    color: var(--light-gray-70);
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.portal-booking-body .hire-booking-selected-label strong {
+  color: var(--white-1);
+}
+/* ---- sheet chrome around the ported widget ---- */
+.portal-booking-body {
+  padding: 18px 20px 24px;
+  overflow-y: auto;
+}
+
+.portal-booking-lead {
+  margin: 0 0 14px;
+  font-size: var(--fs-8);
+  color: hsl(0, 0%, 68%);
+  line-height: 1.5;
+}
+
+.portal-booking-identity {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 560px) {
+  .portal-booking-identity { grid-template-columns: 1fr 1fr; }
+}
+
+.portal-booking-summary {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: hsla(45, 100%, 72%, 0.08);
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  font-size: var(--fs-8);
+}
+
+.portal-booking-summary p { margin: 0; }
+
+.portal-booking-confirmed { text-align: center; padding: 8px 0 4px; }
+
+.portal-booking-confirmed-mark {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: hsl(145, 55%, 52%);
+  background: hsla(145, 55%, 45%, 0.12);
+  border: 1px solid hsla(145, 55%, 45%, 0.3);
+}
+
+.portal-booking-confirmed-title { margin: 0 0 6px; font-size: var(--fs-6); font-weight: 600; }
+
+.portal-booking-confirmed-text {
+  margin: 0 0 16px;
+  font-size: var(--fs-8);
+  color: hsl(0, 0%, 70%);
+  line-height: 1.5;
+}
+
+/* ---------------------------------------------------------------------------
+   Ticket history (client view)
+   Read-only record of what they raised and where it stands. Status is set by
+   CWR in admin, so there are no controls here — just the reference to quote
+   and the current state.
+--------------------------------------------------------------------------- */
+.portal-ticket-history {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.1);
+}
+
+.portal-ticket-history-head {
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: hsl(0, 0%, 70%);
+}
+
+.portal-ticket-history-head span {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: hsla(0, 0%, 100%, 0.08);
+  color: hsl(0, 0%, 72%);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+}
+
+.portal-ticket-history-open {
+  background: hsla(45, 100%, 72%, 0.2) !important;
+  color: var(--orange-yellow-crayola, hsl(45, 100%, 72%)) !important;
+}
+
+.portal-ticket-history-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portal-ticket-history-item {
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: hsla(0, 0%, 100%, 0.035);
+  border: 1px solid hsla(0, 0%, 100%, 0.09);
+}
+
+.portal-ticket-history-item.is-resolved { opacity: 0.62; }
+
+.portal-ticket-history-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.portal-ticket-history-ref {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--orange-yellow-crayola, hsl(45, 100%, 72%));
+}
+
+.portal-ticket-history-badge {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: hsla(0, 0%, 100%, 0.08);
+  color: hsl(0, 0%, 76%);
+}
+
+.portal-ticket-history-badge--open {
+  background: hsla(38, 92%, 55%, 0.16);
+  color: hsl(38, 92%, 68%);
+}
+
+.portal-ticket-history-badge--in-progress {
+  background: hsla(205, 80%, 58%, 0.16);
+  color: hsl(205, 80%, 72%);
+}
+
+.portal-ticket-history-badge--resolved {
+  background: hsla(145, 55%, 48%, 0.16);
+  color: hsl(145, 55%, 62%);
+}
+
+.portal-ticket-history-when {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: hsl(0, 0%, 56%);
+}
+
+.portal-ticket-history-title {
+  margin: 0;
+  font-size: 12.5px;
+  color: hsl(0, 0%, 90%);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.portal-ticket-history-area {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: hsl(0, 0%, 60%);
 }

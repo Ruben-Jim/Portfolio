@@ -4586,6 +4586,123 @@
     );
   }
 
+  /**
+   * Mobile tab shell for the client drawer.
+   *
+   * The drawer carries ten form-bearing sections. Stacked in a bottom sheet
+   * that is a long scroll inside a short scroll, and the on-screen keyboard
+   * shrinks the viewport around whichever field has focus. On mobile the
+   * drawer goes full-page and the sections become tab panels instead.
+   *
+   * Four primary tabs plus More; the rest live behind the More menu.
+   * Desktop is untouched - sections stay collapsible accordions there.
+   */
+  var CP_PRIMARY_TABS = ['hub', 'milestones', 'portal', 'maintenance'];
+
+  var CP_SECTION_LABELS = {
+    hub: 'Hub',
+    milestones: 'Milestones',
+    portal: 'Portal',
+    guide: 'Guides',
+    maintenance: 'Maintenance',
+    health: 'Health',
+    pipeline: 'Pipeline',
+    docs: 'Documents',
+    portfolio: 'Portfolio',
+    email: 'Email'
+  };
+
+  var CP_SECTION_ORDER = [
+    'hub', 'milestones', 'portal', 'guide', 'maintenance',
+    'health', 'pipeline', 'docs', 'portfolio', 'email'
+  ];
+
+  var cpActiveMobileTab = 'hub';
+
+  function buildCpMobileTabsHtml() {
+    var overflow = CP_SECTION_ORDER.filter(function (id) {
+      return CP_PRIMARY_TABS.indexOf(id) === -1;
+    });
+    // An overflow section that is currently active is promoted into the strip,
+    // so the active tab is never hidden behind More.
+    var strip = CP_PRIMARY_TABS.slice();
+    if (strip.indexOf(cpActiveMobileTab) === -1 && CP_SECTION_ORDER.indexOf(cpActiveMobileTab) !== -1) {
+      strip.push(cpActiveMobileTab);
+    }
+    return (
+      // Menu is a SIBLING of the scrolling strip: .cp-mobile-tabs has
+      // overflow-x:auto, and an absolutely positioned child of a scroll
+      // container is clipped by it.
+      '<div class="cp-mobile-tabs-wrap">' +
+      '<div class="cp-mobile-tabs" role="tablist">' +
+      strip
+        .map(function (id) {
+          var active = id === cpActiveMobileTab;
+          return (
+            '<button type="button" class="cp-mobile-tab' + (active ? ' is-active' : '') + '" ' +
+            'role="tab" aria-selected="' + (active ? 'true' : 'false') + '" ' +
+            'data-cp-action="mobile-tab" data-cp-tab="' + esc(id) + '">' +
+            esc(CP_SECTION_LABELS[id] || id) +
+            '</button>'
+          );
+        })
+        .join('') +
+      '<button type="button" class="cp-mobile-tab cp-mobile-tab--more" ' +
+      'data-cp-action="mobile-tab-more" aria-haspopup="true" aria-expanded="false">More' +
+      '<span class="cp-mobile-tab-more-caret" aria-hidden="true"></span>' +
+      '</button>' +
+      '</div>' +
+      '<div class="cp-mobile-tab-menu" data-cp-tab-menu hidden>' +
+      overflow
+        .map(function (id) {
+          return (
+            '<button type="button" class="cp-mobile-tab-menu-item' +
+            (id === cpActiveMobileTab ? ' is-active' : '') +
+            '" data-cp-action="mobile-tab" data-cp-tab="' + esc(id) + '">' +
+            esc(CP_SECTION_LABELS[id] || id) +
+            '</button>'
+          );
+        })
+        .join('') +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  /** Shows one panel on mobile; visually a no-op on desktop. */
+  function applyCpMobileTab(id) {
+    var workspace = document.getElementById('cp-client-workspace');
+    if (!workspace) return;
+    if (CP_SECTION_ORDER.indexOf(id) !== -1) cpActiveMobileTab = id;
+    workspace.querySelectorAll('.cp-section--collapsible').forEach(function (sec) {
+      sec.classList.toggle(
+        'is-mobile-active',
+        sec.getAttribute('data-cp-section') === cpActiveMobileTab
+      );
+    });
+    workspace.querySelectorAll('.cp-mobile-tab').forEach(function (btn) {
+      var match = btn.getAttribute('data-cp-tab') === cpActiveMobileTab;
+      btn.classList.toggle('is-active', match);
+      if (btn.getAttribute('role') === 'tab') {
+        btn.setAttribute('aria-selected', match ? 'true' : 'false');
+      }
+    });
+    workspace.querySelectorAll('.cp-mobile-tab-menu-item').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-cp-tab') === cpActiveMobileTab);
+    });
+    closeCpMobileTabMenu();
+    var scroller = workspace.closest('.cp-client-drawer-body') || workspace.parentNode;
+    if (scroller && typeof scroller.scrollTo === 'function') scroller.scrollTo({ top: 0 });
+  }
+
+  function closeCpMobileTabMenu() {
+    var menu = document.querySelector('[data-cp-tab-menu]');
+    var btn = document.querySelector('.cp-mobile-tab--more');
+    if (menu) menu.hidden = true;
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+
+
   function buildCpCollapsibleSection(sectionId, title, tabId, bodyHtml, summary, expanded, titleBadgeHtml) {
     var isOpen = expanded === true;
     var panelId = 'cp-section-panel-' + sectionId;
@@ -4989,7 +5106,7 @@
             ? ' · Started ' + esc(formatMaintTimestamp(maint.planRequestedAt))
             : '') +
           '</p>' +
-          '<p class="form-hint">The client picked this plan themselves and has payment instructions in their portal. Confirm once the money lands.</p>' +
+          '<p class="form-hint">The client picked this plan themselves and has payment instructions in their portal. Confirm once the money lands — a paid invoice is created for their billing section.</p>' +
           '<div class="cp-section-actions">' +
           '<button type="button" class="btn btn-primary btn-sm" data-cp-action="mark-maint-paid">Mark payment received</button>' +
           '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="decline-maint-plan">Cancel plan</button>' +
@@ -5001,23 +5118,57 @@
         maintPendingBlock +
         maintAwaitingBlock +
         renderCpShowMaintPortalHtml(hub) +
+        maintStatusStripHtml(maint) +
         '<div class="cp-form-grid cp-form-grid--can-split">' +
+        '<div class="form-group"><span class="form-label-static">Plan tier</span>' +
+        cpSelectHtml(
+          'cp-maint-tier',
+          MAINT_TIER_ORDER.map(function (t) {
+            return { value: t, label: planTierLabel(t) };
+          }),
+          String(maint.planTier || 'standard').toLowerCase(),
+          'Plan tier'
+        ) + '</div>' +
+        '<div class="form-group"><span class="form-label-static">Payment</span>' +
+        cpSelectHtml(
+          'cp-maint-payment',
+          [
+            { value: 'paid', label: 'Paid' },
+            { value: 'awaiting', label: 'Awaiting payment' }
+          ],
+          String(maint.paymentStatus || 'paid').toLowerCase(),
+          'Payment status'
+        ) + '</div>' +
+        '<div class="form-group"><span class="form-label-static">Billing</span>' +
+        cpSelectHtml(
+          'cp-maint-billing',
+          [
+            { value: 'monthly', label: 'Monthly' },
+            { value: 'annual', label: 'Annual' }
+          ],
+          String(maint.billingPreference || 'monthly').toLowerCase(),
+          'Billing preference'
+        ) + '</div>' +
         '<div class="form-group"><label for="cp-maint-hours-included">Hours included</label><input id="cp-maint-hours-included" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursIncluded)) + '"></div>' +
-        '<div class="form-group"><label for="cp-maint-hours-used">Hours used</label><input id="cp-maint-hours-used" class="form-input" type="number" min="0" value="' + esc(String(maint.hoursUsed)) + '"></div>' +
+        // Read-out, not an input: syncLoggedTotalsFromEntries() recomputes this
+        // from planner time entries and writes it back, so anything typed here
+        // would be silently overwritten on the next log.
+        '<div class="form-group"><span class="form-label-static">Hours used</span>' +
+        '<p class="cp-maint-readout">' + roundHours(Number(maint.hoursUsed) || 0) + ' hrs' +
+        '<span class="cp-maint-readout-hint">from planner time logs</span></p></div>' +
         '<div class="form-group"><label for="cp-maint-renewal">Renewal date</label><input id="cp-maint-renewal" class="form-input" type="date" value="' + esc(maint.renewalDate) + '"></div>' +
-        '<div class="form-group"><label for="cp-maint-sla">SLA (hours)</label><input id="cp-maint-sla" class="form-input" type="number" min="1" value="' + esc(String(maint.slaHours)) + '"></div>' +
+        '<div class="form-group"><label for="cp-maint-sla">Response time (hours)</label><input id="cp-maint-sla" class="form-input" type="number" min="1" value="' + esc(String(maint.slaHours)) + '">' +
+        '<span class="cp-maint-field-hint" id="cp-maint-sla-hint">' + esc(maintSlaWords(maint.slaHours)) + '</span></div>' +
         '<div class="form-group form-group--full"><label for="cp-maint-notes">Notes</label><textarea id="cp-maint-notes" class="form-input has-scrollbar" rows="2">' + esc(maint.notes) + '</textarea></div>' +
         '</div>' +
+        maintTicketsHtml(maint) +
         '<div class="cp-section-actions">' +
         '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint">Save maintenance</button>' +
-        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-setup">Email: set up maintenance →</button>' +
-        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-invoice">Email: invoice ready →</button>' +
         '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-maint">Delete maintenance</button>' +
         '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>'
       : renderCpShowMaintPortalHtml(hub) +
         '<div class="cp-section-actions">' +
         '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint-portal">Save portal visibility</button>' +
-        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-setup">Email: set up maintenance →</button>' +
         '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>' +
         '<div class="cp-section-empty"><p>No maintenance record for this client yet.</p>' +
         '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="add-maint">Add maintenance →</button></div>';
@@ -5112,6 +5263,7 @@
       '</div>';
 
     workspace.innerHTML =
+      buildCpMobileTabsHtml() +
       buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub'), deliveryTitleBadge) +
       buildCpCollapsibleSection('milestones', 'Milestones', null, milestonesBody, cpSectionSummary('milestones', sectionCtx), isCpSectionExpanded(hub.id, 'milestones'), milestonesTitleBadge) +
       buildCpCollapsibleSection('portal', 'Client portal', null, portalBody, cpSectionSummary('portal', sectionCtx), isCpSectionExpanded(hub.id, 'portal')) +
@@ -5122,6 +5274,13 @@
       buildCpCollapsibleSection('docs', 'Business documents', 'docs', docsHtml, cpSectionSummary('docs', sectionCtx), isCpSectionExpanded(hub.id, 'docs')) +
       buildCpCollapsibleSection('portfolio', 'Portfolio project', 'portfolio', portfolioBody, cpSectionSummary('portfolio', sectionCtx), isCpSectionExpanded(hub.id, 'portfolio')) +
       buildCpCollapsibleSection('email', 'Send email', null, emailBody, cpSectionSummary('email', sectionCtx), isCpSectionExpanded(hub.id, 'email'));
+
+    // Wire the custom dropdowns this markup just injected. Safe to call
+    // repeatedly - already-wired wraps are skipped and only re-synced.
+    if (typeof window.initBusinessDocCustomSelects === 'function') {
+      window.initBusinessDocCustomSelects();
+    }
+    applyCpMobileTab(cpActiveMobileTab);
   }
 
   function renderClientProjectsPickerList() {
@@ -5450,20 +5609,28 @@
       leadId: hub ? hub.leadId : '',
       projectId: clientProjectsSelectedId,
       hoursIncluded: Number((document.getElementById('cp-maint-hours-included') || {}).value) || 6,
-      hoursUsed: Number((document.getElementById('cp-maint-hours-used') || {}).value) || 0,
+      // Never read from the form: this is derived from planner time entries.
+      hoursUsed: existing ? Number(existing.hoursUsed) || 0 : 0,
       renewalDate: (document.getElementById('cp-maint-renewal') || {}).value || '',
       slaHours: Number((document.getElementById('cp-maint-sla') || {}).value) || 72,
       notes: (document.getElementById('cp-maint-notes') || {}).value.trim(),
       updatedAt: ts()
     };
     if (existing) {
-      payload.planTier = existing.planTier;
       payload.planStatus = existing.planStatus || existing.effectivePlanStatus || 'active';
-      payload.paymentStatus = existing.paymentStatus || 'paid';
-      payload.billingPreference = existing.billingPreference || 'monthly';
       payload.planRequestedAt = existing.planRequestedAt || null;
       payload.tickets = existing.tickets || [];
     }
+    var tierEl = document.getElementById('cp-maint-tier');
+    var payEl = document.getElementById('cp-maint-payment');
+    var billEl = document.getElementById('cp-maint-billing');
+    payload.planTier = tierEl ? tierEl.value : existing ? existing.planTier : 'standard';
+    payload.paymentStatus = payEl ? payEl.value : existing ? existing.paymentStatus || 'paid' : 'paid';
+    payload.billingPreference = billEl
+      ? billEl.value
+      : existing
+        ? existing.billingPreference || 'monthly'
+        : 'monthly';
     try {
       await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
       await updateHubShowMaintenanceInPortal();
@@ -5493,16 +5660,63 @@
   }
 
   async function markMaintenancePaid(maintId) {
-    if (!maintId || !rtdbReady()) return;
+    if (!maintId || !rtdbReady()) return null;
     var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId));
     var row = snap.val() || {};
+    var planId = String(row.planTier || 'standard').toLowerCase();
+    var billing = String(row.billingPreference || 'monthly').toLowerCase() === 'annual' ? 'annual' : 'monthly';
+    var clientName = String(row.clientName || '').trim();
+    var clientEmail = '';
+    var projectId = String(row.projectId || '').trim();
+    if (projectId) {
+      var hub = agencyProjects.find(function (p) {
+        return p.id === projectId;
+      });
+      if (hub) {
+        clientEmail = String(hub.clientEmail || '').trim();
+        if (!clientName) clientName = String(hub.clientName || hub.title || '').trim();
+      }
+    }
+    if (!clientEmail && clientName) {
+      var byName = agencyProjects.find(function (p) {
+        return (p.clientName || '').toLowerCase().trim() === clientName.toLowerCase();
+      });
+      if (byName) clientEmail = String(byName.clientEmail || '').trim();
+    }
+
+    var invoiceResult = null;
+    if (typeof window.createPaidMaintenanceInvoiceFromPlan === 'function' && clientName) {
+      try {
+        invoiceResult = await window.createPaidMaintenanceInvoiceFromPlan({
+          clientName: clientName,
+          clientEmail: clientEmail,
+          planId: planId,
+          billing: billing,
+          maintenanceId: maintId,
+          invoiceKind: 'setup'
+        });
+      } catch (invErr) {
+        console.warn('Could not create maintenance invoice', invErr);
+      }
+    }
+
     var payload = Object.assign({}, row, {
       planStatus: 'active',
       paymentStatus: 'paid',
       paymentConfirmedAt: ts(),
       updatedAt: ts()
     });
+    if (invoiceResult && invoiceResult.doc && invoiceResult.doc.id) {
+      payload.paymentInvoiceId = invoiceResult.doc.id;
+      if (invoiceResult.doc.invoiceNumber) {
+        payload.paymentInvoiceNumber = String(invoiceResult.doc.invoiceNumber);
+      }
+      if (invoiceResult.doc.maintenancePaymentKey) {
+        payload.lastPaymentKey = String(invoiceResult.doc.maintenancePaymentKey);
+      }
+    }
     await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId), payload);
+    return invoiceResult;
   }
 
   async function declineMaintenancePlan(maintId) {
@@ -5893,6 +6107,33 @@
       saveMaintFromClientWorkspace().catch(console.error);
       return;
     }
+    if (action === 'mobile-tab') {
+      applyCpMobileTab(el.getAttribute('data-cp-tab'));
+      return;
+    }
+    if (action === 'mobile-tab-more') {
+      var menu = document.querySelector('[data-cp-tab-menu]');
+      if (menu) {
+        var opening = menu.hidden;
+        menu.hidden = !opening;
+        el.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      }
+      return;
+    }
+    if (action === 'ticket-open') {
+      openTicketViewer(Number(el.getAttribute('data-ticket-index')));
+      return;
+    }
+    if (action === 'ticket-status') {
+      updateMaintTicket(Number(el.getAttribute('data-ticket-index')), {
+        status: el.getAttribute('data-ticket-next') || 'open'
+      }).catch(console.error);
+      return;
+    }
+    if (action === 'ticket-delete') {
+      updateMaintTicket(Number(el.getAttribute('data-ticket-index')), null).catch(console.error);
+      return;
+    }
     if (action === 'save-maint-portal') {
       saveMaintPortalVisibilityFromClientWorkspace().catch(console.error);
       return;
@@ -5920,9 +6161,18 @@
       var paidId = (document.getElementById('cp-maint-id') || {}).value.trim();
       if (!paidId) return;
       markMaintenancePaid(paidId)
-        .then(function () {
+        .then(function (invoiceResult) {
           renderClientProjectsWorkspace();
-          setCpFeedback('maint', 'Payment confirmed. Plan is fully active.', false);
+          var msg = 'Payment confirmed. Plan is fully active.';
+          if (invoiceResult && invoiceResult.doc) {
+            var invNo = invoiceResult.doc.invoiceNumber || 'Invoice';
+            msg = invoiceResult.created
+              ? 'Payment confirmed. ' + invNo + ' created and visible in the client portal.'
+              : 'Payment confirmed. Linked to existing ' + invNo + ' in the client portal.';
+          } else if (typeof window.createPaidMaintenanceInvoiceFromPlan !== 'function') {
+            msg = 'Payment confirmed. Plan is fully active (invoice helper unavailable — create Docs invoice manually).';
+          }
+          setCpFeedback('maint', msg, false);
           if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
         })
         .catch(function (err) {
@@ -6096,9 +6346,40 @@
         e.preventDefault();
         handleClientProjectsAction(btn.getAttribute('data-cp-action'), btn);
       });
+        // role="button" elements (the ticket stub) get no free keyboard
+        // activation the way a real <button> does.
+        workspace.addEventListener('keydown', function (e) {
+          if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+          var el = e.target.closest('[data-cp-action][role="button"]');
+          if (!el) return;
+          e.preventDefault();
+          handleClientProjectsAction(el.getAttribute('data-cp-action'), el);
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key !== 'Escape') return;
+          var viewer = document.getElementById('cp-ticket-viewer');
+          if (viewer && viewer.classList.contains('is-open')) closeTicketViewer();
+        });
       workspace.addEventListener('change', function (e) {
         var t = e.target;
         if (!t || !t.id) return;
+        // Picking a tier fills the SLA and included hours from the plan
+        // definitions, so those numbers never have to be remembered.
+        if (t.id === 'cp-maint-tier') {
+          var d = maintenanceTierDefaults(t.value);
+          var slaEl = document.getElementById('cp-maint-sla');
+          var incEl = document.getElementById('cp-maint-hours-included');
+          if (slaEl) slaEl.value = d.slaHours;
+          if (incEl) incEl.value = d.hoursIncluded;
+          var hintEl = document.getElementById('cp-maint-sla-hint');
+          if (hintEl) hintEl.textContent = maintSlaWords(d.slaHours);
+          return;
+        }
+        if (t.id === 'cp-maint-sla') {
+          var h = document.getElementById('cp-maint-sla-hint');
+          if (h) h.textContent = maintSlaWords(t.value);
+          return;
+        }
         if (t.id === 'cp-hub-template') {
           applyTemplatePrefillFromSelect(t, {
             force: true,
@@ -6199,6 +6480,362 @@
     if (t === 'priority') return 'Priority';
     if (t === 'essential') return 'Essential';
     return 'Standard';
+  }
+
+  /**
+   * Markup for the shared custom dropdown (.business-doc-select), the same
+   * component the document form and pipeline cards use.
+   *
+   * Note the control is a hidden input, not a <select> - the component reads
+   * and writes that, and dispatches a bubbling 'change' on it, so existing
+   * id-based change delegation keeps working unchanged.
+   */
+  function cpSelectHtml(id, options, value, ariaLabel) {
+    var current = String(value == null ? '' : value);
+    var label = '';
+    options.forEach(function (o) {
+      if (String(o.value) === current) label = o.label;
+    });
+    if (!label && options.length) label = options[0].label;
+    return (
+      '<div class="business-doc-select business-doc-select--compact">' +
+      '<input type="hidden" id="' + esc(id) + '" value="' + esc(current) + '">' +
+      '<button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" ' +
+      'aria-expanded="false" aria-label="' + esc(ariaLabel || '') + '">' +
+      '<span class="business-doc-select-trigger-label">' + esc(label) + '</span>' +
+      '<ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>' +
+      '</button>' +
+      '<div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">' +
+      options
+        .map(function (o) {
+          var active = String(o.value) === current;
+          return (
+            '<button type="button" class="business-doc-select-option' +
+            (active ? ' is-active' : '') +
+            '" role="option" aria-selected="' + (active ? 'true' : 'false') +
+            '" data-value="' + esc(o.value) + '">' + esc(o.label) + '</button>'
+          );
+        })
+        .join('') +
+      '</div></div>'
+    );
+  }
+
+  /** SLA hours in the same words the client sees in the portal. */
+  function maintSlaWords(hours) {
+    var h = Number(hours) || 0;
+    if (!h) return 'No response time set';
+    if (h <= 24) return 'Reply within 24 hours';
+    if (h % 24 === 0) return 'Reply within ' + h / 24 + ' business days';
+    return 'Reply within ' + h + ' hours';
+  }
+
+  /** Whole days from today to a yyyy-mm-dd date; null when unparseable. */
+  function maintDaysUntil(dateStr) {
+    if (!dateStr) return null;
+    var d = new Date(String(dateStr) + 'T00:00:00');
+    if (isNaN(d.getTime())) return null;
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - today.getTime()) / 86400000);
+  }
+
+  function maintRenewalLabel(dateStr) {
+    var n = maintDaysUntil(dateStr);
+    if (n === null) return { text: 'No renewal date set', tone: 'muted' };
+    if (n < 0) {
+      var od = Math.abs(n);
+      return { text: 'Overdue by ' + od + ' day' + (od === 1 ? '' : 's'), tone: 'bad' };
+    }
+    if (n === 0) return { text: 'Renews today', tone: 'warn' };
+    if (n === 1) return { text: 'Renews tomorrow', tone: 'warn' };
+    return {
+      text: 'Renews in ' + n + ' days',
+      tone: n <= 14 ? 'warn' : 'ok'
+    };
+  }
+
+  var MAINT_TIER_ORDER = ['essential', 'standard', 'priority'];
+
+  function maintNextTier(tier) {
+    var i = MAINT_TIER_ORDER.indexOf(String(tier || 'standard').toLowerCase());
+    return i >= 0 && i < MAINT_TIER_ORDER.length - 1 ? MAINT_TIER_ORDER[i + 1] : '';
+  }
+
+  /**
+   * The read-at-a-glance strip above the maintenance form: hours meter, renewal
+   * countdown, SLA in words, and an over-cap prompt that names the next action.
+   * hoursUsed is computed by syncLoggedTotalsFromEntries() from planner entries,
+   * so this is a read-out of logged time, never a hand-typed figure.
+   */
+  function maintStatusStripHtml(m) {
+    var used = roundHours(Number(m.hoursUsed) || 0);
+    var inc = Number(m.hoursIncluded) || 0;
+    var pct = inc > 0 ? Math.min(100, (used / inc) * 100) : 0;
+    var over = inc > 0 && used > inc;
+    var near = !over && inc > 0 && used >= inc * 0.8;
+    var tone = over ? 'bad' : near ? 'warn' : 'ok';
+    var renew = maintRenewalLabel(m.renewalDate);
+    var remaining = roundHours(Math.max(0, inc - used));
+
+    var overBlock = '';
+    if (over) {
+      var nxt = maintNextTier(m.planTier);
+      overBlock =
+        '<p class="cp-maint-alert">' +
+        roundHours(used - inc) +
+        ' hrs over the ' +
+        inc +
+        ' hr cap — bill the overage' +
+        (nxt ? ' or move them to ' + esc(planTierLabel(nxt)) : '') +
+        '.</p>';
+    }
+
+    return (
+      '<div class="cp-maint-strip">' +
+      '<div class="cp-maint-meter cp-maint-meter--' + tone + '">' +
+      '<div class="cp-maint-meter-head">' +
+      '<span class="cp-maint-meter-label">Hours this period</span>' +
+      '<span class="cp-maint-meter-value">' + used + ' / ' + inc + ' hrs</span>' +
+      '</div>' +
+      '<div class="cp-maint-meter-track"><span style="width:' + pct.toFixed(1) + '%"></span></div>' +
+      '<p class="cp-maint-meter-foot">' +
+      (over ? 'Over cap' : remaining + ' hrs remaining') +
+      '</p>' +
+      '</div>' +
+      '<ul class="cp-maint-facts">' +
+      '<li class="is-' + renew.tone + '">' + esc(renew.text) + '</li>' +
+      '<li>' + esc(maintSlaWords(m.slaHours)) + '</li>' +
+      '<li>' + esc(planTierLabel(m.planTier)) + ' · ' +
+      esc(String(m.billingPreference || 'monthly')) + ' · ' +
+      esc(String(m.paymentStatus || 'paid')) + '</li>' +
+      '</ul>' +
+      overBlock +
+      '</div>'
+    );
+  }
+
+  var TICKET_STATUS_ORDER = ['open', 'in-progress', 'resolved'];
+
+  function ticketStatusLabel(v) {
+    var t = String(v || 'open').toLowerCase();
+    if (t === 'resolved' || t === 'closed' || t === 'done') return 'Resolved';
+    if (t === 'in-progress' || t === 'progress') return 'In progress';
+    return 'Open';
+  }
+
+  function ticketStatusKey(v) {
+    var t = String(v || 'open').toLowerCase();
+    if (t === 'resolved' || t === 'closed' || t === 'done') return 'resolved';
+    if (t === 'in-progress' || t === 'progress') return 'in-progress';
+    return 'open';
+  }
+
+  /**
+   * Tickets raised from the client portal. Newest first, open ones first,
+   * because this is a triage list - what still needs doing has to read before
+   * what is already handled.
+   *
+   * Index is carried on the button as data-ticket-index: tickets are array
+   * items with no stable id of their own, and the array order is the identity.
+   */
+  /**
+   * Full-screen view of one ticket stub.
+   *
+   * Rebuilt from the record rather than cloning the DOM node, so the enlarged
+   * copy cannot inherit the grid sizing or the truncation of the card it was
+   * opened from.
+   */
+  function openTicketViewer(index) {
+    var maintId = (document.getElementById('cp-maint-id') || {}).value || '';
+    var maint = agencyMaintenance.find(function (x) { return x.id === maintId; });
+    var list = maint && Array.isArray(maint.tickets) ? maint.tickets : [];
+    if (isNaN(index) || index < 0 || index >= list.length) return;
+
+    var t = typeof list[index] === 'string' ? { title: list[index] } : list[index] || {};
+    var status = ticketStatusKey(t.status);
+    var when = String(t.createdAt || t.date || '');
+
+    var root = document.getElementById('cp-ticket-viewer');
+    if (!root) {
+      root = document.createElement('div');
+      root.id = 'cp-ticket-viewer';
+      root.className = 'cp-ticket-viewer';
+      root.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(root);
+      root.addEventListener('click', function (e) {
+        if (e.target.closest('[data-ticket-viewer-close]') || e.target === root) {
+          closeTicketViewer();
+        }
+      });
+    }
+
+    root.innerHTML =
+      // Close button is a SIBLING of the animated inner, not a child: the
+      // entrance animation transforms .cp-ticket-viewer-inner, and a
+      // transformed ancestor becomes the containing block for position:fixed
+      // descendants - so nesting it made the button anchor to the receipt
+      // mid-animation, then jump to the overlay when the transform cleared.
+      '<button type="button" class="cp-ticket-viewer-close" data-ticket-viewer-close ' +
+      'aria-label="Close">&times;</button>' +
+      '<div class="cp-ticket-viewer-inner" role="dialog" aria-modal="true" aria-label="Ticket ' +
+      esc(String(t.ref || '')) + '">' +
+      '<div class="cp-ticket-receipt cp-ticket-receipt--full">' +
+      '<p class="cp-ticket-brand">CodeWithRuben</p>' +
+      '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
+      '<p class="cp-ticket-ref">' + esc(String(t.ref || '—')) + '</p>' +
+      '<p class="cp-ticket-subject">' + esc(String(t.title || t.subject || 'Ticket')) + '</p>' +
+      '<dl class="cp-ticket-meta">' +
+      '<div><dt>Area</dt><dd>' + esc(String(t.area || '—')) + '</dd></div>' +
+      '<div><dt>Opened</dt><dd>' + esc(when.slice(0, 10) || '—') + '</dd></div>' +
+      '<div><dt>Response</dt><dd>' + esc(maintSlaWords(maint.slaHours)) + '</dd></div>' +
+      '<div><dt>Status</dt><dd class="cp-ticket-status cp-ticket-status--' + status + '">' +
+      esc(ticketStatusLabel(status)) + '</dd></div>' +
+      '</dl>' +
+      (t.details
+        ? '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
+          '<p class="cp-ticket-details">' + esc(String(t.details)) + '</p>'
+        : '') +
+      '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
+      '<p class="cp-ticket-foot">Keep this reference for your records</p>' +
+      '</div>' +
+      '<div class="cp-ticket-tear" aria-hidden="true"></div>' +
+      '</div>';
+
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('cp-ticket-viewer-open');
+    var closeBtn = root.querySelector('.cp-ticket-viewer-close');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeTicketViewer() {
+    var root = document.getElementById('cp-ticket-viewer');
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('cp-ticket-viewer-open');
+  }
+
+  /**
+   * Mutates one ticket on the maintenance record. patch === null deletes it.
+   *
+   * Re-reads before writing: tickets is an array shared with the client
+   * portal, so a blind write would drop anything raised since this drawer
+   * rendered. The index addresses the ORIGINAL array order, which is why the
+   * display sort carries the original index rather than reordering the data.
+   */
+  async function updateMaintTicket(index, patch) {
+    var maintId = (document.getElementById('cp-maint-id') || {}).value || '';
+    if (!maintId || !rtdbReady() || isNaN(index) || index < 0) return;
+    if (patch === null && !window.confirm('Delete this ticket? This cannot be undone.')) return;
+
+    var ref = window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId);
+    var snap = await window.rtdbGet(ref);
+    var row = snap.val() || {};
+    var list = Array.isArray(row.tickets) ? row.tickets.slice() : [];
+    if (index >= list.length) return;
+
+    if (patch === null) {
+      list.splice(index, 1);
+    } else {
+      var current = typeof list[index] === 'string' ? { title: list[index] } : list[index] || {};
+      list[index] = Object.assign({}, current, patch, { updatedAt: ts() });
+    }
+
+    await window.rtdbSet(ref, Object.assign({}, row, { tickets: list, updatedAt: ts() }));
+    renderClientProjectsWorkspace();
+  }
+
+  function maintTicketsHtml(m) {
+    var raw = Array.isArray(m.tickets) ? m.tickets : [];
+    if (!raw.length) {
+      return (
+        '<div class="cp-maint-tickets">' +
+        '<p class="cp-maint-tickets-head">Tickets</p>' +
+        '<p class="cp-maint-tickets-empty">No tickets raised from the client portal yet.</p>' +
+        '</div>'
+      );
+    }
+
+    // Keep the original index so actions still address the right array slot
+    // after sorting for display.
+    var rows = raw.map(function (t, i) {
+      var obj = typeof t === 'string' ? { title: t } : t || {};
+      return {
+        i: i,
+        ref: String(obj.ref || ''),
+        title: String(obj.title || obj.subject || 'Ticket'),
+        area: String(obj.area || ''),
+        details: String(obj.details || ''),
+        status: ticketStatusKey(obj.status),
+        when: String(obj.createdAt || obj.date || '')
+      };
+    });
+
+    var openCount = rows.filter(function (r) { return r.status !== 'resolved'; }).length;
+
+    rows.sort(function (a, b) {
+      var ar = a.status === 'resolved' ? 1 : 0;
+      var br = b.status === 'resolved' ? 1 : 0;
+      if (ar !== br) return ar - br;
+      return String(b.when).localeCompare(String(a.when));
+    });
+
+    return (
+      '<div class="cp-maint-tickets">' +
+      '<p class="cp-maint-tickets-head">Tickets' +
+      '<span>' + openCount + ' open</span>' +
+      '<span class="cp-maint-tickets-total">' + rows.length + ' total</span>' +
+      '</p>' +
+      '<ul class="cp-maint-ticket-list">' +
+      rows
+        .map(function (r) {
+          var next = r.status === 'open' ? 'in-progress' : r.status === 'in-progress' ? 'resolved' : 'open';
+          var nextLabel =
+            r.status === 'open' ? 'Start' : r.status === 'in-progress' ? 'Resolve' : 'Reopen';
+          return (
+            '<li class="cp-maint-ticket is-' + r.status + '">' +
+            // Same stub the client printed in the portal, rendered from the
+            // same fields - so a reference they quote matches what is on
+            // screen here line for line.
+            // role=button rather than a real <button>: the stub contains a
+            // <dl>, which is flow content and invalid inside a button.
+            '<div class="cp-ticket-receipt" data-cp-action="ticket-open" ' +
+            'data-ticket-index="' + r.i + '" role="button" tabindex="0" ' +
+            'aria-label="View ticket ' + esc(r.ref || r.title) + ' full screen">' +
+            '<p class="cp-ticket-brand">CodeWithRuben</p>' +
+            '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
+            '<p class="cp-ticket-ref">' + esc(r.ref || '—') + '</p>' +
+            '<p class="cp-ticket-subject">' + esc(r.title) + '</p>' +
+            '<dl class="cp-ticket-meta">' +
+            '<div><dt>Area</dt><dd>' + esc(r.area || '—') + '</dd></div>' +
+            '<div><dt>Opened</dt><dd>' + esc(String(r.when).slice(0, 10) || '—') + '</dd></div>' +
+            '<div><dt>Response</dt><dd>' + esc(maintSlaWords(m.slaHours)) + '</dd></div>' +
+            '<div><dt>Status</dt><dd class="cp-ticket-status cp-ticket-status--' + r.status + '">' +
+            esc(ticketStatusLabel(r.status)) + '</dd></div>' +
+            '</dl>' +
+            (r.details
+              ? '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
+                '<p class="cp-ticket-details">' + esc(r.details) + '</p>'
+              : '') +
+            '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
+            '<p class="cp-ticket-foot">Keep this reference for your records</p>' +
+            '</div>' +
+            '<div class="cp-ticket-tear" aria-hidden="true"></div>' +
+            '<div class="cp-maint-ticket-actions">' +
+            '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="ticket-status" ' +
+            'data-ticket-index="' + r.i + '" data-ticket-next="' + next + '">' +
+            esc(nextLabel) + '</button>' +
+            '<button type="button" class="cp-maint-ticket-remove" data-cp-action="ticket-delete" ' +
+            'data-ticket-index="' + r.i + '" aria-label="Delete ticket">Delete</button>' +
+            '</div>' +
+            '</li>'
+          );
+        })
+        .join('') +
+      '</ul></div>'
+    );
   }
 
   function normalizeTimeEntry(id, row) {

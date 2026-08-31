@@ -298,22 +298,297 @@
     );
   }
 
-  /** Plans stay payable for every renewal, so the button never goes away. */
+  /** Payment prompt reappears this many days before the renewal date. */
+  var MAINT_PAY_WINDOW_DAYS = 30;
+
+  /* --------------------------------------------------------------------
+     Support tickets
+     Clients on an active plan raise a ticket here; it lands in the
+     maintenance record's tickets array, which the admin drawer renders.
+     Hours are never deducted on submit - they come from planner logs.
+     -------------------------------------------------------------------- */
+
+  var TICKET_AREAS = [
+    'Booking / scheduling',
+    'Payments',
+    'Customer accounts',
+    'Admin dashboard',
+    'Website / pages',
+    'Mobile app',
+    'Something else'
+  ];
+
+  /**
+   * Three-letter tag from the client name, e.g. "Pro Cleaning" -> PRO.
+   * Falls back to the maintenance id so a ref is always namespaced to one
+   * client and cannot collide with another client's sequence.
+   */
+  function ticketClientTag(maint) {
+    var name = String((maint && maint.clientName) || '').toUpperCase();
+    var words = name.replace(/[^A-Z ]/g, ' ').split(/\s+/).filter(Boolean);
+    if (words.length >= 3) return words[0][0] + words[1][0] + words[2][0];
+    if (words.length === 2) return (words[0].slice(0, 2) + words[1][0]).slice(0, 3);
+    if (words.length === 1 && words[0].length >= 3) return words[0].slice(0, 3);
+    var id = String((maint && maint.id) || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    return (id.slice(-3) || 'CLI').padStart(3, 'X');
+  }
+
+  /**
+   * Sequential per client, e.g. CWR-PRO-004.
+   *
+   * Derived from the highest number already on the record rather than
+   * tickets.length, so deleting an old ticket never reissues a live
+   * reference. The submit already re-reads the record, so the list passed in
+   * is current at write time.
+   */
+  function makeTicketRef(maint, existing) {
+    var tag = ticketClientTag(maint);
+    var highest = 0;
+    (Array.isArray(existing) ? existing : []).forEach(function (t) {
+      var ref = String((t && t.ref) || '');
+      var m = ref.match(/(\d+)\s*$/);
+      if (m) {
+        var n = parseInt(m[1], 10);
+        if (n > highest) highest = n;
+      }
+    });
+    var next = String(highest + 1);
+    while (next.length < 3) next = '0' + next;
+    return 'CWR-' + tag + '-' + next;
+  }
+
+  function ticketSlaWords(hours) {
+    var h = Number(hours) || 0;
+    if (!h) return 'We’ll reply as soon as we can';
+    if (h <= 24) return 'Reply within 24 hours';
+    if (h % 24 === 0) return 'Reply within ' + h / 24 + ' business days';
+    return 'Reply within ' + h + ' hours';
+  }
+
+  function portalTicketStatusKey(v) {
+    var t = String(v || 'open').toLowerCase();
+    if (t === 'resolved' || t === 'closed' || t === 'done') return 'resolved';
+    if (t === 'in-progress' || t === 'progress') return 'in-progress';
+    return 'open';
+  }
+
+  function portalTicketStatusLabel(v) {
+    var k = portalTicketStatusKey(v);
+    if (k === 'resolved') return 'Resolved';
+    if (k === 'in-progress') return 'In progress';
+    return 'Open';
+  }
+
+  /**
+   * The client's own ticket history. Read-only: status is set by CWR in admin,
+   * so this is a record of what they raised and where each one stands.
+   * Newest first, and unresolved above resolved.
+   */
+  function renderTicketHistoryHtml(maint) {
+    var raw = Array.isArray(maint.tickets) ? maint.tickets : [];
+    if (!raw.length) return '';
+
+    var rows = raw
+      .map(function (t) {
+        var o = typeof t === 'string' ? { title: t } : t || {};
+        return {
+          ref: String(o.ref || ''),
+          title: String(o.title || o.subject || 'Ticket'),
+          area: String(o.area || ''),
+          status: portalTicketStatusKey(o.status),
+          when: String(o.createdAt || o.date || '')
+        };
+      })
+      .sort(function (a, b) {
+        var ar = a.status === 'resolved' ? 1 : 0;
+        var br = b.status === 'resolved' ? 1 : 0;
+        if (ar !== br) return ar - br;
+        return String(b.when).localeCompare(String(a.when));
+      });
+
+    var openCount = rows.filter(function (r) { return r.status !== 'resolved'; }).length;
+
+    return (
+      '<div class="portal-ticket-history">' +
+      '<p class="portal-ticket-history-head">Your tickets' +
+      '<span>' + rows.length + '</span>' +
+      (openCount ? '<span class="portal-ticket-history-open">' + openCount + ' open</span>' : '') +
+      '</p>' +
+      '<ul class="portal-ticket-history-list">' +
+      rows
+        .map(function (r) {
+          return (
+            '<li class="portal-ticket-history-item is-' + r.status + '">' +
+            '<div class="portal-ticket-history-top">' +
+            (r.ref ? '<span class="portal-ticket-history-ref">' + esc(r.ref) + '</span>' : '') +
+            '<span class="portal-ticket-history-badge portal-ticket-history-badge--' + r.status + '">' +
+            esc(portalTicketStatusLabel(r.status)) + '</span>' +
+            (r.when
+              ? '<span class="portal-ticket-history-when">' +
+                esc(formatDocDate(String(r.when).slice(0, 10))) +
+                '</span>'
+              : '') +
+            '</div>' +
+            '<p class="portal-ticket-history-title">' + esc(r.title) + '</p>' +
+            (r.area ? '<p class="portal-ticket-history-area">' + esc(r.area) + '</p>' : '') +
+            '</li>'
+          );
+        })
+        .join('') +
+      '</ul></div>'
+    );
+  }
+
+  /** Row in the maintenance block: opens the ticket sheet, or books a call. */
+  function renderTicketTriggerHtml(maint) {
+    return (
+      '<div class="portal-ticket-cta">' +
+      '<button type="button" class="btn btn-primary btn-sm portal-ticket-open" data-portal-ticket-open>' +
+      '<span class="portal-ticket-open-icon" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" ' +
+      'stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+      '<path d="M4 9.5V7.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2.2 2.2 0 0 0 0 5v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2.2 2.2 0 0 0 0-5Z"/>' +
+      '<path d="M12 8.2v1.6M12 11.4v1.6M12 15v1.6" opacity="0.75"/>' +
+      '</svg></span>' +
+      'Report an issue' +
+      '</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-portal-booking-open>Book a call →</button>' +
+      '<span class="portal-ticket-cta-note">' +
+      esc(ticketSlaWords(maint.slaHours)) +
+      ' on your plan</span>' +
+      '</div>'
+    );
+  }
+
+  function renderTicketFormHtml(maint) {
+    return (
+      '<div class="portal-ticket" data-portal-ticket>' +
+      '<div class="portal-ticket-form">' +
+      '<div class="portal-ticket-field">' +
+      '<label for="portal-ticket-subject">What’s happening?</label>' +
+      '<input id="portal-ticket-subject" class="portal-ticket-input" type="text" maxlength="120" placeholder="Booking page shows the wrong times">' +
+      '</div>' +
+      '<div class="portal-ticket-field">' +
+      '<label for="portal-ticket-area">Where in the app?</label>' +
+      '<select id="portal-ticket-area" class="portal-ticket-input">' +
+      TICKET_AREAS.map(function (a) {
+        return '<option value="' + esc(a) + '">' + esc(a) + '</option>';
+      }).join('') +
+      '</select>' +
+      '</div>' +
+      '<div class="portal-ticket-field portal-ticket-field--full">' +
+      '<label for="portal-ticket-details">Any details that help</label>' +
+      '<textarea id="portal-ticket-details" class="portal-ticket-input" rows="3" maxlength="1200" placeholder="What you expected, what happened instead, and when you noticed it."></textarea>' +
+      '</div>' +
+      '</div>' +
+      '<div class="portal-ticket-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-portal-ticket-submit>Submit ticket</button>' +
+      '<span class="portal-ticket-feedback" data-portal-ticket-feedback role="status" aria-live="polite"></span>' +
+      '</div>' +
+      renderTicketPrinterHtml() +
+      '</div>'
+    );
+  }
+
+  /**
+   * The receipt printer. Sits inert until a ticket is submitted, then the stub
+   * feeds out of the slot. Built as markup up front so the animation has
+   * something to move rather than being injected mid-transition.
+   */
+  function renderTicketPrinterHtml() {
+    return (
+      '<div class="portal-printer" data-portal-printer hidden>' +
+      '<div class="portal-printer-body" aria-hidden="true">' +
+      '<div class="portal-printer-lights">' +
+      '<span class="portal-printer-led"></span>' +
+      '<span class="portal-printer-vent"></span>' +
+      '<span class="portal-printer-vent"></span>' +
+      '<span class="portal-printer-vent"></span>' +
+      '</div>' +
+      '<div class="portal-printer-slot"></div>' +
+      '</div>' +
+      '<div class="portal-printer-paper" data-portal-printer-paper role="status" aria-live="polite">' +
+      '<div class="portal-receipt">' +
+      '<p class="portal-receipt-brand">CodeWithRuben</p>' +
+      '<p class="portal-receipt-rule" aria-hidden="true"></p>' +
+      '<p class="portal-receipt-ref" data-receipt-ref></p>' +
+      '<p class="portal-receipt-subject" data-receipt-subject></p>' +
+      '<dl class="portal-receipt-meta">' +
+      '<div><dt>Area</dt><dd data-receipt-area></dd></div>' +
+      '<div><dt>Opened</dt><dd data-receipt-date></dd></div>' +
+      '<div><dt>Response</dt><dd data-receipt-sla></dd></div>' +
+      '</dl>' +
+      '<p class="portal-receipt-rule" aria-hidden="true"></p>' +
+      '<p class="portal-receipt-foot">Keep this reference for your records</p>' +
+      '</div>' +
+      '<div class="portal-receipt-tear" aria-hidden="true"></div>' +
+      '</div>' +
+      '<div class="portal-ticket-done" data-portal-ticket-done>' +
+      '<p class="portal-ticket-done-note">We’ve got it. You’ll hear from us within your plan’s response time.</p>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-portal-ticket-close>Done</button>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  /** Whole days from today to a yyyy-mm-dd date; null when unparseable. */
+  function maintDaysToRenewal(dateStr) {
+    if (!dateStr) return null;
+    var d = new Date(String(dateStr) + 'T00:00:00');
+    if (isNaN(d.getTime())) return null;
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((d.getTime() - today.getTime()) / 86400000);
+  }
+
+  /**
+   * Plans are recurring, so the prompt has to come back every cycle — but a
+   * client who has paid should not be looking at "Pay now". Paid clients see a
+   * confirmation until the renewal is within MAINT_PAY_WINDOW_DAYS, at which
+   * point the button returns on its own.
+   *
+   * With no renewal date on record there is no window to compute, so the
+   * button stays visible rather than leaving them no way to pay.
+   */
   function renderMaintenancePayBlockHtml(maint) {
     var annual = isAnnualBilling(maint);
+    var awaiting = maint.paymentStatus === 'awaiting';
+    var days = maintDaysToRenewal(maint.renewalDate);
+    var dueSoon = days === null || days <= MAINT_PAY_WINDOW_DAYS;
+    var showPay = awaiting || dueSoon;
+
+    if (!showPay) {
+      return (
+        '<div class="client-portal-maint-pay">' +
+        '<p class="client-portal-maint-paid" role="status">' +
+        '<span class="client-portal-maint-paid-mark" aria-hidden="true">✓</span>' +
+        'Paid — your next ' +
+        (annual ? 'yearly' : 'monthly') +
+        ' payment is due ' +
+        esc(formatDocDate(maint.renewalDate)) +
+        '.</p>' +
+        '</div>'
+      );
+    }
+
     return (
       '<div class="client-portal-maint-pay">' +
-      (maint.paymentStatus === 'awaiting'
+      (awaiting
         ? '<p class="client-portal-maint-awaiting" role="status">' +
           'Your plan is set up. Send your first ' +
           (annual ? 'yearly' : 'monthly') +
           ' payment to start it — we’ll confirm once it clears.</p>'
-        : '') +
+        : '<p class="client-portal-maint-due" role="status">' +
+          'Your next payment is due ' +
+          esc(formatDocDate(maint.renewalDate)) +
+          '.</p>') +
       '<div class="client-portal-maint-pay-row">' +
       '<span class="client-portal-maint-pay-amount">' +
       esc(maintenancePayAmountLabel(maint)) +
       '</span>' +
-      '<button type="button" class="btn btn-primary btn-sm" data-portal-maint-pay-btn aria-expanded="false">Pay now →</button>' +
+      '<button type="button" class="btn btn-primary btn-sm" data-portal-maint-pay-btn aria-expanded="false">' +
+      (awaiting ? 'Pay now →' : 'Pay renewal →') +
+      '</button>' +
       '</div>' +
       renderMaintenancePayPanelHtml(maint) +
       '</div>'
@@ -427,10 +702,15 @@
         ' of ' +
         esc(maint.hoursIncluded) +
         ' hours used' +
-        (maint.renewalDate ? ' · Renews ' + esc(formatDocDate(maint.renewalDate)) : '') +
+        // Renewal date lives in the payment block below - stating it twice in
+        // one section read as noise.
         '</p>' +
         '<p class="client-portal-maint-meta">Fixes use the hours left on your plan. Bigger custom work is priced separately.</p>' +
         renderMaintenancePayBlockHtml(maint) +
+        // Plan-only: raising a ticket draws on the plan's hours, so the entry
+        // point appears with the plan and not before it.
+        renderTicketTriggerHtml(maint) +
+        renderTicketHistoryHtml(maint) +
         '</div>'
       );
     }
@@ -568,6 +848,8 @@
         var host = picker.parentNode;
         picker.outerHTML = renderMaintenanceBlock(maint, { clientName: ctx.clientName });
         bindMaintenancePayPanel(host, maint);
+        ticketSheetState.pendingMaint = maint;
+        bindTicketSheet();
       }
     } catch (err) {
       console.error(err);
@@ -903,6 +1185,8 @@
       });
     }
     bindMaintenancePayPanel(root, maint);
+    ticketSheetState.pendingMaint = maint;
+    bindTicketSheet();
   }
 
   function normalizePortalGuides(row) {
@@ -1134,22 +1418,45 @@
    * Deliberately NOT their portal link — that carries invoices, contracts and
    * milestones. The /get page shows only the store buttons and the web app.
    */
-  function renderTeamShareSection(project) {
+  function teamShareInstallUrl(project) {
     if (!project || project.deliveryStage !== 'client') return '';
     var hasSomething =
       project.appStoreUrl || project.playStoreUrl || project.expoUrl;
     if (!hasSomething) return '';
-    var url = installPageUrl(project.id);
+    return installPageUrl(project.id);
+  }
+
+  function renderTeamShareLauncherHtml(project) {
+    var url = teamShareInstallUrl(project);
     if (!url) return '';
     return (
-      '<details class="client-portal-share-footer" open data-install-url="' +
+      '<button type="button" class="btn btn-secondary client-portal-guide-launcher client-portal-share-launcher" ' +
+      'id="portal-share-launcher" aria-haspopup="dialog" aria-expanded="false" data-install-url="' +
       esc(url) +
       '">' +
-      '<summary>Share the app with your team</summary>' +
-      '<div class="client-portal-share-body">' +
+      '<span class="client-portal-guide-launcher-icon" aria-hidden="true">' +
+      guideIconSvg(GUIDE_ICON_SHARE, 17) +
+      '</span>' +
+      '<span class="client-portal-guide-launcher-label">Share the app with your team</span>' +
+      '</button>'
+    );
+  }
+
+  function renderTeamShareSheetHtml(project) {
+    var url = teamShareInstallUrl(project);
+    if (!url) return '';
+    return (
+      '<div class="portal-guide-sheet-root portal-share-sheet-root" id="portal-share-sheet-root" aria-hidden="true" data-install-url="' +
+      esc(url) +
+      '">' +
+      '<div class="portal-guide-sheet-backdrop" id="portal-share-sheet-backdrop"></div>' +
+      '<div class="portal-guide-sheet portal-share-sheet" role="dialog" aria-modal="true" aria-labelledby="portal-share-sheet-title">' +
+      '<div class="portal-guide-sheet-head">' +
+      '<h2 class="portal-guide-sheet-title" id="portal-share-sheet-title">Share the app with your team</h2>' +
+      '<button type="button" class="portal-guide-sheet-close" id="portal-share-sheet-close" aria-label="Close">&times;</button>' +
+      '</div>' +
+      '<div class="portal-share-sheet-body has-scrollbar">' +
       '<p class="client-portal-share-lead">Send this link to your crew. It opens a simple page with the download buttons — no billing or project details.</p>' +
-      // The URL itself is never shown — it is an opaque id nobody needs to read,
-      // and printing it just invites someone to retype it wrong.
       '<div class="client-portal-share-actions">' +
       '<button type="button" class="btn btn-primary" id="portal-install-copy">Copy link</button>' +
       '<button type="button" class="btn btn-secondary" id="portal-install-share" hidden>Share…</button>' +
@@ -1158,18 +1465,60 @@
       '" target="_blank" rel="noopener noreferrer">Preview</a>' +
       '</div>' +
       '<p class="client-portal-share-status" id="portal-install-status" role="status" aria-live="polite"></p>' +
-      '</div></details>'
+      '</div></div></div>'
     );
+  }
+
+  var shareSheetState = { opener: null };
+
+  function shareSheetRoot() {
+    return document.getElementById('portal-share-sheet-root');
+  }
+
+  function openTeamShareSheet(opener) {
+    var root = shareSheetRoot();
+    var launcher = document.getElementById('portal-share-launcher');
+    if (!root) return;
+    var guideRoot = typeof guideSheetRoot === 'function' ? guideSheetRoot() : null;
+    if (guideRoot && guideRoot.classList.contains('is-open')) closeGuideSheet(false);
+    shareSheetState.opener = opener || launcher || null;
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('portal-guide-sheet-open');
+    if (launcher) launcher.setAttribute('aria-expanded', 'true');
+    var copyBtn = document.getElementById('portal-install-copy');
+    if (copyBtn && typeof copyBtn.focus === 'function') copyBtn.focus();
+  }
+
+  function closeTeamShareSheet(returnFocus) {
+    var root = shareSheetRoot();
+    var launcher = document.getElementById('portal-share-launcher');
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('portal-guide-sheet-open');
+    if (launcher) launcher.setAttribute('aria-expanded', 'false');
+    var opener = shareSheetState.opener || launcher;
+    if (returnFocus && opener && typeof opener.focus === 'function' && document.contains(opener)) {
+      opener.focus();
+    }
+    shareSheetState.opener = null;
   }
 
   function bindTeamShareSection(root) {
     if (!root) return;
-    var section = root.querySelector('.client-portal-share-footer');
-    if (!section) return;
-    var url = section.getAttribute('data-install-url') || '';
-    var copyBtn = root.querySelector('#portal-install-copy');
-    var shareBtn = root.querySelector('#portal-install-share');
-    var status = root.querySelector('#portal-install-status');
+    var launcher = root.querySelector('#portal-share-launcher');
+    var sheet = shareSheetRoot() || root.querySelector('#portal-share-sheet-root');
+    if (!sheet) return;
+    var url =
+      (launcher && launcher.getAttribute('data-install-url')) ||
+      sheet.getAttribute('data-install-url') ||
+      '';
+    var copyBtn = sheet.querySelector('#portal-install-copy');
+    var shareBtn = sheet.querySelector('#portal-install-share');
+    var status = sheet.querySelector('#portal-install-status');
+    var closeBtn = sheet.querySelector('#portal-share-sheet-close');
+    var backdrop = sheet.querySelector('#portal-share-sheet-backdrop');
     if (!url) return;
 
     function say(msg) {
@@ -1193,6 +1542,22 @@
       }
       document.body.removeChild(tmp);
       return ok;
+    }
+
+    if (launcher) {
+      launcher.addEventListener('click', function () {
+        openTeamShareSheet(launcher);
+      });
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        closeTeamShareSheet(true);
+      });
+    }
+    if (backdrop) {
+      backdrop.addEventListener('click', function () {
+        closeTeamShareSheet(true);
+      });
     }
 
     if (copyBtn) {
@@ -1219,6 +1584,13 @@
         navigator.share({ title: 'Install our app', url: url }).catch(function () {});
       });
     }
+
+    document.addEventListener('keydown', function portalShareEsc(e) {
+      if (e.key !== 'Escape' && e.keyCode !== 27) return;
+      var openRoot = shareSheetRoot();
+      if (!openRoot || !openRoot.classList.contains('is-open')) return;
+      closeTeamShareSheet(true);
+    });
   }
 
   function renderProjectVisitLinks(project, detailRecord, options) {
@@ -1368,11 +1740,16 @@
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
-  function docTypeLabel(type) {
+  function docTypeLabel(typeOrDoc) {
     if (window.BusinessDocShared && window.BusinessDocShared.typeLabelFor) {
-      return window.BusinessDocShared.typeLabelFor({ type: type });
+      if (typeOrDoc && typeof typeOrDoc === 'object') {
+        return window.BusinessDocShared.typeLabelFor(typeOrDoc);
+      }
+      return window.BusinessDocShared.typeLabelFor({ type: typeOrDoc });
     }
-    var t = String(type || 'proposal');
+    var t = String(
+      typeOrDoc && typeof typeOrDoc === 'object' ? typeOrDoc.type : typeOrDoc || 'proposal'
+    );
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
 
@@ -1767,7 +2144,7 @@
             '<span class="client-portal-doc-type client-portal-doc-type--' +
             esc(String(d.type || 'proposal')) +
             '">' +
-            esc(docTypeLabel(d.type)) +
+            esc(docTypeLabel(d)) +
             '</span>' +
             '<strong class="client-portal-doc-title">' +
             esc(titleText) +
@@ -1809,8 +2186,15 @@
 
   function portalDocSheetTitle(doc) {
     if (!doc) return 'Document';
-    if (isInvoiceDoc(doc)) return 'Invoice ' + invoiceDisplayNumber(doc);
-    return docTypeLabel(doc.type) || 'Document';
+    if (isInvoiceDoc(doc)) {
+      var kind =
+        window.BusinessDocShared &&
+        typeof window.BusinessDocShared.invoiceKindBadgeLabel === 'function'
+          ? window.BusinessDocShared.invoiceKindBadgeLabel(doc)
+          : 'Invoice';
+      return kind + ' ' + invoiceDisplayNumber(doc);
+    }
+    return docTypeLabel(doc) || 'Document';
   }
 
   function renderPortalDocSheetHtml() {
@@ -1876,11 +2260,24 @@
     var client = filenameSlug(doc.clientName);
     var parts;
     if (type === 'invoice') {
-      parts = ['Invoice', client, filenameMonth(doc.createdAt)];
+      var kindSlug = 'Invoice';
+      if (
+        window.BusinessDocShared &&
+        typeof window.BusinessDocShared.isMaintenanceOnlyInvoice === 'function' &&
+        window.BusinessDocShared.isMaintenanceOnlyInvoice(doc)
+      ) {
+        var k =
+          window.BusinessDocShared.normalizeMaintenanceInvoiceKind &&
+          window.BusinessDocShared.normalizeMaintenanceInvoiceKind(doc.maintenanceInvoiceKind);
+        if (k === 'setup') kindSlug = 'Setup-Invoice';
+        else if (k === 'renewal') kindSlug = 'Renewal-Invoice';
+        else kindSlug = 'Maintenance-Invoice';
+      }
+      parts = [kindSlug, client, filenameMonth(doc.createdAt)];
     } else if (type === 'contract') {
       parts = ['Service-Agreement', client];
     } else {
-      parts = [filenameSlug(docTypeLabel(doc.type)) || 'Document', client];
+      parts = [filenameSlug(docTypeLabel(doc)) || 'Document', client];
     }
     return parts.filter(Boolean).join('-') + '.html';
   }
@@ -2084,6 +2481,407 @@
     });
   }
 
+  /* --------------------------------------------------------------------
+     Book a call — in-portal
+     Mounts the same controller /schedule uses (window.CwrBooking) inside a
+     sheet, so clients never leave the portal. The controller is driven purely
+     by a cfg element map, so this owns the markup and ids are portal-scoped.
+     -------------------------------------------------------------------- */
+
+  /**
+   * hire-me-booking.js sends the confirmation through this, but it is defined
+   * in script.js, which the portal does not load. Same contract, minus the
+   * admin-token path booking never uses. Only defined if genuinely absent.
+   */
+  function ensurePortalEmailSender() {
+    if (typeof window.sendPortfolioEmailRequest === 'function') return;
+    window.sendPortfolioEmailRequest = async function (body) {
+      var cfg = window.RESEND_EMAIL_CONFIG || {};
+      var apiUrl = String(cfg.apiUrl || '').trim();
+      if (!apiUrl) throw new Error('Email API URL is not configured.');
+      var res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(body)
+      });
+      var data = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        /* ignore */
+      }
+      if (!res.ok || !data.ok) {
+        throw new Error((data && data.error) || res.statusText || 'Email request failed');
+      }
+      return data;
+    };
+  }
+
+  function renderBookingSheetHtml() {
+    return (
+      '<div class="portal-guide-sheet-root portal-booking-sheet-root" id="portal-booking-sheet-root" aria-hidden="true">' +
+      '<div class="portal-guide-sheet-backdrop" data-portal-booking-close></div>' +
+      '<div class="portal-guide-sheet portal-booking-sheet" role="dialog" aria-modal="true" aria-labelledby="portal-booking-title">' +
+      '<div class="portal-guide-sheet-head">' +
+      '<h2 class="portal-guide-sheet-title" id="portal-booking-title">Book a call</h2>' +
+      '<button type="button" class="portal-guide-sheet-close" data-portal-booking-close aria-label="Close">&times;</button>' +
+      '</div>' +
+      '<div class="portal-booking-body has-scrollbar" data-portal-booking-step>' +
+
+      '<div data-portal-booking-picker>' +
+      '<p class="portal-booking-lead" id="portal-booking-lead">Choose a call type and a time. Confirmation goes to the email you enter.</p>' +
+
+      '<div class="portal-booking-identity" id="portal-booking-identity">' +
+      '<div class="portal-ticket-field">' +
+      '<label for="portal-booking-name">Your name</label>' +
+      '<input type="text" id="portal-booking-name" class="portal-ticket-input" autocomplete="name" placeholder="Full name">' +
+      '</div>' +
+      '<div class="portal-ticket-field">' +
+      '<label for="portal-booking-email">Your email</label>' +
+      '<input type="email" id="portal-booking-email" class="portal-ticket-input" autocomplete="email" placeholder="Email address">' +
+      '</div>' +
+      '</div>' +
+
+      '<div class="portal-booking-summary" id="portal-booking-summary" hidden>' +
+      '<p id="portal-booking-summary-text"></p></div>' +
+
+      '<div class="hire-booking-types" id="portal-booking-types" role="radiogroup" aria-label="Call type"></div>' +
+
+      '<div class="hire-booking-selected-type" id="portal-booking-selected-type" hidden>' +
+      '<span class="hire-booking-selected-type-label" id="portal-booking-selected-type-label"></span>' +
+      '<button type="button" class="hire-booking-change-type-btn" id="portal-booking-change-type-btn">' +
+      '<span>&larr; Change</span></button>' +
+      '</div>' +
+
+      '<div class="hire-booking-slots" id="portal-booking-slots" hidden>' +
+      '<div class="hire-booking-calendar">' +
+      '<div class="hire-booking-cal-header">' +
+      '<button type="button" class="hire-booking-cal-nav" id="portal-booking-cal-prev" aria-label="Previous month">&lsaquo;</button>' +
+      '<span class="hire-booking-cal-month" id="portal-booking-cal-month" aria-live="polite"></span>' +
+      '<button type="button" class="hire-booking-cal-nav" id="portal-booking-cal-next" aria-label="Next month">&rsaquo;</button>' +
+      '</div>' +
+      '<div class="hire-booking-cal-weekdays">' +
+      '<span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>' +
+      '</div>' +
+      '<div class="hire-booking-cal-grid" id="portal-booking-cal-grid" role="grid" aria-label="Choose a date"></div>' +
+      '</div>' +
+      '<div class="hire-booking-slot-grid" id="portal-booking-slot-grid"></div>' +
+      '</div>' +
+
+      '<p class="hire-booking-empty" id="portal-booking-empty" hidden>No open times right now — we’ll follow up by email.</p>' +
+
+      '<div class="hire-booking-confirm-row" id="portal-booking-confirm-row" hidden>' +
+      '<div class="hire-booking-confirm-row-inner">' +
+      '<span class="hire-booking-selected-label" id="portal-booking-selected-label"></span>' +
+      '<button type="button" class="btn btn-primary btn-sm" id="portal-booking-confirm-btn">Confirm booking</button>' +
+      '</div></div>' +
+      '</div>' +
+
+      '<div class="portal-booking-confirmed" data-portal-booking-confirmed hidden>' +
+      '<div class="portal-booking-confirmed-mark" aria-hidden="true">✓</div>' +
+      '<h3 class="portal-booking-confirmed-title">You’re booked</h3>' +
+      '<p class="portal-booking-confirmed-text" id="portal-booking-confirmed-text"></p>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-portal-booking-close>Done</button>' +
+      '</div>' +
+
+      '</div></div></div>'
+    );
+  }
+
+  var portalBookingCtrl = null;
+
+  function openBookingSheet(opener) {
+    var root = document.getElementById('portal-booking-sheet-root');
+    if (!root) return;
+    ensurePortalEmailSender();
+
+    if (!portalBookingCtrl && window.CwrBooking && window.CwrBooking.createController) {
+      portalBookingCtrl = window.CwrBooking.createController({
+        source: 'schedule',
+        allowHireMeInquiry: false,
+        // The sheet controls visibility, so the controller must not also try
+        // to reveal itself on load.
+        autoOpen: false,
+        showSkip: false,
+        bookingStep: root.querySelector('[data-portal-booking-step]'),
+        pickerWrap: root.querySelector('[data-portal-booking-picker]'),
+        confirmedWrap: root.querySelector('[data-portal-booking-confirmed]'),
+        confirmedText: document.getElementById('portal-booking-confirmed-text'),
+        typesContainer: document.getElementById('portal-booking-types'),
+        selectedTypeWrap: document.getElementById('portal-booking-selected-type'),
+        selectedTypeLabelEl: document.getElementById('portal-booking-selected-type-label'),
+        changeTypeBtn: document.getElementById('portal-booking-change-type-btn'),
+        slotsWrap: document.getElementById('portal-booking-slots'),
+        calMonthEl: document.getElementById('portal-booking-cal-month'),
+        calPrevBtn: document.getElementById('portal-booking-cal-prev'),
+        calNextBtn: document.getElementById('portal-booking-cal-next'),
+        calGridEl: document.getElementById('portal-booking-cal-grid'),
+        slotGridEl: document.getElementById('portal-booking-slot-grid'),
+        emptyMsgEl: document.getElementById('portal-booking-empty'),
+        confirmRowEl: document.getElementById('portal-booking-confirm-row'),
+        selectedLabelEl: document.getElementById('portal-booking-selected-label'),
+        confirmBtn: document.getElementById('portal-booking-confirm-btn'),
+        nameInput: document.getElementById('portal-booking-name'),
+        emailInput: document.getElementById('portal-booking-email'),
+        identityWrap: document.getElementById('portal-booking-identity'),
+        inviteSummaryEl: document.getElementById('portal-booking-summary'),
+        inviteSummaryTextEl: document.getElementById('portal-booking-summary-text'),
+        leadTextEl: document.getElementById('portal-booking-lead'),
+        titleEl: document.getElementById('portal-booking-title')
+      });
+    }
+
+    // Prefill the name from the portal record. There is no client email on
+    // agencyProjects, so that field is left for them to fill - the booking
+    // confirmation is sent to whatever they enter.
+    var ctx = window.portalDocCtx || {};
+    var nameEl = document.getElementById('portal-booking-name');
+    if (nameEl && !nameEl.value && ctx.clientName) nameEl.value = ctx.clientName;
+
+    if (portalBookingCtrl && typeof portalBookingCtrl.open === 'function') {
+      portalBookingCtrl.open();
+    }
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('portal-doc-sheet-open');
+    ticketSheetState.bookingOpener = opener || null;
+  }
+
+  function closeBookingSheet(returnFocus) {
+    var root = document.getElementById('portal-booking-sheet-root');
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('portal-doc-sheet-open');
+    var opener = ticketSheetState.bookingOpener;
+    if (returnFocus && opener && typeof opener.focus === 'function' && document.contains(opener)) {
+      opener.focus();
+    }
+  }
+
+  /** Sheet shell — reuses the guide-sheet chrome: modal on desktop, bottom sheet on mobile. */
+  function renderTicketSheetHtml() {
+    return (
+      '<div class="portal-guide-sheet-root portal-ticket-sheet-root" id="portal-ticket-sheet-root" aria-hidden="true">' +
+      '<div class="portal-guide-sheet-backdrop" data-portal-ticket-close></div>' +
+      '<div class="portal-guide-sheet portal-ticket-sheet" role="dialog" aria-modal="true" aria-labelledby="portal-ticket-sheet-title">' +
+      '<div class="portal-guide-sheet-head">' +
+      '<h2 class="portal-guide-sheet-title" id="portal-ticket-sheet-title">Need something fixed?</h2>' +
+      '<button type="button" class="portal-guide-sheet-close" data-portal-ticket-close aria-label="Close">&times;</button>' +
+      '</div>' +
+      '<div class="portal-ticket-sheet-body has-scrollbar" id="portal-ticket-sheet-body"></div>' +
+      '</div></div>'
+    );
+  }
+
+  var ticketSheetState = { maint: null, opener: null };
+
+  function ticketSheetRoot() {
+    return document.getElementById('portal-ticket-sheet-root');
+  }
+
+  function openTicketSheet(maint, opener) {
+    var root = ticketSheetRoot();
+    var body = document.getElementById('portal-ticket-sheet-body');
+    if (!root || !body || !maint) return;
+    ticketSheetState.maint = maint;
+    ticketSheetState.opener = opener || null;
+    // Rebuilt each open so a second ticket starts from a clean form rather
+    // than the previous receipt.
+    body.innerHTML = renderTicketFormHtml(maint);
+    bindTicketForm(body, maint);
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('portal-doc-sheet-open');
+    var first = body.querySelector('#portal-ticket-subject');
+    if (first) first.focus();
+  }
+
+  function closeTicketSheet(returnFocus) {
+    var root = ticketSheetRoot();
+    if (!root) return;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('portal-doc-sheet-open');
+    var opener = ticketSheetState.opener;
+    if (returnFocus && opener && typeof opener.focus === 'function' && document.contains(opener)) {
+      opener.focus();
+    }
+  }
+
+  /** Delegated once on the document: triggers are re-rendered constantly. */
+  function bindTicketSheet() {
+    if (document.body.dataset.portalTicketSheetBound) return;
+    document.body.dataset.portalTicketSheetBound = '1';
+
+    document.addEventListener('click', function (e) {
+      var opener = e.target.closest('[data-portal-ticket-open]');
+      if (opener) {
+        e.preventDefault();
+        if (ticketSheetState.pendingMaint) {
+          openTicketSheet(ticketSheetState.pendingMaint, opener);
+        }
+        return;
+      }
+      if (e.target.closest('[data-portal-ticket-close]')) {
+        e.preventDefault();
+        closeTicketSheet(true);
+        return;
+      }
+      var bookOpener = e.target.closest('[data-portal-booking-open]');
+      if (bookOpener) {
+        e.preventDefault();
+        openBookingSheet(bookOpener);
+        return;
+      }
+      if (e.target.closest('[data-portal-booking-close]')) {
+        e.preventDefault();
+        closeBookingSheet(true);
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var root = ticketSheetRoot();
+      if (root && root.classList.contains('is-open')) {
+        closeTicketSheet(true);
+        return;
+      }
+      var bookRoot = document.getElementById('portal-booking-sheet-root');
+      if (bookRoot && bookRoot.classList.contains('is-open')) closeBookingSheet(true);
+    });
+  }
+
+  /**
+   * Appends the ticket to the maintenance record and runs the printer.
+   *
+   * Reads the record fresh before writing: tickets is an array, so a blind
+   * set would drop anything added since this page loaded.
+   */
+  function bindTicketForm(root, maint, ctx) {
+    if (!root || !maint) return;
+    var wrap = root.querySelector('[data-portal-ticket]');
+    if (!wrap || wrap.dataset.portalTicketBound) return;
+    wrap.dataset.portalTicketBound = '1';
+
+    var btn = wrap.querySelector('[data-portal-ticket-submit]');
+    var feedback = wrap.querySelector('[data-portal-ticket-feedback]');
+    if (!btn) return;
+
+    btn.addEventListener('click', async function () {
+      var subjEl = wrap.querySelector('#portal-ticket-subject');
+      var areaEl = wrap.querySelector('#portal-ticket-area');
+      var detailEl = wrap.querySelector('#portal-ticket-details');
+      var subject = (subjEl && subjEl.value ? subjEl.value : '').trim();
+
+      if (!subject) {
+        if (feedback) feedback.textContent = 'Add a short description first.';
+        if (subjEl) subjEl.focus();
+        return;
+      }
+      if (!rtdbWriteReady() || !window.rtdbGet) {
+        if (feedback) feedback.textContent = 'Could not connect. Try again in a moment.';
+        return;
+      }
+
+      btn.disabled = true;
+      if (feedback) feedback.textContent = 'Sending…';
+
+      var ticket = {
+        ref: '',
+        title: subject.slice(0, 120),
+        area: areaEl ? areaEl.value : '',
+        details: (detailEl && detailEl.value ? detailEl.value : '').trim().slice(0, 1200),
+        status: 'open',
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        var snap = await window.rtdbGet(
+          window.rtdbRef(window.rtdb, PATH_MAINTENANCE + '/' + maint.id)
+        );
+        var row = snap.val() || {};
+        var list = Array.isArray(row.tickets) ? row.tickets.slice() : [];
+        // Numbered off the freshly-read list so concurrent submits from two
+        // devices cannot both claim the same reference.
+        ticket.ref = makeTicketRef(maint, list);
+        list.push(ticket);
+        await window.rtdbUpdate(
+          window.rtdbRef(window.rtdb, PATH_MAINTENANCE + '/' + maint.id),
+          { tickets: list, updatedAt: window.rtdbServerTimestamp() }
+        );
+
+        if (feedback) feedback.textContent = '';
+        if (subjEl) subjEl.value = '';
+        if (detailEl) detailEl.value = '';
+        printTicketReceipt(wrap, ticket, maint);
+      } catch (err) {
+        console.error(err);
+        if (feedback) feedback.textContent = 'Could not submit that. Try again in a moment.';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  /** Fills the stub and feeds it out of the printer. */
+  function printTicketReceipt(wrap, ticket, maint) {
+    var printer = wrap.querySelector('[data-portal-printer]');
+    if (!printer) return;
+
+    // The receipt is the result, so the form steps aside for it. Collapsed
+    // rather than removed so the sheet height eases instead of jumping.
+    var form = wrap.querySelector('.portal-ticket-form');
+    var actions = wrap.querySelector('.portal-ticket-actions');
+    if (form) form.classList.add('is-done');
+    if (actions) actions.classList.add('is-done');
+
+    var set = function (sel, value) {
+      var el = printer.querySelector(sel);
+      if (el) el.textContent = value;
+    };
+    set('[data-receipt-ref]', ticket.ref);
+    set('[data-receipt-subject]', ticket.title);
+    set('[data-receipt-area]', ticket.area || '—');
+    set('[data-receipt-date]', formatDocDate(ticket.createdAt.slice(0, 10)));
+    set('[data-receipt-sla]', ticketSlaWords(maint.slaHours));
+
+    printer.hidden = false;
+    // Force a frame so the hidden -> visible change is painted before the
+    // first phase class lands, otherwise it snaps straight to the end state.
+    void printer.offsetHeight;
+
+    var reduce =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (reduce) {
+      printer.classList.add('is-armed', 'is-fed', 'is-torn', 'is-done');
+      return;
+    }
+
+    // Phases, in order: machine slides in, warms up with the LED, steps the
+    // paper out, then tears it off and settles. Timings match the CSS
+    // durations - change them together.
+    var phases = [
+      [0, 'is-armed'],      // machine rises into place
+      [420, 'is-warming'],  // LED blinks, nothing feeding yet
+      [1200, 'is-fed'],     // stepped feed begins
+      [3050, 'is-torn'],    // stub detaches, machine recedes
+      [3350, 'is-done']     // confirmation + Done button
+    ];
+    printer._ticketTimers = (printer._ticketTimers || []).filter(function (t) {
+      window.clearTimeout(t);
+      return false;
+    });
+    phases.forEach(function (p) {
+      printer._ticketTimers.push(
+        window.setTimeout(function () {
+          printer.classList.add(p[1]);
+        }, p[0])
+      );
+    });
+  }
+
   function bindMaintenancePayPanel(root, maint) {
     if (!root || !maint) return;
     var toggle = root.querySelector('[data-portal-maint-pay-btn]');
@@ -2256,24 +3054,35 @@
     });
   }
 
-  function renderGuideSectionsHtml(guides, baseRecord) {
-    if (!guides.length || !window.PortfolioDetailShared) return '';
-    portalGuideState = { guides: guides, base: baseRecord || {}, selectedIndex: -1, rendered: {} };
+  function renderGuideSectionsHtml(guides, baseRecord, project) {
+    var guideLaunch = '';
+    var guideSheet = '';
+    if (guides.length && window.PortfolioDetailShared) {
+      portalGuideState = { guides: guides, base: baseRecord || {}, selectedIndex: -1, rendered: {} };
+      guideLaunch =
+        '<button type="button" class="btn btn-secondary client-portal-guide-launcher" ' +
+        'id="portal-guide-launcher" aria-haspopup="dialog" aria-expanded="false">' +
+        '<span class="client-portal-guide-launcher-icon" aria-hidden="true">' +
+        guideIconSvg(GUIDE_ICON_BOOK, 17) +
+        '</span>' +
+        '<span class="client-portal-guide-launcher-label">' +
+        (guides.length === 1 ? 'View guide' : 'View guides') +
+        '</span>' +
+        '<span class="client-portal-guide-launcher-count">' +
+        guides.length +
+        '</span>' +
+        '</button>';
+      guideSheet = renderGuideSheetHtml(guides);
+    } else {
+      portalGuideState = { guides: [], base: {}, selectedIndex: -1, rendered: {} };
+    }
+    var shareLaunch = renderTeamShareLauncherHtml(project);
+    if (!guideLaunch && !shareLaunch) return '';
     return (
-      '<section class="client-portal-guides" id="portal-guides-section">' +
-      '<button type="button" class="btn btn-secondary client-portal-guide-launcher" ' +
-      'id="portal-guide-launcher" aria-haspopup="dialog" aria-expanded="false">' +
-      '<span class="client-portal-guide-launcher-icon" aria-hidden="true">' +
-      guideIconSvg(GUIDE_ICON_BOOK, 17) +
-      '</span>' +
-      '<span class="client-portal-guide-launcher-label">' +
-      (guides.length === 1 ? 'View guide' : 'View guides') +
-      '</span>' +
-      '<span class="client-portal-guide-launcher-count">' +
-      guides.length +
-      '</span>' +
-      '</button>' +
-      renderGuideSheetHtml(guides) +
+      '<section class="client-portal-guides client-portal-actions" id="portal-guides-section">' +
+      guideLaunch +
+      shareLaunch +
+      guideSheet +
       '</section>'
     );
   }
@@ -2371,6 +3180,8 @@
     var root = guideSheetRoot();
     var launcher = document.getElementById('portal-guide-launcher');
     if (!root) return;
+    var shareRoot = shareSheetRoot();
+    if (shareRoot && shareRoot.classList.contains('is-open')) closeTeamShareSheet(false);
     root.classList.add('is-open');
     root.setAttribute('aria-hidden', 'false');
     document.body.classList.add('portal-guide-sheet-open');
@@ -2663,7 +3474,10 @@
       showcaseHtml = wrapShowcaseSection(showcaseHtml);
     }
 
-    var guideHtml = renderGuideSectionsHtml(portalGuides, guideBase);
+    var guideHtml = renderGuideSectionsHtml(portalGuides, guideBase, project);
+    // Share sheet sits with other sheets when there is no guides section to host
+    // the launcher (launchers live in guideHtml when either control is shown).
+    var shareSheetHtml = renderTeamShareSheetHtml(project);
 
     var docsSection = renderBusinessDocumentsSection(businessDocs, contractSignatures);
     var supportSection =
@@ -2676,12 +3490,14 @@
       showcaseHtml +
       guideHtml +
       '<div class="client-portal-grid">' +
-      renderTeamShareSection(project) +
       docsSection +
       supportSection +
       footer +
       '</div>' +
-      (docsSection ? renderPortalDocSheetHtml() : '');
+      (docsSection ? renderPortalDocSheetHtml() : '') +
+      shareSheetHtml +
+      renderTicketSheetHtml() +
+      renderBookingSheetHtml();
     if (detailRecord && window.PortfolioDetailShared) {
       window.PortfolioDetailShared.initPortfolioDetailPage(inner, detailRecord, detailOptions);
     }

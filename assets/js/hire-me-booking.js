@@ -767,6 +767,14 @@
     };
   }
 
+  /**
+   * Exposed so other surfaces can mount the same booking flow — the client
+   * portal opens it in a sheet rather than sending clients to /schedule.
+   * Everything is driven by the cfg element map, so the caller owns the markup.
+   */
+  window.CwrBooking = window.CwrBooking || {};
+  window.CwrBooking.createController = createBookingController;
+
   function initHireMeBooking() {
     var scheduleBtn = document.getElementById('hire-success-schedule-btn');
     var bookingStep = document.querySelector('[data-hire-booking-step]');
