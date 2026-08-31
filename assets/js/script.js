@@ -16413,71 +16413,15 @@ window.addEventListener('load', function() {
     ].join('');
   }
 
-  function buildBusinessDocRowEl(doc) {
-    var tr = document.createElement('tr');
-    tr.className = 'business-doc-row';
-
-    var typeTd = document.createElement('td');
-    typeTd.setAttribute('data-label', 'Type');
-    var typeBadge =
-      window.BusinessDocShared && typeof window.BusinessDocShared.typeLabelFor === 'function'
-        ? window.BusinessDocShared.typeLabelFor(doc)
-        : String(doc.type || 'document').toUpperCase();
-    typeTd.innerHTML =
-      '<span class="business-doc-badge business-doc-type-' +
-      escapeHtml(doc.type) +
-      '">' +
-      escapeHtml(typeBadge) +
-      '</span>';
-    tr.appendChild(typeTd);
-
-    var clientTd = document.createElement('td');
-    clientTd.setAttribute('data-label', 'Client');
-    if (doc.type === 'invoice' && doc.invoiceNumber) {
-      clientTd.innerHTML =
-        '<div>' +
-        escapeHtml(doc.clientName || '—') +
-        '</div><div class="business-doc-invoice-no">' +
-        escapeHtml(doc.invoiceNumber) +
-        '</div>';
-    } else {
-      clientTd.textContent = doc.clientName || '—';
-    }
-    tr.appendChild(clientTd);
-
-    var statusTd = document.createElement('td');
-    statusTd.setAttribute('data-label', 'Status');
-    statusTd.innerHTML = '<span class="business-doc-badge business-doc-status-' + doc.status + '">' + doc.status.toUpperCase() + '</span>';
-    if (doc.type === 'contract') {
-      var signature = contractSignaturesById[doc.id];
-      var signedBadge = document.createElement('span');
-      signedBadge.className =
-        'business-doc-signed-badge ' +
-        (signature ? 'business-doc-signed-badge--signed' : 'business-doc-signed-badge--unsigned');
-      signedBadge.style.marginLeft = '6px';
-      signedBadge.textContent = signature
-        ? 'Signed · ' + formatDateDisplay(signature.signedAt)
-        : 'Awaiting signature';
-      statusTd.appendChild(signedBadge);
-    }
-    tr.appendChild(statusTd);
-
-    var createdTd = document.createElement('td');
-    createdTd.setAttribute('data-label', 'Created');
-    createdTd.textContent = formatDateDisplay(doc.createdAt);
-    tr.appendChild(createdTd);
-
-    var actionsTd = document.createElement('td');
-    actionsTd.setAttribute('data-label', '');
-    actionsTd.className = 'business-doc-actions';
-
+  function appendBusinessDocActionButtons(actionsEl, doc) {
     var editBtn = document.createElement('button');
     editBtn.type = 'button';
     editBtn.className = 'btn-icon edit-btn';
     editBtn.title = 'Edit';
     editBtn.setAttribute('aria-label', 'Edit document');
     editBtn.innerHTML = '<ion-icon name="create-outline"></ion-icon>';
-    editBtn.addEventListener('click', function() {
+    editBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
       var latest =
         businessDocs.find(function (d) {
           return d && d.id === doc.id;
@@ -16491,7 +16435,8 @@ window.addEventListener('load', function() {
     pdfBtn.title = 'Generate PDF';
     pdfBtn.setAttribute('aria-label', 'Generate PDF');
     pdfBtn.innerHTML = '<ion-icon name="document-text-outline"></ion-icon>';
-    pdfBtn.addEventListener('click', function() {
+    pdfBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
       generateBusinessDocPdf(doc);
     });
 
@@ -16503,7 +16448,8 @@ window.addEventListener('load', function() {
       generateContractBtn.title = 'Generate Contract';
       generateContractBtn.setAttribute('aria-label', 'Generate contract from this proposal');
       generateContractBtn.innerHTML = '<ion-icon name="document-lock-outline"></ion-icon>';
-      generateContractBtn.addEventListener('click', function () {
+      generateContractBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
         var nowIso = new Date().toISOString();
         openBusinessDocModal({
           id: generateBusinessDocId(),
@@ -16529,17 +16475,82 @@ window.addEventListener('load', function() {
     deleteBtn.title = 'Delete';
     deleteBtn.setAttribute('aria-label', 'Delete document');
     deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
-    deleteBtn.addEventListener('click', function () {
+    deleteBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
       openDeleteDocumentConfirmModal(doc.id);
     });
 
-    actionsTd.appendChild(editBtn);
-    actionsTd.appendChild(pdfBtn);
-    if (generateContractBtn) actionsTd.appendChild(generateContractBtn);
-    actionsTd.appendChild(deleteBtn);
+    actionsEl.appendChild(editBtn);
+    actionsEl.appendChild(pdfBtn);
+    if (generateContractBtn) actionsEl.appendChild(generateContractBtn);
+    actionsEl.appendChild(deleteBtn);
+  }
 
-    tr.appendChild(actionsTd);
-    return tr;
+  function buildBusinessDocItemEl(doc) {
+    var item = document.createElement('div');
+    item.className = 'business-docs-doc-item';
+    item.setAttribute('data-doc-id', doc.id || '');
+
+    var typeBadge =
+      window.BusinessDocShared && typeof window.BusinessDocShared.typeLabelFor === 'function'
+        ? window.BusinessDocShared.typeLabelFor(doc)
+        : String(doc.type || 'document').toUpperCase();
+
+    var primary = document.createElement('div');
+    primary.className = 'business-docs-doc-primary';
+    var typeRow = document.createElement('div');
+    typeRow.className = 'business-docs-doc-type-row';
+    typeRow.innerHTML =
+      '<span class="business-doc-badge business-doc-type-' +
+      escapeHtml(doc.type) +
+      '">' +
+      escapeHtml(typeBadge) +
+      '</span>';
+    primary.appendChild(typeRow);
+    var sub = document.createElement('div');
+    sub.className = 'business-docs-doc-sub';
+    if (doc.type === 'invoice' && doc.invoiceNumber) {
+      sub.textContent = String(doc.invoiceNumber);
+    } else if (doc.clientEmail) {
+      sub.textContent = String(doc.clientEmail);
+    } else {
+      sub.textContent = formatCurrency(Number(doc.total) || 0);
+    }
+    primary.appendChild(sub);
+    item.appendChild(primary);
+
+    var statusWrap = document.createElement('div');
+    statusWrap.className = 'business-docs-doc-status';
+    statusWrap.innerHTML =
+      '<span class="business-doc-badge business-doc-status-' +
+      escapeHtml(doc.status) +
+      '">' +
+      escapeHtml(String(doc.status || '').toUpperCase()) +
+      '</span>';
+    if (doc.type === 'contract') {
+      var signature = contractSignaturesById[doc.id];
+      var signedBadge = document.createElement('span');
+      signedBadge.className =
+        'business-doc-signed-badge ' +
+        (signature ? 'business-doc-signed-badge--signed' : 'business-doc-signed-badge--unsigned');
+      signedBadge.textContent = signature
+        ? 'Signed · ' + formatDateDisplay(signature.signedAt)
+        : 'Awaiting signature';
+      statusWrap.appendChild(signedBadge);
+    }
+    item.appendChild(statusWrap);
+
+    var dateEl = document.createElement('div');
+    dateEl.className = 'business-docs-doc-date';
+    dateEl.textContent = formatDateDisplay(doc.createdAt);
+    item.appendChild(dateEl);
+
+    var actionsEl = document.createElement('div');
+    actionsEl.className = 'business-doc-actions';
+    appendBusinessDocActionButtons(actionsEl, doc);
+    item.appendChild(actionsEl);
+
+    return item;
   }
 
   var BUSINESS_DOC_NO_CLIENT_KEY = '￿__no_client__';
@@ -16572,110 +16583,127 @@ window.addEventListener('load', function() {
     } catch (e) {}
   }
 
-  function buildBusinessDocClientHeaderRowEl(group, isOpen) {
+  function buildBusinessDocClientCardEl(group, isOpen) {
     var statusCounts = {};
     group.docs.forEach(function (d) {
       statusCounts[d.status] = (statusCounts[d.status] || 0) + 1;
     });
     var flagsHtml = BUSINESS_DOC_STATUS_FLAG_ORDER
-      .filter(function (s) { return statusCounts[s]; })
+      .filter(function (s) {
+        return statusCounts[s];
+      })
       .map(function (s) {
-        return '<span class="business-doc-badge business-doc-status-' + s + '">' + statusCounts[s] + ' ' + s + '</span>';
+        return (
+          '<span class="business-doc-badge business-doc-status-' +
+          s +
+          '">' +
+          statusCounts[s] +
+          ' ' +
+          s +
+          '</span>'
+        );
       })
       .join('');
 
-    var tr = document.createElement('tr');
-    tr.className = 'business-doc-row business-doc-client-group-row';
-    tr.setAttribute('data-client-key', group.key);
-    tr.setAttribute('role', 'button');
-    tr.setAttribute('tabindex', '0');
-    tr.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    var card = document.createElement('article');
+    card.className = 'business-docs-client-card' + (isOpen ? ' is-expanded' : '');
+    card.setAttribute('data-client-key', group.key);
 
-    var typeTd = document.createElement('td');
-    typeTd.setAttribute('data-label', 'Type');
-    typeTd.innerHTML = '<ion-icon name="chevron-forward-outline" class="business-doc-client-chevron" aria-hidden="true"></ion-icon>';
-    tr.appendChild(typeTd);
+    var panelId = 'business-docs-client-panel-' + String(group.key).replace(/[^a-z0-9_-]+/gi, '-');
+    var toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'business-docs-client-toggle';
+    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    toggle.setAttribute('aria-controls', panelId);
+    toggle.innerHTML =
+      '<ion-icon name="chevron-forward-outline" class="business-doc-client-chevron" aria-hidden="true"></ion-icon>' +
+      '<span class="business-docs-client-toggle-main">' +
+      '<span class="business-doc-client-name">' +
+      escapeHtml(group.name) +
+      '</span>' +
+      '<span class="business-docs-client-meta">' +
+      '<span class="business-docs-client-count">' +
+      group.docs.length +
+      (group.docs.length === 1 ? ' document' : ' documents') +
+      '</span>' +
+      '<span class="business-doc-client-flags">' +
+      flagsHtml +
+      '</span>' +
+      '</span></span>';
 
-    var clientTd = document.createElement('td');
-    clientTd.setAttribute('data-label', 'Client');
-    clientTd.innerHTML =
-      '<div class="business-doc-client-name">' + escapeHtml(group.name) + '</div>' +
-      '<div class="business-doc-invoice-no">' + group.docs.length + (group.docs.length === 1 ? ' document' : ' documents') + '</div>';
-    tr.appendChild(clientTd);
-
-    var statusTd = document.createElement('td');
-    statusTd.setAttribute('data-label', 'Status');
-    statusTd.colSpan = 3;
-    statusTd.innerHTML = '<span class="business-doc-client-flags">' + flagsHtml + '</span>';
-    tr.appendChild(statusTd);
-
-    function toggle() {
+    toggle.addEventListener('click', function () {
       setBusinessDocsOpenClient(businessDocsOpenClientKey === group.key ? null : group.key);
       renderBusinessDocs();
-    }
-    tr.addEventListener('click', toggle);
-    tr.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        toggle();
-      }
     });
 
-    return tr;
+    var body = document.createElement('div');
+    body.className = 'business-docs-client-body';
+    body.id = panelId;
+    if (isOpen) {
+      group.docs.forEach(function (doc) {
+        body.appendChild(buildBusinessDocItemEl(doc));
+      });
+    }
+
+    card.appendChild(toggle);
+    card.appendChild(body);
+    return card;
+  }
+
+  function ensureBusinessDocsListRoot() {
+    var wrap =
+      document.querySelector('#admin-dashboard-content .business-docs-table-wrapper') ||
+      document.querySelector('.business-docs-table-wrapper');
+    if (!wrap) return null;
+    wrap.classList.remove('has-scrollbar');
+    var list = document.getElementById('business-docs-list');
+    if (list && wrap.contains(list)) return list;
+    wrap.innerHTML = '<div id="business-docs-list" class="business-docs-client-list" role="list"></div>';
+    return document.getElementById('business-docs-list');
   }
 
   function renderBusinessDocs() {
-    if (!businessDocsTbody) return;
-    var table = businessDocsTbody.closest('table');
-    if (table) {
-      Array.prototype.slice.call(table.querySelectorAll('tbody.business-doc-client-card')).forEach(function (tb) {
-        tb.remove();
-      });
-    }
+    var listRoot = ensureBusinessDocsListRoot();
+    if (!listRoot && !businessDocsTbody) return;
 
     const filtered = applyBusinessDocsFilters(businessDocs.slice().sort(function(a, b) {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }));
     renderBusinessDocsSummary(businessDocs, filtered);
 
-    if (filtered.length === 0) {
+    if (!listRoot) {
+      // Legacy table fallback if wrapper is missing
+      if (!businessDocsTbody) return;
       businessDocsTbody.hidden = false;
       businessDocsTbody.innerHTML =
-        '<tr class="empty-row"><td colspan="5">' +
+        filtered.length === 0
+          ? '<tr class="empty-row"><td colspan="5"><div class="business-docs-empty-state"><p class="business-docs-empty-message">No documents yet.</p></div></td></tr>'
+          : '';
+      return;
+    }
+
+    if (filtered.length === 0) {
+      listRoot.innerHTML =
         '<div class="business-docs-empty-state">' +
         '<ion-icon name="document-outline" aria-hidden="true"></ion-icon>' +
         '<p class="business-docs-empty-message">No proposals, estimates, invoices, or contracts yet.</p>' +
         '<button type="button" class="btn btn-secondary" id="business-docs-empty-cta">Create Document</button>' +
-        '</div></td></tr>';
+        '</div>';
       var cta = document.getElementById('business-docs-empty-cta');
       if (cta) cta.addEventListener('click', function() { openBusinessDocModal(); });
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
       return;
     }
 
-    businessDocsTbody.innerHTML = '';
-    businessDocsTbody.hidden = true;
-
     var groups = groupBusinessDocsByClient(filtered);
     if (businessDocsOpenClientKey && !groups.some(function (g) { return g.key === businessDocsOpenClientKey; })) {
       setBusinessDocsOpenClient(null);
     }
+
+    listRoot.innerHTML = '';
     groups.forEach(function (group) {
       var isOpen = businessDocsOpenClientKey === group.key;
-      var groupTbody = document.createElement('tbody');
-      groupTbody.className = 'business-doc-client-card';
-      groupTbody.setAttribute('data-client-key', group.key);
-      groupTbody.appendChild(buildBusinessDocClientHeaderRowEl(group, isOpen));
-      if (isOpen) {
-        group.docs.forEach(function (doc) {
-          groupTbody.appendChild(buildBusinessDocRowEl(doc));
-        });
-      }
-      if (table) {
-        table.appendChild(groupTbody);
-      } else {
-        businessDocsTbody.appendChild(groupTbody);
-      }
+      listRoot.appendChild(buildBusinessDocClientCardEl(group, isOpen));
     });
 
     if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
