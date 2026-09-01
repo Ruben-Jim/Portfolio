@@ -11619,7 +11619,12 @@ window.addEventListener('load', function() {
   const BUSINESS_DOCS_STORAGE_KEY = 'businessDocs.v1';
   const BUSINESS_DOCS_DELETED_IDS_KEY = 'businessDocs.deleted.v1';
   const BUSINESS_DOCS_RTD_PATH = 'agencyBusinessDocuments';
+  const BUSINESS_DOCS_RTD_DELETES_PATH = 'agencyBusinessDocDeletes';
   const BUSINESS_DOC_CLIENT_LOGOS_KEY = 'businessDocClientLogos.v1';
+  /** While > 0, RTDB snapshot handler skips merging (avoids resurrecting mid-delete). */
+  var businessDocsSyncSuppressDepth = 0;
+  /** RTDB tombstones — survives refresh and syncs when admin is signed in with Google. */
+  var businessDocRemoteDeletedIds = {};
 
   /** Preset company logos for invoice Bill to (same assets as testimonial logo presets). */
   // Single source of truth lives in business-doc-shared.js so the client portal
@@ -11727,7 +11732,9 @@ window.addEventListener('load', function() {
       if (!raw) return [];
       const parsed = JSON.parse(raw);
       if (!Array.isArray(parsed)) return [];
-      return parsed;
+      return parsed.filter(function (d) {
+        return d && d.id && !isBusinessDocDeleted(d.id) && !isBusinessDocDeletedRemote(d.id);
+      });
     } catch (e) {
       console.warn('Failed to load business docs from localStorage', e);
       return [];
@@ -11737,7 +11744,10 @@ window.addEventListener('load', function() {
   /** @param {BusinessDocument[]} docs */
   function saveBusinessDocs(docs) {
     try {
-      localStorage.setItem(BUSINESS_DOCS_STORAGE_KEY, JSON.stringify(docs));
+      var clean = (Array.isArray(docs) ? docs : []).filter(function (d) {
+        return d && d.id && !isBusinessDocDeleted(d.id) && !isBusinessDocDeletedRemote(d.id);
+      });
+      localStorage.setItem(BUSINESS_DOCS_STORAGE_KEY, JSON.stringify(clean));
     } catch (e) {
       console.warn('Failed to save business docs to localStorage', e);
     }
@@ -11774,16 +11784,43 @@ window.addEventListener('load', function() {
     return !!loadBusinessDocDeletedIds()[String(docId || '')];
   }
 
-  /** Drop tombstones once RTDB no longer has the doc (delete succeeded). */
-  function pruneBusinessDocDeletedIds(remoteList) {
+  function isBusinessDocDeletedRemote(docId) {
+    return !!businessDocRemoteDeletedIds[String(docId || '')];
+  }
+
+  function isBusinessDocRemoved(docId) {
+    var id = String(docId || '');
+    if (!id) return false;
+    return isBusinessDocDeleted(id) || isBusinessDocDeletedRemote(id);
+  }
+
+  function applyRemoteBusinessDocDeletes(val) {
+    businessDocRemoteDeletedIds = {};
+    if (!val || typeof val !== 'object') return;
+    Object.keys(val).forEach(function (id) {
+      if (val[id]) businessDocRemoteDeletedIds[id] = true;
+    });
+  }
+
+  function suppressBusinessDocsSync() {
+    businessDocsSyncSuppressDepth += 1;
+  }
+
+  function releaseBusinessDocsSync() {
+    businessDocsSyncSuppressDepth = Math.max(0, businessDocsSyncSuppressDepth - 1);
+  }
+
+  /** Drop local tombstones only after RTDB delete marker + doc node are both gone. */
+  function pruneBusinessDocDeletedIds(remoteList, remoteDeleteVal) {
     var map = loadBusinessDocDeletedIds();
     var remoteIds = {};
     (remoteList || []).forEach(function (d) {
       if (d && d.id) remoteIds[d.id] = true;
     });
+    var remoteDeletes = remoteDeleteVal && typeof remoteDeleteVal === 'object' ? remoteDeleteVal : {};
     var changed = false;
     Object.keys(map).forEach(function (id) {
-      if (!remoteIds[id]) {
+      if (!remoteIds[id] && !remoteDeletes[id]) {
         delete map[id];
         changed = true;
       }
@@ -11936,7 +11973,8 @@ window.addEventListener('load', function() {
 
   async function syncBusinessDocToRtdb(doc) {
     var clean = sanitizeBusinessDocForRtdb(doc);
-    if (!clean || !window.rtdb || !window.rtdbRef || !window.rtdbSet) return;
+    if (!clean || isBusinessDocRemoved(clean.id)) return;
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbSet) return;
     try {
       await window.rtdbSet(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH + '/' + clean.id), clean);
     } catch (e) {
@@ -11944,9 +11982,35 @@ window.addEventListener('load', function() {
     }
   }
 
+  async function markBusinessDocDeletedRemote(docId) {
+    if (!docId || !window.rtdb || !window.rtdbRef || !window.rtdbSet) return false;
+    try {
+      await window.rtdbSet(
+        window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_DELETES_PATH + '/' + docId),
+        Date.now()
+      );
+      businessDocRemoteDeletedIds[String(docId)] = true;
+      return true;
+    } catch (e) {
+      console.warn('Failed to mark business doc deleted in RTDB', e);
+      return false;
+    }
+  }
+
   async function removeBusinessDocFromRtdb(docId) {
-    if (!docId || !window.rtdb || !window.rtdbRef || !window.rtdbRemove) return;
+    if (!docId || !window.rtdb || !window.rtdbRef || !window.rtdbRemove) return false;
+    await markBusinessDocDeletedRemote(docId);
     await window.rtdbRemove(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH + '/' + docId));
+    clearBusinessDocDeletedLocal(docId);
+    return true;
+  }
+
+  function clearBusinessDocDeletedLocal(docId) {
+    if (!docId) return;
+    var map = loadBusinessDocDeletedIds();
+    if (!map[String(docId)]) return;
+    delete map[String(docId)];
+    saveBusinessDocDeletedIds(map);
   }
 
   async function loadBusinessDocsFromRtdb() {
@@ -12177,13 +12241,13 @@ window.addEventListener('load', function() {
   function mergeBusinessDocLists(localList, remoteList) {
     var map = {};
     (localList || []).forEach(function (d) {
-      if (!d || !d.id || isBusinessDocDeleted(d.id)) return;
+      if (!d || !d.id || isBusinessDocRemoved(d.id)) return;
       map[d.id] = normalizeBusinessDocRecord(d);
     });
     var toPush = [];
     (remoteList || []).forEach(function (d) {
       if (!d || !d.id) return;
-      if (isBusinessDocDeleted(d.id)) {
+      if (isBusinessDocRemoved(d.id)) {
         removeBusinessDocFromRtdb(d.id).catch(function (err) {
           console.warn('Retry remove deleted business doc from RTDB', err);
         });
@@ -12206,24 +12270,34 @@ window.addEventListener('load', function() {
       }
     });
     (localList || []).forEach(function (d) {
-      if (!d || !d.id || isBusinessDocDeleted(d.id)) return;
+      if (!d || !d.id || isBusinessDocRemoved(d.id)) return;
       var existsRemote = (remoteList || []).some(function (r) {
         return r && r.id === d.id;
       });
       if (!existsRemote) toPush.push(map[d.id] || normalizeBusinessDocRecord(d));
     });
     return {
-      docs: Object.keys(map).map(function (k) {
-        return map[k];
-      }),
-      toPush: toPush
+      docs: Object.keys(map)
+        .filter(function (k) {
+          return !isBusinessDocRemoved(k);
+        })
+        .map(function (k) {
+          return map[k];
+        }),
+      toPush: toPush.filter(function (d) {
+        return d && d.id && !isBusinessDocRemoved(d.id);
+      })
     };
   }
 
   function applyBusinessDocsList(list) {
-    businessDocs = (Array.isArray(list) ? list : []).map(function (d) {
-      return normalizeBusinessDocRecord(d);
-    });
+    businessDocs = (Array.isArray(list) ? list : [])
+      .filter(function (d) {
+        return d && d.id && !isBusinessDocRemoved(d.id);
+      })
+      .map(function (d) {
+        return normalizeBusinessDocRecord(d);
+      });
     var backfilled = backfillMissingInvoiceNumbers(businessDocs);
     if (backfilled.length) {
       backfilled.forEach(function (d) {
@@ -12239,23 +12313,38 @@ window.addEventListener('load', function() {
     }
   }
 
+  async function loadBusinessDocDeletesFromRtdb() {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) return null;
+    try {
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_DELETES_PATH));
+      return snap.val();
+    } catch (e) {
+      console.warn('Failed to load business doc deletes from RTDB', e);
+      return null;
+    }
+  }
+
   /**
    * Hydrate after Firebase init. Merge RTDB with local cache so newer local
    * proposal pitch fields are not wiped by an older remote record.
    */
   async function migrateBusinessDocsToRtdbIfNeeded() {
     if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) return false;
+    var deletesVal = await loadBusinessDocDeletesFromRtdb();
+    if (deletesVal) applyRemoteBusinessDocDeletes(deletesVal);
     var fromRtdb = await loadBusinessDocsFromRtdb();
     if (fromRtdb === null) return false;
     if (!fromRtdb.length) {
       if (!businessDocs.length) return true;
       for (var i = 0; i < businessDocs.length; i++) {
-        await syncBusinessDocToRtdb(businessDocs[i]);
+        if (!isBusinessDocRemoved(businessDocs[i].id)) {
+          await syncBusinessDocToRtdb(businessDocs[i]);
+        }
       }
       return true;
     }
     var merged = mergeBusinessDocLists(businessDocs, fromRtdb);
-    pruneBusinessDocDeletedIds(fromRtdb);
+    pruneBusinessDocDeletedIds(fromRtdb, deletesVal);
     applyBusinessDocsList(merged.docs);
     for (var p = 0; p < merged.toPush.length; p++) {
       await syncBusinessDocToRtdb(merged.toPush[p]);
@@ -12264,30 +12353,53 @@ window.addEventListener('load', function() {
   }
 
   var businessDocsUnsub = null;
+  var businessDocDeletesUnsub = null;
+
+  function handleBusinessDocsRtdbSnapshot(docsVal, deletesVal) {
+    if (businessDocsSyncSuppressDepth > 0) return;
+    applyRemoteBusinessDocDeletes(deletesVal);
+    if (!docsVal || typeof docsVal !== 'object') {
+      docsVal = {};
+    }
+    var remote = Object.keys(docsVal).map(function (k) {
+      return normalizeBusinessDocRecord(docsVal[k], k);
+    });
+    pruneBusinessDocDeletedIds(remote, deletesVal);
+    var merged = mergeBusinessDocLists(businessDocs, remote);
+    applyBusinessDocsList(merged.docs);
+    merged.toPush.forEach(function (doc) {
+      syncBusinessDocToRtdb(doc).catch(function (err) {
+        console.warn('Failed to push newer local business doc to RTDB', err);
+      });
+    });
+  }
 
   function subscribeBusinessDocsFromRtdb() {
     if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
     if (businessDocsUnsub) return;
-    var ref = window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH);
+    var docsValCache = null;
+    var deletesValCache = null;
+    function emitMerged() {
+      handleBusinessDocsRtdbSnapshot(docsValCache, deletesValCache);
+    }
     businessDocsUnsub = window.rtdbOnValue(
-      ref,
+      window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_PATH),
       function (snap) {
-        var val = snap.val();
-        if (!val || typeof val !== 'object') return;
-        var remote = Object.keys(val).map(function (k) {
-          return normalizeBusinessDocRecord(val[k], k);
-        });
-        pruneBusinessDocDeletedIds(remote);
-        var merged = mergeBusinessDocLists(businessDocs, remote);
-        applyBusinessDocsList(merged.docs);
-        merged.toPush.forEach(function (doc) {
-          syncBusinessDocToRtdb(doc).catch(function (err) {
-            console.warn('Failed to push newer local business doc to RTDB', err);
-          });
-        });
+        docsValCache = snap.val();
+        emitMerged();
       },
       function (err) {
         console.warn('Business docs RTDB listen failed', err);
+      }
+    );
+    businessDocDeletesUnsub = window.rtdbOnValue(
+      window.rtdbRef(window.rtdb, BUSINESS_DOCS_RTD_DELETES_PATH),
+      function (snap) {
+        deletesValCache = snap.val();
+        emitMerged();
+      },
+      function (err) {
+        console.warn('Business doc deletes RTDB listen failed', err);
       }
     );
   }
@@ -12299,6 +12411,12 @@ window.addEventListener('load', function() {
       } catch (e) {}
     }
     businessDocsUnsub = null;
+    if (typeof businessDocDeletesUnsub === 'function') {
+      try {
+        businessDocDeletesUnsub();
+      } catch (e) {}
+    }
+    businessDocDeletesUnsub = null;
   }
 
   window.hydrateBusinessDocsFromRtdb = migrateBusinessDocsToRtdbIfNeeded;
@@ -16895,6 +17013,7 @@ window.addEventListener('load', function() {
       closeDeleteDocumentConfirmModal();
       return;
     }
+    suppressBusinessDocsSync();
     markBusinessDocDeleted(docId);
     businessDocs = businessDocs.filter(function (d) {
       return d.id !== docId;
@@ -16902,19 +17021,23 @@ window.addEventListener('load', function() {
     saveBusinessDocs(businessDocs);
     renderBusinessDocs();
     closeDeleteDocumentConfirmModal();
+    var cloudRemoved = false;
+    var authError = null;
     try {
-      await removeBusinessDocFromRtdb(docId);
-    } catch (err) {
-      console.warn('Failed to remove business doc from RTDB', err);
-      if (
-        window.firebaseAuth &&
-        !window.firebaseAuth.currentUser &&
-        typeof window.alert === 'function'
-      ) {
-        window.alert(
-          'Document removed here, but Firebase still has a copy. Sign in with Google (admin) so it can be deleted from the cloud too.'
-        );
+      if (typeof window.waitForAdminAuth === 'function') {
+        await window.waitForAdminAuth(8000);
       }
+      cloudRemoved = await removeBusinessDocFromRtdb(docId);
+    } catch (err) {
+      authError = err;
+      console.warn('Failed to remove business doc from RTDB', err);
+    } finally {
+      releaseBusinessDocsSync();
+    }
+    if (!cloudRemoved && authError && typeof window.alert === 'function') {
+      window.alert(
+        'Removed from this browser. Cloud delete failed — stay signed in with Google (ruben.jim.co@gmail.com) and try again.'
+      );
     }
     if (
       businessDocIdInput &&

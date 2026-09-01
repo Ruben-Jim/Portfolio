@@ -84,6 +84,10 @@
       ".read": true,
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     },
+    "agencyBusinessDocDeletes": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+    },
     "agencyContractSignatures": {
       ".read": true,
       "$docId": {

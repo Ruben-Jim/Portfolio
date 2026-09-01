@@ -1860,6 +1860,14 @@
 
   async function loadBusinessDocumentsForHub(hubRow, project) {
     if (!rtdbReady()) return [];
+    var deletedIds = {};
+    try {
+      var delSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, 'agencyBusinessDocDeletes'));
+      var delVal = delSnap.val();
+      if (delVal && typeof delVal === 'object') deletedIds = delVal;
+    } catch (delErr) {
+      console.warn('Could not load business doc delete markers for portal:', delErr);
+    }
     try {
       var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_BUSINESS_DOCS));
     } catch (err) {
@@ -1873,8 +1881,9 @@
     var seen = {};
     var docs = [];
     Object.keys(val).forEach(function (key) {
+      if (deletedIds[key]) return;
       var d = Object.assign({ id: key }, val[key] || {});
-      if (!d.id || seen[d.id]) return;
+      if (!d.id || seen[d.id] || deletedIds[d.id]) return;
       if (String(d.status || '').toLowerCase() === 'draft') return;
       var match = false;
       if (bid && d.id === bid) match = true;
