@@ -12735,13 +12735,18 @@ window.addEventListener('load', function() {
    * Body arrives on the email.sent event; older rows predate that and show
    * nothing, which is expected rather than broken.
    */
-  function renderOutboundBodyHtml(msg) {
+  /**
+   * @param {boolean} expanded  The newest message in a thread opens by default;
+   *   older ones stay behind the disclosure so long threads stay short.
+   */
+  function renderOutboundBodyHtml(msg, expanded) {
     var html = msg && msg.html ? sanitizeBlogContentHtml(msg.html) : '';
     var text = msg && msg.text ? String(msg.text) : '';
     if (!html && !text) return '';
     var inner = html
       ? '<div class="admin-email-bubble-body admin-email-bubble-body--html">' + splitQuotedEmailHtml(html).main + '</div>'
       : '<div class="admin-email-bubble-body admin-email-bubble-body--text">' + escapeEmailHtml(text) + '</div>';
+    if (expanded) return inner;
     return (
       '<details class="admin-email-quoted admin-email-sent-body">' +
       '<summary>Show message</summary>' +
@@ -12982,6 +12987,7 @@ window.addEventListener('load', function() {
         from: row.from || 'You',
         to: [contactEmail],
         text: String(row.message || ''),
+        emailId: String(row.emailId || ''),
         messageId: String(row.messageId || ''),
         inReplyTo: String(row.inReplyTo || ''),
         references: String(row.references || ''),
@@ -12992,6 +12998,9 @@ window.addEventListener('load', function() {
 
     // Sort messages newest first within each thread
     Object.keys(map).forEach(function (key) {
+      // Fold each delivery event into the sent copy it belongs to, so a sent
+      // message renders once with a status rather than twice.
+      mergeOutboundStatusIntoReplies(map[key]);
       map[key].messages.sort(function (a, b) {
         return (Date.parse(b.at) || 0) - (Date.parse(a.at) || 0);
       });
@@ -13002,6 +13011,57 @@ window.addEventListener('load', function() {
       var ta = a.messages.length ? (Date.parse(a.messages[0].at) || 0) : 0;
       var tb = b.messages.length ? (Date.parse(b.messages[0].at) || 0) : 0;
       return tb - ta;
+    });
+  }
+
+  var OUTBOUND_MERGE_WINDOW_MS = 120000;
+
+  function normalizeSubjectForMerge(v) {
+    return String(v || '')
+      .replace(/^\s*(re|fwd?)\s*:\s*/gi, '')
+      .trim()
+      .toLowerCase();
+  }
+
+  /**
+   * Collapses 'outbound' status events onto the 'reply' they report on.
+   * The reply keeps the body you wrote; the event contributes its status.
+   */
+  function mergeOutboundStatusIntoReplies(thread) {
+    if (!thread || !Array.isArray(thread.messages)) return;
+    var replies = thread.messages.filter(function (m) { return m.kind === 'reply'; });
+    if (!replies.length) return;
+
+    var absorbed = [];
+    thread.messages.forEach(function (evt) {
+      if (evt.kind !== 'outbound') return;
+      var match = null;
+
+      if (evt.emailId) {
+        match = replies.find(function (r) { return r.emailId && r.emailId === evt.emailId; }) || null;
+      }
+      if (!match) {
+        var evtAt = Date.parse(evt.at) || 0;
+        var evtSubject = normalizeSubjectForMerge(evt.subject);
+        match = replies.find(function (r) {
+          if (r.statusType) return false; // already carries an event
+          if (normalizeSubjectForMerge(r.subject) !== evtSubject) return false;
+          var rAt = Date.parse(r.at) || 0;
+          if (!rAt || !evtAt) return false;
+          return Math.abs(rAt - evtAt) <= OUTBOUND_MERGE_WINDOW_MS;
+        }) || null;
+      }
+      if (!match) return;
+
+      // Latest status wins; the send time stays the reply's own.
+      match.statusType = evt.statusType || match.statusType || '';
+      if (!match.emailId && evt.emailId) match.emailId = evt.emailId;
+      absorbed.push(evt);
+    });
+
+    if (!absorbed.length) return;
+    thread.messages = thread.messages.filter(function (m) {
+      return absorbed.indexOf(m) === -1;
     });
   }
 
@@ -13127,11 +13187,7 @@ window.addEventListener('load', function() {
         '</p>' +
         '</div>' +
         // Must still render, or hiding everything leaves no way back.
-        (hiddenCount || agencyEmailShowArchived
-          ? '<button type="button" class="admin-email-archived-toggle" data-toggle-archived="1">' +
-            (agencyEmailShowArchived ? '&larr; Back to inbox' : 'Show hidden (' + hiddenCount + ')') +
-            '</button>'
-          : '');
+        archivedToggleHtml(hiddenCount);
       return;
     }
     // Group by day so each day gets its own "Clear" control.
@@ -13147,6 +13203,24 @@ window.addEventListener('load', function() {
       byDay[key].threads.push(t);
     });
 
+    /**
+     * Archived toggle. "Back to inbox" renders above the list, "Show hidden"
+     * below it: inside the hidden view the way out must be reachable without
+     * scrolling past everything you just hid, whereas "Show hidden" is a
+     * secondary action you meet after scanning the inbox.
+     */
+    function archivedToggleHtml(count) {
+      if (!count && !agencyEmailShowArchived) return '';
+      return (
+        '<button type="button" class="admin-email-archived-toggle' +
+        (agencyEmailShowArchived ? ' admin-email-archived-toggle--back' : '') +
+        '" data-toggle-archived="1">' +
+        (agencyEmailShowArchived ? '&larr; Back to inbox' : 'Show hidden (' + count + ')') +
+        '</button>'
+      );
+    }
+
+
     function threadCardHtml(thread) {
       var active = thread.threadKey === agencyEmailSelectedThread ? ' is-active' : '';
       var latest = thread.messages[0] || {};
@@ -13159,19 +13233,29 @@ window.addEventListener('load', function() {
       var unreadBadge   = inboundCount > 0
         ? '<span class="admin-email-thread-badge admin-email-thread-badge--unread">' + inboundCount + '</span>'
         : '';
+      // Status is a dot, not a pill: at 240px a third lozenge forced the row
+      // to wrap, and the colour alone carries the state. The label stays as a
+      // title attribute and as text for wider columns.
       var healthBadge   = healthLabel
-        ? '<span class="admin-email-chip admin-email-status-chip admin-email-status-chip--' + escapeEmailHtml(healthTone) + '">' + escapeEmailHtml(healthLabel) + '</span>'
+        ? '<span class="admin-email-thread-status admin-email-thread-status--' + escapeEmailHtml(healthTone) + '"' +
+          ' title="' + escapeEmailHtml(healthLabel) + '">' +
+          '<span class="admin-email-thread-status-dot" aria-hidden="true"></span>' +
+          '<span class="admin-email-thread-status-text">' + escapeEmailHtml(healthLabel) + '</span>' +
+          '</span>'
         : '';
       return (
         '<div class="admin-email-thread-row">' +
         '<button type="button" class="admin-email-thread-card' + active + '" ' +
           'data-thread-key="' + escapeEmailHtml(thread.threadKey) + '" tabindex="0" ' +
           'role="option" aria-selected="' + (active ? 'true' : 'false') + '">' +
-        '<div class="admin-email-thread-card-contact">' + escapeEmailHtml(thread.contactName) + '</div>' +
+        '<div class="admin-email-thread-card-top">' +
+        '<span class="admin-email-thread-card-contact">' + escapeEmailHtml(thread.contactName) + '</span>' +
+        // Plain text, not a chip - a pill this wide wrapped inside itself.
+        '<span class="admin-email-thread-card-time">' + escapeEmailHtml(formatEmailWhen(latest.at)) + '</span>' +
+        '</div>' +
         '<div class="admin-email-thread-card-subject">' + escapeEmailHtml(latest.subject || '(No subject)') + '</div>' +
         '<div class="admin-email-thread-card-meta">' +
-        '<span class="admin-email-chip admin-email-chip--time">' + escapeEmailHtml(formatEmailWhen(latest.at)) + '</span>' +
-        unreadBadge + healthBadge +
+        healthBadge + unreadBadge +
         '</div>' +
         '</button>' +
         '<button type="button" class="admin-email-thread-archive" ' +
@@ -13185,7 +13269,9 @@ window.addEventListener('load', function() {
     }
 
     var archivedCount = archivedThreadCount();
+    var toggleHtml = archivedToggleHtml(archivedCount);
     listEl.innerHTML =
+      (agencyEmailShowArchived ? toggleHtml : '') +
       dayOrder
         .map(function (key) {
           var group = byDay[key];
@@ -13202,13 +13288,7 @@ window.addEventListener('load', function() {
           );
         })
         .join('') +
-      (archivedCount || agencyEmailShowArchived
-        ? '<button type="button" class="admin-email-archived-toggle" data-toggle-archived="1">' +
-          (agencyEmailShowArchived
-            ? '&larr; Back to inbox'
-            : 'Show hidden (' + archivedCount + ')') +
-          '</button>'
-        : '');
+      (agencyEmailShowArchived ? '' : toggleHtml);
   }
 
   // ── Thread detail rendering ─────────────────────────────────────────────────
@@ -13230,7 +13310,10 @@ window.addEventListener('load', function() {
     var latest = thread.messages[0] || {};
     if (subjectEl) subjectEl.textContent = latest.subject || '(No subject)';
     if (contactEl) {
-      var sourceTag = agencyEmailLiveSynced ? '' : (agencyEmailLoadedFromCache ? ' · Cached' : '');
+      // "Cached" read as jargon - it means the live listener has not caught up.
+      var sourceTag = agencyEmailLiveSynced
+        ? ''
+        : (agencyEmailLoadedFromCache ? ' · Showing saved copy, syncing…' : '');
       contactEl.textContent = thread.contactName + ' · ' + thread.contactEmail + sourceTag;
     }
 
@@ -13250,18 +13333,22 @@ window.addEventListener('load', function() {
         inReplyTo: latestInbound.messageId ? '<' + latestInbound.messageId + '>' : '',
         references: (latestInbound.references ? latestInbound.references + ' ' : '') + (latestInbound.messageId ? '<' + latestInbound.messageId + '>' : '')
       };
-      if (composerEl) composerEl.hidden = false;
+      // Composer stays closed until Reply is pressed - it is a large block to
+      // leave open while you are only reading a thread.
+      setAdminEmailComposerOpen(false, true);
     } else {
       delete timelineEl.dataset.replyTo;
       agencyEmailReplyState = null;
-      if (composerEl) composerEl.hidden = true;
+      setAdminEmailComposerOpen(false, false);
     }
 
     // Group consecutive messages to avoid repeating same subject
     var prevSubject = null;
-    timelineEl.innerHTML = thread.messages.map(function (msg) {
+    timelineEl.innerHTML = thread.messages.map(function (msg, msgIndex) {
       var showSubject = msg.subject !== prevSubject;
       prevSubject = msg.subject;
+      // Sorted newest-first, so index 0 is the message you most likely want.
+      var isNewest = msgIndex === 0;
 
       if (msg.kind === 'inbound') {
         var htmlBody = sanitizeBlogContentHtml(msg.html || '');
@@ -13301,7 +13388,15 @@ window.addEventListener('load', function() {
           '<div class="admin-email-bubble-meta">' +
           '<span class="admin-email-bubble-from">You</span>' +
           '<span class="admin-email-bubble-when">' + escapeEmailHtml(formatEmailWhen(msg.at)) + '</span>' +
-          (msg.optimistic ? '<span class="admin-email-chip admin-email-chip--to">Sending…</span>' : '<span class="admin-email-chip admin-email-chip--to">Sent</span>') +
+          (msg.optimistic
+            ? '<span class="admin-email-chip admin-email-chip--to">Sending…</span>'
+            : msg.statusType
+              // Status folded in from the delivery webhook by
+              // mergeOutboundStatusIntoReplies().
+              ? '<span class="admin-email-chip admin-email-status-chip admin-email-status-chip--' +
+                escapeEmailHtml(outboundTypeTone(msg.statusType)) + '">' +
+                escapeEmailHtml(outboundTypeLabel(msg.statusType)) + '</span>'
+              : '<span class="admin-email-chip admin-email-chip--to">Sent</span>') +
           '</div>' +
           (showSubject ? '<div class="admin-email-bubble-subject">' + escapeEmailHtml(msg.subject) + '</div>' : '') +
           '<div class="admin-email-bubble-body admin-email-bubble-body--text">' + escapeEmailHtml(msg.text || '') + '</div>' +
@@ -13319,10 +13414,66 @@ window.addEventListener('load', function() {
         '<span class="admin-email-chip admin-email-status-chip admin-email-status-chip--' + escapeEmailHtml(tone) + '">' + escapeEmailHtml(label) + '</span>' +
         '</div>' +
         (showSubject ? '<div class="admin-email-bubble-subject">' + escapeEmailHtml(msg.subject) + '</div>' : '') +
-        renderOutboundBodyHtml(msg) +
+        renderOutboundBodyHtml(msg, isNewest) +
         '</div>'
       );
     }).join('');
+  }
+
+  /**
+   * @param {boolean} open        show the textarea
+   * @param {boolean} canReply    whether replying is possible at all; when
+   *   false neither the launcher nor the composer is shown.
+   */
+  function setAdminEmailComposerOpen(open, canReply) {
+    var detailEl   = document.getElementById('admin-email-thread-detail');
+    var composerEl = document.getElementById('admin-email-thread-composer');
+    var launcherEl = document.getElementById('admin-email-thread-reply-launcher');
+
+    // hidden means "this thread cannot be replied to at all". The open/closed
+    // state is a class, because the composer slides in from the bottom edge and
+    // display:none would kill the transition.
+    if (composerEl) composerEl.hidden = !canReply;
+    if (launcherEl) launcherEl.hidden = !canReply;
+    if (detailEl) detailEl.classList.toggle('is-composer-open', !!(canReply && open));
+
+    if (canReply && open) {
+      var timelineEl = document.getElementById('admin-email-thread-timeline');
+      var keepTop = timelineEl ? timelineEl.scrollTop : 0;
+      var keepDetailTop = detailEl ? detailEl.scrollTop : 0;
+
+      var textarea = document.getElementById('admin-email-thread-reply-body');
+      if (textarea) {
+        // preventScroll matters here: focusing scrolls the element into view by
+        // default, and the composer sits below the panel's bottom edge at the
+        // moment it is focused - so the browser would scroll the thread to
+        // chase it, which is exactly the jump this layout exists to avoid.
+        try {
+          textarea.focus({ preventScroll: true });
+        } catch (e) {
+          textarea.focus();
+        }
+      }
+
+      // Belt and braces: an overflow:hidden box can still have its scrollTop
+      // moved by focus, and older engines ignore preventScroll.
+      if (timelineEl && timelineEl.scrollTop !== keepTop) timelineEl.scrollTop = keepTop;
+      if (detailEl && detailEl.scrollTop !== keepDetailTop) detailEl.scrollTop = keepDetailTop;
+
+      // The composer covers the foot of the thread. Giving the timeline that
+      // much extra scroll room means the last message can still be reached by
+      // scrolling; adding padding below existing content does not move
+      // scrollTop, so nothing shifts on screen.
+      if (timelineEl && composerEl) {
+        timelineEl.style.setProperty(
+          '--composer-overlay-h',
+          composerEl.offsetHeight + 'px'
+        );
+      }
+    } else if (open === false) {
+      var tl = document.getElementById('admin-email-thread-timeline');
+      if (tl) tl.style.removeProperty('--composer-overlay-h');
+    }
   }
 
   // ── Reply composer ──────────────────────────────────────────────────────────
@@ -13423,7 +13574,10 @@ window.addEventListener('load', function() {
       var thread = getSelectedThread();
       var sentAtIso = safeIso(new Date()) || new Date().toISOString();
       var clientNonce = 'reply-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
-      await sendPortfolioEmailRequest({
+      // The response carries Resend's email id - the same id the delivery
+      // webhook reports. Storing it is what lets the sent copy and its status
+      // events collapse into one entry instead of two.
+      var sendResult = await sendPortfolioEmailRequest({
         type: 'admin_reply',
         payload: {
           to_email: state.to,
@@ -13434,12 +13588,14 @@ window.addEventListener('load', function() {
           references: state.references
         }
       }, { requireAdmin: true });
+      var sentEmailId = String((sendResult && sendResult.id) || '');
 
       addOptimisticReplyRow({
         threadKey: thread ? thread.threadKey : '',
         toEmail: state.to,
         toName: state.toName || '',
         from: 'You',
+        emailId: sentEmailId,
         subject: state.subject,
         message: message,
         sentAt: sentAtIso,
@@ -13467,6 +13623,8 @@ window.addEventListener('load', function() {
 
       closeAdminEmailReplyConfirm();
       closeAdminEmailReplyComposer();
+      // Collapse back to the launcher so the sent thread is readable again.
+      setAdminEmailComposerOpen(false, !!agencyEmailReplyState);
     } catch (err) {
       var errMsg = (err && err.message) || 'Send failed. Try again.';
       if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send'; }
@@ -13486,6 +13644,7 @@ window.addEventListener('load', function() {
     renderAdminEmailThreadList();
     renderAdminEmailThreadDetail();
     try { sessionStorage.setItem(AGENCY_EMAIL_THREAD_KEY, contactEmail); } catch (e) {}
+    setAdminEmailMobileView('thread');
   }
 
   // ── Bind UI ─────────────────────────────────────────────────────────────────
@@ -13517,19 +13676,7 @@ window.addEventListener('load', function() {
         var dayBtn = e.target.closest('[data-clear-day]');
         if (dayBtn) {
           e.stopPropagation();
-          var dayKey = dayBtn.getAttribute('data-clear-day');
-          var affected = getFilteredThreads().filter(function (t) {
-            return emailDayKey((t.messages[0] || {}).at || '') === dayKey;
-          });
-          if (!affected.length) return;
-          var verb = agencyEmailShowArchived ? 'Restore' : 'Hide';
-          if (!window.confirm(verb + ' ' + affected.length + ' thread' + (affected.length === 1 ? '' : 's') + '? Nothing is deleted — this only changes what shows here.')) return;
-          affected.forEach(function (t) {
-            setThreadArchived(t.threadKey, !agencyEmailShowArchived);
-            if (agencyEmailSelectedThread === t.threadKey) agencyEmailSelectedThread = null;
-          });
-          renderAdminEmailThreadList();
-          renderAdminEmailThreadDetail();
+          openEmailClearDayConfirm(dayBtn.getAttribute('data-clear-day'));
           return;
         }
 
@@ -13566,10 +13713,21 @@ window.addEventListener('load', function() {
     var timelineEl = document.getElementById('admin-email-thread-timeline');
 
     // Composer cancel / send
+    var replyOpenBtn = document.getElementById('admin-email-thread-reply-open');
+    if (replyOpenBtn && !replyOpenBtn.dataset.bound) {
+      replyOpenBtn.dataset.bound = '1';
+      replyOpenBtn.addEventListener('click', function () {
+        setAdminEmailComposerOpen(true, true);
+      });
+    }
     var cancelBtn = document.getElementById('admin-email-thread-composer-cancel');
     if (cancelBtn && !cancelBtn.dataset.bound) {
       cancelBtn.dataset.bound = '1';
-      cancelBtn.addEventListener('click', closeAdminEmailReplyComposer);
+      cancelBtn.addEventListener('click', function () {
+        closeAdminEmailReplyComposer();
+        // Back to the launcher, not to nothing - the thread is still replyable.
+        setAdminEmailComposerOpen(false, !!agencyEmailReplyState);
+      });
     }
     var composerSendBtn = document.getElementById('admin-email-thread-composer-send');
     if (composerSendBtn && !composerSendBtn.dataset.bound) {
@@ -13661,6 +13819,141 @@ window.addEventListener('load', function() {
   }
 
   // ── RTDB subscriptions ──────────────────────────────────────────────────────
+  /**
+   * Sizes the email panel to the remaining viewport height.
+   *
+   * It was a fixed 65vh box, which produced a small scrolling window inside a
+   * scrolling page - two nested scrollbars for one list. Measuring the panel's
+   * own top offset keeps this self-contained instead of restructuring the
+   * shared admin tab layout that every other tab relies on.
+   */
+  function sizeAdminEmailPanel() {
+    var layout = document.querySelector('.admin-email-threads-layout');
+    if (!layout || !layout.offsetParent) return; // not the visible tab
+    var top = layout.getBoundingClientRect().top;
+    var viewport = window.innerHeight || document.documentElement.clientHeight;
+    var gutter = 24;
+    var h = Math.max(360, Math.round(viewport - top - gutter));
+    layout.style.setProperty('--email-panel-h', h + 'px');
+  }
+
+  var adminEmailResizeBound = false;
+  function bindAdminEmailPanelSizing() {
+    if (adminEmailResizeBound) return;
+    adminEmailResizeBound = true;
+    window.addEventListener('resize', sizeAdminEmailPanel);
+    window.addEventListener('orientationchange', sizeAdminEmailPanel);
+  }
+
+
+  /* Clear-day confirmation ------------------------------------------------
+     Uses the shared confirm-delete-modal shell that every other destructive
+     action in admin uses. window.confirm() cannot be styled and reads as a
+     browser alert dropped into the middle of the dashboard. */
+  var pendingEmailClearDayKey = null;
+
+  function threadsForDay(dayKey) {
+    return getFilteredThreads().filter(function (t) {
+      return emailDayKey((t.messages[0] || {}).at || '') === dayKey;
+    });
+  }
+
+  function openEmailClearDayConfirm(dayKey) {
+    var affected = threadsForDay(dayKey);
+    if (!affected.length) return;
+    var modal = document.getElementById('email-clear-day-confirm-modal');
+    if (!modal) return;
+
+    pendingEmailClearDayKey = dayKey;
+    var restoring = agencyEmailShowArchived;
+    var count = affected.length;
+    var noun = count === 1 ? 'thread' : 'threads';
+
+    var titleEl = document.getElementById('email-clear-day-confirm-title');
+    var descEl = document.getElementById('email-clear-day-confirm-desc');
+    var okEl = document.getElementById('email-clear-day-confirm-ok');
+    if (titleEl) titleEl.textContent = restoring ? 'Restore these threads?' : 'Hide these threads?';
+    if (descEl) {
+      descEl.textContent =
+        (restoring ? 'Restore ' : 'Hide ') + count + ' ' + noun +
+        '. Nothing is deleted \u2014 this only changes what shows here.';
+    }
+    if (okEl) okEl.textContent = restoring ? 'Restore' : 'Hide';
+
+    setupEmailClearDayConfirm();
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    var cancelBtn = document.getElementById('email-clear-day-confirm-cancel');
+    if (cancelBtn) setTimeout(function () { cancelBtn.focus(); }, 40);
+  }
+
+  function closeEmailClearDayConfirm() {
+    var modal = document.getElementById('email-clear-day-confirm-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    pendingEmailClearDayKey = null;
+  }
+
+  function applyEmailClearDay() {
+    var dayKey = pendingEmailClearDayKey;
+    if (!dayKey) { closeEmailClearDayConfirm(); return; }
+    threadsForDay(dayKey).forEach(function (t) {
+      setThreadArchived(t.threadKey, !agencyEmailShowArchived);
+      if (agencyEmailSelectedThread === t.threadKey) agencyEmailSelectedThread = null;
+    });
+    closeEmailClearDayConfirm();
+    renderAdminEmailThreadList();
+    renderAdminEmailThreadDetail();
+  }
+
+  function setupEmailClearDayConfirm() {
+    var modal = document.getElementById('email-clear-day-confirm-modal');
+    if (!modal || modal.dataset.emailClearBound) return;
+    modal.dataset.emailClearBound = '1';
+
+    ['email-clear-day-confirm-overlay',
+     'email-clear-day-confirm-close',
+     'email-clear-day-confirm-cancel'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('click', closeEmailClearDayConfirm);
+    });
+
+    var okBtn = document.getElementById('email-clear-day-confirm-ok');
+    if (okBtn) okBtn.addEventListener('click', applyEmailClearDay);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && modal.classList.contains('active')) {
+        closeEmailClearDayConfirm();
+      }
+    });
+  }
+
+
+  /**
+   * Master-detail on phones.
+   *
+   * Below 780px the layout is a single column, so the list and the thread would
+   * otherwise stack into one very long page. A class on the layout decides which
+   * of the two is on screen; the CSS does the hiding, so desktop - where both
+   * are always visible - is untouched.
+   */
+  function setAdminEmailMobileView(view) {
+    var layout = document.querySelector('.admin-email-threads-layout');
+    if (!layout) return;
+    layout.classList.toggle('is-viewing-thread', view === 'thread');
+  }
+
+  function bindAdminEmailBackButton() {
+    var back = document.getElementById('admin-email-thread-back');
+    if (!back || back.dataset.bound) return;
+    back.dataset.bound = '1';
+    back.addEventListener('click', function () {
+      setAdminEmailMobileView('list');
+    });
+  }
+
+
   function rebuildAndRender() {
     buildEmailThreads();
     // Auto-select first thread if nothing selected
@@ -13669,6 +13962,11 @@ window.addEventListener('load', function() {
     }
     renderAdminEmailThreadList();
     renderAdminEmailThreadDetail();
+    bindAdminEmailPanelSizing();
+    bindAdminEmailBackButton();
+    // After layout settles - the panel's top offset is not final until the
+    // heading above it has been laid out.
+    window.requestAnimationFrame(sizeAdminEmailPanel);
   }
 
   function applyAgencyInboundSnapshot(val) {

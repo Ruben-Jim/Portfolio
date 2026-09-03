@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=docs-accordion-polish-20260831">
+  <link rel="stylesheet" href="/assets/css/style.css?v=archived-toggle-20260903h">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -92,7 +92,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=mobile-tabs-20260819t">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=mobile-sheet-20260819v">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3547,6 +3547,9 @@
                   <!-- Thread detail (right panel) -->
                   <div class="admin-email-thread-detail" id="admin-email-thread-detail" hidden>
                     <header class="admin-email-thread-detail-head">
+                      <button type="button" class="admin-email-thread-back" id="admin-email-thread-back" aria-label="Back to threads">
+                        <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                      </button>
                       <div class="admin-email-thread-detail-meta">
                         <h4 class="admin-email-thread-detail-subject" id="admin-email-thread-detail-subject"></h4>
                         <p class="admin-email-thread-detail-contact" id="admin-email-thread-detail-contact"></p>
@@ -3554,6 +3557,12 @@
                     </header>
                     <div class="admin-email-thread-timeline has-scrollbar" id="admin-email-thread-timeline" aria-live="polite"></div>
                     <!-- Inline reply composer (hidden until Reply triggered) -->
+                    <div class="admin-email-thread-reply-launcher" id="admin-email-thread-reply-launcher" hidden>
+                      <button type="button" class="btn btn-primary btn-sm" id="admin-email-thread-reply-open">
+                        <ion-icon name="arrow-undo-outline" aria-hidden="true"></ion-icon>
+                        Reply
+                      </button>
+                    </div>
                     <div class="admin-email-thread-composer" id="admin-email-thread-composer" hidden>
                       <textarea id="admin-email-thread-reply-body" class="form-input admin-email-thread-reply-textarea" placeholder="Write your reply…" aria-label="Reply message body"></textarea>
                       <div class="admin-email-thread-composer-actions">
@@ -4947,6 +4956,26 @@
           </section>
         </div>
 
+        <!-- Hide/restore a day of email threads -->
+        <div class="modal-container" id="email-clear-day-confirm-modal" aria-hidden="true">
+          <div class="overlay" id="email-clear-day-confirm-overlay"></div>
+          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="email-clear-day-confirm-title" aria-describedby="email-clear-day-confirm-desc">
+            <div class="confirm-delete-modal__header">
+              <h3 id="email-clear-day-confirm-title">Hide these threads?</h3>
+              <button type="button" class="confirm-delete-modal__close" id="email-clear-day-confirm-close" aria-label="Cancel">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="confirm-delete-modal__body">
+              <p id="email-clear-day-confirm-desc"></p>
+            </div>
+            <div class="confirm-delete-modal__actions">
+              <button type="button" class="btn btn-secondary" id="email-clear-day-confirm-cancel">Cancel</button>
+              <button type="button" class="btn btn-primary" id="email-clear-day-confirm-ok">Hide</button>
+            </div>
+          </section>
+        </div>
+
         <!-- Delete pipeline lead confirmation -->
         <div class="modal-container" id="delete-lead-confirm-modal" aria-hidden="true">
           <div class="overlay" id="delete-lead-confirm-overlay"></div>
@@ -5250,6 +5279,7 @@
         <!-- Client project workspace (desktop: drawer / mobile: bottom sheet) -->
         <div class="cp-client-drawer-overlay" id="cp-client-drawer-overlay" hidden aria-hidden="true"></div>
         <aside class="cp-client-drawer" id="cp-client-drawer" hidden aria-hidden="true" aria-labelledby="cp-client-drawer-title" data-lenis-prevent>
+          <button type="button" class="cp-client-drawer-grab" id="cp-client-drawer-grab" aria-label="Drag to resize the sheet"><span aria-hidden="true"></span></button>
           <div class="cp-client-drawer-header">
             <h3 class="h3" id="cp-client-drawer-title">Client workspace</h3>
             <div class="cp-client-drawer-header-actions">
@@ -7658,9 +7688,9 @@ If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes �
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=maint-proclean-copy-20260823"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=admin-rtdb-merge-fix-20260902"></script>
+  <script src="/assets/js/script.js?v=archived-toggle-20260903h"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=mobile-tabs-20260819t"></script>
+  <script src="/assets/js/agency-tools.js?v=mobile-sheet-20260819v"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script src="/assets/js/dm-migration.js"></script>
 

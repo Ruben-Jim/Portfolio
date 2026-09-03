@@ -16531,11 +16531,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
   letter-spacing: 0.01em;
 }
 
-.admin-email-chip--time {
-  margin-left: auto;
-  color: rgba(255, 255, 255, 0.8);
-}
-
 .admin-email-chip--to {
   color: rgba(255, 255, 255, 0.82);
 }
@@ -16612,8 +16607,11 @@ body.portfolio-project-modal-open .cp-client-drawer {
 .admin-email-threads-layout {
   display: grid;
   grid-template-columns: 240px 1fr;
-  height: 65vh;
-  min-height: 400px;
+  /* Fills the remaining viewport instead of being a 65vh window inside a
+     scrolling page. sizeAdminEmailPanel() measures the panel's top offset and
+     sets the variable; the fallback covers first paint before that runs. */
+  height: var(--email-panel-h, calc(100dvh - 260px));
+  min-height: 360px;
   border: 1px solid var(--jet);
   border-radius: 12px;
   overflow: hidden;
@@ -16736,7 +16734,14 @@ body.portfolio-project-modal-open .cp-client-drawer {
 }
 
 /* ── Thread detail (right panel) ── */
+/* Same trap as the composer: the author `display` below outranks the UA
+   [hidden] rule, so hiding it in JS needs this guard. */
+.admin-email-thread-detail[hidden] { display: none !important; }
+
 .admin-email-thread-detail {
+  /* Positioning context for the sliding composer. overflow:hidden already
+     clips it while it sits below the bottom edge. */
+  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -16840,11 +16845,50 @@ body.portfolio-project-modal-open .cp-client-drawer {
 
 
 /* Inline reply composer */
+/* An author `display` declaration outranks the UA sheet's [hidden] rule, so
+   without this the composer stays visible even when hidden is set.
+   hidden here means the thread cannot be replied to at all; the open/closed
+   state is .is-composer-open on the parent. */
+.admin-email-thread-composer[hidden] { display: none !important; }
+
+.admin-email-thread-detail.is-composer-open .admin-email-thread-composer {
+  transform: none;
+}
+
+/* Launcher steps aside as the composer covers it. */
+/* Extra scroll room under the thread while the composer covers it. Padding
+   below existing content does not change scrollTop, so opening the composer
+   never moves what is on screen - it only makes the last message reachable. */
+.admin-email-thread-detail.is-composer-open .admin-email-thread-timeline {
+  padding-bottom: calc(var(--composer-overlay-h, 0px) + 8px);
+}
+
+.admin-email-thread-detail.is-composer-open .admin-email-thread-reply-launcher {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-email-thread-composer,
+  .admin-email-thread-reply-launcher { transition: none; }
+}
+
 .admin-email-thread-composer {
+  /* Floats over the timeline instead of resizing it, so the thread keeps its
+     scroll position when Reply is pressed. Parent clips it while it sits
+     below the bottom edge. */
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  transform: translateY(102%);
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+  box-shadow: 0 -16px 34px hsla(0, 0%, 0%, 0.34);
+
   border-top: 2px solid rgba(var(--orange-rgb,255,153,102),0.3);
   background: var(--eerie-black-2);
   padding: 14px 18px 16px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -29796,4 +29840,252 @@ body.admin-tab-reorder-active::before {
      the edges. A non-16:10 clip crops a sliver instead of showing bars. */
   object-fit: cover;
   padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Email tab — reply launcher
+   The composer is a large block; it stays closed while reading and opens on
+   demand. This is the closed state.
+--------------------------------------------------------------------------- */
+/* Closed state of the composer. The 18px gutter matches the timeline and the
+   composer above/below it - at 0 the button sat flush to the panel edge while
+   every other element was inset. */
+.admin-email-thread-reply-launcher {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 18px 12px;
+  border-top: 1px solid hsla(45, 100%, 72%, 0.16);
+  background: var(--eerie-black-2);
+  transition: opacity 0.2s ease;
+}
+
+/* Beats the launcher's display:flex - hidden means the thread cannot be
+   replied to at all (no inbound message to reply to). */
+.admin-email-thread-reply-launcher[hidden] { display: none !important; }
+
+.admin-email-thread-reply-launcher .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* ---------------------------------------------------------------------------
+   Email panel scroll surfaces
+   The panel fills the viewport, so the two columns are the only scrolling
+   regions on the tab. Slim, matching scrollbars so neither reads as a nested
+   window; overscroll-behavior stops a column from chaining its scroll to the
+   page once it bottoms out.
+--------------------------------------------------------------------------- */
+.admin-email-thread-list,
+.admin-email-thread-timeline {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: hsla(45, 100%, 72%, 0.28) transparent;
+}
+
+.admin-email-thread-list::-webkit-scrollbar,
+.admin-email-thread-timeline::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-email-thread-list::-webkit-scrollbar-track,
+.admin-email-thread-timeline::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-email-thread-list::-webkit-scrollbar-thumb,
+.admin-email-thread-timeline::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: hsla(45, 100%, 72%, 0.24);
+}
+
+.admin-email-thread-list:hover::-webkit-scrollbar-thumb,
+.admin-email-thread-timeline:hover::-webkit-scrollbar-thumb {
+  background: hsla(45, 100%, 72%, 0.4);
+}
+
+/* ---------------------------------------------------------------------------
+   Email thread cards — polished across widths
+   The timestamp used to be a full pill; in a 240px column "Sep 2, 1:51 PM"
+   wrapped inside the lozenge and made the card twice as tall. Time is now
+   inline text, delivery status is a dot, and the archive control lives inside
+   the card instead of stealing a column beside it.
+--------------------------------------------------------------------------- */
+.admin-email-thread-row { position: relative; }
+
+.admin-email-thread-card-top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-email-thread-card-contact {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 13px;
+  color: hsl(0, 0%, 94%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Never wraps and never shrinks — it is the anchor the eye scans down. */
+.admin-email-thread-card-time {
+  flex: none;
+  font-size: 10.5px;
+  color: hsl(0, 0%, 54%);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  /* Room for the archive control that now sits in the card corner. */
+  padding-right: 18px;
+}
+
+.admin-email-thread-card-subject {
+  font-size: 11.5px;
+  color: hsl(0, 0%, 62%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-email-thread-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 14px;
+}
+
+.admin-email-thread-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: hsl(0, 0%, 58%);
+  min-width: 0;
+}
+
+.admin-email-thread-status-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(0, 0%, 50%);
+}
+
+.admin-email-thread-status--delivered .admin-email-thread-status-dot { background: hsl(145, 55%, 48%); }
+.admin-email-thread-status--bounced .admin-email-thread-status-dot { background: hsl(0, 70%, 58%); }
+.admin-email-thread-status--complained .admin-email-thread-status-dot { background: hsl(38, 92%, 55%); }
+
+.admin-email-thread-status-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-email-thread-badge--unread {
+  flex: none;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  background: hsl(38, 92%, 52%);
+  color: hsl(240, 6%, 12%);
+}
+
+/* Archive control: in the card's top-right rather than a column beside it. */
+.admin-email-thread-archive {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.admin-email-thread-row:hover .admin-email-thread-archive,
+.admin-email-thread-archive:focus-visible {
+  opacity: 1;
+}
+
+.admin-email-thread-archive:hover {
+  background: hsla(0, 0%, 100%, 0.08);
+  color: hsl(0, 70%, 66%);
+}
+
+/* Hover does not exist on touch, so the control is always visible there. */
+@media (hover: none) {
+  .admin-email-thread-archive { opacity: 0.5; }
+}
+
+/* ---------------------------------------------------------------------------
+   Master-detail below 780px
+   One column means list and thread would stack into a single long page. Only
+   one is on screen at a time; .is-viewing-thread decides which.
+--------------------------------------------------------------------------- */
+.admin-email-thread-back { display: none; }
+
+@media (max-width: 780px) {
+  .admin-email-threads-layout {
+    /* Reinstated: 'height: auto' made the panel grow with content, which is
+       what produced the long stacked page. */
+    height: var(--email-panel-h, calc(100dvh - 200px));
+    min-height: 380px;
+  }
+
+  .admin-email-threads-layout .admin-email-thread-detail { display: none; }
+  .admin-email-threads-layout.is-viewing-thread .admin-email-thread-list-wrap { display: none; }
+
+  .admin-email-threads-layout.is-viewing-thread .admin-email-thread-detail {
+    display: flex;
+  }
+
+  .admin-email-thread-list-wrap { border-right: 0; }
+
+  .admin-email-thread-back {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 32px;
+    height: 32px;
+    margin-right: 4px;
+    border: 1px solid hsla(0, 0%, 100%, 0.14);
+    border-radius: 9px;
+    background: hsla(0, 0%, 100%, 0.05);
+    color: inherit;
+    font-size: 17px;
+    cursor: pointer;
+  }
+
+  .admin-email-thread-detail-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Touch targets, and the archive control cannot rely on hover here. */
+  .admin-email-thread-card { padding: 11px 13px; }
+}
+
+/* "Back to inbox" sits above the list rather than below it — inside the hidden
+   view the way out must not be behind everything you just hid. */
+.admin-email-archived-toggle--back {
+  margin: 8px 10px 4px;
+  border-color: hsla(45, 100%, 72%, 0.35);
+  color: var(--orange-yellow-crayola, hsl(45, 100%, 72%));
+  background: hsla(45, 100%, 72%, 0.08);
 }

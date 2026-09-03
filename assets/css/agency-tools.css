@@ -5006,24 +5006,54 @@ body.cp-ticket-viewer-open { overflow: hidden; }
    field had focus. On mobile the drawer takes the full screen and the sections
    become tab panels. Desktop keeps the accordion drawer unchanged.
 --------------------------------------------------------------------------- */
-/* Desktop keeps the accordion drawer; the tab shell is mobile-only. */
+/* Desktop keeps the accordion drawer; the tab shell and the sheet grab
+   handle are mobile-only. */
 .cp-mobile-tabs-wrap { display: none; }
+.cp-client-drawer-grab { display: none; }
 
 @media (max-width: 767px) {
+  /* Bottom sheet: height is driven by --cp-sheet-height, set by the drag
+     handler and snapped on release. Falls back to the middle snap. */
   .cp-client-drawer {
-    /* Full page, not a sheet: no rounded lip, no partial height, and 100dvh so
-       the browser chrome collapsing does not leave a gap. */
-    --cp-sheet-max-vh: 100;
-    top: 0;
-    height: 100dvh;
-    max-height: 100dvh;
-    border-radius: 0;
-    border-top: 0;
-    box-shadow: none;
+    height: var(--cp-sheet-height, 82dvh);
+    max-height: 96dvh;
+    border-radius: 20px 20px 0 0;
   }
 
-  /* The sheet grab handle is a lie on a full page - there is nothing to drag. */
+  /* No transition while a finger is on it - the height must track the drag. */
+  .cp-client-drawer.is-sheet-dragging {
+    transition: none;
+  }
+
+  /* Replaced by the real, draggable handle below. */
   .cp-client-drawer::before { display: none; }
+
+  .cp-client-drawer-grab {
+    flex: none;
+    display: block;
+    width: 100%;
+    padding: 10px 0 6px;
+    border: 0;
+    background: none;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .cp-client-drawer-grab:active { cursor: grabbing; }
+
+  .cp-client-drawer-grab > span {
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: hsla(0, 0%, 100%, 0.28);
+  }
+
+  .cp-client-drawer-grab:focus-visible > span {
+    outline: 2px solid hsl(45, 100%, 72%);
+    outline-offset: 4px;
+  }
 
   /* Wrapper is the sticky, positioned context; the strip inside it scrolls. */
   .cp-mobile-tabs-wrap {
@@ -5139,5 +5169,83 @@ body.cp-ticket-viewer-open { overflow: hidden; }
     max-height: none;
     overflow: visible;
     opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Client drawer mobile page — header, safe areas, panel chrome
+   Completes the full-page conversion: the header becomes a fixed app bar, the
+   body owns the only scroll, and section chrome that the tab strip makes
+   redundant is stripped out.
+--------------------------------------------------------------------------- */
+@media (max-width: 767px) {
+  /* Column layout so the body is the only scrolling region — the header and
+     tab strip stay put while content moves. */
+  .cp-client-drawer {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+  }
+
+  .cp-client-drawer-header {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 14px 10px;
+  }
+
+  .cp-client-drawer-header .h3 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 17px;
+    /* Long client names truncate rather than wrapping the app bar to two rows. */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cp-client-drawer-header-actions { flex: none; display: flex; gap: 8px; }
+
+  .cp-client-drawer-close,
+  .cp-client-drawer-delete {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .cp-client-drawer-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 0 max(24px, env(safe-area-inset-bottom, 0px));
+    /* Keyboard-safe: iOS shrinks the visual viewport, and without this the
+       last field in a long form can sit under the keyboard with no way to
+       scroll to it. */
+    scroll-padding-bottom: 96px;
+  }
+
+  /* The section body supplied its own padding when it was an accordion row;
+     as a full-width panel it needs the page gutter instead. */
+  .cp-client-drawer .cp-section--collapsible.is-mobile-active .cp-section-body {
+    padding: 4px 14px 20px;
+  }
+
+  /* "Open full tab →" duplicates the tab strip on this layout. */
+  .cp-client-drawer .cp-section--collapsible.is-mobile-active .cp-section-link {
+    display: none;
+  }
+
+  /* Actions inside a panel get room to breathe rather than crowding a row. */
+  .cp-client-drawer .cp-section--collapsible.is-mobile-active .cp-section-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .cp-client-drawer .cp-section--collapsible.is-mobile-active .cp-section-actions .btn {
+    flex: 1 1 auto;
+    min-width: 132px;
   }
 }

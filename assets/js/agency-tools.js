@@ -4217,6 +4217,8 @@
     overlay.hidden = false;
     overlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('cp-client-drawer-open');
+    initCpSheetDrag();
+    if (isCpSheetViewport()) applyCpSheetSnap(cpSheetSnapIndex);
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         drawer.classList.add('is-open');
@@ -4244,6 +4246,9 @@
     if (drawer) drawer.classList.remove('is-open');
     if (overlay) overlay.classList.remove('is-open');
     document.body.classList.remove('cp-client-drawer-open');
+    // Clear the inline height so the next open starts at the default snap
+    // rather than wherever the sheet was last dragged.
+    resetCpSheetHeight();
 
     function finishClose() {
       if (drawer) {
@@ -4279,6 +4284,9 @@
       return;
     }
     clientProjectsSelectedId = hubId;
+    // Opening a different client starts on the first tab: carrying the previous
+    // client's tab over lands you on a panel you did not ask for.
+    cpActiveMobileTab = (CP_PRIMARY_TABS && CP_PRIMARY_TABS[0]) || 'hub';
     delete cpSectionCollapseByHub[hubId];
     var shell = document.querySelector('.client-projects-shell');
     if (shell) shell.classList.add('has-client-selected');
@@ -4617,6 +4625,117 @@
     'health', 'pipeline', 'docs', 'portfolio', 'email'
   ];
 
+
+  /* --------------------------------------------------------------------
+     Bottom sheet drag
+     Same pattern as the project detail sheet in script.js: snap ratios, a
+     pointer-captured grab handle, and nearest-snap on release. Dragging below
+     the smallest snap dismisses rather than clamping, which is what a sheet is
+     expected to do.
+     -------------------------------------------------------------------- */
+  var CP_SHEET_SNAPS = [0.55, 0.82, 0.96];
+  var CP_SHEET_DISMISS_RATIO = 0.42;
+  var cpSheetSnapIndex = 1;
+  var cpSheetDragBound = false;
+
+  function isCpSheetViewport() {
+    return window.matchMedia('(max-width: 767px)').matches;
+  }
+
+  function applyCpSheetSnap(index) {
+    var drawer = document.getElementById('cp-client-drawer');
+    if (!drawer || !isCpSheetViewport()) return;
+    cpSheetSnapIndex = Math.max(0, Math.min(CP_SHEET_SNAPS.length - 1, index));
+    drawer.style.setProperty(
+      '--cp-sheet-height',
+      (CP_SHEET_SNAPS[cpSheetSnapIndex] * 100).toFixed(1) + 'dvh'
+    );
+    drawer.dataset.sheetSnap = String(cpSheetSnapIndex);
+  }
+
+  function resetCpSheetHeight() {
+    var drawer = document.getElementById('cp-client-drawer');
+    if (!drawer) return;
+    drawer.style.removeProperty('--cp-sheet-height');
+    drawer.classList.remove('is-sheet-dragging');
+    delete drawer.dataset.sheetSnap;
+    cpSheetSnapIndex = 1;
+  }
+
+  function initCpSheetDrag() {
+    var drawer = document.getElementById('cp-client-drawer');
+    var grab = document.getElementById('cp-client-drawer-grab');
+    if (!drawer || !grab || cpSheetDragBound) return;
+    cpSheetDragBound = true;
+
+    var dragging = false;
+    var startY = 0;
+    var startHeightPx = 0;
+
+    function pointerStart(clientY) {
+      if (!isCpSheetViewport()) return;
+      dragging = true;
+      startY = clientY;
+      startHeightPx = drawer.getBoundingClientRect().height;
+      drawer.classList.add('is-sheet-dragging');
+    }
+
+    function pointerMove(clientY) {
+      if (!dragging) return;
+      var delta = startY - clientY;
+      // No lower clamp: dragging past the smallest snap is how a sheet is
+      // dismissed, so the height has to be allowed to fall below it.
+      var maxH = window.innerHeight * CP_SHEET_SNAPS[CP_SHEET_SNAPS.length - 1];
+      var next = Math.min(maxH, startHeightPx + delta);
+      drawer.style.setProperty('--cp-sheet-height', Math.max(0, Math.round(next)) + 'px');
+    }
+
+    function pointerEnd() {
+      if (!dragging) return;
+      dragging = false;
+      drawer.classList.remove('is-sheet-dragging');
+      var ratio = drawer.getBoundingClientRect().height / window.innerHeight;
+      if (ratio < CP_SHEET_DISMISS_RATIO) {
+        resetCpSheetHeight();
+        closeCpClientDrawer();
+        return;
+      }
+      var nearest = 0;
+      var best = Infinity;
+      CP_SHEET_SNAPS.forEach(function (snap, i) {
+        var dist = Math.abs(ratio - snap);
+        if (dist < best) {
+          best = dist;
+          nearest = i;
+        }
+      });
+      applyCpSheetSnap(nearest);
+    }
+
+    grab.addEventListener('pointerdown', function (e) {
+      if (!isCpSheetViewport()) return;
+      grab.setPointerCapture(e.pointerId);
+      pointerStart(e.clientY);
+    });
+    grab.addEventListener('pointermove', function (e) {
+      if (dragging) pointerMove(e.clientY);
+    });
+    grab.addEventListener('pointerup', function (e) {
+      try {
+        grab.releasePointerCapture(e.pointerId);
+      } catch (err) {
+        /* no-op */
+      }
+      pointerEnd();
+    });
+    grab.addEventListener('pointercancel', pointerEnd);
+
+    // A snap set in one orientation is meaningless in the other.
+    window.addEventListener('resize', function () {
+      if (!isCpSheetViewport()) resetCpSheetHeight();
+    });
+  }
+
   var cpActiveMobileTab = 'hub';
 
   function buildCpMobileTabsHtml() {
@@ -4671,7 +4790,7 @@
 
   /** Shows one panel on mobile; visually a no-op on desktop. */
   function applyCpMobileTab(id) {
-    var workspace = document.getElementById('cp-client-workspace');
+    var workspace = document.getElementById('client-projects-workspace');
     if (!workspace) return;
     if (CP_SECTION_ORDER.indexOf(id) !== -1) cpActiveMobileTab = id;
     workspace.querySelectorAll('.cp-section--collapsible').forEach(function (sec) {
@@ -6358,7 +6477,18 @@
         document.addEventListener('keydown', function (e) {
           if (e.key !== 'Escape') return;
           var viewer = document.getElementById('cp-ticket-viewer');
-          if (viewer && viewer.classList.contains('is-open')) closeTicketViewer();
+          if (viewer && viewer.classList.contains('is-open')) {
+            closeTicketViewer();
+            return;
+          }
+          closeCpMobileTabMenu();
+        });
+        // The More menu is a popover: any tap outside it should dismiss it.
+        // Bound on document because the menu re-renders with the workspace.
+        document.addEventListener('click', function (e) {
+          if (e.target.closest('[data-cp-tab-menu]')) return;
+          if (e.target.closest('[data-cp-action="mobile-tab-more"]')) return;
+          closeCpMobileTabMenu();
         });
       workspace.addEventListener('change', function (e) {
         var t = e.target;
