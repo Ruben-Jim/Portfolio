@@ -13898,13 +13898,28 @@ window.addEventListener('load', function() {
   function applyEmailClearDay() {
     var dayKey = pendingEmailClearDayKey;
     if (!dayKey) { closeEmailClearDayConfirm(); return; }
-    threadsForDay(dayKey).forEach(function (t) {
+
+    // Read both BEFORE mutating: setThreadArchived() changes what
+    // getFilteredThreads() returns, so counting afterwards reports zero.
+    var restoring = agencyEmailShowArchived;
+    var affected = threadsForDay(dayKey);
+    var count = affected.length;
+
+    affected.forEach(function (t) {
       setThreadArchived(t.threadKey, !agencyEmailShowArchived);
       if (agencyEmailSelectedThread === t.threadKey) agencyEmailSelectedThread = null;
     });
     closeEmailClearDayConfirm();
     renderAdminEmailThreadList();
     renderAdminEmailThreadDetail();
+
+    // House pattern: a confirmed action reports back with a toast.
+    if (typeof showSuccessMessage === 'function') {
+      showSuccessMessage(
+        (restoring ? 'Restored ' : 'Hid ') + count + ' ' +
+        (count === 1 ? 'thread' : 'threads') + '.'
+      );
+    }
   }
 
   function setupEmailClearDayConfirm() {
