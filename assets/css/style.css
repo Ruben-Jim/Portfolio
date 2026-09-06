@@ -29214,7 +29214,8 @@ body.admin-tab-reorder-active::before {
     align-self: flex-end;
     width: 30px;
     height: 30px;
-    margin-bottom: 4px;
+    margin-top: 8px;
+    margin-bottom: 0;
     padding: 0;
     border: 1px solid transparent;
     border-radius: 8px;
@@ -29222,6 +29223,7 @@ body.admin-tab-reorder-active::before {
     color: var(--light-gray-70);
     cursor: pointer;
     transition: color 0.15s ease, border-color 0.15s ease, transform 0.2s ease;
+    flex-shrink: 0;
   }
 
   .admin-nav-collapse-btn:hover,

@@ -15100,16 +15100,20 @@ window.addEventListener('load', function() {
 
   function initAdminNavCollapse() {
     var bar = document.querySelector('#admin-dashboard-content > .admin-tabs > .admin-tab-bar');
-    if (!bar || document.getElementById('admin-nav-collapse-btn')) return;
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'admin-nav-collapse-btn';
-    btn.id = 'admin-nav-collapse-btn';
-    btn.innerHTML = '<ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>';
-    bar.insertBefore(btn, bar.firstChild);
-    btn.addEventListener('click', function () {
-      setAdminNavCollapsed(!document.body.classList.contains('admin-nav-collapsed'));
-    });
+    if (!bar) return;
+    var btn = document.getElementById('admin-nav-collapse-btn');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'admin-nav-collapse-btn';
+      btn.id = 'admin-nav-collapse-btn';
+      btn.innerHTML = '<ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>';
+      btn.addEventListener('click', function () {
+        setAdminNavCollapsed(!document.body.classList.contains('admin-nav-collapsed'));
+      });
+    }
+    // Keep the control at the bottom of the rail (after nav groups).
+    if (bar.lastElementChild !== btn) bar.appendChild(btn);
     setAdminNavCollapsed(isAdminNavCollapsed());
   }
 
