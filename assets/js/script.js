@@ -12527,6 +12527,11 @@ window.addEventListener('load', function() {
   var agencyBookingsUnsub = null;
   var agencyBookingsListenFailed = false;
 
+  /**
+   * Prefer an upcoming booking when today is empty. Never yank the calendar
+   * back to a past month (e.g. August leftovers) once the current month has
+   * rolled over — stay on today so Planner opens on the real "now".
+   */
   function pickNearestBookingDay() {
     var now = Date.now();
     var upcoming = (agencyBookingsList || [])
@@ -12536,12 +12541,11 @@ window.addEventListener('load', function() {
       .sort(function (a, b) { return Date.parse(a.startISO) - Date.parse(b.startISO); });
     var pick = upcoming[0];
     if (!pick) {
-      var past = (agencyBookingsList || [])
-        .filter(function (b) { return b && b.startISO; })
-        .sort(function (a, b) { return Date.parse(b.startISO) - Date.parse(a.startISO); });
-      pick = past[0];
+      var today = new Date();
+      adminBookingsCalMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      adminBookingsSelectedDay = todayBookingDayKey();
+      return;
     }
-    if (!pick) return;
     adminBookingsSelectedDay = bookingDayKey(pick.startISO);
     var d = new Date(pick.startISO);
     if (!isNaN(d.getTime())) {
