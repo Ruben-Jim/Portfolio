@@ -3354,6 +3354,25 @@ body:has(.project-detail-modal.active) #command-palette-hint {
   }
 }
 
+/*
+ * Admin smaller desktop / tablet: the fixed Search chip sits on top of dense
+ * panels (email reading pane, docs, planner). Hide the affordance — ⌘K / Ctrl+K
+ * still opens the palette. (Phone already hides it ≤767 to clear the tab bar.)
+ */
+@media (max-width: 1249px) {
+  body.admin-page-active #command-palette-hint,
+  body:has(article.admin[data-page="admin"].active) #command-palette-hint {
+    display: none !important;
+  }
+}
+
+/* Wide admin: leave room so the last email / list row is not under the chip */
+@media (min-width: 1250px) {
+  body.admin-page-active .admin-email-thread-timeline {
+    padding-bottom: 72px;
+  }
+}
+
 
 /*-----------------------------------*\
   #SNIPPETS SECTION
