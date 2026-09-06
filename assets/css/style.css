@@ -29251,20 +29251,24 @@ body.admin-tab-reorder-active::before {
   body.admin-nav-collapsed
     #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab-label-desktop,
   body.admin-nav-collapsed .admin-nav-group-label,
-  body.admin-nav-collapsed .admin-nav-group-toggle ion-icon:last-child {
+  body.admin-nav-collapsed .admin-nav-group-toggle {
     display: none !important;
+  }
+
+  /* Icon rail always lists every tab — ignore folded Agency/Content state. */
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group-items {
+    display: flex !important;
+  }
+
+  body.admin-nav-collapsed
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group {
+    margin-top: 2px;
   }
 
   /* These must match the sidebar block's own ID + !important specificity, or
      `justify-content: flex-start !important; padding: 10px 12px !important`
      wins and the icons stay left-aligned and cramped in a 60px rail. */
-  body.admin-nav-collapsed
-    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group-toggle {
-    justify-content: center !important;
-    padding: 4px 0 !important;
-    min-height: 0;
-  }
-
   body.admin-nav-collapsed
     #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab {
     justify-content: center !important;
