@@ -29245,7 +29245,7 @@ body.admin-tab-reorder-active::before {
     transform: rotate(180deg);
   }
 
-  /* Labels and group chrome go; icons stay. */
+  /* Labels and group headers go; only expanded sections’ tab icons stay. */
   body.admin-nav-collapsed
     #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-tab-label,
   body.admin-nav-collapsed
@@ -29255,10 +29255,10 @@ body.admin-tab-reorder-active::before {
     display: none !important;
   }
 
-  /* Icon rail always lists every tab — ignore folded Agency/Content state. */
+  /* Folded sections contribute no icon rows (and no empty header gap). */
   body.admin-nav-collapsed
-    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group-items {
-    display: flex !important;
+    #admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group:not(.is-expanded) {
+    display: none !important;
   }
 
   body.admin-nav-collapsed

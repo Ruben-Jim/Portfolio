@@ -15076,8 +15076,6 @@ window.addEventListener('load', function() {
    * tooltips and stays correctly announced with no markup changes.
    */
   var ADMIN_NAV_COLLAPSED_KEY = 'adminNavCollapsed.v1';
-  /** Group expand state saved when entering icon-rail mode, restored on expand. */
-  var adminNavGroupStateBeforeRail = null;
 
   function isAdminNavCollapsed() {
     try {
@@ -15091,26 +15089,20 @@ window.addEventListener('load', function() {
     return document.querySelectorAll('#admin-dashboard-content > .admin-tabs > .admin-tab-bar .admin-nav-group');
   }
 
-  /** Icon rail always shows every tab icon — force Agency/Content open. */
-  function expandAllAdminNavGroupsForRail() {
+  /**
+   * Icon rail mirrors section open/closed state: only expanded groups show their
+   * tab icons. Keep the group that owns the active tab open so the current page
+   * stays reachable without expanding the whole sidebar.
+   */
+  function syncAdminNavGroupsForRail() {
     getAdminNavGroups().forEach(function (group) {
-      group.classList.add('is-expanded');
-      var toggle = group.querySelector('.admin-nav-group-toggle');
-      if (toggle) toggle.setAttribute('aria-expanded', 'true');
-    });
-  }
-
-  function restoreAdminNavGroupsAfterRail() {
-    if (!adminNavGroupStateBeforeRail) return;
-    getAdminNavGroups().forEach(function (group) {
-      var key = group.getAttribute('data-nav-group') || group.id || '';
       var hasActive = !!group.querySelector('.admin-tab.is-active');
-      var expand = hasActive || !!adminNavGroupStateBeforeRail[key];
-      group.classList.toggle('is-expanded', expand);
-      var toggle = group.querySelector('.admin-nav-group-toggle');
-      if (toggle) toggle.setAttribute('aria-expanded', expand ? 'true' : 'false');
+      if (hasActive && !group.classList.contains('is-expanded')) {
+        group.classList.add('is-expanded');
+        var toggle = group.querySelector('.admin-nav-group-toggle');
+        if (toggle) toggle.setAttribute('aria-expanded', 'true');
+      }
     });
-    adminNavGroupStateBeforeRail = null;
   }
 
   function setAdminNavCollapsed(collapsed) {
@@ -15124,18 +15116,7 @@ window.addEventListener('load', function() {
       btn.setAttribute('aria-label', collapsed ? 'Expand navigation' : 'Collapse navigation');
       btn.setAttribute('title', collapsed ? 'Expand navigation' : 'Collapse navigation');
     }
-    if (collapsed) {
-      if (!adminNavGroupStateBeforeRail) {
-        adminNavGroupStateBeforeRail = {};
-        getAdminNavGroups().forEach(function (group) {
-          var key = group.getAttribute('data-nav-group') || group.id || '';
-          adminNavGroupStateBeforeRail[key] = group.classList.contains('is-expanded');
-        });
-      }
-      expandAllAdminNavGroupsForRail();
-    } else {
-      restoreAdminNavGroupsAfterRail();
-    }
+    if (collapsed) syncAdminNavGroupsForRail();
   }
 
   function initAdminNavCollapse() {
