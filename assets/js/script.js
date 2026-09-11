@@ -11130,7 +11130,7 @@ window.addEventListener('load', function() {
       if (els.link && !isAdminClientEmailLinkUserSet(els)) {
         var demoLink = demo.defaultLink || '';
         var currentLink = String(els.link.value || '').trim();
-        var isKnownDemoLink = /tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink);
+        var isKnownDemoLink = /rubenjimenez\.dev\/demos\/tradeservice|tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink);
         if (demoLink && (!currentLink || isKnownDemoLink)) {
           els.link.value = demoLink;
         } else if (!demoLink && isKnownDemoLink) {

@@ -6,6 +6,14 @@
       "destination": "/portal.html"
     },
     {
+      "source": "/demos/tradeservice",
+      "destination": "/demos/tradeservice/index.html"
+    },
+    {
+      "source": "/demos/tradeservice/**",
+      "destination": "/demos/tradeservice/index.html"
+    },
+    {
       "source": "/",
       "destination": "/index.html"
     },
