@@ -58,23 +58,14 @@ rm -rf "$DEST"
 mkdir -p "$DEST"
 cp -R "$TEMPLATE_ROOT/dist/." "$DEST/"
 
-# Custom web/index.html assets sometimes keep root-absolute paths; pin them to the base.
-python3 -c '
-from pathlib import Path
-import re, sys
-root = Path(sys.argv[1])
-pat = re.compile(r"((?:href|src))=\"/(masters-logo\.png|squirrel-logo\.png|favicon\.ico)\"")
-for p in root.rglob("*.html"):
-    text = p.read_text(encoding="utf-8")
-    new = pat.sub(r"\1=\"/demos/tradeservice/\2\"", text)
-    if new != text:
-        p.write_text(new, encoding="utf-8")
-' "$DEST"
+# Pin root-absolute boot logos to the demo base path (safe quoting).
+python3 "$PORTFOLIO_ROOT/scripts/fix-demo-tradeservice-html.py" "$DEST"
 
 echo "✓ Copied export → demos/tradeservice/"
 echo ""
 echo "Next:"
 echo "  1. Firebase console (roof-cleaning-template) → Auth → Authorized domains"
 echo "     add: rubenjimenez.dev"
-echo "  2. From Portfolio: firebase deploy --only hosting"
+echo "  2. Commit .nojekyll + demos/tradeservice and push (GitHub Pages serves rubenjimenez.dev)."
+echo "     Underscore folders like _expo are hidden by Jekyll unless .nojekyll exists."
 echo "  3. Open https://rubenjimenez.dev/demos/tradeservice"

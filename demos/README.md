@@ -41,7 +41,9 @@ In the **demo** Firebase console → Authentication → Settings → Authorized 
 
 Hosting domain change does not require a new Firebase project if the existing demo project already has the data you want.
 
-## Publish Trade Service
+## GitHub Pages note
+
+`rubenjimenez.dev` is served from this repo via GitHub Pages. Jekyll **skips** folders that start with `_` (including Expo’s `_expo/`) unless the repo root has an empty **`.nojekyll`** file. That file is required for demos to load CSS/JS.
 
 From this Portfolio repo (after the template has `experiments.baseUrl` set for the export — see script):
 
