@@ -5249,3 +5249,417 @@ body.cp-ticket-viewer-open { overflow: hidden; }
     min-width: 132px;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Template Outreach Scripts — composer
+   Lives inside .components-modal. Tuned for phone / tablet / desktop.
+   ───────────────────────────────────────────────────────────── */
+
+#outreach-composer.outreach-composer,
+#outreach-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.outreach-status {
+  color: var(--light-gray);
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+.outreach-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 12px;
+}
+
+.outreach-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.outreach-block-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vegas-gold);
+}
+
+.outreach-block-label em {
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--light-gray);
+  opacity: 0.7;
+}
+
+.outreach-script-meta {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--light-gray);
+  opacity: 0.75;
+}
+
+/* ── script select / channel steps ── */
+
+.outreach-script-select.business-doc-select {
+  width: 100%;
+  z-index: 2;
+}
+
+.outreach-script-select .business-doc-select-trigger {
+  min-height: 44px;
+  padding: 12px 14px;
+  background: var(--eerie-black-1);
+  font-size: 15px;
+}
+
+.outreach-script-select .business-doc-select-menu {
+  z-index: 40;
+  max-height: min(50vh, 320px);
+}
+
+.outreach-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.outreach-step {
+  flex: 0 0 auto;
+  background: var(--eerie-black-1);
+  border: 1px solid var(--jet);
+  color: var(--light-gray);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.outreach-step:hover {
+  border-color: var(--vegas-gold);
+  color: var(--white-2);
+}
+
+.outreach-step.is-active {
+  background: var(--orange-yellow-crayola);
+  border-color: var(--orange-yellow-crayola);
+  color: hsl(0, 0%, 10%);
+  font-weight: 600;
+}
+
+.outreach-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  border-top: none;
+  padding-top: 0;
+}
+
+.outreach-step {
+  border-radius: 12px;
+  text-align: center;
+  padding: 12px 8px;
+}
+
+/* ── prospect variables ── */
+
+.outreach-vars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.outreach-var {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.outreach-var > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--light-gray);
+  letter-spacing: 0.02em;
+}
+
+.outreach-var input {
+  background: var(--eerie-black-1);
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  padding: 12px 12px;
+  color: var(--white-2);
+  width: 100%;
+  box-sizing: border-box;
+  /* 16px: avoid iOS focus zoom */
+  font-size: 16px;
+}
+
+.outreach-var input:focus {
+  outline: none;
+  border-color: var(--orange-yellow-crayola);
+}
+
+/* ── preview / editor ── */
+
+.outreach-editor-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.outreach-editor-label {
+  display: block;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vegas-gold);
+}
+
+.outreach-preview {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  background: var(--bg-smoky-black, hsl(0, 0%, 7%));
+  border: 1px solid var(--jet);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin: 0;
+  min-height: 180px;
+  max-height: min(52vh, 480px);
+  color: var(--white-2);
+  /* 16px: avoid iOS focus zoom on textarea */
+  font-size: 16px !important;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'Poppins', sans-serif !important;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.outreach-preview:focus {
+  outline: none;
+  border-color: hsla(45, 100%, 72%, 0.45);
+  box-shadow: 0 0 0 3px hsla(45, 100%, 72%, 0.12);
+}
+
+.outreach-warn {
+  margin: 0;
+  color: hsl(38, 70%, 62%);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.outreach-count {
+  margin: 0;
+  color: var(--light-gray);
+  opacity: 0.65;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* ── actions ── */
+
+.outreach-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.outreach-actions--bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  margin: 8px -4px 0;
+  padding: 12px 4px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(
+    180deg,
+    hsla(0, 0%, 7%, 0) 0%,
+    hsla(0, 0%, 7%, 0.92) 28%,
+    hsl(0, 0%, 7%) 100%
+  );
+  border-top: 1px solid hsla(45, 54%, 58%, 0.12);
+}
+
+.outreach-btn {
+  flex: 1 1 calc(50% - 10px);
+  min-width: 0;
+  min-height: 48px;
+  background: var(--eerie-black-1);
+  border: 1px solid var(--jet);
+  color: var(--white-2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.outreach-btn:hover:not(:disabled) {
+  border-color: var(--vegas-gold);
+}
+
+.outreach-btn--primary {
+  flex: 1 1 100%;
+  background: var(--orange-yellow-crayola);
+  border-color: var(--orange-yellow-crayola);
+  color: hsl(0, 0%, 10%);
+}
+
+.outreach-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Phone: full-width sticky actions */
+@media (max-width: 640px) {
+  .outreach-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .outreach-vars {
+    grid-template-columns: 1fr;
+  }
+
+  .outreach-preview {
+    min-height: 200px;
+    max-height: min(42vh, 360px);
+  }
+
+  .outreach-actions--bar {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .outreach-btn--primary {
+    order: -1;
+  }
+
+  .outreach-script-select .business-doc-select-menu {
+    max-height: min(45vh, 280px);
+  }
+}
+
+/* Tablet */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .outreach-vars {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .outreach-steps {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .outreach-btn {
+    flex: 1 1 calc(25% - 10px);
+  }
+
+  .outreach-btn--primary {
+    flex: 1 1 100%;
+  }
+
+  .outreach-preview {
+    min-height: 220px;
+  }
+}
+
+/* Desktop — roomier grid, Copy on the same row when space allows */
+@media (min-width: 1024px) {
+  .outreach-layout {
+    gap: 20px;
+  }
+
+  .outreach-vars {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .outreach-preview {
+    min-height: 240px;
+    max-height: min(48vh, 520px);
+    font-size: 15px !important;
+  }
+
+  .outreach-actions--bar {
+    display: grid;
+    grid-template-columns: 1.4fr repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .outreach-btn,
+  .outreach-btn--primary {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* Template scripts modal: keep header compact on small screens */
+@media (max-width: 640px) {
+  #template-scripts-modal .components-header {
+    padding: 0.9rem 1rem;
+    gap: 10px;
+  }
+
+  #template-scripts-modal .components-header .h3 {
+    font-size: 1rem;
+  }
+
+  #template-scripts-modal .components-header .editor-badge {
+    display: none;
+  }
+
+  #template-scripts-modal .components-body {
+    padding: 1rem 1rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+  #template-scripts-modal .components-content {
+    width: min(96%, 880px);
+    margin-top: 3vh;
+    max-height: 94vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  #template-scripts-modal .components-content {
+    max-width: 920px;
+  }
+}
+
+/* Let the script dropdown stack above neighboring composer blocks */
+#template-scripts-modal .outreach-block:has(.outreach-script-select) {
+  position: relative;
+  z-index: 5;
+}
+
+#template-scripts-modal .outreach-script-select.is-open {
+  z-index: 30;
+}

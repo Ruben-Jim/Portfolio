@@ -10,6 +10,7 @@
       /* ── Navbar ─────────────────────────────────────────── */
       'nav.home':             'Home',
       'nav.about':            'About',
+      'nav.testimonials':     'Testimonials',
       'nav.portfolio':        'Portfolio',
       'nav.services_pricing': 'Services &amp; Pricing',
       'nav.contact':          'Contact',
@@ -52,7 +53,7 @@
       'home.proof_title':     'Trusted by local businesses',
       'home.testimonials_kicker': 'Testimonials',
       'home.testimonials_title':  'What clients say',
-      'home.testimonials_link':   'Read more on About',
+      'home.testimonials_link':   'Read more',
       'home.cta_title':       'Ready to run your business from your phone?',
       'home.cta_lead':        'Packages from <strong>$499</strong> · Maintenance starting as low as <strong>$44/mo</strong> · Fresno-based studio',
 
@@ -80,6 +81,14 @@
       'about.cta_title':      'Ready to build something real?',
       'about.cta_lead':       'Packages from <strong>$499</strong> · Web + iOS + Android · Fresno-based studio',
       'about.cta_btn':        'Start a project',
+
+      /* ── Testimonials ───────────────────────────────────── */
+      'testimonials.title':       'Testimonials',
+      'testimonials.lead':        'Real feedback from clients who run their businesses on software we built — booking, ordering, and day-to-day ops.',
+      'testimonials.list_title':   'What clients say',
+      'testimonials.cta_title':    'Want results like these?',
+      'testimonials.cta_lead':     'Packages from <strong>$499</strong> · Web + iOS + Android · Fresno-based studio',
+      'testimonials.cta_btn':      'Start a project',
 
       /* ── Portfolio ──────────────────────────────────────── */
       'portfolio.title':       'Portfolio',
@@ -267,6 +276,7 @@
       /* ── Navbar ─────────────────────────────────────────── */
       'nav.home':             'Inicio',
       'nav.about':            'Nosotros',
+      'nav.testimonials':     'Testimonios',
       'nav.portfolio':        'Portafolio',
       'nav.services_pricing': 'Servicios y Precios',
       'nav.contact':          'Contacto',
@@ -309,7 +319,7 @@
       'home.proof_title':     'La confianza de negocios locales',
       'home.testimonials_kicker': 'Testimonios',
       'home.testimonials_title':  'Lo que dicen los clientes',
-      'home.testimonials_link':   'Leer m\u00e1s en Nosotros',
+      'home.testimonials_link':   'Leer m\u00e1s',
       'home.cta_title':       '\u00bfListo para administrar tu negocio desde tu tel\u00e9fono?',
       'home.cta_lead':        'Paquetes desde <strong>$499</strong> \u00b7 Mantenimiento desde <strong>$44/mes</strong> \u00b7 Estudio en Fresno',
 
@@ -337,6 +347,14 @@
       'about.cta_title':      '\u00bfListo para construir algo real?',
       'about.cta_lead':       'Paquetes desde <strong>$499</strong> \u00b7 Web + iOS + Android \u00b7 Estudio en Fresno',
       'about.cta_btn':        'Iniciar un proyecto',
+
+      /* ── Testimonials ───────────────────────────────────── */
+      'testimonials.title':       'Testimonios',
+      'testimonials.lead':        'Comentarios reales de clientes que administran su negocio con el software que construimos — reservas, pedidos y operaciones del d\u00eda a d\u00eda.',
+      'testimonials.list_title':   'Lo que dicen los clientes',
+      'testimonials.cta_title':    '\u00bfQuieres resultados como estos?',
+      'testimonials.cta_lead':     'Paquetes desde <strong>$499</strong> \u00b7 Web + iOS + Android \u00b7 Estudio en Fresno',
+      'testimonials.cta_btn':      'Iniciar un proyecto',
 
       /* ── Portfolio ──────────────────────────────────────── */
       'portfolio.title':      'Portafolio',

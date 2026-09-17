@@ -3,8 +3,10 @@
     "dm": {
       "meta": {
         ".read": true,
-        ".write": true,
-        ".indexOn": ["updatedAt", "customerEmail"]
+        ".indexOn": ["updatedAt", "customerEmail"],
+        "$conversationId": {
+          ".write": true
+        }
       },
       "threadMessages": {
         ".read": true,
@@ -57,7 +59,9 @@
     },
     "agencyMaintenance": {
       ".read": true,
-      ".write": true
+      "$maintId": {
+        ".write": true
+      }
     },
     "agencyReferrals": {
       ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
@@ -69,6 +73,11 @@
       ".indexOn": ["renewalDate", "order", "status"]
     },
     "agencyStudioDocs": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".indexOn": ["order"]
+    },
+    "agencyOutreachScripts": {
       ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       ".indexOn": ["order"]

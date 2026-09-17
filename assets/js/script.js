@@ -146,13 +146,19 @@ syncSidebarContactsUiForViewport();
 document.querySelectorAll("[data-navbar-btn]").forEach(function (btn) {
   var nav = btn.closest("[data-navbar]");
   if (nav) {
-    btn.addEventListener("click", function () { nav.classList.toggle("open"); });
+    btn.setAttribute("aria-expanded", nav.classList.contains("open") ? "true" : "false");
+    btn.addEventListener("click", function () {
+      var isOpen = nav.classList.toggle("open");
+      btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
   }
 });
 document.addEventListener("keydown", function (e) {
   if (e.key === "Escape") {
     document.querySelectorAll("[data-navbar]").forEach(function (nav) {
       nav.classList.remove("open");
+      var t = nav.querySelector("[data-navbar-btn]");
+      if (t) t.setAttribute("aria-expanded", "false");
     });
   }
 });
@@ -162,6 +168,8 @@ document.addEventListener("click", function (e) {
   if (e.target.closest("[data-navbar]")) return;
   document.querySelectorAll("[data-navbar].open").forEach(function (nav) {
     nav.classList.remove("open");
+    var t = nav.querySelector("[data-navbar-btn]");
+    if (t) t.setAttribute("aria-expanded", "false");
   });
 });
 
@@ -6114,24 +6122,6 @@ function hideFormMessages(formMessage, formError) {
   if (formError) formError.style.display = 'none';
 }
 
-// Save message to Firestore
-async function saveMessageToFirestore(messageData) {
-  try {
-    // Access the global db instance from the admin module
-    if (!window.db) {
-      console.warn('Firestore not initialized; email may still have been sent via Resend.');
-      return;
-    }
-
-    const messagesRef = window.collection(window.db, 'messages');
-    const docRef = await window.addDoc(messagesRef, messageData);
-    return docRef;
-  } catch (error) {
-    console.error('Error saving message to Firestore:', error);
-    // Don't throw error - we still want the email to be sent even if Firestore fails
-    return null;
-  }
-}
 
 // Prefill contact form with service details
 function prefillContactForm(serviceType, message) {
@@ -7313,7 +7303,7 @@ function updateLandingNavbarScroll() {
     if (idleNav) idleNav.classList.remove("is-scrolled");
     return;
   }
-  nav.classList.toggle("is-scrolled", window.scrollY > 40);
+  nav.classList.toggle("is-scrolled", window.scrollY > 12);
 }
 
 function initLandingNavbarScroll() {
@@ -7327,7 +7317,7 @@ window.initLandingNavbarScroll = initLandingNavbarScroll;
 window.updateLandingNavbarScroll = updateLandingNavbarScroll;
 
 // Valid path segments for rubenjimenez.dev/(tab)
-var VALID_PAGES = ['about', 'home', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'business-systems', 'hire-me', 'schedule', 'contact', 'messages', 'admin'];
+var VALID_PAGES = ['about', 'home', 'testimonials', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'business-systems', 'hire-me', 'schedule', 'contact', 'messages', 'admin'];
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
@@ -8363,8 +8353,8 @@ function switchToPage(pageName, skipSave, pageOptions) {
         updateUrlForPage(pageName, false, urlQuery);
       }
 
-      // Dynamic testimonials when Home (about) is shown
-      if (pageName === "about") {
+      // Dynamic testimonials when Home / Testimonials is shown
+      if (pageName === "testimonials") {
         setTimeout(function () {
           if (typeof window.loadDynamicTestimonials === "function") {
             window.loadDynamicTestimonials();
@@ -8449,6 +8439,8 @@ for (let i = 0; i < navigationLinks.length; i++) {
     // close all hamburger menus after navigation
     document.querySelectorAll("[data-navbar]").forEach(function (nav) {
       nav.classList.remove("open");
+      var t = nav.querySelector("[data-navbar-btn]");
+      if (t) t.setAttribute("aria-expanded", "false");
     });
   });
 }
@@ -9020,7 +9012,7 @@ window.addEventListener('load', function() {
       return;
     }
     var lists = document.querySelectorAll(
-      'article.about .testimonials-list, article.home .cwr-landing-testimonials[data-home-testimonials]'
+      'article.home .cwr-landing-testimonials[data-home-testimonials], article.testimonials-page .testimonials-list, article[data-page="testimonials"] .testimonials-list'
     );
     if (!lists.length) return;
     try {
@@ -9038,7 +9030,11 @@ window.addEventListener('load', function() {
         list.querySelectorAll('li[data-dynamic-testimonial="1"]').forEach(function (n) {
           n.remove();
         });
-        rows.forEach(function (row) {
+        var listRows = rows;
+        if (list.hasAttribute('data-home-testimonials')) {
+          listRows = rows.slice(0, 2);
+        }
+        listRows.forEach(function (row) {
           var d = row.data;
           var iso = testimonialDateIso(d);
           var label = testimonialDateLabel(d);
@@ -10563,7 +10559,7 @@ window.addEventListener('load', function() {
       id: 'lawn',
       label: 'Lawn & landscape',
       vertical: 'lawn care and landscape crews',
-      defaultLink: '',
+      defaultLink: 'https://lawncare.expo.app',
       defaultSubject: '{{projectName}} — routes & pricing off of text threads?',
       defaultBody:
         'Hi {{clientName}},\n\n' +
@@ -10591,7 +10587,7 @@ window.addEventListener('load', function() {
       id: 'salon',
       label: 'Salon / barber / tattoo',
       vertical: 'barbers, salons, and tattoo studios',
-      defaultLink: 'https://rosasalon.expo.app',
+      defaultLink: 'https://barbershoptemplate.expo.app',
       defaultSubject: '{{projectName}} — still booking through IG DMs?',
       defaultBody:
         'Hi {{clientName}},\n\n' +
@@ -10599,6 +10595,68 @@ window.addEventListener('load', function() {
         'I build a branded booking app for appearance-based businesses: clients pick a stylist or artist, a service, and a time slot, and pay a deposit up front — you see your whole day in one dashboard.\n\n' +
         '{{linkLine}}\n' +
         'If it’s relevant for {{projectName}}, I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it fits your shop.\n\n' +
+        '— Ruben'
+    },
+    // ——— "Running ads, no website" angle ———
+    // For owners already paying for Meta/Instagram ads whose CTA points at a
+    // Facebook page or IG profile. The pitch is not "you need a website" — it
+    // is "you are already buying this traffic, land it somewhere that books."
+    // First touch leads with a live demo link, so they see the destination
+    // instead of imagining it.
+    {
+      id: 'lawn-ads',
+      label: 'Lawn & landscape — running ads',
+      vertical: 'lawn care and landscape crews',
+      defaultLink: 'https://lawncare.expo.app',
+      defaultSubject: '{{projectName}} — your ad sends people to Facebook, not a quote',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I saw {{projectName}} running ads — the link goes to your Facebook page. That means someone ready to book has to message you and then wait for a reply, and most people do not wait.\n\n' +
+        'The fix is not a bigger ad budget. It is sending that same traffic to a page that takes the address, the yard size, and the service they want, then puts the request in front of you.\n\n' +
+        '{{linkLine}}\n' +
+        'That is a live build you can tap through right now. If it looks like it would fit {{projectName}}, I will hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'cleaning-ads',
+      label: 'Cleaning — running ads',
+      vertical: 'cleaning and field service crews',
+      defaultLink: 'https://procleaning.expo.app',
+      defaultSubject: '{{projectName}} — paying for ads that land on a Facebook page?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I saw {{projectName}} running ads, and the link goes to your Facebook page. Someone who is ready to book a clean has to message you, wait for a price, and then wait again to pick a time — that is three chances to lose them.\n\n' +
+        'I build the page that ad should land on: they pick the type of clean, how many bed and bath, a date, and pay a deposit — before you ever pick up the phone. Recurring customers rebook themselves.\n\n' +
+        '{{linkLine}}\n' +
+        'That is a live cleaning build you can tap through. If it fits how {{projectName}} runs, I will hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'trades-ads',
+      label: 'Trade services — running ads',
+      vertical: 'trade crews',
+      defaultLink: 'https://tradeservice.expo.app',
+      defaultSubject: '{{projectName}} — ad traffic going to Facebook instead of your calendar',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I saw {{projectName}} running ads and the link points at your Facebook page. For a trade, that is the expensive kind of leak — you paid for a click from someone with a problem right now, and then asked them to send a message and wait.\n\n' +
+        'I build the page that ad should land on: they pick the service, describe the job, choose a time slot, and leave a deposit. You see the request and the job status in one dashboard instead of phone tag.\n\n' +
+        '{{linkLine}}\n' +
+        'That is a live build you can tap through right now. If it maps to how {{projectName}} runs jobs, I will hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'salon-ads',
+      label: 'Salon / barber — running ads',
+      vertical: 'barbers, salons, and tattoo studios',
+      defaultLink: 'https://barbershoptemplate.expo.app',
+      defaultSubject: '{{projectName}} — ads pointing at your IG instead of your books',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I saw {{projectName}} running ads that land on your Instagram. That sends a ready-to-book client into your DMs, where they sit next to every other message — and you end up booking after hours.\n\n' +
+        'I build the page that ad should land on: they pick the barber or stylist, the service, and a time, and leave a deposit so no-shows cost them instead of you. Your whole day shows up in one dashboard.\n\n' +
+        '{{linkLine}}\n' +
+        'That is a live build you can tap through. If it fits your shop, I will hold 15 minutes — fit call, not a pitch deck.\n\n' +
         '— Ruben'
     }
   ];
@@ -22099,6 +22157,10 @@ function attachSubModalListeners() {
       modalEl.classList.add('active');
       document.body.classList.add('modal-open');
       modalEl.querySelector('button')?.focus();
+      // Outreach scripts live in RTDB now — load them the first time it opens.
+      if (config.modal === 'template-scripts-modal' && window.CWR_OUTREACH) {
+        window.CWR_OUTREACH.open();
+      }
     };
 
     // Launcher tiles are plain divs (role="button"), so clicks and
@@ -22135,33 +22197,6 @@ function attachSubModalListeners() {
 
 }
 
-// Template Outreach Scripts modal: exclusive accordion (one open details at a time)
-document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('template-scripts-modal');
-  if (!modal) return;
-  const items = modal.querySelectorAll('details.template-script-accordion-item');
-  items.forEach((d) => {
-    d.addEventListener('toggle', () => {
-      if (!d.open) return;
-      items.forEach((other) => {
-        if (other !== d) other.open = false;
-      });
-    });
-  });
-
-  modal.querySelectorAll('.template-script-sub-accordion').forEach((container) => {
-    const subItems = container.querySelectorAll('details.template-script-sub-item');
-    subItems.forEach((d) => {
-      d.addEventListener('toggle', () => {
-        if (!d.open) return;
-        subItems.forEach((other) => {
-          if (other !== d) other.open = false;
-        });
-      });
-    });
-  });
-});
-
 // ─────────────────────────────────────────────
 // Dark/Light mode toggle
 // ─────────────────────────────────────────────
@@ -22186,6 +22221,7 @@ function toggleTheme() {
   const COMMANDS = [
     { id: 'nav-home', label: 'Go to Home', icon: 'home-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('home'); } },
     { id: 'nav-about', label: 'Go to About', icon: 'person-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('about'); } },
+    { id: 'nav-testimonials', label: 'Go to Testimonials', icon: 'chatbubble-ellipses-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('testimonials'); } },
     { id: 'nav-portfolio', label: 'Go to Portfolio', icon: 'grid-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('portfolio'); } },
     { id: 'nav-services', label: 'Go to Services & Pricing', icon: 'pricetag-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('services-pricing'); } },
     { id: 'nav-contact', label: 'Go to Contact', icon: 'mail-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('contact'); } },

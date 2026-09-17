@@ -18,73 +18,80 @@
       robots: INDEX
     },
     about: {
-      path: '/about',
+      path: '/about/',
       title: 'About CodeWithRuben | Fresno Web & Mobile Studio',
       description:
         'Meet Ruben Jimenez and the Fresno studio behind CodeWithRuben — custom web apps, iOS/Android, and admin dashboards for service businesses.',
       robots: INDEX
     },
+    testimonials: {
+      path: '/testimonials/',
+      title: 'Client Testimonials | CodeWithRuben',
+      description:
+        'What clients say about CodeWithRuben — real feedback on booking apps, ordering systems, and custom software for service businesses.',
+      robots: INDEX
+    },
     portfolio: {
-      path: '/portfolio',
+      path: '/portfolio/',
       title: 'Work — Apps & Sites We’ve Built | CodeWithRuben',
       description:
         'Client builds: booking, ordering, cleaning ops, and mobile apps. See what the studio ships for Fresno and remote businesses.',
       robots: INDEX
     },
     'services-pricing': {
-      path: '/services-pricing',
+      path: '/services-pricing/',
       title: 'Services & Pricing | Web & Mobile Apps from $499',
       description:
         'Starter Page, website, and app packages from $499. Year 1 maintenance included. Clear pricing before we start.',
       robots: INDEX
     },
     'business-systems': {
-      path: '/business-systems',
+      path: '/business-systems/',
       title: 'What We Build — Booking, Payments & Admin | CodeWithRuben',
       description:
         'Custom systems: booking, payments, staff dashboards, and customer apps — built to replace spreadsheets and DMs.',
       robots: INDEX
     },
     contact: {
-      path: '/contact',
+      path: '/contact/',
       title: 'Contact CodeWithRuben | Fresno, CA',
       description:
         'Ask about a web or mobile app for your business. Fresno-based, typically replies within 24 hours.',
       robots: INDEX
     },
     'hire-me': {
-      path: '/hire-me',
+      path: '/hire-me/',
       title: 'Start a Project | Hire CodeWithRuben',
       description:
         'Tell us what you need — site, mobile app, or full operations system. Packages from $499. Remote-friendly.',
       robots: INDEX
     },
     resume: {
-      path: '/resume',
+      path: '/resume/',
       title: 'Experience | CodeWithRuben',
       description: 'Background and experience from the CodeWithRuben studio.',
       robots: NOINDEX
     },
     blog: {
-      path: '/blog',
+      path: '/blog/',
       title: 'Blog | CodeWithRuben',
       description: 'Notes from CodeWithRuben.',
       robots: NOINDEX
     },
     schedule: {
-      path: '/schedule',
+      path: '/schedule/',
       title: 'Schedule a Call | CodeWithRuben',
       description: 'Book a time to talk about a web or mobile project.',
       robots: NOINDEX
     },
     messages: {
-      path: '/messages',
+      path: '/messages/',
       title: 'Messages | CodeWithRuben',
       description: 'Private client messages.',
       robots: NOINDEX
     },
     admin: {
-      path: '/admin',
+      path: '/admin/',
       title: 'Admin | CodeWithRuben',
       description: 'Studio admin.',
       robots: NOINDEX
@@ -128,7 +135,7 @@
     var key = ALIASES[pageName] || pageName;
     if (PAGES[key]) return PAGES[key];
     return {
-      path: '/' + String(pageName || '').replace(/^\/+|\/+$/g, ''),
+      path: '/' + String(pageName || '').replace(/^\/+|\/+$/g, '') + '/',
       title: 'CodeWithRuben',
       description:
         'Fresno studio that builds web and mobile apps for local businesses.',

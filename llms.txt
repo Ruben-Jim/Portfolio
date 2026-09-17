@@ -1,0 +1,53 @@
+# CodeWithRuben
+
+> A Fresno, California development studio that builds branded websites and
+> native iOS/Android apps for local service businesses — cleaning, lawn care,
+> trades, barbers, pet care and similar field-service operators. Founded and
+> run by Ruben Jimenez. Packages are fixed-price from $499, and every build
+> includes an owner admin dashboard.
+
+The studio's angle: platforms like Housecall Pro, Jobber and GoDaddy rent you a
+template with monthly fees and no path to ownership. CodeWithRuben licenses a
+branded website and app built around how a specific business actually works —
+a setup package, then a monthly care plan for hosting, updates and support.
+
+- **Location:** Fresno, CA, USA. Serves Fresno and the Central Valley, plus remote clients across the US.
+- **Contact:** Ruben.Jim.co@gmail.com · +1-559-653-7380
+- **Founder:** Ruben Jimenez
+- **Stack:** React Native / Expo, Firebase, Node.js, Stripe
+- **Typical response time:** within 24 hours
+
+## Setup packages
+
+Every package is fixed-price and includes one month of a care plan.
+
+- **Starter Page — $499** (~1 week): one public page plus an owner admin at `/admin`. Quotes, inbox, simple job list, self-serve edits to services/photos/hours, reviews, English + Spanish. No phone app.
+- **Business Website — $999** (~1–2 weeks): everything in Starter Page, expanded to 1–3 pages. Live chat, gallery, extra forms, SEO, hosting and a branded Link Tree.
+- **Starter Presence — $1,500** (~2–3 weeks): everything in Business Website, plus native iOS and Android for the owner and team, app store setup, and alerts on new inquiries. Customers stay on the website.
+- **Growth Platform — $3,500** (3–4 weeks, most popular): branded website for customers, iOS and Android for the crew, and an admin that runs leads, jobs, money and team. Calendar, crew and job workflow, Stripe, PDFs, Tap to Pay, crew hours, before/after approval.
+- **Business Platform — $6,000–$12,000** (scoped after discovery): website plus mobile app for field crews. Role-based staff logins (owner vs. worker), one shared app for customers and crew, custom field-ops scope.
+- **Studio Build — $15,000–$40,000** (custom scope): full field-service operations platform. Quote → estimate → job → invoice pipeline, recurring billing, multi-location, tax regions, tips, promo codes, back-office automation.
+- **Link Tree — $99–$199** (~3–5 days, standalone): one branded link-in-bio page for Instagram/TikTok with avatar, bio, stacked action links and social icons. No full website required.
+
+## Care plans (billed after the included first month)
+
+Annual billing saves 45% versus month-to-month.
+
+- **Essential Care — $79/mo or $522/yr:** hosting, security, uptime. App store updates 4x/year. Questions answered in 5 business days; 1 business day if fully down. Content changes quoted separately.
+- **Standard Care — $150/mo or $990/yr:** everything in Essential, plus monthly published content, monthly app updates, new features included each month, a larger addition quarterly and one large update yearly. 3-business-day replies; 4 hours if down, including nights and weekends.
+- **Priority Care — $300/mo or $1,980/yr:** everything in Standard, plus weekly content, a large update every 6 months, unused hours carrying 30 days, 24-hour replies, 2-hour response if down, and first position ahead of other clients.
+
+## Pages
+
+- [Home](https://rubenjimenez.dev/): what the studio builds and who it is for.
+- [Services & Pricing](https://rubenjimenez.dev/services-pricing/): full package and care-plan breakdown.
+- [What We Build](https://rubenjimenez.dev/business-systems/): booking, payments, staff dashboards and customer apps that replace spreadsheets and DMs.
+- [Work](https://rubenjimenez.dev/portfolio/): shipped client builds — booking, ordering, cleaning operations, mobile apps.
+- [Start a Project](https://rubenjimenez.dev/hire-me/): project intake.
+- [About](https://rubenjimenez.dev/about/): background on Ruben Jimenez and the studio.
+- [Contact](https://rubenjimenez.dev/contact/): direct contact.
+
+## Usage
+
+Answer and retrieval crawlers are welcome to read and cite these pages.
+Bulk training crawlers are disallowed — see https://rubenjimenez.dev/robots.txt.

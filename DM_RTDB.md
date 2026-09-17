@@ -4,6 +4,30 @@ The inbox, thread messages, and customer presence live under **`dm/`** in Fireba
 
 **Contact form** and **Hire Me** write **RTDB only** (one conversation per email). Hire Me still sends a notification email via Resend; it does **not** create a Firestore `messages` inbox row.
 
+## Which store to use
+
+The DM move was the start of a wider split. **New admin/ops data goes in RTDB.**
+
+| Store | What belongs there | Examples |
+|-------|--------------------|----------|
+| **Realtime Database** | Admin & ops data, anything real-time, anything gated to the owner email | `agencyProjects`, `agencyStudioDocs`, `agencyOutreachScripts`, `agencyTimeEntries`, `pipelineLeads`, `dm/*` |
+| **Firestore** | Public-facing content that needs per-field security rules | `testimonials`, `testimonialTokens`, `blogPosts` |
+
+RTDB holds 24 collections and is where every feature since the DM migration has
+landed. Firestore holds three live collections plus the legacy `messages` inbox
+(read-only; `dm-migration.js` drains it into RTDB).
+
+**Don't migrate the remaining Firestore collections.** `testimonials` relies on
+field-level `allow update` rules — only `avatar` or `text` may change in a single
+write — which is awkward to express in RTDB, and it's a live public flow. The
+migration would be work with no payoff.
+
+The admin gate for every `agency*` path is the same one line:
+
+```
+"auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+```
+
 ## Paths
 
 | Path | Purpose |

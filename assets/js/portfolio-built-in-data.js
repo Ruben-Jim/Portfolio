@@ -7,7 +7,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     order: 10,
     category: 'professional',
     title: 'Pro Cleaning',
-    projectUrl: 'https://roof-cleaning-template.expo.app',
+    projectUrl: 'https://procleaning.expo.app',
     imageUrl: '/assets/images/projects/procleaning/procleaning.webp',
     imageAlt: 'Pro Cleaning App',
     description:
@@ -23,7 +23,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     order: 20,
     category: 'professional',
     title: 'Grippy Socks',
-    projectUrl: 'https://grippysocks.expo.app',
+    projectUrl: '#',
     imageUrl: '/assets/images/projects/grippysocks/grippysocks.webp',
     imageAlt: 'Grippy Socks App',
     description:
@@ -37,7 +37,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     order: 30,
     category: 'professional',
     title: 'Barber Shop',
-    projectUrl: '#',
+    projectUrl: 'https://barbershoptemplate.expo.app',
     imageUrl: '/assets/images/projects/barbershop/barbershop.webp',
     imageAlt: 'Barber Shop App',
     description:
@@ -51,7 +51,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     order: 40,
     category: 'professional',
     title: 'Rizo Pizzeria',
-    projectUrl: 'https://rizo-pizza--by3ty9xb6t.expo.app',
+    projectUrl: 'https://rizo-pizza.expo.app',
     imageUrl: '/assets/images/projects/rizopizzeria/rizopizzeria.webp',
     imageAlt: 'Rizo Pizzeria',
     description:
@@ -67,7 +67,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     order: 50,
     category: 'professional',
     title: 'Shelton Springs Home Owners Association App',
-    projectUrl: 'https://hoa-demo--l91yvra8kn.expo.app',
+    projectUrl: 'https://hoa-demo.expo.app',
     imageUrl: '/assets/images/projects/sheltonsprings/sheltonsprings.webp',
     imageAlt: 'Shelton Springs HOA App',
     description:
@@ -98,7 +98,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     order: 70,
     category: 'professional',
     title: "Rosa's Beauty Salon",
-    projectUrl: 'https://rosasalon.expo.app',
+    projectUrl: 'https://beautysalon.expo.app',
     imageUrl: '/assets/images/projects/rosasalon/rosasalon.webp',
     imageAlt: "Rosa's Beauty Salon",
     description:
@@ -148,7 +148,7 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
     order: 110,
     category: 'professional',
     title: 'Lawn Care',
-    projectUrl: '#',
+    projectUrl: 'https://lawncare.expo.app',
     imageUrl: '/assets/images/projects/lawncare/lawncare.webp',
     imageAlt: 'Lawn Care App',
     description:
