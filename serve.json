@@ -112,6 +112,62 @@
     {
       "source": "/admin/**",
       "destination": "/index.html"
+    },
+    {
+      "source": "/schedule",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/schedule/**",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy/**",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/terms/**",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cookies",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/cookies/**",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/refund",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/refund/**",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/acceptable-use",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/acceptable-use/**",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/accessibility",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/accessibility/**",
+      "destination": "/index.html"
     }
   ]
 }

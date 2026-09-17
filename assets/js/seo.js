@@ -95,6 +95,48 @@
       title: 'Admin | CodeWithRuben',
       description: 'Studio admin.',
       robots: NOINDEX
+    },
+    privacy: {
+      path: '/privacy/',
+      title: 'Privacy Policy | CodeWithRuben',
+      description:
+        'How CodeWithRuben collects and uses information from contact forms, project inquiries, scheduling, messages, and analytics on rubenjimenez.dev.',
+      robots: INDEX
+    },
+    terms: {
+      path: '/terms/',
+      title: 'Terms of Service | CodeWithRuben',
+      description:
+        'Terms for using rubenjimenez.dev — acceptable use, project ownership, liability limits, and how studio work is scoped.',
+      robots: INDEX
+    },
+    cookies: {
+      path: '/cookies/',
+      title: 'Cookie & Analytics Notice | CodeWithRuben',
+      description:
+        'Cookies and local storage on rubenjimenez.dev — language preference, consent choice, and optional Google Analytics.',
+      robots: INDEX
+    },
+    refund: {
+      path: '/refund/',
+      title: 'Refund & Cancellation Policy | CodeWithRuben',
+      description:
+        'Refunds and cancellations for CodeWithRuben packages, mockups, and care plans.',
+      robots: INDEX
+    },
+    'acceptable-use': {
+      path: '/acceptable-use/',
+      title: 'Acceptable Use Policy | CodeWithRuben',
+      description:
+        'Rules for using rubenjimenez.dev forms, messaging, and studio tools — what is allowed and what is not.',
+      robots: INDEX
+    },
+    accessibility: {
+      path: '/accessibility/',
+      title: 'Accessibility Statement | CodeWithRuben',
+      description:
+        'Accessibility efforts on rubenjimenez.dev and how to report barriers to CodeWithRuben.',
+      robots: INDEX
     }
   };
 

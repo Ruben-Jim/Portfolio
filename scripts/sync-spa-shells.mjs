@@ -40,7 +40,13 @@ const ROUTES = [
   'hire-me',
   'contact',
   'messages',
-  'schedule'
+  'schedule',
+  'privacy',
+  'terms',
+  'cookies',
+  'refund',
+  'acceptable-use',
+  'accessibility'
 ];
 
 /** Route slug -> the data-page article whose heading becomes that page's <h1>. */
@@ -176,18 +182,17 @@ function report(label, misses) {
 
 console.log('Syncing SPA shells from index.html\n');
 
-// 404.html: GitHub Pages' fallback. Serves the home view but must never be
-// indexed as a duplicate of /.
+// 404.html: branded not-found page for GitHub Pages (not the full SPA shell).
 {
-  const home = seo.resolve('home');
-  const { html, misses } = stamp(
-    source,
-    { ...home, robots: 'noindex, nofollow' },
-    seo.ORIGIN,
-    null
-  );
-  writeFileSync(join(ROOT, '404.html'), html);
-  report('404.html', misses);
+  const templatePath = join(ROOT, 'assets/templates/site-404.html');
+  try {
+    const branded = readFileSync(templatePath, 'utf8');
+    writeFileSync(join(ROOT, '404.html'), branded);
+    console.log('  ✓ 404.html  →  branded not-found (from assets/templates/site-404.html)');
+  } catch (err) {
+    failed = true;
+    console.error('  ✗ 404.html — missing assets/templates/site-404.html');
+  }
 }
 
 for (const route of ROUTES) {

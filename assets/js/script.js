@@ -7317,7 +7317,8 @@ window.initLandingNavbarScroll = initLandingNavbarScroll;
 window.updateLandingNavbarScroll = updateLandingNavbarScroll;
 
 // Valid path segments for rubenjimenez.dev/(tab)
-var VALID_PAGES = ['about', 'home', 'testimonials', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'business-systems', 'hire-me', 'schedule', 'contact', 'messages', 'admin'];
+var VALID_PAGES = ['about', 'home', 'testimonials', 'resume', 'portfolio', 'blog', 'service-pricing', 'services-pricing', 'business-systems', 'hire-me', 'schedule', 'contact', 'messages', 'admin', 'privacy', 'terms', 'cookies', 'refund', 'acceptable-use', 'accessibility'];
+var HIDE_SITE_FOOTER_PAGES = ['admin', 'messages', 'schedule', 'blog', 'resume'];
 
 function getPageFromPath() {
   var path = window.location.pathname.replace(/^\/+|\/+$/g, '') || '';
@@ -8241,6 +8242,10 @@ function switchToPage(pageName, skipSave, pageOptions) {
   });
   document.body.classList.remove("admin-page-active");
   document.body.classList.remove("home-page-active");
+  document.body.classList.toggle(
+    'site-footer-hidden',
+    HIDE_SITE_FOOTER_PAGES.indexOf(pageName) !== -1
+  );
   
   // Find and activate the matching page
   for (let i = 0; i < pageArticles.length; i++) {
@@ -22208,279 +22213,6 @@ function toggleTheme() {
   localStorage.setItem('portfolio-theme', next);
 }
 
-// ─────────────────────────────────────────────
-// Command Palette (Cmd+K / Ctrl+K)
-// ─────────────────────────────────────────────
-(function initCommandPalette() {
-  const overlay = document.getElementById('command-palette-overlay');
-  const input = document.getElementById('command-palette-input');
-  const listEl = document.getElementById('command-palette-list');
-
-  if (!overlay || !input || !listEl) return;
-
-  const COMMANDS = [
-    { id: 'nav-home', label: 'Go to Home', icon: 'home-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('home'); } },
-    { id: 'nav-about', label: 'Go to About', icon: 'person-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('about'); } },
-    { id: 'nav-testimonials', label: 'Go to Testimonials', icon: 'chatbubble-ellipses-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('testimonials'); } },
-    { id: 'nav-portfolio', label: 'Go to Portfolio', icon: 'grid-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('portfolio'); } },
-    { id: 'nav-services', label: 'Go to Services & Pricing', icon: 'pricetag-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('services-pricing'); } },
-    { id: 'nav-contact', label: 'Go to Contact', icon: 'mail-outline', action: () => { if (typeof switchToPage === 'function') switchToPage('contact'); } },
-    { id: 'copy-email', label: 'Copy email', icon: 'copy-outline', action: copyEmail },
-    { id: 'toggle-theme', label: 'Toggle dark mode', icon: 'moon-outline', action: () => { if (typeof toggleTheme === 'function') toggleTheme(); } }
-  ];
-
-  function isAdminSignedIn() {
-    return isAdmin();
-  }
-
-  function runAdminTab(tabId, afterFn) {
-    if (typeof switchToPage === 'function') switchToPage('admin');
-    setTimeout(function () {
-      if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
-      if (typeof afterFn === 'function') setTimeout(afterFn, 90);
-    }, 60);
-  }
-
-  function clickById(id) {
-    var el = document.getElementById(id);
-    if (el) el.click();
-  }
-
-  function getAdminCommands() {
-    if (!isAdminSignedIn()) return [];
-    return [
-      { id: 'admin-open', label: 'Admin: Open dashboard', icon: 'grid-outline', search: 'admin dashboard', action: function () { if (typeof switchToPage === 'function') switchToPage('admin'); } },
-      { id: 'admin-messages', label: 'Admin: Contact messages', icon: 'mail-outline', search: 'admin contact messages inbox', action: function () { runAdminTab('messages'); } },
-      { id: 'admin-pipeline', label: 'Admin: Client pipeline', icon: 'git-network-outline', search: 'admin pipeline leads crm', action: function () { runAdminTab('pipeline'); } },
-      { id: 'admin-hub', label: 'Admin: Clients Projects', icon: 'briefcase-outline', search: 'admin clients projects hub client', action: function () { runAdminTab('client-projects'); } },
-      { id: 'admin-planner', label: 'Admin: Planner', icon: 'calendar-outline', search: 'admin planner bookings time capacity hours calendar calls', action: function () { runAdminTab('planner'); } },
-      { id: 'admin-maintenance', label: 'Admin: Clients Projects (maintenance)', icon: 'construct-outline', search: 'admin maintenance sla clients', action: function () { runAdminTab('client-projects'); } },
-      { id: 'admin-portfolio', label: 'Admin: Portfolio projects', icon: 'albums-outline', search: 'admin portfolio projects', action: function () { runAdminTab('portfolio'); } },
-      { id: 'admin-blog', label: 'Admin: Blog management', icon: 'newspaper-outline', search: 'admin blog posts', action: function () { runAdminTab('blog'); } },
-      { id: 'admin-docs', label: 'Admin: Business documents', icon: 'document-text-outline', search: 'admin documents proposal invoice', action: function () { runAdminTab('docs'); } },
-      { id: 'admin-studio-costs', label: 'Admin: Studio costs', icon: 'wallet-outline', search: 'admin studio costs eas porkbun app store play billing', action: function () { runAdminTab('studio-costs'); } },
-      { id: 'admin-dm-inbox', label: 'Admin: Conversations', icon: 'chatbubbles-outline', search: 'admin dm inbox messages realtime conversations', action: function () { runAdminTab('messages'); } },
-      { id: 'admin-add-lead', label: 'Admin: Add pipeline lead', icon: 'person-add-outline', search: 'admin add lead pipeline new', action: function () { runAdminTab('pipeline', function () { if (typeof window.openLeadModal === 'function') window.openLeadModal(); }); } },
-      { id: 'admin-new-hub', label: 'Admin: New client project', icon: 'add-circle-outline', search: 'admin new client project hub', action: function () { runAdminTab('client-projects', function () { if (window.AgencyTools && typeof window.AgencyTools.openNewClient === 'function') window.AgencyTools.openNewClient(); else clickById('client-projects-add-btn'); }); } },
-      { id: 'admin-new-portfolio', label: 'Admin: New portfolio project', icon: 'add-outline', search: 'admin new portfolio project', action: function () { runAdminTab('portfolio', function () { clickById('admin-add-portfolio-btn'); }); } },
-      { id: 'admin-new-blog', label: 'Admin: New blog post', icon: 'create-outline', search: 'admin new blog post', action: function () { runAdminTab('blog', function () { clickById('admin-add-blog-btn'); }); } },
-      { id: 'admin-new-doc', label: 'Admin: New business document', icon: 'document-outline', search: 'admin new document proposal', action: function () { runAdminTab('docs', function () { clickById('business-doc-create-btn'); }); } }
-    ];
-  }
-
-  function getCommandPaletteProjects() {
-    const raw =
-      window.portfolioProjects && window.portfolioProjects.length
-        ? window.portfolioProjects
-        : (window.DEFAULT_PORTFOLIO_PROJECTS || []).map(function (r, i) {
-            return Object.assign({}, r, { id: 'builtin-' + i });
-          });
-    return raw
-      .filter(function (p) {
-        const u = String(p.projectUrl || '').trim();
-        return u && u !== '#' && /^https?:\/\//i.test(u);
-      })
-      .map(function (p) {
-        return { title: p.title || 'Project', url: String(p.projectUrl).trim() };
-      });
-  }
-
-  function copyEmail() {
-    const email = 'Ruben.Jim.co@gmail.com';
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(email).then(() => showCmdFeedback('Copied!')).catch(() => fallbackCopy(email));
-    } else {
-      fallbackCopy(email);
-    }
-  }
-
-  function fallbackCopy(text) {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try {
-      document.execCommand('copy');
-      showCmdFeedback('Copied!');
-    } catch (e) { showCmdFeedback('Failed to copy'); }
-    document.body.removeChild(ta);
-  }
-
-  function showCmdFeedback(msg) {
-    const prev = document.querySelector('.command-palette-feedback');
-    if (prev) prev.remove();
-    const el = document.createElement('div');
-    el.className = 'command-palette-feedback';
-    el.textContent = msg;
-    el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--orange-yellow-crayola);color:var(--smoky-black);padding:8px 16px;border-radius:8px;font-size:14px;z-index:10080;animation:fade 0.3s ease;';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 2000);
-  }
-
-  function buildFullList() {
-    const nav = COMMANDS.map(c => ({ ...c, type: 'command', search: c.label.toLowerCase() }));
-    const projects = getCommandPaletteProjects().map(function (p) {
-      return {
-        id: 'proj-' + p.title.toLowerCase().replace(/\s+/g, '-'),
-        label: 'Open ' + p.title,
-        icon: 'open-outline',
-        url: p.url,
-        type: 'project',
-        search: p.title.toLowerCase()
-      };
-    });
-    return nav.concat(getAdminCommands()).concat(projects);
-  }
-
-  let fullList = buildFullList();
-  let filtered = [];
-  let selectedIndex = 0;
-
-  function isAdminOverlayOpen() {
-    if (document.body.classList.contains('admin-contact-detail-open')) return true;
-    if (document.body.classList.contains('lead-drawer-open')) return true;
-    if (document.querySelector('.agency-modal.active')) return true;
-    if (document.querySelector('.business-doc-modal.active')) return true;
-    if (document.querySelector('.add-blog-modal.active')) return true;
-    if (document.querySelector('.modal-container.active')) return true;
-    if (document.body.classList.contains('project-modal-open')) return true;
-    if (document.body.classList.contains('admin-tab-reorder-active')) return true;
-    if (document.querySelector('.project-detail-modal.active')) return true;
-    return false;
-  }
-
-  function syncCommandPaletteHintVisibility() {
-    var h = document.getElementById('command-palette-hint');
-    if (!h || overlay.classList.contains('active')) return;
-    if (isAdminOverlayOpen()) {
-      h.style.visibility = 'hidden';
-      h.style.opacity = '0';
-      h.style.pointerEvents = 'none';
-    } else {
-      h.style.visibility = '';
-      h.style.opacity = '';
-      h.style.pointerEvents = '';
-    }
-  }
-
-  function open() {
-    if (isAdminOverlayOpen()) return;
-    fullList = buildFullList();
-    overlay.classList.add('active');
-    overlay.setAttribute('aria-hidden', 'false');
-    input.value = '';
-    input.focus();
-    filter('');
-    var h = document.getElementById('command-palette-hint');
-    if (h) h.style.visibility = 'hidden';
-  }
-
-  function close() {
-    overlay.classList.remove('active');
-    overlay.setAttribute('aria-hidden', 'true');
-    selectedIndex = 0;
-    syncCommandPaletteHintVisibility();
-  }
-
-  function filter(q) {
-    const ql = q.trim().toLowerCase();
-    if (!ql) {
-      filtered = fullList;
-    } else {
-      filtered = fullList.filter(item => item.search.includes(ql));
-    }
-    selectedIndex = 0;
-    render();
-  }
-
-  function render() {
-    listEl.innerHTML = '';
-    filtered.forEach((item, i) => {
-      const div = document.createElement('div');
-      div.className = 'command-palette-item' + (i === selectedIndex ? ' selected' : '');
-      div.setAttribute('role', 'option');
-      div.setAttribute('aria-selected', i === selectedIndex);
-      div.innerHTML = '<ion-icon name="' + item.icon + '"></ion-icon><span>' + item.label + '</span>';
-      div.addEventListener('click', () => execute(item));
-      listEl.appendChild(div);
-    });
-  }
-
-  function execute(item) {
-    close();
-    if (item.type === 'project' && item.url) {
-      window.open(item.url, '_blank');
-    } else if (item.action) {
-      item.action();
-    }
-  }
-
-  function moveSelection(delta) {
-    if (filtered.length === 0) return;
-    selectedIndex = (selectedIndex + delta + filtered.length) % filtered.length;
-    render();
-    const items = listEl.querySelectorAll('.command-palette-item');
-    if (items[selectedIndex]) items[selectedIndex].scrollIntoView({ block: 'nearest' });
-  }
-
-  input.addEventListener('input', () => filter(input.value));
-
-  function handlePaletteKeydown(e) {
-    if (!overlay.classList.contains('active')) return;
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      moveSelection(1);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      moveSelection(-1);
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (filtered[selectedIndex]) execute(filtered[selectedIndex]);
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      close();
-    }
-  }
-
-  document.addEventListener('keydown', handlePaletteKeydown);
-
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-      e.preventDefault();
-      if (isAdminOverlayOpen()) return;
-      if (overlay.classList.contains('active')) close();
-      else open();
-    }
-  });
-
-  if (typeof MutationObserver !== 'undefined') {
-    var overlayObserver = new MutationObserver(syncCommandPaletteHintVisibility);
-    overlayObserver.observe(document.body, {
-      attributes: true,
-      attributeFilter: ['class'],
-      subtree: true,
-      attributeOldValue: false
-    });
-    document.querySelectorAll('.agency-modal, .business-doc-modal, .add-blog-modal, .modal-container').forEach(function (el) {
-      overlayObserver.observe(el, { attributes: true, attributeFilter: ['class'] });
-    });
-  }
-  syncCommandPaletteHintVisibility();
-
-  overlay.querySelector('[data-cmd-close]').addEventListener('click', close);
-
-  var hintBtn = document.getElementById('command-palette-hint');
-  if (hintBtn) {
-    hintBtn.addEventListener('click', open);
-    var kbd = hintBtn.querySelector('.command-palette-hint-kbd');
-    if (kbd && !/Mac|iPhone|iPad/i.test(navigator.platform)) {
-      kbd.textContent = 'Ctrl+K';
-    }
-  }
-  window.openCommandPalette = open;
-})();
 
 // ─────────────────────────────────────────────
 // Section ease-in reveals + GSAP micro-interactions
@@ -24095,11 +23827,6 @@ document.addEventListener('DOMContentLoaded', function () {
       '<h3 id="dm-customer-sheet-title" class="dm-customer-sheet-title">Your conversation</h3>',
       '<span id="dm-hireme-thread-badge" class="dm-hireme-thread-badge" hidden></span>',
       '</div>',
-      '<button type="button" class="dm-customer-commandk" id="dm-customer-commandk" aria-label="Open search shortcuts">',
-      '<ion-icon name="search-outline" aria-hidden="true"></ion-icon>',
-      '<span class="dm-customer-commandk-label">Search</span>',
-      '<span class="dm-customer-commandk-kbd">⌘K</span>',
-      '</button>',
       '<button type="button" class="dm-customer-sheet-close" id="dm-customer-sheet-close" aria-label="Close conversation">',
       '<ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>',
       '</button>',
@@ -24596,7 +24323,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Belt-and-suspenders: whenever we know a real conversation is active, make sure the
     // portal carries the classes its "active/conversation" styling depends on (hides the
-    // in-sheet ⌘K search trigger, etc.) — don't rely solely on restoreCustomerPortalFromStorage
+    // sheet UI, etc.) — don't rely solely on restoreCustomerPortalFromStorage
     // having successfully run first.
     var portalEl = document.getElementById('customer-dm-portal');
     if (portalEl && DM.customerSession && DM.customerSession.conversationId) {
@@ -24799,7 +24526,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const attachmentToggle = document.getElementById('dm-customer-attachment-toggle');
     const attachmentWrap = document.getElementById('dm-customer-attachment-wrap');
     const attachmentInput = document.getElementById('dm-customer-attachment-url');
-    const commandKBtn = document.getElementById('dm-customer-commandk');
 
     function setPortalStatus(message, isError) {
       if (!statusEl) return;
@@ -24941,17 +24667,6 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    if (commandKBtn) {
-      var customerKbd = commandKBtn.querySelector('.dm-customer-commandk-kbd');
-      if (customerKbd && !/Mac|iPhone|iPad/i.test(navigator.platform)) {
-        customerKbd.textContent = 'Ctrl+K';
-      }
-      commandKBtn.addEventListener('click', function () {
-        if (typeof window.openCommandPalette === 'function') {
-          window.openCommandPalette();
-        }
-      });
-    }
 
     initCustomerSheetResize();
   }
