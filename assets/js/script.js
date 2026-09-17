@@ -7063,22 +7063,22 @@ const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
 var LANDING_MARQUEE_PROJECTS = [
-  { src: '/assets/images/projects/procleaning/procleaning.webp', label: 'Cleaning &amp; field service' },
-  { src: '/assets/images/projects/rizopizzeria/rizopizzeria.webp', label: 'Restaurants &amp; ordering' },
-  { src: '/assets/images/projects/realestate/realestate.webp', label: 'Real estate &amp; insurance' },
-  { src: '/assets/images/projects/tradeservice/tradeservice.webp', label: 'Trades &amp; contractors' },
-  { src: '/assets/images/projects/sheltonsprings/sheltonsprings.webp', label: 'HOA &amp; communities' },
-  { src: '/assets/images/projects/barbershop/barbershop.webp', label: 'Local service brands' },
-  { src: '/assets/images/projects/zoomrealty/zoomrealty.webp', label: 'Real estate portal' },
-  { src: '/assets/images/projects/lawncare/lawncare.webp', label: 'Lawn care' },
-  { src: '/assets/images/projects/merchstore/merchstore.webp', label: 'E-commerce' },
-  { src: '/assets/images/projects/gadgetgarage/gadgetgarage.webp', label: 'Retail &amp; repair' },
-  { src: '/assets/images/projects/rosasalon/rosasalon.webp', label: 'Salon booking' },
-  { src: '/assets/images/projects/hoa/hoa.webp', label: 'HOA management' }
+  { src: '/assets/images/projects/procleaning/procleaning1.webp' },
+  { src: '/assets/images/projects/tradeservice/tradeservice-demo-poster.webp' },
+  { src: '/assets/images/projects/realtor-template/listing-desktop.webp' },
+  { src: '/assets/images/projects/barbershop/barbershop-1.webp' },
+  { src: '/assets/images/projects/lawncare/lawncare.webp' },
+  { src: '/assets/images/projects/rosasalon/rosasalon-1.webp' },
+  { src: '/assets/images/projects/homecontractors/homecontractors-demo-poster.webp' },
+  { src: '/assets/images/projects/pawshine/pawshine-demo-poster.webp' },
+  { src: '/assets/images/projects/inktattoo/inktattoo-demo-poster.webp' },
+  { src: '/assets/images/projects/sheltonsprings/sheltonsprings.webp' },
+  { src: '/assets/images/projects/grippysocks/grippysocks.webp' },
+  { src: '/assets/images/projects/rizopizzeria/rizopizzeria.webp' }
 ];
 
 function buildLandingMarqueeTile(project, eager) {
-  return '<li class="cwr-landing-tile"><img src="' + project.src + '" alt="" loading="' + (eager ? 'eager' : 'lazy') + '"><span>' + project.label + '</span></li>';
+  return '<li class="cwr-landing-tile"><img src="' + project.src + '" alt="" loading="' + (eager ? 'eager' : 'lazy') + '"></li>';
 }
 
 function buildLandingMarqueeColumn(projects, direction, extraClass) {
