@@ -1,0 +1,5208 @@
+{
+ "version": 1,
+ "generatedAt": "2026-09-19T07:11:40.051Z",
+ "sets": [
+  {
+   "id": "services-carousel-en",
+   "name": "Services carousel (EN)",
+   "lang": "en",
+   "format": "feed34",
+   "boards": [
+    {
+     "id": "post-1-cover",
+     "thumb": "/examples/instagram/services/en/post-1-cover.png"
+    },
+    {
+     "id": "post-2-499",
+     "thumb": "/examples/instagram/services/en/post-2-499.png"
+    },
+    {
+     "id": "post-3-1500",
+     "thumb": "/examples/instagram/services/en/post-3-1500.png"
+    },
+    {
+     "id": "post-4-3500",
+     "thumb": "/examples/instagram/services/en/post-4-3500.png"
+    },
+    {
+     "id": "post-5-compare",
+     "thumb": "/examples/instagram/services/en/post-5-compare.png"
+    },
+    {
+     "id": "post-6-cta",
+     "thumb": "/examples/instagram/services/en/post-6-cta.png"
+    }
+   ],
+   "slides": [
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x0",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x1",
+       "type": "counter",
+       "x": 945.3,
+       "y": 62.5,
+       "w": 74.7,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "1/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x2",
+       "type": "text",
+       "x": 60,
+       "y": 168,
+       "w": 964,
+       "h": 158.1,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "What *$499*, *$1,500* + *$3,500* actually get you",
+        "preset": "headline",
+        "size": 76,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.04,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x3",
+       "type": "text",
+       "x": 60,
+       "y": 344.1,
+       "w": 964,
+       "h": 42,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Websites + apps for any business, team or creator",
+        "preset": "body",
+        "size": 28,
+        "weight": 600,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x4",
+       "type": "text",
+       "x": 135.4,
+       "y": 685.2,
+       "w": 128.2,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x5",
+       "type": "text",
+       "x": 135.4,
+       "y": 743.2,
+       "w": 128.2,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Website",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x6",
+       "type": "device",
+       "x": 60.5,
+       "y": 788.2,
+       "w": 270,
+       "h": 532.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.818
+       }
+      },
+      {
+       "id": "x7",
+       "type": "text",
+       "x": 427.3,
+       "y": 613.4,
+       "w": 163.4,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x8",
+       "type": "text",
+       "x": 427.3,
+       "y": 671.4,
+       "w": 163.4,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Website + app",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x9",
+       "type": "device",
+       "x": 352.5,
+       "y": 716.4,
+       "w": 305,
+       "h": 604.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/rizo/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.924
+       }
+      },
+      {
+       "id": "x10",
+       "type": "text",
+       "x": 766.6,
+       "y": 505.5,
+       "w": 173.7,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x11",
+       "type": "text",
+       "x": 766.6,
+       "y": 563.5,
+       "w": 173.7,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Full platform",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x12",
+       "type": "device",
+       "x": 679.5,
+       "y": 608.5,
+       "w": 340,
+       "h": 712.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/tradeservice/phone.png",
+        "src2": "",
+        "cropBottom": false,
+        "scale": 1.03
+       }
+      },
+      {
+       "id": "x13",
+       "type": "text",
+       "x": 60,
+       "y": 1351,
+       "w": 298.1,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "1st month of care included",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x14",
+       "type": "text",
+       "x": 916.4,
+       "y": 1351,
+       "w": 111.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Swipe →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x15",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x16",
+       "type": "counter",
+       "x": 940.6,
+       "y": 62.5,
+       "w": 79.4,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "2/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x17",
+       "type": "text",
+       "x": 60,
+       "y": 160,
+       "w": 299.5,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Starter Page · ~1 week",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x18",
+       "type": "text",
+       "x": 60,
+       "y": 196,
+       "w": 968,
+       "h": 142.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "price",
+        "size": 150,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x19",
+       "type": "text",
+       "x": 60,
+       "y": 352.5,
+       "w": 964,
+       "h": 116.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "A website you update *from your phone*",
+        "preset": "headline",
+        "size": 54,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x20",
+       "type": "device",
+       "x": 620,
+       "y": 518.1,
+       "w": 330,
+       "h": 655.9,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x21",
+       "type": "chip",
+       "x": 409.6,
+       "y": 677.6,
+       "w": 270.4,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "edit",
+        "text": "Hours updated",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x22",
+       "type": "chip",
+       "x": 414,
+       "y": 874.1,
+       "w": 316,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "chat",
+        "text": "New quote request",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x23",
+       "type": "checklist",
+       "x": 60,
+       "y": 1227,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "1-page website",
+         "Edit it yourself",
+         "Quotes + inbox",
+         "Reviews + English/Spanish"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x24",
+       "type": "text",
+       "x": 60,
+       "y": 1351,
+       "w": 298.1,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "1st month of care included",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x25",
+       "type": "text",
+       "x": 916.4,
+       "y": 1351,
+       "w": 111.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Swipe →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x26",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x27",
+       "type": "counter",
+       "x": 940.1,
+       "y": 62.5,
+       "w": 79.9,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "3/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x28",
+       "type": "text",
+       "x": 60,
+       "y": 160,
+       "w": 405.8,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Starter Presence · ~2–3 weeks",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x29",
+       "type": "text",
+       "x": 60,
+       "y": 196,
+       "w": 968,
+       "h": 142.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "price",
+        "size": 150,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x30",
+       "type": "text",
+       "x": 60,
+       "y": 352.5,
+       "w": 964,
+       "h": 58.3,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Your website + *your own app*",
+        "preset": "headline",
+        "size": 54,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x31",
+       "type": "device",
+       "x": 60,
+       "y": 516.7,
+       "w": 960,
+       "h": 585.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "combo",
+        "src": "/examples/instagram/captures/rizo/laptop.png",
+        "src2": "/examples/instagram/captures/rizo/phone.png",
+        "cropBottom": true,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x32",
+       "type": "chip",
+       "x": 666,
+       "y": 526.2,
+       "w": 234,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "bell",
+        "text": "New inquiry",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x33",
+       "type": "checklist",
+       "x": 60,
+       "y": 1212,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Everything in $499",
+         "1–3 pages + SEO",
+         "iOS + Android app",
+         "Alerts on every inquiry"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x34",
+       "type": "badges",
+       "x": 60,
+       "y": 1336,
+       "w": 311.6,
+       "h": 48,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "which": "both",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x35",
+       "type": "text",
+       "x": 916.4,
+       "y": 1343.5,
+       "w": 111.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Swipe →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x36",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x37",
+       "type": "counter",
+       "x": 938.7,
+       "y": 62.5,
+       "w": 81.3,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "4/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x38",
+       "type": "text",
+       "x": 60,
+       "y": 160,
+       "w": 400.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Growth Platform · 3–4 weeks",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x39",
+       "type": "button",
+       "x": 468.3,
+       "y": 160,
+       "w": 154.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "variant": "tag",
+        "text": "Most popular",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x40",
+       "type": "text",
+       "x": 60,
+       "y": 199,
+       "w": 968,
+       "h": 142.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "price",
+        "size": 150,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x41",
+       "type": "text",
+       "x": 60,
+       "y": 355.5,
+       "w": 964,
+       "h": 116.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Run the whole business *from your phone*",
+        "preset": "headline",
+        "size": 54,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x42",
+       "type": "device",
+       "x": 60,
+       "y": 554.8,
+       "w": 960,
+       "h": 585.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "combo",
+        "src": "/examples/instagram/captures/tradeservice/laptop.png",
+        "src2": "/examples/instagram/captures/tradeservice/phone.png",
+        "cropBottom": false,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x43",
+       "type": "chip",
+       "x": 100,
+       "y": 582,
+       "w": 374.5,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "calendar",
+        "text": "New booking · Sat 10 AM",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x44",
+       "type": "chip",
+       "x": 60,
+       "y": 672.8,
+       "w": 353.6,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "card",
+        "text": "Deposit received · $50",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x45",
+       "type": "chip",
+       "x": 671.1,
+       "y": 1029.2,
+       "w": 348.9,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "team",
+        "text": "Job assigned · Crew 2",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x46",
+       "type": "checklist",
+       "x": 60,
+       "y": 1227,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Everything in $1,500",
+         "Booking calendar + jobs",
+         "Stripe + Tap to Pay",
+         "Crew hours + photos"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x47",
+       "type": "text",
+       "x": 60,
+       "y": 1351,
+       "w": 298.1,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "1st month of care included",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x48",
+       "type": "text",
+       "x": 916.4,
+       "y": 1351,
+       "w": 111.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Swipe →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x49",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x50",
+       "type": "counter",
+       "x": 939.1,
+       "y": 62.5,
+       "w": 80.9,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "5/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x51",
+       "type": "text",
+       "x": 60,
+       "y": 164,
+       "w": 964,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Which one is you?",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.14,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x52",
+       "type": "text",
+       "x": 60,
+       "y": 208,
+       "w": 964,
+       "h": 58.3,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Pick by how *you work*",
+        "preset": "headline",
+        "size": 54,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x53",
+       "type": "device",
+       "x": 60,
+       "y": 358.4,
+       "w": 136,
+       "h": 264.3,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.412
+       }
+      },
+      {
+       "id": "x54",
+       "type": "text",
+       "x": 226,
+       "y": 447.6,
+       "w": 445.9,
+       "h": 40.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "“I need people to find me”",
+        "preset": "body",
+        "size": 34,
+        "weight": 700,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.015,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x55",
+       "type": "text",
+       "x": 226,
+       "y": 500.4,
+       "w": 141.9,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Starter Page",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x56",
+       "type": "text",
+       "x": 875.8,
+       "y": 445.5,
+       "w": 152.3,
+       "h": 90,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "body",
+        "size": 60,
+        "weight": 800,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x57",
+       "type": "device",
+       "x": 60,
+       "y": 671.6,
+       "w": 136,
+       "h": 264.3,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/rizo/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.412
+       }
+      },
+      {
+       "id": "x58",
+       "type": "text",
+       "x": 226,
+       "y": 760.9,
+       "w": 364,
+       "h": 40.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "“I want my own app”",
+        "preset": "body",
+        "size": 34,
+        "weight": 700,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.015,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x59",
+       "type": "text",
+       "x": 226,
+       "y": 813.7,
+       "w": 186.5,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Starter Presence",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x60",
+       "type": "text",
+       "x": 834.5,
+       "y": 758.8,
+       "w": 193.5,
+       "h": 90,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "body",
+        "size": 60,
+        "weight": 800,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x61",
+       "type": "device",
+       "x": 60,
+       "y": 984.9,
+       "w": 136,
+       "h": 278,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/tradeservice/phone.png",
+        "src2": "",
+        "cropBottom": false,
+        "scale": 0.412
+       }
+      },
+      {
+       "id": "x62",
+       "type": "text",
+       "x": 226,
+       "y": 1060.6,
+       "w": 573.2,
+       "h": 81.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "“I take bookings + payments daily”",
+        "preset": "body",
+        "size": 34,
+        "weight": 700,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.015,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x63",
+       "type": "text",
+       "x": 226,
+       "y": 1154.2,
+       "w": 182.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Growth Platform",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x64",
+       "type": "button",
+       "x": 416.6,
+       "y": 1154.2,
+       "w": 154.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "variant": "tag",
+        "text": "Most popular",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x65",
+       "type": "text",
+       "x": 821.2,
+       "y": 1078.9,
+       "w": 206.8,
+       "h": 90,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "body",
+        "size": 60,
+        "weight": 800,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x66",
+       "type": "text",
+       "x": 60,
+       "y": 1351,
+       "w": 501.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Bigger team or fully custom? Builds from $6k.",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x67",
+       "type": "text",
+       "x": 916.4,
+       "y": 1351,
+       "w": 111.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Swipe →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x68",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x69",
+       "type": "counter",
+       "x": 939.2,
+       "y": 62.5,
+       "w": 80.8,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "6/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x70",
+       "type": "text",
+       "x": 60,
+       "y": 168,
+       "w": 964,
+       "h": 69.1,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Not sure which one *fits?*",
+        "preset": "headline",
+        "size": 64,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x71",
+       "type": "text",
+       "x": 60,
+       "y": 263.1,
+       "w": 964,
+       "h": 104,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "DM me *“APP”*",
+        "preset": "body",
+        "size": 104,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1,
+        "letterSpacing": -0.045,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x72",
+       "type": "text",
+       "x": 60,
+       "y": 385.1,
+       "w": 964,
+       "h": 42,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "I’ll point you to the right package.",
+        "preset": "body",
+        "size": 28,
+        "weight": 500,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x73",
+       "type": "button",
+       "x": 60,
+       "y": 463.1,
+       "w": 280.1,
+       "h": 75,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "variant": "cta",
+        "text": "Start a project →",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x74",
+       "type": "text",
+       "x": 364.1,
+       "y": 484.1,
+       "w": 203.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "rubenjimenez.dev",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x75",
+       "type": "badges",
+       "x": 60,
+       "y": 560.1,
+       "w": 311.6,
+       "h": 48,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "which": "both",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x76",
+       "type": "text",
+       "x": 395.6,
+       "y": 567.6,
+       "w": 521.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Every package includes your 1st month of care.",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x77",
+       "type": "device",
+       "x": 38,
+       "y": 798.1,
+       "w": 290,
+       "h": 573.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.879
+       }
+      },
+      {
+       "id": "x78",
+       "type": "device",
+       "x": 350,
+       "y": 723.1,
+       "w": 320,
+       "h": 635.4,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/rizo/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.97
+       }
+      },
+      {
+       "id": "x79",
+       "type": "device",
+       "x": 692,
+       "y": 648.1,
+       "w": 350,
+       "h": 734.1,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/tradeservice/phone.png",
+        "src2": "",
+        "cropBottom": false,
+        "scale": 1.061
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "services-stories-en",
+   "name": "Services stories (EN)",
+   "lang": "en",
+   "format": "story",
+   "boards": [
+    {
+     "id": "story-cover",
+     "thumb": "/examples/instagram/services/en/story-cover.png"
+    },
+    {
+     "id": "story-1-499",
+     "thumb": "/examples/instagram/services/en/story-1-499.png"
+    },
+    {
+     "id": "story-2-1500",
+     "thumb": "/examples/instagram/services/en/story-2-1500.png"
+    },
+    {
+     "id": "story-3-3500",
+     "thumb": "/examples/instagram/services/en/story-3-3500.png"
+    }
+   ],
+   "slides": [
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x80",
+       "type": "logoHeader",
+       "x": 392.6,
+       "y": 250,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x81",
+       "type": "text",
+       "x": 60,
+       "y": 402,
+       "w": 964,
+       "h": 174.7,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "What *$499*, *$1,500* + *$3,500* actually get you",
+        "preset": "headline",
+        "size": 84,
+        "weight": 800,
+        "color": "white",
+        "align": "center",
+        "lineHeight": 1.04,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x82",
+       "type": "text",
+       "x": 60,
+       "y": 594.7,
+       "w": 964,
+       "h": 42,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Websites + apps for any business, team or creator",
+        "preset": "body",
+        "size": 28,
+        "weight": 600,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x83",
+       "type": "text",
+       "x": 134.9,
+       "y": 1040.1,
+       "w": 128.2,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x84",
+       "type": "text",
+       "x": 134.9,
+       "y": 1098.1,
+       "w": 128.2,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Website",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x85",
+       "type": "device",
+       "x": 59,
+       "y": 1143.1,
+       "w": 272,
+       "h": 536.9,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.824
+       }
+      },
+      {
+       "id": "x86",
+       "type": "text",
+       "x": 428.3,
+       "y": 970.3,
+       "w": 163.4,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x87",
+       "type": "text",
+       "x": 428.3,
+       "y": 1028.3,
+       "w": 163.4,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Website + app",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x88",
+       "type": "device",
+       "x": 353,
+       "y": 1073.3,
+       "w": 306,
+       "h": 606.7,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/rizo/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.927
+       }
+      },
+      {
+       "id": "x89",
+       "type": "text",
+       "x": 768.1,
+       "y": 864.5,
+       "w": 173.7,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x90",
+       "type": "text",
+       "x": 768.1,
+       "y": 922.5,
+       "w": 173.7,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Full platform",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x91",
+       "type": "device",
+       "x": 681,
+       "y": 967.5,
+       "w": 340,
+       "h": 712.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/tradeservice/phone.png",
+        "src2": "",
+        "cropBottom": false,
+        "scale": 1.03
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x92",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 250,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x93",
+       "type": "counter",
+       "x": 946.2,
+       "y": 252.5,
+       "w": 73.8,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": false,
+        "text": "1/3",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x94",
+       "type": "text",
+       "x": 60,
+       "y": 350,
+       "w": 299.5,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Starter Page · ~1 week",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x95",
+       "type": "text",
+       "x": 60,
+       "y": 386,
+       "w": 968,
+       "h": 159.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "price",
+        "size": 168,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x96",
+       "type": "text",
+       "x": 60,
+       "y": 559.6,
+       "w": 964,
+       "h": 129.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "A website you update *from your phone*",
+        "preset": "headline",
+        "size": 60,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x97",
+       "type": "device",
+       "x": 610,
+       "y": 744.4,
+       "w": 340,
+       "h": 676.4,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 1.03
+       }
+      },
+      {
+       "id": "x98",
+       "type": "chip",
+       "x": 409.6,
+       "y": 906.2,
+       "w": 270.4,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "edit",
+        "text": "Hours updated",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x99",
+       "type": "chip",
+       "x": 414,
+       "y": 1112,
+       "w": 316,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "chat",
+        "text": "New quote request",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x100",
+       "type": "checklist",
+       "x": 60,
+       "y": 1480,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "1-page website",
+         "Edit it yourself",
+         "Quotes + inbox",
+         "Reviews + English/Spanish"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x101",
+       "type": "replyPill",
+       "x": 60,
+       "y": 1604,
+       "w": 274.6,
+       "h": 76,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Reply *“APP”*",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x102",
+       "type": "text",
+       "x": 916.4,
+       "y": 1625.5,
+       "w": 111.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Swipe →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x103",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 250,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x104",
+       "type": "counter",
+       "x": 941.5,
+       "y": 252.5,
+       "w": 78.5,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": false,
+        "text": "2/3",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x105",
+       "type": "text",
+       "x": 60,
+       "y": 350,
+       "w": 405.8,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Starter Presence · ~2–3 weeks",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x106",
+       "type": "text",
+       "x": 60,
+       "y": 386,
+       "w": 968,
+       "h": 159.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "price",
+        "size": 168,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x107",
+       "type": "text",
+       "x": 60,
+       "y": 559.6,
+       "w": 964,
+       "h": 64.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Your website + *your own app*",
+        "preset": "headline",
+        "size": 60,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x108",
+       "type": "device",
+       "x": 60,
+       "y": 742.4,
+       "w": 960,
+       "h": 615.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "combo",
+        "src": "/examples/instagram/captures/rizo/laptop.png",
+        "src2": "/examples/instagram/captures/rizo/phone.png",
+        "cropBottom": true,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x109",
+       "type": "chip",
+       "x": 666,
+       "y": 746.3,
+       "w": 234,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "bell",
+        "text": "New inquiry",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x110",
+       "type": "checklist",
+       "x": 60,
+       "y": 1480,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Everything in $499",
+         "1–3 pages + SEO",
+         "iOS + Android app",
+         "Alerts on every inquiry"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x111",
+       "type": "replyPill",
+       "x": 60,
+       "y": 1604,
+       "w": 274.6,
+       "h": 76,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Reply *“APP”*",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x112",
+       "type": "text",
+       "x": 916.4,
+       "y": 1625.5,
+       "w": 111.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Swipe →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x113",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 250,
+       "w": 294.7,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Web & Mobile Dev Studio",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x114",
+       "type": "counter",
+       "x": 941,
+       "y": 252.5,
+       "w": 79,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": false,
+        "text": "3/3",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x115",
+       "type": "text",
+       "x": 60,
+       "y": 350,
+       "w": 400.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Growth Platform · 3–4 weeks",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x116",
+       "type": "button",
+       "x": 468.3,
+       "y": 350,
+       "w": 154.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "variant": "tag",
+        "text": "Most popular",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x117",
+       "type": "text",
+       "x": 60,
+       "y": 389,
+       "w": 968,
+       "h": 159.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "price",
+        "size": 168,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x118",
+       "type": "text",
+       "x": 60,
+       "y": 562.6,
+       "w": 964,
+       "h": 129.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Run the whole business *from your phone*",
+        "preset": "headline",
+        "size": 60,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x119",
+       "type": "device",
+       "x": 60,
+       "y": 776.3,
+       "w": 960,
+       "h": 615.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "combo",
+        "src": "/examples/instagram/captures/tradeservice/laptop.png",
+        "src2": "/examples/instagram/captures/tradeservice/phone.png",
+        "cropBottom": false,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x120",
+       "type": "chip",
+       "x": 100,
+       "y": 806,
+       "w": 374.5,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "calendar",
+        "text": "New booking · Sat 10 AM",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x121",
+       "type": "chip",
+       "x": 60,
+       "y": 901.1,
+       "w": 353.6,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "card",
+        "text": "Deposit received · $50",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x122",
+       "type": "chip",
+       "x": 671.1,
+       "y": 1277.5,
+       "w": 348.9,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "team",
+        "text": "Job assigned · Crew 2",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x123",
+       "type": "checklist",
+       "x": 60,
+       "y": 1480,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Everything in $1,500",
+         "Booking calendar + jobs",
+         "Stripe + Tap to Pay",
+         "Crew hours + photos"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x124",
+       "type": "replyPill",
+       "x": 60,
+       "y": 1604,
+       "w": 274.6,
+       "h": 76,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Reply *“APP”*",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x125",
+       "type": "text",
+       "x": 824.8,
+       "y": 1625.5,
+       "w": 203.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "rubenjimenez.dev",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "services-carousel-es",
+   "name": "Services carousel (ES)",
+   "lang": "es",
+   "format": "feed34",
+   "boards": [
+    {
+     "id": "post-1-cover",
+     "thumb": "/examples/instagram/services/es/post-1-cover.png"
+    },
+    {
+     "id": "post-2-499",
+     "thumb": "/examples/instagram/services/es/post-2-499.png"
+    },
+    {
+     "id": "post-3-1500",
+     "thumb": "/examples/instagram/services/es/post-3-1500.png"
+    },
+    {
+     "id": "post-4-3500",
+     "thumb": "/examples/instagram/services/es/post-4-3500.png"
+    },
+    {
+     "id": "post-5-compare",
+     "thumb": "/examples/instagram/services/es/post-5-compare.png"
+    },
+    {
+     "id": "post-6-cta",
+     "thumb": "/examples/instagram/services/es/post-6-cta.png"
+    }
+   ],
+   "slides": [
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x0",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x1",
+       "type": "counter",
+       "x": 945.3,
+       "y": 62.5,
+       "w": 74.7,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "1/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x2",
+       "type": "text",
+       "x": 60,
+       "y": 168,
+       "w": 964,
+       "h": 158.1,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Lo que realmente recibes por *$499*, *$1,500* y *$3,500*",
+        "preset": "headline",
+        "size": 76,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.04,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x3",
+       "type": "text",
+       "x": 60,
+       "y": 344.1,
+       "w": 964,
+       "h": 42,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Sitios web + apps para cualquier negocio, equipo o creador",
+        "preset": "body",
+        "size": 28,
+        "weight": 600,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x4",
+       "type": "text",
+       "x": 135.4,
+       "y": 685.2,
+       "w": 128.2,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x5",
+       "type": "text",
+       "x": 135.4,
+       "y": 743.2,
+       "w": 128.2,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Sitio web",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x6",
+       "type": "device",
+       "x": 60.5,
+       "y": 788.2,
+       "w": 270,
+       "h": 532.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.818
+       }
+      },
+      {
+       "id": "x7",
+       "type": "text",
+       "x": 427.7,
+       "y": 613.4,
+       "w": 162.6,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x8",
+       "type": "text",
+       "x": 427.7,
+       "y": 671.4,
+       "w": 162.6,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Sitio + app",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x9",
+       "type": "device",
+       "x": 352.5,
+       "y": 716.4,
+       "w": 305,
+       "h": 604.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/rizo/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.924
+       }
+      },
+      {
+       "id": "x10",
+       "type": "text",
+       "x": 720.3,
+       "y": 505.5,
+       "w": 266.4,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x11",
+       "type": "text",
+       "x": 720.3,
+       "y": 563.5,
+       "w": 266.4,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Plataforma completa",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x12",
+       "type": "device",
+       "x": 679.5,
+       "y": 608.5,
+       "w": 340,
+       "h": 712.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/tradeservice/phone.png",
+        "src2": "",
+        "cropBottom": false,
+        "scale": 1.03
+       }
+      },
+      {
+       "id": "x13",
+       "type": "text",
+       "x": 60,
+       "y": 1351,
+       "w": 394,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "1er mes de mantenimiento incluido",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x14",
+       "type": "text",
+       "x": 903.3,
+       "y": 1351,
+       "w": 124.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Desliza →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x15",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x16",
+       "type": "counter",
+       "x": 940.6,
+       "y": 62.5,
+       "w": 79.4,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "2/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x17",
+       "type": "text",
+       "x": 60,
+       "y": 160,
+       "w": 363.3,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Página Starter · ~1 semana",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x18",
+       "type": "text",
+       "x": 60,
+       "y": 196,
+       "w": 968,
+       "h": 142.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "price",
+        "size": 150,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x19",
+       "type": "text",
+       "x": 60,
+       "y": 352.5,
+       "w": 964,
+       "h": 116.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Un sitio web que cambias *desde tu teléfono*",
+        "preset": "headline",
+        "size": 54,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x20",
+       "type": "device",
+       "x": 620,
+       "y": 518.1,
+       "w": 330,
+       "h": 655.9,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x21",
+       "type": "chip",
+       "x": 353.2,
+       "y": 677.6,
+       "w": 326.8,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "edit",
+        "text": "Horario actualizado",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x22",
+       "type": "chip",
+       "x": 432.2,
+       "y": 874.1,
+       "w": 297.8,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "chat",
+        "text": "Nueva cotización",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x23",
+       "type": "checklist",
+       "x": 60,
+       "y": 1227,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Sitio de 1 página",
+         "Lo editas tú mismo",
+         "Cotizaciones + bandeja",
+         "Reseñas + inglés/español"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x24",
+       "type": "text",
+       "x": 60,
+       "y": 1351,
+       "w": 394,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "1er mes de mantenimiento incluido",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x25",
+       "type": "text",
+       "x": 903.3,
+       "y": 1351,
+       "w": 124.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Desliza →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x26",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x27",
+       "type": "counter",
+       "x": 940.1,
+       "y": 62.5,
+       "w": 79.9,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "3/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x28",
+       "type": "text",
+       "x": 60,
+       "y": 160,
+       "w": 436.8,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Presencia Inicial · ~2–3 semanas",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x29",
+       "type": "text",
+       "x": 60,
+       "y": 196,
+       "w": 968,
+       "h": 142.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "price",
+        "size": 150,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x30",
+       "type": "text",
+       "x": 60,
+       "y": 352.5,
+       "w": 964,
+       "h": 58.3,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Tu sitio web + *tu propia app*",
+        "preset": "headline",
+        "size": 54,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x31",
+       "type": "device",
+       "x": 60,
+       "y": 516.7,
+       "w": 960,
+       "h": 585.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "combo",
+        "src": "/examples/instagram/captures/rizo/laptop.png",
+        "src2": "/examples/instagram/captures/rizo/phone.png",
+        "cropBottom": true,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x32",
+       "type": "chip",
+       "x": 620.5,
+       "y": 526.2,
+       "w": 279.5,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "bell",
+        "text": "Nueva consulta",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x33",
+       "type": "checklist",
+       "x": 60,
+       "y": 1212,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Todo lo de $499",
+         "1–3 páginas + SEO",
+         "App iOS + Android",
+         "Alertas de cada consulta"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x34",
+       "type": "badges",
+       "x": 60,
+       "y": 1336,
+       "w": 311.6,
+       "h": 48,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "which": "both",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x35",
+       "type": "text",
+       "x": 903.3,
+       "y": 1343.5,
+       "w": 124.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Desliza →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x36",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x37",
+       "type": "counter",
+       "x": 938.7,
+       "y": 62.5,
+       "w": 81.3,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "4/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x38",
+       "type": "text",
+       "x": 60,
+       "y": 160,
+       "w": 564,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Plataforma de Crecimiento · 3–4 semanas",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x39",
+       "type": "button",
+       "x": 632,
+       "y": 160,
+       "w": 143.5,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "variant": "tag",
+        "text": "Más popular",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x40",
+       "type": "text",
+       "x": 60,
+       "y": 199,
+       "w": 968,
+       "h": 142.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "price",
+        "size": 150,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x41",
+       "type": "text",
+       "x": 60,
+       "y": 355.5,
+       "w": 964,
+       "h": 116.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Administra todo tu negocio *desde tu teléfono*",
+        "preset": "headline",
+        "size": 54,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x42",
+       "type": "device",
+       "x": 60,
+       "y": 554.8,
+       "w": 960,
+       "h": 585.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "combo",
+        "src": "/examples/instagram/captures/tradeservice/laptop.png",
+        "src2": "/examples/instagram/captures/tradeservice/phone.png",
+        "cropBottom": false,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x43",
+       "type": "chip",
+       "x": 100,
+       "y": 582,
+       "w": 398.2,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "calendar",
+        "text": "Nueva reserva · sáb 10 AM",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x44",
+       "type": "chip",
+       "x": 60,
+       "y": 672.8,
+       "w": 362.8,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "card",
+        "text": "Depósito recibido · $50",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x45",
+       "type": "chip",
+       "x": 601.4,
+       "y": 1029.2,
+       "w": 418.6,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "team",
+        "text": "Trabajo asignado · Equipo 2",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x46",
+       "type": "checklist",
+       "x": 60,
+       "y": 1227,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Todo lo de $1,500",
+         "Agenda + trabajos",
+         "Stripe + Tap to Pay",
+         "Horas + fotos del equipo"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x47",
+       "type": "text",
+       "x": 60,
+       "y": 1351,
+       "w": 394,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "1er mes de mantenimiento incluido",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x48",
+       "type": "text",
+       "x": 903.3,
+       "y": 1351,
+       "w": 124.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Desliza →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x49",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x50",
+       "type": "counter",
+       "x": 939.1,
+       "y": 62.5,
+       "w": 80.9,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "5/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x51",
+       "type": "text",
+       "x": 60,
+       "y": 164,
+       "w": 964,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "¿Cuál eres tú?",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.14,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x52",
+       "type": "text",
+       "x": 60,
+       "y": 208,
+       "w": 964,
+       "h": 58.3,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Elige según *cómo trabajas*",
+        "preset": "headline",
+        "size": 54,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x53",
+       "type": "device",
+       "x": 60,
+       "y": 358.4,
+       "w": 136,
+       "h": 264.3,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.412
+       }
+      },
+      {
+       "id": "x54",
+       "type": "text",
+       "x": 226,
+       "y": 447.6,
+       "w": 532,
+       "h": 40.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "“Necesito que me encuentren”",
+        "preset": "body",
+        "size": 34,
+        "weight": 700,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.015,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x55",
+       "type": "text",
+       "x": 226,
+       "y": 500.4,
+       "w": 162.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Página Starter",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x56",
+       "type": "text",
+       "x": 875.8,
+       "y": 445.5,
+       "w": 152.3,
+       "h": 90,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "body",
+        "size": 60,
+        "weight": 800,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x57",
+       "type": "device",
+       "x": 60,
+       "y": 671.6,
+       "w": 136,
+       "h": 264.3,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/rizo/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.412
+       }
+      },
+      {
+       "id": "x58",
+       "type": "text",
+       "x": 226,
+       "y": 760.9,
+       "w": 402.9,
+       "h": 40.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "“Quiero mi propia app”",
+        "preset": "body",
+        "size": 34,
+        "weight": 700,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.015,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x59",
+       "type": "text",
+       "x": 226,
+       "y": 813.7,
+       "w": 183.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Presencia Inicial",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x60",
+       "type": "text",
+       "x": 834.5,
+       "y": 758.8,
+       "w": 193.5,
+       "h": 90,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "body",
+        "size": 60,
+        "weight": 800,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x61",
+       "type": "device",
+       "x": 60,
+       "y": 984.9,
+       "w": 136,
+       "h": 278,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/tradeservice/phone.png",
+        "src2": "",
+        "cropBottom": false,
+        "scale": 0.412
+       }
+      },
+      {
+       "id": "x62",
+       "type": "text",
+       "x": 226,
+       "y": 1060.6,
+       "w": 573.2,
+       "h": 81.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "“Recibo reservas y pagos a diario”",
+        "preset": "body",
+        "size": 34,
+        "weight": 700,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.015,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x63",
+       "type": "text",
+       "x": 226,
+       "y": 1154.2,
+       "w": 302.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Plataforma de Crecimiento",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x64",
+       "type": "button",
+       "x": 536.7,
+       "y": 1154.2,
+       "w": 143.5,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "variant": "tag",
+        "text": "Más popular",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x65",
+       "type": "text",
+       "x": 821.2,
+       "y": 1078.9,
+       "w": 206.8,
+       "h": 90,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "body",
+        "size": 60,
+        "weight": 800,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x66",
+       "type": "text",
+       "x": 60,
+       "y": 1351,
+       "w": 530.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "¿Equipo grande o algo a la medida? Desde $6k.",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x67",
+       "type": "text",
+       "x": 903.3,
+       "y": 1351,
+       "w": 124.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Desliza →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x68",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 60,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x69",
+       "type": "counter",
+       "x": 939.2,
+       "y": 62.5,
+       "w": 80.8,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": true,
+        "text": "6/6",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x70",
+       "type": "text",
+       "x": 60,
+       "y": 168,
+       "w": 964,
+       "h": 69.1,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "¿No sabes cuál *te conviene?*",
+        "preset": "headline",
+        "size": 64,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x71",
+       "type": "text",
+       "x": 60,
+       "y": 263.1,
+       "w": 964,
+       "h": 104,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Mándame *“APP”*",
+        "preset": "body",
+        "size": 104,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1,
+        "letterSpacing": -0.045,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x72",
+       "type": "text",
+       "x": 60,
+       "y": 385.1,
+       "w": 964,
+       "h": 42,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Te digo qué paquete te conviene.",
+        "preset": "body",
+        "size": 28,
+        "weight": 500,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x73",
+       "type": "button",
+       "x": 60,
+       "y": 463.1,
+       "w": 342,
+       "h": 75,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "variant": "cta",
+        "text": "Iniciar un proyecto →",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x74",
+       "type": "text",
+       "x": 426,
+       "y": 484.1,
+       "w": 203.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "rubenjimenez.dev",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x75",
+       "type": "badges",
+       "x": 60,
+       "y": 560.1,
+       "w": 311.6,
+       "h": 48,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "which": "both",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x76",
+       "type": "text",
+       "x": 395.6,
+       "y": 567.6,
+       "w": 585.6,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Cada paquete incluye tu 1er mes de mantenimiento.",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x77",
+       "type": "device",
+       "x": 38,
+       "y": 798.1,
+       "w": 290,
+       "h": 573.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.879
+       }
+      },
+      {
+       "id": "x78",
+       "type": "device",
+       "x": 350,
+       "y": 723.1,
+       "w": 320,
+       "h": 635.4,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/rizo/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.97
+       }
+      },
+      {
+       "id": "x79",
+       "type": "device",
+       "x": 692,
+       "y": 648.1,
+       "w": 350,
+       "h": 734.1,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/tradeservice/phone.png",
+        "src2": "",
+        "cropBottom": false,
+        "scale": 1.061
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "services-stories-es",
+   "name": "Services stories (ES)",
+   "lang": "es",
+   "format": "story",
+   "boards": [
+    {
+     "id": "story-cover",
+     "thumb": "/examples/instagram/services/es/story-cover.png"
+    },
+    {
+     "id": "story-1-499",
+     "thumb": "/examples/instagram/services/es/story-1-499.png"
+    },
+    {
+     "id": "story-2-1500",
+     "thumb": "/examples/instagram/services/es/story-2-1500.png"
+    },
+    {
+     "id": "story-3-3500",
+     "thumb": "/examples/instagram/services/es/story-3-3500.png"
+    }
+   ],
+   "slides": [
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x80",
+       "type": "logoHeader",
+       "x": 378,
+       "y": 250,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x81",
+       "type": "text",
+       "x": 60,
+       "y": 402,
+       "w": 964,
+       "h": 262.1,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Lo que realmente recibes por *$499*, *$1,500* y *$3,500*",
+        "preset": "headline",
+        "size": 84,
+        "weight": 800,
+        "color": "white",
+        "align": "center",
+        "lineHeight": 1.04,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x82",
+       "type": "text",
+       "x": 60,
+       "y": 682.1,
+       "w": 964,
+       "h": 42,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Sitios web + apps para cualquier negocio, equipo o creador",
+        "preset": "body",
+        "size": 28,
+        "weight": 600,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x83",
+       "type": "text",
+       "x": 134.9,
+       "y": 1040.1,
+       "w": 128.2,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x84",
+       "type": "text",
+       "x": 134.9,
+       "y": 1098.1,
+       "w": 128.2,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Sitio web",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x85",
+       "type": "device",
+       "x": 59,
+       "y": 1143.1,
+       "w": 272,
+       "h": 536.9,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.824
+       }
+      },
+      {
+       "id": "x86",
+       "type": "text",
+       "x": 428.7,
+       "y": 970.3,
+       "w": 162.6,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x87",
+       "type": "text",
+       "x": 428.7,
+       "y": 1028.3,
+       "w": 162.6,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Sitio + app",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x88",
+       "type": "device",
+       "x": 353,
+       "y": 1073.3,
+       "w": 306,
+       "h": 606.7,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/rizo/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 0.927
+       }
+      },
+      {
+       "id": "x89",
+       "type": "text",
+       "x": 721.8,
+       "y": 864.5,
+       "w": 266.4,
+       "h": 50,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "body",
+        "size": 50,
+        "weight": 800,
+        "color": "gold",
+        "align": "center",
+        "lineHeight": 1,
+        "letterSpacing": -0.04,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x90",
+       "type": "text",
+       "x": 721.8,
+       "y": 922.5,
+       "w": 266.4,
+       "h": 27,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Plataforma completa",
+        "preset": "body",
+        "size": 18,
+        "weight": 700,
+        "color": "soft",
+        "align": "center",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.1,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x91",
+       "type": "device",
+       "x": 681,
+       "y": 967.5,
+       "w": 340,
+       "h": 712.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/tradeservice/phone.png",
+        "src2": "",
+        "cropBottom": false,
+        "scale": 1.03
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x92",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 250,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x93",
+       "type": "counter",
+       "x": 946.2,
+       "y": 252.5,
+       "w": 73.8,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": false,
+        "text": "1/3",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x94",
+       "type": "text",
+       "x": 60,
+       "y": 350,
+       "w": 363.3,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Página Starter · ~1 semana",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x95",
+       "type": "text",
+       "x": 60,
+       "y": 386,
+       "w": 968,
+       "h": 159.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$499",
+        "preset": "price",
+        "size": 168,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x96",
+       "type": "text",
+       "x": 60,
+       "y": 559.6,
+       "w": 964,
+       "h": 129.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Un sitio web que cambias *desde tu teléfono*",
+        "preset": "headline",
+        "size": 60,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x97",
+       "type": "device",
+       "x": 610,
+       "y": 744.4,
+       "w": 340,
+       "h": 676.4,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "phone",
+        "src": "/examples/instagram/captures/barbershop/phone.png",
+        "src2": "",
+        "cropBottom": true,
+        "scale": 1.03
+       }
+      },
+      {
+       "id": "x98",
+       "type": "chip",
+       "x": 353.2,
+       "y": 906.2,
+       "w": 326.8,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "edit",
+        "text": "Horario actualizado",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x99",
+       "type": "chip",
+       "x": 432.2,
+       "y": 1112,
+       "w": 297.8,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "chat",
+        "text": "Nueva cotización",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x100",
+       "type": "checklist",
+       "x": 60,
+       "y": 1480,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Sitio de 1 página",
+         "Lo editas tú mismo",
+         "Cotizaciones + bandeja",
+         "Reseñas + inglés/español"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x101",
+       "type": "replyPill",
+       "x": 60,
+       "y": 1604,
+       "w": 337.2,
+       "h": 76,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Responde *“APP”*",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x102",
+       "type": "text",
+       "x": 903.3,
+       "y": 1625.5,
+       "w": 124.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Desliza →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x103",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 250,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x104",
+       "type": "counter",
+       "x": 941.5,
+       "y": 252.5,
+       "w": 78.5,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": false,
+        "text": "2/3",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x105",
+       "type": "text",
+       "x": 60,
+       "y": 350,
+       "w": 436.8,
+       "h": 30,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Presencia Inicial · ~2–3 semanas",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x106",
+       "type": "text",
+       "x": 60,
+       "y": 386,
+       "w": 968,
+       "h": 159.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$1,500",
+        "preset": "price",
+        "size": 168,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x107",
+       "type": "text",
+       "x": 60,
+       "y": 559.6,
+       "w": 964,
+       "h": 64.8,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Tu sitio web + *tu propia app*",
+        "preset": "headline",
+        "size": 60,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x108",
+       "type": "device",
+       "x": 60,
+       "y": 742.4,
+       "w": 960,
+       "h": 615.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "combo",
+        "src": "/examples/instagram/captures/rizo/laptop.png",
+        "src2": "/examples/instagram/captures/rizo/phone.png",
+        "cropBottom": true,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x109",
+       "type": "chip",
+       "x": 620.5,
+       "y": 746.3,
+       "w": 279.5,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "bell",
+        "text": "Nueva consulta",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x110",
+       "type": "checklist",
+       "x": 60,
+       "y": 1480,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Todo lo de $499",
+         "1–3 páginas + SEO",
+         "App iOS + Android",
+         "Alertas de cada consulta"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x111",
+       "type": "replyPill",
+       "x": 60,
+       "y": 1604,
+       "w": 337.2,
+       "h": 76,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Responde *“APP”*",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x112",
+       "type": "text",
+       "x": 903.3,
+       "y": 1625.5,
+       "w": 124.7,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Desliza →",
+        "preset": "body",
+        "size": 22,
+        "weight": 700,
+        "color": "gold",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    },
+    {
+     "background": {
+      "preset": "glow",
+      "src": "",
+      "overlay": 0.55
+     },
+     "elements": [
+      {
+       "id": "x113",
+       "type": "logoHeader",
+       "x": 60,
+       "y": 250,
+       "w": 323.9,
+       "h": 56,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "sub": "Estudio de desarrollo web y móvil",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x114",
+       "type": "counter",
+       "x": 941,
+       "y": 252.5,
+       "w": 79,
+       "h": 51,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "auto": false,
+        "text": "3/3",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x115",
+       "type": "text",
+       "x": 60,
+       "y": 350,
+       "w": 564,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Plataforma de Crecimiento · 3–4 semanas",
+        "preset": "body",
+        "size": 20,
+        "weight": 700,
+        "color": "soft",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0.12,
+        "uppercase": true
+       }
+      },
+      {
+       "id": "x116",
+       "type": "button",
+       "x": 632,
+       "y": 350,
+       "w": 143.5,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "variant": "tag",
+        "text": "Más popular",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x117",
+       "type": "text",
+       "x": 60,
+       "y": 389,
+       "w": 968,
+       "h": 159.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "$3,500",
+        "preset": "price",
+        "size": 168,
+        "weight": 800,
+        "color": "goldGradient",
+        "align": "left",
+        "lineHeight": 0.95,
+        "letterSpacing": -0.05,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x118",
+       "type": "text",
+       "x": 60,
+       "y": 562.6,
+       "w": 964,
+       "h": 129.6,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Administra todo tu negocio *desde tu teléfono*",
+        "preset": "headline",
+        "size": 60,
+        "weight": 800,
+        "color": "white",
+        "align": "left",
+        "lineHeight": 1.08,
+        "letterSpacing": -0.035,
+        "uppercase": false
+       }
+      },
+      {
+       "id": "x119",
+       "type": "device",
+       "x": 60,
+       "y": 776.3,
+       "w": 960,
+       "h": 615.5,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "kind": "combo",
+        "src": "/examples/instagram/captures/tradeservice/laptop.png",
+        "src2": "/examples/instagram/captures/tradeservice/phone.png",
+        "cropBottom": false,
+        "scale": 1
+       }
+      },
+      {
+       "id": "x120",
+       "type": "chip",
+       "x": 100,
+       "y": 806,
+       "w": 398.2,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "calendar",
+        "text": "Nueva reserva · sáb 10 AM",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x121",
+       "type": "chip",
+       "x": 60,
+       "y": 901.1,
+       "w": 362.8,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "card",
+        "text": "Depósito recibido · $50",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x122",
+       "type": "chip",
+       "x": 601.4,
+       "y": 1277.5,
+       "w": 418.6,
+       "h": 70,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "icon": "team",
+        "text": "Trabajo asignado · Equipo 2",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x123",
+       "type": "checklist",
+       "x": 60,
+       "y": 1480,
+       "w": 960,
+       "h": 94,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "items": [
+         "Todo lo de $1,500",
+         "Agenda + trabajos",
+         "Stripe + Tap to Pay",
+         "Horas + fotos del equipo"
+        ],
+        "columns": 2,
+        "size": 26,
+        "weight": 600,
+        "color": "white"
+       }
+      },
+      {
+       "id": "x124",
+       "type": "replyPill",
+       "x": 60,
+       "y": 1604,
+       "w": 337.2,
+       "h": 76,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "Responde *“APP”*",
+        "scale": 1
+       }
+      },
+      {
+       "id": "x125",
+       "type": "text",
+       "x": 824.8,
+       "y": 1625.5,
+       "w": 203.3,
+       "h": 33,
+       "rotate": 0,
+       "locked": false,
+       "hidden": false,
+       "props": {
+        "text": "rubenjimenez.dev",
+        "preset": "body",
+        "size": 22,
+        "weight": 400,
+        "color": "muted",
+        "align": "left",
+        "lineHeight": 1.2,
+        "letterSpacing": 0,
+        "uppercase": false
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

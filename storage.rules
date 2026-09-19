@@ -13,6 +13,17 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*');
     }
 
+    // Post builder: uploads + thumbnails. Admin only; the editor reads them through
+    // download URLs (token-based), so reads don't need to be public.
+    match /postDesigns/{designId}/{folder}/{fileName} {
+      allow read: if isPortfolioAdmin();
+      allow write: if isPortfolioAdmin()
+        && (folder == 'assets' || folder == 'exports')
+        && request.resource.size < 12 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isPortfolioAdmin();
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

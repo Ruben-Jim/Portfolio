@@ -156,6 +156,14 @@
     "instagramPosts": {
       ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
       ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+    },
+    "postDesigns": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+    },
+    "postDesignIndex": {
+      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
     }
   }
 }

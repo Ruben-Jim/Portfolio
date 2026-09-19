@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CWR services kit</title>
+  <script>
+    (function () {
+      var exp = new URLSearchParams(location.search).get("export");
+      if (exp) document.documentElement.classList.add("export", "export-one");
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../assets/css/ig-mockup.css" />
+  <link rel="stylesheet" href="services.css" />
+</head>
+<body class="ig-example-page">
+  <div class="ig-mockup-root">
+    <div class="guide">
+      <h1>CodeWithRuben services kit</h1>
+      <p>What $499 vs $1,500 vs $3,500 gets you. A 6-slide carousel (<code>1080×1440</code>), a story / reel cover and a 3-frame story sequence (<code>1080×1920</code>).
+        Language: <a href="?lang=en">English</a> · <a href="?lang=es">Español</a>.
+        Export one board with <code>?export=&lt;board id&gt;&amp;lang=es</code>, or run <code>./examples/instagram/export-services.sh</code>.</p>
+    </div>
+    <div id="kit"></div>
+  </div>
+  <script src="services.js"></script>
+  <script src="services-dump.js"></script>
+</body>
+</html>

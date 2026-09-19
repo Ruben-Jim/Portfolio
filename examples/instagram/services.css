@@ -1,0 +1,455 @@
+/* Services kit — layered on /assets/css/ig-mockup.css (tokens, brand, laptop/phone, .cta, .stores). */
+
+/* 3:4 feed boards: the profile grid shows 1080×1440 uncropped. */
+.ig-mockup-root .pk.artboard--feed { height: 1440px; }
+
+.ig-mockup-root .pk {
+  --soft: #aeb5c5;
+  --line: rgba(255, 255, 255, 0.1);
+}
+
+.ig-mockup-root .pk-inner {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ig-mockup-root .artboard--feed .pk-inner { padding: 60px 60px 56px; }
+
+/* Story / reel: keep clear of the story chrome and the 3:4 profile-grid crop (y 240–1680). */
+.ig-mockup-root .artboard--story .pk-inner { padding: 250px 60px 240px; }
+
+/* ---------- Header / footer ---------- */
+
+.ig-mockup-root .pk-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.ig-mockup-root .pk .brand-sub { font-size: 14px; }
+
+.ig-mockup-root .pk-count {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  padding: 8px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.ig-mockup-root .pk-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 30px;
+  flex-shrink: 0;
+}
+
+.ig-mockup-root .pk-muted {
+  font-size: 22px;
+  color: var(--muted);
+}
+
+.ig-mockup-root .pk-swipe {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+.ig-mockup-root .pk-swipe svg { width: 26px; height: 26px; }
+
+.ig-mockup-root .pk-reply {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  padding: 16px 28px 16px 22px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 219, 110, 0.35);
+  background: rgba(255, 219, 110, 0.08);
+}
+
+.ig-mockup-root .pk-reply b { color: var(--gold); }
+.ig-mockup-root .pk-reply svg { width: 28px; height: 28px; color: var(--gold); }
+
+/* ---------- Type ---------- */
+
+.ig-mockup-root .pk-pill {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 44px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+.ig-mockup-root .pk-pill em,
+.ig-mockup-root .pk-row-text em {
+  font-style: normal;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1a1204;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.ig-mockup-root .pk-price {
+  margin-top: 6px;
+  font-size: 150px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  flex-shrink: 0;
+}
+
+.ig-mockup-root .pk-title {
+  margin: 14px 0 0;
+  font-size: 54px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  flex-shrink: 0;
+}
+
+.ig-mockup-root .pk-title em {
+  font-style: normal;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+.ig-mockup-root .pk-title--cover { margin-top: 52px; font-size: 76px; line-height: 1.04; }
+
+.ig-mockup-root .pk-sub {
+  margin: 18px 0 0;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.ig-mockup-root .pk-kicker {
+  margin-top: 48px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.ig-mockup-root .pk-checks {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 28px;
+}
+
+.ig-mockup-root .pk-checks li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.ig-mockup-root .pk-checks svg {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  stroke-width: 2.5;
+  color: var(--gold);
+}
+
+/* ---------- Devices ---------- */
+
+.ig-mockup-root .pk-phone {
+  background: linear-gradient(160deg, #3a3a42 0%, #141416 45%, #0a0a0c 100%);
+  border-radius: 44px;
+  padding: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px #4a4a52,
+    0 0 0 3px #1c1c20,
+    0 22px 44px rgba(0, 0, 0, 0.55);
+}
+
+.ig-mockup-root .pk-phone img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 390 / 844;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 34px;
+  background: #111;
+}
+
+/* Trim capture artifacts at the bottom edge (white strip, cut-off heading). */
+.ig-mockup-root .pk-phone--barbershop img,
+.ig-mockup-root .pk-phone--rizo img { aspect-ratio: 390 / 800; }
+
+.ig-mockup-root .pk-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  margin: 26px 0 30px;
+}
+
+.ig-mockup-root .pk-stage .stage { padding-bottom: 36px; }
+
+.ig-mockup-root .pk-solo {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 70px;
+}
+
+.ig-mockup-root .pk-solo .pk-phone { width: 330px; }
+.ig-mockup-root .artboard--story .pk-solo .pk-phone { width: 340px; }
+
+/* Notification-style chips over the devices */
+.ig-mockup-root .pk-chip {
+  position: absolute;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 24px 12px 12px;
+  border-radius: 20px;
+  background: rgba(18, 21, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.5);
+  font-size: 23px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ig-mockup-root .pk-chip i {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: #1a1204;
+}
+
+.ig-mockup-root .pk-chip svg { width: 24px; height: 24px; }
+
+.ig-mockup-root .pk-stage--t499 .pk-chip--0 { right: 340px; top: 26%; }
+.ig-mockup-root .pk-stage--t499 .pk-chip--1 { right: 290px; top: 54%; }
+.ig-mockup-root .pk-stage--t1500 .pk-chip--0 { right: 120px; top: 12%; }
+.ig-mockup-root .pk-stage--t3500 .pk-chip--0 { left: 40px; top: 12%; }
+.ig-mockup-root .pk-stage--t3500 .pk-chip--1 { left: 0; top: 25%; }
+.ig-mockup-root .pk-stage--t3500 .pk-chip--2 { right: 0; bottom: 14%; }
+
+/* ---------- Cover: three phones rising, one per package ---------- */
+
+.ig-mockup-root .pk-stairs {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 34px;
+}
+
+.ig-mockup-root .pk-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.ig-mockup-root .pk-step--0 .pk-phone { width: 270px; }
+.ig-mockup-root .pk-step--1 .pk-phone { width: 305px; }
+.ig-mockup-root .pk-step--2 .pk-phone { width: 340px; }
+
+.ig-mockup-root .pk-tag { text-align: center; }
+
+.ig-mockup-root .pk-tag b {
+  display: block;
+  font-size: 50px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--gold);
+}
+
+.ig-mockup-root .pk-tag span {
+  display: block;
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+.ig-mockup-root .artboard--story .pk-title--cover { font-size: 84px; }
+.ig-mockup-root .artboard--story .pk-step--0 .pk-phone { width: 272px; }
+.ig-mockup-root .artboard--story .pk-step--1 .pk-phone { width: 306px; }
+.ig-mockup-root .artboard--story .pk-step--2 .pk-phone { width: 340px; }
+.ig-mockup-root .pk--story-cover .pk-top { justify-content: center; }
+.ig-mockup-root .pk--story-cover .pk-title--cover { margin-top: 96px; }
+.ig-mockup-root .pk--story-cover .pk-title,
+.ig-mockup-root .pk--story-cover .pk-sub { text-align: center; }
+
+/* ---------- Which one is you? ---------- */
+
+.ig-mockup-root .pk-rows {
+  flex: 1;
+  min-height: 0;
+  margin: 34px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ig-mockup-root .pk-rows li {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ig-mockup-root .pk-rows li:last-child { border-bottom: 1px solid var(--line); }
+
+.ig-mockup-root .pk-phone--mini {
+  flex-shrink: 0;
+  width: 136px;
+  padding: 7px;
+  border-radius: 24px;
+}
+
+.ig-mockup-root .pk-phone--mini img { border-radius: 18px; }
+
+.ig-mockup-root .pk-row-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ig-mockup-root .pk-row-text b {
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.ig-mockup-root .pk-row-text span {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 22px;
+  color: var(--soft);
+}
+
+.ig-mockup-root .pk-rows strong {
+  font-size: 60px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+/* ---------- Call to action ---------- */
+
+.ig-mockup-root .pk--post-6-cta .pk-title { margin-top: 52px; font-size: 64px; }
+
+.ig-mockup-root .pk-dm {
+  margin-top: 26px;
+  font-size: 104px;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ig-mockup-root .pk-dm b { color: var(--gold); font-weight: 800; }
+.ig-mockup-root .pk-dm + .pk-sub { color: var(--soft); font-weight: 500; }
+
+.ig-mockup-root .pk-start {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 36px;
+  flex-shrink: 0;
+}
+
+.ig-mockup-root .pk-start--meta { margin-top: 22px; }
+
+.ig-mockup-root .pk .cta {
+  font-size: 26px;
+  padding: 18px 30px;
+}
+
+/* Phones rise from the bottom edge and get cropped by the board. */
+.ig-mockup-root .pk-rise {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 40px -60px -56px;
+  overflow: hidden;
+}
+
+.ig-mockup-root .pk-rise .pk-stairs {
+  position: absolute;
+  inset: 0 0 auto;
+  align-items: flex-start;
+  margin: 0;
+}
+
+.ig-mockup-root .pk-rise .pk-step--0 { margin-top: 150px; }
+.ig-mockup-root .pk-rise .pk-step--1 { margin-top: 75px; }
+.ig-mockup-root .pk-rise .pk-step--0 .pk-phone { width: 290px; }
+.ig-mockup-root .pk-rise .pk-step--1 .pk-phone { width: 320px; }
+.ig-mockup-root .pk-rise .pk-step--2 .pk-phone { width: 350px; }
+
+/* ---------- Story sizing ---------- */
+
+.ig-mockup-root .artboard--story .pk-price { font-size: 168px; }
+.ig-mockup-root .artboard--story .pk-title { font-size: 60px; }
+.ig-mockup-root .artboard--story .pk-title--cover { font-size: 84px; }
+
+/* ---------- Export: one board per screenshot ---------- */
+
+html.export-one .ig-mockup-root .artboard:not(.is-current) { display: none; }
+html.export .ig-mockup-root .board-label { display: none; }
+.ig-example-page .board-label code { color: inherit; opacity: 0.7; text-transform: none; }
+.ig-example-page .guide a { color: #ffdb6e; }
+
+@media (max-width: 1120px) {
+  .ig-example-page .pk.artboard--feed { margin-bottom: -403px; }
+}

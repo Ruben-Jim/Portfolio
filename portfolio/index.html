@@ -102,6 +102,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/ig-mockup.css?v=ig-library-20260827">
+  <link rel="stylesheet" href="/assets/css/post-builder-elements.css?v=pb1">
+  <link rel="stylesheet" href="/assets/css/post-builder.css?v=pb1">
   <script>
     (function() {
       var saved = localStorage.getItem('portfolio-theme');
@@ -3329,6 +3331,10 @@
                   <ion-icon name="logo-instagram" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Instagram posts</span><span class="admin-tab-label-mobile">IG posts</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-post-builder" data-admin-tab="post-builder" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-post-builder" tabindex="-1" aria-label="Post builder">
+                  <ion-icon name="color-palette-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Post builder</span><span class="admin-tab-label-mobile">Builder</span></span>
+                </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-testimonials" data-admin-tab="testimonials" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-testimonials" tabindex="-1" aria-label="Testimonial requests">
                   <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Testimonials</span><span class="admin-tab-label-mobile">Reviews</span></span>
@@ -4168,6 +4174,20 @@
             </div>
           </section>
           </div><!-- /admin-panel-instagram -->
+
+          <div id="admin-panel-post-builder" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-post-builder" data-admin-tab="post-builder" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open" id="post-builder-section">
+          <div class="admin-panel-heading">
+            <h3 class="h3 admin-panel-title">Post builder</h3>
+            <p class="admin-panel-lead">Build Instagram posts and stories by dragging elements around. Start blank, from the services posts, or from a copy.</p>
+          </div>
+            <div class="admin-collapsible-content">
+            <div class="admin-collapsible-inner-content">
+              <div id="pb-root"></div>
+            </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-post-builder -->
 
           <!-- Portfolio Projects (Realtime Database) -->
           <div id="admin-panel-portfolio" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-portfolio" data-admin-tab="portfolio" hidden>
@@ -7637,7 +7657,7 @@
     import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
     window.initializeApp = initializeApp;
     window.getAuth = getAuth;
@@ -7689,6 +7709,7 @@
     window.storageRef = storageRef;
     window.uploadBytes = uploadBytes;
     window.getDownloadURL = getDownloadURL;
+    window.deleteObject = deleteObject;
   </script>
 
   <!--
@@ -8125,10 +8146,11 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=testimonials-nav-mobile-20260912"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=hero-marquee-photos-20260917"></script>
+  <script src="/assets/js/script.js?v=post-builder-20260919"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=mobile-sheet-20260819v"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
+  <script type="module" src="/assets/js/post-builder/index.js?v=pb1"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
   <script src="/assets/js/outreach-composer.js?v=outreach-script-select-20260916"></script>
   <script src="/assets/js/dm-migration.js"></script>

@@ -1,0 +1,246 @@
+/* Post builder — element looks. Ported from examples/instagram/services.css so builder
+   output matches the services posts. Layered on /assets/css/ig-mockup.css. */
+
+.pb-slide-root { position: relative; }
+
+.ig-mockup-root .artboard.pb-slide {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  font-family: Poppins, system-ui, sans-serif;
+  color: #f4f7fb;
+}
+
+.ig-mockup-root .pb-bg--navy { background: #07090e; }
+.ig-mockup-root .pb-bg--slate { background: #12151c; }
+.ig-mockup-root .pb-bg--gold { background: linear-gradient(135deg, #ffdb6e, #ffbc5e); }
+.ig-mockup-root .pb-bg--photo { background: #07090e; }
+
+.pb-el {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 50% 50%;
+  box-sizing: border-box;
+}
+
+.pb-el *,
+.pb-el *::before,
+.pb-el *::after { box-sizing: border-box; }
+
+/* Components render at natural size; applyBox scales the inner node. */
+.pb-comp {
+  transform-origin: 0 0;
+  width: max-content;
+}
+
+/* ---------- Text ---------- */
+
+.pb-text {
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+/* Gold phrases stay on one line, like the post headlines. */
+.pb-text em {
+  font-style: normal;
+  color: #ffdb6e;
+  white-space: nowrap;
+}
+
+.pb-grad {
+  background: linear-gradient(135deg, #ffdb6e, #ffbc5e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.pb-checks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  column-gap: 1.08em;
+  row-gap: 0.6em;
+  line-height: 1.5;
+}
+
+.pb-checks li {
+  display: flex;
+  align-items: center;
+  gap: 0.46em;
+}
+
+.pb-checks svg {
+  flex-shrink: 0;
+  width: 1.08em;
+  height: 1.08em;
+  stroke-width: 2.5;
+  color: #ffdb6e;
+}
+
+.pb-checks em { font-style: normal; color: #ffdb6e; }
+
+/* ---------- Devices ---------- */
+
+.pb-phone {
+  width: 330px;
+  background: linear-gradient(160deg, #3a3a42 0%, #141416 45%, #0a0a0c 100%);
+  border-radius: 44px;
+  padding: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px #4a4a52,
+    0 0 0 3px #1c1c20,
+    0 22px 44px rgba(0, 0, 0, 0.55);
+}
+
+.pb-phone img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 390 / 844;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 34px;
+  background: #111;
+}
+
+/* Trim capture artifacts at the bottom edge. */
+.pb-phone.pb-crop img,
+.ig-mockup-root .pb-combo.pb-crop .phone img { aspect-ratio: 390 / 800; object-position: top; }
+
+.pb-laptop-solo { width: 820px; }
+.ig-mockup-root .pb-laptop-solo .laptop { width: 100%; }
+
+.pb-combo { width: 960px; }
+.ig-mockup-root .pb-combo .stage { padding-bottom: 36px; }
+.ig-mockup-root .pb-combo .laptop { width: 85%; }
+.ig-mockup-root .pb-combo .phone { width: 248px; }
+
+/* ---------- Brand pieces ---------- */
+
+.pb-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 24px 12px 12px;
+  border-radius: 20px;
+  background: rgba(18, 21, 28, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.5);
+  font-size: 23px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #f4f7fb;
+}
+
+.pb-chip i {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #ffdb6e, #ffbc5e);
+  color: #1a1204;
+}
+
+.pb-chip svg { width: 24px; height: 24px; }
+
+.ig-mockup-root .pb-cta.cta {
+  font-size: 26px;
+  padding: 18px 30px;
+  white-space: nowrap;
+}
+
+.pb-tag {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1a1204;
+  background: linear-gradient(135deg, #ffdb6e, #ffbc5e);
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pb-reply {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 28px;
+  font-weight: 700;
+  padding: 16px 28px 16px 22px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 219, 110, 0.35);
+  background: rgba(255, 219, 110, 0.08);
+  white-space: nowrap;
+  color: #f4f7fb;
+}
+
+.pb-reply em { font-style: normal; color: #ffdb6e; }
+.pb-reply svg { width: 28px; height: 28px; color: #ffdb6e; }
+
+.ig-mockup-root .pb-comp.stores { display: inline-flex; }
+.ig-mockup-root .pb-comp.brand { display: inline-flex; }
+/* The site stylesheet (admin page) turns these spans into blocks and loosens line height;
+   pin them so the admin export matches the posts. */
+.ig-mockup-root .pb-comp .wordmark span { display: inline; }
+.ig-mockup-root .pb-comp .brand-sub { font-size: 14px; line-height: 1.2; white-space: nowrap; }
+
+.pb-count {
+  font-size: 22px;
+  font-weight: 600;
+  color: #8b93a7;
+  letter-spacing: 0.06em;
+  padding: 8px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* ---------- Media + shapes ---------- */
+
+.pb-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pb-img-empty {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 3px dashed rgba(255, 219, 110, 0.45);
+  color: #aeb5c5;
+  font-size: 28px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pb-shape { width: 100%; height: 100%; }
+
+.pb-icon {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.pb-icon svg { width: 100%; height: 100%; }
+
+.pb-icon--tile {
+  border-radius: 28%;
+  background: rgba(255, 219, 110, 0.12);
+  border: 1px solid rgba(255, 219, 110, 0.28);
+}
+
+.pb-icon--solid {
+  border-radius: 28%;
+  background: linear-gradient(135deg, #ffdb6e, #ffbc5e);
+}
+
+.pb-icon--tile svg,
+.pb-icon--solid svg { width: 52%; height: 52%; }

@@ -17968,7 +17968,7 @@ window.addEventListener('load', function() {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
     };
-    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1 };
+    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
@@ -18515,12 +18515,13 @@ window.addEventListener('load', function() {
 
   // Mobile admin — Content section hub + second docked subtab bar (Portfolio · Blog · Reviews · IG)
   (function initAdminMobileContentSubtabBar() {
-    var CONTENT_SUB_TAB_IDS = ['portfolio', 'blog', 'testimonials', 'instagram'];
+    var CONTENT_SUB_TAB_IDS = ['portfolio', 'blog', 'testimonials', 'instagram', 'post-builder'];
     var CONTENT_SUB_META = {
       portfolio: { label: 'Portfolio', icon: 'albums-outline' },
       blog: { label: 'Blog', icon: 'newspaper-outline' },
       testimonials: { label: 'Reviews', icon: 'chatbox-ellipses-outline' },
-      instagram: { label: 'IG posts', icon: 'logo-instagram' }
+      instagram: { label: 'IG posts', icon: 'logo-instagram' },
+      'post-builder': { label: 'Builder', icon: 'color-palette-outline' }
     };
     var LAST_CONTENT_KEY = 'adminLastContentTab';
     var subtabRoot = null;
@@ -18775,9 +18776,9 @@ window.addEventListener('load', function() {
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
-      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1
     };
-    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1 };
+    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
     var AGENCY_TABS = { 'client-projects': 1, planner: 1, referrals: 1 };
     var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
