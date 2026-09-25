@@ -11,8 +11,21 @@
   </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ruben Jimenez — Links</title>
-  <meta name="description" content="Fullstack developer specializing in React Native, JavaScript, Firebase & Node.js. Available for hire." />
+  <title>CodeWithRuben — Websites &amp; apps for any business</title>
+  <meta name="description" content="Fresno web &amp; mobile dev studio. Branded websites and iOS/Android apps for any business — packages from $499, maintenance from $44/mo." />
+  <link rel="canonical" href="https://rubenjimenez.dev/linktree" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rubenjimenez.dev/linktree" />
+  <meta property="og:title" content="CodeWithRuben — Websites &amp; apps for any business" />
+  <meta property="og:description" content="What $499, $1,500 and $3,500 actually get you. Fresno web &amp; mobile dev studio." />
+  <meta property="og:image" content="https://rubenjimenez.dev/assets/images/og/linktree-og.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="CodeWithRuben — Websites &amp; apps for any business" />
+  <meta name="twitter:description" content="What $499, $1,500 and $3,500 actually get you. Fresno web &amp; mobile dev studio." />
+  <meta name="twitter:image" content="https://rubenjimenez.dev/assets/images/og/linktree-og.jpg" />
   <!-- <meta name="theme-color" content="#ceb15a" /> -->
   <link rel="shortcut icon" href="/assets/images/logo/logo.jpg" type="image/x-icon" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -389,6 +402,58 @@
       .cta-row { gap: 8px; }
       .btn { padding: 9px 16px; font-size: 0.8rem; }
     }
+
+    /* ── Language toggle ── */
+    .lang-row { display: flex; justify-content: flex-end; padding: 14px 28px 0; }
+    .lang-toggle {
+      display: inline-flex; gap: 2px; padding: 3px;
+      border: 1px solid var(--border-1); border-radius: 999px; background: hsla(0,0%,100%,0.03);
+    }
+    .lang-toggle button {
+      padding: 4px 12px; border: 0; border-radius: 999px; background: transparent;
+      font-family: var(--ff); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
+      color: var(--light-gray-70); cursor: pointer; transition: var(--ease);
+    }
+    .lang-toggle button.is-on { background: var(--gold-dim); color: var(--gold); }
+
+    /* ── Package cards (mirror the Instagram carousel) ── */
+    .price-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .price-card {
+      position: relative; display: flex; flex-direction: column; gap: 2px;
+      padding: 15px 10px 12px; text-align: center; text-decoration: none;
+      border: 1px solid var(--border-1); border-radius: var(--radius-12);
+      background: hsla(0,0%,100%,0.03); transition: var(--ease);
+    }
+    .price-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .price-card.is-popular { border-color: var(--gold-glow); background: var(--gold-dim); }
+    .price-amount {
+      font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em;
+      background: var(--gradient-gold); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .price-name { font-size: 0.72rem; font-weight: 600; color: var(--white-1); line-height: 1.25; }
+    .price-note { font-size: 0.63rem; color: var(--light-gray-70); line-height: 1.3; }
+    .price-tag {
+      position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+      padding: 2px 8px; border-radius: 999px; background: var(--gradient-gold);
+      font-size: 0.55rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #1a1204;
+      white-space: nowrap;
+    }
+    .price-foot { margin-top: 12px; text-align: center; font-size: 0.72rem; color: var(--light-gray-70); }
+    .price-foot a { color: var(--gold); text-decoration: none; }
+    .price-foot a:hover { text-decoration: underline; }
+
+    /* ── Proof buttons + legal ── */
+    .link-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .legal-row { display: flex; justify-content: center; gap: 14px; margin-top: 10px; font-size: 0.68rem; }
+    .legal-row a { color: var(--light-gray-70); text-decoration: none; }
+    .legal-row a:hover { color: var(--gold); }
+
+    @media (max-width: 380px) {
+      .price-row { grid-template-columns: 1fr; }
+      .price-card { flex-direction: row; align-items: baseline; gap: 8px; text-align: left; }
+      .price-tag { position: static; transform: none; margin-left: auto; }
+      .link-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -396,85 +461,130 @@
 <div class="page">
   <div class="card">
 
+    <div class="lang-row">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="es">ES</button>
+      </div>
+    </div>
+
     <!-- Profile -->
     <div class="profile">
       <div class="avatar-wrap">
         <div class="avatar">
-          <!-- To use your real photo, replace the "RJ" text with: -->
-          <!-- <img src="/assets/images/avatar/my-avatar.png" alt="Ruben Jimenez" /> -->
-          <img src="/assets/images/avatar/my-avatar.png" alt="Ruben Jimenez" />
+          <img src="/assets/images/avatar/my-avatar.png" alt="Ruben Jimenez, CodeWithRuben" />
         </div>
-        <div class="status-dot" title="Open to work"></div>
+        <div class="status-dot" data-i18n-title="status.taking" title="Taking new projects"></div>
       </div>
-      <h1 class="profile-name">Ruben Jimenez</h1>
-      <p class="profile-title">Fullstack Developer</p>
-      <p class="profile-bio">
-        Building fast, modern web &amp; mobile apps with React Native, JavaScript, Firebase &amp; Node.js.
-        Based in Fresno, CA — available for freelance &amp; full-time opportunities.
+      <h1 class="profile-name">CodeWith<span style="color:var(--gold)">Ruben</span></h1>
+      <p class="profile-title" data-i18n="profile.title">Web &amp; Mobile Dev Studio · Fresno, CA</p>
+      <p class="profile-bio" data-i18n="profile.bio">Websites and iOS/Android apps for any business, team or creator — built around how you actually work.</p>
+    </div>
+
+    <!-- Primary CTA -->
+    <div class="cta-row">
+      <a href="https://rubenjimenez.dev/hire-me" class="btn btn-gold">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <span data-i18n="cta.start">Start a project</span>
+      </a>
+    </div>
+
+    <!-- Packages -->
+    <div class="section">
+      <p class="section-label" data-i18n="section.packages">What it costs</p>
+      <div class="price-row">
+        <a href="https://rubenjimenez.dev/services-pricing" class="price-card">
+          <span class="price-amount">$499</span>
+          <span class="price-name" data-i18n="price.499.name">Website</span>
+          <span class="price-note" data-i18n="price.499.note">1 page + owner admin</span>
+        </a>
+        <a href="https://rubenjimenez.dev/services-pricing" class="price-card">
+          <span class="price-amount">$1,500</span>
+          <span class="price-name" data-i18n="price.1500.name">Website + app</span>
+          <span class="price-note" data-i18n="price.1500.note">iOS + Android app</span>
+        </a>
+        <a href="https://rubenjimenez.dev/services-pricing" class="price-card is-popular">
+          <span class="price-tag" data-i18n="price.popular">Most popular</span>
+          <span class="price-amount">$3,500</span>
+          <span class="price-name" data-i18n="price.3500.name">Full platform</span>
+          <span class="price-note" data-i18n="price.3500.note">Booking, payments + crew</span>
+        </a>
+      </div>
+      <p class="price-foot">
+        <span data-i18n="price.foot">Maintenance from $44/mo · 1st month included</span> ·
+        <a href="https://rubenjimenez.dev/services-pricing" data-i18n="price.all">See all packages</a>
       </p>
     </div>
 
-    <!-- CTAs -->
-    <div class="cta-row">
-      <a href="https://rubenjimenez.dev/hire-me" class="btn btn-gold">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-        Hire Me
-      </a>
-      <a href="https://rubenjimenez.dev" class="btn btn-outline" target="_blank" rel="noopener">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-        Portfolio
-      </a>
-      <!-- <a href="https://rubenjimenez.dev/assets/resume.pdf" class="btn btn-outline" target="_blank" rel="noopener">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        Résumé
-      </a> -->
-    </div>
-
-
+    <!-- Recent work -->
     <div class="section">
-      <p class="section-label">Featured Projects</p>
+      <p class="section-label" data-i18n="section.work">Recent work</p>
       <div class="project-list">
-        <a href="https://tradeservice.expo.app" class="project-card" target="_blank" rel="noopener">
-          <div class="project-icon">🚀</div>
+        <a href="https://procleaning.expo.app" class="project-card" target="_blank" rel="noopener">
+          <div class="project-icon">🧼</div>
           <div class="project-body">
             <div class="project-name">
               Pro Cleaning
-              <span class="badge badge-live">Live</span>
+              <span class="badge badge-live" data-i18n="badge.live">Live</span>
             </div>
-            <p class="project-desc">Premium exterior maintenance app experience with strong lead capture and polished mobile-first UX.</p>
-            <div class="tag-list">
-              <span class="tag">React Native</span>
-              <span class="tag">Expo</span>
-              <span class="tag">Firebase</span>
-            </div>
+            <p class="project-desc" data-i18n="work.procleaning">Job scheduling, customer management and payments for a cleaning company.</p>
+            <div class="tag-list"><span class="tag">React Native</span><span class="tag">Expo</span><span class="tag">Firebase</span></div>
           </div>
           <span class="arrow">→</span>
         </a>
-
+        <a href="https://rizo-pizza.expo.app" class="project-card" target="_blank" rel="noopener">
+          <div class="project-icon">🍕</div>
+          <div class="project-body">
+            <div class="project-name">
+              Rizo Pizzeria
+              <span class="badge badge-live" data-i18n="badge.live">Live</span>
+            </div>
+            <p class="project-desc" data-i18n="work.rizo">Online ordering with real-time order tracking and a kitchen dashboard.</p>
+            <div class="tag-list"><span class="tag">React Native</span><span class="tag">Expo</span><span class="tag">Firebase</span></div>
+          </div>
+          <span class="arrow">→</span>
+        </a>
+        <a href="https://beautysalon.expo.app" class="project-card" target="_blank" rel="noopener">
+          <div class="project-icon">💇</div>
+          <div class="project-body">
+            <div class="project-name">
+              Rosa's Beauty Salon
+              <span class="badge badge-live" data-i18n="badge.live">Live</span>
+            </div>
+            <p class="project-desc" data-i18n="work.salon">Appointment booking, client management and service tracking.</p>
+            <div class="tag-list"><span class="tag">Web App</span><span class="tag">JavaScript</span></div>
+          </div>
+          <span class="arrow">→</span>
+        </a>
         <a href="https://barbershoptemplate.expo.app" class="project-card" target="_blank" rel="noopener">
           <div class="project-icon">💈</div>
           <div class="project-body">
             <div class="project-name">
-              Barber Shop Template
-              <span class="badge badge-live">Live</span>
+              Barber Shop
+              <span class="badge badge-wip" data-i18n="badge.template">Template</span>
             </div>
-            <p class="project-desc">Barber shop management template with booking, messaging, and owner dashboard workflows built for fast launch.</p>
-            <div class="tag-list">
-              <span class="tag">React Native</span>
-              <span class="tag">Expo</span>
-              <span class="tag">Firebase</span>
-            </div>
+            <p class="project-desc" data-i18n="work.barber">Booking, messaging and an owner dashboard — ready to rebrand.</p>
+            <div class="tag-list"><span class="tag">Expo Router</span><span class="tag">NativeWind</span><span class="tag">Firebase</span></div>
           </div>
           <span class="arrow">→</span>
         </a>
       </div>
+      <div class="link-row">
+        <a href="https://rubenjimenez.dev/portfolio" class="btn btn-outline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span data-i18n="cta.work">See all work</span>
+        </a>
+        <a href="https://rubenjimenez.dev/testimonials" class="btn btn-outline">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <span data-i18n="cta.reviews">Client reviews</span>
+        </a>
+      </div>
     </div>
-
 
     <!-- Technologies & Clients -->
     
     <div class="section">
-      <p class="section-label">Technologies &amp; Clients</p>
+      <p class="section-label" data-i18n="section.tech">Technologies &amp; Clients</p>
 
       <div class="hire-tech-marquee-wrap">
         <div class="hire-tech-track">
@@ -520,54 +630,6 @@
       </div>
     </div>
 
-    <!-- Find Me Online -->
-    <div class="section">
-      <p class="section-label">Find Me Online</p>
-      <div class="contact-grid">
-
-        <a href="https://github.com/Ruben-Jim" class="contact-link" target="_blank" rel="noopener">
-          <div class="c-icon" style="background:hsla(0,0%,100%,0.05)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#e6edf3"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02.004 2.04.14 3 .4 2.28-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.63-5.48 5.93.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.83.58A12.01 12.01 0 0 0 24 12C24 5.37 18.63 0 12 0z"/></svg>
-          </div>
-          <div>
-            <div class="c-name">GitHub</div>
-            <div class="c-sub">Ruben-Jim</div>
-          </div>
-        </a>
-
-        <a href="https://linkedin.com/in/rubenjimenez" class="contact-link" target="_blank" rel="noopener">
-          <div class="c-icon" style="background:hsla(211,100%,40%,0.12)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#0a66c2"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM6.9 20.45H3.56V9H6.9v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45C23.2 24 24 23.23 24 22.28V1.72C24 .77 23.2 0 22.22 0z"/></svg>
-          </div>
-          <div>
-            <div class="c-name">LinkedIn</div>
-            <div class="c-sub">Let's connect</div>
-          </div>
-        </a>
-
-        <a href="mailto:contact@rubenjimenez.dev" class="contact-link">
-          <div class="c-icon" style="background:hsla(45,54%,58%,0.10)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="hsl(45,54%,58%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          </div>
-          <div>
-            <div class="c-name">Email</div>
-            <div class="c-sub">Get in touch</div>
-          </div>
-        </a>
-
-        <a href="https://rubenjimenez.dev/assets/resume.pdf" class="contact-link" target="_blank" rel="noopener">
-          <div class="c-icon" style="background:hsla(45,54%,58%,0.10)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="hsl(45,54%,58%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          </div>
-          <div>
-            <div class="c-name">Résumé</div>
-            <div class="c-sub">Download PDF</div>
-          </div>
-        </a>
-
-      </div>
-    </div>
-
     <!-- Footer -->
     <div class="card-footer">
       <p class="footer-copy">© 2026 <a href="https://rubenjimenez.dev" target="_blank" rel="noopener">rubenjimenez.dev</a></p>
@@ -575,8 +637,11 @@
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Fresno, CA
       </p>
+      <p class="legal-row">
+        <a href="https://rubenjimenez.dev/privacy" data-i18n="legal.privacy">Privacy</a>
+        <a href="https://rubenjimenez.dev/terms" data-i18n="legal.terms">Terms</a>
+      </p>
     </div>
-
 
       <!--
         - ionicons link
@@ -586,5 +651,107 @@
   </div>
 </div>
 
+
+  <!--
+    - language toggle (shares localStorage['cwr-lang'] with the main site, so the
+      choice carries over both ways). Spanish copy mirrors assets/js/i18n.js.
+  -->
+  <script>
+    (function () {
+      var DICT = {
+        en: {
+          'meta.title': 'CodeWithRuben — Websites & apps for any business',
+          'meta.desc': 'Fresno web & mobile dev studio. Branded websites and iOS/Android apps for any business — packages from $499, maintenance from $44/mo.',
+          'profile.title': 'Web & Mobile Dev Studio · Fresno, CA',
+          'profile.bio': 'Websites and iOS/Android apps for any business, team or creator — built around how you actually work.',
+          'status.taking': 'Taking new projects',
+          'cta.start': 'Start a project',
+          'section.packages': 'What it costs',
+          'price.499.name': 'Website',
+          'price.499.note': '1 page + owner admin',
+          'price.1500.name': 'Website + app',
+          'price.1500.note': 'iOS + Android app',
+          'price.3500.name': 'Full platform',
+          'price.3500.note': 'Booking, payments + crew',
+          'price.popular': 'Most popular',
+          'price.foot': 'Maintenance from $44/mo · 1st month included',
+          'price.all': 'See all packages',
+          'section.work': 'Recent work',
+          'badge.live': 'Live',
+          'badge.template': 'Template',
+          'work.procleaning': 'Job scheduling, customer management and payments for a cleaning company.',
+          'work.rizo': 'Online ordering with real-time order tracking and a kitchen dashboard.',
+          'work.salon': 'Appointment booking, client management and service tracking.',
+          'work.barber': 'Booking, messaging and an owner dashboard — ready to rebrand.',
+          'cta.work': 'See all work',
+          'cta.reviews': 'Client reviews',
+          'section.tech': 'Technologies & Clients',
+          'legal.privacy': 'Privacy',
+          'legal.terms': 'Terms'
+        },
+        es: {
+          'meta.title': 'CodeWithRuben — Sitios web y apps para cualquier negocio',
+          'meta.desc': 'Estudio de desarrollo web y móvil en Fresno. Sitios web y apps iOS/Android con tu marca — paquetes desde $499, mantenimiento desde $44/mes.',
+          'profile.title': 'Estudio de desarrollo web y móvil · Fresno, CA',
+          'profile.bio': 'Sitios web y apps iOS/Android para cualquier negocio, equipo o creador — hechos para cómo trabajas de verdad.',
+          'status.taking': 'Aceptando proyectos',
+          'cta.start': 'Iniciar un proyecto',
+          'section.packages': 'Cuánto cuesta',
+          'price.499.name': 'Sitio web',
+          'price.499.note': '1 página + panel de dueño',
+          'price.1500.name': 'Sitio + app',
+          'price.1500.note': 'App iOS + Android',
+          'price.3500.name': 'Plataforma completa',
+          'price.3500.note': 'Reservas, pagos y equipo',
+          'price.popular': 'Más popular',
+          'price.foot': 'Mantenimiento desde $44/mes · 1er mes incluido',
+          'price.all': 'Ver todos los paquetes',
+          'section.work': 'Trabajo reciente',
+          'badge.live': 'En vivo',
+          'badge.template': 'Plantilla',
+          'work.procleaning': 'Agenda de trabajos, clientes y pagos para una empresa de limpieza.',
+          'work.rizo': 'Pedidos en línea con seguimiento en tiempo real y panel de cocina.',
+          'work.salon': 'Reservas de citas, clientes y seguimiento de servicios.',
+          'work.barber': 'Reservas, mensajes y panel de dueño — listo para tu marca.',
+          'cta.work': 'Ver todo el trabajo',
+          'cta.reviews': 'Reseñas de clientes',
+          'section.tech': 'Tecnologías y clientes',
+          'legal.privacy': 'Privacidad',
+          'legal.terms': 'Términos'
+        }
+      };
+
+      function apply(lang) {
+        var d = DICT[lang] || DICT.en;
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-i18n]').forEach(function (n) {
+          var v = d[n.getAttribute('data-i18n')];
+          if (v != null) n.textContent = v;
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(function (n) {
+          var v = d[n.getAttribute('data-i18n-title')];
+          if (v != null) n.title = v;
+        });
+        document.title = d['meta.title'];
+        var desc = document.querySelector('meta[name="description"]');
+        if (desc) desc.setAttribute('content', d['meta.desc']);
+        document.querySelectorAll('.lang-toggle button').forEach(function (b) {
+          b.classList.toggle('is-on', b.getAttribute('data-lang') === lang);
+        });
+        try { localStorage.setItem('cwr-lang', lang); } catch (e) {}
+      }
+
+      var param = new URLSearchParams(location.search).get('lang');
+      var saved = null;
+      try { saved = localStorage.getItem('cwr-lang'); } catch (e) {}
+      apply(param === 'es' || param === 'en' ? param : (saved === 'es' ? 'es' : 'en'));
+
+      var toggle = document.querySelector('.lang-toggle');
+      if (toggle) toggle.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-lang]');
+        if (btn) apply(btn.getAttribute('data-lang'));
+      });
+    })();
+  </script>
 </body>
 </html>

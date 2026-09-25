@@ -191,6 +191,146 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "firecon",
+    "files": [
+      {
+        "path": "/assets/images/projects/firecon/app-channel-desktop.webp",
+        "name": "app-channel-desktop.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/app-channel-mobile.webp",
+        "name": "app-channel-mobile.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/app-home-desktop.webp",
+        "name": "app-home-desktop.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/app-home-mobile.webp",
+        "name": "app-home-mobile.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/app-live-desktop.webp",
+        "name": "app-live-desktop.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/app-live-mobile.webp",
+        "name": "app-live-mobile.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/app-shorts-desktop.webp",
+        "name": "app-shorts-desktop.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/app-shorts-mobile.webp",
+        "name": "app-shorts-mobile.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-control.webp",
+        "name": "dock-control.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/firecon.webp",
+        "name": "firecon.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-alerts-follow.webp",
+        "name": "overlay-alerts-follow.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-alerts-ignite.webp",
+        "name": "overlay-alerts-ignite.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-alerts-sub.webp",
+        "name": "overlay-alerts-sub.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-classic-fight.webp",
+        "name": "overlay-classic-fight.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-classic.webp",
+        "name": "overlay-classic.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-face.webp",
+        "name": "overlay-face.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-fight-card.webp",
+        "name": "overlay-fight-card.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-fight-clock.webp",
+        "name": "overlay-fight-clock.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-stage-dev.webp",
+        "name": "overlay-stage-dev.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/overlay-stage-game.webp",
+        "name": "overlay-stage-game.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/promo-social-square.webp",
+        "name": "promo-social-square.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/promo-twitch-offline.webp",
+        "name": "promo-twitch-offline.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/promo-youtube-banner.webp",
+        "name": "promo-youtube-banner.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/scene-brb.webp",
+        "name": "scene-brb.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/scene-ending.webp",
+        "name": "scene-ending.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/scene-offline.webp",
+        "name": "scene-offline.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/scene-starting-soon.webp",
+        "name": "scene-starting-soon.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
     "group": "gadgetgarage",
     "files": [
       {
@@ -237,6 +377,12 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "path": "/assets/images/projects/grippysocks/grippysocks-4.webp",
         "name": "grippysocks-4.webp",
         "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/grippysocks/grippysocks-demo.mp4",
+        "name": "grippysocks-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/grippysocks/grippysocks-demo-poster.webp"
       },
       {
         "path": "/assets/images/projects/grippysocks/grippysocks-demo.webm",
@@ -396,6 +542,12 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "path": "/assets/images/projects/lawncare/lawncare-5.webp",
         "name": "lawncare-5.webp",
         "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/lawncare/lawncare-demo.mp4",
+        "name": "lawncare-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/lawncare/lawncare-demo-poster.webp"
       },
       {
         "path": "/assets/images/projects/lawncare/lawncare-demo.webm",
@@ -781,6 +933,12 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "path": "/assets/images/projects/tradeservice/tradeservice-5.webp",
         "name": "tradeservice-5.webp",
         "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/tradeservice/tradeservice-demo.mp4",
+        "name": "tradeservice-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/tradeservice/tradeservice-demo-poster.webp"
       },
       {
         "path": "/assets/images/projects/tradeservice/tradeservice-demo.webm",
