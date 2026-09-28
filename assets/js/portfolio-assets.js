@@ -234,8 +234,60 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "kind": "image"
       },
       {
-        "path": "/assets/images/projects/firecon/dock-control.webp",
-        "name": "dock-control.webp",
+        "path": "/assets/images/projects/firecon/dock-demo.mp4",
+        "name": "dock-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/firecon/dock-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-demo.webm",
+        "name": "dock-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/firecon/dock-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-fc.webp",
+        "name": "dock-fc.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-live.webp",
+        "name": "dock-live.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-poll.webp",
+        "name": "dock-poll.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-privacy.webp",
+        "name": "dock-privacy.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-setup.webp",
+        "name": "dock-setup.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-show.webp",
+        "name": "dock-show.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-tabs.webp",
+        "name": "dock-tabs.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-tests.webp",
+        "name": "dock-tests.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/firecon/dock-ufc.webp",
+        "name": "dock-ufc.webp",
         "kind": "image"
       },
       {
