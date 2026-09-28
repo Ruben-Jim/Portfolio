@@ -8455,8 +8455,9 @@ window.switchToPage = switchToPage;
 /** True when URL is for standalone testimonial.html but the SPA shell (index) was served instead. */
 function isTestimonialUrlServedAsSpaShell() {
   try {
-    var p = (window.location.pathname || '').toLowerCase();
-    if (p.indexOf('testimonial') === -1) return false;
+    var p = (window.location.pathname || '').toLowerCase().replace(/\/+$/, '');
+    // Exact match only: "/testimonials" (the SPA list page) must not count.
+    if (p !== '/testimonial' && p !== '/testimonial.html') return false;
     if (document.getElementById('testimonial-form')) return false;
     return !!document.querySelector('article.about[data-page="about"]');
   } catch (e) {

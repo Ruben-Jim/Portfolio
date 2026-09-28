@@ -256,7 +256,31 @@
       border: 1px solid var(--border-1);
       display: flex; align-items: center; justify-content: center;
       font-size: 1.25rem; flex-shrink: 0;
+      overflow: hidden;
     }
+    .project-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* ── Testimonials (filled from Firestore; section stays hidden until loaded) ── */
+    .review-list { display: flex; flex-direction: column; gap: 10px; }
+    .review-card {
+      padding: 14px 16px;
+      background: var(--eerie-black-1);
+      border: 1px solid var(--border-1);
+      border-radius: var(--radius-8);
+    }
+    .review-stars { color: var(--gold); font-size: 0.8rem; letter-spacing: 2px; margin-bottom: 6px; }
+    .review-text {
+      font-size: 0.82rem; line-height: 1.6;
+      color: var(--light-gray);
+      display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .review-author { display: flex; align-items: center; gap: 9px; margin-top: 10px; }
+    .review-author img {
+      width: 28px; height: 28px; border-radius: 50%;
+      object-fit: cover; background: var(--onyx); flex-shrink: 0;
+    }
+    .review-name { font-size: 0.78rem; font-weight: 600; color: var(--white-2); }
+    .review-meta { font-size: 0.72rem; color: var(--light-gray-70); }
 
     .project-body { flex: 1; min-width: 0; }
 
@@ -516,12 +540,18 @@
       </p>
     </div>
 
+    <!-- Testimonials: latest 2 from Firestore (see script at end of body) -->
+    <div class="section" id="reviews" hidden>
+      <p class="section-label" data-i18n="section.reviews">What clients say</p>
+      <div class="review-list" data-review-list></div>
+    </div>
+
     <!-- Recent work -->
     <div class="section">
       <p class="section-label" data-i18n="section.work">Recent work</p>
       <div class="project-list">
         <a href="https://procleaning.expo.app" class="project-card" target="_blank" rel="noopener">
-          <div class="project-icon">🧼</div>
+          <div class="project-icon"><img src="/assets/images/projects/procleaning/procleaning-logo.webp" alt="ProCleaning Seattle logo" width="44" height="44" loading="lazy"></div>
           <div class="project-body">
             <div class="project-name">
               Pro Cleaning
@@ -533,7 +563,7 @@
           <span class="arrow">→</span>
         </a>
         <a href="https://rizo-pizza.expo.app" class="project-card" target="_blank" rel="noopener">
-          <div class="project-icon">🍕</div>
+          <div class="project-icon"><img src="/assets/images/projects/rizopizzeria/rizopizzeria-logo.webp" alt="Rizo's Pizzeria logo" width="44" height="44" loading="lazy"></div>
           <div class="project-body">
             <div class="project-name">
               Rizo Pizzeria
@@ -548,8 +578,8 @@
           <div class="project-icon">💇</div>
           <div class="project-body">
             <div class="project-name">
-              Rosa's Beauty Salon
-              <span class="badge badge-live" data-i18n="badge.live">Live</span>
+              Beauty Salon
+              <span class="badge badge-wip" data-i18n="badge.template">Template</span>
             </div>
             <p class="project-desc" data-i18n="work.salon">Appointment booking, client management and service tracking.</p>
             <div class="tag-list"><span class="tag">Web App</span><span class="tag">JavaScript</span></div>
@@ -676,6 +706,7 @@
           'price.popular': 'Most popular',
           'price.foot': 'Maintenance from $44/mo · 1st month included',
           'price.all': 'See all packages',
+          'section.reviews': 'What clients say',
           'section.work': 'Recent work',
           'badge.live': 'Live',
           'badge.template': 'Template',
@@ -706,6 +737,7 @@
           'price.popular': 'Más popular',
           'price.foot': 'Mantenimiento desde $44/mes · 1er mes incluido',
           'price.all': 'Ver todos los paquetes',
+          'section.reviews': 'Lo que dicen los clientes',
           'section.work': 'Trabajo reciente',
           'badge.live': 'En vivo',
           'badge.template': 'Plantilla',
@@ -751,6 +783,78 @@
         var btn = e.target.closest('[data-lang]');
         if (btn) apply(btn.getAttribute('data-lang'));
       });
+    })();
+  </script>
+
+  <!--
+    - testimonials: latest 2 from the same Firestore collection as /testimonials.
+      Card quote follows script.js: a short public quote (≤ 60 chars) defers to the
+      private notes when they exist. Any failure just leaves the section hidden.
+  -->
+  <script src="/assets/js/config.js?v=google-auth-20260527"></script>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    function avatarSrc(avatar) {
+      var s = typeof avatar === 'string' ? avatar.trim() : '';
+      if (!s) return '/assets/images/logo/logo.svg';
+      if (/^(https?:\/\/|\/)/.test(s)) return s;
+      return '/assets/images/avatar/' + s;
+    }
+
+    function el(tag, className, text) {
+      var n = document.createElement(tag);
+      if (className) n.className = className;
+      if (text) n.textContent = text;
+      return n;
+    }
+
+    function renderCard(d) {
+      var text = d.text == null ? '' : String(d.text).trim();
+      var notes = d.private && d.private.privateNotes ? String(d.private.privateNotes).trim() : '';
+      var quote = text.length <= 60 && notes ? notes : text;
+      if (!quote) return null;
+
+      var card = el('div', 'review-card');
+      var rating = Math.max(0, Math.min(5, Math.round(Number(d.rating) || 0)));
+      if (rating) {
+        var stars = el('div', 'review-stars', '★'.repeat(rating));
+        stars.setAttribute('aria-label', rating + ' out of 5 stars');
+        card.appendChild(stars);
+      }
+      card.appendChild(el('p', 'review-text', '“' + quote + '”'));
+
+      var author = el('div', 'review-author');
+      var img = el('img');
+      img.src = avatarSrc(d.avatar);
+      img.alt = '';
+      img.loading = 'lazy';
+      author.appendChild(img);
+      var who = el('div');
+      who.appendChild(el('div', 'review-name', d.name || 'Client'));
+      var meta = [d.title, d.company].filter(Boolean).join(' · ');
+      if (meta) who.appendChild(el('div', 'review-meta', meta));
+      author.appendChild(who);
+      card.appendChild(author);
+      return card;
+    }
+
+    (async function () {
+      var section = document.getElementById('reviews');
+      var list = section && section.querySelector('[data-review-list]');
+      if (!list || !window.FIREBASE_CONFIG) return;
+      try {
+        var db = getFirestore(initializeApp(window.FIREBASE_CONFIG));
+        var snap = await getDocs(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'), limit(2)));
+        snap.forEach(function (docSnap) {
+          var card = renderCard(docSnap.data());
+          if (card) list.appendChild(card);
+        });
+        if (list.children.length) section.hidden = false;
+      } catch (e) {
+        console.warn('Linktree testimonials failed to load', e);
+      }
     })();
   </script>
 </body>
