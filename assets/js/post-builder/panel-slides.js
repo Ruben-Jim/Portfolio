@@ -1,16 +1,18 @@
 /**
  * Post builder — "Slides" pane: live mini previews, switch, add, duplicate, reorder, delete.
  */
-import { FORMATS, MAX_SLIDES, clone } from './model.js?v=pb1';
-import { renderSlide, layoutSlide } from './render.js?v=pb1';
-import { uiIcon } from './icons.js?v=pb1';
+import { FORMATS, MAX_SLIDES, clone } from './model.js?v=pb2';
+import { renderSlide, layoutSlide } from './render.js?v=pb2';
+import { uiIcon } from './icons.js?v=pb2';
 
 var THUMB_W = 120;
+var THUMB_W_WIDE = 190;
 
 export function renderSlidesPane(container, ctx) {
   var d = ctx.design;
   var f = FORMATS[d.format];
-  var scale = THUMB_W / f.w;
+  var thumbW = f.w > f.h ? THUMB_W_WIDE : THUMB_W;
+  var scale = thumbW / f.w;
   var thumbH = Math.round(f.h * scale);
   var n = d.slides.length;
 
@@ -20,7 +22,7 @@ export function renderSlidesPane(container, ctx) {
     '<ol class="pb-slide-list">' + d.slides.map(function (_, i) {
       return '<li class="pb-slide-item' + (i === ctx.slideIndex ? ' is-on' : '') + '" data-index="' + i + '">' +
         '<button type="button" class="pb-slide-thumb" data-slide-act="go" aria-label="Go to slide ' + (i + 1) + '">' +
-          '<span class="pb-thumb-frame" style="width:' + THUMB_W + 'px;height:' + thumbH + 'px"></span>' +
+          '<span class="pb-thumb-frame" style="width:' + thumbW + 'px;height:' + thumbH + 'px"></span>' +
           '<span class="pb-slide-num">' + (i + 1) + '</span>' +
         '</button>' +
         '<div class="pb-slide-tools">' +

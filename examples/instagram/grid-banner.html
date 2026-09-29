@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CWR grid banner 3×1</title>
+<!--
+  Pinned 3×1 profile banner: 3240×1440, cut into three 1080×1440 posts.
+  Export: ./examples/instagram/export-grid-banner.sh
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #07090e;
+    --gold: #ffdb6e;
+    --gold-2: #ffbc5e;
+    --white: #f4f7fb;
+    --soft: #aeb5c5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--navy); }
+  body { width: 3240px; height: 1440px; overflow: hidden; font-family: Poppins, system-ui, sans-serif; color: var(--white); }
+
+  .banner { position: relative; width: 3240px; height: 1440px; overflow: hidden; background: var(--navy); }
+
+  /* Tilted wall of real client builds. */
+  .wall {
+    position: absolute;
+    left: -520px;
+    top: -700px;
+    width: 4400px;
+    display: grid;
+    grid-template-columns: repeat(6, 680px);
+    gap: 44px;
+    transform: rotate(-9deg);
+  }
+  .wall img {
+    display: block;
+    width: 680px;
+    height: 425px;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 22px;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+  }
+  .shade {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 72% 58% at 50% 50%, rgba(7, 9, 14, 0.88), rgba(7, 9, 14, 0.4) 80%),
+      linear-gradient(180deg, rgba(7, 9, 14, 0.3), rgba(7, 9, 14, 0.62) 55%, rgba(7, 9, 14, 0.8));
+  }
+  .glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 45% 40% at 50% 0%, rgba(255, 219, 110, 0.18), transparent 70%);
+  }
+
+  .content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 70px;
+    padding: 0 120px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 70px; }
+  .logo {
+    width: 470px;
+    height: 470px;
+    border-radius: 50%;
+    display: block;
+    box-shadow: 0 0 0 10px rgba(255, 219, 110, 0.18), 0 30px 90px rgba(0, 0, 0, 0.6);
+  }
+  .wordmark {
+    font-weight: 800;
+    font-size: 300px;
+    letter-spacing: -0.045em;
+    line-height: 0.9;
+    white-space: nowrap;
+  }
+  .wordmark span {
+    background: linear-gradient(135deg, var(--gold), var(--gold-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .kicker {
+    margin-top: 34px;
+    font-size: 64px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .sell {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    width: 100%;
+    justify-content: center;
+  }
+  .offer {
+    font-size: 92px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+  }
+  .offer i { font-style: normal; color: var(--gold); font-weight: 700; margin: 0 22px; }
+  .price {
+    padding: 22px 64px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-2));
+    color: #1a1204;
+    font-size: 96px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+    box-shadow: 0 24px 70px rgba(255, 188, 94, 0.28);
+  }
+</style>
+</head>
+<body>
+  <div class="banner">
+    <div class="wall" id="wall"></div>
+    <div class="shade"></div>
+    <div class="glow"></div>
+    <div class="content">
+      <div class="brand">
+        <img class="logo" src="../../assets/images/logo/logo.jpg" alt="">
+        <div>
+          <div class="wordmark" id="wordmark">CodeWith<span>Ruben</span></div>
+          <div class="kicker">Web &amp; Mobile Dev Studio · Fresno</div>
+        </div>
+      </div>
+      <div class="sell">
+        <div class="offer">Websites <i>·</i> Staff apps <i>·</i> Admin dashboards</div>
+        <div class="price">Starting at $499</div>
+      </div>
+    </div>
+  </div>
+<script>
+  var ids = ['procleaning', 'rizo', 'barbershop', 'zoomrealty', 'rosasalon', 'tradeservice', 'homeverse', 'hoa', 'estate', 'grippysocks'];
+  var wall = document.getElementById('wall');
+  var html = '';
+  for (var i = 0; i < 30; i++) {
+    html += '<img src="captures/' + ids[(i * 7) % ids.length] + '/laptop.png" alt="">';
+  }
+  wall.innerHTML = html;
+</script>
+</body>
+</html>

@@ -307,6 +307,25 @@ html.pb-modal-open body { overflow: hidden; }
 .pb-safe--top { top: 0; border-bottom: 1px dashed rgba(255, 138, 122, 0.55); }
 .pb-safe--bottom { bottom: 0; align-items: flex-start; border-top: 1px dashed rgba(255, 138, 122, 0.55); }
 
+/* Grid banner: where the canvas is cut into separate posts. */
+.pb-cut {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed rgba(255, 138, 122, 0.75);
+}
+
+.pb-tile-label {
+  position: absolute;
+  top: 6px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  color: rgba(255, 170, 160, 0.9);
+}
+
 .pb-safe span {
   margin: 4px;
   font-size: 11px;
@@ -792,6 +811,7 @@ html.pb-modal-open body { overflow: hidden; }
 
 .pb-format-box {
   height: 110px;
+  max-width: 100%;
   border-radius: 8px;
   border: 2px solid rgba(255, 219, 110, 0.6);
   background: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 219, 110, 0.18), transparent 60%), #0b0d12;

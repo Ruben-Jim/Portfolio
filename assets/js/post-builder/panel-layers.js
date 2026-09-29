@@ -2,9 +2,9 @@
  * Post builder — "Layers" pane: stacking order (top first), select, hide, lock, reorder.
  * Up/down buttons instead of drag so it works the same on a phone.
  */
-import { ELEMENT_TYPES } from './model.js?v=pb1';
-import { esc } from './render.js?v=pb1';
-import { uiIcon } from './icons.js?v=pb1';
+import { ELEMENT_TYPES } from './model.js?v=pb2';
+import { esc } from './render.js?v=pb2';
+import { uiIcon } from './icons.js?v=pb2';
 
 function describe(el) {
   var p = el.props;

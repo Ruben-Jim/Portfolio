@@ -5,9 +5,9 @@
  * Typing keeps focus: input events mutate with { panels: false } so the pane isn't
  * rebuilt under the cursor; discrete clicks rebuild it to show the new state.
  */
-import { COLORS, WEIGHTS, BACKGROUNDS, TEXT_PRESETS, CAPTURES, ELEMENT_TYPES, captureSrc, sizingOf } from './model.js?v=pb1';
-import { esc } from './render.js?v=pb1';
-import { uiIcon, iconSvg, ICONS } from './icons.js?v=pb1';
+import { COLORS, WEIGHTS, BACKGROUNDS, TEXT_PRESETS, CAPTURES, ELEMENT_TYPES, captureSrc, sizingOf } from './model.js?v=pb2';
+import { esc } from './render.js?v=pb2';
+import { uiIcon, iconSvg, ICONS } from './icons.js?v=pb2';
 
 // ---------- small HTML helpers ----------
 

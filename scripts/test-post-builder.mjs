@@ -12,8 +12,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   FORMATS, ELEMENT_TYPES, MAX_SLIDES, createDesign, createElement, createSlide, duplicateDesign,
-  duplicateElement, normalizeDesign, validateDesign, summarize
+  duplicateElement, normalizeDesign, validateDesign, summarize, tileCount
 } from '../assets/js/post-builder/model.js';
+import { tileFileName } from '../assets/js/post-builder/export.js';
 import { createHistory } from '../assets/js/post-builder/history.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -115,6 +116,19 @@ test('summarize keeps just what the library needs', () => {
   const d = createDesign('story', 'Promo');
   assert.deepEqual(Object.keys(summarize(d)).sort(), ['format', 'id', 'name', 'slides', 'source', 'thumbUrl', 'updatedAt']);
   assert.equal(summarize(d).slides, 1);
+});
+
+test('grid banner splits into three 3:4 posts named in posting order', () => {
+  const f = FORMATS.grid3;
+  assert.equal(tileCount('grid3'), 3);
+  assert.equal(tileCount('feed34'), 1);
+  assert.equal(f.w / f.tiles, FORMATS.feed34.w);
+  assert.equal(f.h, FORMATS.feed34.h);
+  const d = createDesign('grid3', 'CWR Banner');
+  assert.equal(tileFileName(d, 0, 2, 0), 'cwr-banner-post-1-right.png');
+  assert.equal(tileFileName(d, 0, 0, 2), 'cwr-banner-post-3-left.png');
+  d.slides.push(createSlide());
+  assert.equal(tileFileName(d, 1, 1, 1), 'cwr-banner-row-2-post-2-middle.png');
 });
 
 console.log('history');

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CWR highlight cover</title>
+<!--
+  1080×1920 story-highlight cover. Instagram crops a circle from the middle,
+  so the icon sits dead center.
+  Usage: highlight-cover.html?id=services   (ids in covers-data.js)
+-->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; background: #07090e; }
+  body {
+    width: 1080px;
+    height: 1920px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    font-family: Poppins, system-ui, sans-serif;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255, 219, 110, 0.16), transparent 45%),
+      linear-gradient(180deg, #12151c, #07090e);
+  }
+  .badge {
+    width: 860px;
+    height: 860px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #ffdb6e, #ffbc5e);
+    color: #1a1204;
+    box-shadow: 0 0 0 18px rgba(255, 219, 110, 0.14), 0 40px 120px rgba(255, 188, 94, 0.25);
+  }
+  .badge svg { width: 400px; height: 400px; }
+  .badge b { font-size: 400px; font-weight: 800; letter-spacing: -0.05em; line-height: 1; }
+</style>
+</head>
+<body>
+  <div class="badge" id="badge"></div>
+<script src="covers-data.js"></script>
+<script>
+  var id = new URLSearchParams(location.search).get('id') || COVERS.highlights[0].id;
+  var h = COVERS.highlights.find(function (x) { return x.id === id; }) || COVERS.highlights[0];
+  document.getElementById('badge').innerHTML = h.text
+    ? '<b>' + h.text + '</b>'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + h.icon + '</svg>';
+</script>
+</body>
+</html>

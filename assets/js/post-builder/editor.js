@@ -8,15 +8,15 @@
  *
  * Panels (add, style, layers, slides) talk to the editor through `ctx` only.
  */
-import { FORMATS, MAX_SLIDES, createElement, createSlide, duplicateElement, duplicateSlide, sizingOf, clone, slugify } from './model.js?v=pb1';
-import { createHistory } from './history.js?v=pb1';
-import { renderSlide, layoutSlide, layoutElement, applyBox, renderElement, ensureFonts } from './render.js?v=pb1';
-import { uiIcon } from './icons.js?v=pb1';
-import { renderAddPane } from './panel-add.js?v=pb1';
-import { renderStylePane, syncStyleBox } from './panel-props.js?v=pb1';
-import { renderLayersPane } from './panel-layers.js?v=pb1';
-import { renderSlidesPane } from './panel-slides.js?v=pb1';
-import * as exporter from './export.js?v=pb1';
+import { FORMATS, TILE_NAMES, MAX_SLIDES, createElement, createSlide, duplicateElement, duplicateSlide, sizingOf, clone, slugify } from './model.js?v=pb2';
+import { createHistory } from './history.js?v=pb2';
+import { renderSlide, layoutSlide, layoutElement, applyBox, renderElement, ensureFonts } from './render.js?v=pb2';
+import { uiIcon } from './icons.js?v=pb2';
+import { renderAddPane } from './panel-add.js?v=pb2';
+import { renderStylePane, syncStyleBox } from './panel-props.js?v=pb2';
+import { renderLayersPane } from './panel-layers.js?v=pb2';
+import { renderSlidesPane } from './panel-slides.js?v=pb2';
+import * as exporter from './export.js?v=pb2';
 
 var moveablePromise = null;
 var PHONE_MQ = '(max-width: 900px)';
@@ -263,6 +263,10 @@ export async function openEditor(initial, opts) {
     scaleEl.style.transform = 'scale(' + z + ')';
     var v = [0, MARGIN, f.w / 2, f.w - MARGIN, f.w];
     var h = [0, MARGIN, f.h / 2, f.h - MARGIN, f.h];
+    if (f.tiles > 1) {
+      var tw = f.w / f.tiles;
+      for (var t = 0; t < f.tiles; t++) v.push(t * tw + MARGIN, t * tw + tw / 2, (t + 1) * tw - MARGIN, (t + 1) * tw);
+    }
     if (f.safe) h.push(f.safe.top, f.h - f.safe.bottom);
     mv.verticalGuidelines = v.map(function (x) { return x * z; });
     mv.horizontalGuidelines = h.map(function (y) { return y * z; });
@@ -273,6 +277,17 @@ export async function openEditor(initial, opts) {
 
   function drawGuides(z) {
     var f = fmt();
+    if (f.tiles > 1) {
+      var tw = f.w / f.tiles;
+      var html = '';
+      for (var t = 0; t < f.tiles; t++) {
+        if (t) html += '<div class="pb-cut" style="left:' + t * tw * z + 'px"></div>';
+        html += '<span class="pb-tile-label" style="left:' + t * tw * z + 'px;width:' + tw * z + 'px">' +
+          TILE_NAMES[t] + ' · post ' + (f.tiles - t) + '</span>';
+      }
+      guides.innerHTML = html;
+      return;
+    }
     if (!f.safe) { guides.innerHTML = ''; return; }
     guides.innerHTML =
       '<div class="pb-safe pb-safe--top" style="height:' + f.safe.top * z + 'px"><span>Story UI · keep clear</span></div>' +
@@ -728,7 +743,8 @@ export async function openEditor(initial, opts) {
       }
       if (kind === 'zip') await exporter.downloadZip(files, slugify(design.name) + '.zip');
       else await exporter.downloadAll(files);
-      setStatus('Exported ' + files.length + ' PNG' + (files.length > 1 ? 's' : ''));
+      setStatus('Exported ' + files.length + ' PNG' + (files.length > 1 ? 's' : '') +
+        (fmt().tiles > 1 ? ' — post them in file-number order' : ''));
     } catch (err) {
       console.error('[post-builder] export failed', err);
       setStatus('Export failed — ' + (err && err.message ? err.message : 'see console'));

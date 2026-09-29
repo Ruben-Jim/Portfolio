@@ -54,7 +54,7 @@ node scripts/build-post-starters.mjs     # writes starters.json (EN + ES)
 node scripts/test-post-builder.mjs       # model, history + starters checks
 ```
 
-- Cache-busting: modules import each other with `?v=pb1`. After editing any builder file, bump it (`sed -i '' 's/?v=pb1/?v=pb2/g' assets/js/post-builder/*.js`), bump the `?v=` on the post-builder `<link>`/`<script>` tags in `index.html`, then run `node scripts/sync-spa-shells.mjs`.
+- Cache-busting: modules import each other with `?v=pb2`. After editing any builder file, bump it (`sed -i '' 's/?v=pb2/?v=pb3/g' assets/js/post-builder/*.js`), bump the `?v=` on the post-builder `<link>`/`<script>` tags in `index.html`, then run `node scripts/sync-spa-shells.mjs`.
 
 To recapture the live demo (needs Chrome + `puppeteer-core`):
 

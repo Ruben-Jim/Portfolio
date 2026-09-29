@@ -2,13 +2,13 @@
  * Post builder — library (lives in the admin tab): your designs, plus the
  * "New design" dialog: start from the services posts, a blank canvas, or a copy.
  */
-import { FORMATS, createDesign, duplicateDesign, normalizeDesign } from './model.js?v=pb1';
-import { esc } from './render.js?v=pb1';
-import { uiIcon } from './icons.js?v=pb1';
-import { openEditor } from './editor.js?v=pb1';
-import { renderThumb } from './export.js?v=pb1';
+import { FORMATS, createDesign, duplicateDesign, normalizeDesign } from './model.js?v=pb2';
+import { esc } from './render.js?v=pb2';
+import { uiIcon } from './icons.js?v=pb2';
+import { openEditor } from './editor.js?v=pb2';
+import { renderThumb } from './export.js?v=pb2';
 
-var STARTERS_URL = '/assets/js/post-builder/starters.json?v=pb1';
+var STARTERS_URL = '/assets/js/post-builder/starters.json?v=pb2';
 var startersPromise = null;
 
 function loadStarters() {
@@ -71,7 +71,7 @@ function dialogHtml() {
         var f = FORMATS[k];
         return '<button type="button" class="pb-format" data-new="blank" data-format="' + k + '">' +
           '<span class="pb-format-box" style="aspect-ratio:' + f.w + ' / ' + f.h + '"></span>' +
-          '<b>' + f.label + '</b><span>' + f.w + '×' + f.h + (k === 'feed34' ? ' · fills the profile grid' : k === 'story' ? ' · stories + reel covers' : '') + '</span></button>';
+          '<b>' + f.label + '</b><span>' + f.w + '×' + f.h + (k === 'feed34' ? ' · fills the profile grid' : k === 'story' ? ' · stories + reel covers' : k === 'grid3' ? ' · exports 3 posts for one grid row' : '') + '</span></button>';
       }).join('') + '</div></section>' +
       '<section data-new-pane="copy" hidden></section>' +
     '</div></div>';

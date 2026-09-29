@@ -14,8 +14,18 @@ export const FORMATS = {
   feed34: { label: 'Post 3:4', w: 1080, h: 1440 },
   feed45: { label: 'Post 4:5', w: 1080, h: 1350 },
   square: { label: 'Square 1:1', w: 1080, h: 1080 },
-  story: { label: 'Story 9:16', w: 1080, h: 1920, safe: { top: 250, bottom: 240 } }
+  story: { label: 'Story 9:16', w: 1080, h: 1920, safe: { top: 250, bottom: 240 } },
+  // One wide canvas exported as three 3:4 posts that line up as a row of the profile grid.
+  grid3: { label: 'Grid banner 3×1', w: 3240, h: 1440, tiles: 3 }
 };
+
+/** Tile names, left → right. */
+export const TILE_NAMES = ['left', 'middle', 'right'];
+
+export function tileCount(format) {
+  var f = FORMATS[format];
+  return (f && f.tiles) || 1;
+}
 
 export const MAX_SLIDES = 20;
 

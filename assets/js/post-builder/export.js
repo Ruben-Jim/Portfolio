@@ -3,8 +3,8 @@
  * Rasterizes each slide at native size in an off-screen host with html-to-image,
  * the same approach as rasterize() in assets/js/ig-posts.js.
  */
-import { FORMATS, clone, slugify } from './model.js?v=pb1';
-import { renderSlide, layoutSlide, waitForImages, ensureFonts } from './render.js?v=pb1';
+import { FORMATS, TILE_NAMES, clone, slugify } from './model.js?v=pb2';
+import { renderSlide, layoutSlide, waitForImages, ensureFonts } from './render.js?v=pb2';
 
 var h2iPromise = null;
 var zipPromise = null;
@@ -75,8 +75,34 @@ function makeHost() {
   return host;
 }
 
+function canvasToBlob(canvas, type, quality) {
+  return new Promise(function (resolve, reject) {
+    canvas.toBlob(function (b) { if (b) resolve(b); else reject(new Error('Could not encode image')); }, type, quality);
+  });
+}
+
 /**
- * Render slides to blobs. opts: { indexes, pixelRatio, type: 'png'|'jpeg', onProgress }.
+ * Cut a wide render into equal tiles, returned in posting order: right first, so
+ * after all of them are posted the grid reads left → right.
+ */
+function sliceTiles(canvas, tiles, type) {
+  var tileW = canvas.width / tiles;
+  var order = [];
+  for (var t = tiles - 1; t >= 0; t--) order.push(t);
+  return Promise.all(order.map(function (t) {
+    var c = document.createElement('canvas');
+    c.width = Math.round(tileW);
+    c.height = canvas.height;
+    c.getContext('2d').drawImage(canvas, Math.round(t * tileW), 0, c.width, c.height, 0, 0, c.width, c.height);
+    return canvasToBlob(c, type === 'jpeg' ? 'image/jpeg' : 'image/png', 0.82).then(function (blob) {
+      return { tile: t, blob: blob };
+    });
+  }));
+}
+
+/**
+ * Render slides to blobs. opts: { indexes, pixelRatio, type: 'png'|'jpeg', whole, onProgress }.
+ * Grid banner formats come back as one file per tile unless `whole` is set.
  * Works on a copy so layout caches never touch the live design.
  */
 export async function renderSlides(design, opts) {
@@ -84,6 +110,7 @@ export async function renderSlides(design, opts) {
   var mod = await loadHtmlToImage();
   var copy = clone(design);
   var f = FORMATS[copy.format];
+  var split = f.tiles > 1 && !o.whole;
   var indexes = o.indexes || copy.slides.map(function (_, i) { return i; });
   var host = makeHost();
   var out = [];
@@ -107,6 +134,13 @@ export async function renderSlides(design, opts) {
         backgroundColor: '#07090e',
         fontEmbedCSS: fontEmbedCSS
       };
+      if (split) {
+        var tiles = await sliceTiles(await mod.toCanvas(built.board, options), f.tiles, o.type);
+        tiles.forEach(function (res, k) {
+          out.push({ index: i, tile: res.tile, blob: res.blob, name: tileFileName(copy, i, res.tile, k) });
+        });
+        continue;
+      }
       var blob;
       if (o.type === 'jpeg') {
         options.quality = 0.82;
@@ -127,9 +161,15 @@ export function fileName(design, i) {
   return slugify(design.name) + n + '.png';
 }
 
+/** e.g. cwr-banner-post-1-right.png — the number is the posting order. */
+export function tileFileName(design, i, tile, postIndex) {
+  var row = design.slides.length > 1 ? '-row-' + (i + 1) : '';
+  return slugify(design.name) + row + '-post-' + (postIndex + 1) + '-' + TILE_NAMES[tile] + '.png';
+}
+
 /** Small JPEG of slide 1 for the library grid. */
 export async function renderThumb(design) {
-  var res = await renderSlides(design, { indexes: [0], pixelRatio: 1 / 3, type: 'jpeg' });
+  var res = await renderSlides(design, { indexes: [0], pixelRatio: 1 / 3, type: 'jpeg', whole: true });
   return res[0] && res[0].blob;
 }
 

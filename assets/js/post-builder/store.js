@@ -11,7 +11,7 @@
  * Every change is also backed up to localStorage until Firebase confirms the save,
  * so a dropped connection on a phone doesn't lose work.
  */
-import { normalizeDesign, summarize, uid } from './model.js?v=pb1';
+import { normalizeDesign, summarize, uid } from './model.js?v=pb2';
 
 var LOCAL_INDEX = 'pb:index';
 var LOCAL_DESIGN = 'pb:design:';
