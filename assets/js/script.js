@@ -3521,148 +3521,405 @@ function portfolioRenderCarousel(rootEl, options) {
 }
 
 /**
- * Thumbnail grid for picking slideshow media, grouped by project folder.
- *
- * Replaces a flat dropdown of filenames: for a slideshow you choose by how an
- * image looks, not by its name. Reads the generated manifest so it always shows
- * what is actually on disk.
+ * Slideshow media picker: choose a project folder from the dropdown, see all of
+ * its photos and videos, tick several (or "Add all") and add them in one go.
+ * Reads the generated manifest so it always shows what is actually on disk.
  */
-// null = showing the folder list; a group name = showing that folder's media.
-var portfolioAssetOpenGroup = null;
+var portfolioAssetPicker = {
+  group: '',
+  // 'slides' | 'title' | '' — how the current folder was picked when the admin didn't choose it.
+  auto: '',
+  // Once the admin picks a folder themselves, the title guess stops overriding it.
+  manual: false,
+  // Paths in click order, which is the order they are added to the slideshow.
+  selected: [],
+  visible: null
+};
 
-function portfolioAssetThumbHtml(f) {
+function portfolioAssetGroups() {
+  return window.PORTFOLIO_ASSET_GROUPS || [];
+}
+
+function portfolioAssetFindGroup(key) {
+  if (!key) return null;
+  return portfolioAssetGroups().find(function (g) { return g.group === key; }) || null;
+}
+
+function portfolioAssetKey(str) {
+  return String(str || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/** Folder whose name best matches the project title; slideshow folders win over guide screenshots. */
+function portfolioAssetGuessGroupFromTitle(title) {
+  var t = portfolioAssetKey(title);
+  if (t.length < 3) return '';
+  var words = String(title || '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  var best = null;
+  portfolioAssetGroups().forEach(function (g) {
+    if (g.group === 'general') return;
+    var k = portfolioAssetKey(g.source === 'docs' ? g.group.replace(/^docs\//, '') : g.group);
+    if (!k) return;
+    var score = 0;
+    if (k === t) score = 1000;
+    // Short folder names (abo, dls, hoa) only match a whole word, not a fragment.
+    else if (k.length <= 3) score = words.indexOf(k) >= 0 ? 400 : 0;
+    else if (t.indexOf(k) >= 0) score = 500 + k.length;
+    else if (t.length >= 4 && k.indexOf(t) >= 0) score = 300 + t.length;
+    if (!score) return;
+    var isDocs = g.source === 'docs';
+    if (
+      !best ||
+      (best.isDocs && !isDocs) ||
+      (best.isDocs === isDocs && score > best.score)
+    ) {
+      best = { group: g.group, score: score, isDocs: isDocs };
+    }
+  });
+  return best ? best.group : '';
+}
+
+/** Folder that the project's existing slides come from (first slide that is in the manifest). */
+function portfolioAssetGuessGroupFromSlides(urls) {
+  var index = {};
+  portfolioAssetGroups().forEach(function (g) {
+    g.files.forEach(function (f) {
+      var n = portfolioNormalizeAssetImageUrl(f.path);
+      if (n && !index[n]) index[n] = g.group;
+    });
+  });
+  for (var i = 0; i < urls.length; i++) {
+    var hit = index[portfolioNormalizeAssetImageUrl(urls[i])];
+    if (hit && hit !== 'general') return hit;
+  }
+  return '';
+}
+
+function portfolioAssetAddedMap() {
+  var map = {};
+  getPortfolioFormImageUrlsFromDom().forEach(function (u) { map[u] = true; });
+  return map;
+}
+
+function portfolioAssetSearchQuery() {
+  return String((document.getElementById('portfolio-asset-search') || {}).value || '')
+    .toLowerCase()
+    .trim();
+}
+
+/** Files shown for the chosen folder + search; null when nothing is chosen yet. */
+function portfolioAssetVisibleFiles() {
+  var q = portfolioAssetSearchQuery();
+  var g = portfolioAssetFindGroup(portfolioAssetPicker.group);
+  var pool;
+  if (g) {
+    pool = g.files;
+  } else if (q) {
+    // No folder chosen: search across every folder.
+    pool = [];
+    portfolioAssetGroups().forEach(function (x) { pool = pool.concat(x.files); });
+  } else {
+    return null;
+  }
+  if (!q) return pool;
+  return pool.filter(function (f) { return f.path.toLowerCase().indexOf(q) >= 0; });
+}
+
+/** Visible files not yet in the slideshow. Where a demo exists as both .mp4 and .webm, keeps only the .mp4. */
+function portfolioAssetAddableFiles() {
+  var files = portfolioAssetPicker.visible || [];
+  var added = portfolioAssetAddedMap();
+  var mp4Stems = {};
+  files.forEach(function (f) {
+    if (/\.mp4$/i.test(f.path)) mp4Stems[f.path.replace(/\.mp4$/i, '')] = true;
+  });
+  return files.filter(function (f) {
+    if (added[portfolioNormalizeAssetImageUrl(f.path)]) return false;
+    if (/\.webm$/i.test(f.path) && mp4Stems[f.path.replace(/\.webm$/i, '')]) return false;
+    return true;
+  });
+}
+
+function portfolioAssetThumbHtml(f, showFolderInTitle) {
   var thumbSrc = f.kind === 'video' ? f.poster : f.path;
-  var media = thumbSrc
-    ? '<span class="portfolio-asset-media">' +
-      '<img src="' + portfolioEscapeHtml(thumbSrc) + '" alt="" loading="lazy">' +
-      (f.kind === 'video'
-        ? '<span class="portfolio-asset-play" aria-hidden="true">\u25B6</span>'
-        : '') +
-      '</span>'
+  var inner = thumbSrc
+    ? '<img src="' + portfolioEscapeHtml(thumbSrc) + '" alt="" loading="lazy">' +
+      (f.kind === 'video' ? '<span class="portfolio-asset-play" aria-hidden="true">\u25B6</span>' : '')
     : '<span class="portfolio-asset-video" aria-hidden="true">\u25B6</span>';
+  var title = showFolderInTitle ? f.path.replace(/^\/assets\/(images|docs)\/projects\//, '') : f.name;
   return (
-    '<button type="button" class="portfolio-asset-thumb" ' +
+    '<button type="button" class="portfolio-asset-thumb" aria-pressed="false" ' +
     'data-asset-path="' + portfolioEscapeHtml(f.path) + '" ' +
-    'title="' + portfolioEscapeHtml(f.name) + '">' +
-    media +
+    'data-asset-title="' + portfolioEscapeHtml(title) + '" ' +
+    'title="' + portfolioEscapeHtml(title) + '">' +
+    '<span class="portfolio-asset-media">' + inner +
+    '<span class="portfolio-asset-mark" aria-hidden="true"></span>' +
+    '</span>' +
     '<span class="portfolio-asset-thumb-name">' + portfolioEscapeHtml(f.name) + '</span>' +
     '</button>'
   );
 }
 
+function populatePortfolioAssetProjectSelect() {
+  var hidden = document.getElementById('portfolio-asset-project');
+  if (!hidden || typeof window.setBusinessDocSelectOptions !== 'function') return;
+  window.setBusinessDocSelectOptions(
+    hidden,
+    portfolioAssetGroups().map(function (g) {
+      return { value: g.group, label: (g.label || g.group) + ' (' + g.files.length + ')' };
+    }),
+    { placeholder: 'Choose a project folder…', value: portfolioAssetPicker.group }
+  );
+}
+
+function portfolioAssetSetGroup(key, how) {
+  portfolioAssetPicker.group = key || '';
+  portfolioAssetPicker.selected = [];
+  if (how === 'manual') {
+    portfolioAssetPicker.manual = true;
+    portfolioAssetPicker.auto = '';
+  } else {
+    portfolioAssetPicker.auto = key ? how : '';
+  }
+  var hidden = document.getElementById('portfolio-asset-project');
+  if (hidden && hidden.value !== portfolioAssetPicker.group) {
+    if (typeof window.setBusinessDocSelectValue === 'function') {
+      window.setBusinessDocSelectValue(hidden, portfolioAssetPicker.group, true);
+    } else {
+      hidden.value = portfolioAssetPicker.group;
+    }
+  }
+  renderPortfolioAssetGrid();
+}
+
 function renderPortfolioAssetGrid() {
   var wrap = document.getElementById('portfolio-asset-grid');
   if (!wrap) return;
-  var groups = window.PORTFOLIO_ASSET_GROUPS || [];
-  if (!groups.length) {
+  var hint = document.getElementById('portfolio-asset-auto-hint');
+  if (hint) {
+    var autoText = '';
+    if (!portfolioAssetPicker.manual && portfolioAssetPicker.group) {
+      if (portfolioAssetPicker.auto === 'slides') autoText = 'Picked from the slides already in this project. Change it anytime.';
+      if (portfolioAssetPicker.auto === 'title') autoText = 'Picked from the project title. Change it anytime.';
+    }
+    hint.textContent = autoText;
+    hint.hidden = !autoText;
+  }
+
+  if (!portfolioAssetGroups().length) {
+    portfolioAssetPicker.visible = null;
     wrap.innerHTML =
       '<p class="form-hint">No media found. Run <code>./scripts/build-portfolio-assets.sh</code> after adding images.</p>';
+    portfolioAssetSyncState();
     return;
   }
-  var q = String((document.getElementById('portfolio-asset-search') || {}).value || '')
-    .toLowerCase()
-    .trim();
 
-  // Searching cuts across folders — hunting for a filename should not require
-  // remembering which project it belongs to.
-  if (q) {
-    var hits = [];
-    groups.forEach(function (g) {
-      g.files.forEach(function (f) {
-        if (f.name.toLowerCase().indexOf(q) >= 0 || g.group.toLowerCase().indexOf(q) >= 0) {
-          hits.push(f);
-        }
-      });
+  var files = portfolioAssetVisibleFiles();
+  portfolioAssetPicker.visible = files;
+  var g = portfolioAssetFindGroup(portfolioAssetPicker.group);
+
+  if (!files) {
+    wrap.innerHTML = '<p class="form-hint portfolio-asset-empty">Pick a project above to see all of its photos and videos.</p>';
+  } else if (!files.length) {
+    wrap.innerHTML = '<p class="form-hint portfolio-asset-empty">No media matches that search.</p>';
+  } else if (g && files.some(function (f) { return f.folder; })) {
+    // Guide screenshots live in subfolders (access, walkthrough/admin…) — keep them grouped.
+    var sections = [];
+    var byFolder = {};
+    files.forEach(function (f) {
+      var key = f.folder || '';
+      if (!byFolder[key]) {
+        byFolder[key] = [];
+        sections.push(key);
+      }
+      byFolder[key].push(f);
     });
-    wrap.innerHTML = hits.length
-      ? '<div class="portfolio-asset-thumbs">' + hits.map(portfolioAssetThumbHtml).join('') + '</div>'
-      : '<p class="form-hint">No media matches that search.</p>';
-    return;
-  }
-
-  // Level 2 — inside a folder.
-  if (portfolioAssetOpenGroup) {
-    var g = groups.find(function (x) { return x.group === portfolioAssetOpenGroup; });
-    if (!g) {
-      portfolioAssetOpenGroup = null;
-    } else {
-      wrap.innerHTML =
-        '<div class="portfolio-asset-crumb">' +
-        '<button type="button" class="portfolio-asset-back" data-asset-back="1">' +
-        '\u2190 All folders</button>' +
-        '<span class="portfolio-asset-crumb-name">' + portfolioEscapeHtml(g.group) +
-        ' <span>' + g.files.length + '</span></span>' +
-        '</div>' +
-        '<div class="portfolio-asset-thumbs">' + g.files.map(portfolioAssetThumbHtml).join('') + '</div>';
-      return;
-    }
-  }
-
-  // Level 1 — folder tiles, each showing a cover image and a count.
-  wrap.innerHTML =
-    '<div class="portfolio-asset-folders">' +
-    groups
-      .map(function (g) {
-        var cover = null;
-        for (var i = 0; i < g.files.length; i++) {
-          var f = g.files[i];
-          var src = f.kind === 'video' ? f.poster : f.path;
-          if (src) { cover = src; break; }
-        }
+    wrap.innerHTML = sections
+      .map(function (key) {
         return (
-          '<button type="button" class="portfolio-asset-folder" data-asset-group="' +
-          portfolioEscapeHtml(g.group) + '">' +
-          (cover
-            ? '<img src="' + portfolioEscapeHtml(cover) + '" alt="" loading="lazy">'
-            : '<span class="portfolio-asset-folder-empty" aria-hidden="true"></span>') +
-          '<span class="portfolio-asset-folder-meta">' +
-          '<span class="portfolio-asset-folder-name">' + portfolioEscapeHtml(g.group) + '</span>' +
-          '<span class="portfolio-asset-folder-count">' + g.files.length + ' file' +
-          (g.files.length === 1 ? '' : 's') + '</span>' +
-          '</span></button>'
+          '<p class="portfolio-asset-subhead">' +
+          portfolioEscapeHtml(key ? key.split('/').join(' / ') : 'Main folder') +
+          '</p>' +
+          '<div class="portfolio-asset-thumbs">' +
+          byFolder[key].map(function (f) { return portfolioAssetThumbHtml(f, false); }).join('') +
+          '</div>'
         );
       })
-      .join('') +
-    '</div>';
+      .join('');
+  } else {
+    wrap.innerHTML =
+      '<div class="portfolio-asset-thumbs">' +
+      files.map(function (f) { return portfolioAssetThumbHtml(f, !g); }).join('') +
+      '</div>';
+  }
+  portfolioAssetSyncState();
+}
+
+/** Updates "Added" badges, selection numbers and the toolbar in place (no thumbnail reload). */
+function portfolioAssetSyncState() {
+  var wrap = document.getElementById('portfolio-asset-grid');
+  var added = portfolioAssetAddedMap();
+  portfolioAssetPicker.selected = portfolioAssetPicker.selected.filter(function (p) {
+    return !added[portfolioNormalizeAssetImageUrl(p)];
+  });
+  var selected = portfolioAssetPicker.selected;
+
+  if (wrap) {
+    wrap.querySelectorAll('[data-asset-path]').forEach(function (btn) {
+      var path = btn.getAttribute('data-asset-path');
+      var isAdded = !!added[portfolioNormalizeAssetImageUrl(path)];
+      var order = selected.indexOf(path);
+      var baseTitle = btn.getAttribute('data-asset-title') || '';
+      btn.classList.toggle('is-added', isAdded);
+      btn.classList.toggle('is-selected', order >= 0);
+      btn.setAttribute('aria-pressed', order >= 0 ? 'true' : 'false');
+      if (isAdded) btn.setAttribute('aria-disabled', 'true');
+      else btn.removeAttribute('aria-disabled');
+      btn.title = isAdded ? baseTitle + ' (already in the slideshow)' : baseTitle;
+      var mark = btn.querySelector('.portfolio-asset-mark');
+      if (mark) mark.textContent = isAdded ? 'Added' : order >= 0 ? String(order + 1) : '';
+    });
+  }
+
+  var toolbar = document.getElementById('portfolio-asset-toolbar');
+  var files = portfolioAssetPicker.visible;
+  if (!toolbar) return;
+  if (!files || !files.length) {
+    toolbar.hidden = true;
+    return;
+  }
+  toolbar.hidden = false;
+
+  var slotsLeft = Math.max(0, PORTFOLIO_MAX_SLIDES - Object.keys(added).length);
+  var inShow = files.filter(function (f) { return added[portfolioNormalizeAssetImageUrl(f.path)]; }).length;
+  var addable = portfolioAssetAddableFiles().length;
+
+  var status = document.getElementById('portfolio-asset-status');
+  if (status) {
+    var parts = [files.length + ' file' + (files.length === 1 ? '' : 's')];
+    if (inShow) parts.push(inShow + ' added');
+    if (selected.length) parts.push(selected.length + ' selected');
+    parts.push(slotsLeft ? slotsLeft + ' slide' + (slotsLeft === 1 ? '' : 's') + ' left' : 'Slideshow full');
+    status.textContent = parts.join(' · ');
+  }
+  var addSelectedBtn = document.getElementById('portfolio-asset-add-selected-btn');
+  if (addSelectedBtn) {
+    addSelectedBtn.textContent = selected.length ? 'Add selected (' + selected.length + ')' : 'Add selected';
+    addSelectedBtn.disabled = !selected.length || !slotsLeft;
+  }
+  var addAllBtn = document.getElementById('portfolio-asset-add-all-btn');
+  if (addAllBtn) {
+    addAllBtn.textContent = addable ? 'Add all (' + addable + ')' : 'Add all';
+    addAllBtn.disabled = !addable || !slotsLeft;
+  }
+  var clearBtn = document.getElementById('portfolio-asset-clear-btn');
+  if (clearBtn) clearBtn.hidden = !selected.length;
+}
+
+/** Appends paths to the slideshow in order, stopping at the slide limit. */
+function portfolioAssetAddPaths(paths) {
+  var current = getPortfolioFormImageUrlsFromDom();
+  var added = 0;
+  var leftOut = 0;
+  paths.forEach(function (p) {
+    var n = portfolioNormalizeAssetImageUrl(p);
+    if (!n || current.indexOf(n) >= 0) return;
+    if (current.length >= PORTFOLIO_MAX_SLIDES) {
+      leftOut++;
+      return;
+    }
+    current.push(n);
+    added++;
+  });
+  portfolioAssetPicker.selected = [];
+  if (added) renderPortfolioFormImagesList(current);
+  else portfolioAssetSyncState();
+  if (leftOut) {
+    showErrorMessage(
+      'Added ' + added + ' — the slideshow holds ' + PORTFOLIO_MAX_SLIDES + ' slides max, so ' +
+      leftOut + ' ' + (leftOut === 1 ? 'was' : 'were') + ' left out.'
+    );
+  }
+  return added;
+}
+
+/** Fresh picker state for a newly opened editor: guess the folder from its slides, then its title. */
+function portfolioAssetPickerReset() {
+  portfolioAssetPicker.manual = false;
+  portfolioAssetPicker.selected = [];
+  var search = document.getElementById('portfolio-asset-search');
+  if (search) search.value = '';
+  populatePortfolioAssetProjectSelect();
+  var fromSlides = portfolioAssetGuessGroupFromSlides(getPortfolioFormImageUrlsFromDom());
+  if (fromSlides) {
+    portfolioAssetSetGroup(fromSlides, 'slides');
+    return;
+  }
+  var titleEl = document.getElementById('portfolio-project-title');
+  portfolioAssetSetGroup(portfolioAssetGuessGroupFromTitle(titleEl && titleEl.value), 'title');
 }
 
 function initPortfolioAssetGrid() {
+  populatePortfolioAssetProjectSelect();
   var wrap = document.getElementById('portfolio-asset-grid');
   if (!wrap || wrap.dataset.bound === '1') return;
   wrap.dataset.bound = '1';
 
   wrap.addEventListener('click', function (e) {
-    var folder = e.target.closest('[data-asset-group]');
-    if (folder) {
-      e.preventDefault();
-      portfolioAssetOpenGroup = folder.getAttribute('data-asset-group');
-      renderPortfolioAssetGrid();
-      return;
-    }
-    if (e.target.closest('[data-asset-back]')) {
-      e.preventDefault();
-      portfolioAssetOpenGroup = null;
-      renderPortfolioAssetGrid();
-      return;
-    }
-
     var btn = e.target.closest('[data-asset-path]');
     if (!btn) return;
     e.preventDefault();
+    if (btn.classList.contains('is-added')) return;
     var path = btn.getAttribute('data-asset-path');
-    var input = document.getElementById('portfolio-project-image');
-    if (input) input.value = path;
-    // Add straight to the slideshow — picking a thumbnail is the intent.
-    var addBtn = document.getElementById('portfolio-project-add-image-btn');
-    if (addBtn) addBtn.click();
-    btn.classList.add('is-just-added');
-    setTimeout(function () { btn.classList.remove('is-just-added'); }, 600);
+    var at = portfolioAssetPicker.selected.indexOf(path);
+    if (at >= 0) portfolioAssetPicker.selected.splice(at, 1);
+    else portfolioAssetPicker.selected.push(path);
+    portfolioAssetSyncState();
   });
 
+  var hidden = document.getElementById('portfolio-asset-project');
+  if (hidden) {
+    hidden.addEventListener('change', function () {
+      var search = document.getElementById('portfolio-asset-search');
+      if (search) search.value = '';
+      portfolioAssetSetGroup(hidden.value, 'manual');
+    });
+  }
+
   var search = document.getElementById('portfolio-asset-search');
-  if (search && search.dataset.bound !== '1') {
-    search.dataset.bound = '1';
-    search.addEventListener('input', renderPortfolioAssetGrid);
+  if (search) {
+    search.addEventListener('input', function () {
+      portfolioAssetPicker.selected = [];
+      renderPortfolioAssetGrid();
+    });
+  }
+
+  var title = document.getElementById('portfolio-project-title');
+  if (title) {
+    title.addEventListener('input', function () {
+      if (portfolioAssetPicker.manual || portfolioAssetPicker.auto === 'slides') return;
+      var guess = portfolioAssetGuessGroupFromTitle(title.value);
+      if (guess !== portfolioAssetPicker.group) portfolioAssetSetGroup(guess, 'title');
+    });
+  }
+
+  var addSelectedBtn = document.getElementById('portfolio-asset-add-selected-btn');
+  if (addSelectedBtn) {
+    addSelectedBtn.addEventListener('click', function () {
+      portfolioAssetAddPaths(portfolioAssetPicker.selected.slice());
+    });
+  }
+  var addAllBtn = document.getElementById('portfolio-asset-add-all-btn');
+  if (addAllBtn) {
+    addAllBtn.addEventListener('click', function () {
+      portfolioAssetAddPaths(portfolioAssetAddableFiles().map(function (f) { return f.path; }));
+    });
+  }
+  var clearBtn = document.getElementById('portfolio-asset-clear-btn');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function () {
+      portfolioAssetPicker.selected = [];
+      portfolioAssetSyncState();
+    });
   }
 }
 
@@ -3854,9 +4111,8 @@ async function loadPortfolioProjectsFromRtdb() {
   syncWindowPortfolioProjectsRef();
   if (typeof populatePortfolioImageAssetSelect === 'function') {
     populatePortfolioImageAssetSelect();
-  initPortfolioAssetGrid();
-  portfolioAssetOpenGroup = null;
-  renderPortfolioAssetGrid();
+    initPortfolioAssetGrid();
+    renderPortfolioAssetGrid();
   }
 }
 
@@ -5009,6 +5265,7 @@ function renderPortfolioFormImagesList(urls) {
   if (empty) empty.hidden = parsed.length > 0;
   portfolioUpdateSlidesCount(parsed.length);
   syncPortfolioProjectImagePreview();
+  portfolioAssetSyncState();
 }
 
 function portfolioAddFormImageFromInputs() {
@@ -5267,6 +5524,8 @@ function openPortfolioProjectModal(isNew, project) {
   if (!project || isNew) {
     syncPortfolioPricingPackageSelect((project && project.pricingPackage) || '');
   }
+  initPortfolioAssetGrid();
+  portfolioAssetPickerReset();
   // Keep primary sections open for both quick edits and brochure work.
   form.querySelectorAll('.portfolio-editor-section[data-portfolio-editor-section]').forEach(function (section) {
     var key = section.getAttribute('data-portfolio-editor-section');
@@ -5490,6 +5749,7 @@ function setupPortfolioAdminControls() {
     imagesList.addEventListener('input', function (e) {
       if (e.target.matches('[data-portfolio-image-url]')) {
         syncPortfolioProjectImagePreview();
+        portfolioAssetSyncState();
       }
     });
   }

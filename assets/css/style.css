@@ -29153,8 +29153,9 @@ body.admin-tab-reorder-active::before {
   }
 }
 
-/* ——— Portfolio media picker (thumbnail grid) ———
-   Replaces a flat filename dropdown. Fed by the generated manifest in
+/* ——— Portfolio media picker ———
+   "Which project?" dropdown → that folder's media as a thumbnail grid; tick
+   files then "Add selected", or "Add all". Fed by the generated manifest in
    assets/js/portfolio-assets.js — regenerate with scripts/build-portfolio-assets.sh. */
 .portfolio-asset-picker {
   /* Spans the add-bar now that the redundant "From repo" dropdown is gone. */
@@ -29165,18 +29166,74 @@ body.admin-tab-reorder-active::before {
 
 .portfolio-asset-picker-head {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-end;
   gap: 10px;
   margin-bottom: 8px;
 }
 
+.portfolio-asset-project-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.portfolio-asset-project-field label {
+  display: block;
+  margin-bottom: 6px;
+}
+
 .portfolio-asset-picker-head input[type="search"] {
-  max-width: 220px;
+  flex: 0 1 200px;
+  min-width: 0;
+}
+
+.portfolio-asset-auto-hint {
+  margin: -2px 0 8px;
+  font-size: 11px;
+  color: var(--light-gray-70);
+}
+
+.portfolio-asset-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.portfolio-asset-status {
+  font-size: 11px;
+  color: var(--light-gray-70);
+}
+
+.portfolio-asset-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.portfolio-asset-toolbar[hidden],
+.portfolio-asset-toolbar-actions .btn[hidden] {
+  display: none;
+}
+
+.portfolio-asset-toolbar-actions .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .portfolio-asset-picker-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .portfolio-asset-picker-head input[type="search"] {
+    flex-basis: auto;
+  }
 }
 
 .portfolio-asset-grid {
-  max-height: 360px;
+  max-height: 380px;
   overflow-y: auto;
   padding: 10px;
   border: 1px solid var(--jet);
@@ -29184,82 +29241,13 @@ body.admin-tab-reorder-active::before {
   background: rgba(0, 0, 0, 0.18);
 }
 
-/* Folder tiles — level 1 of the picker. */
-.portfolio-asset-folders {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-  gap: 10px;
+.portfolio-asset-empty {
+  margin: 18px 0;
+  text-align: center;
 }
 
-.portfolio-asset-folder {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 6px;
-  border: 1px solid var(--jet);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  cursor: pointer;
-  text-align: left;
-  transition: border-color 0.15s ease, transform 0.15s ease;
-}
-
-.portfolio-asset-folder:hover {
-  border-color: hsla(45, 100%, 72%, 0.5);
-  transform: translateY(-1px);
-}
-
-.portfolio-asset-folder img,
-.portfolio-asset-folder-empty {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  border-radius: 8px;
-  display: block;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.portfolio-asset-folder-name {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--white-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.portfolio-asset-folder-count {
-  display: block;
-  font-size: 10px;
-  color: var(--light-gray-70);
-}
-
-/* Breadcrumb row — level 2. */
-.portfolio-asset-crumb {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.portfolio-asset-back {
-  border: 1px solid var(--jet);
-  border-radius: 999px;
-  background: transparent;
-  color: var(--light-gray);
-  font-family: inherit;
-  font-size: 11px;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-
-.portfolio-asset-back:hover {
-  color: var(--white-2);
-  border-color: hsla(45, 100%, 72%, 0.45);
-}
-
-.portfolio-asset-crumb-name {
+.portfolio-asset-subhead {
+  margin: 12px 0 6px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -29267,13 +29255,13 @@ body.admin-tab-reorder-active::before {
   color: var(--light-gray-70);
 }
 
-.portfolio-asset-crumb-name span {
-  opacity: 0.6;
+.portfolio-asset-subhead:first-child {
+  margin-top: 0;
 }
 
 .portfolio-asset-thumbs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
   gap: 8px;
 }
 
@@ -29286,7 +29274,9 @@ body.admin-tab-reorder-active::before {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.03);
   cursor: pointer;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .portfolio-asset-thumb img {
@@ -29322,21 +29312,37 @@ body.admin-tab-reorder-active::before {
   transform: translateY(-1px);
 }
 
-.portfolio-asset-thumb.is-just-added {
+.portfolio-asset-thumb:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.portfolio-asset-thumb.is-selected {
   border-color: var(--orange-yellow-crayola);
   box-shadow: 0 0 0 2px hsla(45, 100%, 72%, 0.3);
+}
+
+/* Already in the slideshow: dimmed and not selectable. */
+.portfolio-asset-thumb.is-added {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.portfolio-asset-thumb.is-added:hover {
+  border-color: var(--jet);
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .portfolio-asset-thumb { transition: none; }
 }
 
-/* Video tiles in the media picker: poster frame with a play chip over it. */
 .portfolio-asset-media {
   position: relative;
   display: block;
 }
 
+/* Video tiles: play chip over the poster frame. */
 .portfolio-asset-play {
   position: absolute;
   right: 4px;
@@ -29350,6 +29356,40 @@ body.admin-tab-reorder-active::before {
   color: #fff;
   font-size: 9px;
   line-height: 1;
+}
+
+/* Top-left mark: empty circle → selection order number → "Added" pill. */
+.portfolio-asset-mark {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.portfolio-asset-thumb.is-selected .portfolio-asset-mark {
+  border-color: var(--orange-yellow-crayola);
+  background: var(--orange-yellow-crayola);
+  color: #1a1a1a;
+}
+
+.portfolio-asset-thumb.is-added .portfolio-asset-mark {
+  border-color: transparent;
+  background: hsl(145, 55%, 38%);
+  color: #fff;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* ——— Template variant tabs ———

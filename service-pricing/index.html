@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=hero-noise-off-20260917">
+  <link rel="stylesheet" href="/assets/css/style.css?v=media-picker-20260929">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -6940,12 +6940,33 @@
                   <label>Project media (slideshow)</label>
                   <span class="portfolio-slides-count" id="portfolio-slides-count" hidden></span>
                 </div>
-                <p class="form-hint">First slide is the card thumbnail. Add images or MP4 from <code>assets/images</code>, or paste a URL — drag to reorder.</p>
+                <p class="form-hint">First slide is the card thumbnail. Pick a project, tick the files you want (or use Add all), or paste a URL — drag to reorder.</p>
                 <div class="portfolio-slides-add-bar">
                   <div class="portfolio-asset-picker">
                     <div class="portfolio-asset-picker-head">
-                      <label for="portfolio-asset-search">Project media</label>
-                      <input type="search" id="portfolio-asset-search" class="form-input" placeholder="Search files or project…" autocomplete="off">
+                      <div class="portfolio-asset-project-field">
+                        <label id="portfolio-asset-project-label" for="portfolio-asset-project">Which project?</label>
+                        <div class="business-doc-select" data-select-name="portfolio-asset-project">
+                          <button type="button" class="business-doc-select-trigger form-input" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="portfolio-asset-project-label">
+                            <span class="business-doc-select-trigger-label">Choose a project folder…</span>
+                            <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                          </button>
+                          <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                            <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">Choose a project folder…</button>
+                          </div>
+                          <input type="hidden" id="portfolio-asset-project" value="">
+                        </div>
+                      </div>
+                      <input type="search" id="portfolio-asset-search" class="form-input" placeholder="Search files…" autocomplete="off" aria-label="Search media files">
+                    </div>
+                    <p class="portfolio-asset-auto-hint" id="portfolio-asset-auto-hint" hidden></p>
+                    <div class="portfolio-asset-toolbar" id="portfolio-asset-toolbar" hidden>
+                      <span class="portfolio-asset-status" id="portfolio-asset-status" aria-live="polite"></span>
+                      <div class="portfolio-asset-toolbar-actions">
+                        <button type="button" class="btn btn-secondary btn-sm" id="portfolio-asset-clear-btn" hidden>Clear</button>
+                        <button type="button" class="btn btn-primary btn-sm" id="portfolio-asset-add-selected-btn" disabled>Add selected</button>
+                        <button type="button" class="btn btn-secondary btn-sm" id="portfolio-asset-add-all-btn" disabled>Add all</button>
+                      </div>
                     </div>
                     <div class="portfolio-asset-grid has-scrollbar" id="portfolio-asset-grid"></div>
                   </div>
@@ -8137,7 +8158,7 @@
 
 
   <script src="/assets/js/portfolio-built-in-data.js?v=pkg-examples-20260820"></script>
-  <script src="/assets/js/portfolio-assets.js?v=newmedia-20260818r"></script>
+  <script src="/assets/js/portfolio-assets.js?v=media-picker-20260929"></script>
   <script src="/assets/js/business-systems-data.js?v=expo-app-demo-20260911"></script>
   <script src="/assets/js/business-doc-shared.js?v=maint-proclean-copy-20260823"></script>
   <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
@@ -8146,7 +8167,7 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=testimonials-nav-mobile-20260912"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=testimonials-route-20260928"></script>
+  <script src="/assets/js/script.js?v=media-picker-20260929"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=mobile-sheet-20260819v"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>

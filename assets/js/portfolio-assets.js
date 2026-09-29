@@ -3,6 +3,8 @@
 window.PORTFOLIO_ASSET_GROUPS = [
   {
     "group": "abo",
+    "label": "abo",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/abo/admin-calendar.webp",
@@ -70,6 +72,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "barbershop",
+    "label": "barbershop",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/barbershop/barbershop-1.webp",
@@ -100,6 +104,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "blogterminal",
+    "label": "blogterminal",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/blogterminal/blogterminal.webp",
@@ -110,6 +116,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "digitalclock",
+    "label": "digitalclock",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/digitalclock/digitalclock.webp",
@@ -120,6 +128,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "dls",
+    "label": "dls",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/dls/admin-calendar.webp",
@@ -192,6 +202,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "firecon",
+    "label": "firecon",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/firecon/app-channel-desktop.webp",
@@ -384,6 +396,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "gadgetgarage",
+    "label": "gadgetgarage",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/gadgetgarage/gadgetgarage.webp",
@@ -399,6 +413,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "general",
+    "label": "general",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/project-comingsoon.svg",
@@ -409,6 +425,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "grippysocks",
+    "label": "grippysocks",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/grippysocks/grippysocks-1.webp",
@@ -451,6 +469,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "handyman",
+    "label": "handyman",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/handyman/handyman-demo.webm",
@@ -462,6 +482,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "hoa",
+    "label": "hoa",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/hoa/hoa.webp",
@@ -472,6 +494,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "homecontractors",
+    "label": "homecontractors",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/homecontractors/homecontractors-1.webp",
@@ -503,6 +527,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "homeverse",
+    "label": "homeverse",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/homeverse/homeverse-1.webp",
@@ -548,6 +574,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "inktattoo",
+    "label": "inktattoo",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/inktattoo/inktattoo-1.webp",
@@ -569,6 +597,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "lawncare",
+    "label": "lawncare",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/lawncare/lawncare-1.webp",
@@ -616,6 +646,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "merchstore",
+    "label": "merchstore",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/merchstore/merchstore.webp",
@@ -626,6 +658,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "pawshine",
+    "label": "pawshine",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/pawshine/pawshine-1.webp",
@@ -668,10 +702,17 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "procleaning",
+    "label": "procleaning",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/procleaning/procleaning-img2.webp",
         "name": "procleaning-img2.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/procleaning/procleaning-logo.webp",
+        "name": "procleaning-logo.webp",
         "kind": "image"
       },
       {
@@ -693,6 +734,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "realestate",
+    "label": "realestate",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/realestate/realestate.webp",
@@ -703,6 +746,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "realtor-broker",
+    "label": "realtor-broker",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/realtor-broker/realtor-broker-1.webp",
@@ -718,6 +763,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "realtor-template",
+    "label": "realtor-template",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/realtor-template/admin-clients.webp",
@@ -850,7 +897,14 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "rizopizzeria",
+    "label": "rizopizzeria",
+    "source": "images",
     "files": [
+      {
+        "path": "/assets/images/projects/rizopizzeria/rizopizzeria-logo.webp",
+        "name": "rizopizzeria-logo.webp",
+        "kind": "image"
+      },
       {
         "path": "/assets/images/projects/rizopizzeria/rizopizzeria.webp",
         "name": "rizopizzeria.webp",
@@ -865,6 +919,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "rosasalon",
+    "label": "rosasalon",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/rosasalon/rosasalon-1.webp",
@@ -920,6 +976,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "ruiz-lawn",
+    "label": "ruiz-lawn",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/ruiz-lawn/ruiz-lawn.webp",
@@ -930,6 +988,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "sheltonsprings",
+    "label": "sheltonsprings",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/sheltonsprings/sheltonsprings.webp",
@@ -945,6 +1005,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "sunergy",
+    "label": "sunergy",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/sunergy/sunergy-1.webp",
@@ -960,6 +1022,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "tradeservice",
+    "label": "tradeservice",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/tradeservice/tradeservice-1.webp",
@@ -1007,6 +1071,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "weather",
+    "label": "weather",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/weather/weather.webp",
@@ -1017,6 +1083,8 @@ window.PORTFOLIO_ASSET_GROUPS = [
   },
   {
     "group": "zoomrealty",
+    "label": "zoomrealty",
+    "source": "images",
     "files": [
       {
         "path": "/assets/images/projects/zoomrealty/zoomrealty-1.webp",
@@ -1052,6 +1120,351 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "path": "/assets/images/projects/zoomrealty/zoomrealty.webp",
         "name": "zoomrealty.webp",
         "kind": "image"
+      }
+    ]
+  },
+  {
+    "group": "docs/aimnshootrecords",
+    "label": "aimnshootrecords — guide screenshots",
+    "source": "docs",
+    "files": [
+      {
+        "path": "/assets/docs/projects/aimnshootrecords/admin-screenshots/00-homepage.png",
+        "name": "00-homepage.png",
+        "kind": "image",
+        "folder": "admin-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/aimnshootrecords/admin-screenshots/01-store.png",
+        "name": "01-store.png",
+        "kind": "image",
+        "folder": "admin-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/aimnshootrecords/admin-screenshots/02-linktree.png",
+        "name": "02-linktree.png",
+        "kind": "image",
+        "folder": "admin-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/aimnshootrecords/admin-screenshots/03-checkout.png",
+        "name": "03-checkout.png",
+        "kind": "image",
+        "folder": "admin-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/aimnshootrecords/admin-screenshots/04-admin-lineups.png",
+        "name": "04-admin-lineups.png",
+        "kind": "image",
+        "folder": "admin-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/aimnshootrecords/admin-screenshots/05-admin-content.png",
+        "name": "05-admin-content.png",
+        "kind": "image",
+        "folder": "admin-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/aimnshootrecords/admin-screenshots/06-admin-orders.png",
+        "name": "06-admin-orders.png",
+        "kind": "image",
+        "folder": "admin-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/aimnshootrecords/admin-screenshots/07-admin-lineup-editor.png",
+        "name": "07-admin-lineup-editor.png",
+        "kind": "image",
+        "folder": "admin-screenshots"
+      }
+    ]
+  },
+  {
+    "group": "docs/procleaning-team",
+    "label": "procleaning-team — guide screenshots",
+    "source": "docs",
+    "files": [
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/01-play-closed-testing.webp",
+        "name": "01-play-closed-testing.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/02-play-closed-testing.webp",
+        "name": "02-play-closed-testing.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/02-sign-in.webp",
+        "name": "02-sign-in.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/03-loading-brand.webp",
+        "name": "03-loading-brand.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/04-admin-overview.webp",
+        "name": "04-admin-overview.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/05-worker-my-jobs.webp",
+        "name": "05-worker-my-jobs.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/06-enable-notifications-admin.webp",
+        "name": "06-enable-notifications-admin.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/06-more-sheet.webp",
+        "name": "06-more-sheet.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/07-account-settings.webp",
+        "name": "07-account-settings.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/08-update-ready.webp",
+        "name": "08-update-ready.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/access/09-become-tester-play.webp",
+        "name": "09-become-tester-play.webp",
+        "kind": "image",
+        "folder": "screenshots/access"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/tap-to-pay/01-hero.webp",
+        "name": "01-hero.webp",
+        "kind": "image",
+        "folder": "screenshots/tap-to-pay"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/tap-to-pay/02-enable-card.webp",
+        "name": "02-enable-card.webp",
+        "kind": "image",
+        "folder": "screenshots/tap-to-pay"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/tap-to-pay/03-education.webp",
+        "name": "03-education.webp",
+        "kind": "image",
+        "folder": "screenshots/tap-to-pay"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/tap-to-pay/04-collect-payment.webp",
+        "name": "04-collect-payment.webp",
+        "kind": "image",
+        "folder": "screenshots/tap-to-pay"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/01-overview.webp",
+        "name": "01-overview.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/02-orders.webp",
+        "name": "02-orders.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/03-manage-job.webp",
+        "name": "03-manage-job.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/04-subscriptions.webp",
+        "name": "04-subscriptions.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/05-calendar.webp",
+        "name": "05-calendar.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/06-quotes.webp",
+        "name": "06-quotes.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/07-customers.webp",
+        "name": "07-customers.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/08-inbox.webp",
+        "name": "08-inbox.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/09-documents.webp",
+        "name": "09-documents.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/10-reports.webp",
+        "name": "10-reports.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/11-dash.webp",
+        "name": "11-dash.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/admin/12-more-sheet.webp",
+        "name": "12-more-sheet.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/admin"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/01-home.webp",
+        "name": "01-home.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/02-services.webp",
+        "name": "02-services.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/03-our-work.webp",
+        "name": "03-our-work.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/04-testimonials.webp",
+        "name": "04-testimonials.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/05-contact.webp",
+        "name": "05-contact.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/06-quote-or-booking.webp",
+        "name": "06-quote-or-booking.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/07-checkout.webp",
+        "name": "07-checkout.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/08-my-orders.webp",
+        "name": "08-my-orders.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/09-subscriptions.webp",
+        "name": "09-subscriptions.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/public/10-privacy.webp",
+        "name": "10-privacy.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/public"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/worker/01-my-jobs.webp",
+        "name": "01-my-jobs.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/worker"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/worker/02-timesheet.webp",
+        "name": "02-timesheet.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/worker"
+      },
+      {
+        "path": "/assets/docs/projects/procleaning-team/screenshots/walkthrough/worker/03-job-detail.webp",
+        "name": "03-job-detail.webp",
+        "kind": "image",
+        "folder": "screenshots/walkthrough/worker"
+      }
+    ]
+  },
+  {
+    "group": "docs/rizo-pizzeria",
+    "label": "rizo-pizzeria — guide screenshots",
+    "source": "docs",
+    "files": [
+      {
+        "path": "/assets/docs/projects/rizo-pizzeria/rizo-pizzeria-screenshots/step-1-home.png",
+        "name": "step-1-home.png",
+        "kind": "image",
+        "folder": "rizo-pizzeria-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/rizo-pizzeria/rizo-pizzeria-screenshots/step-2-menu.png",
+        "name": "step-2-menu.png",
+        "kind": "image",
+        "folder": "rizo-pizzeria-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/rizo-pizzeria/rizo-pizzeria-screenshots/step-3-cook-login.png",
+        "name": "step-3-cook-login.png",
+        "kind": "image",
+        "folder": "rizo-pizzeria-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/rizo-pizzeria/rizo-pizzeria-screenshots/step-4-cart-tips.png",
+        "name": "step-4-cart-tips.png",
+        "kind": "image",
+        "folder": "rizo-pizzeria-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/rizo-pizzeria/rizo-pizzeria-screenshots/step-4-manage.png",
+        "name": "step-4-manage.png",
+        "kind": "image",
+        "folder": "rizo-pizzeria-screenshots"
+      },
+      {
+        "path": "/assets/docs/projects/rizo-pizzeria/rizo-pizzeria-screenshots/step-5-special-requests.png",
+        "name": "step-5-special-requests.png",
+        "kind": "image",
+        "folder": "rizo-pizzeria-screenshots"
       }
     ]
   }
