@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=email-drafts-20260930">
+  <link rel="stylesheet" href="/assets/css/style.css?v=email-drawer-20260930">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -3767,14 +3767,26 @@
                       <textarea class="form-input has-scrollbar admin-client-email-message" id="admin-client-email-message" rows="10" maxlength="12000" placeholder="Write your email here..." required></textarea>
                     </div>
                   </div>
-                  <div class="admin-client-email-preview">
-                    <p class="admin-client-email-preview-label">Preview</p>
-                    <div class="admin-client-email-preview-box has-scrollbar" id="admin-client-email-preview" aria-live="polite"></div>
+                  <div class="admin-client-email-preview-modal" id="admin-client-email-preview-modal" hidden>
+                    <div class="admin-client-email-preview-backdrop" data-preview-close></div>
+                    <div class="admin-client-email-preview" role="dialog" aria-modal="true" aria-labelledby="admin-client-email-preview-title">
+                      <div class="admin-client-email-preview-head">
+                        <p class="admin-client-email-preview-label" id="admin-client-email-preview-title">Preview</p>
+                        <button type="button" class="admin-email-drawer__close" data-preview-close aria-label="Close preview">
+                          <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+                        </button>
+                      </div>
+                      <div class="admin-client-email-preview-box has-scrollbar" id="admin-client-email-preview"></div>
+                    </div>
                   </div>
                   <div class="admin-client-email-actions">
                     <button type="submit" class="btn btn-primary" id="admin-client-email-send-btn">
                       <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
                       Send email
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="admin-client-email-preview-btn" aria-haspopup="dialog">
+                      <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
+                      View preview
                     </button>
                     <button type="button" class="btn btn-secondary" id="admin-client-email-save-draft-btn">
                       <ion-icon name="bookmark-outline" aria-hidden="true"></ion-icon>
@@ -8196,7 +8208,7 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=testimonials-nav-mobile-20260912"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=email-drafts-20260930"></script>
+  <script src="/assets/js/script.js?v=email-drawer-20260930"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=mobile-sheet-20260819v"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>

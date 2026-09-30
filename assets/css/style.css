@@ -17071,13 +17071,59 @@ article.admin[data-page="admin"].active.admin-email-reply-modal-open {
   position: absolute;
   top: 0;
   right: 0;
-  width: min(760px, 96vw);
+  width: var(--drawer-w, min(760px, 96vw));
+  max-width: 95vw;
   height: 100%;
   background: var(--eerie-black-1);
   border-left: 1px solid var(--jet);
   box-shadow: -18px 0 38px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
+}
+
+/* Drag handle on the drawer's left edge (desktop only). */
+.admin-email-drawer__resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -5px;
+  z-index: 1;
+  width: 10px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.admin-email-drawer__resize::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 4px;
+  height: 48px;
+  border-radius: 4px;
+  background: var(--jet);
+  transform: translateY(-50%);
+  transition: background 120ms ease;
+}
+
+.admin-email-drawer__resize:hover::after,
+.admin-email-drawer__resize:focus-visible::after,
+body.admin-email-drawer-resizing .admin-email-drawer__resize::after {
+  background: var(--orange-yellow-crayola);
+}
+
+.admin-email-drawer__resize:focus-visible {
+  outline: none;
+}
+
+body.admin-email-drawer-resizing {
+  cursor: ew-resize;
+  user-select: none;
+}
+
+/* The preview iframe would swallow pointer moves mid-drag. */
+body.admin-email-drawer-resizing iframe {
+  pointer-events: none;
 }
 
 .admin-email-drawer__head {
@@ -17194,7 +17240,12 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 
   .admin-email-drawer__panel {
     width: 100%;
+    max-width: none;
     border-left: 0;
+  }
+
+  .admin-email-drawer__resize {
+    display: none;
   }
 
   .admin-inbound-layout {
@@ -27693,16 +27744,95 @@ body.admin-tab-reorder-active::before {
   grid-column: 1 / -1;
 }
 
-.admin-client-email-message {
-  min-height: 220px;
+/* Same drag-to-grow box as the portfolio project editor: native corner grip,
+   themed gold, no height cap (textarea.form-input caps at 200px and hides
+   the grip). */
+#admin-client-email-form textarea.admin-client-email-message {
+  height: 260px;
+  min-height: 160px;
+  max-height: none;
+  margin-bottom: 0;
   resize: vertical;
+  scrollbar-width: thin;
+  scrollbar-color: var(--orange-yellow-crayola) var(--onyx);
+}
+
+#admin-client-email-form textarea.admin-client-email-message::-webkit-scrollbar {
+  width: 5px;
+}
+
+#admin-client-email-form textarea.admin-client-email-message::-webkit-scrollbar-track {
+  background: var(--onyx);
+  border-radius: 5px;
+}
+
+#admin-client-email-form textarea.admin-client-email-message::-webkit-scrollbar-thumb {
+  background: var(--orange-yellow-crayola);
+  border-radius: 5px;
+}
+
+#admin-client-email-form textarea.admin-client-email-message::-webkit-resizer {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 0 0 5px 0;
+  background-color: var(--onyx);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cg stroke='%23f5d76e' stroke-width='1.25' stroke-linecap='round' opacity='0.9'%3E%3Cline x1='13' y1='1' x2='1' y2='13'/%3E%3Cline x1='13' y1='5' x2='5' y2='13'/%3E%3Cline x1='13' y1='9' x2='9' y2='13'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  box-shadow: none;
+}
+
+#admin-client-email-form textarea.admin-client-email-message:focus::-webkit-resizer {
+  background-color: var(--eerie-black-1);
+}
+
+/* Preview opens on demand in a modal over the drawer. */
+.admin-client-email-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.admin-client-email-preview-modal[hidden] {
+  display: none;
+}
+
+.admin-client-email-preview-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 6, 12, 0.66);
+  backdrop-filter: blur(2px);
 }
 
 .admin-client-email-preview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(680px, 100%);
+  max-height: calc(100dvh - 32px);
   border: 1px solid hsla(45, 100%, 72%, 0.16);
   border-radius: 12px;
-  background: hsla(240, 2%, 14%, 0.7);
-  padding: 12px 14px;
+  background: var(--eerie-black-1);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  padding: 12px 14px 14px;
+}
+
+.admin-client-email-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-client-email-preview-head .admin-client-email-preview-label {
+  margin: 0;
 }
 
 .admin-client-email-preview-label {
@@ -27715,7 +27845,8 @@ body.admin-tab-reorder-active::before {
 }
 
 .admin-client-email-preview-box {
-  max-height: 520px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: auto;
   padding-right: 4px;
   color: var(--light-gray);
@@ -27726,6 +27857,7 @@ body.admin-tab-reorder-active::before {
   display: block;
   width: 100%;
   min-height: 420px;
+  height: 70dvh;
   border: 0;
   background: #fffdf8;
   border-radius: 12px;
@@ -27860,43 +27992,6 @@ body.admin-tab-reorder-active::before {
 
 .admin-client-email-feedback.is-error {
   color: hsl(6, 88%, 67%);
-}
-
-@media (min-width: 1024px) {
-  .admin-client-email-form {
-    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
-    align-items: start;
-    gap: 16px 20px;
-  }
-
-  .admin-client-email-grid {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .admin-client-email-preview {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: stretch;
-    display: flex;
-    flex-direction: column;
-    min-height: 100%;
-  }
-
-  .admin-client-email-preview-box {
-    flex: 1;
-    max-height: none;
-    min-height: 360px;
-  }
-
-  .admin-client-email-message {
-    min-height: 260px;
-  }
-
-  .admin-client-email-actions {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
 }
 
 .admin-bookings-seg {

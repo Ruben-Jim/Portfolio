@@ -11285,6 +11285,8 @@ window.addEventListener('load', function() {
       subject: document.getElementById('admin-client-email-subject'),
       message: document.getElementById('admin-client-email-message'),
       preview: document.getElementById('admin-client-email-preview'),
+      previewModal: document.getElementById('admin-client-email-preview-modal'),
+      previewBtn: document.getElementById('admin-client-email-preview-btn'),
       sendBtn: document.getElementById('admin-client-email-send-btn'),
       resetBtn: document.getElementById('admin-client-email-reset-btn'),
       saveDraftBtn: document.getElementById('admin-client-email-save-draft-btn'),
@@ -11755,6 +11757,25 @@ window.addEventListener('load', function() {
       els.preview.appendChild(iframe);
     }
     iframe.srcdoc = html;
+  }
+
+  function isAdminClientEmailPreviewOpen() {
+    var modal = document.getElementById('admin-client-email-preview-modal');
+    return !!(modal && !modal.hidden);
+  }
+
+  function openAdminClientEmailPreview(els) {
+    if (!els.previewModal) return;
+    updateAdminClientEmailPreview(els);
+    els.previewModal.hidden = false;
+    var closeBtn = els.previewModal.querySelector('button[data-preview-close]');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeAdminClientEmailPreview(els) {
+    if (!els.previewModal || els.previewModal.hidden) return;
+    els.previewModal.hidden = true;
+    if (els.previewBtn) els.previewBtn.focus();
   }
 
   function readAdminClientEmailForm(els) {
@@ -12385,6 +12406,24 @@ window.addEventListener('load', function() {
       },
       true
     );
+
+    if (els.previewBtn) {
+      els.previewBtn.addEventListener('click', function () {
+        openAdminClientEmailPreview(els);
+      });
+    }
+
+    if (els.previewModal) {
+      els.previewModal.addEventListener('click', function (e) {
+        if (e.target.closest('[data-preview-close]')) closeAdminClientEmailPreview(els);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape' || !isAdminClientEmailPreviewOpen()) return;
+        // Keep the drawer's own Escape handler from closing the drawer too.
+        e.stopImmediatePropagation();
+        closeAdminClientEmailPreview(els);
+      });
+    }
 
     if (els.saveDraftBtn) {
       els.saveDraftBtn.addEventListener('click', function () {
@@ -14812,6 +14851,8 @@ window.addEventListener('load', function() {
     drawer.innerHTML =
       '<div class="admin-email-drawer__backdrop" data-email-drawer-close></div>' +
       '<aside class="admin-email-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="admin-email-drawer-title">' +
+      '<div class="admin-email-drawer__resize" role="separator" aria-orientation="vertical" tabindex="0"' +
+      ' aria-label="Resize compose drawer (drag, arrow keys, double-click to reset)"></div>' +
       '<header class="admin-email-drawer__head">' +
       '<h3 class="h3 admin-panel-title" id="admin-email-drawer-title">Compose email</h3>' +
       '<button type="button" class="admin-email-drawer__close" id="admin-email-drawer-close" aria-label="Close compose drawer">' +
@@ -14859,9 +14900,79 @@ window.addEventListener('load', function() {
       var closeBtn = drawer.querySelector('#admin-email-drawer-close');
       if (closeBtn) closeBtn.addEventListener('click', closeAdminClientEmailDrawer);
       document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeAdminClientEmailDrawer();
+        // Escape with the preview open closes just the preview.
+        if (e.key === 'Escape' && drawer.classList.contains('is-open') && !isAdminClientEmailPreviewOpen()) {
+          closeAdminClientEmailDrawer();
+        }
       });
+      bindAdminEmailDrawerResize(drawer);
     }
+  }
+
+  // ── Compose drawer width (desktop) ──────────────────────────────────────────
+  var ADMIN_EMAIL_DRAWER_WIDTH_KEY = 'adminEmailDrawerWidth';
+  var ADMIN_EMAIL_DRAWER_MIN_W = 560;
+
+  function clampAdminEmailDrawerWidth(px) {
+    var max = Math.round(window.innerWidth * 0.95);
+    return Math.max(Math.min(ADMIN_EMAIL_DRAWER_MIN_W, max), Math.min(max, Math.round(px)));
+  }
+
+  /** px = null clears the custom width back to the CSS default. */
+  function setAdminEmailDrawerWidth(panel, px, persist) {
+    if (px == null) {
+      panel.style.removeProperty('--drawer-w');
+      if (persist) {
+        try { localStorage.removeItem(ADMIN_EMAIL_DRAWER_WIDTH_KEY); } catch (e) {}
+      }
+      return;
+    }
+    var w = clampAdminEmailDrawerWidth(px);
+    panel.style.setProperty('--drawer-w', w + 'px');
+    if (persist) {
+      try { localStorage.setItem(ADMIN_EMAIL_DRAWER_WIDTH_KEY, String(w)); } catch (e) {}
+    }
+  }
+
+  function bindAdminEmailDrawerResize(drawer) {
+    var panel = drawer.querySelector('.admin-email-drawer__panel');
+    var handle = drawer.querySelector('.admin-email-drawer__resize');
+    if (!panel || !handle) return;
+
+    try {
+      var saved = Number(localStorage.getItem(ADMIN_EMAIL_DRAWER_WIDTH_KEY));
+      if (saved > 0) setAdminEmailDrawerWidth(panel, saved, false);
+    } catch (e) {}
+
+    handle.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      document.body.classList.add('admin-email-drawer-resizing');
+    });
+    handle.addEventListener('pointermove', function (e) {
+      if (!handle.hasPointerCapture(e.pointerId)) return;
+      // The panel is pinned to the right edge, so its width is the distance
+      // from the pointer to the right side of the viewport.
+      setAdminEmailDrawerWidth(panel, window.innerWidth - e.clientX, false);
+    });
+    function endDrag(e) {
+      if (!handle.hasPointerCapture(e.pointerId)) return;
+      handle.releasePointerCapture(e.pointerId);
+      document.body.classList.remove('admin-email-drawer-resizing');
+      setAdminEmailDrawerWidth(panel, panel.getBoundingClientRect().width, true);
+    }
+    handle.addEventListener('pointerup', endDrag);
+    handle.addEventListener('pointercancel', endDrag);
+    handle.addEventListener('dblclick', function () {
+      setAdminEmailDrawerWidth(panel, null, true);
+    });
+    handle.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      var step = e.key === 'ArrowLeft' ? 40 : -40;
+      setAdminEmailDrawerWidth(panel, panel.getBoundingClientRect().width + step, true);
+    });
   }
 
   // ── RTDB subscriptions ──────────────────────────────────────────────────────
