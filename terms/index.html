@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=media-picker-20260929">
+  <link rel="stylesheet" href="/assets/css/style.css?v=email-drafts-20260930">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -3676,6 +3676,13 @@
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
+                <details class="admin-client-email-drafts" id="admin-client-email-drafts" hidden>
+                  <summary class="admin-client-email-drafts-summary">
+                    Saved drafts
+                    <span class="admin-client-email-drafts-count" id="admin-client-email-drafts-count">0</span>
+                  </summary>
+                  <ul class="admin-client-email-drafts-list has-scrollbar" id="admin-client-email-drafts-list"></ul>
+                </details>
                 <form id="admin-client-email-form" class="admin-client-email-form" novalidate>
                   <div class="admin-client-email-grid">
                     <div class="form-group">
@@ -3768,6 +3775,10 @@
                     <button type="submit" class="btn btn-primary" id="admin-client-email-send-btn">
                       <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
                       Send email
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="admin-client-email-save-draft-btn">
+                      <ion-icon name="bookmark-outline" aria-hidden="true"></ion-icon>
+                      Save draft
                     </button>
                     <button type="button" class="btn btn-secondary" id="admin-client-email-reset-btn">Reset draft</button>
                     <p class="admin-client-email-feedback" id="admin-client-email-feedback" role="status" aria-live="polite"></p>
@@ -8184,7 +8195,7 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=testimonials-nav-mobile-20260912"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=demo-situations-20260929"></script>
+  <script src="/assets/js/script.js?v=email-drafts-20260930"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=mobile-sheet-20260819v"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>

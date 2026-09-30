@@ -10621,6 +10621,9 @@ window.addEventListener('load', function() {
     if (typeof window.unsubscribePipelineLeads === 'function') {
       window.unsubscribePipelineLeads();
     }
+    if (typeof window.unsubscribeAdminEmailDrafts === 'function') {
+      window.unsubscribeAdminEmailDrafts();
+    }
   }
 
   function showDashboard() {
@@ -10633,6 +10636,9 @@ window.addEventListener('load', function() {
     }
     if (typeof initAdminClientEmailSender === 'function') {
       initAdminClientEmailSender();
+    }
+    if (typeof window.subscribeAdminEmailDrafts === 'function') {
+      window.subscribeAdminEmailDrafts();
     }
     if (typeof window.initAdminBookingsPanel === 'function') {
       window.initAdminBookingsPanel();
@@ -11244,11 +11250,19 @@ window.addEventListener('load', function() {
   };
 
   var ADMIN_CLIENT_EMAIL_DRAFT_KEY = 'adminClientEmailDraftV2';
+  var ADMIN_EMAIL_DRAFTS_RTD_PATH = 'agencyEmailDrafts';
   var adminClientEmailState = {
     initialized: false,
     sending: false,
     callTypes: [],
-    callTypesLoaded: false
+    callTypesLoaded: false,
+    // Saved drafts (RTDB). The localStorage slot above is only the scratch copy
+    // of whatever is in the form; these are the ones kept on purpose.
+    drafts: [],
+    draftsUnsubscribe: null,
+    activeDraftId: '',
+    activeLeadId: '',
+    dirty: false
   };
 
   function adminClientEmailEls() {
@@ -11273,6 +11287,10 @@ window.addEventListener('load', function() {
       preview: document.getElementById('admin-client-email-preview'),
       sendBtn: document.getElementById('admin-client-email-send-btn'),
       resetBtn: document.getElementById('admin-client-email-reset-btn'),
+      saveDraftBtn: document.getElementById('admin-client-email-save-draft-btn'),
+      draftsWrap: document.getElementById('admin-client-email-drafts'),
+      draftsList: document.getElementById('admin-client-email-drafts-list'),
+      draftsCount: document.getElementById('admin-client-email-drafts-count'),
       feedback: document.getElementById('admin-client-email-feedback')
     };
   }
@@ -11739,25 +11757,272 @@ window.addEventListener('load', function() {
     iframe.srcdoc = html;
   }
 
+  function readAdminClientEmailForm(els) {
+    return {
+      templateId: (els.template && els.template.value) || '',
+      demoId: (els.demo && els.demo.value) || '',
+      situationId: (els.situation && els.situation.value) || '',
+      siteUrl: (els.siteUrl && els.siteUrl.value) || '',
+      messageAuto: isAdminClientEmailMessageAuto(els),
+      callTypeId: (els.callType && els.callType.value) || '',
+      toName: (els.toName && els.toName.value) || '',
+      toEmail: (els.toEmail && els.toEmail.value) || '',
+      nextStep: (els.nextStep && els.nextStep.value) || '',
+      link: (els.link && els.link.value) || '',
+      ctaLabel: (els.ctaLabel && els.ctaLabel.value) || '',
+      subject: (els.subject && els.subject.value) || '',
+      message: (els.message && els.message.value) || ''
+    };
+  }
+
   function saveAdminClientEmailDraft(els) {
     try {
-      var payload = {
-        templateId: (els.template && els.template.value) || '',
-        demoId: (els.demo && els.demo.value) || '',
-        situationId: (els.situation && els.situation.value) || '',
-        siteUrl: (els.siteUrl && els.siteUrl.value) || '',
-        messageAuto: isAdminClientEmailMessageAuto(els),
-        callTypeId: (els.callType && els.callType.value) || '',
-        toName: (els.toName && els.toName.value) || '',
-        toEmail: (els.toEmail && els.toEmail.value) || '',
-        nextStep: (els.nextStep && els.nextStep.value) || '',
-        link: (els.link && els.link.value) || '',
-        ctaLabel: (els.ctaLabel && els.ctaLabel.value) || '',
-        subject: (els.subject && els.subject.value) || '',
-        message: (els.message && els.message.value) || ''
-      };
+      var payload = readAdminClientEmailForm(els);
+      // Carried in the scratch slot so a reload still knows which saved draft
+      // the form belongs to and whether it has edits that were never saved.
+      payload.draftId = adminClientEmailState.activeDraftId;
+      payload.leadId = adminClientEmailState.activeLeadId;
+      payload.dirty = adminClientEmailState.dirty;
       localStorage.setItem(ADMIN_CLIENT_EMAIL_DRAFT_KEY, JSON.stringify(payload));
     } catch (e) {}
+  }
+
+  /** Puts a draft (scratch slot or saved) into the form without re-rendering
+   *  the template copy over it. */
+  function fillAdminClientEmailForm(els, draft) {
+    var templateId = draft.templateId || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
+    if (els.template) {
+      if (typeof window.setBusinessDocSelectValue === 'function') {
+        window.setBusinessDocSelectValue(els.template, templateId, true);
+      } else {
+        els.template.value = templateId;
+      }
+    }
+    if (els.toName) els.toName.value = draft.toName || '';
+    if (els.toEmail) els.toEmail.value = draft.toEmail || '';
+    if (els.nextStep) els.nextStep.value = draft.nextStep || '';
+    if (els.link) {
+      els.link.value = draft.link || '';
+      delete els.link.dataset.agreedTime;
+    }
+    if (draft.link) markAdminClientEmailLinkUserSet(els);
+    else clearAdminClientEmailLinkUserSet(els);
+    if (els.ctaLabel) els.ctaLabel.value = draft.ctaLabel || '';
+    if (els.subject) els.subject.value = draft.subject || '';
+    if (els.message) {
+      els.message.value = draft.message || '';
+      delete els.message.dataset.autoText;
+    }
+    setAdminClientEmailCallTypeVisibility(els, (els.template && els.template.value) || '');
+    syncAdminClientEmailCtaLabel(els, (els.template && els.template.value) || '', !draft.ctaLabel);
+    if (els.siteUrl) els.siteUrl.value = draft.siteUrl || '';
+    if (isDemoOutreachEmailTemplate((els.template && els.template.value) || '')) {
+      ensureAdminClientEmailDemos(els, draft.demoId || '');
+      ensureAdminClientEmailSituations(els, draft.situationId || '');
+      setAdminClientEmailSituationVisibility(els, (els.template && els.template.value) || '');
+    }
+    if (draft.messageAuto) markAdminClientEmailMessageAuto(els);
+    if (isScheduleInviteEmailTemplate((els.template && els.template.value) || '')) {
+      ensureAdminClientEmailCallTypes(els, draft.callTypeId || '').then(function () {
+        syncAdminClientEmailDynamicFields(els);
+      });
+    }
+  }
+
+  // ── Saved drafts (Realtime Database: agencyEmailDrafts) ────────────────────
+
+  function normalizeAdminEmailDraft(id, row) {
+    if (!row || typeof row !== 'object') row = {};
+    return {
+      id: id,
+      templateId: String(row.templateId || ''),
+      demoId: String(row.demoId || ''),
+      situationId: String(row.situationId || ''),
+      siteUrl: String(row.siteUrl || ''),
+      messageAuto: !!row.messageAuto,
+      callTypeId: String(row.callTypeId || ''),
+      toName: String(row.toName || ''),
+      toEmail: String(row.toEmail || ''),
+      nextStep: String(row.nextStep || ''),
+      link: String(row.link || ''),
+      ctaLabel: String(row.ctaLabel || ''),
+      subject: String(row.subject || ''),
+      message: String(row.message || ''),
+      leadId: String(row.leadId || ''),
+      createdAt: Number(row.createdAt) || 0,
+      updatedAt: Number(row.updatedAt) || 0
+    };
+  }
+
+  function findAdminEmailDraft(id) {
+    if (!id) return null;
+    return (
+      adminClientEmailState.drafts.find(function (d) {
+        return d.id === id;
+      }) || null
+    );
+  }
+
+  /** Most recently edited saved draft for a pipeline lead, or null. */
+  function findAdminEmailDraftForLead(leadId) {
+    if (!leadId) return null;
+    // drafts is kept newest-first, so the first match is the latest.
+    return (
+      adminClientEmailState.drafts.find(function (d) {
+        return d.leadId === leadId;
+      }) || null
+    );
+  }
+  window.findAdminEmailDraftForLead = findAdminEmailDraftForLead;
+
+  function setAdminClientEmailDirty(dirty) {
+    adminClientEmailState.dirty = !!dirty;
+  }
+
+  /** True when it is safe to replace what is in the compose form. */
+  function confirmAdminClientEmailOverwrite() {
+    if (!adminClientEmailState.dirty) return true;
+    return window.confirm(
+      'The compose form has edits that are not saved as a draft.\n\n' +
+        'OK — discard them and continue.\n' +
+        'Cancel — go back (use "Save draft" to keep them).'
+    );
+  }
+
+  function renderAdminEmailDrafts() {
+    var els = adminClientEmailEls();
+    if (!els.draftsWrap || !els.draftsList) return;
+    var drafts = adminClientEmailState.drafts;
+    els.draftsWrap.hidden = !drafts.length;
+    if (els.draftsCount) els.draftsCount.textContent = String(drafts.length);
+    els.draftsList.innerHTML = drafts
+      .map(function (draft) {
+        var isActive = draft.id === adminClientEmailState.activeDraftId;
+        var who = draft.toName || draft.toEmail || 'No recipient yet';
+        var meta = [];
+        if (draft.toName && draft.toEmail) meta.push(draft.toEmail);
+        if (draft.updatedAt) meta.push('Edited ' + pipelineTouchAgo(draft.updatedAt));
+        if (isActive) meta.push('Open in form');
+        return (
+          '<li class="admin-client-email-draft' + (isActive ? ' is-active' : '') + '">' +
+          '<button type="button" class="admin-client-email-draft-open" data-draft-open="' + escHtml(draft.id) + '">' +
+          '<span class="admin-client-email-draft-title">' +
+          escHtml(who) + ' — ' + escHtml(draft.subject || '(no subject)') +
+          '</span>' +
+          '<span class="admin-client-email-draft-meta">' + escHtml(meta.join(' · ')) + '</span>' +
+          '</button>' +
+          '<button type="button" class="admin-client-email-draft-delete" data-draft-delete="' + escHtml(draft.id) + '" aria-label="Delete draft">' +
+          '<ion-icon name="trash-outline" aria-hidden="true"></ion-icon>' +
+          '</button>' +
+          '</li>'
+        );
+      })
+      .join('');
+  }
+
+  function unsubscribeAdminEmailDrafts() {
+    if (typeof adminClientEmailState.draftsUnsubscribe === 'function') {
+      adminClientEmailState.draftsUnsubscribe();
+    }
+    adminClientEmailState.draftsUnsubscribe = null;
+    adminClientEmailState.drafts = [];
+    renderAdminEmailDrafts();
+  }
+
+  function subscribeAdminEmailDrafts() {
+    if (!isAdmin()) return;
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbOnValue) return;
+    if (typeof adminClientEmailState.draftsUnsubscribe === 'function') {
+      adminClientEmailState.draftsUnsubscribe();
+    }
+    adminClientEmailState.draftsUnsubscribe = window.rtdbOnValue(
+      window.rtdbRef(window.rtdb, ADMIN_EMAIL_DRAFTS_RTD_PATH),
+      function (snap) {
+        var val = snap.val();
+        var drafts = [];
+        if (val && typeof val === 'object') {
+          Object.keys(val).forEach(function (key) {
+            drafts.push(normalizeAdminEmailDraft(key, val[key]));
+          });
+        }
+        drafts.sort(function (a, b) {
+          return (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt);
+        });
+        adminClientEmailState.drafts = drafts;
+        renderAdminEmailDrafts();
+        // Lead cards carry a "Draft saved" marker.
+        if (typeof window.refreshPipelineBoard === 'function') window.refreshPipelineBoard();
+      },
+      function (err) {
+        console.error('Email drafts RTDB listener error', err);
+      }
+    );
+  }
+  window.subscribeAdminEmailDrafts = subscribeAdminEmailDrafts;
+  window.unsubscribeAdminEmailDrafts = unsubscribeAdminEmailDrafts;
+
+  async function saveAdminEmailDraftToRtdb(els) {
+    if (!window.rtdb || !window.rtdbRef || !window.rtdbSet || !window.rtdbPush) {
+      setAdminClientEmailFeedback(els, 'Could not save draft — database is not ready.', true);
+      return;
+    }
+    var payload = readAdminClientEmailForm(els);
+    if (!String(payload.subject).trim() && !String(payload.message).trim()) {
+      setAdminClientEmailFeedback(els, 'Nothing to save yet — add a subject or message.', true);
+      return;
+    }
+    var now = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
+    // A draft deleted on another device is saved again as a new one.
+    var existing = findAdminEmailDraft(adminClientEmailState.activeDraftId);
+    payload.leadId = adminClientEmailState.activeLeadId || '';
+    payload.updatedAt = now;
+    payload.createdAt = existing && existing.createdAt ? existing.createdAt : now;
+    if (els.saveDraftBtn) els.saveDraftBtn.disabled = true;
+    try {
+      var ref = existing
+        ? window.rtdbRef(window.rtdb, ADMIN_EMAIL_DRAFTS_RTD_PATH + '/' + existing.id)
+        : window.rtdbPush(window.rtdbRef(window.rtdb, ADMIN_EMAIL_DRAFTS_RTD_PATH));
+      await window.rtdbSet(ref, payload);
+      adminClientEmailState.activeDraftId = existing ? existing.id : ref.key;
+      setAdminClientEmailDirty(false);
+      saveAdminClientEmailDraft(els);
+      renderAdminEmailDrafts();
+      setAdminClientEmailFeedback(els, existing ? 'Draft updated.' : 'Draft saved.', false);
+    } catch (err) {
+      console.error('saveAdminEmailDraftToRtdb', err);
+      setAdminClientEmailFeedback(els, 'Could not save draft. Check console and RTDB rules.', true);
+    } finally {
+      if (els.saveDraftBtn) els.saveDraftBtn.disabled = false;
+    }
+  }
+
+  /** Loads a saved draft into the form. Returns false if the admin kept their
+   *  unsaved edits instead. */
+  function openAdminEmailDraft(draftId) {
+    var els = adminClientEmailEls();
+    var draft = findAdminEmailDraft(draftId);
+    if (!els.form || !draft) return false;
+    if (!adminClientEmailState.initialized) initAdminClientEmailSender();
+    if (!confirmAdminClientEmailOverwrite()) return false;
+    fillAdminClientEmailForm(els, normalizeClientEmailDraftTemplate(draft));
+    adminClientEmailState.activeDraftId = draft.id;
+    adminClientEmailState.activeLeadId = draft.leadId;
+    setAdminClientEmailDirty(false);
+    updateAdminClientEmailPreview(els);
+    saveAdminClientEmailDraft(els);
+    renderAdminEmailDrafts();
+    setAdminClientEmailFeedback(els, 'Draft loaded.', false);
+    return true;
+  }
+  window.openAdminEmailDraft = openAdminEmailDraft;
+
+  async function deleteAdminEmailDraft(draftId) {
+    if (!draftId || !window.rtdb || !window.rtdbRef || !window.rtdbRemove) return;
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, ADMIN_EMAIL_DRAFTS_RTD_PATH + '/' + draftId));
+    if (adminClientEmailState.activeDraftId === draftId) {
+      adminClientEmailState.activeDraftId = '';
+      saveAdminClientEmailDraft(adminClientEmailEls());
+    }
   }
 
   function loadAdminClientEmailDraft() {
@@ -11934,8 +12199,17 @@ window.addEventListener('load', function() {
         },
         { requireAdmin: true }
       );
+      var sentDraftId = adminClientEmailState.activeDraftId;
+      adminClientEmailState.activeDraftId = '';
+      setAdminClientEmailDirty(false);
       setAdminClientEmailFeedback(els, 'Email sent successfully.', false);
       saveAdminClientEmailDraft(els);
+      if (sentDraftId) {
+        // The email is out, so a failed cleanup must not read as a failed send.
+        deleteAdminEmailDraft(sentDraftId).catch(function (err) {
+          console.error('deleteAdminEmailDraft after send', err);
+        });
+      }
     } catch (err) {
       console.error(err);
       setAdminClientEmailFeedback(els, (err && err.message) || 'Failed to send email.', true);
@@ -11956,7 +12230,12 @@ window.addEventListener('load', function() {
     if (els.siteUrl) els.siteUrl.value = '';
     clearAdminClientEmailLinkUserSet(els);
     if (els.ctaLabel) els.ctaLabel.value = '';
+    // Reset only clears the form; a saved draft stays in the list.
+    adminClientEmailState.activeDraftId = '';
+    adminClientEmailState.activeLeadId = '';
+    setAdminClientEmailDirty(false);
     applyAdminClientEmailTemplate(els, (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
+    renderAdminEmailDrafts();
     setAdminClientEmailFeedback(els, 'Draft reset.', false);
   }
 
@@ -11981,36 +12260,10 @@ window.addEventListener('load', function() {
 
     var draft = normalizeClientEmailDraftTemplate(loadAdminClientEmailDraft());
     if (draft) {
-      if (els.template) {
-        if (typeof window.setBusinessDocSelectValue === 'function') {
-          window.setBusinessDocSelectValue(els.template, draft.templateId || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id, true);
-        } else {
-          els.template.value = draft.templateId || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
-        }
-      }
-      if (els.toName) els.toName.value = draft.toName || '';
-      if (els.toEmail) els.toEmail.value = draft.toEmail || '';
-      if (els.nextStep) els.nextStep.value = draft.nextStep || '';
-      if (els.link) els.link.value = draft.link || '';
-      if (draft.link) markAdminClientEmailLinkUserSet(els);
-      else clearAdminClientEmailLinkUserSet(els);
-      if (els.ctaLabel) els.ctaLabel.value = draft.ctaLabel || '';
-      if (els.subject) els.subject.value = draft.subject || '';
-      if (els.message) els.message.value = draft.message || '';
-      setAdminClientEmailCallTypeVisibility(els, (els.template && els.template.value) || '');
-      syncAdminClientEmailCtaLabel(els, (els.template && els.template.value) || '', !draft.ctaLabel);
-      if (els.siteUrl) els.siteUrl.value = draft.siteUrl || '';
-      if (isDemoOutreachEmailTemplate((els.template && els.template.value) || '')) {
-        ensureAdminClientEmailDemos(els, draft.demoId || '');
-        ensureAdminClientEmailSituations(els, draft.situationId || '');
-        setAdminClientEmailSituationVisibility(els, (els.template && els.template.value) || '');
-      }
-      if (draft.messageAuto) markAdminClientEmailMessageAuto(els);
-      if (isScheduleInviteEmailTemplate((els.template && els.template.value) || '')) {
-        ensureAdminClientEmailCallTypes(els, draft.callTypeId || '').then(function () {
-          syncAdminClientEmailDynamicFields(els);
-        });
-      }
+      adminClientEmailState.activeDraftId = String(draft.draftId || '');
+      adminClientEmailState.activeLeadId = String(draft.leadId || '');
+      setAdminClientEmailDirty(draft.dirty);
+      fillAdminClientEmailForm(els, draft);
     } else {
       applyAdminClientEmailTemplate(els, ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
     }
@@ -12123,6 +12376,39 @@ window.addEventListener('load', function() {
       });
     }
 
+    // Capture phase, so the flag is already set when the field's own listener
+    // writes the scratch slot.
+    els.form.addEventListener(
+      'input',
+      function () {
+        setAdminClientEmailDirty(true);
+      },
+      true
+    );
+
+    if (els.saveDraftBtn) {
+      els.saveDraftBtn.addEventListener('click', function () {
+        saveAdminEmailDraftToRtdb(els);
+      });
+    }
+
+    if (els.draftsList) {
+      els.draftsList.addEventListener('click', function (e) {
+        var openBtn = e.target.closest('[data-draft-open]');
+        if (openBtn) {
+          openAdminEmailDraft(openBtn.getAttribute('data-draft-open'));
+          return;
+        }
+        var deleteBtn = e.target.closest('[data-draft-delete]');
+        if (deleteBtn && window.confirm('Delete this saved draft?')) {
+          deleteAdminEmailDraft(deleteBtn.getAttribute('data-draft-delete')).catch(function (err) {
+            console.error('deleteAdminEmailDraft', err);
+            setAdminClientEmailFeedback(els, 'Could not delete draft.', true);
+          });
+        }
+      });
+    }
+
     els.form.addEventListener('submit', function (e) {
       e.preventDefault();
       sendAdminClientEmail(els).catch(console.error);
@@ -12136,6 +12422,12 @@ window.addEventListener('load', function() {
     var els = adminClientEmailEls();
     if (!els.form) return;
     if (!adminClientEmailState.initialized) initAdminClientEmailSender();
+    // Prefill starts a new email, so unsaved edits get a say first.
+    if (!confirmAdminClientEmailOverwrite()) return false;
+    adminClientEmailState.activeDraftId = '';
+    adminClientEmailState.activeLeadId = data.leadId ? String(data.leadId) : '';
+    setAdminClientEmailDirty(false);
+    renderAdminEmailDrafts();
     if (data.name != null && els.toName) els.toName.value = String(data.name);
     if (data.email != null && els.toEmail) els.toEmail.value = String(data.email);
     if (data.link != null && els.link) els.link.value = String(data.link);
@@ -12259,6 +12551,9 @@ window.addEventListener('load', function() {
 
     if (typeof window.unsubscribePipelineLeads === 'function') {
       window.unsubscribePipelineLeads();
+    }
+    if (typeof window.unsubscribeAdminEmailDrafts === 'function') {
+      window.unsubscribeAdminEmailDrafts();
     }
     if (typeof window.unsubscribeBusinessDocsFromRtdb === 'function') {
       window.unsubscribeBusinessDocsFromRtdb();
@@ -20036,6 +20331,17 @@ window.addEventListener('load', function() {
     );
   }
 
+  function buildPipelineDraftLine(lead) {
+    var draft = findAdminEmailDraftForLead(lead.id);
+    if (!draft) return '';
+    return (
+      '<p class="pipeline-card-touch pipeline-card-draft">' +
+      'Draft saved' +
+      (draft.updatedAt ? ' · ' + escapeHtml(pipelineTouchAgo(draft.updatedAt)) : '') +
+      '</p>'
+    );
+  }
+
   function renderPipelineBoard(leads) {
     var counts = {};
     PIPELINE_STAGES.forEach(function (st) {
@@ -20108,6 +20414,7 @@ window.addEventListener('load', function() {
         buildPipelineStageSelect(lead.id, lead.stage) +
         buildPipelineOutreachSelect(lead) +
         buildPipelineTouchLine(lead) +
+        buildPipelineDraftLine(lead) +
         '</div>';
 
       container.appendChild(card);
@@ -20386,10 +20693,26 @@ window.addEventListener('load', function() {
       }
     }
 
+    var savedDraft = findAdminEmailDraftForLead(lead.id);
+    if (savedDraft) {
+      var resume = window.confirm(
+        'You have a saved draft for this lead.\n\n' +
+          'OK — pick up where you left off.\n' +
+          'Cancel — start a new email (the draft stays saved).'
+      );
+      if (resume) {
+        if (!openAdminEmailDraft(savedDraft.id)) return;
+        closeLeadDetail();
+        openAdminClientEmailDrawer();
+        return;
+      }
+    }
+
     // Every field is set explicitly: the compose form is shared and keeps its
     // last values, so leaving one out would carry the previous lead's company
     // name or portal link into this email.
     var prefill = {
+      leadId: lead.id,
       name: lead.name || '',
       email: lead.email || '',
       templateId: templateId,
@@ -20405,10 +20728,11 @@ window.addEventListener('load', function() {
       prefill.link = portalLink;
     }
 
-    closeLeadDetail();
     if (typeof window.prefillAdminClientEmail === 'function') {
-      window.prefillAdminClientEmail(prefill);
+      // false: the admin chose to keep the unsaved edits already in the form.
+      if (window.prefillAdminClientEmail(prefill) === false) return;
     }
+    closeLeadDetail();
     openAdminClientEmailDrawer();
   }
 
