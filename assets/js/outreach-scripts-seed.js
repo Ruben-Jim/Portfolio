@@ -217,6 +217,32 @@
         '[continue] "Homeowners pick roof cleaning, moss removal, or a house wash, drop their address, and request a quote from their phone — fewer drive-bys just to price a job. I can send you a live build right now. Worth a 15-minute look?"'
     },
     {
+      id: 'tree',
+      label: 'Tree service',
+      tag: 'Tree Service Platform (Tree Service demo)',
+      vertical: 'tree service companies',
+      demoLink: 'https://treeservice.expo.app',
+      order: 49,
+      text: '[Name] — this is Ruben, I build booking sites for tree service companies in [City]. Homeowners pick trimming, removal, or stump grinding, add the address, and request an estimate before you even call back. Here’s a live build: [demo link]\n\nWorth a 2-minute look?',
+      subject: 'Subject: [Company] — tree job requests with the address already in?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most tree service companies I talk to in [City] are pricing jobs over the phone and driving out just to see the tree — and homeowners who wait for a callback often call the next company on the list.\n' +
+        '\n' +
+        'I build a branded booking site for tree crews: homeowners pick trimming, removal, or stump grinding, add their address and job details, and request an estimate or a time before you even call back. You see every request in one dashboard.\n' +
+        '\n' +
+        'Here’s a live tree service build you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I build booking sites for tree service companies in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
+        '[continue] "Homeowners request trimming, removal, or stump grinding with their address from their phone, so you’re not driving out just to price a job. I can send you a live build right now. Worth a 15-minute look?"'
+    },
+    {
       id: 'lawn-ads',
       label: 'Lawn & landscape — running ads',
       tag: 'Running Ads · No Website — Lawn & Landscape',

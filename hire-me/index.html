@@ -3719,8 +3719,25 @@
                         <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
                         <input type="hidden" id="admin-client-email-demo" value="" aria-label="Select demo">
                       </div>
-                      <p class="form-hint">Subject, message, and demo link update from Template Outreach Scripts for the vertical you pick.</p>
-                    </div>
+                <p class="form-hint">Subject, message, and demo link update from Template Outreach Scripts for the vertical you pick.</p>
+              </div>
+              <div class="form-group admin-client-email-grid-full" id="admin-client-email-situation-wrap" hidden>
+                <label class="form-label" id="admin-client-email-situation-label" for="admin-client-email-situation">Situation</label>
+                <div class="business-doc-select" data-select-name="client-email-situation">
+                  <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="admin-client-email-situation-label">
+                    <span class="business-doc-select-trigger-label">General pitch (demo default)</span>
+                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                  </button>
+                  <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
+                  <input type="hidden" id="admin-client-email-situation" value="general" aria-label="Situation">
+                </div>
+                <p class="form-hint">Pick what you found about their web presence — the script changes to fit (outdated site, site down, no site, branded demo, or a short note).</p>
+              </div>
+              <div class="form-group admin-client-email-grid-full" id="admin-client-email-site-url-wrap" hidden>
+                <label class="form-label" for="admin-client-email-site-url">Their website</label>
+                <input type="text" id="admin-client-email-site-url" class="form-input" placeholder="calwesttree.com" autocomplete="off" spellcheck="false">
+                <p class="form-hint">Used in the message (“I came across calwesttree.com…”). Leave blank to say “[Company]’s website”.</p>
+              </div>
                     <div class="form-group admin-client-email-grid-full">
                       <label class="form-label" for="admin-client-email-next-step">Next step</label>
                       <input class="form-input" type="text" id="admin-client-email-next-step" maxlength="180" placeholder="Review the update and send any edits by Friday">
@@ -4698,7 +4715,7 @@
                   </div>
                   <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-template-scripts">
                     <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="chatbubbles-outline" class="text-2xl"></ion-icon>Template Outreach Scripts</h2>
-                    <p class="text-zinc-400">Realtor &amp; Insurance, Lawnscaper, Trade Services, Salon/Barber/Tattoo, Electrician, Carpet Cleaning, Dog Grooming, Roof &amp; Exterior — text first, then email, then call — swap placeholders</p>
+                    <p class="text-zinc-400">Realtor &amp; Insurance, Lawnscaper, Trade Services, Salon/Barber/Tattoo, Electrician, Carpet Cleaning, Dog Grooming, Roof &amp; Exterior, Tree Service — text first, then email, then call — swap placeholders</p>
                   </div>
                   <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-turnkey">
                     <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="build-outline" class="text-2xl"></ion-icon>Turn-Key Client Architecture</h2>
@@ -8167,13 +8184,13 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=testimonials-nav-mobile-20260912"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=demo-scripts-20260929"></script>
+  <script src="/assets/js/script.js?v=demo-situations-20260929"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=mobile-sheet-20260819v"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=demo-scripts-20260929"></script>
+  <script src="/assets/js/outreach-composer.js?v=demo-situations-20260929"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

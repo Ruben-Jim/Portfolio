@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=demo-scripts-20260929';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=demo-situations-20260929';
   var STORE_KEY = 'cwrOutreachVars';
 
   /** Optional fill helpers. "[later today / tomorrow]" is prose — left alone. */

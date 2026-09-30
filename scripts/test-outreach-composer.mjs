@@ -68,10 +68,10 @@ const body = () => store['outreach-preview'].value || store['outreach-preview'].
 
 await sandbox.window.CWR_OUTREACH.open();
 
-ok(lastSelectOptions.length===15, `15 scripts in dropdown (got ${lastSelectOptions.length})`);
+ok(lastSelectOptions.length===16, `16 scripts in dropdown (got ${lastSelectOptions.length})`);
 ok(store['outreach-script-select'].value === lastSelectOptions[0].value, 'first script selected by default');
 ok(store['outreach-steps'].children.length===4, `4 step buttons rendered`);
-ok(seeded && Object.keys(seeded).length===15, `RTDB seeded with 15 scripts on first open`);
+ok(seeded && Object.keys(seeded).length===16, `RTDB seeded with 16 scripts on first open`);
 
 const warn = store['outreach-warn'], copy = store['outreach-copy'];
 ok(copy.disabled===false, 'Copy enabled even with unfilled placeholders');

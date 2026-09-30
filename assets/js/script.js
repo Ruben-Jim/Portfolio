@@ -10919,6 +10919,20 @@ window.addEventListener('load', function() {
         'That’s a live roof and exterior build you can tap through. If it’s relevant for {{projectName}}, I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n\n' +
         '— Ruben'
     },
+    {
+      id: 'tree',
+      label: 'Tree service',
+      vertical: 'tree service companies',
+      defaultLink: 'https://treeservice.expo.app',
+      defaultSubject: '{{projectName}} — tree job requests with the address already in?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most tree service companies I talk to in your area are pricing jobs over the phone and driving out just to see the tree — and homeowners who wait for a callback often call the next company on the list.\n\n' +
+        'I build a branded booking site for tree crews: homeowners pick trimming, removal, or stump grinding, add their address and job details, and request an estimate or a time before you even call back. You see every request in one dashboard.\n\n' +
+        '{{linkLine}}\n' +
+        'That’s a live tree service build you can tap through. If it’s relevant for {{projectName}}, I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n\n' +
+        '— Ruben'
+    },
     // ——— "Running ads, no website" angle ———
     // For owners already paying for Meta/Instagram ads whose CTA points at a
     // Facebook page or IG profile. The pitch is not "you need a website" — it
@@ -10983,6 +10997,217 @@ window.addEventListener('load', function() {
     }
   ];
 
+  /** Per-niche wording the situation scripts drop in. `-ads` demos fall back
+   *  to their base niche (e.g. 'lawn-ads' → 'lawn'). */
+  var ADMIN_CLIENT_EMAIL_DEMO_PITCH = {
+    realtor: {
+      niche: 'real estate & insurance',
+      services: 'listings, plans, quotes, and client documents',
+      highlights: 'listings, quote requests, signed documents, and client messaging',
+      quickPitch: 'clients browse, request quotes, and sign documents in one place — no more chasing emails',
+      features: [
+        'Modern home page with your branding',
+        'Property / plan browsing',
+        'Guided quote requests',
+        'Client portal for documents and payments',
+        'Direct messaging',
+        'Admin dashboard for leads and policies'
+      ]
+    },
+    lawn: {
+      niche: 'lawn care',
+      services: 'mowing, cleanups, and seasonal add-ons',
+      highlights: 'recurring booking, seasonal add-ons, payments, and routes',
+      quickPitch: 'customers book recurring service and pay in the app — no more pricing over text',
+      features: [
+        'Modern home page with your branding',
+        'Recurring service booking',
+        'Seasonal add-ons',
+        'Online payments',
+        'Route and job dashboard'
+      ]
+    },
+    trades: {
+      niche: 'trade service',
+      services: 'your core services and emergency calls',
+      highlights: 'booking, deposits, and job status tracking',
+      quickPitch: 'customers pick a service and a time slot and pay a deposit — no more phone tag',
+      features: [
+        'Modern home page with your branding',
+        'Online service selection + booking',
+        'Deposits up front',
+        'Free quote requests',
+        'Job status dashboard'
+      ]
+    },
+    salon: {
+      niche: 'barbershop and salon',
+      services: 'cuts, color, and styling',
+      highlights: 'booking by stylist, deposits, and your daily schedule',
+      quickPitch: 'clients pick a stylist and a time and leave a deposit — no more booking through DMs',
+      features: [
+        'Modern home page with your branding',
+        'Booking by stylist / artist',
+        'Deposits to cut no-shows',
+        'Service menu and pricing',
+        'Your whole day in one dashboard'
+      ]
+    },
+    electrician: {
+      niche: 'electrical',
+      services: 'panel upgrades, EV chargers, wiring, troubleshooting, etc.',
+      highlights: 'quote requests, scheduling, and field tech jobs on their phone',
+      quickPitch: 'homeowners describe the job and request a quote online — no more vague voicemails',
+      features: [
+        'Modern home page with your branding',
+        'Online service selection + quote requests',
+        'Job details and photos up front',
+        'Contact / messaging',
+        'Dashboard for requests, with jobs on your techs’ phones'
+      ]
+    },
+    carpet: {
+      niche: 'carpet cleaning',
+      services: 'carpet, upholstery, tile & grout, rugs, windows, water extraction, etc.',
+      highlights: 'service selection, checkout, free quotes, and crew scheduling',
+      quickPitch: 'customers pick the rooms and book online — no more pricing every job over the phone',
+      features: [
+        'Modern home page with your branding',
+        'Online service selection + checkout flow',
+        'Free quote requests',
+        'Contact / messaging',
+        'Testimonials & before/after gallery',
+        'A “My Orders” area for customers'
+      ]
+    },
+    grooming: {
+      niche: 'pet grooming',
+      services: 'baths, full grooms, nail trims, de-shedding, etc.',
+      highlights: 'booking by dog size, payments, and your daily schedule',
+      quickPitch: 'clients book slots online, pay up front, no more phone tag',
+      features: [
+        'Modern home page with your branding',
+        'Booking by service and dog size',
+        'Pay up front',
+        'Free groom quote requests',
+        'Your whole day in one dashboard'
+      ]
+    },
+    'roof-exterior': {
+      niche: 'exterior cleaning',
+      services: 'roof cleaning, moss removal, house washing, windows, etc.',
+      highlights: 'booking, payments, invoices, and crew scheduling',
+      quickPitch: 'homeowners send the address and request a quote online — fewer drive-bys just to price a job',
+      features: [
+        'Modern home page with your branding',
+        'Online service selection + booking',
+        'Free quote requests with the address',
+        'Payments and invoices',
+        'Crew scheduling'
+      ]
+    },
+    tree: {
+      niche: 'tree service',
+      services: 'trimming, removal, stump grinding, storm cleanup, etc.',
+      highlights: 'estimate requests, scheduling, and payments',
+      quickPitch: 'customers request a job and pick a time before you even call back',
+      features: [
+        'Modern home page with your branding',
+        'Online service selection + estimate requests',
+        'Job details and address up front',
+        'Contact / messaging',
+        'Before/after gallery'
+      ]
+    },
+    cleaning: {
+      niche: 'cleaning',
+      services: 'standard, deep, and move-out cleans',
+      highlights: 'booking, deposits, and recurring cleans',
+      quickPitch: 'customers pick the clean, bed/bath count, and a date and pay a deposit — no more back-and-forth',
+      features: [
+        'Modern home page with your branding',
+        'Online booking by clean type and size',
+        'Deposits up front',
+        'Recurring rebooking',
+        'Job dashboard'
+      ]
+    }
+  };
+
+  /** "Situation" picker under Select demo (send-demo only). 'general' keeps the
+   *  demo's own copy; the rest swap in these scripts. */
+  var ADMIN_CLIENT_EMAIL_SITUATIONS = [
+    {
+      id: 'general',
+      label: 'General pitch (demo default)'
+    },
+    {
+      id: 'outdated',
+      label: 'Has a website — outdated (refresh it)',
+      needsSite: true,
+      defaultSubject: 'A fresh look for {{projectName}}’s website?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I’m Ruben with CodeWithRuben here in Fresno. I came across {{siteRef}} and would love to give it a fresh, mobile-friendly look — keeping all your existing content and your same web address, and adding online estimates.\n\n' +
+        'You only pay if you like the final result. No deposit.\n\n' +
+        'Here’s a {{niche}} example I built:\n' +
+        '{{linkLine}}\n\n' +
+        'Want me to put together a quick mockup for {{projectName}}?\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'down',
+      label: 'Website is down / broken',
+      needsSite: true,
+      defaultSubject: 'Heads up — {{projectName}}’s website is down',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'This is Ruben with CodeWithRuben here in Fresno. Heads up — I noticed {{siteRef}} is currently down (it isn’t loading / shows an error).\n\n' +
+        'I build websites and apps for local service businesses. Here’s a {{niche}} site I built that handles {{highlights}}:\n' +
+        '{{linkLine}}\n\n' +
+        'You’d keep your same domain. Happy to help either way.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'no-site',
+      label: 'No website yet',
+      defaultSubject: 'A website for {{projectName}}?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I’m Ruben with CodeWithRuben. I noticed {{projectName}} doesn’t have a website up yet — I build booking sites for {{vertical}} in the Central Valley, so customers can request a job and pick a time before you even call back.\n\n' +
+        'You only pay if you like the final result. No deposit required.\n\n' +
+        'I’ve already got one built — here’s a live demo:\n' +
+        '{{linkLine}}\n\n' +
+        'Want me to show you what it’d look like branded to {{projectName}}?\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'branded',
+      label: 'Branded demo built for them',
+      defaultSubject: 'We built a branded demo for {{projectName}}',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'We put together a branded demo site for {{projectName}} to show what a modern website + booking app could look like for your business.\n\n' +
+        'It’s built around your services ({{services}}) and includes:\n' +
+        '{{featureList}}\n\n' +
+        '{{linkLine}}\n\n' +
+        'Worth a quick look when you have 2–3 minutes. Happy to hop on a short call after if it’s useful — no pressure either way.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'quick',
+      label: 'Short — built one already',
+      defaultSubject: 'Booking app for {{projectName}}?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I build booking apps for {{vertical}} — {{quickPitch}}.\n\n' +
+        'Built one already:\n' +
+        '{{linkLine}}\n\n' +
+        'Just needs your name and logo. Worth a look?\n\n' +
+        '— Ruben'
+    }
+  ];
+
   var ADMIN_CLIENT_EMAIL_CTA = {
     'schedule-call': {
       cta_label: 'Pick a time →',
@@ -11034,6 +11259,10 @@ window.addEventListener('load', function() {
       callTypeWrap: document.getElementById('admin-client-email-call-type-wrap'),
       demo: document.getElementById('admin-client-email-demo'),
       demoWrap: document.getElementById('admin-client-email-demo-wrap'),
+      situation: document.getElementById('admin-client-email-situation'),
+      situationWrap: document.getElementById('admin-client-email-situation-wrap'),
+      siteUrl: document.getElementById('admin-client-email-site-url'),
+      siteUrlWrap: document.getElementById('admin-client-email-site-url-wrap'),
       toName: document.getElementById('admin-client-email-to-name'),
       toEmail: document.getElementById('admin-client-email-to-email'),
       nextStep: document.getElementById('admin-client-email-next-step'),
@@ -11148,9 +11377,76 @@ window.addEventListener('load', function() {
     return getSelectedAdminDemo(els);
   }
 
+  function getSituationById(situationId) {
+    return (
+      ADMIN_CLIENT_EMAIL_SITUATIONS.find(function (s) {
+        return s.id === situationId;
+      }) || ADMIN_CLIENT_EMAIL_SITUATIONS[0]
+    );
+  }
+
+  function getSelectedAdminSituation(els) {
+    return getSituationById(String((els.situation && els.situation.value) || '').trim());
+  }
+
+  function ensureAdminClientEmailSituations(els, preferredId) {
+    if (!els.situation) return getSituationById(preferredId);
+    var options = ADMIN_CLIENT_EMAIL_SITUATIONS.map(function (s) {
+      return { value: s.id, label: s.label };
+    });
+    var selected = getSituationById(preferredId || els.situation.value || '').id;
+    if (typeof window.setBusinessDocSelectOptions === 'function') {
+      window.setBusinessDocSelectOptions(els.situation, options, { value: selected, keepValue: false });
+    } else {
+      els.situation.value = selected;
+    }
+    return getSelectedAdminSituation(els);
+  }
+
+  function getDemoPitch(demo) {
+    var id = String((demo && demo.id) || '');
+    var pitch = ADMIN_CLIENT_EMAIL_DEMO_PITCH[id] || ADMIN_CLIENT_EMAIL_DEMO_PITCH[id.replace(/-ads$/, '')] || {};
+    var vertical = (demo && demo.vertical) || 'local service businesses';
+    return {
+      niche: pitch.niche || vertical,
+      services: pitch.services || 'your services',
+      highlights: pitch.highlights || 'booking, payments, and scheduling',
+      quickPitch: pitch.quickPitch || 'customers book online and pay up front — no more phone tag',
+      features: Array.isArray(pitch.features) && pitch.features.length
+        ? pitch.features
+        : ['Modern home page with your branding', 'Online booking', 'Free quote requests', 'Contact / messaging']
+    };
+  }
+
+  /** "https://www.foo.com/" → "foo.com" for use inside a sentence. */
+  function displaySiteUrl(raw) {
+    return String(raw || '')
+      .trim()
+      .replace(/^https?:\/\//i, '')
+      .replace(/^www\./i, '')
+      .replace(/\/+$/, '');
+  }
+
+  function setAdminClientEmailSituationVisibility(els, templateId) {
+    var showSituation = usesDemoCopyEmailTemplate(templateId);
+    if (els.situationWrap) els.situationWrap.hidden = !showSituation;
+    if (els.siteUrlWrap) {
+      els.siteUrlWrap.hidden = !(showSituation && getSelectedAdminSituation(els).needsSite);
+    }
+  }
+
   function getActiveEmailCopyTemplate(els, templateId) {
     var template = getTemplateById(templateId);
     if (!usesDemoCopyEmailTemplate(template.id)) return template;
+    var situation = getSelectedAdminSituation(els);
+    if (situation.defaultBody) {
+      return {
+        id: template.id,
+        label: template.label,
+        defaultSubject: situation.defaultSubject,
+        defaultBody: situation.defaultBody
+      };
+    }
     var demo = getSelectedAdminDemo(els);
     return {
       id: template.id,
@@ -11158,6 +11454,20 @@ window.addEventListener('load', function() {
       defaultSubject: demo.defaultSubject,
       defaultBody: demo.defaultBody
     };
+  }
+
+  /** Demo messages the admin hasn't hand-edited are fully re-rendered when a
+   *  field changes; edited ones only get the line-level fixes. */
+  function markAdminClientEmailMessageAuto(els) {
+    if (els.message) els.message.dataset.autoText = String(els.message.value || '');
+  }
+
+  function isAdminClientEmailMessageAuto(els) {
+    return !!(
+      els.message &&
+      els.message.dataset.autoText != null &&
+      els.message.dataset.autoText === String(els.message.value || '')
+    );
   }
 
   function scheduleInviteEmailSubject(templateId, callTypeLabel) {
@@ -11229,9 +11539,19 @@ window.addEventListener('load', function() {
     var nextRaw = String((els.nextStep && els.nextStep.value) || '').trim();
     var isDemo = isDemoOutreachEmailTemplate(templateId);
     var demo = isDemo ? getSelectedAdminDemo(els) : null;
+    var pitch = getDemoPitch(demo);
+    var companyName = isDemo ? nextRaw || 'your company' : 'your project';
+    var siteUrl = displaySiteUrl(els.siteUrl && els.siteUrl.value);
     return {
       clientName: String((els.toName && els.toName.value) || '').trim() || 'there',
-      projectName: isDemo ? nextRaw || 'your company' : 'your project',
+      projectName: companyName,
+      siteUrl: siteUrl,
+      siteRef: siteUrl || (nextRaw ? nextRaw + '’s website' : 'your website'),
+      niche: pitch.niche,
+      services: pitch.services,
+      highlights: pitch.highlights,
+      quickPitch: pitch.quickPitch,
+      featureList: pitch.features.map(function (f) { return '• ' + f; }).join('\n'),
       vertical: (demo && demo.vertical) || 'local service businesses',
       nextStep: nextRaw || 'Reply with your notes when ready',
       callType: formatAdminCallTypeLabel(ct),
@@ -11249,6 +11569,13 @@ window.addEventListener('load', function() {
       .replace(/\{\{\s*nextStep\s*\}\}/g, vars.nextStep)
       .replace(/\{\{\s*callType\s*\}\}/g, vars.callType || 'call')
       .replace(/\{\{\s*vertical\s*\}\}/g, vars.vertical || 'local service businesses')
+      .replace(/\{\{\s*siteRef\s*\}\}/g, vars.siteRef || 'your website')
+      .replace(/\{\{\s*siteUrl\s*\}\}/g, vars.siteUrl || '')
+      .replace(/\{\{\s*niche\s*\}\}/g, vars.niche || '')
+      .replace(/\{\{\s*services\s*\}\}/g, vars.services || '')
+      .replace(/\{\{\s*highlights\s*\}\}/g, vars.highlights || '')
+      .replace(/\{\{\s*quickPitch\s*\}\}/g, vars.quickPitch || '')
+      .replace(/\{\{\s*featureList\s*\}\}/g, vars.featureList || '')
       .replace(/\{\{\s*agreedTimeBlock\s*\}\}/g, vars.agreedTimeBlock || '')
       .replace(/\{\{\s*agreedTime\s*\}\}/g, vars.agreedTime || '')
       .replace(/\{\{\s*linkLine\s*\}\}/g, vars.linkLine)
@@ -11300,7 +11627,10 @@ window.addEventListener('load', function() {
       }
     }
     var vars = getAdminClientEmailVars(els);
-    if (els.message) {
+    if (els.message && isDemoOutreachEmailTemplate(templateId) && isAdminClientEmailMessageAuto(els)) {
+      els.message.value = renderEmailTemplateText(getActiveEmailCopyTemplate(els, templateId).defaultBody, vars);
+      markAdminClientEmailMessageAuto(els);
+    } else if (els.message) {
       var msg = String(els.message.value || '');
       msg = msg.replace(/^Link:.*$/gm, vars.linkLine);
       msg = msg.replace(/^Next step:\s*.*/gm, 'Next step: ' + vars.nextStep);
@@ -11414,6 +11744,9 @@ window.addEventListener('load', function() {
       var payload = {
         templateId: (els.template && els.template.value) || '',
         demoId: (els.demo && els.demo.value) || '',
+        situationId: (els.situation && els.situation.value) || '',
+        siteUrl: (els.siteUrl && els.siteUrl.value) || '',
+        messageAuto: isAdminClientEmailMessageAuto(els),
         callTypeId: (els.callType && els.callType.value) || '',
         toName: (els.toName && els.toName.value) || '',
         toEmail: (els.toEmail && els.toEmail.value) || '',
@@ -11445,6 +11778,7 @@ window.addEventListener('load', function() {
     if (els.demoWrap) {
       els.demoWrap.hidden = !isDemoOutreachEmailTemplate(templateId);
     }
+    setAdminClientEmailSituationVisibility(els, templateId);
     syncDemoOutreachFieldLabels(els, templateId);
   }
 
@@ -11506,11 +11840,17 @@ window.addEventListener('load', function() {
     }
     if (isDemoOutreachEmailTemplate(template.id)) {
       ensureAdminClientEmailDemos(els, els.demo && els.demo.value);
+      ensureAdminClientEmailSituations(els, els.situation && els.situation.value);
+      setAdminClientEmailSituationVisibility(els, template.id);
       var demo = getSelectedAdminDemo(els);
       if (els.link && !isAdminClientEmailLinkUserSet(els)) {
         var demoLink = demo.defaultLink || '';
         var currentLink = String(els.link.value || '').trim();
-        var isKnownDemoLink = /rubenjimenez\.dev\/demos\/tradeservice|tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink);
+        var isKnownDemoLink =
+          /rubenjimenez\.dev\/demos\/tradeservice|tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink) ||
+          ADMIN_CLIENT_EMAIL_DEMOS.some(function (d) {
+            return !!d.defaultLink && d.defaultLink.replace(/\/+$/, '') === currentLink.replace(/\/+$/, '');
+          });
         if (demoLink && (!currentLink || isKnownDemoLink)) {
           els.link.value = demoLink;
         } else if (!demoLink && isKnownDemoLink) {
@@ -11543,6 +11883,7 @@ window.addEventListener('load', function() {
     var vars = getAdminClientEmailVars(els);
     if (els.subject) els.subject.value = renderEmailTemplateText(template.defaultSubject, vars);
     if (els.message) els.message.value = renderEmailTemplateText(template.defaultBody, vars);
+    markAdminClientEmailMessageAuto(els);
     updateAdminClientEmailPreview(els);
     saveAdminClientEmailDraft(els);
   }
@@ -11612,6 +11953,7 @@ window.addEventListener('load', function() {
     if (els.toEmail) els.toEmail.value = '';
     if (els.nextStep) els.nextStep.value = '';
     if (els.link) els.link.value = '';
+    if (els.siteUrl) els.siteUrl.value = '';
     clearAdminClientEmailLinkUserSet(els);
     if (els.ctaLabel) els.ctaLabel.value = '';
     applyAdminClientEmailTemplate(els, (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id);
@@ -11657,9 +11999,13 @@ window.addEventListener('load', function() {
       if (els.message) els.message.value = draft.message || '';
       setAdminClientEmailCallTypeVisibility(els, (els.template && els.template.value) || '');
       syncAdminClientEmailCtaLabel(els, (els.template && els.template.value) || '', !draft.ctaLabel);
+      if (els.siteUrl) els.siteUrl.value = draft.siteUrl || '';
       if (isDemoOutreachEmailTemplate((els.template && els.template.value) || '')) {
         ensureAdminClientEmailDemos(els, draft.demoId || '');
+        ensureAdminClientEmailSituations(els, draft.situationId || '');
+        setAdminClientEmailSituationVisibility(els, (els.template && els.template.value) || '');
       }
+      if (draft.messageAuto) markAdminClientEmailMessageAuto(els);
       if (isScheduleInviteEmailTemplate((els.template && els.template.value) || '')) {
         ensureAdminClientEmailCallTypes(els, draft.callTypeId || '').then(function () {
           syncAdminClientEmailDynamicFields(els);
@@ -11693,6 +12039,25 @@ window.addEventListener('load', function() {
         }
         applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
         setAdminClientEmailFeedback(els, '', false);
+      });
+    }
+
+    if (els.situation) {
+      els.situation.addEventListener('change', function () {
+        var templateId = (els.template && els.template.value) || '';
+        setAdminClientEmailSituationVisibility(els, templateId);
+        if (!usesDemoCopyEmailTemplate(templateId)) {
+          syncAdminClientEmailDynamicFields(els);
+          return;
+        }
+        applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
+        setAdminClientEmailFeedback(els, '', false);
+      });
+    }
+
+    if (els.siteUrl) {
+      els.siteUrl.addEventListener('input', function () {
+        syncAdminClientEmailDynamicFields(els);
       });
     }
 
@@ -11800,8 +12165,10 @@ window.addEventListener('load', function() {
       els.template.value = templateId;
     }
     setAdminClientEmailCallTypeVisibility(els, templateId);
+    if (data.siteUrl != null && els.siteUrl) els.siteUrl.value = String(data.siteUrl);
     if (isDemoOutreachEmailTemplate(templateId)) {
       ensureAdminClientEmailDemos(els, preferredDemo);
+      ensureAdminClientEmailSituations(els, data.situationId ? String(data.situationId).trim() : '');
     }
     var preferredType = data.callTypeId ? String(data.callTypeId).trim() : '';
     var finish = function () {
