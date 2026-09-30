@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=demo-situations-20260929';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=busy-opener-landline-20260930';
   var STORE_KEY = 'cwrOutreachVars';
 
   /** Optional fill helpers. "[later today / tomorrow]" is prose — left alone. */
@@ -22,6 +22,9 @@
     { token: '[City]', field: 'city' },
     { token: '[demo link]', field: 'demo' }
   ];
+
+  /** Fields a script stores in RTDB — also what "Reset to template" copies from the seed. */
+  var FIELDS = ['label', 'tag', 'vertical', 'demoLink', 'order', 'text', 'subject', 'email', 'call'];
 
   var STEPS = [
     { id: 'text', label: 'Text' },
@@ -36,6 +39,7 @@
   var loaded = false;
   var dirty = false;
   var els = {};
+  var seedById = {};
 
   // ——— data ———
 
@@ -53,6 +57,28 @@
       };
       s.onerror = function () { reject(new Error('could not load ' + SEED_SRC)); };
       document.head.appendChild(s);
+    });
+  }
+
+  function rememberSeeds(seeds) {
+    seedById = {};
+    (seeds || []).forEach(function (s) { seedById[s.id] = s; });
+  }
+
+  function seedFields(s) {
+    var out = {};
+    FIELDS.forEach(function (f) { out[f] = s[f]; });
+    return out;
+  }
+
+  /** True when the saved copy of a script no longer matches its seed template. */
+  function differsFromSeed(s) {
+    var seed = s && seedById[s.id];
+    if (!seed) return false;
+    return FIELDS.some(function (f) {
+      var a = seed[f] == null ? '' : seed[f];
+      var b = s[f] == null ? '' : s[f];
+      return f === 'order' ? Number(a) !== Number(b) : String(a) !== String(b);
     });
   }
 
@@ -89,13 +115,11 @@
       var merged = Object.assign({}, val);
       try {
         var existingSeeds = await loadSeedFile();
+        rememberSeeds(existingSeeds);
         var patch = {};
         existingSeeds.forEach(function (s) {
           if (!merged[s.id]) {
-            patch[s.id] = {
-              label: s.label, tag: s.tag, vertical: s.vertical, demoLink: s.demoLink,
-              order: s.order, text: s.text, subject: s.subject, email: s.email, call: s.call
-            };
+            patch[s.id] = seedFields(s);
             merged[s.id] = patch[s.id];
           }
         });
@@ -111,12 +135,10 @@
     }
 
     var seeds = await loadSeedFile();
+    rememberSeeds(seeds);
     var writes = {};
     seeds.forEach(function (s) {
-      writes[s.id] = {
-        label: s.label, tag: s.tag, vertical: s.vertical, demoLink: s.demoLink,
-        order: s.order, text: s.text, subject: s.subject, email: s.email, call: s.call
-      };
+      writes[s.id] = seedFields(s);
     });
     if (global.rtdbSet) {
       try {
@@ -263,6 +285,7 @@
   function renderScriptMeta() {
     if (!els.meta) return;
     var s = current();
+    if (els.btnReset) els.btnReset.hidden = !differsFromSeed(s);
     if (!s) {
       els.meta.hidden = true;
       els.meta.textContent = '';
@@ -372,6 +395,32 @@
     global.location.href = href;
   }
 
+  /** Overwrite the saved copy of the current script with its latest seed template. */
+  async function doReset() {
+    var s = current();
+    var seed = s && seedById[s.id];
+    if (!seed || !global.rtdbUpdate) return;
+    if (!global.confirm('Replace the saved "' + s.label + '" script with the latest template?')) return;
+    var fields = seedFields(seed);
+    els.btnReset.disabled = true;
+    try {
+      await global.rtdbUpdate(global.rtdbRef(global.rtdb, RTDB_PATH + '/' + s.id), fields);
+      var saved = {};
+      saved[s.id] = fields;
+      for (var i = 0; i < scripts.length; i++) {
+        if (scripts[i].id === s.id) scripts[i] = normalize(saved)[0];
+      }
+      dirty = false;
+      renderScriptSelect();
+      renderPreview(true);
+    } catch (err) {
+      console.warn('Outreach composer: reset failed', err);
+      global.alert('Could not reset this script — check your connection and try again.');
+    } finally {
+      els.btnReset.disabled = false;
+    }
+  }
+
   function doCall() {
     var vars = readVars();
     if (!vars.phone) return;
@@ -389,6 +438,7 @@
       warn: document.getElementById('outreach-warn'),
       count: document.getElementById('outreach-count'),
       meta: document.getElementById('outreach-script-meta'),
+      btnReset: document.getElementById('outreach-reset'),
       status: document.getElementById('outreach-status'),
       name: document.getElementById('outreach-var-name'),
       company: document.getElementById('outreach-var-company'),
@@ -436,6 +486,7 @@
     if (els.btnText) els.btnText.addEventListener('click', doText);
     if (els.btnEmail) els.btnEmail.addEventListener('click', doEmail);
     if (els.btnCall) els.btnCall.addEventListener('click', doCall);
+    if (els.btnReset) els.btnReset.addEventListener('click', doReset);
   }
 
   var booted = false;

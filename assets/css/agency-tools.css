@@ -5312,6 +5312,22 @@ body.cp-ticket-viewer-open { overflow: hidden; }
   opacity: 0.75;
 }
 
+/* Shown only when the saved script differs from the seed template */
+.outreach-reset {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--vegas-gold, #ceb15a);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.outreach-reset:disabled { opacity: 0.5; cursor: default; }
+
 /* ── script select / channel steps ── */
 
 .outreach-script-select.business-doc-select {

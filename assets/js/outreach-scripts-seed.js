@@ -23,7 +23,7 @@
       vertical: 'real estate and insurance offices',
       demoLink: '',
       order: 10,
-      text: '[Name] — this is Ruben, I build client portals for real estate & insurance offices. Listings or plans, quotes, signed docs, and messages — all in one branded app instead of split across email and DocuSign. Worth a 2-minute look? [demo link]',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build client portals for real estate & insurance offices. Listings or plans, quotes, signed docs, and messages in one branded app instead of split across email and DocuSign. [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — one place for listings, quotes & client docs?',
       email:
         'Hi [Name],\n' +
@@ -47,7 +47,7 @@
       vertical: 'lawn care and landscape crews',
       demoLink: 'https://lawncare.expo.app',
       order: 20,
-      text: '[Name] — this is Ruben, I build scheduling apps for lawn & landscape crews. Recurring routes, seasonal add-ons, and deposits — no more re-quoting pricing in a text thread every week. Worth a 2-minute look? [demo link]',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build scheduling apps for lawn & landscape crews. Recurring routes, seasonal add-ons, and deposits, so you’re not re-quoting prices in a text thread every week. [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — routes & pricing off of text threads?',
       email:
         'Hi [Name],\n' +
@@ -71,7 +71,7 @@
       vertical: 'trade crews',
       demoLink: 'https://tradeservice.expo.app',
       order: 30,
-      text: '[Name] — this is Ruben, I build booking apps for [trade] crews in [City]. Customers pick a service and time slot and pay a deposit up front, so you’re not chasing calls. Worth a 2-minute look? https://tradeservice.expo.app',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for [trade] crews in [City]. Customers pick a service and time slot and pay a deposit up front, so you’re not chasing calls. https://tradeservice.expo.app\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — fewer calls, more booked jobs?',
       email:
         'Hi [Name],\n' +
@@ -95,7 +95,7 @@
       vertical: 'barbers, salons, and tattoo studios',
       demoLink: 'https://barbershoptemplate.expo.app',
       order: 40,
-      text: '[Name] — this is Ruben, I build booking apps for salons, barbershops & tattoo studios. Clients pick a stylist or artist, book a slot, and pay a deposit — no more DMs at 11pm. Worth a 2-minute look? https://barbershoptemplate.expo.app',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for salons, barbershops & tattoo studios. Clients pick a stylist or artist, book a slot, and pay a deposit, so no more DMs at 11pm. https://barbershoptemplate.expo.app\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — still booking through IG DMs?',
       email:
         'Hi [Name],\n' +
@@ -119,7 +119,7 @@
       vertical: 'electrical contractors',
       demoLink: 'https://sunergyelectricservices.expo.app',
       order: 42,
-      text: '[Name] — this is Ruben, I build booking apps for electricians in [City]. Homeowners request panel upgrades, EV chargers, or wiring work with the details up front, and your techs see the job on their phone. Here’s a live electrician build: [demo link]\n\nWorth a 2-minute look?',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for electricians in [City]. Homeowners request panel upgrades, EV chargers, or wiring work with the details up front, and your techs see the job on their phone. Here’s a live electrician build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — quote requests with the job details already filled in?',
       email:
         'Hi [Name],\n' +
@@ -145,7 +145,7 @@
       vertical: 'carpet and upholstery cleaners',
       demoLink: 'https://carpet.expo.app',
       order: 44,
-      text: '[Name] — this is Ruben, I build booking apps for carpet cleaners in [City]. Customers pick carpet, upholstery, or floors, tell you the rooms, and request a quote — no back-and-forth to price the job. Here’s a live carpet cleaning build: [demo link]\n\nWorth a 2-minute look?',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for carpet cleaners in [City]. Customers pick carpet, upholstery, or floors, tell you the rooms, and request a quote, with no back-and-forth to price the job. Here’s a live carpet cleaning build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — quotes without the “how many rooms?” back-and-forth?',
       email:
         'Hi [Name],\n' +
@@ -171,7 +171,7 @@
       vertical: 'dog groomers and pet wash shops',
       demoLink: 'https://pawshine.expo.app',
       order: 46,
-      text: '[Name] — this is Ruben, I build booking apps for dog groomers in [City]. Owners pick a wash or groom, their dog’s size, and a time — no more booking through DMs and voicemail. Here’s a live grooming build: [demo link]\n\nWorth a 2-minute look?',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for dog groomers in [City]. Owners pick a wash or groom, their dog’s size, and a time, so no more booking through DMs and voicemail. Here’s a live grooming build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — grooming appointments without the DMs?',
       email:
         'Hi [Name],\n' +
@@ -197,7 +197,7 @@
       vertical: 'roof cleaning and exterior washing crews',
       demoLink: 'https://roofcleaning.expo.app',
       order: 48,
-      text: '[Name] — this is Ruben, I build booking apps for roof cleaning & exterior crews in [City]. Homeowners pick roof cleaning, moss removal, or a house wash, send the address, and request a quote — no site visit just to price it. Here’s a live build: [demo link]\n\nWorth a 2-minute look?',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for roof cleaning & exterior crews in [City]. Homeowners pick roof cleaning, moss removal, or a house wash, send the address, and request a quote, with no site visit just to price it. Here’s a live build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — roof & exterior quotes with the address already in?',
       email:
         'Hi [Name],\n' +
@@ -223,7 +223,7 @@
       vertical: 'tree service companies',
       demoLink: 'https://treeservice.expo.app',
       order: 49,
-      text: '[Name] — this is Ruben, I build booking sites for tree service companies in [City]. Homeowners pick trimming, removal, or stump grinding, add the address, and request an estimate before you even call back. Here’s a live build: [demo link]\n\nWorth a 2-minute look?',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking sites for tree service companies in [City]. Homeowners pick trimming, removal, or stump grinding, add the address, and request an estimate before you even call back. Here’s a live build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — tree job requests with the address already in?',
       email:
         'Hi [Name],\n' +
@@ -249,10 +249,7 @@
       vertical: 'lawn care and landscape crews',
       demoLink: 'https://lawncare.expo.app',
       order: 50,
-      text:
-        '[Name] — this is Ruben, I build booking pages for lawn & landscape crews in [City]. Saw your ad running — the link goes to your Facebook page, so anyone ready to book has to message you and wait. Here’s that same traffic landing on a page that takes the address and the service instead: [demo link]\n' +
-        '\n' +
-        'Worth a 2-minute look? Reply STOP to opt out.',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking pages for lawn & landscape crews in [City]. Saw your ad running. The link goes to your Facebook page, so anyone ready to book has to message you and wait. Here’s that same traffic landing on a page that takes the address and the service instead: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — your ad sends people to Facebook, not a quote',
       email:
         'Hi [Name],\n' +
@@ -278,10 +275,7 @@
       vertical: 'cleaning and field service crews',
       demoLink: 'https://procleaning.expo.app',
       order: 60,
-      text:
-        '[Name] — this is Ruben, I build booking pages for cleaning crews in [City]. Saw your ad — it lands on your Facebook page, so someone ready to book has to message for a price, then message again for a time. Here’s what that ad could land on instead: [demo link]\n' +
-        '\n' +
-        'They pick the type of clean, the beds and baths, a date, and leave a deposit. Worth a 2-minute look? Reply STOP to opt out.',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking pages for cleaning crews in [City]. Saw your ad. It lands on your Facebook page, so someone ready to book has to message for a price, then message again for a time. Here’s what that ad could land on instead: [demo link]\n\nThey pick the type of clean, the beds and baths, a date, and leave a deposit. Worth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — paying for ads that land on a Facebook page?',
       email:
         'Hi [Name],\n' +
@@ -307,10 +301,7 @@
       vertical: 'trade crews',
       demoLink: 'https://tradeservice.expo.app',
       order: 70,
-      text:
-        '[Name] — this is Ruben, I build booking pages for trade crews in [City]. Saw your ad — it points at your Facebook page. You paid for a click from someone with a problem right now, then asked them to send a message and wait. Here’s where that click could go instead: [demo link]\n' +
-        '\n' +
-        'Service, time slot, deposit — before you drive out. Worth a 2-minute look? Reply STOP to opt out.',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking pages for trade crews in [City]. Saw your ad. It points at your Facebook page, so you paid for a click from someone with a problem right now, then asked them to send a message and wait. Here’s where that click could go instead: [demo link]\n\nService, time slot, deposit, before you drive out. Worth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — ad traffic going to Facebook instead of your calendar',
       email:
         'Hi [Name],\n' +
@@ -336,10 +327,7 @@
       vertical: 'barbers, salons, and tattoo studios',
       demoLink: 'https://barbershoptemplate.expo.app',
       order: 80,
-      text:
-        '[Name] — this is Ruben, I build booking pages for shops in [City]. Saw your ad — it lands on your IG, so a ready-to-book client ends up in your DMs next to every other message, and you book after hours. Here’s what it could land on instead: [demo link]\n' +
-        '\n' +
-        'Barber, service, time, deposit — no DM needed. Worth a 2-minute look? Reply STOP to opt out.',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking pages for shops in [City]. Saw your ad. It lands on your IG, so a ready-to-book client ends up in your DMs next to every other message, and you book after hours. Here’s what it could land on instead: [demo link]\n\nBarber, service, time, deposit, no DM needed. Worth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — ads pointing at your IG instead of your books',
       email:
         'Hi [Name],\n' +
@@ -365,8 +353,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 90,
-      text:
-        'Hey! I\'m Ruben with @codewithruben. Noticed [Company] doesn\'t have a website up yet — happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Let me know if you\'d want to see a mockup!',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?',
       subject: 'Subject: [Company] — free mockup for a simple website?',
       email:
         'Hi,\n' +
@@ -390,10 +377,7 @@
       vertical: 'trade, junk removal, and field service crews',
       demoLink: 'https://tradeservice.expo.app',
       order: 100,
-      text:
-        'Hey! I\'m Ruben with @codewithruben. Noticed [Company] doesn\'t have a website up yet — happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n' +
-        '\n' +
-        'Live example: [demo link]',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]',
       subject: 'Subject: [Company] — mockup for a site (no deposit)?',
       email:
         'Hi,\n' +
@@ -419,8 +403,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 110,
-      text:
-        'Hey — just floating this back up. Still happy to knock out a mockup for [Company] at no cost / no deposit. Only pay if you like how it looks. Want me to send one over?',
+      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?',
       subject: 'Subject: Re: mockup for [Company]?',
       email:
         'Hi,\n' +
@@ -433,6 +416,41 @@
       call:
         'You:\n' +
         '"Hey — Ruben again with CodeWithRuben, quick follow-up on [Company]. Still open to a free mockup — no deposit, pay only if you like it?"'
+    },
+    {
+      id: 'landline',
+      label: 'Landline — email/form first, then call',
+      tag: 'Landline number · Text step = paste into their website contact form (use Copy, not Text) · call only after 3–4 days with no reply',
+      vertical: 'businesses whose listed number is a landline',
+      demoLink: '',
+      order: 120,
+      text:
+        'Hi, I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I build websites and booking apps for local service businesses, and I have a few ideas for [Company]. Here’s a live example: [demo link]\n' +
+        '\n' +
+        'Want a free mockup of your homepage? No commitment. You can reach me at (559) 653-7380 or ruben.jim.co@gmail.com.',
+      subject: 'Subject: [Company] — free homepage mockup?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build websites and booking apps for local service businesses, so customers can request quotes and book online instead of waiting on a callback.\n' +
+        '\n' +
+        'Here’s a live example you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s useful, I’ll put together a free mockup of the [Company] homepage. No commitment. Just reply here and I’ll send it over.\n' +
+        '\n' +
+        'Not interested? Reply “no” and I won’t follow up.\n' +
+        '\n' +
+        '— Ruben\n' +
+        'CodeWithRuben · (559) 653-7380 · rubenjimenez.dev',
+      call:
+        'Only call if there’s no reply 3–4 days after the email or contact form.\n' +
+        '\n' +
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben with CodeWithRuben. I sent [Company] a quick note a few days ago about a free website mockup. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
+        '[continue] "I build websites and booking apps for local service businesses, so customers can request quotes online instead of waiting on a callback. I can send you the live example right now. Worth a 15-minute look?"\n' +
+        '\n' +
+        'Voicemail (under 20 seconds):\n' +
+        '"Hi, this is Ruben with CodeWithRuben in [City]. I sent [Company] a note about a free website mockup. If you’d like to see it, call or text me at 559-653-7380. Thanks!"'
     }
   ];
 })(window);
