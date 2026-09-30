@@ -113,6 +113,110 @@
         '[continue] "Clients book a stylist or artist and a time slot right from their phone, deposit included — instead of DMs and no-shows. Worth a 15-minute look?"'
     },
     {
+      id: 'electrician',
+      label: 'Electrician',
+      tag: 'Electrician Platform (Sunergy Electric demo)',
+      vertical: 'electrical contractors',
+      demoLink: 'https://sunergyelectricservices.expo.app',
+      order: 42,
+      text: '[Name] — this is Ruben, I build booking apps for electricians in [City]. Homeowners request panel upgrades, EV chargers, or wiring work with the details up front, and your techs see the job on their phone. Here’s a live electrician build: [demo link]\n\nWorth a 2-minute look?',
+      subject: 'Subject: [Company] — quote requests with the job details already filled in?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most electrical contractors I talk to in [City] get quote requests as missed calls and vague texts — “need an outlet looked at” — and spend the callback just figuring out what the job is.\n' +
+        '\n' +
+        'I build a branded app for electricians: homeowners pick the service (panel upgrade, EV charger, wiring, troubleshooting), describe the job, and request a quote or a visit. You see every request in one dashboard, and your field techs get their jobs on their phone.\n' +
+        '\n' +
+        'Here’s a live electrician build you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I build booking apps for electricians in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow morning] better?"\n' +
+        '[continue] "Homeowners request a panel upgrade, EV charger, or wiring job with the details already filled in, and your techs see it on their phone — fewer callbacks just to figure out the job. I can send you a live electrician build right now. Worth a 15-minute look?"'
+    },
+    {
+      id: 'carpet',
+      label: 'Carpet & upholstery cleaning',
+      tag: 'Carpet Cleaning Platform (Master’s Carpet demo)',
+      vertical: 'carpet and upholstery cleaners',
+      demoLink: 'https://carpet.expo.app',
+      order: 44,
+      text: '[Name] — this is Ruben, I build booking apps for carpet cleaners in [City]. Customers pick carpet, upholstery, or floors, tell you the rooms, and request a quote — no back-and-forth to price the job. Here’s a live carpet cleaning build: [demo link]\n\nWorth a 2-minute look?',
+      subject: 'Subject: [Company] — quotes without the “how many rooms?” back-and-forth?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most carpet cleaners I talk to in [City] spend half their calls just pricing the job — how many rooms, any stairs, a couch too? — and a lot of those callers never book.\n' +
+        '\n' +
+        'I build a branded app for carpet and upholstery cleaners: customers pick carpet, upholstery, or floor cleaning, tell you the rooms, and request a free quote or a time. You see every request in one dashboard, and your crew sees the day’s jobs on their phone.\n' +
+        '\n' +
+        'Here’s a live carpet cleaning build you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll hold 15 minutes — fit call, not a pitch deck — to see if it fits how you book jobs today.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I build booking apps for carpet cleaners in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
+        '[continue] "Customers pick carpet, upholstery, or floors, tell you the rooms, and request a quote from their phone — so you’re not pricing every job over the phone. I can text you a live carpet cleaning build. Worth a 15-minute look?"'
+    },
+    {
+      id: 'grooming',
+      label: 'Dog grooming & pet wash',
+      tag: 'Pet Grooming Platform (Paws & Shine demo)',
+      vertical: 'dog groomers and pet wash shops',
+      demoLink: 'https://pawshine.expo.app',
+      order: 46,
+      text: '[Name] — this is Ruben, I build booking apps for dog groomers in [City]. Owners pick a wash or groom, their dog’s size, and a time — no more booking through DMs and voicemail. Here’s a live grooming build: [demo link]\n\nWorth a 2-minute look?',
+      subject: 'Subject: [Company] — grooming appointments without the DMs?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most groomers I talk to in [City] are booking through Instagram DMs, texts, and voicemail — while they’re in the middle of a groom — and it’s easy to double-book or lose a regular.\n' +
+        '\n' +
+        'I build a branded booking app for groomers and pet wash shops: owners pick a wash or full groom, their dog’s size, and a time, or request a free groom quote. You see your whole day in one dashboard, and your team sees it too.\n' +
+        '\n' +
+        'Here’s a live grooming build you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll hold 15 minutes — fit call, not a pitch deck — to see if it fits your shop.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I build booking apps for dog groomers in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
+        '[continue] "Owners book a wash or groom for their dog’s size right from their phone, so you’re not answering DMs mid-groom. I can send you a live grooming build right now. Worth a 15-minute look?"'
+    },
+    {
+      id: 'roof-exterior',
+      label: 'Roof cleaning & exterior wash',
+      tag: 'Roof & Exterior Platform (Trade Service Specialists demo)',
+      vertical: 'roof cleaning and exterior washing crews',
+      demoLink: 'https://roofcleaning.expo.app',
+      order: 48,
+      text: '[Name] — this is Ruben, I build booking apps for roof cleaning & exterior crews in [City]. Homeowners pick roof cleaning, moss removal, or a house wash, send the address, and request a quote — no site visit just to price it. Here’s a live build: [demo link]\n\nWorth a 2-minute look?',
+      subject: 'Subject: [Company] — roof & exterior quotes with the address already in?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most roof cleaning and exterior crews I talk to in [City] burn time on calls and drive-bys just to price a job — and homeowners who wait for a callback often book someone else.\n' +
+        '\n' +
+        'I build a branded app for roof and exterior crews: homeowners pick roof cleaning, moss removal, or exterior washing, add their address and job details, and request a free quote. You see every request in one dashboard, and your crew sees the jobs on their phone.\n' +
+        '\n' +
+        'Here’s a live roof and exterior build you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I build booking apps for roof cleaning and exterior crews in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow morning] better?"\n' +
+        '[continue] "Homeowners pick roof cleaning, moss removal, or a house wash, drop their address, and request a quote from their phone — fewer drive-bys just to price a job. I can send you a live build right now. Worth a 15-minute look?"'
+    },
+    {
       id: 'lawn-ads',
       label: 'Lawn & landscape — running ads',
       tag: 'Running Ads · No Website — Lawn & Landscape',

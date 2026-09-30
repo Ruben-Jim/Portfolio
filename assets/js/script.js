@@ -10863,6 +10863,62 @@ window.addEventListener('load', function() {
         'If it’s relevant for {{projectName}}, I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it fits your shop.\n\n' +
         '— Ruben'
     },
+    {
+      id: 'electrician',
+      label: 'Electrician',
+      vertical: 'electrical contractors',
+      defaultLink: 'https://sunergyelectricservices.expo.app',
+      defaultSubject: '{{projectName}} — quote requests with the job details already filled in?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most electrical contractors I talk to in your area get quote requests as missed calls and vague texts — “need an outlet looked at” — and spend the callback just figuring out what the job is.\n\n' +
+        'I build a branded app for electricians: homeowners pick the service (panel upgrade, EV charger, wiring, troubleshooting), describe the job, and request a quote or a visit. You see every request in one dashboard, and your field techs get their jobs on their phone.\n\n' +
+        '{{linkLine}}\n' +
+        'That’s a live electrician build you can tap through. If it’s relevant for {{projectName}}, I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'carpet',
+      label: 'Carpet & upholstery cleaning',
+      vertical: 'carpet and upholstery cleaners',
+      defaultLink: 'https://carpet.expo.app',
+      defaultSubject: '{{projectName}} — quotes without the “how many rooms?” back-and-forth?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most carpet cleaners I talk to in your area spend half their calls just pricing the job — how many rooms, any stairs, a couch too? — and a lot of those callers never book.\n\n' +
+        'I build a branded app for carpet and upholstery cleaners: customers pick carpet, upholstery, or floor cleaning, tell you the rooms, and request a free quote or a time. You see every request in one dashboard, and your crew sees the day’s jobs on their phone.\n\n' +
+        '{{linkLine}}\n' +
+        'That’s a live carpet cleaning build you can tap through. If it’s relevant for {{projectName}}, I’ll hold 15 minutes — fit call, not a pitch deck — to see if it fits how you book jobs today.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'grooming',
+      label: 'Dog grooming & pet wash',
+      vertical: 'dog groomers and pet wash shops',
+      defaultLink: 'https://pawshine.expo.app',
+      defaultSubject: '{{projectName}} — grooming appointments without the DMs?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most groomers I talk to in your area are booking through Instagram DMs, texts, and voicemail — while they’re in the middle of a groom — and it’s easy to double-book or lose a regular.\n\n' +
+        'I build a branded booking app for groomers and pet wash shops: owners pick a wash or full groom, their dog’s size, and a time, or request a free groom quote. You see your whole day in one dashboard, and your team sees it too.\n\n' +
+        '{{linkLine}}\n' +
+        'That’s a live grooming build you can tap through. If it’s relevant for {{projectName}}, I’ll hold 15 minutes — fit call, not a pitch deck — to see if it fits your shop.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'roof-exterior',
+      label: 'Roof cleaning & exterior wash',
+      vertical: 'roof cleaning and exterior washing crews',
+      defaultLink: 'https://roofcleaning.expo.app',
+      defaultSubject: '{{projectName}} — roof & exterior quotes with the address already in?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most roof cleaning and exterior crews I talk to in your area burn time on calls and drive-bys just to price a job — and homeowners who wait for a callback often book someone else.\n\n' +
+        'I build a branded app for roof and exterior crews: homeowners pick roof cleaning, moss removal, or exterior washing, add their address and job details, and request a free quote. You see every request in one dashboard, and your crew sees the jobs on their phone.\n\n' +
+        '{{linkLine}}\n' +
+        'That’s a live roof and exterior build you can tap through. If it’s relevant for {{projectName}}, I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n\n' +
+        '— Ruben'
+    },
     // ——— "Running ads, no website" angle ———
     // For owners already paying for Meta/Instagram ads whose CTA points at a
     // Facebook page or IG profile. The pitch is not "you need a website" — it
