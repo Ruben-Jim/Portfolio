@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=email-drawer-20260930">
+  <link rel="stylesheet" href="/assets/css/style.css?v=pricing-buyout-20260930">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -1771,10 +1771,12 @@
         <section class="service">
 
           <div class="pricing-content">
-            <div class="enterprise-grid standard-bundles-grid">
+            <div class="enterprise-grid standard-bundles-grid sp-packages-grid" id="sp-setup">
 
               <div class="enterprise-card">
-                <span class="enterprise-card-platform" data-i18n="services.platform_web_admin">Website + Admin</span>
+                <div class="enterprise-card-tags">
+                  <span class="enterprise-card-platform" data-i18n="services.platform_web_admin">Website + Admin</span>
+                </div>
                 <div class="enterprise-card-title" data-i18n="services.page_title">Starter Page</div>
                 <div class="enterprise-card-sub" data-i18n="services.page_sub">
                   One public page for customers, plus an owner admin — like a lawn-care site with quotes, jobs, and messages. No phone app.
@@ -1799,7 +1801,9 @@
               </div>
 
               <div class="enterprise-card">
-                <span class="enterprise-card-platform" data-i18n="services.platform_web_admin">Website + Admin</span>
+                <div class="enterprise-card-tags">
+                  <span class="enterprise-card-platform" data-i18n="services.platform_web_admin">Website + Admin</span>
+                </div>
                 <div class="enterprise-card-title" data-i18n="services.web_title">Business Website</div>
                 <div class="enterprise-card-sub" data-i18n="services.web_sub">
                   A 1–3 page branded site plus the same owner admin — more room than Starter Page, still no phone app.
@@ -1823,7 +1827,9 @@
               </div>
 
               <div class="enterprise-card">
-                <span class="enterprise-card-platform" data-i18n="services.platform_web_app">Website + App</span>
+                <div class="enterprise-card-tags">
+                  <span class="enterprise-card-platform" data-i18n="services.platform_web_app">Website + App</span>
+                </div>
                 <div class="enterprise-card-title" data-i18n="services.starter_title">Starter Presence</div>
                 <div class="enterprise-card-sub" data-i18n="services.starter_sub">
                   The same branded site, plus iOS &amp; Android for you and the team. Customers stay on the website — quotes and chat, not a full ops dashboard.
@@ -1847,8 +1853,10 @@
               </div>
 
               <div class="enterprise-card featured-card">
-                <span class="enterprise-card-platform" data-i18n="services.platform_web_app">Website + App</span>
-                <span class="enterprise-card-badge" data-i18n="services.growth_badge">Most Popular</span>
+                <div class="enterprise-card-tags">
+                  <span class="enterprise-card-platform" data-i18n="services.platform_web_app">Website + App</span>
+                  <span class="enterprise-card-badge" data-i18n="services.growth_badge">Most Popular</span>
+                </div>
                 <div class="enterprise-card-title" data-i18n="services.growth_title">Growth Platform</div>
                 <div class="enterprise-card-sub" data-i18n="services.growth_sub">
                   One branded website for customers, iOS &amp; Android for the crew, and an admin to run leads, jobs, money, and the team.
@@ -1872,95 +1880,42 @@
               </div>
 
             </div>
+            <div class="sp-swipe-dots" id="sp-packages-dots" aria-hidden="true"></div>
 
-            <p class="services-agency-reveal" id="services-agency-reveal">
-              <button type="button" class="services-agency-reveal-btn" id="services-agency-reveal-btn" aria-expanded="false" aria-controls="services-agency-grid" data-i18n="services.agency_reveal">Larger company or studio? See Field Ops &amp; Studio →</button>
+            <p class="sp-reveal">
+              <button type="button" class="sp-reveal-btn" id="sp-buyout-toggle" aria-expanded="false" aria-controls="sp-buyout">
+                <span class="sp-reveal-show" data-i18n="services.buyout_jump">Want to own it outright? See Ownership Upgrade →</span>
+                <span class="sp-reveal-hide" data-i18n="services.buyout_hide">Hide Ownership Upgrade ↑</span>
+              </button>
             </p>
-
-            <div class="enterprise-grid standard-bundles-grid services-agency-grid" id="services-agency-grid" hidden>
-
-              <div class="enterprise-card enterprise-card--agency">
-                <span class="enterprise-card-platform" data-i18n="services.platform_web_app">Website + App</span>
-                <span class="enterprise-card-badge enterprise-card-badge--agency" data-i18n="services.biz_badge">Field Ops</span>
-                <div class="enterprise-card-title" data-i18n="services.biz_title">Business Platform</div>
-                <div class="enterprise-card-sub" data-i18n="services.biz_sub">
-                  Website + mobile app for crews in the field — take payments, assign jobs, and run day-to-day ops from one dashboard.
-                </div>
-                <div class="enterprise-agency-range">
-                  <span class="enterprise-agency-range-label" data-i18n="services.biz_inv_label">Investment</span>
-                  <span class="enterprise-agency-range-value">$6k – $12k</span>
-                  <span class="enterprise-agency-range-note" data-i18n="services.biz_inv_note">Scoped after discovery · 1 month maintenance included</span>
-                </div>
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.biz_f1">Everything in Growth Platform</li>
-                  <li data-i18n="services.biz_f2">Role-based staff login (owner vs. worker)</li>
-                  <li data-i18n="services.biz_f3">One app customers and crew can share</li>
-                  <li data-i18n="services.biz_f4">Custom field ops scoped after discovery</li>
-                </ul>
-                <a href="#hire-me" class="enterprise-cta enterprise-cta--agency" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('agency'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
-                  <ion-icon name="calendar-outline"></ion-icon>
-                  <span data-i18n="services.biz_cta">Book Discovery Call</span>
-                </a>
-              </div>
-
-              <div class="enterprise-card enterprise-card--agency">
-                <span class="enterprise-card-platform" data-i18n="services.platform_web_app">Website + App</span>
-                <span class="enterprise-card-badge enterprise-card-badge--agency" data-i18n="services.studio_badge">Enterprise</span>
-                <div class="enterprise-card-title" data-i18n="services.studio_title">Studio Build</div>
-                <div class="enterprise-card-sub" data-i18n="services.studio_sub">
-                  Full field-service operations platform (website + app) — the tier we use for live production apps with crews, billing, and back-office automation.
-                </div>
-                <div class="enterprise-agency-range">
-                  <span class="enterprise-agency-range-label" data-i18n="services.biz_inv_label">Investment</span>
-                  <span class="enterprise-agency-range-value">$15k – $40k</span>
-                  <span class="enterprise-agency-range-note" data-i18n="services.studio_inv_note">Custom scope · Timeline after discovery · 1 month maintenance included</span>
-                </div>
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.studio_f1">Everything in Business Platform</li>
-                  <li data-i18n="services.studio_f2">Quote → estimate → job → invoice pipeline</li>
-                  <li data-i18n="services.studio_f3">Recurring billing (weekly, monthly, custom)</li>
-                  <li data-i18n="services.studio_f4">Multi-location, tax regions, tips, promo codes</li>
-                </ul>
-                <a href="#hire-me" class="enterprise-cta enterprise-cta--agency" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('studio'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
-                  <ion-icon name="calendar-outline"></ion-icon>
-                  <span data-i18n="services.studio_cta">Start Discovery</span>
-                </a>
-              </div>
-
-            </div>
-
-            <h3 class="h3 service-title standard-addons-heading" data-i18n="services.linktree_h3">Just need a bio link?</h3>
-            <p class="maintenance-billing-lead" data-i18n="services.linktree_lead">A branded Link Tree for Instagram and TikTok — one link that sends people to book, call, or visit your site. No full website required.</p>
-            <div class="enterprise-grid standard-addons-grid">
+            <div class="enterprise-grid standard-addons-grid sp-buyout" id="sp-buyout" hidden>
               <div class="enterprise-card full-width">
-                <span class="enterprise-card-badge" data-i18n="services.linktree_badge">Standalone</span>
-                <div class="enterprise-card-title" data-i18n="services.linktree_title">Link Tree</div>
-                <div class="enterprise-card-sub" data-i18n="services.linktree_sub">
-                  One polished link-in-bio page with your brand — avatar, bio, stacked action links, and social icons. Perfect when you only need the bio link.
+                <span class="enterprise-card-badge" data-i18n="services.buyout_badge">Optional</span>
+                <div class="enterprise-card-title" data-i18n="services.buyout_title">Ownership Upgrade (Buyout Option)</div>
+                <div class="enterprise-card-sub" data-i18n="services.buyout_sub">
+                  Ready to own it outright? This one-time buyout transfers the site, app, code, stores, and accounts to you. After handoff, CodeWithRuben no longer hosts, maintains, or supports the product — it’s yours to run or hand to another developer.
                 </div>
-                <div class="enterprise-price">$99–$199</div>
-                <div class="enterprise-price-note" data-i18n="services.linktree_note">One-time · ~3–5 days · Design + setup</div>
+                <div class="enterprise-price">$8,000–$15,000</div>
+                <div class="enterprise-price-note" data-i18n="services.buyout_note">One-time fee · Scope-based · Separate from setup packages and monthly care</div>
                 <ul class="enterprise-feature-list">
-                  <li data-i18n="services.linktree_f1">Branded page for Instagram, TikTok, and other social bios</li>
-                  <li data-i18n="services.linktree_f2">Avatar, business name, short bio, and your brand colors</li>
-                  <li data-i18n="services.linktree_f3">Stacked action links — book, call, website, menu, and more</li>
-                  <li data-i18n="services.linktree_f4">Social icons row + mobile-first, fast-loading layout</li>
-                  <li data-i18n="services.linktree_f5">One revision round · hosting setup help (subdomain or path)</li>
+                  <li data-i18n="services.buyout_f1">Full ownership — code, files, and store listings transfer to you</li>
+                  <li data-i18n="services.buyout_f2">Accounts, logins, and documentation handed to you or your developer</li>
+                  <li data-i18n="services.buyout_f3">CWR hosting, maintenance, and support stop at handoff</li>
                 </ul>
-                <a href="#hire-me" class="enterprise-cta" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('linktree'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
-                  <ion-icon name="link-outline"></ion-icon>
-                  <span data-i18n="services.linktree_cta">Start from $99</span>
+                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Ownership Upgrade (Buyout Option)', 'Interested in Ownership Upgrade buyout ($8,000–$15,000 range). Please share what is included for source-code/IP transfer and handoff.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                  <span data-i18n="services.buyout_cta">Discuss Ownership Transfer</span>
                 </a>
-                <button type="button" class="enterprise-examples-btn" data-package-examples="linktree" hidden>
-                  <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
-                  <span data-i18n="services.examples_btn">See examples</span>
-                </button>
               </div>
             </div>
 
-            <h3 class="h3 service-title standard-addons-heading" data-i18n="services.maint_title">Maintenance Plans</h3>
+            <h3 class="h3 service-title standard-addons-heading" id="sp-care" data-i18n="services.maint_title">Maintenance Plans</h3>
             <p class="maintenance-billing-lead" data-i18n="services.maint_lead">Annual pricing: Essential $522/year · Standard $990/year · Priority $1,980/year. Paying annually <strong>saves 45%</strong> compared to month-to-month on any plan.</p>
-            <div class="enterprise-grid maintenance-tier-grid">
+            <div class="sp-billing-toggle" role="group" aria-label="Billing period">
+              <button type="button" class="sp-billing-btn" data-billing="monthly" aria-pressed="false"><span data-i18n="services.monthly_label">Monthly</span></button>
+              <button type="button" class="sp-billing-btn is-active" data-billing="annual" aria-pressed="true"><span data-i18n="services.ess_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span></button>
+            </div>
+            <div class="enterprise-grid maintenance-tier-grid" id="sp-care-grid" data-billing="annual">
               <div class="enterprise-card maintenance-plan-card">
                 <span class="enterprise-card-badge">Essential</span>
                 <div class="enterprise-card-title" data-i18n="services.ess_title">Essential Care</div>
@@ -1992,7 +1947,10 @@
               </div>
 
               <div class="enterprise-card featured-card maintenance-plan-card">
-                <span class="enterprise-card-badge">Standard</span>
+                <div class="enterprise-card-tags">
+                  <span class="enterprise-card-badge">Standard</span>
+                  <span class="enterprise-card-badge maintenance-recommended-badge" data-i18n="services.std_recommended">Recommended</span>
+                </div>
                 <div class="enterprise-card-title" data-i18n="services.std_title">Standard Care</div>
                 <div class="enterprise-card-sub" data-i18n="services.std_sub">
                   Everything in Essential, plus monthly content, included features, and faster replies — $468 more a year, about $39 a month.
@@ -2052,12 +2010,6 @@
               </div>
             </div>
 
-            <div class="enterprise-note-box maintenance-policies-note">
-              <p data-i18n="services.maint_policy">
-                Your first included month is the plan you pick. Queue is Priority, then Standard, then Essential. Custom work beyond the add-on cadence is quoted separately. We reply on the clock; the repair uses leftover hours. Weekdays 10am–6pm Pacific. Portal preferred; email and text also count.
-              </p>
-            </div>
-
             <div class="standard-addon-cta-wrap">
               <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month (the plan I pick) — Essential $79/mo or $522/yr (2 hrs · 1 work session), Standard $150/mo or $990/yr (6 hrs · 2 work sessions, recommended), or Priority $300/mo or $1,980/yr (10 hrs · 3 work sessions). Annual save 45% vs monthly.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                 <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
@@ -2065,34 +2017,58 @@
               </a>
             </div>
 
-            <h3 class="h3 service-title standard-addons-heading" data-i18n="services.buyout_h3">Ownership Upgrade (Buyout)</h3>
-            <div class="enterprise-grid standard-addons-grid">
-              <div class="enterprise-card full-width">
-                <span class="enterprise-card-badge" data-i18n="services.buyout_badge">Optional</span>
-                <div class="enterprise-card-title" data-i18n="services.buyout_title">Ownership Upgrade (Buyout Option)</div>
-                <div class="enterprise-card-sub" data-i18n="services.buyout_sub">
-                  Ready to own it outright? This one-time buyout transfers the site, app, code, stores, and accounts to you. After handoff, CodeWithRuben no longer hosts, maintains, or supports the product — it’s yours to run or hand to another developer.
+            <div class="sp-extras" id="sp-extras">
+              <div class="sp-extras-col">
+                <div class="enterprise-grid standard-addons-grid">
+                  <div class="enterprise-card full-width">
+                    <span class="enterprise-card-badge" data-i18n="services.linktree_badge">Standalone</span>
+                    <h3 class="sp-extras-kicker" data-i18n="services.linktree_h3">Just need a bio link?</h3>
+                    <p class="sp-extras-lead" data-i18n="services.linktree_lead">A branded Link Tree for Instagram and TikTok — one link that sends people to book, call, or visit your site. No full website required.</p>
+                    <div class="enterprise-card-title" data-i18n="services.linktree_title">Link Tree</div>
+                    <div class="enterprise-card-sub" data-i18n="services.linktree_sub">
+                      One polished link-in-bio page with your brand — avatar, bio, stacked action links, and social icons. Perfect when you only need the bio link.
+                    </div>
+                    <div class="enterprise-price">$99–$199</div>
+                    <div class="enterprise-price-note" data-i18n="services.linktree_note">One-time · ~3–5 days · Design + setup</div>
+                    <ul class="enterprise-feature-list">
+                      <li data-i18n="services.linktree_f1">Branded page for Instagram, TikTok, and other social bios</li>
+                      <li data-i18n="services.linktree_f2">Avatar, business name, short bio, and your brand colors</li>
+                      <li data-i18n="services.linktree_f3">Stacked action links — book, call, website, menu, and more</li>
+                      <li data-i18n="services.linktree_f4">Social icons row + mobile-first, fast-loading layout</li>
+                      <li data-i18n="services.linktree_f5">One revision round · hosting setup help (subdomain or path)</li>
+                    </ul>
+                    <a href="#hire-me" class="enterprise-cta" onclick="if(typeof switchToHireMePackage === 'function') { switchToHireMePackage('linktree'); } else if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">
+                      <ion-icon name="link-outline"></ion-icon>
+                      <span data-i18n="services.linktree_cta">Start from $99</span>
+                    </a>
+                    <button type="button" class="enterprise-examples-btn" data-package-examples="linktree" hidden>
+                      <ion-icon name="images-outline" aria-hidden="true"></ion-icon>
+                      <span data-i18n="services.examples_btn">See examples</span>
+                    </button>
+                  </div>
                 </div>
-                <div class="enterprise-price">$8,000–$15,000</div>
-                <div class="enterprise-price-note" data-i18n="services.buyout_note">One-time fee · Scope-based · Separate from setup packages and monthly care</div>
-                <ul class="enterprise-feature-list">
-                  <li data-i18n="services.buyout_f1">Full ownership — code, files, and store listings transfer to you</li>
-                  <li data-i18n="services.buyout_f2">Accounts, logins, and documentation handed to you or your developer</li>
-                  <li data-i18n="services.buyout_f3">CWR hosting, maintenance, and support stop at handoff</li>
-                </ul>
-                <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Ownership Upgrade (Buyout Option)', 'Interested in Ownership Upgrade buyout ($8,000–$15,000 range). Please share what is included for source-code/IP transfer and handoff.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
-                  <ion-icon name="document-text-outline"></ion-icon>
-                  <span data-i18n="services.buyout_cta">Discuss Ownership Transfer</span>
-                </a>
               </div>
             </div>
 
-
-            <section class="about-text" style="margin-top: 30px;">
-              <p>
-                <span data-i18n="services.note"><strong>Note:</strong> Packages are a license to use what we build, plus the monthly care plan you pick (first month included). CodeWithRuben owns the product until an Ownership Upgrade (buyout) is completed. After buyout, hosting, maintenance, and support from CWR end.</span>
-              </p>
-            </section>
+            <h3 class="h3 service-title standard-addons-heading" data-i18n="services.faq_h3">Details</h3>
+            <div class="sp-faq">
+              <details class="sp-faq-item" open>
+                <summary class="sp-faq-summary"><span data-i18n="services.maint_title">Maintenance Plans</span></summary>
+                <div class="sp-faq-body">
+                  <p data-i18n="services.maint_policy">
+                    Your first included month is the plan you pick. Queue is Priority, then Standard, then Essential. Custom work beyond the add-on cadence is quoted separately. We reply on the clock; the repair uses leftover hours. Weekdays 10am–6pm Pacific. Portal preferred; email and text also count.
+                  </p>
+                </div>
+              </details>
+              <details class="sp-faq-item" open>
+                <summary class="sp-faq-summary"><span data-i18n="services.buyout_h3">Ownership Upgrade (Buyout)</span></summary>
+                <div class="sp-faq-body">
+                  <p>
+                    <span data-i18n="services.note"><strong>Note:</strong> Packages are a license to use what we build, plus the monthly care plan you pick (first month included). CodeWithRuben owns the product until an Ownership Upgrade (buyout) is completed. After buyout, hosting, maintenance, and support from CWR end.</span>
+                  </p>
+                </div>
+              </details>
+            </div>
           </div>
 
         </section>
@@ -8206,9 +8182,9 @@
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/i18n.js?v=testimonials-nav-mobile-20260912"></script>
+  <script src="/assets/js/i18n.js?v=pricing-buyout-20260930"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=email-drawer-20260930"></script>
+  <script src="/assets/js/script.js?v=pricing-buyout-20260930"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=mobile-sheet-20260819v"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>

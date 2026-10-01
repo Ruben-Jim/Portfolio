@@ -5012,63 +5012,6 @@ article.about .about-founder {
     var(--eerie-black-2);
 }
 
-.enterprise-card--agency {
-  border-color: hsla(210, 60%, 60%, 0.2);
-  background:
-    radial-gradient(ellipse 130% 80% at 50% -30%, hsla(210, 70%, 55%, 0.06), transparent 60%),
-    var(--eerie-black-2);
-}
-
-.enterprise-card-badge--agency {
-  background: hsla(210, 60%, 60%, 0.12);
-  color: hsl(210, 80%, 72%);
-  border-color: hsla(210, 60%, 60%, 0.22);
-}
-
-.enterprise-agency-range {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 12px 14px;
-  margin-bottom: 18px;
-  border-radius: 10px;
-  border: 1px solid hsla(0, 0%, 100%, 0.07);
-  background: hsla(0, 0%, 100%, 0.03);
-}
-
-.enterprise-agency-range-label {
-  font-size: 10px;
-  font-weight: var(--fw-600);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: hsl(210, 70%, 68%);
-}
-
-.enterprise-agency-range-value {
-  font-size: clamp(1.25rem, 3vw, 1.6rem);
-  font-weight: var(--fw-600);
-  color: var(--white-1);
-  line-height: 1.15;
-}
-
-.enterprise-agency-range-note {
-  font-size: var(--fs-8);
-  color: var(--light-gray-70);
-  letter-spacing: 0.03em;
-}
-
-.enterprise-cta--agency {
-  border-color: hsla(210, 60%, 60%, 0.3);
-  background: hsla(210, 60%, 60%, 0.08);
-  color: hsl(210, 80%, 72%);
-}
-
-.enterprise-cta--agency:hover {
-  background: hsla(210, 60%, 60%, 0.16);
-  border-color: hsla(210, 60%, 60%, 0.45);
-  color: hsl(210, 90%, 82%);
-}
-
 .enterprise-card-badge {
   display: inline-block;
   padding: 4px 10px;
@@ -5521,8 +5464,7 @@ body.package-examples-open {
   margin-bottom: 14px;
 }
 
-.services-pricing .standard-bundles-grid + .standard-addons-heading,
-.services-pricing .services-agency-grid + .standard-addons-heading {
+.services-pricing .standard-bundles-grid + .standard-addons-heading {
   margin-top: 8px;
 }
 
@@ -5547,12 +5489,13 @@ body.package-examples-open {
   }
 }
 
-.services-agency-reveal {
+/* Text-link toggle under the packages (Ownership Upgrade). */
+.sp-reveal {
   margin: -8px 0 20px;
   text-align: center;
 }
 
-.services-agency-reveal-btn {
+.sp-reveal-btn {
   display: inline;
   padding: 0;
   border: none;
@@ -5568,15 +5511,20 @@ body.package-examples-open {
   text-underline-offset: 3px;
 }
 
-.services-agency-reveal-btn:hover,
-.services-agency-reveal-btn:focus-visible {
+.sp-reveal-btn:hover,
+.sp-reveal-btn:focus-visible {
   color: var(--orange-yellow-crayola);
   text-decoration-color: var(--orange-yellow-crayola);
 }
 
-.services-agency-grid[hidden] {
-  display: none !important;
-  margin: 0;
+/* Both labels carry data-i18n, so the state swap is CSS, not textContent. */
+.sp-reveal-btn[aria-expanded="false"] .sp-reveal-hide,
+.sp-reveal-btn[aria-expanded="true"] .sp-reveal-show {
+  display: none;
+}
+
+.sp-buyout[hidden] {
+  display: none;
 }
 
 .services-pricing .maintenance-policies-note {
@@ -5871,6 +5819,348 @@ body.package-examples-open {
   display: flex;
   justify-content: center;
   margin-bottom: 8px;
+}
+
+/* ── Services & Pricing layout: steps → setup → care → extras → FAQ ──────
+   Breakpoints are container queries on the pricing column, not the viewport:
+   the sidebar takes a different share of the screen at each width, and the
+   cards only care how much room they actually get. */
+.services-pricing .pricing-content {
+  container: sp / inline-size;
+}
+
+/* Setup packages: swipe row when narrow, 2×2 in the middle, 4 across when
+   wide. Growth keeps its place in the price ladder instead of spanning. */
+.services-pricing .sp-packages-grid {
+  display: flex;
+  gap: 14px;
+  margin: 0 -4px 10px;
+  padding: 4px 4px 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.services-pricing .sp-packages-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.services-pricing .sp-packages-grid > .enterprise-card {
+  display: flex;
+  flex: 0 0 86%;
+  flex-direction: column;
+  scroll-snap-align: start;
+}
+
+.services-pricing .sp-packages-grid > .featured-card {
+  grid-column: auto;
+}
+
+/* Badges are spans; in a flex column they would stretch to full width. */
+.sp-extras-col .enterprise-card > span {
+  align-self: flex-start;
+}
+
+/* Platform + badge share one row, so every card has the same row count
+   (Growth's extra "Most Popular" badge used to push its content down). */
+.enterprise-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.enterprise-card-tags > .enterprise-card-platform,
+.enterprise-card-tags > .enterprise-card-badge {
+  margin: 0;
+}
+
+.maintenance-plan-card .enterprise-card-tags {
+  margin-bottom: 0;
+}
+
+.maintenance-plan-card .maintenance-recommended-badge {
+  border-color: var(--orange-yellow-crayola);
+  background: var(--orange-yellow-crayola);
+  color: var(--smoky-black);
+}
+
+/* "/mo" and "/yr" sit beside the amount, not under it. */
+.services-pricing .enterprise-price .enterprise-price-period {
+  display: inline;
+  margin-left: 2px;
+}
+
+.services-pricing .sp-packages-grid .enterprise-feature-list {
+  flex: 1 0 auto;
+  columns: auto;
+}
+
+.sp-swipe-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 20px;
+}
+
+.sp-swipe-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--jet);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.sp-swipe-dot.is-active {
+  background: var(--orange-yellow-crayola);
+  transform: scale(1.25);
+}
+
+@container sp (min-width: 560px) {
+  .services-pricing .sp-packages-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 16px;
+    margin: 0 0 24px;
+    padding: 0;
+    overflow: visible;
+  }
+
+  /* Subgrid lines up tags, title, description, price, note, features, button
+     and examples link across cards. 8 rows = those 8 children; a card whose
+     examples link is hidden just leaves that last row empty. Row gap is 0 so
+     the cards' own margins set the spacing inside them. */
+  .services-pricing .sp-packages-grid > .enterprise-card {
+    display: grid;
+    grid-row: span 8;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+    margin-bottom: 16px;
+  }
+
+  .services-pricing .sp-packages-grid > .enterprise-card > * {
+    align-self: start;
+  }
+
+  .sp-swipe-dots {
+    display: none;
+  }
+}
+
+@container sp (min-width: 920px) {
+  .services-pricing .sp-packages-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .services-pricing .sp-packages-grid > .enterprise-card {
+    margin-bottom: 0;
+    padding: 20px 18px;
+  }
+
+  .services-pricing .sp-packages-grid .enterprise-card-title {
+    font-size: 1.25rem;
+  }
+
+  .services-pricing .sp-packages-grid .enterprise-price {
+    font-size: 1.75rem;
+  }
+
+  .services-pricing .sp-packages-grid .enterprise-cta {
+    justify-content: center;
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Growth's two tags must stay on one line, or every card's tag row doubles. */
+  .services-pricing .sp-packages-grid .enterprise-card-tags {
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+
+  .services-pricing .sp-packages-grid .enterprise-card-tags > * {
+    padding: 3px 7px;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  /* No room for the icon beside "Choose $1,500 Package" at this width. */
+  .services-pricing .sp-packages-grid .enterprise-cta ion-icon {
+    display: none;
+  }
+}
+
+/* Care plans: one price per card, picked by the Monthly/Annual toggle. */
+.sp-billing-toggle {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  margin: 0 0 18px;
+  padding: 4px;
+  border: 1px solid var(--jet);
+  border-radius: 999px;
+  background: hsla(0, 0%, 0%, 0.25);
+}
+
+.sp-billing-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--light-gray);
+  font-family: var(--ff-poppins);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sp-billing-btn.is-active {
+  background: hsla(45, 100%, 72%, 0.14);
+  color: var(--orange-yellow-crayola);
+}
+
+.maintenance-tier-grid[data-billing="annual"] .maintenance-billing-block:not(.maintenance-billing-block--annual),
+.maintenance-tier-grid[data-billing="monthly"] .maintenance-billing-block--annual {
+  display: none;
+}
+
+.services-pricing .maintenance-tier-grid .maintenance-billing-row {
+  grid-template-columns: 1fr;
+}
+
+.services-pricing .enterprise-grid.maintenance-tier-grid {
+  grid-template-columns: 1fr;
+}
+
+.services-pricing .maintenance-tier-grid .maintenance-plan-card--wide {
+  grid-column: auto;
+}
+
+.services-pricing .maintenance-tier-grid .maintenance-plan-card--wide .maintenance-plan-features {
+  columns: auto;
+}
+
+@container sp (min-width: 820px) {
+  .services-pricing .enterprise-grid.maintenance-tier-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Extras: Link Tree on its own full-width row. */
+.sp-extras {
+  display: grid;
+  gap: 0 18px;
+  margin-top: 28px;
+}
+
+.sp-extras-kicker {
+  margin: 2px 0 6px;
+  color: var(--white-2);
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+}
+
+.sp-extras-lead {
+  margin: 0 0 14px;
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+  line-height: 1.6;
+}
+
+.sp-extras-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.sp-extras-col .standard-addons-grid {
+  flex: 1 0 auto;
+}
+
+.sp-extras-col .enterprise-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sp-extras-col .enterprise-feature-list {
+  flex: 1 0 auto;
+}
+
+.sp-extras-col .enterprise-cta {
+  align-self: flex-start;
+}
+
+/* Full-width extras and the buyout card split long feature lists in two. */
+@container sp (min-width: 820px) {
+  .sp-extras .enterprise-feature-list,
+  .sp-buyout .enterprise-feature-list {
+    columns: 2;
+    column-gap: 32px;
+  }
+
+  .sp-extras .enterprise-feature-list li,
+  .sp-buyout .enterprise-feature-list li {
+    break-inside: avoid;
+  }
+}
+
+/* Fine print as an accordion. */
+.sp-faq {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.sp-faq-item {
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  background: var(--eerie-black-2);
+}
+
+.sp-faq-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--white-2);
+  font-size: var(--fs-6);
+  font-weight: var(--fw-500);
+  list-style: none;
+  cursor: pointer;
+}
+
+.sp-faq-summary::-webkit-details-marker {
+  display: none;
+}
+
+.sp-faq-summary::after {
+  content: "+";
+  color: var(--orange-yellow-crayola);
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.sp-faq-item[open] .sp-faq-summary::after {
+  content: "\2212";
+}
+
+.sp-faq-body {
+  padding: 0 16px 14px;
+}
+
+.sp-faq-body p {
+  margin: 0;
+  color: var(--light-gray-70);
+  font-size: var(--fs-7);
+  line-height: 1.6;
 }
 
 .service-item-featured {

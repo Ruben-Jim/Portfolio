@@ -99,7 +99,6 @@
       /* ── Services & Pricing ─────────────────────────────── */
       'services.title':        'Services &amp; Pricing',
       'services.intro':        'Housecall Pro, Jobber, GoDaddy, and tools like them rent you a template — monthly fees, their rules, and no way to own it. We license a branded website and app built around how you actually work. You pay a setup package, then a monthly care plan for hosting, updates, and support. CodeWithRuben owns the product until you buy it out. Every package includes 1 month of the care plan you pick.',
-      'services.agency_reveal': 'Larger company or studio? See Field Ops &amp; Studio \u2192',
 
       'services.platform_website': 'Website',
       'services.platform_web_admin': 'Website + Admin',
@@ -153,27 +152,10 @@
       'services.growth_f4':     'Crew hours + before/after you approve',
       'services.growth_cta':    'Choose $3,500 Package',
 
-      'services.biz_badge':     'Field Ops',
-      'services.biz_title':     'Business Platform',
-      'services.biz_sub':       'Website + mobile app for crews in the field — take payments, assign jobs, and run day-to-day ops from one dashboard.',
-      'services.biz_inv_label': 'Investment',
-      'services.biz_inv_note':  'Scoped after discovery \u00b7 1 month maintenance included',
-      'services.biz_f1':        'Everything in Growth Platform',
-      'services.biz_f2':        'Role-based staff login (owner vs. worker)',
-      'services.biz_f3':        'One app customers and crew can share',
-      'services.biz_f4':        'Custom field ops scoped after discovery',
-      'services.biz_cta':       'Book Discovery Call',
 
-      'services.studio_badge':  'Enterprise',
-      'services.studio_title':  'Studio Build',
-      'services.studio_sub':    'Full field-service operations platform (website + app) — the tier we use for live production apps with crews, billing, and back-office automation.',
-      'services.studio_inv_note': 'Custom scope \u00b7 Timeline after discovery \u00b7 1 month maintenance included',
-      'services.studio_f1':     'Everything in Business Platform',
-      'services.studio_f2':     'Quote \u2192 estimate \u2192 job \u2192 invoice pipeline',
-      'services.studio_f3':     'Recurring billing (weekly, monthly, custom)',
-      'services.studio_f4':     'Multi-location, tax regions, tips, promo codes',
-      'services.studio_cta':    'Start Discovery',
 
+      'services.std_recommended': 'Recommended',
+      'services.faq_h3':        'Details',
       'services.linktree_h3':    'Just need a bio link?',
       'services.linktree_lead':  'A branded Link Tree for Instagram and TikTok — one link that sends people to book, call, or visit your site. No full website required.',
       'services.linktree_badge': 'Standalone',
@@ -227,6 +209,8 @@
       'services.maint_policy':  'Your first included month is the plan you pick. Queue is Priority, then Standard, then Essential. Custom work beyond the add-on cadence is quoted separately. We reply on the clock; the repair uses leftover hours. Weekdays 10am\u20136pm Pacific. Portal preferred; email and text also count.',
 
       'services.buyout_h3':     'Ownership Upgrade (Buyout)',
+      'services.buyout_jump':   'Want to own it outright? See Ownership Upgrade \u2192',
+      'services.buyout_hide':   'Hide Ownership Upgrade \u2191',
       'services.buyout_badge':  'Optional',
       'services.buyout_title':  'Ownership Upgrade (Buyout Option)',
       'services.buyout_sub':    'Ready to own it outright? This one-time buyout transfers the site, app, code, stores, and accounts to you. After handoff, CodeWithRuben no longer hosts, maintains, or supports the product — it\u2019s yours to run or hand to another developer.',
@@ -365,7 +349,6 @@
       /* ── Services & Pricing ─────────────────────────────── */
       'services.title':       'Servicios y Precios',
       'services.intro':       'Housecall Pro, Jobber, GoDaddy y herramientas as\u00ed te rentan una plantilla \u2014 cuotas mensuales, sus reglas y sin forma de ser due\u00f1o. Licenciamos un sitio y app con tu marca, armados alrededor de c\u00f3mo trabajas. Pagas un paquete de arranque y luego un plan mensual de cuidado (hospedaje, actualizaciones y soporte). CodeWithRuben es due\u00f1o del producto hasta que lo compres. Cada paquete incluye 1 mes del plan de cuidado que elijas.',
-      'services.agency_reveal': '\u00bfEmpresa m\u00e1s grande o studio? Ver Operaciones de Campo y Studio \u2192',
 
       'services.platform_website': 'Sitio web',
       'services.platform_web_admin': 'Sitio + Admin',
@@ -419,27 +402,10 @@
       'services.growth_f4':     'Horas del equipo + antes/despu\u00e9s que t\u00fa apruebas',
       'services.growth_cta':    'Elegir paquete de $3,500',
 
-      'services.biz_badge':     'Operaciones de Campo',
-      'services.biz_title':     'Plataforma Empresarial',
-      'services.biz_sub':       'Sitio web + app m\u00f3vil para equipos en campo \u2014 acepta pagos, asigna trabajos y gestiona operaciones diarias desde un panel.',
-      'services.biz_inv_label': 'Inversi\u00f3n',
-      'services.biz_inv_note':  'Definido tras descubrimiento \u00b7 1 mes de mantenimiento incluido',
-      'services.biz_f1':        'Todo lo de Plataforma de Crecimiento',
-      'services.biz_f2':        'Acceso del personal con roles (due\u00f1o vs. trabajador)',
-      'services.biz_f3':        'Una app que clientes y equipo pueden compartir',
-      'services.biz_f4':        'Operaciones de campo a medida, tras descubrimiento',
-      'services.biz_cta':       'Agendar Llamada de Descubrimiento',
 
-      'services.studio_badge':  'Empresarial',
-      'services.studio_title':  'Studio Build',
-      'services.studio_sub':    'Plataforma completa de operaciones de campo (sitio + app) \u2014 el nivel que usamos para apps en producci\u00f3n con equipos, facturaci\u00f3n y automatizaci\u00f3n back-office.',
-      'services.studio_inv_note': 'Alcance personalizado \u00b7 Tiempo tras descubrimiento \u00b7 1 mes de mantenimiento incluido',
-      'services.studio_f1':     'Todo lo de Plataforma Empresarial',
-      'services.studio_f2':     'Cotizaci\u00f3n \u2192 presupuesto \u2192 trabajo \u2192 factura',
-      'services.studio_f3':     'Facturaci\u00f3n recurrente (semanal, mensual, a medida)',
-      'services.studio_f4':     'Varias ubicaciones, impuestos, propinas, c\u00f3digos promo',
-      'services.studio_cta':    'Iniciar Descubrimiento',
 
+      'services.std_recommended': 'Recomendado',
+      'services.faq_h3':        'Detalles',
       'services.linktree_h3':    '\u00bfSolo necesitas un enlace de bio?',
       'services.linktree_lead':  'Un Link Tree con tu marca para Instagram y TikTok — un enlace que lleva a reservar, llamar o visitar tu sitio. No necesitas un sitio completo.',
       'services.linktree_badge': 'Independiente',
@@ -493,6 +459,8 @@
       'services.maint_policy':  'Tu primer mes incluido es el plan que elijas. La cola es Prioritario, luego Est\u00e1ndar, luego Esencial. El trabajo a la medida fuera del ritmo de extras se cotiza aparte. Respondemos en el reloj; la reparaci\u00f3n usa las horas que queden. D\u00edas de semana 10am\u20136pm Pac\u00edfico. Portal de preferencia; correo y texto tambi\u00e9n cuentan.',
 
       'services.buyout_h3':     'Mejora de Propiedad (Compra)',
+      'services.buyout_jump':   '\u00bfQuieres que sea tuyo por completo? Ver Mejora de Propiedad \u2192',
+      'services.buyout_hide':   'Ocultar Mejora de Propiedad \u2191',
       'services.buyout_badge':  'Opcional',
       'services.buyout_title':  'Mejora de Propiedad (Opci\u00f3n de Compra)',
       'services.buyout_sub':    '\u00bfListo para ser due\u00f1o total? Esta compra \u00fanica te transfiere el sitio, la app, el c\u00f3digo, las tiendas y las cuentas. Despu\u00e9s de la entrega, CodeWithRuben ya no hospeda, mantiene ni da soporte \u2014 lo corres t\u00fa o tu desarrollador.',

@@ -6110,20 +6110,76 @@ async function sendPortfolioEmailRequest(body, options) {
   return data;
 }
 
-function initServicesAgencyReveal() {
-  var btn = document.getElementById('services-agency-reveal-btn');
-  var grid = document.getElementById('services-agency-grid');
-  var wrap = document.getElementById('services-agency-reveal');
-  if (!btn || !grid || btn._agencyRevealBound) return;
-  btn._agencyRevealBound = true;
-  btn.addEventListener('click', function () {
-    grid.hidden = false;
-    btn.setAttribute('aria-expanded', 'true');
-    if (wrap) wrap.hidden = true;
-    if (typeof grid.scrollIntoView === 'function') {
-      grid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+/** Services & Pricing: Ownership Upgrade reveal, package swipe dots, care billing toggle. */
+function initServicesPricingLayout() {
+  var root = document.querySelector('article.services-pricing');
+  if (!root || root._spLayoutBound) return;
+  root._spLayoutBound = true;
+
+  var buyoutBtn = document.getElementById('sp-buyout-toggle');
+  var buyout = document.getElementById('sp-buyout');
+  if (buyoutBtn && buyout) {
+    buyoutBtn.addEventListener('click', function () {
+      var open = buyout.hidden;
+      buyout.hidden = !open;
+      buyoutBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) buyout.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  var toggle = root.querySelector('.sp-billing-toggle');
+  var careGrid = document.getElementById('sp-care-grid');
+  if (toggle && careGrid) {
+    toggle.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-billing]');
+      if (!btn) return;
+      var billing = btn.getAttribute('data-billing');
+      careGrid.setAttribute('data-billing', billing);
+      toggle.querySelectorAll('[data-billing]').forEach(function (b) {
+        var on = b === btn;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    });
+  }
+
+  // Dots only matter in the phone swipe layout; CSS hides them otherwise.
+  var track = document.getElementById('sp-setup');
+  var dotsWrap = document.getElementById('sp-packages-dots');
+  if (!track || !dotsWrap) return;
+  var cards = Array.prototype.slice.call(track.children);
+  dotsWrap.innerHTML = cards
+    .map(function (_, i) {
+      return '<button type="button" class="sp-swipe-dot' + (i === 0 ? ' is-active' : '') + '" tabindex="-1" data-sp-dot="' + i + '"></button>';
+    })
+    .join('');
+  var dots = dotsWrap.querySelectorAll('.sp-swipe-dot');
+  dotsWrap.addEventListener('click', function (e) {
+    var dot = e.target.closest('[data-sp-dot]');
+    if (!dot) return;
+    var card = cards[Number(dot.getAttribute('data-sp-dot'))];
+    if (card) track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: 'smooth' });
   });
+  var ticking = false;
+  track.addEventListener(
+    'scroll',
+    function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        var left = track.scrollLeft;
+        var best = 0;
+        cards.forEach(function (card, i) {
+          if (Math.abs(card.offsetLeft - track.offsetLeft - left) < Math.abs(cards[best].offsetLeft - track.offsetLeft - left)) best = i;
+        });
+        dots.forEach(function (d, i) {
+          d.classList.toggle('is-active', i === best);
+        });
+      });
+    },
+    { passive: true }
+  );
 }
 
 function initClientPortalRecovery() {
@@ -8797,7 +8853,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initHireMeInquiryRecall();
   initContactConversationRecall();
   initClientPortalRecovery();
-  initServicesAgencyReveal();
+  initServicesPricingLayout();
   setTimeout(restoreActivePage, 50);
 });
 
@@ -8807,7 +8863,7 @@ if (document.readyState !== 'loading') {
   initHireMeInquiryRecall();
   initContactConversationRecall();
   initClientPortalRecovery();
-  initServicesAgencyReveal();
+  initServicesPricingLayout();
   setTimeout(restoreActivePage, 50);
 }
 
