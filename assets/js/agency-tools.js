@@ -671,7 +671,7 @@
     if (t === 'essential') {
       return { planTier: 'essential', slaHours: 120, hoursIncluded: 2 };
     }
-    return { planTier: 'standard', slaHours: 72, hoursIncluded: 6 };
+    return { planTier: 'standard', slaHours: 48, hoursIncluded: 6 };
   }
 
   function normalizeMaintenance(id, row) {
@@ -1963,7 +1963,7 @@
         hoursIncluded: 6,
         hoursUsed: 0,
         renewalDate: '',
-        slaHours: 72,
+        slaHours: 48,
         notes: ''
       };
     }
@@ -5866,7 +5866,7 @@
       hoursIncluded: 6,
       hoursUsed: 0,
       renewalDate: '',
-      slaHours: 72,
+      slaHours: 48,
       notes: '',
       tickets: [],
       createdAt: ts(),

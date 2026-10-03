@@ -188,9 +188,9 @@
       monthlyNote: 'Billed monthly',
       annualNote: 'Save 45% vs month-to-month',
       annualEquiv: '~$83/mo equivalent · billed once per year',
-      slaLabel: '3 business days',
+      slaLabel: '2 business days',
       hoursIncluded: 6,
-      slaHours: 72,
+      slaHours: 48,
       recommended: true,
       features: [
         'Everything in Essential Care',
@@ -198,7 +198,7 @@
         'App Store updates every month if needed',
         'New features included each month — not quoted separately',
         'One bigger addition every 3 months · one large update each year',
-        'Questions in 3 business days · if you are down, reply in 4 hours including nights and weekends'
+        'Questions in 2 business days · if you are down, reply in 4 hours including nights and weekends'
       ]
     },
     {

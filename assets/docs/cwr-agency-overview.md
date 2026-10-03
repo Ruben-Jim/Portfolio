@@ -152,7 +152,7 @@ After the included first month (whichever plan they pick):
 | Plan | Monthly | Annual | Hours · sessions | Normal reply | If site/app is down |
 |------|---------|--------|------------------|--------------|---------------------|
 | **Essential Care** | $79/mo | $522/yr (~$44/mo) | 2 hrs · 1 work session | 5 business days | 1 business day, weekdays only |
-| **Standard Care** (recommended) | $150/mo | $990/yr (~$83/mo) | 6 hrs · 2 work sessions | 3 business days | 4 hours, evenings/weekends included |
+| **Standard Care** (recommended) | $150/mo | $990/yr (~$83/mo) | 6 hrs · 2 work sessions | 2 business days | 4 hours, evenings/weekends included |
 | **Priority Care** | $300/mo | $1,980/yr (~$165/mo) | 10 hrs · 3 work sessions | 1 business day | 2 hours, evenings/weekends, ahead of Standard |
 
 **Also on Standard / Priority:** separate content cadence (monthly / weekly), small features in hours, modest add-ons (quarterly / monthly), large add-ons (yearly / every 6 months). Essential quotes new features and add-ons. Weekdays **10am–6pm Pacific**. US federal holidays pause the weekday clock. Store accounts: **CodeWithRuben**; app named for the client; listings transfer on buyout. Payments: client Stripe only.

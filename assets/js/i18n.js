@@ -186,14 +186,14 @@
 
       'services.std_title':     'Standard Care',
       'services.std_sub':       'Everything in Essential, plus monthly content, included features, and faster replies \u2014 $468 more a year, about $39 a month.',
-      'services.std_mo_note':   '3 business days \u00b7 6 hrs \u00b7 2 work sessions',
+      'services.std_mo_note':   '2 business days \u00b7 6 hrs \u00b7 2 work sessions',
       'services.std_ann_label': 'Annual <span class="maintenance-save-badge">Save 45%</span>',
       'services.std_ann_note':  'Same as ~$83/mo \u00b7 billed once per year',
       'services.std_f1':        'Everything in Essential Care',
       'services.std_f2':        'Send photos and videos any time \u2014 published every month',
       'services.std_f3':        'App Store updates every month if needed \u00b7 new features included each month',
       'services.std_f4':        'One bigger addition every 3 months \u00b7 one large update each year',
-      'services.std_f5':        'Questions in 3 business days \u00b7 if you are down, 4 hours including nights and weekends',
+      'services.std_f5':        'Questions in 2 business days \u00b7 if you are down, 4 hours including nights and weekends',
 
       'services.pri_title':     'Priority Care',
       'services.pri_sub':       'Everything in Standard, plus weekly content, faster replies, and unused work that carries 30 days \u2014 $990 more a year, about $83 a month.',
@@ -436,14 +436,14 @@
 
       'services.std_title':     'Cuidado Est\u00e1ndar',
       'services.std_sub':       'Todo lo de Esencial, m\u00e1s contenido mensual, funciones incluidas y respuestas m\u00e1s r\u00e1pidas \u2014 $468 m\u00e1s al a\u00f1o, unos $39 al mes.',
-      'services.std_mo_note':   '3 d\u00edas h\u00e1biles \u00b7 6 hrs \u00b7 2 sesiones de trabajo',
+      'services.std_mo_note':   '2 d\u00edas h\u00e1biles \u00b7 6 hrs \u00b7 2 sesiones de trabajo',
       'services.std_ann_label': 'Anual <span class="maintenance-save-badge">Ahorra 45%</span>',
       'services.std_ann_note':  'Equivale a ~$83/mes \u00b7 facturado una vez al a\u00f1o',
       'services.std_f1':        'Todo lo de Cuidado Esencial',
       'services.std_f2':        'Env\u00eda fotos y videos cuando quieras \u2014 se publican cada mes',
       'services.std_f3':        'Actualizaciones a App Store cada mes si hace falta \u00b7 funciones nuevas incluidas cada mes',
       'services.std_f4':        'Una adici\u00f3n m\u00e1s grande cada 3 meses \u00b7 una actualizaci\u00f3n grande cada a\u00f1o',
-      'services.std_f5':        'Preguntas en 3 d\u00edas h\u00e1biles \u00b7 si se cae, 4 horas incluyendo noches y fines de semana',
+      'services.std_f5':        'Preguntas en 2 d\u00edas h\u00e1biles \u00b7 si se cae, 4 horas incluyendo noches y fines de semana',
 
       'services.pri_title':     'Cuidado Prioritario',
       'services.pri_sub':       'Todo lo de Est\u00e1ndar, m\u00e1s contenido semanal, respuestas m\u00e1s r\u00e1pidas y trabajo no usado que pasa 30 d\u00edas \u2014 $990 m\u00e1s al a\u00f1o, unos $83 al mes.',

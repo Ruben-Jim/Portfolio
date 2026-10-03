@@ -73,7 +73,7 @@
       annualNote: 'Save 45% vs month-to-month',
       annualEquiv: '~$83/mo · billed once per year',
       hoursIncluded: 6,
-      slaHours: 72,
+      slaHours: 48,
       recommended: true,
       features: [
         'Everything in Essential Care',
@@ -81,7 +81,7 @@
         'App Store updates every month if needed',
         'New features and improvements included each month — not quoted separately',
         'One bigger addition every 3 months · one large update each year',
-        'Questions in 3 business days · if you are down, reply in 4 hours including nights and weekends',
+        'Questions in 2 business days · if you are down, reply in 4 hours including nights and weekends',
         'Your requests move ahead of Essential clients'
       ],
       compareLead: 'The difference is $468 a year — about $39 a month. What that $39 buys:',
@@ -89,7 +89,7 @@
         'Website content updates become included',
         '3× more app store updates — monthly instead of 4× a year',
         '6× faster when you are down — 4 hours instead of 1 business day, nights and weekends too',
-        '2 days faster on regular questions — 3 business days instead of 5',
+        '3 days faster on regular questions — 2 business days instead of 5',
         'New features stop being a separate bill'
       ]
     },
@@ -118,7 +118,7 @@
       compare: [
         '4× more content updates — weekly instead of monthly',
         '2× faster when you are down — 2 hours instead of 4',
-        '3× faster on regular questions — 24 hours instead of 3 business days',
+        '2× faster on regular questions — 24 hours instead of 2 business days',
         '2× the major updates — every 6 months instead of once a year',
         'First in line, ahead of every other client'
       ]
@@ -162,7 +162,7 @@
         };
       }
     }
-    return { hoursIncluded: 6, slaHours: 72 };
+    return { hoursIncluded: 6, slaHours: 48 };
   }
 
   function normalizeMaintenanceRecord(id, row) {
