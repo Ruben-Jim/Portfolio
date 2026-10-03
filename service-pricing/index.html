@@ -1933,7 +1933,7 @@
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label" data-i18n="services.ess_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
                   <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_ann_note">Same as ~$44/mo · billed once per year</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_ann_note">Just $44/mo, paid yearly · save $426</div>
                 </div>
                 </div>
 
@@ -1941,7 +1941,7 @@
                   <li data-i18n="services.ess_f1">Website and app stay hosted, secure, and online</li>
                   <li data-i18n="services.ess_f2">App Store and Play Store updates 4 times a year</li>
                   <li data-i18n="services.ess_f3">Questions answered in 5 business days</li>
-                  <li data-i18n="services.ess_f4">If you are completely down, reply in 1 business day — weekdays only</li>
+                  <li data-i18n="services.ess_f4">If your app is down, reply in 1 business day — weekdays only</li>
                   <li data-i18n="services.ess_f5">Website content changes and new features are quoted separately</li>
                 </ul>
               </div>
@@ -1966,7 +1966,7 @@
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label" data-i18n="services.std_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
                   <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_ann_note">Same as ~$83/mo · billed once per year</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_ann_note">Just $83/mo, paid yearly · save $810</div>
                 </div>
                 </div>
 
@@ -1975,7 +1975,7 @@
                   <li data-i18n="services.std_f2">Send photos and videos any time — published every month</li>
                   <li data-i18n="services.std_f3">App Store updates every month if needed · new features included each month</li>
                   <li data-i18n="services.std_f4">One bigger addition every 3 months · one large update each year</li>
-                  <li data-i18n="services.std_f5">Questions in 2 business days · if you are down, 4 hours including nights and weekends</li>
+                  <li data-i18n="services.std_f5">Questions in 2 business days · if your app is down, reply in 4 hours, nights and weekends included</li>
                 </ul>
               </div>
 
@@ -1990,13 +1990,13 @@
                 <div class="maintenance-billing-block">
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$300<span class="enterprise-price-period">/mo</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">1 business day · 10 hrs · 3 work sessions</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">3 business hours · 10 hrs · 3 work sessions</div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label" data-i18n="services.pri_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
                   <div class="enterprise-price">$1,980<span class="enterprise-price-period">/yr</span></div>
-                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_ann_note">Same as ~$165/mo · billed once per year</div>
+                  <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_ann_note">Just $165/mo, paid yearly · save $1,620</div>
                 </div>
                 </div>
 
@@ -2004,7 +2004,7 @@
                   <li data-i18n="services.pri_f1">Everything in Standard Care</li>
                   <li data-i18n="services.pri_f2">Content published weekly · one large update every 6 months</li>
                   <li data-i18n="services.pri_f3">Unused work in a month carries over 30 days</li>
-                  <li data-i18n="services.pri_f4">Questions in 24 hours · if you are down, reply in 2 hours</li>
+                  <li data-i18n="services.pri_f4">Questions in 3 business hours · if your app is down, reply in 2 hours, nights and weekends included</li>
                   <li data-i18n="services.pri_f5">First in line, ahead of every other client</li>
                 </ul>
               </div>
@@ -7426,7 +7426,7 @@
             </div>
             <div class="phase-box">
               <p class="question">4. Maintenance reply clocks</p>
-              <p class="text-sm opacity-80">Essential: 5 business days (weekdays 10am–6pm Pacific). Standard: 2 business days; down-reply 4 hours including evenings/weekends. Priority: 1 business day; down-reply 2 hours, ahead of Standard.</p>
+              <p class="text-sm opacity-80">Essential: 5 business days (weekdays 10am–6pm Pacific). Standard: 2 business days; down-reply 4 hours including evenings/weekends. Priority: 3 business hours; down-reply 2 hours including evenings/weekends, ahead of Standard. Essential down-reply: 1 business day.</p>
             </div>
             <div class="phase-box">
               <p class="question">5. Content Collection</p>
@@ -7986,8 +7986,8 @@
           <div class="form-group form-group-half"><label for="maint-renewal">Renewal date</label><input type="date" id="maint-renewal"></div>
           <div class="form-group form-group-half">
             <label for="maint-sla">Service level agreement (hours)</label>
-            <input type="number" id="maint-sla" min="1" value="48" placeholder="Service level agreement" title="Service level agreement — promised response time in hours (Essential 120 = 5 days, Standard 48 = 2 days, Priority 24 = 1 day)">
-            <span class="form-hint">Hours until you respond (Essential 120, Standard 48, Priority 24). Down-replies on Standard/Priority are 4h / 2h.</span>
+            <input type="number" id="maint-sla" min="1" value="48" placeholder="Service level agreement" title="Service level agreement — promised response time in hours (Essential 120 = 5 days, Standard 48 = 2 days, Priority 3 = 3 business hours)">
+            <span class="form-hint">Hours until you respond (Essential 120, Standard 48, Priority 3). Down-replies: Essential 1 business day, Standard 4h, Priority 2h.</span>
           </div>
         </div>
         <div class="form-group"><label for="maint-notes">Notes</label><textarea id="maint-notes" class="has-scrollbar" rows="3"></textarea></div>
@@ -8177,16 +8177,16 @@
   <script src="/assets/js/portfolio-built-in-data.js?v=pkg-examples-20260820"></script>
   <script src="/assets/js/portfolio-assets.js?v=media-picker-20260929"></script>
   <script src="/assets/js/business-systems-data.js?v=expo-app-demo-20260911"></script>
-  <script src="/assets/js/business-doc-shared.js?v=standard-2day-20261003"></script>
+  <script src="/assets/js/business-doc-shared.js?v=priority-3bizhr-20261003"></script>
   <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/i18n.js?v=standard-2day-20261003"></script>
+  <script src="/assets/js/i18n.js?v=priority-3bizhr-20261003"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
   <script src="/assets/js/script.js?v=pricing-buyout-20260930"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=standard-2day-20261003"></script>
+  <script src="/assets/js/agency-tools.js?v=priority-3bizhr-20261003"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->

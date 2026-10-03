@@ -666,7 +666,7 @@
   function maintenanceTierDefaults(tier) {
     var t = String(tier || 'standard').toLowerCase();
     if (t === 'priority') {
-      return { planTier: 'priority', slaHours: 24, hoursIncluded: 10 };
+      return { planTier: 'priority', slaHours: 3, hoursIncluded: 10 };
     }
     if (t === 'essential') {
       return { planTier: 'essential', slaHours: 120, hoursIncluded: 2 };
@@ -691,7 +691,7 @@
       hoursIncluded: Number(row.hoursIncluded) || 6,
       hoursUsed: Number(row.hoursUsed) || 0,
       renewalDate: String(row.renewalDate || ''),
-      slaHours: Number(row.slaHours) || 72,
+      slaHours: Number(row.slaHours) || 48,
       notes: String(row.notes || '').slice(0, 2000),
       tickets: Array.isArray(row.tickets) ? row.tickets : [],
       updatedAt: row.updatedAt || null
@@ -1986,7 +1986,7 @@
       hoursIncluded: Number(document.getElementById('maint-hours-included').value) || 6,
       hoursUsed: Number(document.getElementById('maint-hours-used').value) || 0,
       renewalDate: document.getElementById('maint-renewal').value,
-      slaHours: Number(document.getElementById('maint-sla').value) || 72,
+      slaHours: Number(document.getElementById('maint-sla').value) || 48,
       notes: document.getElementById('maint-notes').value.trim(),
       updatedAt: ts()
     };
@@ -6655,7 +6655,8 @@
   function maintSlaWords(hours) {
     var h = Number(hours) || 0;
     if (!h) return 'No response time set';
-    if (h <= 24) return 'Reply within 24 hours';
+    if (h < 24) return 'Reply within ' + h + (h === 1 ? ' business hour' : ' business hours');
+    if (h === 24) return 'Reply within 24 hours';
     if (h % 24 === 0) return 'Reply within ' + h / 24 + ' business days';
     return 'Reply within ' + h + ' hours';
   }

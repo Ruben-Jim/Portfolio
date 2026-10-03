@@ -33,9 +33,9 @@ Every package is fixed-price and includes one month of a care plan.
 
 Annual billing saves 45% versus month-to-month.
 
-- **Essential Care — $79/mo or $522/yr:** hosting, security, uptime. App store updates 4x/year. Questions answered in 5 business days; 1 business day if fully down. Content changes quoted separately.
+- **Essential Care — $79/mo or $522/yr:** hosting, security, uptime. App store updates 4x/year. Questions answered in 5 business days; 1 business day if your app is down (weekdays). Content changes quoted separately.
 - **Standard Care — $150/mo or $990/yr:** everything in Essential, plus monthly published content, monthly app updates, new features included each month, a larger addition quarterly and one large update yearly. 2-business-day replies; 4 hours if down, including nights and weekends.
-- **Priority Care — $300/mo or $1,980/yr:** everything in Standard, plus weekly content, a large update every 6 months, unused hours carrying 30 days, 24-hour replies, 2-hour response if down, and first position ahead of other clients.
+- **Priority Care — $300/mo or $1,980/yr:** everything in Standard, plus weekly content, a large update every 6 months, unused hours carrying 30 days, replies within 3 business hours, 2-hour response if down (nights and weekends included), and first position ahead of other clients.
 
 ## Pages
 

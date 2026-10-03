@@ -49,15 +49,15 @@
       monthlyAmount: 79,
       annualAmount: 522,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs month-to-month',
-      annualEquiv: '~$44/mo · billed once per year',
+      annualNote: 'Just $44/mo, paid yearly',
+      annualEquiv: 'save $426',
       hoursIncluded: 2,
       slaHours: 120,
       features: [
         'Website and app stay hosted, secure, and online',
         'App Store and Play Store updates 4 times a year',
         'Questions answered in 5 business days',
-        'If you are completely down, reply in 1 business day — weekdays only',
+        'If your app is down, reply in 1 business day — weekdays only',
         'Website content changes and new features are quoted separately'
       ]
     },
@@ -70,8 +70,8 @@
       monthlyAmount: 150,
       annualAmount: 990,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs month-to-month',
-      annualEquiv: '~$83/mo · billed once per year',
+      annualNote: 'Just $83/mo, paid yearly',
+      annualEquiv: 'save $810',
       hoursIncluded: 6,
       slaHours: 48,
       recommended: true,
@@ -81,14 +81,14 @@
         'App Store updates every month if needed',
         'New features and improvements included each month — not quoted separately',
         'One bigger addition every 3 months · one large update each year',
-        'Questions in 2 business days · if you are down, reply in 4 hours including nights and weekends',
+        'Questions in 2 business days · if your app is down, reply in 4 hours, nights and weekends included',
         'Your requests move ahead of Essential clients'
       ],
       compareLead: 'The difference is $468 a year — about $39 a month. What that $39 buys:',
       compare: [
         'Website content updates become included',
         '3× more app store updates — monthly instead of 4× a year',
-        '6× faster when you are down — 4 hours instead of 1 business day, nights and weekends too',
+        '6× faster when your app is down — 4 hours instead of 1 business day, nights and weekends too',
         '3 days faster on regular questions — 2 business days instead of 5',
         'New features stop being a separate bill'
       ]
@@ -102,23 +102,23 @@
       monthlyAmount: 300,
       annualAmount: 1980,
       monthlyNote: 'Billed monthly',
-      annualNote: 'Save 45% vs month-to-month',
-      annualEquiv: '~$165/mo · billed once per year',
+      annualNote: 'Just $165/mo, paid yearly',
+      annualEquiv: 'save $1,620',
       hoursIncluded: 10,
-      slaHours: 24,
+      slaHours: 3,
       features: [
         'Everything in Standard Care',
         'Content published weekly',
         'One large update every 6 months',
         'Unused work in a month carries over 30 days',
-        'Questions in 24 hours · if you are down, reply in 2 hours including nights and weekends',
+        'Questions in 3 business hours · if your app is down, reply in 2 hours, nights and weekends included',
         'First in line, ahead of every other client'
       ],
       compareLead: '$990 a year more than Standard — about $83 a month. What it buys:',
       compare: [
         '4× more content updates — weekly instead of monthly',
-        '2× faster when you are down — 2 hours instead of 4',
-        '2× faster on regular questions — 24 hours instead of 2 business days',
+        '2× faster when your app is down — 2 hours instead of 4',
+        'Questions answered in 3 business hours instead of 2 business days',
         '2× the major updates — every 6 months instead of once a year',
         'First in line, ahead of every other client'
       ]
@@ -360,7 +360,8 @@
   function ticketSlaWords(hours) {
     var h = Number(hours) || 0;
     if (!h) return 'We’ll reply as soon as we can';
-    if (h <= 24) return 'Reply within 24 hours';
+    if (h < 24) return 'Reply within ' + h + (h === 1 ? ' business hour' : ' business hours');
+    if (h === 24) return 'Reply within 24 hours';
     if (h % 24 === 0) return 'Reply within ' + h / 24 + ' business days';
     return 'Reply within ' + h + ' hours';
   }
