@@ -76,21 +76,16 @@
       slaHours: 48,
       recommended: true,
       features: [
-        'Everything in Essential Care',
-        'Send photos and videos any time — published every month',
-        'App Store updates every month if needed',
-        'New features and improvements included each month — not quoted separately',
-        'One bigger addition every 3 months · one large update each year',
-        'Questions in 2 business days · if your app is down, reply in 4 hours, nights and weekends included',
-        'Your requests move ahead of Essential clients'
+        'Everything in Essential Care'
       ],
       compareLead: 'The difference is $468 a year — about $39 a month. What that $39 buys:',
       compare: [
-        'Website content updates become included',
+        'Content updates included — send photos and videos any time, published every month',
         '3× more app store updates — monthly instead of 4× a year',
-        '6× faster when your app is down — 4 hours instead of 1 business day, nights and weekends too',
+        'New features and improvements on request, plus one major update each year (like a page redesign, or new pages or tools) — no separate bill',
+        '6× faster when your app is down — 4 hours instead of 1 business day, nights and weekends included',
         '3 days faster on regular questions — 2 business days instead of 5',
-        'New features stop being a separate bill'
+        'Your requests move ahead of Essential clients'
       ]
     },
     {
@@ -107,19 +102,14 @@
       hoursIncluded: 10,
       slaHours: 3,
       features: [
-        'Everything in Standard Care',
-        'Content published weekly',
-        'One large update every 6 months',
-        'Unused work in a month carries over 30 days',
-        'Questions in 3 business hours · if your app is down, reply in 2 hours, nights and weekends included',
-        'First in line, ahead of every other client'
+        'Everything in Standard Care'
       ],
       compareLead: '$990 a year more than Standard — about $83 a month. What it buys:',
       compare: [
         '4× more content updates — weekly instead of monthly',
-        '2× faster when your app is down — 2 hours instead of 4',
-        'Questions answered in 3 business hours instead of 2 business days',
         '2× the major updates — every 6 months instead of once a year',
+        '2× faster when your app is down — 2 hours instead of 4, nights and weekends included',
+        'Questions answered in 3 business hours instead of 2 business days',
         'First in line, ahead of every other client'
       ]
     }
@@ -698,15 +688,11 @@
         '<p class="client-portal-maint-active">' +
         '<strong>' +
         esc(planTierLabel(maint.planTier)) +
-        '</strong> · ' +
-        esc(maint.hoursUsed) +
-        ' of ' +
-        esc(maint.hoursIncluded) +
-        ' hours used' +
+        '</strong> · Active' +
         // Renewal date lives in the payment block below - stating it twice in
         // one section read as noise.
         '</p>' +
-        '<p class="client-portal-maint-meta">Fixes use the hours left on your plan. Bigger custom work is priced separately.</p>' +
+        '<p class="client-portal-maint-meta">Send fixes and requests through a support ticket below.</p>' +
         renderMaintenancePayBlockHtml(maint) +
         // Plan-only: raising a ticket draws on the plan's hours, so the entry
         // point appears with the plan and not before it.

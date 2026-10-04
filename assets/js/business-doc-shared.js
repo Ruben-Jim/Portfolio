@@ -196,8 +196,7 @@
         'Everything in Essential Care',
         'Send photos and videos any time — published every month',
         'App Store updates every month if needed',
-        'New features included each month — not quoted separately',
-        'One bigger addition every 3 months · one large update each year',
+        'New features and improvements on request, plus one major update each year (like a page redesign, or new pages or tools) — no separate bill',
         'Questions in 2 business days · if your app is down, reply in 4 hours, nights and weekends included'
       ]
     },
@@ -218,8 +217,7 @@
       features: [
         'Everything in Standard Care',
         'Content published weekly',
-        'One large update every 6 months',
-        'Unused work in a month carries over 30 days',
+        'One major update every 6 months',
         'Questions in 3 business hours · if your app is down, reply in 2 hours, nights and weekends included',
         'First in line, ahead of every other client'
       ]
@@ -1232,7 +1230,7 @@
       'If a payment is not received by its due date, the following schedule applies:</p>' +
       '<ul class="scope-feature-list">' +
       '<li><span class="bullet-li-text"><strong>Days 1&ndash;14 (grace period):</strong> CWR notifies Client by email. Hosting and support continue uninterrupted.</span></li>' +
-      '<li><span class="bullet-li-text"><strong>Day 15:</strong> Support response times and scheduled work sessions under the plan above are paused until payment is received. The application remains live.</span></li>' +
+      '<li><span class="bullet-li-text"><strong>Day 15:</strong> Support response times and scheduled work under the plan above are paused until payment is received. The application remains live.</span></li>' +
       '<li><span class="bullet-li-text"><strong>Day 30:</strong> Hosting is suspended and the application is taken offline until payment is received in full, plus a reactivation fee equal to one month of the plan above.</span></li>' +
       '<li><span class="bullet-li-text"><strong>Day 60:</strong> If payment still has not been received, CWR may archive Client’s data, remove the application from CWR’s hosting, and close the account.</span></li>' +
       '</ul>' +
@@ -1509,8 +1507,6 @@
       String((doc && doc.maintenanceBilling) || '').toLowerCase() === 'annual' ? 'annual' : 'monthly';
     var billingLabel = billing === 'annual' ? 'Annual' : 'Monthly';
     var priceLabel = billing === 'annual' ? plan.annual : plan.monthly;
-    var hours =
-      typeof plan.hoursIncluded === 'number' ? plan.hoursIncluded : Number(plan.hoursIncluded) || 0;
     var sla = String(plan.slaLabel || '').trim();
     var feats = Array.isArray(plan.features) ? plan.features.slice(0, 4) : [];
     var featLis = '';
@@ -1533,9 +1529,6 @@
       '</div>' +
       '</div>' +
       '<dl class="inv-plan-summary-kv">' +
-      (hours
-        ? '<div><dt>Hours included</dt><dd>' + escapeHtml(String(hours)) + '/mo</dd></div>'
-        : '') +
       (sla
         ? '<div><dt>Reply time</dt><dd>' + escapeHtml(sla) + '</dd></div>'
         : '') +
