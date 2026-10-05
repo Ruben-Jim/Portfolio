@@ -11069,12 +11069,104 @@ window.addEventListener('load', function() {
         '{{linkLine}}\n' +
         'That is a live build you can tap through. If it fits your shop, I will hold 15 minutes — fit call, not a pitch deck.\n\n' +
         '— Ruben'
+    },
+    {
+      id: 'restaurant',
+      group: 'Food & events',
+      label: 'Restaurant & pizzeria',
+      vertical: 'local restaurants and pizzerias',
+      defaultLink: 'https://pizza.expo.app',
+      defaultSubject: '{{projectName}} — your own online ordering (no app fees)?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most restaurants I talk to in your area are either missing calls during the rush or giving DoorDash and Uber Eats 15–30% of every order.\n\n' +
+        'I build branded online ordering for local restaurants: customers browse your menu, add extras and a tip, pay ahead for pickup, and track their order live. Your kitchen sees every order on one board, can mark items sold out, and can switch ordering off when it’s slammed. It also runs pop-up event and promo banners, and can take catering and event orders.\n\n' +
+        'A local pizzeria I built this for saw online orders go up 40%.\n\n' +
+        '{{linkLine}}\n' +
+        'If it’s relevant for {{projectName}}, I’ll set it up with your menu and hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'restaurant-ads',
+      group: 'Running ads',
+      label: 'Restaurant — running ads',
+      vertical: 'local restaurants and pizzerias',
+      defaultLink: 'https://pizza.expo.app',
+      defaultSubject: '{{projectName}} — your ad is paying a delivery app',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I saw {{projectName}} running ads — the link goes to Facebook or a delivery app. That means someone hungry right now either waits on a reply or orders through an app that keeps 15–30%.\n\n' +
+        'The fix is not a bigger ad budget. It is sending that same traffic to your own ordering page: they pick from your menu, pay, and the order lands on your kitchen screen.\n\n' +
+        '{{linkLine}}\n' +
+        'That is a live build you can order from right now. A local pizzeria I built this for saw online orders go up 40%. If it looks like a fit for {{projectName}}, I will hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'food-truck',
+      group: 'Food & events',
+      label: 'Food truck / pop-up / caterer',
+      vertical: 'food trucks, pop-ups, and caterers',
+      defaultLink: 'https://pizza.expo.app',
+      defaultSubject: '{{projectName}} — pre-orders + where you’ll be next',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Food trucks and pop-ups I talk to lose orders to the line — people see the wait, or can’t find where you’ll be next, and walk away.\n\n' +
+        'I build ordering apps for trucks, pop-ups, and caterers: a live banner with your next stop or event, pay-ahead pre-orders, live “ready” tracking, and one switch to open or close ordering from your phone. It can also take catering and event requests, so private bookings come straight to you.\n\n' +
+        '{{linkLine}}\n' +
+        'If it’s relevant for {{projectName}}, I’ll set it up with your menu and hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
     }
   ];
 
   /** Per-niche wording the situation scripts drop in. `-ads` demos fall back
    *  to their base niche (e.g. 'lawn-ads' → 'lawn'). */
+  /** Niche → its "running ads" version. Ads versions are picked with the
+   *  "They're running ads" checkbox, not listed in Select demo. */
+  var ADMIN_CLIENT_EMAIL_DEMO_ADS = {
+    lawn: 'lawn-ads',
+    trades: 'trades-ads',
+    salon: 'salon-ads',
+    carpet: 'cleaning-ads',
+    restaurant: 'restaurant-ads'
+  };
+
+  function demoBaseId(id) {
+    id = String(id || '');
+    for (var base in ADMIN_CLIENT_EMAIL_DEMO_ADS) {
+      if (ADMIN_CLIENT_EMAIL_DEMO_ADS[base] === id) return base;
+    }
+    return id;
+  }
+
   var ADMIN_CLIENT_EMAIL_DEMO_PITCH = {
+    restaurant: {
+      niche: 'restaurant',
+      services: 'your menu, pickup orders, and catering',
+      highlights: 'online ordering, pay-ahead pickup, live order tracking, and a kitchen board',
+      quickPitch: 'customers order and pay ahead for pickup — no delivery-app cut, no phone tag',
+      features: [
+        'Modern home page with your branding',
+        'Online menu with add-ons and tips',
+        'Pay-ahead pickup orders',
+        'Live order tracking',
+        'Kitchen board with sold-out and open/closed switches',
+        'Event, promo, and catering announcements'
+      ]
+    },
+    'food-truck': {
+      niche: 'food truck',
+      services: 'your menu, stops, and event bookings',
+      highlights: 'pre-orders, an open/closed switch, event banners, and catering requests',
+      quickPitch: 'customers see where you’ll be, order ahead, and know when it’s ready',
+      features: [
+        'Branded ordering page',
+        'Next stop / event banner',
+        'Pay-ahead pre-orders',
+        'Live “ready” tracking',
+        'Open/closed switch from your phone',
+        'Catering and event requests'
+      ]
+    },
     realtor: {
       niche: 'real estate & insurance',
       services: 'listings, plans, quotes, and client documents',
@@ -11368,6 +11460,8 @@ window.addEventListener('load', function() {
       callTypeWrap: document.getElementById('admin-client-email-call-type-wrap'),
       demo: document.getElementById('admin-client-email-demo'),
       demoWrap: document.getElementById('admin-client-email-demo-wrap'),
+      adsToggle: document.getElementById('admin-client-email-ads'),
+      adsWrap: document.getElementById('admin-client-email-ads-wrap'),
       situation: document.getElementById('admin-client-email-situation'),
       situationWrap: document.getElementById('admin-client-email-situation-wrap'),
       length: document.getElementById('admin-client-email-length'),
@@ -11450,7 +11544,17 @@ window.addEventListener('load', function() {
 
   function getSelectedAdminDemo(els) {
     var id = String((els.demo && els.demo.value) || '').trim();
+    var adsId = ADMIN_CLIENT_EMAIL_DEMO_ADS[id];
+    if (adsId && els.adsToggle && els.adsToggle.checked) id = adsId;
     return getDemoById(id || (ADMIN_CLIENT_EMAIL_DEMOS[0] && ADMIN_CLIENT_EMAIL_DEMOS[0].id));
+  }
+
+  /** The checkbox only shows for niches that have an ads version. */
+  function syncAdminClientEmailAdsToggle(els) {
+    if (!els.adsWrap || !els.adsToggle) return;
+    var hasAds = !!ADMIN_CLIENT_EMAIL_DEMO_ADS[String((els.demo && els.demo.value) || '')];
+    els.adsWrap.hidden = !hasAds;
+    if (!hasAds) els.adsToggle.checked = false;
   }
 
   function normalizeClientEmailDraftTemplate(draft) {
@@ -11490,7 +11594,15 @@ window.addEventListener('load', function() {
 
   function ensureAdminClientEmailDemos(els, preferredId) {
     if (!els.demo) return getDemoById(preferredId);
-    var options = ADMIN_CLIENT_EMAIL_DEMOS.map(function (d) {
+    // A saved ads demo id (e.g. 'lawn-ads') restores as its niche + the checkbox.
+    if (preferredId) {
+      var base = demoBaseId(preferredId);
+      if (els.adsToggle) els.adsToggle.checked = base !== String(preferredId);
+      preferredId = base;
+    }
+    var options = ADMIN_CLIENT_EMAIL_DEMOS.filter(function (d) {
+      return demoBaseId(d.id) === d.id;
+    }).map(function (d) {
       return { value: d.id, label: d.label, group: d.group };
     });
     var selected = preferredId || (els.demo.value || '') || (options[0] && options[0].value) || '';
@@ -11505,6 +11617,7 @@ window.addEventListener('load', function() {
     } else {
       els.demo.value = selected;
     }
+    syncAdminClientEmailAdsToggle(els);
     return getSelectedAdminDemo(els);
   }
 
@@ -11895,7 +12008,8 @@ window.addEventListener('load', function() {
   function readAdminClientEmailForm(els) {
     return {
       templateId: (els.template && els.template.value) || '',
-      demoId: (els.demo && els.demo.value) || '',
+      // The ads version's id when the checkbox is on, so drafts restore it.
+      demoId: els.demo && els.demo.value ? getSelectedAdminDemo(els).id : '',
       situationId: (els.situation && els.situation.value) || '',
       length: getAdminClientEmailLength(els),
       siteUrl: (els.siteUrl && els.siteUrl.value) || '',
@@ -12243,7 +12357,8 @@ window.addEventListener('load', function() {
       if (defaultNext) els.nextStep.value = defaultNext;
     }
     if (isDemoOutreachEmailTemplate(template.id)) {
-      ensureAdminClientEmailDemos(els, els.demo && els.demo.value);
+      // Pass the effective id so the ads checkbox survives a re-apply.
+      ensureAdminClientEmailDemos(els, els.demo && els.demo.value ? getSelectedAdminDemo(els).id : '');
       ensureAdminClientEmailSituations(els, els.situation && els.situation.value);
       setAdminClientEmailSituationVisibility(els, template.id);
       var demo = getSelectedAdminDemo(els);
@@ -12424,6 +12539,7 @@ window.addEventListener('load', function() {
 
     if (els.demo) {
       els.demo.addEventListener('change', function () {
+        syncAdminClientEmailAdsToggle(els);
         var templateId = (els.template && els.template.value) || '';
         if (!isDemoOutreachEmailTemplate(templateId)) {
           syncAdminClientEmailDynamicFields(els);
@@ -12442,6 +12558,15 @@ window.addEventListener('load', function() {
           syncAdminClientEmailDynamicFields(els);
           return;
         }
+        applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
+        setAdminClientEmailFeedback(els, '', false);
+      });
+    }
+
+    if (els.adsToggle) {
+      els.adsToggle.addEventListener('change', function () {
+        var templateId = (els.template && els.template.value) || '';
+        if (!isDemoOutreachEmailTemplate(templateId)) return;
         applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
         setAdminClientEmailFeedback(els, '', false);
       });

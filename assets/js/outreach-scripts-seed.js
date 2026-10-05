@@ -353,7 +353,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 90,
-      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/linktree',
       subject: 'Subject: [Company] — free mockup for a simple website?',
       email:
         'Hi,\n' +
@@ -364,11 +364,14 @@
         '\n' +
         'Want me to put together a quick mockup?\n' +
         '\n' +
+        'Not ready for a full website yet? I also build a custom link page for your Instagram bio — a branded Linktree with your logo, services, and booking or contact buttons. It’s live in a few days, starting at $99. Example: rubenjimenez.dev/linktree\n' +
+        '\n' +
         '— Ruben',
       call:
         'You:\n' +
         '"Hey — is this the owner for [Company]? This is Ruben with CodeWithRuben. Have I caught you for 20 seconds?"\n' +
-        '[continue] "I noticed you\'re on Instagram but don\'t have a website yet. I can build one to your needs — changes along the way, no deposit, and you only pay if you like the final result. Want me to send a quick mockup?"'
+        '[continue] "I noticed you\'re on Instagram but don\'t have a website yet. I can build one to your needs — changes along the way, no deposit, and you only pay if you like the final result. Want me to send a quick mockup?"\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from $99. Want me to text you an example?"'
     },
     {
       id: 'no-site-ig-trades',
@@ -377,7 +380,7 @@
       vertical: 'trade, junk removal, and field service crews',
       demoLink: 'https://tradeservice.expo.app',
       order: 100,
-      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/linktree',
       subject: 'Subject: [Company] — mockup for a site (no deposit)?',
       email:
         'Hi,\n' +
@@ -390,11 +393,14 @@
         '\n' +
         'Want a quick mockup for [Company]?\n' +
         '\n' +
+        'Not ready for a full website yet? I can start you with a custom link page for your Instagram bio — a branded Linktree with your logo, services, and a quote or booking button. Live in a few days, starting at $99. Example: rubenjimenez.dev/linktree\n' +
+        '\n' +
         '— Ruben',
       call:
         'You:\n' +
         '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben. Got 20 seconds?"\n' +
-        '[continue] "I saw you\'re active online but don\'t have a website yet. I can build one to your needs — changes along the way, no deposit, pay only if you like it. Want me to send a mockup, or a live booking demo?"'
+        '[continue] "I saw you\'re active online but don\'t have a website yet. I can build one to your needs — changes along the way, no deposit, pay only if you like it. Want me to send a mockup, or a live booking demo?"\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from $99. Want me to text you an example?"'
     },
     {
       id: 'no-site-ig-bump',
@@ -403,7 +409,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 110,
-      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?',
+      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?\n\nOr if a full site is too much right now, I can start you with a custom link page for your Instagram bio (a branded Linktree), from $99: rubenjimenez.dev/linktree',
       subject: 'Subject: Re: mockup for [Company]?',
       email:
         'Hi,\n' +
@@ -412,10 +418,98 @@
         '\n' +
         'Want me to send one over?\n' +
         '\n' +
+        'Or, if a full site is too much right now, I can start you with a custom link page for your Instagram bio — a branded Linktree, live in a few days from $99. Example: rubenjimenez.dev/linktree\n' +
+        '\n' +
         '— Ruben',
       call:
         'You:\n' +
-        '"Hey — Ruben again with CodeWithRuben, quick follow-up on [Company]. Still open to a free mockup — no deposit, pay only if you like it?"'
+        '"Hey — Ruben again with CodeWithRuben, quick follow-up on [Company]. Still open to a free mockup — no deposit, pay only if you like it?"\n' +
+        '[if not ready for a site] "Totally fine — I can start you with a branded link page for your Instagram bio instead. From $99. Want an example?"'
+    },
+    {
+      id: 'restaurant',
+      label: 'Restaurant & pizzeria',
+      tag: 'Restaurant Ordering Platform (CWR restaurant template) · call between 2–4pm, never during the lunch or dinner rush',
+      vertical: 'local restaurants, pizzerias, and takeout kitchens',
+      demoLink: 'https://pizza.expo.app',
+      order: 92,
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I build online ordering for local restaurants. Customers order and pay ahead for pickup, and it lands on a kitchen screen, with no 15–30% delivery-app cut. A local pizzeria I built this for saw online orders go up 40%.\n\nLive demo you can order from: [demo link]\n\nWant me to set one up with [Company]’s menu?',
+      subject: 'Subject: [Company] — your own online ordering (no app fees)',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'I’m Ruben with CodeWithRuben here in [City]. Most restaurants I talk to are either missing calls during the rush or giving DoorDash and Uber Eats 15–30% of every order.\n' +
+        '\n' +
+        'I build branded online ordering for local restaurants: customers browse your menu, add extras and a tip, pay ahead for pickup, and track their order live. Your kitchen sees every order on one board, can mark items sold out, and can switch ordering off when you’re slammed.\n' +
+        '\n' +
+        'A local pizzeria I built this for saw online orders go up 40%.\n' +
+        '\n' +
+        'Live demo you can order from: [demo link]\n' +
+        '\n' +
+        'It also runs pop-up event and promo banners, and can take catering and event orders. Want me to set it up with [Company]’s menu so you can see it?\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben here in [City]. I know you’re busy — got 20 seconds?"\n' +
+        '[continue] "I build online ordering for local restaurants. People order and pay ahead for pickup, and it shows up on a kitchen screen, with no delivery-app cut on each order."\n' +
+        '[if they use DoorDash / Uber Eats] "Keep them for delivery if they work. This is for your regulars, so those orders stop losing 15–30%."\n' +
+        '[close] "A pizzeria I built this for saw online orders go up 40%. Can I text you the live demo?"'
+    },
+    {
+      id: 'restaurant-ads',
+      label: 'Restaurant — running ads',
+      tag: 'Running Ads · Restaurant (the ad sends people to Facebook or a delivery app)',
+      vertical: 'local restaurants, pizzerias, and takeout kitchens',
+      demoLink: 'https://pizza.expo.app',
+      order: 93,
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. Saw [Company]’s ad. Quick thought: it sends people to Facebook or a delivery app, so either they wait on a reply and order somewhere else, or the app takes 15–30%. I build ordering pages that take the order and payment straight from the ad, with no app cut.\n\nLive demo: [demo link]\n\nWant one with your menu?',
+      subject: 'Subject: [Company] — your ad is paying a delivery app',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'I saw [Company] running ads — nice. The link goes to Facebook or a delivery app, which means someone hungry right now either waits on a reply or pays through an app that keeps 15–30% of the order.\n' +
+        '\n' +
+        'The fix is not a bigger ad budget. It is sending that same traffic to your own ordering page: they pick from your menu, pay, and the order lands on your kitchen screen.\n' +
+        '\n' +
+        'Live demo you can order from: [demo link]\n' +
+        '\n' +
+        'A local pizzeria I built this for saw online orders go up 40%. If it looks like a fit for [Company], I will hold 15 minutes — fit call, not a pitch deck.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben here in [City]. Got 20 seconds?"\n' +
+        '[continue] "I saw your ad — it sends people to Facebook / a delivery app. I build ordering pages so that ad traffic orders and pays with you directly, no app cut."\n' +
+        '[close] "Can I text you a live demo to tap through?"'
+    },
+    {
+      id: 'food-truck',
+      label: 'Food truck / pop-up / caterer',
+      tag: 'Food Truck · Pop-up · Caterer (open/closed toggle, event banner, pre-orders, catering requests)',
+      vertical: 'food trucks, pop-ups, and caterers',
+      demoLink: 'https://pizza.expo.app',
+      order: 94,
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I build ordering apps for food trucks and pop-ups. Customers see where you’ll be next, order and pay ahead, and get notified when it’s ready. You flip ordering on and off from your phone, and it takes catering and event requests too.\n\nLive demo: [demo link]\n\nWant one set up for [Company]?',
+      subject: 'Subject: [Company] — pre-orders + where you’ll be next',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'I’m Ruben with CodeWithRuben here in [City]. Food trucks and pop-ups I talk to lose orders to the line — people see the wait, or can’t find where you’ll be next, and leave.\n' +
+        '\n' +
+        'I build ordering apps for trucks, pop-ups, and caterers: a live banner with your next stop or event, pay-ahead pre-orders, live “ready” tracking, and one switch to open or close ordering from your phone. It can also take catering and event requests, so private bookings come to you directly.\n' +
+        '\n' +
+        'Live demo you can order from: [demo link]\n' +
+        '\n' +
+        'Want me to set it up with [Company]’s menu?\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben here in [City]. Got 20 seconds?"\n' +
+        '[continue] "I build ordering apps for food trucks and pop-ups — people see your next stop, pre-order and pay, and you turn ordering on or off from your phone."\n' +
+        '[if they cater] "It can also take catering and event requests, so those come straight to you."\n' +
+        '[close] "Can I text you the live demo?"'
     },
     {
       id: 'site-down',
@@ -424,7 +518,7 @@
       vertical: 'local businesses whose website is down or erroring',
       demoLink: '',
       order: 115,
-      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. Quick heads-up: I tried [Company]’s website and it isn’t loading right now (it shows an error), so customers searching for you may be hitting the same thing. I build websites and booking apps for local service businesses, and you’d keep your same domain. Want me to send a quick mockup?\n\nHere’s one I built: [demo link]',
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. Quick heads-up: I tried [Company]’s website and it isn’t loading right now (it shows an error), so customers searching for you may be hitting the same thing. I build websites and booking apps for local service businesses, and you’d keep your same domain. Want me to send a quick mockup?\n\nHere’s one I built: [demo link]\n\nIn the meantime, I can also put up a custom link page (a branded Linktree) so customers can still reach you while the site is down, live in a day or two from $99: rubenjimenez.dev/linktree',
       subject: 'Subject: Heads up — [Company]’s website is down',
       email:
         'Hi [Name],\n' +
@@ -435,13 +529,16 @@
         '\n' +
         'You’d keep your same domain. Happy to help either way.\n' +
         '\n' +
+        'In the meantime, I can put up a custom link page — a branded Linktree with your phone, services, and booking or contact buttons — so customers can still reach you while the site is down. It’s live in a day or two, starting at $99. Example: rubenjimenez.dev/linktree\n' +
+        '\n' +
         '— Ruben',
       call:
         'You:\n' +
         '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben here in [City]. Got 20 seconds?"\n' +
         '[continue] "Quick heads-up — I tried your website today and it isn’t loading, it shows an error. Were you aware?"\n' +
         '[if no] "Customers searching for you are probably hitting the same thing. I build websites for local businesses, and you’d keep your same domain. Want me to send you a quick mockup or a fix-it plan?"\n' +
-        '[if yes] "Got it. If you want a hand getting it back up, or a fresh site on the same domain, I can send a quick mockup. No pressure either way."'
+        '[if yes] "Got it. If you want a hand getting it back up, or a fresh site on the same domain, I can send a quick mockup. No pressure either way."\n' +
+        '[stopgap] "While it’s down, I can also put up a branded link page so customers can still reach you — live in a day or two, from $99."'
     },
     {
       id: 'landline',

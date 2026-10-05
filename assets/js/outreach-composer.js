@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=site-down-20261005';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=restaurant-ads-20261005';
   var STORE_KEY = 'cwrOutreachVars';
 
   /** Optional fill helpers. "[later today / tomorrow]" is prose — left alone. */
@@ -32,6 +32,25 @@
     { id: 'email', label: 'Email' },
     { id: 'call', label: 'Call' }
   ];
+
+  /** Script → its "running ads" version. Ads versions are reached with the
+   *  "They're running ads" checkbox instead of being listed in the picker. */
+  var ADS_VERSION = {
+    lawn: 'lawn-ads',
+    trades: 'trades-ads',
+    salon: 'salon-ads',
+    carpet: 'cleaning-ads',
+    restaurant: 'restaurant-ads'
+  };
+
+  function baseOf(id) {
+    for (var base in ADS_VERSION) if (ADS_VERSION[base] === id) return base;
+    return id;
+  }
+
+  function hasScript(id) {
+    return scripts.some(function (s) { return s.id === id; });
+  }
 
   var scripts = [];
   var activeId = '';
@@ -216,6 +235,11 @@
 
   function applyScriptSelection(id, fromUi) {
     if (!id) return;
+    // The picker hands over the niche; the checkbox decides which version.
+    var base = baseOf(id);
+    var adsId = ADS_VERSION[base];
+    if (els.adsToggle && els.adsToggle.checked && adsId && hasScript(adsId)) id = adsId;
+    else if (id !== base && !(els.adsToggle && els.adsToggle.checked)) id = base;
     var found = null;
     for (var i = 0; i < scripts.length; i++) {
       if (scripts[i].id === id) {
@@ -228,10 +252,20 @@
     dirty = false;
     if (els.demo) els.demo.value = found.demoLink || '';
     if (!fromUi && els.scriptSelect && typeof global.setBusinessDocSelectValue === 'function') {
-      global.setBusinessDocSelectValue(els.scriptSelect, id, true);
+      global.setBusinessDocSelectValue(els.scriptSelect, baseOf(id), true);
     }
+    syncAdsToggle();
     renderScriptMeta();
     renderPreview(true);
+  }
+
+  /** Checkbox shows only for scripts that have an ads version. */
+  function syncAdsToggle() {
+    if (!els.adsWrap || !els.adsToggle) return;
+    var adsId = ADS_VERSION[baseOf(activeId)];
+    var available = !!adsId && hasScript(adsId);
+    els.adsWrap.hidden = !available;
+    els.adsToggle.checked = available && activeId === adsId;
   }
 
   /** Dropdown category, worked out from the script id so scripts saved in
@@ -247,15 +281,18 @@
 
   function renderScriptSelect() {
     if (!els.scriptSelect) return;
-    var options = scripts.map(function (s) {
+    var options = scripts.filter(function (s) {
+      return baseOf(s.id) === s.id || !hasScript(baseOf(s.id));
+    }).map(function (s) {
       return { value: s.id, label: s.label, group: scriptGroup(s) };
     });
     if (!activeId && scripts.length) activeId = scripts[0].id;
     if (typeof global.setBusinessDocSelectOptions === 'function') {
       global.setBusinessDocSelectOptions(els.scriptSelect, options, {
-        value: activeId || (scripts[0] && scripts[0].id) || '',
+        value: baseOf(activeId) || (scripts[0] && scripts[0].id) || '',
         keepValue: false
       });
+      syncAdsToggle();
     } else {
       // Fallback if admin helpers aren't loaded yet — plain options markup
       var menu = document.getElementById('outreach-script-menu');
@@ -753,6 +790,8 @@
       btnEmail: document.getElementById('outreach-email'),
       btnCall: document.getElementById('outreach-call'),
       btnAddLead: document.getElementById('outreach-add-lead'),
+      adsToggle: document.getElementById('outreach-ads'),
+      adsWrap: document.getElementById('outreach-ads-wrap'),
       ask: document.getElementById('outreach-ask'),
       askText: document.getElementById('outreach-ask-text'),
       askActions: document.getElementById('outreach-ask-actions'),
@@ -773,9 +812,9 @@
     if (els.scriptSelect) {
       els.scriptSelect.addEventListener('change', function () {
         var next = els.scriptSelect.value;
-        if (next === activeId) return;
+        if (next === baseOf(activeId)) return;
         if (!needsEditPrompt()) return applyScriptSelection(next, true);
-        var prev = activeId;
+        var prev = baseOf(activeId);
         // Ask about unsaved edits against the script they were made on.
         offerToSaveEdits(prev).then(function (ok) {
           if (ok) return applyScriptSelection(next, true);
@@ -805,6 +844,15 @@
     if (els.btnEmail) els.btnEmail.addEventListener('click', doEmail);
     if (els.btnCall) els.btnCall.addEventListener('click', doCall);
     if (els.btnReset) els.btnReset.addEventListener('click', doReset);
+    if (els.adsToggle) els.adsToggle.addEventListener('change', function () {
+      var wanted = els.adsToggle.checked;
+      function go() { applyScriptSelection(baseOf(activeId), true); }
+      if (!needsEditPrompt()) return go();
+      offerToSaveEdits(activeId).then(function (ok) {
+        if (ok) return go();
+        els.adsToggle.checked = !wanted;
+      });
+    });
     if (els.btnAddLead) els.btnAddLead.addEventListener('click', function () {
       addToPipeline().catch(function (err) {
         console.warn('Outreach composer: add to pipeline failed', err);

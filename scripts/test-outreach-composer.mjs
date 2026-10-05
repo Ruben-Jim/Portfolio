@@ -27,12 +27,15 @@ function mkEl(id, tag='div') {
 const ids = ['outreach-composer','outreach-script-select','outreach-steps','outreach-preview','outreach-warn',
   'outreach-count','outreach-script-meta','outreach-status','outreach-var-name','outreach-var-company','outreach-var-city',
   'outreach-var-demo','outreach-var-phone','outreach-var-email','outreach-copy','outreach-text',
-  'outreach-email','outreach-call','outreach-script-menu'];
+  'outreach-email','outreach-call','outreach-script-menu','outreach-ads','outreach-ads-wrap'];
 const store = Object.fromEntries(ids.map(i=>[i, mkEl(i, i === 'outreach-preview' ? 'textarea' : 'div')]));
 
 const seedSrc = fs.readFileSync('assets/js/outreach-scripts-seed.js','utf8');
 // Count from the seed file itself so adding a script doesn't break the test.
 const SEED_COUNT = (seedSrc.match(/^\s{6}id: '/gm) || []).length;
+// Ads versions sit behind the "running ads" checkbox, not in the picker.
+const ADS_VERSIONS = ['lawn-ads', 'trades-ads', 'salon-ads', 'cleaning-ads', 'restaurant-ads'];
+const PICKER_COUNT = SEED_COUNT - ADS_VERSIONS.length;
 let seeded = null;
 let lastSelectOptions = [];
 
@@ -70,7 +73,8 @@ const body = () => store['outreach-preview'].value || store['outreach-preview'].
 
 await sandbox.window.CWR_OUTREACH.open();
 
-ok(lastSelectOptions.length===SEED_COUNT, `${SEED_COUNT} scripts in dropdown (got ${lastSelectOptions.length})`);
+ok(lastSelectOptions.length===PICKER_COUNT, `${PICKER_COUNT} scripts in dropdown (got ${lastSelectOptions.length})`);
+ok(!lastSelectOptions.some(o => ADS_VERSIONS.includes(o.value)), 'ads versions are not listed in the picker');
 ok(store['outreach-script-select'].value === lastSelectOptions[0].value, 'first script selected by default');
 ok(store['outreach-steps'].children.length===4, `4 step buttons rendered`);
 ok(seeded && Object.keys(seeded).length===SEED_COUNT, `RTDB seeded with ${SEED_COUNT} scripts on first open`);
@@ -105,10 +109,13 @@ await sandbox.window.CWR_OUTREACH.open();
 ok(JSON.stringify(seeded)===before, 'second open does not overwrite RTDB');
 
 store['outreach-var-demo'].value='';
-const cleaning = lastSelectOptions.find(o => o.value === 'cleaning-ads');
-ok(!!cleaning, 'cleaning-ads script present in options');
-store['outreach-script-select'].value = cleaning.value;
+const carpet = lastSelectOptions.find(o => o.value === 'carpet');
+ok(!!carpet, 'carpet script present in options');
+store['outreach-script-select'].value = 'carpet';
 store['outreach-script-select'].change();
+ok(store['outreach-ads-wrap'].hidden === false, 'running-ads checkbox shows for carpet');
+store['outreach-ads'].checked = true;
+store['outreach-ads'].change();   // carpet + running ads → cleaning-ads
 ok(store['outreach-var-demo'].value==='https://procleaning.expo.app',
    `demo link prefilled from script data (got "${store['outreach-var-demo'].value}")`);
 store['outreach-steps'].children[0].click();   // back to Text

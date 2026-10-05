@@ -5913,3 +5913,35 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 .outreach-ask-actions .outreach-btn--primary {
   flex: 0 0 auto;
 }
+
+/* "They're running ads" — swaps a niche to its ads version */
+.outreach-ads-toggle,
+.admin-client-email-ads-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--light-gray, #d6d6d6);
+  cursor: pointer;
+}
+
+.outreach-ads-toggle[hidden],
+.admin-client-email-ads-toggle[hidden] {
+  display: none;
+}
+
+.outreach-ads-toggle input,
+.admin-client-email-ads-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--orange-yellow-crayola);
+  cursor: pointer;
+}
+
+.outreach-ads-toggle em,
+.admin-client-email-ads-toggle em {
+  font-style: normal;
+  color: var(--light-gray-70, #a8a8a8);
+}
