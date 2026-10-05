@@ -17905,7 +17905,15 @@ window.addEventListener('load', function() {
         if (groupToggle && menu.contains(groupToggle)) {
           e.stopPropagation();
           var group = groupToggle.closest('.business-doc-select-group');
-          setBusinessDocSelectGroupOpen(group, !group.classList.contains('is-expanded'));
+          var opening = !group.classList.contains('is-expanded');
+          // Accordion: opening one category closes the others.
+          if (opening) {
+            menu.querySelectorAll('.business-doc-select-group.is-expanded').forEach(function (other) {
+              if (other !== group) setBusinessDocSelectGroupOpen(other, false);
+            });
+          }
+          setBusinessDocSelectGroupOpen(group, opening);
+          if (opening) group.scrollIntoView({ block: 'nearest' });
           return;
         }
         var opt = e.target.closest('.business-doc-select-option');
