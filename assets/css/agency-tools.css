@@ -5252,7 +5252,7 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 
 /* ─────────────────────────────────────────────────────────────
    Template Outreach Scripts — composer
-   Lives inside .components-modal. Tuned for phone / tablet / desktop.
+   Lives in its own admin tab (#admin-panel-outreach). Tuned for phone / tablet / desktop.
    ───────────────────────────────────────────────────────────── */
 
 #outreach-composer.outreach-composer,
@@ -5636,46 +5636,12 @@ body.cp-ticket-viewer-open { overflow: hidden; }
   }
 }
 
-/* Template scripts modal: keep header compact on small screens */
-@media (max-width: 640px) {
-  #template-scripts-modal .components-header {
-    padding: 0.9rem 1rem;
-    gap: 10px;
-  }
-
-  #template-scripts-modal .components-header .h3 {
-    font-size: 1rem;
-  }
-
-  #template-scripts-modal .components-header .editor-badge {
-    display: none;
-  }
-
-  #template-scripts-modal .components-body {
-    padding: 1rem 1rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
-  }
-}
-
-@media (min-width: 641px) and (max-width: 1023px) {
-  #template-scripts-modal .components-content {
-    width: min(96%, 880px);
-    margin-top: 3vh;
-    max-height: 94vh;
-  }
-}
-
-@media (min-width: 1024px) {
-  #template-scripts-modal .components-content {
-    max-width: 920px;
-  }
-}
-
 /* Let the script dropdown stack above neighboring composer blocks */
-#template-scripts-modal .outreach-block:has(.outreach-script-select) {
+#admin-panel-outreach .outreach-block:has(.outreach-script-select) {
   position: relative;
   z-index: 5;
 }
 
-#template-scripts-modal .outreach-script-select.is-open {
+#admin-panel-outreach .outreach-script-select.is-open {
   z-index: 30;
 }

@@ -490,10 +490,14 @@
   }
 
   var booted = false;
+  var rendered = false;
 
   async function open() {
     cache();
     if (!els.root) return;
+    // It's a tab now, not a popup: coming back to it keeps whatever you were
+    // editing instead of re-rendering the script from scratch.
+    if (rendered) return;
     if (!booted) { bind(); restoreVars(); booted = true; }
     if (els.status) { els.status.textContent = 'Loading scripts…'; els.status.hidden = false; }
     try {
@@ -506,6 +510,7 @@
       renderScriptSelect();
       renderSteps();
       renderPreview(true);
+      rendered = true;
     } catch (err) {
       console.warn('Outreach composer:', err);
       if (els.status) {
@@ -516,4 +521,9 @@
   }
 
   global.CWR_OUTREACH = { open: open };
+
+  // The admin can reopen straight onto this tab (saved active tab) before this
+  // file loads, so the tab's own open() call would have found nothing.
+  var panel = document.getElementById('admin-panel-outreach');
+  if (panel && !panel.hidden) open();
 })(window);

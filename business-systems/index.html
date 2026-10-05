@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=care-pricing-admin-20261004">
+  <link rel="stylesheet" href="/assets/css/style.css?v=outreach-tab-20261005">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -92,7 +92,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=outreach-reset-20260930">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=outreach-tab-20261005">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3249,6 +3249,10 @@
                   <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-outreach" data-admin-tab="outreach" aria-selected="false" aria-controls="admin-panel-outreach" tabindex="-1" aria-label="Outreach Scripts">
+                  <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Outreach Scripts</span><span class="admin-tab-label-mobile">Outreach</span></span>
+                </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-client-projects" data-admin-tab="client-projects" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-projects" tabindex="-1" aria-label="Clients">
                   <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients</span><span class="admin-tab-label-mobile">Clients</span></span>
@@ -4432,6 +4436,90 @@
           </section>
           </div><!-- /admin-panel-client-projects -->
 
+          <!-- Outreach Scripts -->
+          <div id="admin-panel-outreach" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-outreach" data-admin-tab="outreach" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading">
+              <h3 class="h3 admin-panel-title">Outreach Scripts</h3>
+              <p class="admin-panel-lead">Pick a script, fill in the lead, then copy, text, email or call. Edit → copy → send.</p>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <section class="ops-card template-scripts-section outreach-composer" id="outreach-composer">
+                  <p class="outreach-status" id="outreach-status" hidden>Loading scripts…</p>
+
+                  <div class="outreach-layout">
+                    <div class="outreach-block">
+                      <p class="outreach-block-label" id="outreach-script-select-label">Script</p>
+                      <div class="business-doc-select outreach-script-select" data-select-name="outreach-script">
+                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="outreach-script-select-label">
+                          <span class="business-doc-select-trigger-label">Choose a script…</span>
+                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                        </button>
+                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true" id="outreach-script-menu"></div>
+                        <input type="hidden" id="outreach-script-select" value="">
+                      </div>
+                      <p class="outreach-script-meta" id="outreach-script-meta" hidden></p>
+                      <button type="button" class="outreach-reset" id="outreach-reset" hidden>Reset to latest template</button>
+                    </div>
+
+                    <div class="outreach-block outreach-block--helpers">
+                      <p class="outreach-block-label">Quick fill <em>(optional — or edit the message below)</em></p>
+                      <div class="outreach-vars">
+                        <label class="outreach-var">
+                          <span>Name</span>
+                          <input type="text" id="outreach-var-name" autocomplete="off" placeholder="Maria" enterkeyhint="next">
+                        </label>
+                        <label class="outreach-var">
+                          <span>Business</span>
+                          <input type="text" id="outreach-var-company" autocomplete="organization" placeholder="Valley Lawn Co" enterkeyhint="next">
+                        </label>
+                        <label class="outreach-var">
+                          <span>City</span>
+                          <input type="text" id="outreach-var-city" autocomplete="address-level2" placeholder="Fresno" enterkeyhint="next">
+                        </label>
+                        <label class="outreach-var">
+                          <span>Demo link</span>
+                          <input type="url" id="outreach-var-demo" autocomplete="off" inputmode="url" placeholder="https://…" enterkeyhint="next">
+                        </label>
+                        <label class="outreach-var">
+                          <span>Phone</span>
+                          <input type="tel" id="outreach-var-phone" autocomplete="tel" inputmode="tel" placeholder="559…" enterkeyhint="next">
+                        </label>
+                        <label class="outreach-var">
+                          <span>Email</span>
+                          <input type="email" id="outreach-var-email" autocomplete="email" inputmode="email" placeholder="owner@…" enterkeyhint="done">
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="outreach-block">
+                      <p class="outreach-block-label">Channel</p>
+                      <div class="outreach-steps" id="outreach-steps" role="group" aria-label="Script step"></div>
+                    </div>
+
+                    <div class="outreach-block outreach-block--editor">
+                      <div class="outreach-editor-head">
+                        <label class="outreach-editor-label" for="outreach-preview">Message</label>
+                        <p class="outreach-count" id="outreach-count"></p>
+                      </div>
+                      <textarea class="outreach-preview" id="outreach-preview" rows="10" spellcheck="true" aria-label="Editable outreach message"></textarea>
+                      <p class="outreach-warn" id="outreach-warn" hidden></p>
+                    </div>
+                  </div>
+
+                  <div class="outreach-actions outreach-actions--bar" role="group" aria-label="Send actions">
+                    <button type="button" class="outreach-btn outreach-btn--primary" id="outreach-copy">Copy</button>
+                    <button type="button" class="outreach-btn" id="outreach-text">Text</button>
+                    <button type="button" class="outreach-btn" id="outreach-email">Email</button>
+                    <button type="button" class="outreach-btn" id="outreach-call">Call</button>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-outreach -->
+
           <!-- Time Capacity -->
           <div id="admin-panel-time-capacity" data-planner-legacy="1" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="admin-tab-time-capacity" data-admin-tab="time-capacity" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
@@ -4738,10 +4826,6 @@
                   <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-sales-routine">
                     <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="alarm-outline" class="text-2xl"></ion-icon>The "1-2 Sales" Daily Routine</h2>
                     <p class="text-zinc-400">2h deep work + 30min show your work + 1h outreach <span class="text-vegas-gold font-medium">→ daily momentum engine</span></p>
-                  </div>
-                  <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-template-scripts">
-                    <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="chatbubbles-outline" class="text-2xl"></ion-icon>Template Outreach Scripts</h2>
-                    <p class="text-zinc-400">Realtor &amp; Insurance, Lawnscaper, Trade Services, Salon/Barber/Tattoo, Electrician, Carpet Cleaning, Dog Grooming, Roof &amp; Exterior, Tree Service — text first, then email, then call · landline? email/contact form first, call after 3–4 days — swap placeholders</p>
                   </div>
                   <div class="ops-card cursor-pointer hover:shadow-xl transition-all" id="open-turnkey">
                     <h2 class="text-xl font-semibold text-accent mb-3 flex items-center gap-3"><ion-icon name="build-outline" class="text-2xl"></ion-icon>Turn-Key Client Architecture</h2>
@@ -7518,95 +7602,6 @@
 <!-- ─────────────────────────────────────────────
      TEMPLATE OUTREACH SCRIPTS MODAL
 ───────────────────────────────────────────── -->
-<div class="components-modal" id="template-scripts-modal">
-  <div class="components-overlay" id="template-scripts-overlay"></div>
-  <div class="components-content">
-    <div class="components-header">
-      <div class="header-left">
-        <ion-icon name="chatbubbles-outline" class="header-icon"></ion-icon>
-        <h3 class="h3">Template Outreach Scripts</h3>
-        <span class="editor-badge">EDIT → COPY → SEND</span>
-      </div>
-      <button class="components-close-btn modal-close-btn" id="template-scripts-close-btn">
-        <ion-icon name="close-outline"></ion-icon>
-      </button>
-    </div>
-    <div class="components-body has-scrollbar" id="template-scripts-body">
-      <div class="components-wrapper">
-        <section class="ops-card template-scripts-section outreach-composer" id="outreach-composer">
-          <p class="outreach-status" id="outreach-status" hidden>Loading scripts…</p>
-
-          <div class="outreach-layout">
-            <div class="outreach-block">
-              <p class="outreach-block-label" id="outreach-script-select-label">Script</p>
-              <div class="business-doc-select outreach-script-select" data-select-name="outreach-script">
-                <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="outreach-script-select-label">
-                  <span class="business-doc-select-trigger-label">Choose a script…</span>
-                  <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
-                </button>
-                <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true" id="outreach-script-menu"></div>
-                <input type="hidden" id="outreach-script-select" value="">
-              </div>
-              <p class="outreach-script-meta" id="outreach-script-meta" hidden></p>
-              <button type="button" class="outreach-reset" id="outreach-reset" hidden>Reset to latest template</button>
-            </div>
-
-            <div class="outreach-block outreach-block--helpers">
-              <p class="outreach-block-label">Quick fill <em>(optional — or edit the message below)</em></p>
-              <div class="outreach-vars">
-                <label class="outreach-var">
-                  <span>Name</span>
-                  <input type="text" id="outreach-var-name" autocomplete="off" placeholder="Maria" enterkeyhint="next">
-                </label>
-                <label class="outreach-var">
-                  <span>Business</span>
-                  <input type="text" id="outreach-var-company" autocomplete="organization" placeholder="Valley Lawn Co" enterkeyhint="next">
-                </label>
-                <label class="outreach-var">
-                  <span>City</span>
-                  <input type="text" id="outreach-var-city" autocomplete="address-level2" placeholder="Fresno" enterkeyhint="next">
-                </label>
-                <label class="outreach-var">
-                  <span>Demo link</span>
-                  <input type="url" id="outreach-var-demo" autocomplete="off" inputmode="url" placeholder="https://…" enterkeyhint="next">
-                </label>
-                <label class="outreach-var">
-                  <span>Phone</span>
-                  <input type="tel" id="outreach-var-phone" autocomplete="tel" inputmode="tel" placeholder="559…" enterkeyhint="next">
-                </label>
-                <label class="outreach-var">
-                  <span>Email</span>
-                  <input type="email" id="outreach-var-email" autocomplete="email" inputmode="email" placeholder="owner@…" enterkeyhint="done">
-                </label>
-              </div>
-            </div>
-
-            <div class="outreach-block">
-              <p class="outreach-block-label">Channel</p>
-              <div class="outreach-steps" id="outreach-steps" role="group" aria-label="Script step"></div>
-            </div>
-
-            <div class="outreach-block outreach-block--editor">
-              <div class="outreach-editor-head">
-                <label class="outreach-editor-label" for="outreach-preview">Message</label>
-                <p class="outreach-count" id="outreach-count"></p>
-              </div>
-              <textarea class="outreach-preview" id="outreach-preview" rows="10" spellcheck="true" aria-label="Editable outreach message"></textarea>
-              <p class="outreach-warn" id="outreach-warn" hidden></p>
-            </div>
-          </div>
-
-          <div class="outreach-actions outreach-actions--bar" role="group" aria-label="Send actions">
-            <button type="button" class="outreach-btn outreach-btn--primary" id="outreach-copy">Copy</button>
-            <button type="button" class="outreach-btn" id="outreach-text">Text</button>
-            <button type="button" class="outreach-btn" id="outreach-email">Email</button>
-            <button type="button" class="outreach-btn" id="outreach-call">Call</button>
-          </div>
-        </section>
-      </div>
-    </div>
-  </div>
-</div>
 
   <!--
     - Loading Screen
@@ -8212,13 +8207,13 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=care-pricing-page-20261004"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=care-pricing-admin-20261004"></script>
+  <script src="/assets/js/script.js?v=outreach-tab-20261005"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=care-pricing-page-20261004"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=busy-opener-landline-20260930"></script>
+  <script src="/assets/js/outreach-composer.js?v=outreach-tab-20261005"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

@@ -19111,11 +19111,11 @@ window.addEventListener('load', function() {
     var MOBILE_ORDER_KEY = 'adminMobileTabOrder';
     var PRIMARY_SLOT_COUNT = 4;
     var DEFAULT_ORDER = [
-      'overview', 'crm-hub', 'content-hub', 'ops', 'referrals', 'studio-costs'
+      'overview', 'crm-hub', 'content-hub', 'outreach', 'ops', 'referrals', 'studio-costs'
     ];
     var VALID_TAB = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
-      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1, outreach: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
@@ -19272,7 +19272,9 @@ window.addEventListener('load', function() {
           }
         });
         DEFAULT_ORDER.forEach(function (id) {
-          if (!seen[id]) out.push(id);
+          if (seen[id]) return;
+          if (id === 'outreach') out.splice(Math.min(3, out.length), 0, id);
+          else out.push(id);
         });
         return migrateHubSlots(out);
       } catch (e) {
@@ -19925,7 +19927,7 @@ window.addEventListener('load', function() {
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
-      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1, outreach: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
@@ -20002,6 +20004,10 @@ window.addEventListener('load', function() {
       }
       if (tabId === 'email' && typeof window.initAdminEmailPanel === 'function') {
         window.initAdminEmailPanel();
+      }
+      // Outreach scripts live in RTDB — load them the first time the tab opens.
+      if (tabId === 'outreach' && window.CWR_OUTREACH) {
+        window.CWR_OUTREACH.open();
       }
       if (tabId === 'planner' || tabId === 'bookings') {
         if (typeof window.subscribeAgencyBookingsFromRtdb === 'function') {
@@ -23323,8 +23329,7 @@ function attachSubModalListeners() {
     { trigger: 'open-turnkey',         modal: 'turnkey-modal',   close: 'turnkey-close-btn',   overlay: 'turnkey-overlay'   },
     { trigger: 'open-endtoend',        modal: 'endtoend-modal',  close: 'endtoend-close-btn',  overlay: 'endtoend-overlay'  },
     { trigger: 'open-questions',       modal: 'questions-modal', close: 'questions-close-btn', overlay: 'questions-overlay' },
-    { trigger: 'open-components',      modal: 'components-modal',close: 'components-close-btn',overlay: 'components-overlay'},
-    { trigger: 'open-template-scripts', modal: 'template-scripts-modal', close: 'template-scripts-close-btn', overlay: 'template-scripts-overlay' }
+    { trigger: 'open-components',      modal: 'components-modal',close: 'components-close-btn',overlay: 'components-overlay'}
   ];
 
   subModals.forEach(config => {
@@ -23341,10 +23346,6 @@ function attachSubModalListeners() {
       modalEl.classList.add('active');
       document.body.classList.add('modal-open');
       modalEl.querySelector('button')?.focus();
-      // Outreach scripts live in RTDB now — load them the first time it opens.
-      if (config.modal === 'template-scripts-modal' && window.CWR_OUTREACH) {
-        window.CWR_OUTREACH.open();
-      }
     };
 
     // Launcher tiles are plain divs (role="button"), so clicks and

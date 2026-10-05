@@ -17021,7 +17021,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
 /* ── Email Threads layout ─────────────────────────────────────────── */
 .admin-email-threads-layout {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  /* Thread list grows a little on wide screens; the reading pane takes the rest. */
+  grid-template-columns: clamp(240px, 18vw, 340px) 1fr;
   /* Fills the remaining viewport instead of being a 65vh window inside a
      scrolling page. sizeAdminEmailPanel() measures the panel's top offset and
      sets the variable; the fallback covers first paint before that runs. */
@@ -22655,9 +22656,10 @@ body.admin-page-active .main-content {
 }
 
 @media (min-width: 1250px) {
+  /* Desktop admin uses the screen: 32px gutters, capped so lines stay readable. */
   body.admin-page-active main,
   main:has(article.admin[data-page="admin"].active) {
-    max-width: min(1400px, calc(100vw - 40px));
+    max-width: min(1920px, calc(100vw - 64px));
   }
 }
 
@@ -24175,7 +24177,7 @@ body.ops-doc-sheet-open {
   backdrop-filter: blur(6px);
 }
 
-/* Common content wrapper — matches the polished #template-scripts-modal treatment,
+/* Common content wrapper — the polished protocol-modal treatment,
    generalized so every protocol modal gets it instead of just one */
 .sales-content, .turnkey-content, .endtoend-content, .questions-content, .components-content {
   position: relative;
@@ -24460,8 +24462,7 @@ body.ops-doc-sheet-open {
 #open-turnkey ion-icon,
 #open-endtoend ion-icon,
 #open-questions ion-icon,
-#open-components ion-icon,
-#open-template-scripts ion-icon {
+#open-components ion-icon {
   font-size: 2rem;                    /* matches your h2 text-2xl size */
   color: var(--orange-yellow-crayola) !important;
   transition: color 0.3s ease, transform 0.3s ease;
