@@ -224,6 +224,15 @@
     }
   ];
 
+  // Yearly prices follow care-pricing.js (site rate). Proposals go to new
+  // clients, so they always show the current public rate.
+  if (window.CarePricing) {
+    window.CarePricing.applyToPlans(MAINTENANCE_PLANS, null, 'doc');
+    window.CarePricing.onChange(function () {
+      window.CarePricing.applyToPlans(MAINTENANCE_PLANS, null, 'doc');
+    });
+  }
+
   var SCOPE_MULTI_COL_THRESHOLD = 8;
 
   /**
@@ -1506,7 +1515,12 @@
     var billing =
       String((doc && doc.maintenanceBilling) || '').toLowerCase() === 'annual' ? 'annual' : 'monthly';
     var billingLabel = billing === 'annual' ? 'Annual' : 'Monthly';
-    var priceLabel = billing === 'annual' ? plan.annual : plan.monthly;
+    // The invoice's own total is what was charged (a client's kept rate or a
+    // promo month); the catalog price is only a fallback.
+    var charged = Number(doc && doc.total) || 0;
+    var priceLabel = charged
+      ? '$' + charged.toLocaleString('en-US') + (billing === 'annual' ? '/yr' : '/mo')
+      : billing === 'annual' ? plan.annual : plan.monthly;
     var sla = String(plan.slaLabel || '').trim();
     var feats = Array.isArray(plan.features) ? plan.features.slice(0, 4) : [];
     var featLis = '';

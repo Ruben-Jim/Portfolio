@@ -115,6 +115,32 @@
     }
   ];
 
+  /**
+   * Prices come from care-pricing.js. A client's own yearly discount (set in
+   * admin on their project) beats the site rate — that is how first clients
+   * keep their original price after the public discount changes.
+   */
+  var portalYearlyPct = null;
+
+  function applyPortalPricing(project) {
+    if (!window.CarePricing) return;
+    portalYearlyPct = project && project.yearlyDiscountPct != null ? project.yearlyDiscountPct : null;
+    window.CarePricing.applyToPlans(MAINTENANCE_PLANS, portalYearlyPct, 'portal');
+    var promo = window.CarePricing.config.promo;
+    MAINTENANCE_PLANS.forEach(function (plan) {
+      plan.monthlyNote = promo.enabled
+        ? 'First ' + (promo.months === 1 ? 'month' : promo.months + ' months') + ': ' +
+          window.CarePricing.money(window.CarePricing.promoMonthly(plan.id)) + '/mo'
+        : 'Billed monthly';
+    });
+  }
+
+  function portalYearlyPctLabel() {
+    return window.CarePricing
+      ? window.CarePricing.pctLabel(window.CarePricing.yearlyPct(portalYearlyPct))
+      : '45%';
+  }
+
   var portalDmSubscription = null;
   var portalDmFabMetaUnsub = null;
 
@@ -172,7 +198,9 @@
       hoursIncluded: Number(row.hoursIncluded) || defs.hoursIncluded,
       hoursUsed: Number(row.hoursUsed) || 0,
       renewalDate: String(row.renewalDate || ''),
-      slaHours: Number(row.slaHours) || defs.slaHours
+      slaHours: Number(row.slaHours) || defs.slaHours,
+      promoPct: Number(row.promoPct) || 0,
+      promoMonthsLeft: Math.max(0, Number(row.promoMonthsLeft) || 0)
     };
     m.effectivePlanStatus = inferMaintenancePlanStatus(m);
     return m;
@@ -248,7 +276,12 @@
    *  client picked is the price they are asked to send. */
   function maintenancePayAmountLabel(maint) {
     var plan = maintenancePlanById(maint && maint.planTier);
-    return isAnnualBilling(maint) ? plan.annual : plan.monthly;
+    if (isAnnualBilling(maint)) return plan.annual;
+    if (maint && maint.promoMonthsLeft > 0 && maint.promoPct > 0) {
+      var promoAmount = Math.ceil((plan.monthlyAmount * (1000 - maint.promoPct * 10)) / 1000 - 1e-9);
+      return '$' + promoAmount.toLocaleString('en-US') + '/mo';
+    }
+    return plan.monthly;
   }
 
   /**
@@ -720,12 +753,20 @@
     return (
       '<div class="client-portal-maint-block" id="portal-maint-picker">' +
       '<h3 class="client-portal-support-subhead">Choose a maintenance plan</h3>' +
-      '<p class="client-portal-maint-lead">Annual pricing: Essential $522/year · Standard $990/year · Priority $1,980/year. Paying annually saves 45% compared to month-to-month on any plan.</p>' +
+      '<p class="client-portal-maint-lead">Annual pricing: Essential ' +
+      esc(maintenancePlanById('essential').annual.replace('/yr', '/year')) +
+      ' · Standard ' +
+      esc(maintenancePlanById('standard').annual.replace('/yr', '/year')) +
+      ' · Priority ' +
+      esc(maintenancePlanById('priority').annual.replace('/yr', '/year')) +
+      '. Paying annually saves ' +
+      esc(portalYearlyPctLabel()) +
+      ' compared to month-to-month on any plan.</p>' +
       '<fieldset class="client-portal-billing-pref">' +
       '<legend>Billing preference</legend>' +
       '<div class="client-portal-billing-toggle">' +
       '<label><input type="radio" name="portal-billing-pref" value="monthly"><span>Monthly</span></label>' +
-      '<label><input type="radio" name="portal-billing-pref" value="annual" checked><span>Annual <em class="client-portal-billing-save">Save 45%</em></span></label>' +
+      '<label><input type="radio" name="portal-billing-pref" value="annual" checked><span>Annual <em class="client-portal-billing-save">Save ' + esc(portalYearlyPctLabel()) + '</em></span></label>' +
       '</div>' +
       '</fieldset>' +
       renderMaintenancePlanCards('standard') +
@@ -813,6 +854,14 @@
       tickets: [],
       updatedAt: window.rtdbServerTimestamp()
     };
+    var promo = window.CarePricing ? window.CarePricing.config.promo : null;
+    if (billingPref !== 'annual' && promo && promo.enabled) {
+      payload.promoPct = promo.pct;
+      payload.promoMonthsLeft = promo.months;
+    } else {
+      payload.promoPct = null;
+      payload.promoMonthsLeft = null;
+    }
     try {
       if (ctx.maintId) {
         delete payload.tickets;
@@ -1227,6 +1276,10 @@
       portalCanvasDocUrl: guides[0] ? guides[0].url : '',
       portalCanvasDocTitle: guides[0] ? guides[0].title : 'Project guide',
       showMaintenanceInPortal: row.showMaintenanceInPortal !== false,
+      yearlyDiscountPct:
+        window.CarePricing && window.CarePricing.clampPct(row.yearlyDiscountPct) !== null
+          ? window.CarePricing.clampPct(row.yearlyDiscountPct)
+          : null,
       milestones: milestones.map(function (m, i) {
         return {
           id: m.id || 'm' + i,
@@ -3560,6 +3613,10 @@
       var projSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PROJECTS + '/' + link.projectId));
       var hubRow = projSnap.val() || {};
       var project = normalizeProject(link.projectId, hubRow);
+      if (window.CarePricing) {
+        try { await window.CarePricing.load(); } catch (e) { /* defaults are fine */ }
+        applyPortalPricing(project);
+      }
       var showcaseRaw = await resolveShowcaseRaw(hubRow);
       var hasShowcase = !!showcaseRaw;
       var detailRecord = showcaseRaw

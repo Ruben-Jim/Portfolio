@@ -57,6 +57,10 @@
         ".write": "!data.exists()"
       }
     },
+    "agencyPricing": {
+      ".read": true,
+      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+    },
     "agencyMaintenance": {
       ".read": true,
       "$maintId": {

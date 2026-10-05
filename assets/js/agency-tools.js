@@ -556,6 +556,12 @@
     };
   }
 
+  /** A client's own yearly discount, or null to follow the site rate. */
+  function clientYearlyPct(v) {
+    if (v === '' || v == null) return null;
+    return window.CarePricing ? window.CarePricing.clampPct(v) : null;
+  }
+
   function buildHubWritePayload(existing, overrides) {
     existing = existing || {};
     overrides = overrides || {};
@@ -576,6 +582,7 @@
       milestones: Array.isArray(existing.milestones) ? existing.milestones : [],
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       showMaintenanceInPortal: existing.showMaintenanceInPortal !== false,
+      yearlyDiscountPct: clientYearlyPct(existing.yearlyDiscountPct),
       buildHoursEstimate: Math.max(0, Number(existing.buildHoursEstimate) || 0),
       buildHoursSpent: Math.max(0, Number(existing.buildHoursSpent) || 0),
       updatedAt: ts()
@@ -616,6 +623,7 @@
       portalToken: String(row.portalToken || '').replace(/[^a-f0-9]/gi, '').slice(0, 64),
       portalExpiresAt: Number(row.portalExpiresAt) || 0,
       showMaintenanceInPortal: row.showMaintenanceInPortal !== false,
+      yearlyDiscountPct: clientYearlyPct(row.yearlyDiscountPct),
       portalGuides: guideFields.portalGuides,
       portalCanvasDocUrl: guideFields.portalCanvasDocUrl,
       portalCanvasDocTitle: guideFields.portalCanvasDocTitle,
@@ -692,6 +700,8 @@
       hoursUsed: Number(row.hoursUsed) || 0,
       renewalDate: String(row.renewalDate || ''),
       slaHours: Number(row.slaHours) || 48,
+      promoPct: Number(row.promoPct) || 0,
+      promoMonthsLeft: Math.max(0, Number(row.promoMonthsLeft) || 0),
       notes: String(row.notes || '').slice(0, 2000),
       tickets: Array.isArray(row.tickets) ? row.tickets : [],
       updatedAt: row.updatedAt || null
@@ -2021,6 +2031,89 @@
     bindModalClose('maintenance-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
     var save = document.getElementById('maint-save-btn');
     if (save) save.addEventListener('click', function () { saveMaintenance().catch(console.error); });
+    initCarePricingSettings();
+  }
+
+  // ——— Care plan pricing (site-wide yearly discount + new-client promo) ———
+  function readCarePricingForm() {
+    function num(id) { return (document.getElementById(id) || {}).value; }
+    return {
+      yearlyDiscountPct: num('care-pricing-yearly'),
+      promo: {
+        enabled: !!(document.getElementById('care-pricing-promo-enabled') || {}).checked,
+        months: num('care-pricing-promo-months'),
+        pct: num('care-pricing-promo-pct')
+      }
+    };
+  }
+
+  function fillCarePricingForm(cfg) {
+    var set = function (id, v) { var el = document.getElementById(id); if (el) el.value = v; };
+    set('care-pricing-yearly', cfg.yearlyDiscountPct);
+    set('care-pricing-promo-months', cfg.promo.months);
+    set('care-pricing-promo-pct', cfg.promo.pct);
+    var en = document.getElementById('care-pricing-promo-enabled');
+    if (en) en.checked = !!cfg.promo.enabled;
+    renderCarePricingPreview();
+  }
+
+  /** Shows the prices a save would publish, before saving. */
+  function renderCarePricingPreview() {
+    var out = document.getElementById('care-pricing-preview');
+    var CP = window.CarePricing;
+    if (!out || !CP) return;
+    var form = readCarePricingForm();
+    var pct = CP.clampPct(form.yearlyDiscountPct);
+    if (pct === null) {
+      out.textContent = 'Yearly discount must be between 0 and 90%.';
+      return;
+    }
+    var parts = CP.TIERS.map(function (t) {
+      var q = CP.quote(t, pct);
+      return t.charAt(0).toUpperCase() + t.slice(1) + ' ' + CP.money(q.annual) + '/yr (save ' + CP.money(q.save) + ')';
+    });
+    var text = 'Yearly at ' + CP.pctLabel(pct) + ': ' + parts.join(' · ') + '.';
+    if (form.promo.enabled) {
+      var pp = CP.clampPct(form.promo.pct) || 0;
+      var months = Math.round(Number(form.promo.months)) || 0;
+      var promoParts = CP.TIERS.map(function (t) {
+        return CP.money(Math.ceil((CP.MONTHLY[t] * (1000 - pp * 10)) / 1000 - 1e-9)) + '/mo';
+      });
+      text += ' Promo: first ' + months + ' month' + (months === 1 ? '' : 's') + ' at ' + CP.pctLabel(pp) + ' off monthly — ' + promoParts.join(' · ') + '.';
+    }
+    out.textContent = text;
+  }
+
+  function initCarePricingSettings() {
+    var section = document.getElementById('care-pricing-section');
+    if (!section || section.dataset.bound || !window.CarePricing) return;
+    section.dataset.bound = '1';
+    fillCarePricingForm(window.CarePricing.config);
+    window.CarePricing.load().then(fillCarePricingForm).catch(function () {});
+    section.addEventListener('input', renderCarePricingPreview);
+    section.addEventListener('change', renderCarePricingPreview);
+    var btn = document.getElementById('care-pricing-save');
+    var feedback = document.getElementById('care-pricing-feedback');
+    if (!btn) return;
+    btn.addEventListener('click', async function () {
+      var form = readCarePricingForm();
+      if (window.CarePricing.clampPct(form.yearlyDiscountPct) === null) {
+        if (feedback) feedback.textContent = 'Yearly discount must be between 0 and 90%.';
+        return;
+      }
+      btn.disabled = true;
+      if (feedback) feedback.textContent = 'Saving…';
+      try {
+        var cfg = await window.CarePricing.save(form);
+        fillCarePricingForm(cfg);
+        if (feedback) feedback.textContent = 'Pricing saved — live on the site and portals.';
+      } catch (err) {
+        console.error(err);
+        if (feedback) feedback.textContent = (err && err.message) || 'Save failed.';
+      } finally {
+        btn.disabled = false;
+      }
+    });
   }
 
   // ——— Content Repurposing ———
@@ -4560,8 +4653,21 @@
       '>' +
       '<span class="custom-switch" aria-hidden="true"></span>' +
       '<span>Show maintenance &amp; support in client portal</span></label>' +
-      '<p class="form-hint">Uncheck when this client is not on maintenance billing — hides the plan upsell from their portal.</p></div>'
+      '<p class="form-hint">Uncheck when this client is not on maintenance billing — hides the plan upsell from their portal.</p></div>' +
+      '<div class="form-group"><label for="cp-hub-yearly-discount">Yearly discount for this client (%)</label>' +
+      '<input id="cp-hub-yearly-discount" class="form-input" type="number" min="0" max="90" step="1" placeholder="' +
+      esc(String(window.CarePricing ? window.CarePricing.config.yearlyDiscountPct : 45)) +
+      '% (site rate)" value="' +
+      esc(hub.yearlyDiscountPct != null ? String(hub.yearlyDiscountPct) : '') +
+      '">' +
+      '<p class="form-hint">Leave blank to follow the site rate. Set it to keep a client on their original yearly price (first clients stay at 45%).</p></div>'
     );
+  }
+
+  function readCpYearlyDiscount(existing) {
+    var el = document.getElementById('cp-hub-yearly-discount');
+    if (!el) return existing ? clientYearlyPct(existing.yearlyDiscountPct) : null;
+    return clientYearlyPct(String(el.value || '').trim());
   }
 
   function readCpShowMaintPortalChecked(existing) {
@@ -5287,7 +5393,7 @@
         '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>'
       : renderCpShowMaintPortalHtml(hub) +
         '<div class="cp-section-actions">' +
-        '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint-portal">Save portal visibility</button>' +
+        '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint-portal">Save portal settings</button>' +
         '<p class="cp-section-feedback" data-cp-feedback="maint" role="status"></p></div>' +
         '<div class="cp-section-empty"><p>No maintenance record for this client yet.</p>' +
         '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="add-maint">Add maintenance →</button></div>';
@@ -5632,6 +5738,7 @@
       milestones: root ? collectCpMilestonesFromWorkspace(root) : existing.milestones,
       enabledModules: Array.isArray(existing.enabledModules) ? existing.enabledModules.slice() : [],
       showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
+      yearlyDiscountPct: readCpYearlyDiscount(existing),
       buildHoursEstimate: Math.max(0, Number((document.getElementById('cp-hub-build-estimate') || {}).value) || 0),
       buildHoursSpent: Math.max(0, Number((document.getElementById('cp-hub-build-spent') || {}).value) || 0)
     });
@@ -5700,7 +5807,8 @@
     var existing = getHubById(hubId);
     if (!existing || !document.getElementById('cp-hub-show-maint-portal')) return;
     var payload = buildHubWritePayload(existing, {
-      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing)
+      showMaintenanceInPortal: readCpShowMaintPortalChecked(existing),
+      yearlyDiscountPct: readCpYearlyDiscount(existing)
     });
     await saveProjectHubRecord(hubId, payload, false);
   }
@@ -5709,7 +5817,7 @@
     try {
       await updateHubShowMaintenanceInPortal();
       renderClientProjectsWorkspace();
-      setCpFeedback('maint', 'Portal visibility saved.', false);
+      setCpFeedback('maint', 'Portal settings saved.', false);
       if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
     } catch (err) {
       console.error(err);
@@ -5739,6 +5847,10 @@
       payload.planStatus = existing.planStatus || existing.effectivePlanStatus || 'active';
       payload.planRequestedAt = existing.planRequestedAt || null;
       payload.tickets = existing.tickets || [];
+      if (existing.promoMonthsLeft > 0) {
+        payload.promoPct = existing.promoPct;
+        payload.promoMonthsLeft = existing.promoMonthsLeft;
+      }
     }
     var tierEl = document.getElementById('cp-maint-tier');
     var payEl = document.getElementById('cp-maint-payment');
@@ -5803,6 +5915,22 @@
       if (byName) clientEmail = String(byName.clientEmail || '').trim();
     }
 
+    var hubForPrice = projectId
+      ? agencyProjects.find(function (p) { return p.id === projectId; })
+      : null;
+    var promoLeft = Math.max(0, Number(row.promoMonthsLeft) || 0);
+    var promoPct = Number(row.promoPct) || 0;
+    var usePromo = billing === 'monthly' && promoLeft > 0 && promoPct > 0;
+    var chargeAmount = 0;
+    if (window.CarePricing) {
+      var q = window.CarePricing.quote(planId, hubForPrice ? hubForPrice.yearlyDiscountPct : null);
+      chargeAmount = billing === 'annual'
+        ? q.annual
+        : usePromo
+          ? Math.ceil((q.monthly * (1000 - promoPct * 10)) / 1000 - 1e-9)
+          : q.monthly;
+    }
+
     var invoiceResult = null;
     if (typeof window.createPaidMaintenanceInvoiceFromPlan === 'function' && clientName) {
       try {
@@ -5812,6 +5940,7 @@
           planId: planId,
           billing: billing,
           maintenanceId: maintId,
+          amount: chargeAmount,
           invoiceKind: 'setup'
         });
       } catch (invErr) {
@@ -5825,6 +5954,10 @@
       paymentConfirmedAt: ts(),
       updatedAt: ts()
     });
+    if (usePromo) {
+      payload.promoMonthsLeft = promoLeft - 1 > 0 ? promoLeft - 1 : null;
+      if (!payload.promoMonthsLeft) payload.promoPct = null;
+    }
     if (invoiceResult && invoiceResult.doc && invoiceResult.doc.id) {
       payload.paymentInvoiceId = invoiceResult.doc.id;
       if (invoiceResult.doc.invoiceNumber) {

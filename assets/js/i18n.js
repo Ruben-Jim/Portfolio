@@ -170,14 +170,18 @@
       'services.linktree_cta':   'Start from $99',
 
       'services.maint_title':   'Maintenance Plans',
-      'services.maint_lead':    'Annual pricing: Essential $522/year · Standard $990/year · Priority $1,980/year. Paying annually <strong>saves 45%</strong> compared to month-to-month on any plan.',
+      'services.maint_lead':    'Annual pricing: Essential {ess_annual}/year · Standard {std_annual}/year · Priority {pri_annual}/year. Paying annually <strong>saves {yearly_pct}</strong> compared to month-to-month on any plan.',
+      'services.maint_promo':   'New clients: {promo_period_en} on a monthly plan are {promo_pct} off \u2014 Essential {promo_ess}/mo, Standard {promo_std}/mo, Priority {promo_pri}/mo.',
+      'services.ess_promo':     '{promo_card_en}: {promo_ess}/mo',
+      'services.std_promo':     '{promo_card_en}: {promo_std}/mo',
+      'services.pri_promo':     '{promo_card_en}: {promo_pri}/mo',
       'services.monthly_label': 'Monthly',
 
       'services.ess_title':     'Essential Care',
       'services.ess_sub':       'Your website and app stay hosted, secure, and online. Content changes and new features are quoted separately.',
       'services.ess_mo_note':   'Replies in 5 business days',
-      'services.ess_ann_label': 'Annual <span class="maintenance-save-badge">Save 45%</span>',
-      'services.ess_ann_note':  'Just $44/mo, paid yearly \u00b7 save $426',
+      'services.ess_ann_label': 'Annual <span class="maintenance-save-badge">Save {yearly_pct}</span>',
+      'services.ess_ann_note':  'Just {ess_permo}/mo, paid yearly \u00b7 save {ess_save}',
       'services.ess_f1':        'Website and app stay hosted, secure, and online',
       'services.ess_f2':        'App Store and Play Store updates 4 times a year',
       'services.ess_f3':        'Questions answered in 5 business days',
@@ -185,10 +189,10 @@
       'services.ess_f5':        'Website content changes and new features are quoted separately',
 
       'services.std_title':     'Standard Care',
-      'services.std_sub':       'Everything in Essential, plus monthly content, included features, and faster replies \u2014 $468 more a year, about $39 a month.',
+      'services.std_sub':       'Everything in Essential, plus monthly content, included features, and faster replies \u2014 {std_diff_year} more a year, about {std_diff_month} a month.',
       'services.std_mo_note':   'Replies in 2 business days',
-      'services.std_ann_label': 'Annual <span class="maintenance-save-badge">Save 45%</span>',
-      'services.std_ann_note':  'Just $83/mo, paid yearly \u00b7 save $810',
+      'services.std_ann_label': 'Annual <span class="maintenance-save-badge">Save {yearly_pct}</span>',
+      'services.std_ann_note':  'Just {std_permo}/mo, paid yearly \u00b7 save {std_save}',
       'services.std_f1':        'Everything in Essential Care',
       'services.std_f2':        'Send photos and videos any time \u2014 published every month',
       'services.std_f3':        'App Store updates every month if needed',
@@ -196,10 +200,10 @@
       'services.std_f5':        'Questions in 2 business days \u00b7 if your app is down, reply in 4 hours, nights and weekends included',
 
       'services.pri_title':     'Priority Care',
-      'services.pri_sub':       'Everything in Standard, plus weekly content, faster replies, and first place in line \u2014 $990 more a year, about $83 a month.',
+      'services.pri_sub':       'Everything in Standard, plus weekly content, faster replies, and first place in line \u2014 {pri_diff_year} more a year, about {pri_diff_month} a month.',
       'services.pri_mo_note':   'Replies in 3 business hours',
-      'services.pri_ann_label': 'Annual <span class="maintenance-save-badge">Save 45%</span>',
-      'services.pri_ann_note':  'Just $165/mo, paid yearly \u00b7 save $1,620',
+      'services.pri_ann_label': 'Annual <span class="maintenance-save-badge">Save {yearly_pct}</span>',
+      'services.pri_ann_note':  'Just {pri_permo}/mo, paid yearly \u00b7 save {pri_save}',
       'services.pri_f1':        'Everything in Standard Care',
       'services.pri_f2':        'Content published weekly \u00b7 one major update every 6 months',
       'services.pri_f4':        'Questions in 3 business hours \u00b7 if your app is down, reply in 2 hours, nights and weekends included',
@@ -419,14 +423,18 @@
       'services.linktree_cta':   'Comenzar desde $99',
 
       'services.maint_title':   'Planes de Mantenimiento',
-      'services.maint_lead':    'Precio anual: Esencial $522/a\u00f1o \u00b7 Est\u00e1ndar $990/a\u00f1o \u00b7 Prioritario $1,980/a\u00f1o. Pagar anual <strong>ahorra 45%</strong> comparado con el mes a mes en cualquier plan.',
+      'services.maint_lead':    'Precio anual: Esencial {ess_annual}/a\u00f1o \u00b7 Est\u00e1ndar {std_annual}/a\u00f1o \u00b7 Prioritario {pri_annual}/a\u00f1o. Pagar anual <strong>ahorra {yearly_pct}</strong> comparado con el mes a mes en cualquier plan.',
+      'services.maint_promo':   'Clientes nuevos: {promo_period_es} en un plan mensual tienen {promo_pct} de descuento \u2014 Esencial {promo_ess}/mes, Est\u00e1ndar {promo_std}/mes, Prioritario {promo_pri}/mes.',
+      'services.ess_promo':     '{promo_card_es}: {promo_ess}/mes',
+      'services.std_promo':     '{promo_card_es}: {promo_std}/mes',
+      'services.pri_promo':     '{promo_card_es}: {promo_pri}/mes',
       'services.monthly_label': 'Mensual',
 
       'services.ess_title':     'Cuidado Esencial',
       'services.ess_sub':       'Tu sitio y app se quedan hospedados, seguros y en l\u00ednea. Cambios de contenido y funciones nuevas se cotizan aparte.',
       'services.ess_mo_note':   'Respuestas en 5 d\u00edas h\u00e1biles',
-      'services.ess_ann_label': 'Anual <span class="maintenance-save-badge">Ahorra 45%</span>',
-      'services.ess_ann_note':  'Solo $44/mes, pago anual \u00b7 ahorra $426',
+      'services.ess_ann_label': 'Anual <span class="maintenance-save-badge">Ahorra {yearly_pct}</span>',
+      'services.ess_ann_note':  'Solo {ess_permo}/mes, pago anual \u00b7 ahorra {ess_save}',
       'services.ess_f1':        'El sitio y la app se quedan hospedados, seguros y en l\u00ednea',
       'services.ess_f2':        'Actualizaciones a App Store y Play Store 4 veces al a\u00f1o',
       'services.ess_f3':        'Preguntas contestadas en 5 d\u00edas h\u00e1biles',
@@ -434,10 +442,10 @@
       'services.ess_f5':        'Cambios de contenido y funciones nuevas se cotizan aparte',
 
       'services.std_title':     'Cuidado Est\u00e1ndar',
-      'services.std_sub':       'Todo lo de Esencial, m\u00e1s contenido mensual, funciones incluidas y respuestas m\u00e1s r\u00e1pidas \u2014 $468 m\u00e1s al a\u00f1o, unos $39 al mes.',
+      'services.std_sub':       'Todo lo de Esencial, m\u00e1s contenido mensual, funciones incluidas y respuestas m\u00e1s r\u00e1pidas \u2014 {std_diff_year} m\u00e1s al a\u00f1o, unos {std_diff_month} al mes.',
       'services.std_mo_note':   'Respuestas en 2 d\u00edas h\u00e1biles',
-      'services.std_ann_label': 'Anual <span class="maintenance-save-badge">Ahorra 45%</span>',
-      'services.std_ann_note':  'Solo $83/mes, pago anual \u00b7 ahorra $810',
+      'services.std_ann_label': 'Anual <span class="maintenance-save-badge">Ahorra {yearly_pct}</span>',
+      'services.std_ann_note':  'Solo {std_permo}/mes, pago anual \u00b7 ahorra {std_save}',
       'services.std_f1':        'Todo lo de Cuidado Esencial',
       'services.std_f2':        'Env\u00eda fotos y videos cuando quieras \u2014 se publican cada mes',
       'services.std_f3':        'Actualizaciones a App Store cada mes si hace falta',
@@ -445,10 +453,10 @@
       'services.std_f5':        'Preguntas en 2 d\u00edas h\u00e1biles \u00b7 si tu app se cae, respuesta en 4 horas, incluyendo noches y fines de semana',
 
       'services.pri_title':     'Cuidado Prioritario',
-      'services.pri_sub':       'Todo lo de Est\u00e1ndar, m\u00e1s contenido semanal, respuestas m\u00e1s r\u00e1pidas y el primer lugar en la fila \u2014 $990 m\u00e1s al a\u00f1o, unos $83 al mes.',
+      'services.pri_sub':       'Todo lo de Est\u00e1ndar, m\u00e1s contenido semanal, respuestas m\u00e1s r\u00e1pidas y el primer lugar en la fila \u2014 {pri_diff_year} m\u00e1s al a\u00f1o, unos {pri_diff_month} al mes.',
       'services.pri_mo_note':   'Respuestas en 3 horas h\u00e1biles',
-      'services.pri_ann_label': 'Anual <span class="maintenance-save-badge">Ahorra 45%</span>',
-      'services.pri_ann_note':  'Solo $165/mes, pago anual \u00b7 ahorra $1,620',
+      'services.pri_ann_label': 'Anual <span class="maintenance-save-badge">Ahorra {yearly_pct}</span>',
+      'services.pri_ann_note':  'Solo {pri_permo}/mes, pago anual \u00b7 ahorra {pri_save}',
       'services.pri_f1':        'Todo lo de Cuidado Est\u00e1ndar',
       'services.pri_f2':        'Contenido publicado cada semana \u00b7 una actualizaci\u00f3n mayor cada 6 meses',
       'services.pri_f4':        'Preguntas en 3 horas h\u00e1biles \u00b7 si tu app se cae, respuesta en 2 horas, incluyendo noches y fines de semana',
@@ -505,6 +513,14 @@
     }
   };
 
+  /** {token} values come from care-pricing.js so prices are set in one place. */
+  function interpolate(val) {
+    var vars = window.CWR_I18N_VARS || {};
+    return String(val).replace(/\{([a-z_]+)\}/g, function (m, k) {
+      return vars[k] != null ? vars[k] : m;
+    });
+  }
+
   function applyTranslations(lang) {
     if (!CWR_I18N[lang]) lang = 'en';
     document.documentElement.setAttribute('data-lang', lang);
@@ -513,7 +529,7 @@
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
       var key = el.getAttribute('data-i18n');
       var val = CWR_I18N[lang][key];
-      if (val !== undefined) el.innerHTML = val;
+      if (val !== undefined) el.innerHTML = interpolate(val);
     });
 
     document.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
@@ -535,13 +551,16 @@
   }
 
   window.cwrSetLang = function (lang) { applyTranslations(lang); };
+  window.cwrGetLang = function () {
+    return document.documentElement.getAttribute('data-lang') || 'en';
+  };
   window.cwrT = function (key, fallback) {
     var lang = document.documentElement.getAttribute('data-lang') || localStorage.getItem('cwr-lang') || 'en';
     if (!CWR_I18N[lang]) lang = 'en';
     var val = CWR_I18N[lang][key];
     if (val == null && lang !== 'en') val = CWR_I18N.en[key];
     if (val == null) return fallback || '';
-    return String(val).replace(/<[^>]*>/g, '');
+    return interpolate(val).replace(/<[^>]*>/g, '');
   };
   window.cwrToggleLang = function () {
     var cur = document.documentElement.getAttribute('data-lang') || 'en';

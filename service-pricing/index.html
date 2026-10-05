@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=pricing-buyout-20260930">
+  <link rel="stylesheet" href="/assets/css/style.css?v=care-pricing-admin-20261004">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -1911,6 +1911,7 @@
 
             <h3 class="h3 service-title standard-addons-heading" id="sp-care" data-i18n="services.maint_title">Maintenance Plans</h3>
             <p class="maintenance-billing-lead" data-i18n="services.maint_lead">Annual pricing: Essential $522/year · Standard $990/year · Priority $1,980/year. Paying annually <strong>saves 45%</strong> compared to month-to-month on any plan.</p>
+            <p class="maintenance-billing-lead maintenance-promo-note" data-care-promo data-i18n="services.maint_promo" hidden></p>
             <div class="sp-billing-toggle" role="group" aria-label="Billing period">
               <button type="button" class="sp-billing-btn" data-billing="monthly" aria-pressed="false"><span data-i18n="services.monthly_label">Monthly</span></button>
               <button type="button" class="sp-billing-btn is-active" data-billing="annual" aria-pressed="true"><span data-i18n="services.ess_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span></button>
@@ -1928,11 +1929,12 @@
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$79<span class="enterprise-price-period">/mo</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_mo_note">Replies in 5 business days</div>
+                  <div class="maintenance-promo-chip" data-care-promo data-i18n="services.ess_promo" hidden></div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label" data-i18n="services.ess_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <div class="enterprise-price">$522<span class="enterprise-price-period">/yr</span></div>
+                  <div class="enterprise-price" data-care-annual="essential">$522<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.ess_ann_note">Just $44/mo, paid yearly · save $426</div>
                 </div>
                 </div>
@@ -1961,11 +1963,12 @@
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$150<span class="enterprise-price-period">/mo</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_mo_note">Replies in 2 business days</div>
+                  <div class="maintenance-promo-chip" data-care-promo data-i18n="services.std_promo" hidden></div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label" data-i18n="services.std_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <div class="enterprise-price">$990<span class="enterprise-price-period">/yr</span></div>
+                  <div class="enterprise-price" data-care-annual="standard">$990<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.std_ann_note">Just $83/mo, paid yearly · save $810</div>
                 </div>
                 </div>
@@ -1991,11 +1994,12 @@
                   <span class="maintenance-billing-label" data-i18n="services.monthly_label">Monthly</span>
                   <div class="enterprise-price">$300<span class="enterprise-price-period">/mo</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_mo_note">Replies in 3 business hours</div>
+                  <div class="maintenance-promo-chip" data-care-promo data-i18n="services.pri_promo" hidden></div>
                 </div>
 
                 <div class="maintenance-billing-block maintenance-billing-block--annual">
                   <span class="maintenance-billing-label" data-i18n="services.pri_ann_label">Annual <span class="maintenance-save-badge">Save 45%</span></span>
-                  <div class="enterprise-price">$1,980<span class="enterprise-price-period">/yr</span></div>
+                  <div class="enterprise-price" data-care-annual="priority">$1,980<span class="enterprise-price-period">/yr</span></div>
                   <div class="enterprise-price-note maintenance-billing-note" data-i18n="services.pri_ann_note">Just $165/mo, paid yearly · save $1,620</div>
                 </div>
                 </div>
@@ -2010,7 +2014,7 @@
             </div>
 
             <div class="standard-addon-cta-wrap">
-              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in maintenance after my first included month (the plan I pick) — Essential $79/mo or $522/yr, Standard $150/mo or $990/yr (recommended), or Priority $300/mo or $1,980/yr. Annual saves 45% vs monthly.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
+              <a href="#contact" class="enterprise-cta" onclick="prefillContactForm('Maintenance Plans', 'Interested in a maintenance plan after my first included month — Essential, Standard (recommended) or Priority, billed monthly or yearly.'); if(typeof switchToPage === 'function') { switchToPage('contact'); } return false;">
                 <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                 <span data-i18n="services.maint_cta">Discuss Plan</span>
               </a>
@@ -4397,6 +4401,30 @@
                       </div>
                       <div class="cp-delivery-cards" id="cp-delivery-cards-client" data-delivery-stage="client"></div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading">
+              <h3 class="h3 admin-panel-title">Care plan pricing</h3>
+              <p class="admin-panel-lead">Yearly discount and new-client promo for maintenance plans.</p>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <div class="care-pricing-admin" id="care-pricing-section">
+                  <p class="care-pricing-admin-lead">Applies to the Services &amp; Pricing page, client portals and proposals. Clients with their own yearly discount (set in their maintenance editor) keep it.</p>
+                  <div class="care-pricing-admin-grid">
+                    <label class="care-pricing-admin-field">Yearly discount (%)<input id="care-pricing-yearly" class="form-input" type="number" min="0" max="90" step="1" value="45"></label>
+                    <label class="care-pricing-admin-switch"><input type="checkbox" id="care-pricing-promo-enabled"> New-client promo (monthly plans)</label>
+                    <label class="care-pricing-admin-field">Promo months<input id="care-pricing-promo-months" class="form-input" type="number" min="1" max="24" step="1" value="3"></label>
+                    <label class="care-pricing-admin-field">Promo discount (%)<input id="care-pricing-promo-pct" class="form-input" type="number" min="1" max="90" step="1" value="50"></label>
+                  </div>
+                  <p class="care-pricing-admin-preview" id="care-pricing-preview" aria-live="polite"></p>
+                  <div class="care-pricing-admin-actions">
+                    <button type="button" class="btn btn-primary btn-sm" id="care-pricing-save">Save pricing</button>
+                    <span class="care-pricing-admin-feedback" id="care-pricing-feedback" role="status"></span>
                   </div>
                 </div>
               </div>
@@ -8176,16 +8204,17 @@
   <script src="/assets/js/portfolio-built-in-data.js?v=pkg-examples-20260820"></script>
   <script src="/assets/js/portfolio-assets.js?v=media-picker-20260929"></script>
   <script src="/assets/js/business-systems-data.js?v=expo-app-demo-20260911"></script>
-  <script src="/assets/js/business-doc-shared.js?v=major-update-ex-20261003"></script>
+  <script src="/assets/js/care-pricing.js?v=care-pricing-page-20261004"></script>
+  <script src="/assets/js/business-doc-shared.js?v=care-pricing-20261004"></script>
   <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/i18n.js?v=major-update-ex-20261003"></script>
+  <script src="/assets/js/i18n.js?v=care-pricing-page-20261004"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=pricing-buyout-20260930"></script>
+  <script src="/assets/js/script.js?v=care-pricing-admin-20261004"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=priority-3bizhr-20261003"></script>
+  <script src="/assets/js/agency-tools.js?v=care-pricing-page-20261004"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->

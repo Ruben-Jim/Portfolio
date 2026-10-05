@@ -18994,7 +18994,8 @@ window.addEventListener('load', function() {
    *   planId?: string,
    *   billing?: string,
    *   maintenanceId?: string,
-   *   paymentKey?: string
+   *   paymentKey?: string,
+   *   amount?: number
    * }} opts
    * @returns {Promise<{ doc: object, created: boolean }|null>}
    */
@@ -19028,6 +19029,8 @@ window.addEventListener('load', function() {
     if (!amount) {
       amount = billing === 'annual' ? (planId === 'priority' ? 1980 : planId === 'essential' ? 522 : 990) : planId === 'priority' ? 300 : planId === 'essential' ? 79 : 150;
     }
+    // Caller-computed price wins: a client's kept yearly rate or a promo month.
+    if (Number(opts.amount) > 0) amount = Number(opts.amount);
 
     var now = new Date();
     var ymMonth = String(now.getMonth() + 1);
