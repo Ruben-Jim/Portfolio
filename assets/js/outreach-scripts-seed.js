@@ -418,6 +418,32 @@
         '"Hey — Ruben again with CodeWithRuben, quick follow-up on [Company]. Still open to a free mockup — no deposit, pay only if you like it?"'
     },
     {
+      id: 'site-down',
+      label: 'Website down / error',
+      tag: 'Website Down · Heads-up (site not loading or showing an error) · check it again right before you send',
+      vertical: 'local businesses whose website is down or erroring',
+      demoLink: '',
+      order: 115,
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. Quick heads-up: I tried [Company]’s website and it isn’t loading right now (it shows an error), so customers searching for you may be hitting the same thing. I build websites and booking apps for local service businesses, and you’d keep your same domain. Want me to send a quick mockup?\n\nHere’s one I built: [demo link]',
+      subject: 'Subject: Heads up — [Company]’s website is down',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'This is Ruben with CodeWithRuben here in [City]. Heads up — I noticed [Company]’s website is currently down (it isn’t loading / shows an error).\n' +
+        '\n' +
+        'I build websites and apps for local service businesses. Here’s one I built: [demo link]\n' +
+        '\n' +
+        'You’d keep your same domain. Happy to help either way.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben here in [City]. Got 20 seconds?"\n' +
+        '[continue] "Quick heads-up — I tried your website today and it isn’t loading, it shows an error. Were you aware?"\n' +
+        '[if no] "Customers searching for you are probably hitting the same thing. I build websites for local businesses, and you’d keep your same domain. Want me to send you a quick mockup or a fix-it plan?"\n' +
+        '[if yes] "Got it. If you want a hand getting it back up, or a fresh site on the same domain, I can send a quick mockup. No pressure either way."'
+    },
+    {
       id: 'landline',
       label: 'Landline — email/form first, then call',
       tag: 'Landline number · Text step = paste into their website contact form (use Copy, not Text) · call only after 3–4 days with no reply',

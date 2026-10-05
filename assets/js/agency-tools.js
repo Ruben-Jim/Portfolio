@@ -7575,6 +7575,56 @@
     if (bar.parentElement !== document.body) {
       document.body.appendChild(bar);
     }
+    var peek = document.getElementById('tc-timer-peek');
+    if (peek && peek.parentElement !== document.body) {
+      document.body.appendChild(peek);
+    }
+    bindTcTimerCollapse();
+  }
+
+  // ——— Hide / show the floating timer (slides off to the right edge) ———
+  var TC_BAR_COLLAPSED_KEY = 'tcTimerBarCollapsed';
+  var tcBarCollapseBound = false;
+
+  /** Saved choice on this device; phones start hidden until you choose. */
+  function tcBarCollapsedPref() {
+    try {
+      var saved = localStorage.getItem(TC_BAR_COLLAPSED_KEY);
+      if (saved === '1') return true;
+      if (saved === '0') return false;
+    } catch (e) { /* private mode */ }
+    return window.matchMedia ? window.matchMedia('(max-width: 767px)').matches : false;
+  }
+
+  function setTcBarCollapsed(collapsed, persist) {
+    document.body.classList.toggle('tc-timer-bar-collapsed', !!collapsed);
+    var hideBtn = document.getElementById('tc-timer-hide');
+    var peek = document.getElementById('tc-timer-peek');
+    var bar = document.getElementById('tc-timer-bar');
+    if (hideBtn) hideBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    if (peek) peek.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    // Off-screen controls must not be reachable by Tab.
+    if (bar) bar.inert = !!collapsed;
+    if (persist) {
+      try { localStorage.setItem(TC_BAR_COLLAPSED_KEY, collapsed ? '1' : '0'); } catch (e) { /* private mode */ }
+    }
+  }
+
+  function bindTcTimerCollapse() {
+    if (tcBarCollapseBound) return;
+    var hideBtn = document.getElementById('tc-timer-hide');
+    var peek = document.getElementById('tc-timer-peek');
+    if (!hideBtn || !peek) return;
+    tcBarCollapseBound = true;
+    setTcBarCollapsed(tcBarCollapsedPref(), false);
+    hideBtn.addEventListener('click', function () {
+      setTcBarCollapsed(true, true);
+      peek.focus();
+    });
+    peek.addEventListener('click', function () {
+      setTcBarCollapsed(false, true);
+      if (hideBtn) hideBtn.focus();
+    });
   }
 
   function ensureTcTimerChipMounted() {
@@ -7720,6 +7770,8 @@
       bar.setAttribute('aria-hidden', active || reviewing ? 'false' : 'true');
     }
     document.body.classList.toggle('tc-timer-bar-active', active || reviewing);
+    var peekBtn = document.getElementById('tc-timer-peek');
+    if (peekBtn) peekBtn.hidden = !(active || reviewing);
     if (pauseBtn) pauseBtn.hidden = status !== 'running';
     if (resumeBtn) resumeBtn.hidden = status !== 'paused' || reviewing;
     if (stopBtn) stopBtn.hidden = !active;

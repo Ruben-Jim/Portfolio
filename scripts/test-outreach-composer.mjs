@@ -31,6 +31,8 @@ const ids = ['outreach-composer','outreach-script-select','outreach-steps','outr
 const store = Object.fromEntries(ids.map(i=>[i, mkEl(i, i === 'outreach-preview' ? 'textarea' : 'div')]));
 
 const seedSrc = fs.readFileSync('assets/js/outreach-scripts-seed.js','utf8');
+// Count from the seed file itself so adding a script doesn't break the test.
+const SEED_COUNT = (seedSrc.match(/^\s{6}id: '/gm) || []).length;
 let seeded = null;
 let lastSelectOptions = [];
 
@@ -68,10 +70,10 @@ const body = () => store['outreach-preview'].value || store['outreach-preview'].
 
 await sandbox.window.CWR_OUTREACH.open();
 
-ok(lastSelectOptions.length===16, `16 scripts in dropdown (got ${lastSelectOptions.length})`);
+ok(lastSelectOptions.length===SEED_COUNT, `${SEED_COUNT} scripts in dropdown (got ${lastSelectOptions.length})`);
 ok(store['outreach-script-select'].value === lastSelectOptions[0].value, 'first script selected by default');
 ok(store['outreach-steps'].children.length===4, `4 step buttons rendered`);
-ok(seeded && Object.keys(seeded).length===16, `RTDB seeded with 16 scripts on first open`);
+ok(seeded && Object.keys(seeded).length===SEED_COUNT, `RTDB seeded with ${SEED_COUNT} scripts on first open`);
 
 const warn = store['outreach-warn'], copy = store['outreach-copy'];
 ok(copy.disabled===false, 'Copy enabled even with unfilled placeholders');

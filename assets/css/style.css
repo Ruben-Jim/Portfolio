@@ -13358,6 +13358,81 @@ body.portfolio-project-modal-open .cp-client-drawer {
   font-weight: var(--fw-600);
 }
 
+.admin-client-email-length {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Collapsible categories inside a dropdown (options passed with a `group`). */
+.business-doc-select-group + .business-doc-select-group {
+  margin-top: 2px;
+}
+
+.business-doc-select-group-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--light-gray-70);
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  font-family: var(--ff-poppins);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.business-doc-select-group-toggle::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+}
+
+.business-doc-select-group.is-expanded > .business-doc-select-group-toggle {
+  color: var(--orange-yellow-crayola);
+}
+
+.business-doc-select-group.is-expanded > .business-doc-select-group-toggle::after {
+  transform: rotate(45deg);
+}
+
+.business-doc-select-group-toggle:hover,
+.business-doc-select-group-toggle:focus-visible {
+  background: rgba(255, 193, 7, 0.08);
+  outline: none;
+}
+
+.business-doc-select-group-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: hsla(0, 0%, 100%, 0.06);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+.business-doc-select-group-items {
+  display: flex;
+  flex-direction: column;
+  padding-left: 8px;
+}
+
+.business-doc-select-group-items[hidden] {
+  display: none;
+}
+
 /* Multi-select: options are toggles, so each carries its own tick box and the
    menu stays open while several are picked. */
 .business-doc-select[data-select-multi="true"] .business-doc-select-option {
@@ -28341,6 +28416,17 @@ body.admin-tab-reorder-active::before {
 .admin-client-email-draft-delete:hover,
 .admin-client-email-draft-delete:focus-visible {
   color: hsl(6, 88%, 67%);
+}
+
+.pipeline-card-followup.is-due {
+  color: var(--orange-yellow-crayola);
+  font-weight: var(--fw-600);
+}
+
+.pipeline-card-script {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pipeline-card-draft {

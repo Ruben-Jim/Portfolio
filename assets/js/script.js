@@ -10709,7 +10709,41 @@ window.addEventListener('load', function() {
 
   var ADMIN_CLIENT_EMAIL_TEMPLATES = [
     {
+      // Cold outreach to a new lead. Demo picks the niche, Situation picks the
+      // angle, Length picks Short (this copy) or Full (the niche's long pitch).
+      // Replaces the old 'lead-intro' (Short) and 'send-demo' (Full) templates.
+      id: 'cold-outreach',
+      label: 'Cold outreach',
+      group: 'Sales',
+      defaultSubject: '{{projectName}} — I already built one for your type of business',
+      defaultBody:
+        'Hey — love the work {{projectName}} does 🔥\n\n' +
+        'I’m a local app developer from Fresno. I build booking and operations platforms for {{vertical}} in the Central Valley.\n\n' +
+        'I already built one for your type of business — just needs your logo, colors, and info to make it yours.\n\n' +
+        'Here’s what it looks like:\n' +
+        '{{linkLine}}\n' +
+        'Worth a quick look?'
+    },
+    {
+      id: 'send-proposal',
+      group: 'Sales',
+      label: 'Send proposal & invoice',
+      defaultSubject: 'Your proposal and invoice are ready',
+      defaultBody:
+        'Hey {{clientName}},\n\n' +
+        'Your proposal is ready to review, and the deposit invoice is in there with it.\n\n' +
+        'Everything lives in your portal:\n' +
+        '1) Read the proposal and scope\n' +
+        '2) Sign the agreement\n' +
+        '3) Pay the deposit to lock in your start date\n\n' +
+        '{{linkLine}}\n' +
+        'Next step: {{nextStep}}\n\n' +
+        'Any questions, just reply here and I’ll walk you through it.\n\n' +
+        'Talk soon,\nCodeWithRuben'
+    },
+    {
       id: 'progress-update',
+      group: 'Client updates',
       label: 'Progress update',
       defaultSubject: 'Quick update on {{projectName}}',
       defaultBody:
@@ -10721,6 +10755,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'delivery-handoff',
+      group: 'Client updates',
       label: 'Delivery handoff',
       // Worded without {{projectName}} on purpose — it resolves to the literal
       // words "your project", which read wrong at the start of a sentence and
@@ -10739,6 +10774,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'check-in',
+      group: 'Client updates',
       label: 'Friendly check-in',
       defaultSubject: 'Checking in on {{projectName}}',
       defaultBody:
@@ -10751,6 +10787,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'schedule-call',
+      group: 'Scheduling',
       label: 'Schedule a call',
       defaultSubject: 'Let’s find a time for a {{callType}}',
       defaultBody:
@@ -10763,6 +10800,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'reschedule-call',
+      group: 'Scheduling',
       label: 'Reschedule call',
       defaultSubject: 'Let’s reschedule your {{callType}}',
       defaultBody:
@@ -10775,6 +10813,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'app-live',
+      group: 'Client updates',
       label: 'App is live on the stores',
       defaultSubject: 'Your app is live on the App Store and Google Play',
       defaultBody:
@@ -10788,6 +10827,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'maintenance-setup',
+      group: 'Maintenance & billing',
       label: 'Maintenance setup',
       defaultSubject: 'Set up maintenance & support for {{projectName}}',
       defaultBody:
@@ -10800,6 +10840,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'maintenance-invoice',
+      group: 'Maintenance & billing',
       label: 'Maintenance invoice',
       defaultSubject: 'Your maintenance invoice for {{projectName}}',
       defaultBody:
@@ -10812,6 +10853,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'maintenance-grace',
+      group: 'Maintenance & billing',
       label: 'Maintenance grace (day 14)',
       defaultSubject: 'Action needed: grace period ends today — {{projectName}}',
       defaultBody:
@@ -10822,54 +10864,13 @@ window.addEventListener('load', function() {
         '{{linkLine}}\n' +
         'Next step: {{nextStep}}\n\n' +
         'Thank you,\nCodeWithRuben'
-    },
-    {
-      // Short cold-open for a brand new pipeline lead. Shares the demo picker
-      // with 'send-demo' so {{vertical}} and the template URL match the niche,
-      // but keeps its own shorter copy.
-      id: 'lead-intro',
-      label: 'New lead intro',
-      defaultSubject: '{{projectName}} — I already built one for your type of business',
-      defaultBody:
-        'Hey — love the work {{projectName}} does 🔥\n\n' +
-        'I’m a local app developer from Fresno. I build booking and operations platforms for {{vertical}} in the Central Valley.\n\n' +
-        'I already built one for your type of business — just needs your logo, colors, and info to make it yours.\n\n' +
-        'Here’s what it looks like:\n' +
-        '{{linkLine}}\n' +
-        'Worth a quick look?'
-    },
-    {
-      id: 'send-proposal',
-      label: 'Send proposal & invoice',
-      defaultSubject: 'Your proposal and invoice are ready',
-      defaultBody:
-        'Hey {{clientName}},\n\n' +
-        'Your proposal is ready to review, and the deposit invoice is in there with it.\n\n' +
-        'Everything lives in your portal:\n' +
-        '1) Read the proposal and scope\n' +
-        '2) Sign the agreement\n' +
-        '3) Pay the deposit to lock in your start date\n\n' +
-        '{{linkLine}}\n' +
-        'Next step: {{nextStep}}\n\n' +
-        'Any questions, just reply here and I’ll walk you through it.\n\n' +
-        'Talk soon,\nCodeWithRuben'
-    },
-    {
-      id: 'send-demo',
-      label: 'Send demo',
-      defaultSubject: '{{projectName}} — product demo',
-      defaultBody:
-        'Hi {{clientName}},\n\n' +
-        'I put together a quick demo that may be relevant for {{projectName}}.\n\n' +
-        '{{linkLine}}\n' +
-        'If it’s a fit, I’ll hold 15 minutes — fit call, not a pitch deck.\n\n' +
-        '— Ruben'
     }
   ];
 
   var ADMIN_CLIENT_EMAIL_DEMOS = [
     {
       id: 'realtor',
+      group: 'Professional',
       label: 'Realtor & insurance',
       // Plain-language niche used by the short lead-intro email.
       vertical: 'real estate and insurance offices',
@@ -10885,6 +10886,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'lawn',
+      group: 'Home services',
       label: 'Lawn & landscape',
       vertical: 'lawn care and landscape crews',
       defaultLink: 'https://lawncare.expo.app',
@@ -10899,6 +10901,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'trades',
+      group: 'Home services',
       label: 'Trade services',
       vertical: 'trade crews',
       defaultLink: 'https://tradeservice.expo.app',
@@ -10913,6 +10916,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'salon',
+      group: 'Beauty & pets',
       label: 'Salon / barber / tattoo',
       vertical: 'barbers, salons, and tattoo studios',
       defaultLink: 'https://barbershoptemplate.expo.app',
@@ -10927,6 +10931,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'electrician',
+      group: 'Home services',
       label: 'Electrician',
       vertical: 'electrical contractors',
       defaultLink: 'https://sunergyelectricservices.expo.app',
@@ -10941,6 +10946,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'carpet',
+      group: 'Home services',
       label: 'Carpet & upholstery cleaning',
       vertical: 'carpet and upholstery cleaners',
       defaultLink: 'https://carpet.expo.app',
@@ -10955,6 +10961,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'grooming',
+      group: 'Beauty & pets',
       label: 'Dog grooming & pet wash',
       vertical: 'dog groomers and pet wash shops',
       defaultLink: 'https://pawshine.expo.app',
@@ -10969,6 +10976,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'roof-exterior',
+      group: 'Home services',
       label: 'Roof cleaning & exterior wash',
       vertical: 'roof cleaning and exterior washing crews',
       defaultLink: 'https://roofcleaning.expo.app',
@@ -10983,6 +10991,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'tree',
+      group: 'Home services',
       label: 'Tree service',
       vertical: 'tree service companies',
       defaultLink: 'https://treeservice.expo.app',
@@ -11003,6 +11012,7 @@ window.addEventListener('load', function() {
     // instead of imagining it.
     {
       id: 'lawn-ads',
+      group: 'Running ads',
       label: 'Lawn & landscape — running ads',
       vertical: 'lawn care and landscape crews',
       defaultLink: 'https://lawncare.expo.app',
@@ -11017,6 +11027,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'cleaning-ads',
+      group: 'Running ads',
       label: 'Cleaning — running ads',
       vertical: 'cleaning and field service crews',
       defaultLink: 'https://procleaning.expo.app',
@@ -11031,6 +11042,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'trades-ads',
+      group: 'Running ads',
       label: 'Trade services — running ads',
       vertical: 'trade crews',
       defaultLink: 'https://tradeservice.expo.app',
@@ -11045,6 +11057,7 @@ window.addEventListener('load', function() {
     },
     {
       id: 'salon-ads',
+      group: 'Running ads',
       label: 'Salon / barber — running ads',
       vertical: 'barbers, salons, and tattoo studios',
       defaultLink: 'https://barbershoptemplate.expo.app',
@@ -11205,6 +11218,14 @@ window.addEventListener('load', function() {
     },
     {
       id: 'outdated',
+      shortSubject: 'A fresh look for {{projectName}}’s website?',
+      shortBody:
+        'Hi {{clientName}} — Ruben with CodeWithRuben in Fresno.\n\n' +
+        'I came across {{siteRef}} and would love to give it a fresh, mobile-friendly look — same content, same web address, plus online estimates. You only pay if you like it.\n\n' +
+        'Here’s a {{niche}} example:\n' +
+        '{{linkLine}}\n' +
+        'Worth a quick look?\n\n' +
+        '— Ruben',
       label: 'Has a website — outdated (refresh it)',
       needsSite: true,
       defaultSubject: 'A fresh look for {{projectName}}’s website?',
@@ -11219,6 +11240,14 @@ window.addEventListener('load', function() {
     },
     {
       id: 'down',
+      shortSubject: 'Heads up — {{projectName}}’s website is down',
+      shortBody:
+        'Hi {{clientName}} — Ruben with CodeWithRuben in Fresno.\n\n' +
+        'Heads up: {{siteRef}} isn’t loading right now (it shows an error).\n\n' +
+        'Here’s a {{niche}} site I built:\n' +
+        '{{linkLine}}\n' +
+        'You’d keep your same domain. Want a quick mockup?\n\n' +
+        '— Ruben',
       label: 'Website is down / broken',
       needsSite: true,
       defaultSubject: 'Heads up — {{projectName}}’s website is down',
@@ -11232,6 +11261,13 @@ window.addEventListener('load', function() {
     },
     {
       id: 'no-site',
+      shortSubject: 'A website for {{projectName}}?',
+      shortBody:
+        'Hi {{clientName}} — Ruben with CodeWithRuben in Fresno.\n\n' +
+        'I noticed {{projectName}} doesn’t have a website yet. I already built one for {{vertical}} — no deposit, and you only pay if you like it.\n\n' +
+        '{{linkLine}}\n' +
+        'Want to see it branded for {{projectName}}?\n\n' +
+        '— Ruben',
       label: 'No website yet',
       defaultSubject: 'A website for {{projectName}}?',
       defaultBody:
@@ -11245,6 +11281,13 @@ window.addEventListener('load', function() {
     },
     {
       id: 'branded',
+      shortSubject: 'A branded demo for {{projectName}}',
+      shortBody:
+        'Hi {{clientName}},\n\n' +
+        'We put together a branded demo for {{projectName}} — your services, online booking and quote requests in one place.\n\n' +
+        '{{linkLine}}\n' +
+        'Worth 2 minutes?\n\n' +
+        '— Ruben',
       label: 'Branded demo built for them',
       defaultSubject: 'We built a branded demo for {{projectName}}',
       defaultBody:
@@ -11291,11 +11334,7 @@ window.addEventListener('load', function() {
       cta_label: 'Open your portal →',
       header_subtitle: 'Grace period ends today'
     },
-    'send-demo': {
-      cta_label: 'View demo website/app →',
-      header_subtitle: 'Product demo'
-    },
-    'lead-intro': {
+    'cold-outreach': {
       cta_label: 'Take a look →',
       header_subtitle: 'Built for your type of business'
     },
@@ -11331,6 +11370,7 @@ window.addEventListener('load', function() {
       demoWrap: document.getElementById('admin-client-email-demo-wrap'),
       situation: document.getElementById('admin-client-email-situation'),
       situationWrap: document.getElementById('admin-client-email-situation-wrap'),
+      length: document.getElementById('admin-client-email-length'),
       siteUrl: document.getElementById('admin-client-email-site-url'),
       siteUrlWrap: document.getElementById('admin-client-email-site-url-wrap'),
       toName: document.getElementById('admin-client-email-to-name'),
@@ -11372,13 +11412,32 @@ window.addEventListener('load', function() {
   /** Cold outreach: shows the niche picker, treats "Next step" as the company
    *  name, and defaults the link to that niche's demo build. */
   function isDemoOutreachEmailTemplate(templateId) {
-    return templateId === 'send-demo' || templateId === 'lead-intro';
+    return templateId === 'cold-outreach';
   }
 
-  /** Only 'send-demo' swaps in the niche's long-form copy; 'lead-intro' keeps
-   *  its own short copy and just borrows the niche wording. */
+  /** Cold outreach always offers Situation + Length. */
   function usesDemoCopyEmailTemplate(templateId) {
-    return templateId === 'send-demo';
+    return templateId === 'cold-outreach';
+  }
+
+  /** Old drafts and links still say 'lead-intro' / 'send-demo' / 'demo-*'. */
+  var LEGACY_COLD_TEMPLATES = {
+    'lead-intro': { length: 'short' },
+    'send-demo': { length: 'full' },
+    'demo-realtor': { length: 'full', demoId: 'realtor' },
+    'demo-lawn': { length: 'full', demoId: 'lawn' },
+    'demo-trades': { length: 'full', demoId: 'trades' },
+    'demo-salon': { length: 'full', demoId: 'salon' }
+  };
+
+  function getAdminClientEmailLength(els) {
+    return els.length && els.length.value === 'full' ? 'full' : 'short';
+  }
+
+  function setAdminClientEmailLength(els, length) {
+    if (!els.length) return;
+    els.length.value = length === 'full' ? 'full' : 'short';
+    if (typeof window.syncBusinessDocToggleUI === 'function') window.syncBusinessDocToggleUI(els.length);
   }
 
   function getDemoById(demoId) {
@@ -11396,15 +11455,11 @@ window.addEventListener('load', function() {
 
   function normalizeClientEmailDraftTemplate(draft) {
     if (!draft || typeof draft !== 'object') return draft;
-    var legacy = {
-      'demo-realtor': 'realtor',
-      'demo-lawn': 'lawn',
-      'demo-trades': 'trades',
-      'demo-salon': 'salon'
-    };
-    if (legacy[draft.templateId]) {
-      draft.demoId = draft.demoId || legacy[draft.templateId];
-      draft.templateId = 'send-demo';
+    var legacy = LEGACY_COLD_TEMPLATES[draft.templateId];
+    if (legacy) {
+      draft.demoId = draft.demoId || legacy.demoId || '';
+      draft.length = draft.length || legacy.length;
+      draft.templateId = 'cold-outreach';
     }
     return draft;
   }
@@ -11436,7 +11491,7 @@ window.addEventListener('load', function() {
   function ensureAdminClientEmailDemos(els, preferredId) {
     if (!els.demo) return getDemoById(preferredId);
     var options = ADMIN_CLIENT_EMAIL_DEMOS.map(function (d) {
-      return { value: d.id, label: d.label };
+      return { value: d.id, label: d.label, group: d.group };
     });
     var selected = preferredId || (els.demo.value || '') || (options[0] && options[0].value) || '';
     if (preferredId) {
@@ -11515,14 +11570,17 @@ window.addEventListener('load', function() {
     var template = getTemplateById(templateId);
     if (!usesDemoCopyEmailTemplate(template.id)) return template;
     var situation = getSelectedAdminSituation(els);
+    var isShort = getAdminClientEmailLength(els) === 'short';
     if (situation.defaultBody) {
       return {
         id: template.id,
         label: template.label,
-        defaultSubject: situation.defaultSubject,
-        defaultBody: situation.defaultBody
+        defaultSubject: isShort && situation.shortSubject ? situation.shortSubject : situation.defaultSubject,
+        defaultBody: isShort && situation.shortBody ? situation.shortBody : situation.defaultBody
       };
     }
+    // General pitch: Short is the template's own opener, Full is the niche pitch.
+    if (isShort) return template;
     var demo = getSelectedAdminDemo(els);
     return {
       id: template.id,
@@ -11839,6 +11897,7 @@ window.addEventListener('load', function() {
       templateId: (els.template && els.template.value) || '',
       demoId: (els.demo && els.demo.value) || '',
       situationId: (els.situation && els.situation.value) || '',
+      length: getAdminClientEmailLength(els),
       siteUrl: (els.siteUrl && els.siteUrl.value) || '',
       messageAuto: isAdminClientEmailMessageAuto(els),
       callTypeId: (els.callType && els.callType.value) || '',
@@ -11867,6 +11926,7 @@ window.addEventListener('load', function() {
   /** Puts a draft (scratch slot or saved) into the form without re-rendering
    *  the template copy over it. */
   function fillAdminClientEmailForm(els, draft) {
+    draft = normalizeClientEmailDraftTemplate(draft);
     var templateId = draft.templateId || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
     if (els.template) {
       if (typeof window.setBusinessDocSelectValue === 'function') {
@@ -11896,6 +11956,7 @@ window.addEventListener('load', function() {
     if (isDemoOutreachEmailTemplate((els.template && els.template.value) || '')) {
       ensureAdminClientEmailDemos(els, draft.demoId || '');
       ensureAdminClientEmailSituations(els, draft.situationId || '');
+      setAdminClientEmailLength(els, draft.length || 'short');
       setAdminClientEmailSituationVisibility(els, (els.template && els.template.value) || '');
     }
     if (draft.messageAuto) markAdminClientEmailMessageAuto(els);
@@ -11915,6 +11976,7 @@ window.addEventListener('load', function() {
       templateId: String(row.templateId || ''),
       demoId: String(row.demoId || ''),
       situationId: String(row.situationId || ''),
+      length: row.length === 'full' ? 'full' : row.length === 'short' ? 'short' : '',
       siteUrl: String(row.siteUrl || ''),
       messageAuto: !!row.messageAuto,
       callTypeId: String(row.callTypeId || ''),
@@ -12325,7 +12387,7 @@ window.addEventListener('load', function() {
       window.setBusinessDocSelectOptions(
         els.template,
         ADMIN_CLIENT_EMAIL_TEMPLATES.map(function (tpl) {
-          return { value: tpl.id, label: tpl.label };
+          return { value: tpl.id, label: tpl.label, group: tpl.group };
         }),
         { value: ADMIN_CLIENT_EMAIL_TEMPLATES[0].id, keepValue: false }
       );
@@ -12380,6 +12442,15 @@ window.addEventListener('load', function() {
           syncAdminClientEmailDynamicFields(els);
           return;
         }
+        applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
+        setAdminClientEmailFeedback(els, '', false);
+      });
+    }
+
+    if (els.length) {
+      els.length.addEventListener('change', function () {
+        var templateId = (els.template && els.template.value) || '';
+        if (!usesDemoCopyEmailTemplate(templateId)) return;
         applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
         setAdminClientEmailFeedback(els, '', false);
       });
@@ -12535,16 +12606,13 @@ window.addEventListener('load', function() {
       }
     }
     var templateId = data.templateId || (els.template && els.template.value) || ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
-    var legacyDemo = {
-      'demo-realtor': 'realtor',
-      'demo-lawn': 'lawn',
-      'demo-trades': 'trades',
-      'demo-salon': 'salon'
-    };
     var preferredDemo = data.demoId ? String(data.demoId).trim() : '';
-    if (legacyDemo[templateId]) {
-      preferredDemo = preferredDemo || legacyDemo[templateId];
-      templateId = 'send-demo';
+    var preferredLength = data.length ? String(data.length) : '';
+    var legacyCold = LEGACY_COLD_TEMPLATES[templateId];
+    if (legacyCold) {
+      preferredDemo = preferredDemo || legacyCold.demoId || '';
+      preferredLength = preferredLength || legacyCold.length;
+      templateId = 'cold-outreach';
     }
     if (els.template && typeof window.setBusinessDocSelectValue === 'function') {
       window.setBusinessDocSelectValue(els.template, templateId, true);
@@ -12556,6 +12624,7 @@ window.addEventListener('load', function() {
     if (isDemoOutreachEmailTemplate(templateId)) {
       ensureAdminClientEmailDemos(els, preferredDemo);
       ensureAdminClientEmailSituations(els, data.situationId ? String(data.situationId).trim() : '');
+      setAdminClientEmailLength(els, preferredLength || 'short');
     }
     var preferredType = data.callTypeId ? String(data.callTypeId).trim() : '';
     var finish = function () {
@@ -17720,16 +17789,42 @@ window.addEventListener('load', function() {
         String(opts.placeholder).replace(/</g, '&lt;') +
         '</button>';
     }
-    list.forEach(function (opt) {
+    function optionHtml(opt) {
       var value = opt && opt.value != null ? String(opt.value) : '';
       var label = opt && opt.label != null ? String(opt.label) : value;
-      html +=
+      return (
         '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="' +
         value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') +
         '">' +
         label.replace(/&/g, '&amp;').replace(/</g, '&lt;') +
-        '</button>';
-    });
+        '</button>'
+      );
+    }
+    // Options that carry a `group` render as collapsible categories, in the
+    // order each group first appears. Only the selected item's group opens.
+    var grouped = list.some(function (opt) { return opt && opt.group; });
+    if (grouped) {
+      var order = [];
+      var byGroup = {};
+      list.forEach(function (opt) {
+        var g = String((opt && opt.group) || 'Other');
+        if (!byGroup[g]) { byGroup[g] = []; order.push(g); }
+        byGroup[g].push(opt);
+      });
+      order.forEach(function (g) {
+        var safe = g.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+        html +=
+          '<div class="business-doc-select-group" data-group="' + safe + '">' +
+          '<button type="button" class="business-doc-select-group-toggle" aria-expanded="false">' +
+          '<span>' + safe + '</span><span class="business-doc-select-group-count">' + byGroup[g].length + '</span>' +
+          '</button>' +
+          '<div class="business-doc-select-group-items" hidden>' +
+          byGroup[g].map(optionHtml).join('') +
+          '</div></div>';
+      });
+    } else {
+      list.forEach(function (opt) { html += optionHtml(opt); });
+    }
     menu.innerHTML = html;
 
     var nextValue = '';
@@ -17751,6 +17846,25 @@ window.addEventListener('load', function() {
     hiddenInput.value = nextValue;
     syncBusinessDocSelectUI(hiddenInput);
     initBusinessDocCustomSelects();
+  }
+
+  /** Opens the category holding the selected option; collapses the rest. */
+  function expandBusinessDocSelectActiveGroup(menu) {
+    var groups = menu.querySelectorAll('.business-doc-select-group');
+    if (!groups.length) return;
+    var active = menu.querySelector('.business-doc-select-option.is-active');
+    var activeGroup = active ? active.closest('.business-doc-select-group') : null;
+    groups.forEach(function (group) {
+      setBusinessDocSelectGroupOpen(group, group === activeGroup);
+    });
+  }
+
+  function setBusinessDocSelectGroupOpen(group, open) {
+    var toggle = group.querySelector('.business-doc-select-group-toggle');
+    var items = group.querySelector('.business-doc-select-group-items');
+    group.classList.toggle('is-expanded', !!open);
+    if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (items) items.hidden = !open;
   }
 
   var businessDocSelectsGloballyBound = false;
@@ -17776,6 +17890,7 @@ window.addEventListener('load', function() {
           wrap.classList.add('is-open');
           trigger.setAttribute('aria-expanded', 'true');
           menu.setAttribute('aria-hidden', 'false');
+          expandBusinessDocSelectActiveGroup(menu);
           positionBusinessDocSelectMenu(wrap, trigger, menu);
         } else {
           closeBusinessDocSelect(wrap);
@@ -17786,6 +17901,13 @@ window.addEventListener('load', function() {
 
       // Delegate so setBusinessDocSelectOptions() can rebuild the menu without re-wiring.
       menu.addEventListener('click', function (e) {
+        var groupToggle = e.target.closest('.business-doc-select-group-toggle');
+        if (groupToggle && menu.contains(groupToggle)) {
+          e.stopPropagation();
+          var group = groupToggle.closest('.business-doc-select-group');
+          setBusinessDocSelectGroupOpen(group, !group.classList.contains('is-expanded'));
+          return;
+        }
         var opt = e.target.closest('.business-doc-select-option');
         if (!opt || !menu.contains(opt)) return;
         e.stopPropagation();
@@ -17829,6 +17951,7 @@ window.addEventListener('load', function() {
 
   window.initBusinessDocCustomSelects = initBusinessDocCustomSelects;
   window.syncBusinessDocSelectUI = syncBusinessDocSelectUI;
+  window.syncBusinessDocToggleUI = syncBusinessDocToggleUI;
   window.setBusinessDocSelectValue = setBusinessDocSelectValue;
   window.setBusinessDocSelectOptions = setBusinessDocSelectOptions;
 
@@ -20298,6 +20421,11 @@ window.addEventListener('load', function() {
       source: source,
       notes: String(row.notes || '').slice(0, 8000),
       outreach: normalizePipelineOutreach(row.outreach),
+      // YYYY-MM-DD; set by Outreach Scripts (+3 days) or the lead form.
+      followUpAt: /^\d{4}-\d{2}-\d{2}$/.test(String(row.followUpAt || '')) ? String(row.followUpAt) : '',
+      // Which outreach script brought this lead in — feeds "Script results".
+      outreachScriptId: String(row.outreachScriptId || '').slice(0, 80),
+      outreachScriptLabel: String(row.outreachScriptLabel || '').slice(0, 120),
       createdAt: row.createdAt || null,
       updatedAt: row.updatedAt || null
     };
@@ -20316,7 +20444,10 @@ window.addEventListener('load', function() {
       source: norm.source,
       notes: norm.notes,
       // RTDB drops empty objects, which is what "never contacted" should be.
-      outreach: Object.keys(norm.outreach).length ? norm.outreach : null
+      outreach: Object.keys(norm.outreach).length ? norm.outreach : null,
+      followUpAt: norm.followUpAt || null,
+      outreachScriptId: norm.outreachScriptId || null,
+      outreachScriptLabel: norm.outreachScriptLabel || null
     };
   }
 
@@ -20507,6 +20638,31 @@ window.addEventListener('load', function() {
     );
   }
 
+  function pipelineTodayKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /** Follow-up reminder; turns gold once the date arrives. Hidden after Deposit. */
+  function buildPipelineFollowUpLine(lead) {
+    if (!lead.followUpAt || lead.stage === 'deposit') return '';
+    var due = lead.followUpAt <= pipelineTodayKey();
+    var parts = lead.followUpAt.split('-');
+    var label = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+      .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return (
+      '<p class="pipeline-card-touch pipeline-card-followup' + (due ? ' is-due' : '') + '">' +
+      (due ? 'Follow up due · ' : 'Follow up · ') +
+      escapeHtml(label) +
+      '</p>'
+    );
+  }
+
+  function buildPipelineScriptLine(lead) {
+    if (!lead.outreachScriptLabel) return '';
+    return '<p class="pipeline-card-touch pipeline-card-script">Script · ' + escapeHtml(lead.outreachScriptLabel) + '</p>';
+  }
+
   function buildPipelineDraftLine(lead) {
     var draft = findAdminEmailDraftForLead(lead.id);
     if (!draft) return '';
@@ -20590,6 +20746,8 @@ window.addEventListener('load', function() {
         buildPipelineStageSelect(lead.id, lead.stage) +
         buildPipelineOutreachSelect(lead) +
         buildPipelineTouchLine(lead) +
+        buildPipelineFollowUpLine(lead) +
+        buildPipelineScriptLine(lead) +
         buildPipelineDraftLine(lead) +
         '</div>';
 
@@ -20663,8 +20821,10 @@ window.addEventListener('load', function() {
     var stageEl = document.getElementById('lead-stage');
     var sourceEl = document.getElementById('lead-source');
     var notesEl = document.getElementById('lead-notes');
+    var followEl = document.getElementById('lead-follow-up');
 
     if (isEdit) {
+      if (followEl) followEl.value = lead.followUpAt || '';
       if (nameEl) nameEl.value = lead.name || '';
       if (emailEl) emailEl.value = lead.email || '';
       if (phoneEl) phoneEl.value = formatUsPhoneDisplay(lead.phone || '');
@@ -20833,7 +20993,7 @@ window.addEventListener('load', function() {
 
   /** Each stage opens the email you'd actually send at that point in the deal. */
   var PIPELINE_STAGE_EMAIL_TEMPLATES = {
-    lead: 'lead-intro',
+    lead: 'cold-outreach',
     'discovery-call': 'schedule-call',
     proposal: 'send-proposal',
     deposit: 'delivery-handoff'
@@ -20854,7 +21014,7 @@ window.addEventListener('load', function() {
    * offers to set the client project up first.
    */
   function composeEmailForLead(lead) {
-    var templateId = PIPELINE_STAGE_EMAIL_TEMPLATES[lead.stage] || 'lead-intro';
+    var templateId = PIPELINE_STAGE_EMAIL_TEMPLATES[lead.stage] || 'cold-outreach';
     var portalLink = leadPortalLink(lead);
 
     if (templateId === 'send-proposal' && !portalLink) {
@@ -20961,7 +21121,8 @@ window.addEventListener('load', function() {
       value: document.getElementById('lead-value') && document.getElementById('lead-value').value,
       stage: document.getElementById('lead-stage') && document.getElementById('lead-stage').value,
       source: document.getElementById('lead-source') && document.getElementById('lead-source').value,
-      notes: document.getElementById('lead-notes') && document.getElementById('lead-notes').value
+      notes: document.getElementById('lead-notes') && document.getElementById('lead-notes').value,
+      followUpAt: document.getElementById('lead-follow-up') && document.getElementById('lead-follow-up').value
     });
 
     if (!payload.name) {
@@ -20974,6 +21135,11 @@ window.addEventListener('load', function() {
         var existing = findPipelineLead(id);
         payload.updatedAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
         if (existing && existing.createdAt) payload.createdAt = existing.createdAt;
+        // The form has no script field — keep what Outreach Scripts recorded.
+        if (existing) {
+          payload.outreachScriptId = existing.outreachScriptId || null;
+          payload.outreachScriptLabel = existing.outreachScriptLabel || null;
+        }
         await window.rtdbSet(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + id), payload);
       } else {
         payload.createdAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();

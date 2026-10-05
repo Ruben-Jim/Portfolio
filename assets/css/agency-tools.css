@@ -3433,8 +3433,147 @@ body.cp-client-drawer-open {
   border-color: hsla(6, 70%, 55%, 0.5);
 }
 
+/* ── Hide / show: the bar slides off the right edge, a small tab stays ── */
+.tc-timer-bar {
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+}
+
+body.tc-timer-bar-collapsed .tc-timer-bar {
+  transform: translateX(calc(100% + 40px));
+  opacity: 0;
+  pointer-events: none;
+  animation: none;
+}
+
+.tc-timer-bar-main {
+  position: relative;
+}
+
+.tc-timer-bar-hide {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 2px;
+  padding: 0;
+  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  border-radius: 8px;
+  background: hsla(0, 0%, 100%, 0.04);
+  color: var(--light-gray-70, hsl(0, 0%, 70%));
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.tc-timer-bar-hide:hover,
+.tc-timer-bar-hide:focus-visible {
+  color: var(--orange-yellow-crayola);
+  border-color: hsla(45, 100%, 72%, 0.4);
+  background: hsla(45, 100%, 72%, 0.08);
+  outline: none;
+}
+
+.tc-timer-bar-hide ion-icon {
+  font-size: 16px;
+}
+
+.tc-timer-peek {
+  position: fixed;
+  right: 0;
+  bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 28px));
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 30px;
+  height: 64px;
+  padding: 0;
+  border: 1px solid hsla(45, 100%, 72%, 0.3);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  background: hsla(240, 12%, 8%, 0.94);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 28px hsla(0, 0%, 0%, 0.4);
+  color: var(--orange-yellow-crayola);
+  cursor: pointer;
+  /* Tucked away until the bar is hidden, then slides in from the edge. */
+  transform: translateX(110%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.12s,
+    opacity 0.25s ease 0.12s,
+    width 0.18s ease;
+}
+
+.tc-timer-peek[hidden] {
+  display: none;
+}
+
+body.tc-timer-bar-collapsed .tc-timer-peek {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tc-timer-peek:hover,
+.tc-timer-peek:focus-visible {
+  width: 36px;
+  outline: none;
+  border-color: hsla(45, 100%, 72%, 0.6);
+}
+
+.tc-timer-peek ion-icon {
+  font-size: 18px;
+}
+
+.tc-timer-peek-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 0 hsla(45, 100%, 72%, 0.6);
+  animation: tc-timer-peek-pulse 1.8s ease-out infinite;
+}
+
+body:not(.tc-timer-bar-active) .tc-timer-peek-dot {
+  animation: none;
+}
+
+@keyframes tc-timer-peek-pulse {
+  0% { box-shadow: 0 0 0 0 hsla(45, 100%, 72%, 0.55); }
+  70% { box-shadow: 0 0 0 7px hsla(45, 100%, 72%, 0); }
+  100% { box-shadow: 0 0 0 0 hsla(45, 100%, 72%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-timer-bar,
+  .tc-timer-peek {
+    transition: none;
+  }
+
+  .tc-timer-peek-dot {
+    animation: none;
+  }
+}
+
 /* Sit above the mobile admin tab dock */
 @media (max-width: 767px) {
+  body.admin-page-active.tc-timer-bar-active .tc-timer-peek {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.admin-page-active.tc-timer-bar-active:has(.admin-mobile-tab-bar-root .admin-mobile-subtab-bar-root:not([hidden]))
+    .tc-timer-peek {
+    bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+  }
+
   body.admin-page-active.tc-timer-bar-active .tc-timer-bar {
     bottom: calc(76px + env(safe-area-inset-bottom, 0px));
     right: max(12px, env(safe-area-inset-right, 0px));
@@ -5506,18 +5645,13 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 }
 
 .outreach-actions--bar {
-  position: sticky;
-  bottom: 0;
-  z-index: 5;
-  margin: 8px -4px 0;
-  padding: 12px 4px calc(12px + env(safe-area-inset-bottom, 0px));
-  background: linear-gradient(
-    180deg,
-    hsla(0, 0%, 7%, 0) 0%,
-    hsla(0, 0%, 7%, 0.92) 28%,
-    hsl(0, 0%, 7%) 100%
-  );
-  border-top: 1px solid hsla(45, 54%, 58%, 0.12);
+  margin: 8px 0 0;
+  padding: 12px 0 0;
+}
+
+/* Only the current step's send button shows (set by outreach-composer.js). */
+.outreach-btn[hidden] {
+  display: none !important;
 }
 
 .outreach-btn {
@@ -5568,15 +5702,14 @@ body.cp-ticket-viewer-open { overflow: hidden; }
     max-height: min(42vh, 360px);
   }
 
-  .outreach-actions--bar {
-    margin-left: -8px;
-    margin-right: -8px;
-    padding-left: 8px;
-    padding-right: 8px;
+  /* Phone: Copy full width on top, send + Add to pipeline side by side. */
+  .outreach-btn {
+    flex: 1 1 calc(50% - 5px);
   }
 
   .outreach-btn--primary {
     order: -1;
+    flex: 1 1 100%;
   }
 
   .outreach-script-select .business-doc-select-menu {
@@ -5592,14 +5725,6 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 
   .outreach-steps {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .outreach-btn {
-    flex: 1 1 calc(25% - 10px);
-  }
-
-  .outreach-btn--primary {
-    flex: 1 1 100%;
   }
 
   .outreach-preview {
@@ -5623,16 +5748,20 @@ body.cp-ticket-viewer-open { overflow: hidden; }
     font-size: 15px !important;
   }
 
+}
+
+/* Tablet + desktop: one row, Copy slightly wider. */
+@media (min-width: 641px) {
   .outreach-actions--bar {
-    display: grid;
-    grid-template-columns: 1.4fr repeat(3, 1fr);
-    gap: 10px;
+    flex-wrap: nowrap;
   }
 
-  .outreach-btn,
+  .outreach-btn {
+    flex: 1 1 0;
+  }
+
   .outreach-btn--primary {
-    flex: none;
-    width: 100%;
+    flex: 1.4 1 0;
   }
 }
 
@@ -5644,4 +5773,111 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 
 #admin-panel-outreach .outreach-script-select.is-open {
   z-index: 30;
+}
+
+/* ── Outreach → Client Pipeline ─────────────────────────────── */
+.outreach-btn--pipeline {
+  border-color: hsla(45, 100%, 72%, 0.45);
+  color: var(--orange-yellow-crayola);
+}
+
+.outreach-ask {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  background: hsla(45, 100%, 72%, 0.06);
+}
+
+.outreach-ask[hidden] {
+  display: none;
+}
+
+.outreach-ask-text {
+  margin: 0 0 10px;
+  color: var(--white-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.outreach-ask-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.outreach-lead-status {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: hsl(140, 45%, 62%);
+}
+
+.outreach-lead-status.is-error {
+  color: hsl(6, 88%, 67%);
+}
+
+.outreach-lead-status[hidden] {
+  display: none;
+}
+
+.outreach-stats {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--jet);
+}
+
+.outreach-stats-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--white-2);
+}
+
+.outreach-stats-lead,
+.outreach-stats-empty {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--light-gray-70);
+}
+
+.outreach-stats-body {
+  overflow-x: auto;
+}
+
+.outreach-stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.outreach-stats-table th,
+.outreach-stats-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--jet);
+  text-align: left;
+  color: var(--light-gray);
+  white-space: nowrap;
+}
+
+.outreach-stats-table thead th {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--light-gray-70);
+}
+
+.outreach-stats-table tbody th {
+  color: var(--white-2);
+  font-weight: 500;
+  white-space: normal;
+}
+
+.outreach-stats-pct {
+  margin-left: 4px;
+  color: var(--orange-yellow-crayola);
+  font-size: 12px;
+}
+
+
+.outreach-ask-actions .outreach-btn--primary {
+  flex: 0 0 auto;
 }

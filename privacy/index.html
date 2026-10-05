@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=outreach-tab-20261005">
+  <link rel="stylesheet" href="/assets/css/style.css?v=outreach-pipeline-20261005">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -92,7 +92,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=outreach-tab-20261005">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=timer-hide-20261005">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3722,6 +3722,15 @@
                   <input type="hidden" id="admin-client-email-situation" value="general" aria-label="Situation">
                 </div>
                 <p class="form-hint">Pick what you found about their web presence — the script changes to fit (outdated site, site down, no site, branded demo, or a short note).</p>
+                <div class="admin-client-email-length">
+                  <span class="form-label" id="admin-client-email-length-label">Length</span>
+                  <div class="business-doc-toggle-group" data-toggle-name="client-email-length" role="radiogroup" aria-labelledby="admin-client-email-length-label">
+                    <button type="button" class="business-doc-toggle-btn is-active" role="radio" aria-checked="true" data-value="short">Short</button>
+                    <button type="button" class="business-doc-toggle-btn" role="radio" aria-checked="false" data-value="full">Full</button>
+                  </div>
+                  <input type="hidden" id="admin-client-email-length" value="short">
+                  <p class="form-hint">Short is a quick 3–4 line opener. Full is the longer pitch for that niche or situation.</p>
+                </div>
               </div>
               <div class="form-group admin-client-email-grid-full" id="admin-client-email-site-url-wrap" hidden>
                 <label class="form-label" for="admin-client-email-site-url">Their website</label>
@@ -4513,7 +4522,18 @@
                     <button type="button" class="outreach-btn" id="outreach-text">Text</button>
                     <button type="button" class="outreach-btn" id="outreach-email">Email</button>
                     <button type="button" class="outreach-btn" id="outreach-call">Call</button>
+                    <button type="button" class="outreach-btn outreach-btn--pipeline" id="outreach-add-lead">Add to pipeline</button>
                   </div>
+                  <div class="outreach-ask" id="outreach-ask" role="alertdialog" aria-live="polite" hidden>
+                    <p class="outreach-ask-text" id="outreach-ask-text"></p>
+                    <div class="outreach-ask-actions" id="outreach-ask-actions"></div>
+                  </div>
+                  <p class="outreach-lead-status" id="outreach-lead-status" role="status" hidden></p>
+                </section>
+                <section class="outreach-stats" id="outreach-stats" aria-labelledby="outreach-stats-title">
+                  <h4 class="outreach-stats-title" id="outreach-stats-title">Script results</h4>
+                  <p class="outreach-stats-lead">Leads added from each script, and how far they got in the pipeline.</p>
+                  <div class="outreach-stats-body" id="outreach-stats-body"><p class="outreach-stats-empty">No leads added from Outreach Scripts yet.</p></div>
                 </section>
               </div>
             </div>
@@ -4954,6 +4974,9 @@
               <div class="tc-timer-bar-clock">
                 <span class="tc-timer-bar-display" id="tc-timer-display">00:00:00</span>
               </div>
+              <button type="button" class="tc-timer-bar-hide" id="tc-timer-hide" aria-label="Hide timer" aria-controls="tc-timer-bar" aria-expanded="true">
+                <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+              </button>
             </div>
             <div class="tc-timer-bar-actions">
               <button type="button" class="tc-timer-bar-btn" id="tc-timer-pause" aria-label="Pause">
@@ -4970,6 +4993,10 @@
               </button>
             </div>
           </div>
+          <button type="button" class="tc-timer-peek" id="tc-timer-peek" aria-label="Show timer" aria-controls="tc-timer-bar" aria-expanded="false" hidden>
+            <span class="tc-timer-peek-dot" aria-hidden="true"></span>
+            <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+          </button>
 
 
         <!-- Admin Login Modal -->
@@ -5429,6 +5456,10 @@
                       <input type="hidden" id="lead-source" value="dm">
                     </div>
                   </div>
+                </div>
+                <div class="form-group">
+                  <label for="lead-follow-up">Follow-up date</label>
+                  <input type="date" id="lead-follow-up">
                 </div>
                 <div class="form-group">
                   <label for="lead-notes">Notes</label>
@@ -8207,13 +8238,13 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=care-pricing-page-20261004"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=outreach-tab-20261005"></script>
+  <script src="/assets/js/script.js?v=outreach-pipeline-20261005"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=care-pricing-page-20261004"></script>
+  <script src="/assets/js/agency-tools.js?v=timer-hide-20261005"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=outreach-tab-20261005"></script>
+  <script src="/assets/js/outreach-composer.js?v=outreach-pipeline-20261005"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

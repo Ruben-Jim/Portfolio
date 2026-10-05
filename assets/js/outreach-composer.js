@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=busy-opener-landline-20260930';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=site-down-20261005';
   var STORE_KEY = 'cwrOutreachVars';
 
   /** Optional fill helpers. "[later today / tomorrow]" is prose — left alone. */
@@ -96,7 +96,8 @@
           text: r.text || '',
           subject: r.subject || '',
           email: r.email || '',
-          call: r.call || ''
+          call: r.call || '',
+          group: r.group || ''
         };
       })
       .sort(function (a, b) { return a.order - b.order; });
@@ -233,10 +234,21 @@
     renderPreview(true);
   }
 
+  /** Dropdown category, worked out from the script id so scripts saved in
+   *  RTDB before categories existed still land in the right group. */
+  function scriptGroup(s) {
+    if (s.group) return s.group;
+    var id = String(s.id || '');
+    if (/-ads$/.test(id)) return 'Running ads';
+    if (/^no-site/.test(id) || id === 'site-down') return 'No website / site down';
+    if (id === 'landline') return 'Special cases';
+    return 'By niche';
+  }
+
   function renderScriptSelect() {
     if (!els.scriptSelect) return;
     var options = scripts.map(function (s) {
-      return { value: s.id, label: s.label };
+      return { value: s.id, label: s.label, group: scriptGroup(s) };
     });
     if (!activeId && scripts.length) activeId = scripts[0].id;
     if (typeof global.setBusinessDocSelectOptions === 'function') {
@@ -309,10 +321,15 @@
       b.textContent = st.label;
       b.setAttribute('aria-pressed', st.id === activeStep ? 'true' : 'false');
       b.addEventListener('click', function () {
-        activeStep = st.id;
-        dirty = false;
-        renderSteps();
-        renderPreview(true);
+        if (st.id === activeStep) return;
+        function go() {
+          activeStep = st.id;
+          dirty = false;
+          renderSteps();
+          renderPreview(true);
+        }
+        if (!needsEditPrompt()) return go();
+        offerToSaveEdits(activeId).then(function (ok) { if (ok) go(); });
       });
       els.steps.appendChild(b);
     });
@@ -427,6 +444,291 @@
     global.location.href = 'tel:' + vars.phone.replace(/[^\d+]/g, '');
   }
 
+  // ——— ask (inline prompt with several choices) ———
+
+  var askResolve = null;
+
+  /** Shows a short question with buttons; resolves with the chosen value. */
+  function ask(message, choices) {
+    if (!els.ask) return Promise.resolve(null);
+    if (askResolve) askResolve(null);
+    els.askText.textContent = message;
+    els.askActions.innerHTML = '';
+    return new Promise(function (resolve) {
+      askResolve = resolve;
+      choices.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'outreach-btn' + (c.primary ? ' outreach-btn--primary' : '');
+        b.textContent = c.label;
+        b.addEventListener('click', function () {
+          els.ask.hidden = true;
+          askResolve = null;
+          resolve(c.value);
+        });
+        els.askActions.appendChild(b);
+      });
+      els.ask.hidden = false;
+      var first = els.askActions.querySelector('button');
+      if (first) first.focus();
+    });
+  }
+
+  function showLeadStatus(msg, isError) {
+    if (!els.leadStatus) return;
+    els.leadStatus.textContent = msg;
+    els.leadStatus.classList.toggle('is-error', !!isError);
+    els.leadStatus.hidden = !msg;
+  }
+
+  // ——— saving edits back to a script ———
+
+  /** Puts the [Name]/[Company]/… tokens back where the filled-in values sit,
+   *  so a saved edit works for the next lead too. Longest values first. */
+  function toTemplate(body, vars) {
+    var out = body || '';
+    TOKENS.slice()
+      .filter(function (t) { return vars[t.field] && vars[t.field].length > 1; })
+      .sort(function (a, b) { return vars[b.field].length - vars[a.field].length; })
+      .forEach(function (t) {
+        out = out.split(vars[t.field]).join(t.token);
+      });
+    return out;
+  }
+
+  function slugify(text) {
+    return String(text || 'script').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'script';
+  }
+
+  /**
+   * If the message was hand-edited, ask what to do with the edit before it is
+   * thrown away. Resolves false only when the admin backs out entirely.
+   */
+  /** Only a hand-edited message, on a page that has the prompt, waits. */
+  function needsEditPrompt() {
+    return dirty && !!(els.ask && els.askText && els.askActions);
+  }
+
+  async function offerToSaveEdits(scriptId) {
+    if (!needsEditPrompt()) { dirty = false; return true; }
+    var s = null;
+    for (var i = 0; i < scripts.length; i++) if (scripts[i].id === scriptId) s = scripts[i];
+    if (!s) { dirty = false; return true; }
+    var stepLabel = (STEPS.filter(function (st) { return st.id === activeStep; })[0] || {}).label || activeStep;
+    var choice = await ask('You edited the ' + stepLabel.toLowerCase() + ' message for “' + s.label + '”. Keep this edit?', [
+      { value: 'update', label: 'Update this script', primary: true },
+      { value: 'new', label: 'Save as new script' },
+      { value: 'discard', label: 'Don’t save' },
+      { value: 'cancel', label: 'Keep editing' }
+    ]);
+    if (choice === 'cancel' || choice === null) return false;
+    if (choice === 'discard') { dirty = false; return true; }
+    var template = toTemplate(getBody(), readVars());
+    if (choice === 'update') {
+      var patch = {};
+      patch[activeStep] = template;
+      await global.rtdbUpdate(global.rtdbRef(global.rtdb, RTDB_PATH + '/' + s.id), patch);
+      s[activeStep] = template;
+      dirty = false;
+      showLeadStatus('Updated “' + s.label + '”.', false);
+      return true;
+    }
+    var name = global.prompt('Name for the new script', s.label + ' (my version)');
+    if (!name) return false;
+    var id = slugify(name) + '-' + Date.now().toString(36);
+    var fields = {
+      label: name.slice(0, 120),
+      tag: s.tag || '',
+      vertical: s.vertical || '',
+      demoLink: s.demoLink || '',
+      order: (Number(s.order) || 0) + 1,
+      text: s.text || '',
+      subject: s.subject || '',
+      email: s.email || '',
+      call: s.call || '',
+      group: scriptGroup(s)
+    };
+    fields[activeStep] = template;
+    var write = {};
+    write[id] = fields;
+    await global.rtdbUpdate(global.rtdbRef(global.rtdb, RTDB_PATH), write);
+    scripts = normalize(Object.assign(scripts.reduce(function (acc, sc) {
+      acc[sc.id] = sc;
+      return acc;
+    }, {}), write));
+    dirty = false;
+    renderScriptSelect();
+    showLeadStatus('Saved “' + fields.label + '” as a new script.', false);
+    return true;
+  }
+
+  // ——— push the filled-in lead to Client Pipeline ———
+
+  var PIPELINE_PATH = 'pipelineLeads';
+  var FOLLOW_UP_DAYS = 3;
+
+  function digits(v) { return String(v || '').replace(/\D/g, '').slice(-10); }
+
+  function dateKey(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  async function loadPipelineLeads() {
+    var snap = await global.rtdbGet(global.rtdbRef(global.rtdb, PIPELINE_PATH));
+    var val = snap && typeof snap.val === 'function' ? snap.val() : null;
+    return Object.keys(val || {}).map(function (id) {
+      return Object.assign({ id: id }, val[id]);
+    });
+  }
+
+  /** Same phone (last 10 digits), same email, or same company name. */
+  function findDuplicate(leads, vars) {
+    var phone = digits(vars.phone);
+    var email = vars.email.toLowerCase();
+    var company = vars.company.toLowerCase();
+    return leads.find(function (l) {
+      return (
+        (phone.length === 10 && digits(l.phone) === phone) ||
+        (email && String(l.email || '').trim().toLowerCase() === email) ||
+        (company && String(l.company || '').trim().toLowerCase() === company)
+      );
+    }) || null;
+  }
+
+  function buildLeadNote(s, vars) {
+    var stepLabel = (STEPS.filter(function (st) { return st.id === activeStep; })[0] || {}).label || activeStep;
+    var bits = ['Outreach · ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })];
+    if (s) bits.push('Script: ' + s.label);
+    if (vars.city) bits.push(vars.city);
+    if (vars.demo) bits.push('demo: ' + vars.demo);
+    return bits.join(' · ') + '\n\n' + stepLabel + ' message:\n' + getBody();
+  }
+
+  function clearLeadForm() {
+    ['name', 'company', 'city', 'demo', 'phone', 'emailAddr'].forEach(function (k) {
+      if (els[k]) els[k].value = '';
+    });
+    try { localStorage.removeItem(STORE_KEY); } catch (e) { /* private mode */ }
+    dirty = false;
+    renderPreview(true);
+  }
+
+  async function addToPipeline() {
+    if (!global.rtdb || !global.rtdbRef || !global.rtdbGet || !global.rtdbSet || !global.rtdbPush) {
+      showLeadStatus('Realtime Database is not ready — sign in to admin first.', true);
+      return;
+    }
+    var vars = readVars();
+    if (!vars.name && !vars.company) {
+      showLeadStatus('Add at least a name or a company first.', true);
+      return;
+    }
+    // A hand-edited message gets the save prompt first; the lead keeps the
+    // message exactly as written either way.
+    var note = buildLeadNote(current(), vars);
+    if (!(await offerToSaveEdits(activeId))) return;
+
+    var s = current();
+    var follow = new Date();
+    follow.setDate(follow.getDate() + FOLLOW_UP_DAYS);
+    var now = global.rtdbServerTimestamp ? global.rtdbServerTimestamp() : Date.now();
+    var leads = await loadPipelineLeads();
+    var dup = findDuplicate(leads, vars);
+    var who = vars.company || vars.name;
+
+    if (dup) {
+      var choice = await ask('“' + (dup.company || dup.name) + '” is already in your pipeline (' + (dup.stage || 'lead') + '). What should I do?', [
+        { value: 'update', label: 'Update it', primary: true },
+        { value: 'new', label: 'Add as new lead' },
+        { value: 'cancel', label: 'Cancel' }
+      ]);
+      if (choice !== 'update' && choice !== 'new') return;
+      if (choice === 'update') {
+        var patch = {
+          notes: (dup.notes ? String(dup.notes) + '\n\n' : '') + note,
+          followUpAt: dateKey(follow),
+          outreachScriptId: s ? s.id : null,
+          outreachScriptLabel: s ? s.label : null,
+          updatedAt: now
+        };
+        // Only fill blanks — never overwrite what the lead already has.
+        if (!dup.name && (vars.name || vars.company)) patch.name = vars.name || vars.company;
+        if (!dup.company && vars.company) patch.company = vars.company;
+        if (!dup.phone && vars.phone) patch.phone = vars.phone;
+        if (!dup.email && vars.email) patch.email = vars.email;
+        await global.rtdbUpdate(global.rtdbRef(global.rtdb, PIPELINE_PATH + '/' + dup.id), patch);
+        clearLeadForm();
+        showLeadStatus('Updated “' + (dup.company || dup.name) + '” in Client Pipeline · follow up ' + dateKey(follow) + '.', false);
+        refreshScriptStats();
+        return;
+      }
+    }
+
+    var lead = {
+      name: vars.name || vars.company,
+      email: vars.email,
+      phone: vars.phone,
+      company: vars.company,
+      projectType: 'web',
+      value: 0,
+      stage: 'lead',
+      source: 'cold',
+      notes: note,
+      followUpAt: dateKey(follow),
+      outreachScriptId: s ? s.id : null,
+      outreachScriptLabel: s ? s.label : null,
+      createdAt: now,
+      updatedAt: now
+    };
+    var ref = global.rtdbPush(global.rtdbRef(global.rtdb, PIPELINE_PATH));
+    await global.rtdbSet(ref, lead);
+    clearLeadForm();
+    showLeadStatus('Added “' + who + '” to Client Pipeline · follow up ' + dateKey(follow) + '.', false);
+    refreshScriptStats();
+  }
+
+  // ——— script results (which scripts move leads forward) ———
+
+  var STAGE_RANK = { lead: 0, 'discovery-call': 1, proposal: 2, deposit: 3 };
+
+  function escapeHtml(t) {
+    return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  async function refreshScriptStats() {
+    if (!els.statsBody || !global.rtdbGet) return;
+    var leads;
+    try { leads = await loadPipelineLeads(); } catch (e) { return; }
+    var rows = {};
+    leads.forEach(function (l) {
+      if (!l.outreachScriptId) return;
+      var key = l.outreachScriptId;
+      var row = rows[key] || (rows[key] = { label: l.outreachScriptLabel || key, leads: 0, call: 0, won: 0 });
+      var rank = STAGE_RANK[String(l.stage || 'lead')] || 0;
+      row.leads += 1;
+      if (rank >= 1) row.call += 1;
+      if (rank >= 3) row.won += 1;
+    });
+    var list = Object.keys(rows).map(function (k) { return rows[k]; })
+      .sort(function (a, b) { return b.leads - a.leads; });
+    if (!list.length) {
+      els.statsBody.innerHTML = '<p class="outreach-stats-empty">No leads added from Outreach Scripts yet.</p>';
+      return;
+    }
+    function pct(n, d) { return d ? Math.round((n / d) * 100) + '%' : '—'; }
+    els.statsBody.innerHTML =
+      '<table class="outreach-stats-table"><thead><tr>' +
+      '<th scope="col">Script</th><th scope="col">Leads</th><th scope="col">Reached a call</th><th scope="col">Won</th>' +
+      '</tr></thead><tbody>' +
+      list.map(function (r) {
+        return '<tr><th scope="row">' + escapeHtml(r.label) + '</th>' +
+          '<td>' + r.leads + '</td>' +
+          '<td>' + r.call + ' <span class="outreach-stats-pct">' + pct(r.call, r.leads) + '</span></td>' +
+          '<td>' + r.won + ' <span class="outreach-stats-pct">' + pct(r.won, r.leads) + '</span></td></tr>';
+      }).join('') +
+      '</tbody></table>';
+  }
+
   // ——— boot ———
 
   function cache() {
@@ -449,7 +751,13 @@
       btnCopy: document.getElementById('outreach-copy'),
       btnText: document.getElementById('outreach-text'),
       btnEmail: document.getElementById('outreach-email'),
-      btnCall: document.getElementById('outreach-call')
+      btnCall: document.getElementById('outreach-call'),
+      btnAddLead: document.getElementById('outreach-add-lead'),
+      ask: document.getElementById('outreach-ask'),
+      askText: document.getElementById('outreach-ask-text'),
+      askActions: document.getElementById('outreach-ask-actions'),
+      leadStatus: document.getElementById('outreach-lead-status'),
+      statsBody: document.getElementById('outreach-stats-body')
     };
   }
 
@@ -464,7 +772,17 @@
     });
     if (els.scriptSelect) {
       els.scriptSelect.addEventListener('change', function () {
-        applyScriptSelection(els.scriptSelect.value, true);
+        var next = els.scriptSelect.value;
+        if (next === activeId) return;
+        if (!needsEditPrompt()) return applyScriptSelection(next, true);
+        var prev = activeId;
+        // Ask about unsaved edits against the script they were made on.
+        offerToSaveEdits(prev).then(function (ok) {
+          if (ok) return applyScriptSelection(next, true);
+          if (typeof global.setBusinessDocSelectValue === 'function') {
+            global.setBusinessDocSelectValue(els.scriptSelect, prev, true);
+          }
+        });
       });
     }
     if (els.preview) {
@@ -487,6 +805,12 @@
     if (els.btnEmail) els.btnEmail.addEventListener('click', doEmail);
     if (els.btnCall) els.btnCall.addEventListener('click', doCall);
     if (els.btnReset) els.btnReset.addEventListener('click', doReset);
+    if (els.btnAddLead) els.btnAddLead.addEventListener('click', function () {
+      addToPipeline().catch(function (err) {
+        console.warn('Outreach composer: add to pipeline failed', err);
+        showLeadStatus('Could not save the lead — check your connection and try again.', true);
+      });
+    });
   }
 
   var booted = false;
@@ -511,6 +835,7 @@
       renderSteps();
       renderPreview(true);
       rendered = true;
+      refreshScriptStats();
     } catch (err) {
       console.warn('Outreach composer:', err);
       if (els.status) {
