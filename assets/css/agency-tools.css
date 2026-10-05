@@ -3738,12 +3738,10 @@ body:has(.business-doc-modal.active) > .tc-timer-chip {
     max-width: min(360px, calc(100vw - 24px));
   }
 
-  .tc-timer-chip-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0;
-    padding: 11px 16px 10px 14px;
+  /* The banner IS the card: one surface that grows out of the corner.
+     Kept apart from the display rule above so .is-active / .is-open can win.
+     Its size animates in agency-tools.js (morphTcChip). */
+  .tc-timer-chip {
     border: 1px solid var(--tc-chip-border);
     border-top: 0;
     border-right: 0;
@@ -3751,27 +3749,48 @@ body:has(.business-doc-modal.active) > .tc-timer-chip {
     background:
       linear-gradient(145deg, hsla(45, 100%, 72%, 0.08) 0%, transparent 55%),
       var(--tc-chip-surface);
+    pointer-events: auto;
+    transition: box-shadow 0.3s ease, border-radius 0.3s ease;
+  }
+
+  .tc-timer-chip.is-active {
+    background:
+      linear-gradient(145deg, hsla(45, 100%, 72%, 0.16) 0%, transparent 55%),
+      var(--tc-chip-surface);
+  }
+
+  .tc-timer-chip.is-open {
+    border-radius: 0 0 0 18px;
+    box-shadow: var(--shadow-2, 0 8px 24px rgba(0, 0, 0, 0.35));
+  }
+
+  .tc-timer-chip.is-paused {
+    --tc-chip-accent: hsl(0, 0%, 78%);
+  }
+
+  .tc-timer-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 11px 16px 10px 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     color: var(--white-2, #fafafa);
     box-shadow: none;
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease;
   }
 
-  .tc-timer-chip.is-active .tc-timer-chip-btn {
-    background:
-      linear-gradient(145deg, hsla(45, 100%, 72%, 0.16) 0%, transparent 55%),
-      var(--tc-chip-surface);
-  }
-
-  .tc-timer-chip.is-paused .tc-timer-chip-btn {
-    --tc-chip-accent: hsl(0, 0%, 78%);
+  /* Expanded: the banner row spans the card as its header. */
+  .tc-timer-chip.is-open .tc-timer-chip-btn {
+    align-self: stretch;
   }
 
   .tc-timer-chip-btn:hover {
     transform: none;
-    background:
-      linear-gradient(145deg, hsla(45, 100%, 72%, 0.14) 0%, transparent 55%),
-      var(--eerie-black-1, #212121);
+    background: hsla(45, 100%, 72%, 0.06);
   }
 
   .tc-timer-chip-btn ion-icon {
@@ -3798,25 +3817,23 @@ body:has(.business-doc-modal.active) > .tc-timer-chip {
     font-weight: 600;
   }
 
+  /* The rest of the card under the banner row — no surface of its own. */
   .tc-timer-chip-panel {
     width: min(340px, calc(100vw - 24px));
-    margin-top: -1px;
-    padding: 14px;
-    border: 1px solid var(--tc-chip-border);
-    border-right: 0;
-    border-radius: 14px 0 0 14px;
-    background: var(--tc-chip-surface);
-    box-shadow: var(--shadow-2, 0 8px 24px rgba(0, 0, 0, 0.35));
+    margin: 0;
+    padding: 4px 14px 14px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    transform-origin: top right;
-    animation: tc-timer-chip-in 0.2s ease-out;
   }
 
-  .tc-timer-chip.is-open .tc-timer-chip-btn {
-    border-bottom-color: transparent;
-    border-radius: 0;
+  /* The banner row is the title and the close, so the old head goes. */
+  .tc-timer-chip-panel-head {
+    display: none;
   }
 }
 

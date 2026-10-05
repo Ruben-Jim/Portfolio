@@ -7664,13 +7664,105 @@
 
   function setTcChipExpanded(open) {
     ensureTcTimerChipMounted();
+    var wasOpen = tcChipOpen;
     tcChipOpen = !!open;
     var chip = document.getElementById('tc-timer-chip');
     var btn = document.getElementById('tc-timer-chip-btn');
     var panel = document.getElementById('tc-timer-chip-panel');
-    if (chip) chip.classList.toggle('is-open', tcChipOpen);
+    // Opening adds .is-open now; collapsing keeps it until the morph ends.
+    if (chip && tcChipOpen) chip.classList.add('is-open');
     if (btn) btn.setAttribute('aria-expanded', tcChipOpen ? 'true' : 'false');
-    if (panel) panel.hidden = !tcChipOpen;
+    if (!panel) {
+      if (chip && !tcChipOpen) chip.classList.remove('is-open');
+      return;
+    }
+    if (tcChipOpen && !wasOpen) {
+      // A button elsewhere on the page can open the panel; that same click is
+      // still bubbling to the outside-click handler, so ignore it this tick.
+      tcChipJustOpened = true;
+      setTimeout(function () { tcChipJustOpened = false; }, 0);
+    }
+    if (tcChipOpen === wasOpen && panel.hidden === !tcChipOpen) return;
+    morphTcChipPanel(panel, btn, tcChipOpen);
+  }
+
+  var tcChipJustOpened = false;
+
+  /**
+   * The banner itself grows into the full timer card: the chip's own box
+   * animates from its banner size to its expanded size, pinned to the
+   * top-right corner (so it widens leftward and drops down together), then
+   * the controls fade in. Collapsing plays it back into the banner.
+   */
+  var TC_CHIP_OPEN_MS = 425;
+  var TC_CHIP_CLOSE_MS = 320;
+  var TC_CHIP_EASE = 'cubic-bezier(0.22, 1, 0.36, 1)';
+
+  function morphTcChipPanel(panel, btn, opening) {
+    var chip = document.getElementById('tc-timer-chip');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var canAnimate = !!chip && typeof chip.animate === 'function' && !reduce;
+    if (chip && chip.getAnimations) {
+      chip.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); });
+    }
+    if (chip) chip.style.overflow = '';
+    if (!canAnimate) {
+      panel.hidden = !opening;
+      if (chip && !opening) chip.classList.remove('is-open');
+      return;
+    }
+
+    // Measure both sizes synchronously (no paint in between).
+    panel.hidden = true;
+    chip.classList.remove('is-open');
+    var small = chip.getBoundingClientRect();
+    panel.hidden = false;
+    chip.classList.add('is-open');
+    var big = chip.getBoundingClientRect();
+
+    var from = opening ? small : big;
+    var to = opening ? big : small;
+    // Clip only while resizing — the card holds a dropdown that must overflow.
+    chip.style.overflow = 'hidden';
+    var sizeAnim = chip.animate(
+      [
+        { width: from.width + 'px', height: from.height + 'px' },
+        { width: to.width + 'px', height: to.height + 'px' }
+      ],
+      {
+        duration: opening ? TC_CHIP_OPEN_MS : TC_CHIP_CLOSE_MS,
+        delay: opening ? 0 : 80,
+        easing: opening ? TC_CHIP_EASE : 'cubic-bezier(0.4, 0, 0.6, 1)',
+        fill: opening ? 'none' : 'both'
+      }
+    );
+
+    var rows = Array.prototype.slice.call(panel.children).filter(function (el) {
+      return !el.hidden && el.offsetParent !== null;
+    });
+
+    if (opening) {
+      sizeAnim.onfinish = function () { chip.style.overflow = ''; };
+      rows.forEach(function (el, i) {
+        el.animate(
+          [{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }],
+          { duration: 260, delay: 150 + i * 40, easing: 'ease-out', fill: 'backwards' }
+        );
+      });
+      return;
+    }
+
+    rows.forEach(function (el) {
+      el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease-in', fill: 'forwards' });
+    });
+    sizeAnim.onfinish = function () {
+      // Reopened mid-collapse? Leave it open.
+      chip.style.overflow = '';
+      if (tcChipOpen) return;
+      panel.hidden = true;
+      chip.classList.remove('is-open');
+      chip.getAnimations({ subtree: true }).forEach(function (a) { a.cancel(); });
+    };
   }
 
   function renderTcChipSegmentsStrip() {
@@ -8078,6 +8170,17 @@
       chipBtn.addEventListener('click', function () {
         setTcChipExpanded(!tcChipOpen);
         if (tcChipOpen) syncTcChipTargetSelect(true);
+      });
+    }
+    if (chipBtn && !document.body.dataset.tcChipOutsideBound) {
+      document.body.dataset.tcChipOutsideBound = '1';
+      document.addEventListener('click', function (e) {
+        if (!tcChipOpen || tcChipJustOpened || isTcTimerReviewOpen()) return;
+        // Ignore clicks on nodes a re-render already removed from the page.
+        if (!e.target || !document.contains(e.target)) return;
+        var chipEl = document.getElementById('tc-timer-chip');
+        if (chipEl && chipEl.contains(e.target)) return;
+        setTcChipExpanded(false);
       });
     }
     if (chipClose && !chipClose.dataset.tcBound) {
