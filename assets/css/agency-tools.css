@@ -5945,3 +5945,11 @@ body.cp-ticket-viewer-open { overflow: hidden; }
   font-style: normal;
   color: var(--light-gray-70, #a8a8a8);
 }
+
+/* Shown inside the script picker until the scripts arrive */
+.outreach-script-empty {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--light-gray-70, #a8a8a8);
+}

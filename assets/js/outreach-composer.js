@@ -122,11 +122,33 @@
       .sort(function (a, b) { return a.order - b.order; });
   }
 
+  /**
+   * On a direct page load the tab can open before Firebase connects and the
+   * admin sign-in resolves (scripts are admin-only), so wait for both rather
+   * than failing once and leaving the picker empty.
+   */
+  function rtdbReadyForScripts() {
+    if (!global.rtdb || !global.rtdbRef || !global.rtdbGet) return false;
+    return typeof global.isAdminSession === 'function' ? !!global.isAdminSession() : true;
+  }
+
+  function waitForRtdb(timeoutMs) {
+    return new Promise(function (resolve) {
+      var waited = 0;
+      (function tick() {
+        if (rtdbReadyForScripts()) return resolve(true);
+        if (waited >= timeoutMs) return resolve(false);
+        waited += 250;
+        setTimeout(tick, 250);
+      })();
+    });
+  }
+
   /** RTDB first; seed when empty. Merge NEW seed ids without overwriting edits. */
   async function ensureScripts() {
     if (loaded && scripts.length) return scripts;
-    if (!global.rtdb || !global.rtdbRef || !global.rtdbGet) {
-      throw new Error('Realtime Database is not ready — sign in to admin first.');
+    if (!(await waitForRtdb(30000))) {
+      throw new Error('Could not reach your scripts — make sure you’re signed in, then reopen this tab.');
     }
     var snap = await global.rtdbGet(global.rtdbRef(global.rtdb, RTDB_PATH));
     var val = snap && typeof snap.val === 'function' ? snap.val() : null;
@@ -864,7 +886,17 @@
   var booted = false;
   var rendered = false;
 
-  async function open() {
+  var opening = null;
+
+  function open() {
+    if (rendered) return Promise.resolve();
+    if (!opening) {
+      opening = openOnce().then(function () { opening = null; }, function () { opening = null; });
+    }
+    return opening;
+  }
+
+  async function openOnce() {
     cache();
     if (!els.root) return;
     // It's a tab now, not a popup: coming back to it keeps whatever you were
@@ -889,6 +921,12 @@
       if (els.status) {
         els.status.textContent = err && err.message ? err.message : 'Could not load scripts.';
         els.status.hidden = false;
+      }
+      // Say why inside the picker too, so it never opens as an empty box.
+      var menu = document.getElementById('outreach-script-menu');
+      if (menu && !menu.querySelector('.business-doc-select-option')) {
+        menu.innerHTML = '<p class="outreach-script-empty">' +
+          escapeHtml(err && err.message ? err.message : 'Could not load scripts.') + '</p>';
       }
     }
   }
