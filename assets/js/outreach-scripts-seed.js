@@ -353,7 +353,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 90,
-      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/linktree',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/link-in-bio',
       subject: 'Subject: [Company] — free mockup for a simple website?',
       email:
         'Hi,\n' +
@@ -366,7 +366,7 @@
         '\n' +
         'For reference, [package], with your first month of care included.\n' +
         '\n' +
-        'Not ready for a full website yet? I also build a custom link page for your Instagram bio — a branded Linktree with your logo, services, and booking or contact buttons. It’s live in a few days, starting at $99. Example: rubenjimenez.dev/linktree\n' +
+        'Not ready for a full website yet? I also build a custom link page for your Instagram bio — a branded Linktree with your logo, services, and booking or contact buttons. It’s live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
         '\n' +
         '— Ruben',
       call:
@@ -383,7 +383,7 @@
       vertical: 'trade, junk removal, and field service crews',
       demoLink: 'https://tradeservice.expo.app',
       order: 100,
-      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/linktree',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/link-in-bio',
       subject: 'Subject: [Company] — mockup for a site (no deposit)?',
       email:
         'Hi,\n' +
@@ -398,7 +398,7 @@
         '\n' +
         'For reference, [package], with your first month of care included.\n' +
         '\n' +
-        'Not ready for a full website yet? I can start you with a custom link page for your Instagram bio — a branded Linktree with your logo, services, and a quote or booking button. Live in a few days, starting at $99. Example: rubenjimenez.dev/linktree\n' +
+        'Not ready for a full website yet? I can start you with a custom link page for your Instagram bio — a branded Linktree with your logo, services, and a quote or booking button. Live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
         '\n' +
         '— Ruben',
       call:
@@ -415,7 +415,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 110,
-      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?\n\nFor reference, [package], with your first month of care included.\n\nOr if a full site is too much right now, I can start you with a custom link page for your Instagram bio (a branded Linktree), from $99: rubenjimenez.dev/linktree',
+      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?\n\nFor reference, [package], with your first month of care included.\n\nOr if a full site is too much right now, I can start you with a custom link page for your Instagram bio (a branded Linktree), from $99: rubenjimenez.dev/link-in-bio',
       subject: 'Subject: Re: mockup for [Company]?',
       email:
         'Hi,\n' +
@@ -426,7 +426,7 @@
         '\n' +
         'For reference, [package], with your first month of care included.\n' +
         '\n' +
-        'Or, if a full site is too much right now, I can start you with a custom link page for your Instagram bio — a branded Linktree, live in a few days from $99. Example: rubenjimenez.dev/linktree\n' +
+        'Or, if a full site is too much right now, I can start you with a custom link page for your Instagram bio — a branded Linktree, live in a few days from $99. Example: rubenjimenez.dev/link-in-bio\n' +
         '\n' +
         '— Ruben',
       call:
@@ -527,7 +527,7 @@
       vertical: 'local businesses whose website is down or erroring',
       demoLink: '',
       order: 115,
-      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. Quick heads-up: I tried [Company]’s website and it isn’t loading right now (it shows an error), so customers searching for you may be hitting the same thing. I build websites and booking apps for local service businesses, and you’d keep your same domain. Want me to send a quick mockup?\n\nHere’s one I built: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nIn the meantime, I can also put up a custom link page (a branded Linktree) so customers can still reach you while the site is down, live in a day or two from $99: rubenjimenez.dev/linktree',
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. Quick heads-up: I tried [Company]’s website and it isn’t loading right now (it shows an error), so customers searching for you may be hitting the same thing. I build websites and booking apps for local service businesses, and you’d keep your same domain. Want me to send a quick mockup?\n\nHere’s one I built: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nIn the meantime, I can also put up a custom link page (a branded Linktree) so customers can still reach you while the site is down, live in a day or two from $99: rubenjimenez.dev/link-in-bio',
       subject: 'Subject: Heads up — [Company]’s website is down',
       email:
         'Hi [Name],\n' +
@@ -540,7 +540,7 @@
         '\n' +
         'For reference, [package], with your first month of care included.\n' +
         '\n' +
-        'In the meantime, I can put up a custom link page — a branded Linktree with your phone, services, and booking or contact buttons — so customers can still reach you while the site is down. It’s live in a day or two, starting at $99. Example: rubenjimenez.dev/linktree\n' +
+        'In the meantime, I can put up a custom link page — a branded Linktree with your phone, services, and booking or contact buttons — so customers can still reach you while the site is down. It’s live in a day or two, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
         '\n' +
         '— Ruben',
       call:

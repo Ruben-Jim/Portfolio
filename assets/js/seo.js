@@ -5,7 +5,9 @@
  */
 (function (window, document) {
   var ORIGIN = 'https://rubenjimenez.dev';
-  var OG_IMAGE = ORIGIN + '/assets/images/og/og-card.jpg';
+  var OG_DIR = ORIGIN + '/assets/images/og/';
+  // Link-preview images (1200×630) — regenerate with examples/og/export-og.sh.
+  var OG_IMAGE = OG_DIR + 'home.jpg';
   var INDEX = 'index, follow';
   var NOINDEX = 'noindex, nofollow';
 
@@ -33,6 +35,7 @@
     },
     portfolio: {
       path: '/portfolio/',
+      image: 'portfolio.jpg',
       title: 'Work — Apps & Sites We’ve Built | CodeWithRuben',
       description:
         'Client builds: booking, ordering, cleaning ops, and mobile apps. See what the studio ships for Fresno and remote businesses.',
@@ -40,9 +43,10 @@
     },
     'services-pricing': {
       path: '/services-pricing/',
+      image: 'services.jpg',
       title: 'Services & Pricing | Web & Mobile Apps from $499',
       description:
-        'Starter Page, website, and app packages from $499. Year 1 maintenance included. Clear pricing before we start.',
+        'Starter Page, website, and app packages from $499. First month of care included. Clear pricing before we start.',
       robots: INDEX
     },
     'business-systems': {
@@ -61,6 +65,7 @@
     },
     'hire-me': {
       path: '/hire-me/',
+      image: 'hire-me.jpg',
       title: 'Start a Project | Hire CodeWithRuben',
       description:
         'Tell us what you need — site, mobile app, or full operations system. Packages from $499. Remote-friendly.',
@@ -197,7 +202,9 @@
     setMeta('property', 'og:url', url);
     setMeta('property', 'og:title', seo.title);
     setMeta('property', 'og:description', seo.description);
-    setMeta('property', 'og:image', OG_IMAGE);
+    var image = seo.image ? OG_DIR + seo.image : OG_IMAGE;
+    setMeta('property', 'og:image', image);
+    setMeta('property', 'twitter:image', image);
     setMeta('property', 'og:image:width', '1200');
     setMeta('property', 'og:image:height', '630');
     setMeta('property', 'og:image:type', 'image/jpeg');

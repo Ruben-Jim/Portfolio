@@ -158,6 +158,10 @@ function stamp(html, seoEntry, origin, articleSlug) {
   html = setMeta(html, 'property', 'twitter:title', seoEntry.title, misses);
   html = setMeta(html, 'property', 'twitter:description', seoEntry.description, misses);
 
+  const image = origin + '/assets/images/og/' + (seoEntry.image || 'home.jpg');
+  html = setMeta(html, 'property', 'og:image', image, misses);
+  html = setMeta(html, 'property', 'twitter:image', image, misses);
+
   html = setCanonical(html, url, misses);
 
   if (articleSlug) html = moveH1(html, articleSlug, misses);
