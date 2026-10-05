@@ -30762,3 +30762,174 @@ body.admin-page-active .site-footer {
   color: var(--orange-yellow-crayola);
 }
 
+
+/* ── Limited-time package offers (care-pricing.js → PackagePricing) ── */
+.package-price-was {
+  margin-right: 6px;
+  font-size: 0.62em;
+  font-weight: var(--fw-500, 500);
+  color: var(--light-gray-70, #a8a8a8);
+  text-decoration-thickness: 2px;
+  text-decoration-color: hsla(6, 88%, 67%, 0.8);
+}
+
+.package-price-now {
+  color: var(--orange-yellow-crayola);
+}
+
+.package-offer-badge {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  /* The price line it sits in doesn't wrap; the badge must. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  margin-top: 8px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: hsla(45, 100%, 72%, 0.14);
+  border: 1px solid hsla(45, 100%, 72%, 0.4);
+  color: var(--orange-yellow-crayola);
+  font-size: 12px;
+  font-weight: var(--fw-600, 600);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+.hire-package-banner-price .package-offer-badge {
+  display: inline-block;
+  margin: 0 0 0 8px;
+  vertical-align: middle;
+}
+
+/* Admin: package offers table */
+.package-offers-admin {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--jet);
+}
+
+.package-offers-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: var(--white-2);
+}
+
+.package-offers-table-wrap {
+  overflow-x: auto;
+  margin: 10px 0 12px;
+}
+
+.package-offers-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.package-offers-table th,
+.package-offers-table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--jet);
+  text-align: left;
+  vertical-align: middle;
+  color: var(--light-gray);
+}
+
+.package-offers-table thead th {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--light-gray-70);
+}
+
+.package-offers-table tbody th {
+  color: var(--white-2);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.package-offers-regular {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--light-gray-70);
+}
+
+.package-offers-table .form-input {
+  min-width: 96px;
+  padding: 8px 10px;
+}
+
+.package-offers-on {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.package-offers-on input {
+  accent-color: var(--orange-yellow-crayola);
+}
+
+.package-offers-status {
+  white-space: nowrap;
+  color: var(--light-gray-70);
+}
+
+.package-offers-status.is-live {
+  color: var(--orange-yellow-crayola);
+  font-weight: 600;
+}
+
+/* Proposal editor: package added during an offer */
+.business-doc-add-package {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.business-doc-add-package-label {
+  font-size: 13px;
+  color: var(--light-gray);
+}
+
+.business-doc-add-package-label em,
+.admin-client-email-package-label em,
+#outreach-var-package-label em {
+  font-style: normal;
+  color: var(--light-gray-70);
+  font-weight: 400;
+}
+
+.business-doc-addon-offer-hint {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: hsla(45, 100%, 72%, 0.08);
+  border: 1px solid hsla(45, 100%, 72%, 0.3);
+  font-size: 12px;
+  color: var(--orange-yellow-crayola);
+}
+
+.business-doc-addon-offer-remove {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--light-gray);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.admin-client-email-package-label {
+  display: block;
+  margin-top: 12px;
+}
+
+.outreach-var--package {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

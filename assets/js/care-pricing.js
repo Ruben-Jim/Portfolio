@@ -167,6 +167,7 @@
       window.cwrSetLang(window.cwrGetLang());
     }
     applyToServicesPage();
+    applyPackagesToPage();
     listeners.forEach(function (fn) {
       try { fn(config); } catch (e) { console.warn(e); }
     });
@@ -190,7 +191,9 @@
     loadPromise = waitForRtdb(15000).then(function (ok) {
       if (!ok) return config;
       return window.rtdbGet(window.rtdbRef(window.rtdb, PATH)).then(function (snap) {
-        config = normalizeConfig(snap && snap.val());
+        var raw = snap && snap.val();
+        config = normalizeConfig(raw);
+        packageOffers = normalizeOffers(raw && raw.packageOffers);
         notify();
         return config;
       }).catch(function (err) {
@@ -209,12 +212,205 @@
       promo: clean.promo,
       updatedAt: Date.now()
     };
-    return window.rtdbSet(window.rtdbRef(window.rtdb, PATH), payload).then(function () {
+    // update, not set: /agencyPricing also holds packageOffers.
+    return window.rtdbUpdate(window.rtdbRef(window.rtdb, PATH), payload).then(function () {
       config = clean;
       notify();
       return config;
     });
   }
+
+  // ——— Setup packages + limited-time offers ———
+  // Regular prices match llms.txt / the Services page. Offers live at
+  // /agencyPricing/packageOffers/<id> = { enabled, price, endsAt, spots, claimed }.
+
+  var PACKAGES = [
+    { id: 'linktree', name: 'Link Tree', price: 99, max: 199, projectType: 'web', offerable: true },
+    { id: 'starter-page', name: 'Starter Page', price: 499, projectType: 'web', offerable: true },
+    { id: 'website', name: 'Business Website', price: 999, projectType: 'web', offerable: true },
+    { id: 'starter', name: 'Starter Presence', price: 1500, projectType: 'both', offerable: true },
+    { id: 'growth', name: 'Growth Platform', price: 3500, projectType: 'both', offerable: true },
+    { id: 'agency', name: 'Business Platform', price: 6000, max: 12000, projectType: 'both', offerable: false },
+    { id: 'studio', name: 'Studio Build', price: 15000, max: 40000, projectType: 'both', offerable: false }
+  ];
+
+  var packageOffers = {};
+
+  function packageById(id) {
+    for (var i = 0; i < PACKAGES.length; i++) if (PACKAGES[i].id === id) return PACKAGES[i];
+    return null;
+  }
+
+  function normalizeOffers(raw) {
+    var out = {};
+    PACKAGES.forEach(function (p) {
+      var o = (raw && raw[p.id]) || {};
+      out[p.id] = {
+        enabled: o.enabled === true,
+        price: Math.max(0, Math.round(Number(o.price) || 0)),
+        endsAt: /^\d{4}-\d{2}-\d{2}$/.test(String(o.endsAt || '')) ? String(o.endsAt) : '',
+        spots: Math.max(0, Math.round(Number(o.spots) || 0)),
+        claimed: Math.max(0, Math.round(Number(o.claimed) || 0))
+      };
+    });
+    return out;
+  }
+
+  packageOffers = normalizeOffers(null);
+
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /** The offer if it is on, cheaper, not past its date, and has spots left. */
+  function activeOffer(id) {
+    var p = packageById(id);
+    var o = packageOffers[id];
+    if (!p || !p.offerable || !o || !o.enabled) return null;
+    if (!(o.price > 0 && o.price < p.price)) return null;
+    if (o.endsAt && todayKey() > o.endsAt) return null;
+    if (o.spots && o.claimed >= o.spots) return null;
+    return {
+      price: o.price,
+      endsAt: o.endsAt,
+      spots: o.spots,
+      claimed: o.claimed,
+      spotsLeft: o.spots ? o.spots - o.claimed : 0
+    };
+  }
+
+  function regularLabel(p) {
+    return p.max ? money(p.price) + '–' + money(p.max) : money(p.price);
+  }
+
+  function shortDate(key) {
+    if (!key) return '';
+    var parts = key.split('-');
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+      .toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  /** "until Oct 31", "for the next 3 clients", or both. */
+  function offerLimitText(offer, lang) {
+    var es = lang === 'es';
+    var bits = [];
+    if (offer.endsAt) bits.push((es ? 'hasta el ' : 'until ') + shortDate(offer.endsAt));
+    if (offer.spots) {
+      bits.push(es
+        ? (offer.spotsLeft === 1 ? 'para el próximo cliente' : 'para los próximos ' + offer.spotsLeft + ' clientes')
+        : (offer.spotsLeft === 1 ? 'for the next client' : 'for the next ' + offer.spotsLeft + ' clients'));
+    }
+    if (bits.length === 2) return bits.join(es ? ' o ' : ' or ') + (es ? ', lo que ocurra primero' : ', whichever comes first');
+    return bits[0] || '';
+  }
+
+  /** Effective price for charging / pipeline value. */
+  function packagePrice(id) {
+    var p = packageById(id);
+    if (!p) return 0;
+    var offer = activeOffer(id);
+    return offer ? offer.price : p.price;
+  }
+
+  /**
+   * What [package] / {{package}} becomes in a message, e.g.
+   * "our Business Website package is $999" or
+   * "our Business Website package is $499 (normally $999) until Oct 31".
+   */
+  function packagePhrase(id) {
+    var p = packageById(id);
+    if (!p) return '';
+    var offer = activeOffer(id);
+    if (offer) {
+      var limit = offerLimitText(offer, 'en');
+      return 'our ' + p.name + ' package is ' + money(offer.price) + ' (normally ' + regularLabel(p) + ')' + (limit ? ' ' + limit : '');
+    }
+    return 'our ' + p.name + ' package ' + (p.max ? 'runs ' + regularLabel(p) : 'is ' + money(p.price));
+  }
+
+  /** Dropdown label, e.g. "Business Website — $499 offer (normally $999)". */
+  function packageOptionLabel(id) {
+    var p = packageById(id);
+    if (!p) return '';
+    var offer = activeOffer(id);
+    return offer
+      ? p.name + ' — ' + money(offer.price) + ' offer (normally ' + regularLabel(p) + ')'
+      : p.name + ' — ' + regularLabel(p);
+  }
+
+  /** Services page + Hire Me: crossed-out price, offer price, badge. */
+  function priceHtml(id, lang) {
+    var p = packageById(id);
+    if (!p) return '';
+    var offer = activeOffer(id);
+    if (!offer) return regularLabel(p);
+    var limit = offerLimitText(offer, lang);
+    return (
+      '<s class="package-price-was">' + regularLabel(p) + '</s> ' +
+      '<span class="package-price-now">' + money(offer.price) + '</span>' +
+      '<span class="package-offer-badge">' + (lang === 'es' ? 'Oferta por tiempo limitado' : 'Limited-time offer') +
+      (limit ? ' · ' + limit : '') + '</span>'
+    );
+  }
+
+  function applyPackagesToPage() {
+    if (typeof document === 'undefined') return;
+    var lang = typeof window.cwrGetLang === 'function' ? window.cwrGetLang() : 'en';
+    document.querySelectorAll('[data-package-price]').forEach(function (el) {
+      var id = el.getAttribute('data-package-price');
+      el.innerHTML = priceHtml(id, lang);
+      el.classList.toggle('has-package-offer', !!activeOffer(id));
+    });
+    // "Choose $999 Package" → "Choose $499 Package" while an offer runs. The
+    // regular text comes from i18n, which re-renders before this runs.
+    document.querySelectorAll('[data-package-cta]').forEach(function (el) {
+      var p = packageById(el.getAttribute('data-package-cta'));
+      var offer = p && activeOffer(p.id);
+      if (!offer) return;
+      el.innerHTML = el.innerHTML.split(money(p.price)).join(money(offer.price));
+    });
+  }
+
+  function savePackageOffers(next) {
+    var clean = normalizeOffers(next);
+    return window.rtdbUpdate(window.rtdbRef(window.rtdb, PATH), { packageOffers: clean, updatedAt: Date.now() })
+      .then(function () {
+        packageOffers = clean;
+        notify();
+        return clean;
+      });
+  }
+
+  /** Counts one claimed spot (called when a lead on an offer pays a deposit). */
+  function claimPackageSpot(id) {
+    var o = packageOffers[id];
+    if (!o || !window.rtdbUpdate) return Promise.resolve();
+    var claimed = o.claimed + 1;
+    var patch = {};
+    patch['packageOffers/' + id + '/claimed'] = claimed;
+    return window.rtdbUpdate(window.rtdbRef(window.rtdb, PATH), patch).then(function () {
+      o.claimed = claimed;
+      notify();
+    });
+  }
+
+  window.PackagePricing = {
+    PACKAGES: PACKAGES,
+    get offers() { return packageOffers; },
+    packageById: packageById,
+    activeOffer: activeOffer,
+    packagePrice: packagePrice,
+    packagePhrase: packagePhrase,
+    packageOptionLabel: packageOptionLabel,
+    regularLabel: regularLabel,
+    offerLimitText: offerLimitText,
+    priceHtml: priceHtml,
+    applyToPage: applyPackagesToPage,
+    save: savePackageOffers,
+    claimSpot: claimPackageSpot,
+    load: function () { return load(); }
+  };
 
   publishVars();
 
@@ -239,9 +435,10 @@
 
   if (typeof document !== 'undefined') {
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () { applyToServicesPage(); load(); });
+      document.addEventListener('DOMContentLoaded', function () { applyToServicesPage(); applyPackagesToPage(); load(); });
     } else {
       applyToServicesPage();
+      applyPackagesToPage();
       load();
     }
   }

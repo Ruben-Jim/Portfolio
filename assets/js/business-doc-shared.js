@@ -465,7 +465,8 @@
         usageLimits: usageLimits,
         amounts: opts.map(function (o) {
           return typeof o.amount === 'number' && !isNaN(o.amount) ? o.amount : 0;
-        })
+        }),
+        compareAt: Number(addon.compareAt) > 0 ? Number(addon.compareAt) : 0
       });
     }
     if (!items.length) return '';
@@ -479,9 +480,14 @@
       for (var j = 0; j < it.amounts.length; j++) {
         var priceLabel =
           formatCurrency(it.amounts[j]) + (it.includesUsage ? ' + usage' : '');
+        // Limited-time offer: normal price crossed out before the offer price.
+        var wasHtml = j === 0 && it.compareAt > it.amounts[j]
+          ? '<s class="addon-price-was">' + escapeHtml(formatCurrency(it.compareAt)) + '</s> '
+          : '';
         tierRows +=
           '<div class="addon-price-pill">' +
           '<span class="addon-tier-price">' +
+          wasHtml +
           escapeHtml(priceLabel) +
           '</span></div>';
       }
@@ -632,6 +638,7 @@
       '.addon-tier-row.addon-tier-only { display: block; }\n' +
       '.addon-tier-solo { display: flex; align-items: center; justify-content: center; padding: 12px 16px; border-left: 3px solid ' + C.primary + '; background: transparent; }\n' +
       '.addon-tier-price { font-family: \'Playfair Display\', serif; font-size: 22px; font-weight: 700; color: ' + C.primary + '; white-space: nowrap; line-height: 1; }\n' +
+      '.addon-price-was { margin-right: 6px; font-size: 0.7em; font-weight: 500; color: #8a8a8a; text-decoration: line-through; }\n' +
       '.addon-usage-list { list-style: none; margin: 10px 0 0; padding: 0; }\n' +
       '.addon-usage-list li { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 12px; line-height: 1.45; }\n' +
       '.addon-usage-list li:first-child { border-top: none; padding-top: 0; }\n' +
@@ -1418,7 +1425,8 @@
         lines.push({
           description: String(addon.name).trim(),
           detail: String(addon.description || '').trim(),
-          amount: amount
+          amount: amount,
+          compareAt: Number(addon.compareAt) > amount ? Number(addon.compareAt) : 0
         });
       }
     }
@@ -1476,6 +1484,9 @@
         detailHtml +
         '</td>' +
         '<td class="inv-col-amt">' +
+        (it.compareAt
+          ? '<s class="inv-amt-was">' + escapeHtml(formatCurrency(it.compareAt)) + '</s> '
+          : '') +
         escapeHtml(formatCurrency(it.amount)) +
         '</td></tr>';
     }
@@ -1754,6 +1765,7 @@
       '.inv-col-desc { width: 72%; }\n' +
       '.inv-col-amt { width: 28%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; }\n' +
       '.inv-table th.inv-col-amt { text-align: right; font-weight: 700; }\n' +
+      '.inv-amt-was { margin-right: 6px; font-weight: 500; color: #8a8a8a; text-decoration: line-through; }\n' +
       '.inv-line-name { font-size: 14px; font-weight: 600; color: ' +
       C.text +
       '; }\n' +

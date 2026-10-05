@@ -2084,7 +2084,91 @@
     out.textContent = text;
   }
 
+  // ——— Package offers (limited-time price per setup package) ———
+  function renderPackageOffersTable() {
+    var table = document.getElementById('package-offers-table');
+    var PP = window.PackagePricing;
+    if (!table || !PP) return;
+    var rows = PP.PACKAGES.filter(function (p) { return p.offerable; }).map(function (p) {
+      var o = PP.offers[p.id] || {};
+      var live = PP.activeOffer(p.id);
+      var status = live
+        ? 'Live · ' + (PP.offerLimitText(live, 'en') || 'no end set')
+        : o.enabled
+          ? (o.spots && o.claimed >= o.spots ? 'Ended · all spots claimed' : o.endsAt && o.endsAt < new Date().toISOString().slice(0, 10) ? 'Ended · past end date' : 'Off · check price')
+          : 'Off';
+      return (
+        '<tr data-package="' + esc(p.id) + '">' +
+        '<th scope="row">' + esc(p.name) + '<span class="package-offers-regular">' + esc(PP.regularLabel(p)) + '</span></th>' +
+        '<td><label class="package-offers-on"><input type="checkbox" data-field="enabled"' + (o.enabled ? ' checked' : '') + '> On</label></td>' +
+        '<td><input class="form-input" type="number" min="1" step="1" data-field="price" placeholder="Offer $" value="' + (o.price || '') + '" aria-label="' + esc(p.name) + ' offer price"></td>' +
+        '<td><input class="form-input" type="date" data-field="endsAt" value="' + esc(o.endsAt || '') + '" aria-label="' + esc(p.name) + ' offer end date"></td>' +
+        '<td><input class="form-input" type="number" min="0" step="1" data-field="spots" placeholder="No limit" value="' + (o.spots || '') + '" aria-label="' + esc(p.name) + ' spots"></td>' +
+        '<td><input class="form-input" type="number" min="0" step="1" data-field="claimed" value="' + (o.claimed || 0) + '" aria-label="' + esc(p.name) + ' spots claimed"></td>' +
+        '<td class="package-offers-status' + (live ? ' is-live' : '') + '">' + esc(status) + '</td>' +
+        '</tr>'
+      );
+    }).join('');
+    table.innerHTML =
+      '<thead><tr><th scope="col">Package</th><th scope="col">On</th><th scope="col">Offer price</th><th scope="col">Ends</th><th scope="col">Spots</th><th scope="col">Claimed</th><th scope="col">Status</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody>';
+  }
+
+  function readPackageOffersTable() {
+    var out = {};
+    var PP = window.PackagePricing;
+    document.querySelectorAll('#package-offers-table tbody tr').forEach(function (tr) {
+      var id = tr.getAttribute('data-package');
+      var get = function (f) { return tr.querySelector('[data-field="' + f + '"]'); };
+      out[id] = {
+        enabled: !!get('enabled').checked,
+        price: get('price').value,
+        endsAt: get('endsAt').value,
+        spots: get('spots').value,
+        claimed: get('claimed').value
+      };
+    });
+    // Keep stored values for packages not shown (non-offerable).
+    if (PP) Object.keys(PP.offers).forEach(function (id) { if (!out[id]) out[id] = PP.offers[id]; });
+    return out;
+  }
+
+  function initPackageOffersSettings() {
+    var section = document.getElementById('package-offers-section');
+    if (!section || section.dataset.bound || !window.PackagePricing) return;
+    section.dataset.bound = '1';
+    renderPackageOffersTable();
+    window.PackagePricing.load().then(renderPackageOffersTable).catch(function () {});
+    var btn = document.getElementById('package-offers-save');
+    var feedback = document.getElementById('package-offers-feedback');
+    if (!btn) return;
+    btn.addEventListener('click', async function () {
+      var next = readPackageOffersTable();
+      var bad = Object.keys(next).filter(function (id) {
+        var p = window.PackagePricing.packageById(id);
+        return next[id].enabled && p && !(Number(next[id].price) > 0 && Number(next[id].price) < p.price);
+      });
+      if (bad.length) {
+        if (feedback) feedback.textContent = 'An offer price must be above $0 and below the regular price (' + bad.join(', ') + ').';
+        return;
+      }
+      btn.disabled = true;
+      if (feedback) feedback.textContent = 'Saving…';
+      try {
+        await window.PackagePricing.save(next);
+        renderPackageOffersTable();
+        if (feedback) feedback.textContent = 'Offers saved — live on the site, scripts and proposals.';
+      } catch (err) {
+        console.error(err);
+        if (feedback) feedback.textContent = (err && err.message) || 'Save failed.';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
   function initCarePricingSettings() {
+    initPackageOffersSettings();
     var section = document.getElementById('care-pricing-section');
     if (!section || section.dataset.bound || !window.CarePricing) return;
     section.dataset.bound = '1';

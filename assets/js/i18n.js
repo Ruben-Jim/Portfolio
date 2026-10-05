@@ -544,6 +544,9 @@
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
 
+    // Package offers rewrite prices/CTAs after the translated text lands.
+    if (window.PackagePricing) window.PackagePricing.applyToPage();
+
     var hirePackageInput = document.querySelector('[data-page="hire-me"] [data-hire-package-input]');
     if (hirePackageInput && typeof window.syncBusinessDocSelectUI === 'function') {
       window.syncBusinessDocSelectUI(hirePackageInput);

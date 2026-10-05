@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=restaurant-ads-20261005';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=package-20261005';
   var STORE_KEY = 'cwrOutreachVars';
 
   /** Optional fill helpers. "[later today / tomorrow]" is prose — left alone. */
@@ -20,8 +20,16 @@
     { token: '[Name]', field: 'name' },
     { token: '[Company]', field: 'company' },
     { token: '[City]', field: 'city' },
-    { token: '[demo link]', field: 'demo' }
+    { token: '[demo link]', field: 'demo' },
+    // "our Business Website package is $999" — or the live offer wording.
+    { token: '[package]', field: 'package' }
   ];
+
+  var DEFAULT_PACKAGE = 'website';
+
+  function selectedPackageId() {
+    return els.packageSelect ? String(els.packageSelect.value || '') : '';
+  }
 
   /** Fields a script stores in RTDB — also what "Reset to template" copies from the seed. */
   var FIELDS = ['label', 'tag', 'vertical', 'demoLink', 'order', 'text', 'subject', 'email', 'call'];
@@ -203,12 +211,31 @@
       city: (els.city && els.city.value || '').trim(),
       demo: (els.demo && els.demo.value || '').trim(),
       phone: (els.phone && els.phone.value || '').trim(),
-      email: (els.emailAddr && els.emailAddr.value || '').trim()
+      email: (els.emailAddr && els.emailAddr.value || '').trim(),
+      package: selectedPackageId() && global.PackagePricing
+        ? global.PackagePricing.packagePhrase(selectedPackageId())
+        : ''
     };
   }
 
+  function renderPackageSelect() {
+    if (!els.packageSelect || !global.PackagePricing) return;
+    var current = selectedPackageId();
+    var options = [{ value: '', label: 'No package' }].concat(
+      global.PackagePricing.PACKAGES.map(function (p) {
+        return { value: p.id, label: global.PackagePricing.packageOptionLabel(p.id) };
+      })
+    );
+    if (typeof global.setBusinessDocSelectOptions === 'function') {
+      global.setBusinessDocSelectOptions(els.packageSelect, options, { value: current, keepValue: false });
+    }
+  }
+
   function saveVars() {
-    try { localStorage.setItem(STORE_KEY, JSON.stringify(readVars())); } catch (e) { /* private mode */ }
+    var v = readVars();
+    v.packageId = selectedPackageId();
+    delete v.package;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(v)); } catch (e) { /* private mode */ }
   }
 
   function restoreVars() {
@@ -218,6 +245,7 @@
       var el = k === 'phone' ? els.phone : els[k];
       if (el && v[k]) el.value = v[k];
     });
+    if (els.packageSelect && v.packageId != null) els.packageSelect.value = v.packageId;
   }
 
   function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
@@ -660,6 +688,9 @@
     if (s) bits.push('Script: ' + s.label);
     if (vars.city) bits.push(vars.city);
     if (vars.demo) bits.push('demo: ' + vars.demo);
+    if (selectedPackageId() && global.PackagePricing) {
+      bits.push('package: ' + global.PackagePricing.packageOptionLabel(selectedPackageId()));
+    }
     return bits.join(' · ') + '\n\n' + stepLabel + ' message:\n' + getBody();
   }
 
@@ -668,6 +699,10 @@
       if (els[k]) els[k].value = '';
     });
     try { localStorage.removeItem(STORE_KEY); } catch (e) { /* private mode */ }
+    if (els.packageSelect) {
+      els.packageSelect.value = DEFAULT_PACKAGE;
+      if (typeof global.syncBusinessDocSelectUI === 'function') global.syncBusinessDocSelectUI(els.packageSelect);
+    }
     dirty = false;
     renderPreview(true);
   }
@@ -715,6 +750,13 @@
         if (!dup.company && vars.company) patch.company = vars.company;
         if (!dup.phone && vars.phone) patch.phone = vars.phone;
         if (!dup.email && vars.email) patch.email = vars.email;
+        var upPkg = selectedPackageId() && global.PackagePricing ? global.PackagePricing.packageById(selectedPackageId()) : null;
+        if (upPkg) {
+          var upOffer = global.PackagePricing.activeOffer(upPkg.id);
+          patch.packageId = upPkg.id;
+          patch.packageOfferPrice = upOffer ? upOffer.price : null;
+          if (!Number(dup.value)) patch.value = global.PackagePricing.packagePrice(upPkg.id);
+        }
         await global.rtdbUpdate(global.rtdbRef(global.rtdb, PIPELINE_PATH + '/' + dup.id), patch);
         clearLeadForm();
         showLeadStatus('Updated “' + (dup.company || dup.name) + '” in Client Pipeline · follow up ' + dateKey(follow) + '.', false);
@@ -723,13 +765,20 @@
       }
     }
 
+    var pkgId = selectedPackageId();
+    var PP = global.PackagePricing;
+    var pkg = pkgId && PP ? PP.packageById(pkgId) : null;
+    var offer = pkg ? PP.activeOffer(pkgId) : null;
     var lead = {
       name: vars.name || vars.company,
       email: vars.email,
       phone: vars.phone,
       company: vars.company,
-      projectType: 'web',
-      value: 0,
+      projectType: pkg ? pkg.projectType : 'web',
+      value: pkg ? PP.packagePrice(pkgId) : 0,
+      packageId: pkg ? pkg.id : null,
+      // Set while an offer is live, so a deposit on this lead claims a spot.
+      packageOfferPrice: offer ? offer.price : null,
       stage: 'lead',
       source: 'cold',
       notes: note,
@@ -807,6 +856,7 @@
       demo: document.getElementById('outreach-var-demo'),
       phone: document.getElementById('outreach-var-phone'),
       emailAddr: document.getElementById('outreach-var-email'),
+      packageSelect: document.getElementById('outreach-var-package'),
       btnCopy: document.getElementById('outreach-copy'),
       btnText: document.getElementById('outreach-text'),
       btnEmail: document.getElementById('outreach-email'),
@@ -831,6 +881,19 @@
         saveVars();
       });
     });
+    if (els.packageSelect) {
+      els.packageSelect.addEventListener('change', function () {
+        dirty = false;
+        renderPreview(true);
+        saveVars();
+      });
+    }
+    if (global.CarePricing && typeof global.CarePricing.onChange === 'function') {
+      global.CarePricing.onChange(function () {
+        renderPackageSelect();
+        if (!dirty) renderPreview(true);
+      });
+    }
     if (els.scriptSelect) {
       els.scriptSelect.addEventListener('change', function () {
         var next = els.scriptSelect.value;
@@ -912,6 +975,7 @@
       if (els.status) els.status.hidden = true;
       dirty = false;
       renderScriptSelect();
+      renderPackageSelect();
       renderSteps();
       renderPreview(true);
       rendered = true;

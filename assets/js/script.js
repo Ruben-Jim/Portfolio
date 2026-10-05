@@ -8403,6 +8403,22 @@ function applyHireMePackageView(packageId) {
   if (banner) banner.hidden = !isPackage;
   if (isPackage && pill) pill.textContent = config.pill;
   if (isPackage && price) price.textContent = config.price;
+  // Lets care-pricing.js refresh the banner if offers load after this view.
+  if (price) {
+    if (isPackage && window.PackagePricing && window.PackagePricing.packageById(packageId)) {
+      price.setAttribute('data-package-price', packageId);
+    } else {
+      price.removeAttribute('data-package-price');
+    }
+  }
+  // Limited-time offer: crossed-out regular price + offer price + badge.
+  var hireOffer = isPackage && window.PackagePricing ? window.PackagePricing.activeOffer(packageId) : null;
+  if (hireOffer && price) {
+    price.innerHTML = window.PackagePricing.priceHtml(
+      packageId,
+      typeof window.cwrGetLang === 'function' ? window.cwrGetLang() : 'en'
+    );
+  }
   if (isPackage && note) note.textContent = config.bannerNote;
 
   var heroLabel = article.querySelector('[data-hire-hero-label-text]');
@@ -8423,15 +8439,28 @@ function applyHireMePackageView(packageId) {
   var formTitle = article.querySelector('[data-hire-form-title]');
   var formLead = article.querySelector('[data-hire-form-lead]');
   if (formTitle) formTitle.textContent = view.formTitle;
-  if (formLead) formLead.textContent = view.formLead;
+  if (formLead) {
+    var leadText = view.formLead;
+    if (hireOffer) {
+      // Ranges ($99–$199) are replaced whole, fixed prices ($999) as-is.
+      var regularMoney = window.PackagePricing.regularLabel(window.PackagePricing.packageById(packageId));
+      leadText = leadText.split(regularMoney).join(window.CarePricing.money(hireOffer.price) + ' limited-time');
+    }
+    formLead.textContent = leadText;
+  }
 
   syncHireMePackageSelect(isPackage ? packageId : '');
 
   if (isPackage) {
+    var offerNote = '';
+    if (hireOffer) {
+      var regular = window.PackagePricing.regularLabel(window.PackagePricing.packageById(packageId));
+      offerNote = ' (limited-time offer: ' + window.CarePricing.money(hireOffer.price) + ', normally ' + regular + ')';
+    }
     prefillHireMeFormFields({
       projectType: config.projectType,
-      budget: config.budget,
-      message: config.message,
+      budget: hireOffer ? window.CarePricing.money(hireOffer.price) + ' (offer)' : config.budget,
+      message: config.message + offerNote,
       messagePlaceholder: config.messagePlaceholder,
       messageAsPlaceholder: true
     });
@@ -11317,6 +11346,7 @@ window.addEventListener('load', function() {
         'Here’s a {{niche}} example:\n' +
         '{{linkLine}}\n' +
         'Worth a quick look?\n\n' +
+        '{{packageLine}}\n\n' +
         '— Ruben',
       label: 'Has a website — outdated (refresh it)',
       needsSite: true,
@@ -11328,6 +11358,7 @@ window.addEventListener('load', function() {
         'Here’s a {{niche}} example I built:\n' +
         '{{linkLine}}\n\n' +
         'Want me to put together a quick mockup for {{projectName}}?\n\n' +
+        '{{packageLine}}\n\n' +
         '— Ruben'
     },
     {
@@ -11339,6 +11370,7 @@ window.addEventListener('load', function() {
         'Here’s a {{niche}} site I built:\n' +
         '{{linkLine}}\n' +
         'You’d keep your same domain. Want a quick mockup?\n\n' +
+        '{{packageLine}}\n\n' +
         '— Ruben',
       label: 'Website is down / broken',
       needsSite: true,
@@ -11349,6 +11381,7 @@ window.addEventListener('load', function() {
         'I build websites and apps for local service businesses. Here’s a {{niche}} site I built that handles {{highlights}}:\n' +
         '{{linkLine}}\n\n' +
         'You’d keep your same domain. Happy to help either way.\n\n' +
+        '{{packageLine}}\n\n' +
         '— Ruben'
     },
     {
@@ -11359,6 +11392,7 @@ window.addEventListener('load', function() {
         'I noticed {{projectName}} doesn’t have a website yet. I already built one for {{vertical}} — no deposit, and you only pay if you like it.\n\n' +
         '{{linkLine}}\n' +
         'Want to see it branded for {{projectName}}?\n\n' +
+        '{{packageLine}}\n\n' +
         '— Ruben',
       label: 'No website yet',
       defaultSubject: 'A website for {{projectName}}?',
@@ -11369,6 +11403,7 @@ window.addEventListener('load', function() {
         'I’ve already got one built — here’s a live demo:\n' +
         '{{linkLine}}\n\n' +
         'Want me to show you what it’d look like branded to {{projectName}}?\n\n' +
+        '{{packageLine}}\n\n' +
         '— Ruben'
     },
     {
@@ -11462,6 +11497,7 @@ window.addEventListener('load', function() {
       demoWrap: document.getElementById('admin-client-email-demo-wrap'),
       adsToggle: document.getElementById('admin-client-email-ads'),
       adsWrap: document.getElementById('admin-client-email-ads-wrap'),
+      package: document.getElementById('admin-client-email-package'),
       situation: document.getElementById('admin-client-email-situation'),
       situationWrap: document.getElementById('admin-client-email-situation-wrap'),
       length: document.getElementById('admin-client-email-length'),
@@ -11549,6 +11585,22 @@ window.addEventListener('load', function() {
     return getDemoById(id || (ADMIN_CLIENT_EMAIL_DEMOS[0] && ADMIN_CLIENT_EMAIL_DEMOS[0].id));
   }
 
+  /** Package dropdown: names + current price (or the live offer). */
+  function ensureAdminClientEmailPackages(els, preferredId) {
+    if (!els.package || !window.PackagePricing) return;
+    var current = preferredId != null ? String(preferredId) : String(els.package.value || 'website');
+    var options = [{ value: '', label: 'No package (leave the price out)' }].concat(
+      window.PackagePricing.PACKAGES.map(function (p) {
+        return { value: p.id, label: window.PackagePricing.packageOptionLabel(p.id) };
+      })
+    );
+    if (typeof window.setBusinessDocSelectOptions === 'function') {
+      window.setBusinessDocSelectOptions(els.package, options, { value: current, keepValue: false });
+    } else {
+      els.package.value = current;
+    }
+  }
+
   /** The checkbox only shows for niches that have an ads version. */
   function syncAdminClientEmailAdsToggle(els) {
     if (!els.adsWrap || !els.adsToggle) return;
@@ -11618,6 +11670,7 @@ window.addEventListener('load', function() {
       els.demo.value = selected;
     }
     syncAdminClientEmailAdsToggle(els);
+    ensureAdminClientEmailPackages(els, null);
     return getSelectedAdminDemo(els);
   }
 
@@ -11789,6 +11842,9 @@ window.addEventListener('load', function() {
     var pitch = getDemoPitch(demo);
     var companyName = isDemo ? nextRaw || 'your company' : 'your project';
     var siteUrl = displaySiteUrl(els.siteUrl && els.siteUrl.value);
+    // "our Business Website package is $999" (or the live offer wording).
+    var packageId = isDemo && els.package ? String(els.package.value || '') : '';
+    var packageText = packageId && window.PackagePricing ? window.PackagePricing.packagePhrase(packageId) : '';
     return {
       clientName: String((els.toName && els.toName.value) || '').trim() || 'there',
       projectName: companyName,
@@ -11805,7 +11861,9 @@ window.addEventListener('load', function() {
       link: link,
       linkLine: linkLine,
       agreedTime: agreedTime,
-      agreedTimeBlock: agreedTimeBlock
+      agreedTimeBlock: agreedTimeBlock,
+      package: packageText,
+      packageLine: packageText ? 'For reference, ' + packageText + ', with your first month of care included.' : ''
     };
   }
 
@@ -11825,6 +11883,8 @@ window.addEventListener('load', function() {
       .replace(/\{\{\s*featureList\s*\}\}/g, vars.featureList || '')
       .replace(/\{\{\s*agreedTimeBlock\s*\}\}/g, vars.agreedTimeBlock || '')
       .replace(/\{\{\s*agreedTime\s*\}\}/g, vars.agreedTime || '')
+      .replace(/\{\{\s*packageLine\s*\}\}/g, vars.packageLine || '')
+      .replace(/\{\{\s*package\s*\}\}/g, vars.package || '')
       .replace(/\{\{\s*linkLine\s*\}\}/g, vars.linkLine)
       .replace(/\{\{\s*link\s*\}\}/g, vars.link);
     // Drop blank Link lines when no CTA link (agreed-time reschedule)
@@ -12011,6 +12071,7 @@ window.addEventListener('load', function() {
       // The ads version's id when the checkbox is on, so drafts restore it.
       demoId: els.demo && els.demo.value ? getSelectedAdminDemo(els).id : '',
       situationId: (els.situation && els.situation.value) || '',
+      packageId: els.package ? String(els.package.value || '') : '',
       length: getAdminClientEmailLength(els),
       siteUrl: (els.siteUrl && els.siteUrl.value) || '',
       messageAuto: isAdminClientEmailMessageAuto(els),
@@ -12070,6 +12131,7 @@ window.addEventListener('load', function() {
     if (isDemoOutreachEmailTemplate((els.template && els.template.value) || '')) {
       ensureAdminClientEmailDemos(els, draft.demoId || '');
       ensureAdminClientEmailSituations(els, draft.situationId || '');
+      ensureAdminClientEmailPackages(els, draft.packageId != null ? draft.packageId : 'website');
       setAdminClientEmailLength(els, draft.length || 'short');
       setAdminClientEmailSituationVisibility(els, (els.template && els.template.value) || '');
     }
@@ -12090,6 +12152,7 @@ window.addEventListener('load', function() {
       templateId: String(row.templateId || ''),
       demoId: String(row.demoId || ''),
       situationId: String(row.situationId || ''),
+      packageId: row.packageId != null ? String(row.packageId) : 'website',
       length: row.length === 'full' ? 'full' : row.length === 'short' ? 'short' : '',
       siteUrl: String(row.siteUrl || ''),
       messageAuto: !!row.messageAuto,
@@ -12512,6 +12575,13 @@ window.addEventListener('load', function() {
       }).join('');
     }
 
+    // Offer prices load after the page; refresh the package labels when they do.
+    if (window.CarePricing && typeof window.CarePricing.onChange === 'function') {
+      window.CarePricing.onChange(function () {
+        ensureAdminClientEmailPackages(els, null);
+      });
+    }
+
     var draft = normalizeClientEmailDraftTemplate(loadAdminClientEmailDraft());
     if (draft) {
       adminClientEmailState.activeDraftId = String(draft.draftId || '');
@@ -12558,6 +12628,15 @@ window.addEventListener('load', function() {
           syncAdminClientEmailDynamicFields(els);
           return;
         }
+        applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
+        setAdminClientEmailFeedback(els, '', false);
+      });
+    }
+
+    if (els.package) {
+      els.package.addEventListener('change', function () {
+        var templateId = (els.template && els.template.value) || '';
+        if (!isDemoOutreachEmailTemplate(templateId)) return;
         applyAdminClientEmailTemplate(els, templateId, { preserveUserLink: true });
         setAdminClientEmailFeedback(els, '', false);
       });
@@ -13253,6 +13332,9 @@ window.addEventListener('load', function() {
             : [];
           if (!priceOptions.length) return null;
           var cleaned = { name: name, priceOptions: priceOptions };
+          // Normal price of a package added during a limited-time offer.
+          var compareAt = Number(addon.compareAt);
+          if (compareAt > 0 && compareAt > priceOptions[0].amount) cleaned.compareAt = compareAt;
           var desc = String(addon.description || '').trim().slice(0, 2000);
           if (desc) cleaned.description = desc;
           if (addon.includesUsage) {
@@ -17117,6 +17199,42 @@ window.addEventListener('load', function() {
   const businessDocCreateBtn = document.getElementById('business-doc-create-btn');
   const businessDocAddonsList = document.getElementById('business-doc-addons-list');
   const businessDocAddAddonBtn = document.getElementById('business-doc-add-addon-btn');
+
+  /** "Add a setup package": inserts the package at its live price, keeping the
+   *  normal price as compareAt so the PDF can cross it out. */
+  function initBusinessDocAddPackage() {
+    var input = document.getElementById('business-doc-add-package');
+    if (!input || input.dataset.bound || !window.PackagePricing) return;
+    input.dataset.bound = '1';
+    function fill() {
+      window.setBusinessDocSelectOptions(
+        input,
+        window.PackagePricing.PACKAGES.map(function (p) {
+          return { value: p.id, label: window.PackagePricing.packageOptionLabel(p.id) };
+        }),
+        { placeholder: 'Choose a package…', value: '' }
+      );
+    }
+    fill();
+    if (window.CarePricing) window.CarePricing.onChange(fill);
+    input.addEventListener('change', function () {
+      var PP = window.PackagePricing;
+      var p = PP.packageById(input.value);
+      if (!p || !businessDocAddonsList) return;
+      var offer = PP.activeOffer(p.id);
+      var limit = offer ? PP.offerLimitText(offer, 'en') : '';
+      businessDocAddonsList.appendChild(createAddonCardEl({
+        name: p.name + ' package',
+        description: offer
+          ? 'Limited-time offer' + (limit ? ' — ' + limit : '') + '. Normally ' + PP.regularLabel(p) + '. First month of care included.'
+          : 'Fixed-price setup package. First month of care included.',
+        priceOptions: [{ label: '', amount: PP.packagePrice(p.id) }],
+        compareAt: offer ? p.price : 0
+      }));
+      window.setBusinessDocSelectValue(input, '', true);
+    });
+  }
+  setTimeout(initBusinessDocAddPackage, 0);
   const businessDocsSummary = document.getElementById('business-docs-summary');
   const businessDocMaintenancePlanInput = document.getElementById('business-doc-maintenance-plan');
   const businessDocMaintenanceBillingInput = document.getElementById('business-doc-maintenance-billing');
@@ -17358,6 +17476,7 @@ window.addEventListener('load', function() {
     var card = document.createElement('div');
     card.className = 'business-doc-addon-card';
     card.setAttribute('data-addon-id', generateBusinessAddonDomId());
+    if (Number(data.compareAt) > 0) card.setAttribute('data-compare-at', String(Number(data.compareAt)));
     var header = document.createElement('div');
     header.className = 'business-doc-addon-card-header';
     var title = document.createElement('span');
@@ -17471,6 +17590,22 @@ window.addEventListener('load', function() {
     });
 
     card.appendChild(header);
+    if (Number(data.compareAt) > 0) {
+      var offerHint = document.createElement('p');
+      offerHint.className = 'business-doc-addon-offer-hint';
+      offerHint.textContent =
+        'Limited-time offer — the PDF shows ' + formatCurrency(Number(data.compareAt)) + ' crossed out next to your price. ';
+      var dropOffer = document.createElement('button');
+      dropOffer.type = 'button';
+      dropOffer.className = 'business-doc-addon-offer-remove';
+      dropOffer.textContent = 'Remove crossed-out price';
+      dropOffer.addEventListener('click', function () {
+        card.removeAttribute('data-compare-at');
+        offerHint.remove();
+      });
+      offerHint.appendChild(dropOffer);
+      card.appendChild(offerHint);
+    }
     card.appendChild(nameFg);
     card.appendChild(descFg);
     card.appendChild(pricesWrap);
@@ -17565,6 +17700,8 @@ window.addEventListener('load', function() {
       }
       /** @type {BusinessDocAddOn} */
       var o = { name: nameVal, priceOptions: priceOptions };
+      var compareAt = Number(card.getAttribute('data-compare-at'));
+      if (compareAt > 0 && compareAt > priceOptions[0].amount) o.compareAt = compareAt;
       if (descVal) o.description = descVal;
       if (includesUsage) {
         o.includesUsage = true;
@@ -20559,6 +20696,10 @@ window.addEventListener('load', function() {
       // Which outreach script brought this lead in — feeds "Script results".
       outreachScriptId: String(row.outreachScriptId || '').slice(0, 80),
       outreachScriptLabel: String(row.outreachScriptLabel || '').slice(0, 120),
+      // Setup package from Outreach Scripts; offer price set while an offer ran.
+      packageId: String(row.packageId || '').slice(0, 40),
+      packageOfferPrice: Math.max(0, Number(row.packageOfferPrice) || 0),
+      offerClaimed: row.offerClaimed === true,
       createdAt: row.createdAt || null,
       updatedAt: row.updatedAt || null
     };
@@ -20580,7 +20721,10 @@ window.addEventListener('load', function() {
       outreach: Object.keys(norm.outreach).length ? norm.outreach : null,
       followUpAt: norm.followUpAt || null,
       outreachScriptId: norm.outreachScriptId || null,
-      outreachScriptLabel: norm.outreachScriptLabel || null
+      outreachScriptLabel: norm.outreachScriptLabel || null,
+      packageId: norm.packageId || null,
+      packageOfferPrice: norm.packageOfferPrice || null,
+      offerClaimed: norm.offerClaimed || null
     };
   }
 
@@ -20796,6 +20940,15 @@ window.addEventListener('load', function() {
     return '<p class="pipeline-card-touch pipeline-card-script">Script · ' + escapeHtml(lead.outreachScriptLabel) + '</p>';
   }
 
+  function buildPipelinePackageLine(lead) {
+    var p = lead.packageId && window.PackagePricing ? window.PackagePricing.packageById(lead.packageId) : null;
+    if (!p) return '';
+    var price = lead.packageOfferPrice
+      ? formatPipelineMoney(lead.packageOfferPrice) + ' offer' + (lead.offerClaimed ? ' · spot claimed' : '')
+      : window.PackagePricing.regularLabel(p);
+    return '<p class="pipeline-card-touch pipeline-card-package">Package · ' + escapeHtml(p.name) + ' · ' + escapeHtml(price) + '</p>';
+  }
+
   function buildPipelineDraftLine(lead) {
     var draft = findAdminEmailDraftForLead(lead.id);
     if (!draft) return '';
@@ -20881,6 +21034,7 @@ window.addEventListener('load', function() {
         buildPipelineTouchLine(lead) +
         buildPipelineFollowUpLine(lead) +
         buildPipelineScriptLine(lead) +
+        buildPipelinePackageLine(lead) +
         buildPipelineDraftLine(lead) +
         '</div>';
 
@@ -21272,8 +21426,14 @@ window.addEventListener('load', function() {
         if (existing) {
           payload.outreachScriptId = existing.outreachScriptId || null;
           payload.outreachScriptLabel = existing.outreachScriptLabel || null;
+          payload.packageId = existing.packageId || null;
+          payload.packageOfferPrice = existing.packageOfferPrice || null;
+          payload.offerClaimed = existing.offerClaimed || null;
         }
         await window.rtdbSet(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + id), payload);
+        if (existing && payload.stage === 'deposit' && existing.stage !== 'deposit') {
+          await claimPackageOfferSpot(Object.assign({ id: id }, existing));
+        }
       } else {
         payload.createdAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
         payload.updatedAt = payload.createdAt;
@@ -21318,15 +21478,35 @@ window.addEventListener('load', function() {
     }
   }
 
+  /**
+   * A lead that came in on a live package offer claims one of its spots the
+   * first time it reaches Deposit. offerClaimed stops a second count if the
+   * card is dragged back and forth.
+   */
+  async function claimPackageOfferSpot(lead) {
+    if (!lead || !lead.packageId || !lead.packageOfferPrice || lead.offerClaimed) return;
+    if (!window.PackagePricing || !window.PackagePricing.activeOffer(lead.packageId)) return;
+    try {
+      await window.PackagePricing.claimSpot(lead.packageId);
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + lead.id), { offerClaimed: true });
+    } catch (err) {
+      console.warn('Could not count the offer spot', err);
+    }
+  }
+
   async function moveLeadStage(leadId, stage) {
     if (!leadId || PIPELINE_STAGES.indexOf(stage) < 0) return;
     if (!window.rtdb || !window.rtdbUpdate) return;
     if (!isAdmin()) return;
+    var before = findPipelineLead(leadId);
     try {
       await window.rtdbUpdate(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + leadId), {
         stage: stage,
         updatedAt: window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now()
       });
+      if (stage === 'deposit' && before && before.stage !== 'deposit') {
+        await claimPackageOfferSpot(before);
+      }
     } catch (err) {
       console.error('moveLeadStage', err);
       alert('Could not update stage.');
