@@ -7938,6 +7938,8 @@
         : tcTimerState.clientName
           ? tcTimerState.clientName
           : 'Focus session';
+      // Very long names still truncate; hover shows the whole thing.
+      clientEl.title = clientEl.textContent;
     }
     if (bar) {
       bar.hidden = !(active || reviewing);
