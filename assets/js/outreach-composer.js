@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=link-in-bio-20261005';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=site-upgrade-20261005';
   var STORE_KEY = 'cwrOutreachVars';
 
   /** Optional fill helpers. "[later today / tomorrow]" is prose — left alone. */
@@ -324,7 +324,7 @@
     if (s.group) return s.group;
     var id = String(s.id || '');
     if (/-ads$/.test(id)) return 'Running ads';
-    if (/^no-site/.test(id) || id === 'site-down') return 'No website / site down';
+    if (/^no-site/.test(id) || /^site-/.test(id)) return 'Website problems';
     if (id === 'landline') return 'Special cases';
     return 'By niche';
   }

@@ -553,6 +553,73 @@
         '[if they ask the price] "For reference, [package], with your first month of care included."'
     },
     {
+      id: 'site-outdated',
+      label: 'Website outdated',
+      tag: 'Website Problems · Outdated (old design, not mobile-friendly, slow) · open their site on your phone first so you can be specific',
+      vertical: 'local businesses with an outdated website',
+      demoLink: '',
+      order: 116,
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I pulled up [Company]’s website on my phone and it’s hard to use there, which is where most of your customers are looking. I can rebuild it mobile-friendly, keep your content and the same web address, and add online booking or estimate requests.\n\nHere’s one I built: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full rebuild? I also build a custom link page for your Instagram bio (a branded Linktree), from $99: rubenjimenez.dev/link-in-bio',
+      subject: 'Subject: A fresh, mobile-friendly site for [Company]?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'I’m Ruben with CodeWithRuben here in [City]. I came across [Company]’s website and pulled it up on my phone — it’s hard to use there, and that’s where most of your customers are looking.\n' +
+        '\n' +
+        'I’d love to give it a fresh, mobile-friendly rebuild: same content, same web address, nothing lost, plus a way for customers to book or request an estimate right from the site.\n' +
+        '\n' +
+        'Here’s one I built: [demo link]\n' +
+        '\n' +
+        'For reference, [package], with your first month of care included.\n' +
+        '\n' +
+        'Not ready for a full rebuild? I also build a custom link page for your Instagram bio — a branded Linktree with your logo, services, and booking or contact buttons. It’s live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '\n' +
+        'Want me to put together a quick mockup of the new homepage?\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben here in [City]. Got 20 seconds?"\n' +
+        '[continue] "I pulled up your website on my phone and it’s tough to use there. I rebuild sites mobile-friendly — same content, same web address — and add online booking or estimate requests."\n' +
+        '[if they ask the price] "For reference, [package], with your first month of care included."\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio. Live in a few days, from $99. Want me to text you an example?"\n' +
+        '[close] "Want me to send a quick mockup of what the new homepage could look like?"'
+    },
+    {
+      id: 'site-platform',
+      label: 'Upgrade from WordPress / Wix / Squarespace',
+      tag: 'Website Problems · Platform upgrade (paying a builder monthly, plugins breaking, no booking) · check the footer or page source to confirm the platform',
+      vertical: 'businesses on WordPress, Wix, Squarespace, or GoDaddy builders',
+      demoLink: '',
+      order: 117,
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I noticed [Company]’s site is on a website builder. A lot of owners I talk to are paying for the builder plus add-ons every month and still don’t have online booking. I can move you to a custom, mobile-friendly site — same content, same web address — with booking or estimate requests built in, and hosting included in your care plan.\n\nHere’s one I built: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full move? I also build a custom link page for your Instagram bio (a branded Linktree), from $99: rubenjimenez.dev/link-in-bio',
+      subject: 'Subject: [Company] — off the website builder, with booking built in',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'I’m Ruben with CodeWithRuben here in [City]. I noticed [Company]’s site runs on a website builder (WordPress, Wix, Squarespace and similar). Most owners I talk to are paying for the builder plus add-ons every month, fixing plugins that break after updates, and still don’t have a simple way for customers to book.\n' +
+        '\n' +
+        'I can move you to a custom, mobile-friendly site: same content, same web address, nothing lost, with online booking or estimate requests built in. Hosting comes included in your care plan, so you’re not paying for a builder and add-ons on top.\n' +
+        '\n' +
+        'Here’s one I built: [demo link]\n' +
+        '\n' +
+        'For reference, [package], with your first month of care included.\n' +
+        '\n' +
+        'Not ready for a full move? I also build a custom link page for your Instagram bio — a branded Linktree with your logo, services, and booking or contact buttons. It’s live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '\n' +
+        'Want me to put together a quick mockup?\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben here in [City]. Got 20 seconds?"\n' +
+        '[continue] "I noticed your site runs on a website builder. Are you paying for that plus add-ons every month?"\n' +
+        '[if yes] "I move businesses to a custom, mobile-friendly site — same content and web address — with booking built in, and hosting is included in the care plan."\n' +
+        '[if they ask the price] "For reference, [package], with your first month of care included."\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio. From $99. Want an example?"\n' +
+        '[close] "Want me to send a quick mockup?"'
+    },
+    {
       id: 'landline',
       label: 'Landline — email/form first, then call',
       tag: 'Landline number · Text step = paste into their website contact form (use Copy, not Text) · call only after 3–4 days with no reply',
