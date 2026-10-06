@@ -697,6 +697,82 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "name": "pawshine-demo.webm",
         "kind": "video",
         "poster": "/assets/images/projects/pawshine/pawshine-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/pawshine/pawshine-home-services.webp",
+        "name": "pawshine-home-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/pawshine/pawshine-home.webp",
+        "name": "pawshine-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/pawshine/pawshine-our-work.webp",
+        "name": "pawshine-our-work.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/pawshine/pawshine-services.webp",
+        "name": "pawshine-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/pawshine/pawshine-tour.mp4",
+        "name": "pawshine-tour.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/pawshine/pawshine-tour-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/pawshine/pawshine-tour.webm",
+        "name": "pawshine-tour.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/pawshine/pawshine-tour-poster.webp"
+      }
+    ]
+  },
+  {
+    "group": "photographer-template",
+    "label": "photographer-template",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/photographer-template/photographer-book.webp",
+        "name": "photographer-book.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/photographer-template/photographer-demo.mp4",
+        "name": "photographer-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/photographer-template/photographer-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/photographer-template/photographer-demo.webm",
+        "name": "photographer-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/photographer-template/photographer-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/photographer-template/photographer-gallery.webp",
+        "name": "photographer-gallery.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/photographer-template/photographer-home.webp",
+        "name": "photographer-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/photographer-template/photographer-packages.webp",
+        "name": "photographer-packages.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/photographer-template/photographer-portal.webp",
+        "name": "photographer-portal.webp",
+        "kind": "image"
       }
     ]
   },
@@ -896,6 +972,60 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "restaurant-template",
+    "label": "restaurant-template",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-cart.webp",
+        "name": "restaurant-cart.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-demo.mp4",
+        "name": "restaurant-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/restaurant-template/restaurant-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-demo.webm",
+        "name": "restaurant-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/restaurant-template/restaurant-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-event.webp",
+        "name": "restaurant-event.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-home.webp",
+        "name": "restaurant-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-hours.webp",
+        "name": "restaurant-hours.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-item.webp",
+        "name": "restaurant-item.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-menu.webp",
+        "name": "restaurant-menu.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/restaurant-template/restaurant-order-tracking.webp",
+        "name": "restaurant-order-tracking.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
     "group": "rizopizzeria",
     "label": "rizopizzeria",
     "source": "images",
@@ -913,6 +1043,55 @@ window.PORTFOLIO_ASSET_GROUPS = [
       {
         "path": "/assets/images/projects/rizopizzeria/rizopizzeria1.webp",
         "name": "rizopizzeria1.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "group": "roofcleaning",
+    "label": "roofcleaning",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/roofcleaning/roofcleaning-contact.webp",
+        "name": "roofcleaning-contact.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/roofcleaning/roofcleaning-demo.mp4",
+        "name": "roofcleaning-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/roofcleaning/roofcleaning-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/roofcleaning/roofcleaning-demo.webm",
+        "name": "roofcleaning-demo.webm",
+        "kind": "video",
+        "poster": "/assets/images/projects/roofcleaning/roofcleaning-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/roofcleaning/roofcleaning-home-services.webp",
+        "name": "roofcleaning-home-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/roofcleaning/roofcleaning-home.webp",
+        "name": "roofcleaning-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/roofcleaning/roofcleaning-our-work.webp",
+        "name": "roofcleaning-our-work.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/roofcleaning/roofcleaning-services.webp",
+        "name": "roofcleaning-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/roofcleaning/roofcleaning-testimonials.webp",
+        "name": "roofcleaning-testimonials.webp",
         "kind": "image"
       }
     ]
