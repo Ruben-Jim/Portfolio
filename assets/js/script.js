@@ -4442,9 +4442,15 @@ const PORTFOLIO_CURATED_NICHES = [
   },
   {
     id: 'restaurant',
-    label: 'Restaurant',
-    titleMatch: /pizza|pizzeria|rizo/i,
-    slugMatch: ['restaurants', 'pizzerias', 'takeout-kitchens']
+    label: 'Restaurant & food',
+    titleMatch: /restaurant|pizza|pizzeria|rizo|caf[eé]|food truck/i,
+    slugMatch: ['restaurants', 'pizzerias', 'takeout-kitchens', 'any-business-selling-from-a-daily-menu']
+  },
+  {
+    id: 'photography',
+    label: 'Photography',
+    titleMatch: /photograph/i,
+    slugMatch: ['wedding-and-quincea-era-photographers', 'portrait-and-event-studios']
   },
   {
     id: 'retail',
@@ -4743,6 +4749,118 @@ function portfolioObserveAutoplayVideos(root) {
 }
 
 /**
+ * Full-size still for a rotating card cover: the first screenshot, else the
+ * video poster. Not portfolioCoverImageUrl(), which prefers the 480px poster
+ * and looks soft at card size.
+ */
+function portfolioCardStillUrl(row) {
+  var urls = portfolioImageUrlsFromRecord(row);
+  for (var i = 0; i < urls.length; i++) {
+    if (!portfolioIsVideoUrl(urls[i]) && !/\.md(?:\?|$)/i.test(urls[i])) return urls[i];
+  }
+  return urls.length ? portfolioVideoPosterUrlBest(urls[0]) || '' : '';
+}
+
+/**
+ * A starter template with builds cycles its cover through the platform and each
+ * build's still, so a visitor sees every look before opening the card. Stills
+ * only — the videos play in the detail popup. data-variant-index matches the
+ * popup's tab order, so opening the card mid-rotation lands on the build on
+ * screen (see fillProjectModal). Returns '' when there is nothing to rotate.
+ */
+function portfolioRenderCardRotatorHtml(p, alt) {
+  var slides = [{ index: 0, label: 'Platform', src: portfolioCardStillUrl(p) }].concat(
+    getPortfolioDerivedBuilds(p).map(function (b, k) {
+      return { index: k + 1, label: b.title || 'Build', src: portfolioCardStillUrl(b) };
+    })
+  ).filter(function (s) { return !!s.src; });
+  if (slides.length < 2) return '';
+  return (
+    '<div class="project-cover-rotator" data-portfolio-rotator data-current="' + slides[0].index + '">' +
+    slides
+      .map(function (s, i) {
+        var src = portfolioEscapeHtml(portfolioDisplayImageSrc(s.src));
+        // Only the first still loads up front; the rest load once the card is on screen.
+        return (
+          '<img class="project-cover-slide' + (i === 0 ? ' is-active' : '') + '"' +
+          (i === 0 ? ' src="' + src + '" alt="' + portfolioEscapeHtml(alt) + '"' : ' data-src="' + src + '" alt="" aria-hidden="true"') +
+          ' data-variant-index="' + s.index + '" data-label="' + portfolioEscapeHtml(s.label) + '"' +
+          ' onerror="portfolioHandleImageError(this)">'
+        );
+      })
+      .join('') +
+    '<span class="project-cover-skin" aria-hidden="true">' + portfolioEscapeHtml(slides[0].label) + '</span>' +
+    '<span class="project-cover-dots" aria-hidden="true">' +
+    slides.map(function (_, i) { return '<i' + (i === 0 ? ' class="is-active"' : '') + '></i>'; }).join('') +
+    '</span>' +
+    '</div>'
+  );
+}
+
+/**
+ * Advances every on-screen cover rotator together every few seconds. Off-screen
+ * rotators, a hidden tab, and reduced motion all hold the current still.
+ */
+var portfolioRotatorObserver = null;
+var portfolioRotatorTimer = null;
+var portfolioRotatorsVisible = [];
+
+function portfolioAdvanceRotator(rot) {
+  var slides = rot.querySelectorAll('.project-cover-slide');
+  if (slides.length < 2) return;
+  var cur = 0;
+  slides.forEach(function (s, i) { if (s.classList.contains('is-active')) cur = i; });
+  var next = (cur + 1) % slides.length;
+  // Skip a still that hasn't loaded rather than fade to a blank frame.
+  if (!(slides[next].complete && slides[next].naturalWidth)) return;
+  slides[cur].classList.remove('is-active');
+  slides[next].classList.add('is-active');
+  rot.setAttribute('data-current', slides[next].getAttribute('data-variant-index'));
+  var label = rot.querySelector('.project-cover-skin');
+  if (label) label.textContent = slides[next].getAttribute('data-label') || '';
+  rot.querySelectorAll('.project-cover-dots i').forEach(function (d, i) { d.classList.toggle('is-active', i === next); });
+}
+
+function portfolioObserveCoverRotators(root) {
+  var rotators = (root || document).querySelectorAll('[data-portfolio-rotator]');
+  if (!rotators.length) return;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion || typeof IntersectionObserver !== 'function') return;
+
+  if (!portfolioRotatorObserver) {
+    portfolioRotatorObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          var rot = entry.target;
+          var at = portfolioRotatorsVisible.indexOf(rot);
+          if (entry.isIntersecting) {
+            rot.querySelectorAll('img[data-src]').forEach(function (img) {
+              img.src = img.getAttribute('data-src');
+              img.removeAttribute('data-src');
+            });
+            if (at === -1) portfolioRotatorsVisible.push(rot);
+          } else if (at !== -1) {
+            portfolioRotatorsVisible.splice(at, 1);
+          }
+        });
+      },
+      { threshold: 0.35 }
+    );
+    portfolioRotatorTimer = setInterval(function () {
+      if (document.hidden) return;
+      portfolioRotatorsVisible = portfolioRotatorsVisible.filter(function (r) { return r.isConnected; });
+      portfolioRotatorsVisible.forEach(portfolioAdvanceRotator);
+    }, 3200);
+  }
+
+  rotators.forEach(function (rot) {
+    if (rot.dataset.portfolioRotatorBound) return;
+    rot.dataset.portfolioRotatorBound = '1';
+    portfolioRotatorObserver.observe(rot);
+  });
+}
+
+/**
  * Cover media for a public card.
  * A video cover plays inline instead of showing its poster still — see
  * portfolioObserveAutoplayVideos() for the scroll-into-view wiring. The poster
@@ -4750,6 +4868,8 @@ function portfolioObserveAutoplayVideos(root) {
  * decodes, and preload="none" keeps offscreen cards off the network entirely.
  */
 function portfolioRenderCardCoverHtml(p, alt) {
+  const rotator = portfolioRenderCardRotatorHtml(p, alt);
+  if (rotator) return rotator;
   const urls = portfolioImageUrlsFromRecord(p);
   const cover = urls.length ? urls[0] : '';
   if (cover && portfolioIsVideoUrl(cover)) {
@@ -4856,6 +4976,7 @@ function renderPublicPortfolioProjects() {
   renderPortfolioNicheFilters();
   applyPortfolioFilters();
   portfolioObserveAutoplayVideos(ul);
+  portfolioObserveCoverRotators(ul);
 }
 
 function applyCurrentPortfolioFilter() {
@@ -6963,6 +7084,13 @@ function initPortfolioProjectModal() {
           titleText ||
           'Project preview'
       });
+    }
+    // A rotating cover opens on the build it was showing when clicked.
+    var rotator = card.querySelector('[data-portfolio-rotator]');
+    var startTab = rotator ? Number(rotator.getAttribute('data-current')) || 0 : 0;
+    if (startTab > 0) {
+      var tabBtn = document.querySelector('#project-detail-variant-tabs [data-variant-index="' + startTab + '"]');
+      if (tabBtn) tabBtn.click();
     }
     if (title) title.textContent = titleText;
     if (description) portfolioSetMultilineElement(description, descriptionText);
