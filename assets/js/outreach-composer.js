@@ -14,6 +14,16 @@
   var RTDB_PATH = 'agencyOutreachScripts';
   var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=site-upgrade-20261005';
   var STORE_KEY = 'cwrOutreachVars';
+  // Last script used on this device, so the picker reopens on it (never empty).
+  var LAST_SCRIPT_KEY = 'cwrOutreachLastScript';
+
+  function rememberScript(id) {
+    try { localStorage.setItem(LAST_SCRIPT_KEY, id); } catch (e) { /* private mode */ }
+  }
+
+  function lastScript() {
+    try { return localStorage.getItem(LAST_SCRIPT_KEY) || ''; } catch (e) { return ''; }
+  }
 
   /** Optional fill helpers. "[later today / tomorrow]" is prose — left alone. */
   var TOKENS = [
@@ -299,6 +309,7 @@
     }
     if (!found) return;
     activeId = id;
+    rememberScript(id);
     dirty = false;
     if (els.demo) els.demo.value = found.demoLink || '';
     if (!fromUi && els.scriptSelect && typeof global.setBusinessDocSelectValue === 'function') {
@@ -969,6 +980,9 @@
     if (els.status) { els.status.textContent = 'Loading scripts…'; els.status.hidden = false; }
     try {
       await ensureScripts();
+      // Reopen on the last script used here (ads version included); the first
+      // script is only the fallback, so the picker always has a selection.
+      if (!activeId && hasScript(lastScript())) activeId = lastScript();
       if (!activeId && scripts.length) {
         activeId = scripts[0].id;
       }
