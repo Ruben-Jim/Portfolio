@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=cover-rotator-20261006">
+  <link rel="stylesheet" href="/assets/css/style.css?v=portfolio-skeleton-20261006">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -1278,9 +1278,90 @@
           </div>
 
                 <ul class="project-list" id="portfolio-project-list">
-          <li class="portfolio-projects-loading" aria-live="polite">
-            <div class="project-card portfolio-projects-loading-card">
-              <p class="portfolio-projects-loading-text" data-i18n="portfolio.loading">Loading projects…</p>
+          <!-- Skeleton cards: same classes as real cards so nothing jumps when they land. -->
+          <li class="sr-only" data-portfolio-skeleton aria-live="polite" data-i18n="portfolio.loading">Loading projects…</li>
+          <li class="project-item active project-item--skeleton" data-portfolio-skeleton aria-hidden="true">
+            <div class="project-card">
+              <div class="project-link">
+                <figure class="project-img"><span class="portfolio-skel portfolio-skel--cover"></span></figure>
+                <div class="project-content">
+                  <span class="portfolio-skel portfolio-skel--title"></span>
+                  <div class="project-bestfor-card">
+                    <section class="project-fit-section">
+                      <h5 class="project-fit-title">Best For</h5>
+                      <ul class="project-fit-list">
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                      </ul>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="project-item active project-item--skeleton" data-portfolio-skeleton aria-hidden="true">
+            <div class="project-card">
+              <div class="project-link">
+                <figure class="project-img"><span class="portfolio-skel portfolio-skel--cover"></span></figure>
+                <div class="project-content">
+                  <span class="portfolio-skel portfolio-skel--title"></span>
+                  <div class="project-bestfor-card">
+                    <section class="project-fit-section">
+                      <h5 class="project-fit-title">Best For</h5>
+                      <ul class="project-fit-list">
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                      </ul>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="project-item active project-item--skeleton" data-portfolio-skeleton aria-hidden="true">
+            <div class="project-card">
+              <div class="project-link">
+                <figure class="project-img"><span class="portfolio-skel portfolio-skel--cover"></span></figure>
+                <div class="project-content">
+                  <span class="portfolio-skel portfolio-skel--title"></span>
+                  <div class="project-bestfor-card">
+                    <section class="project-fit-section">
+                      <h5 class="project-fit-title">Best For</h5>
+                      <ul class="project-fit-list">
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                      </ul>
+                    </section>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li class="project-item active project-item--skeleton" data-portfolio-skeleton aria-hidden="true">
+            <div class="project-card">
+              <div class="project-link">
+                <figure class="project-img"><span class="portfolio-skel portfolio-skel--cover"></span></figure>
+                <div class="project-content">
+                  <span class="portfolio-skel portfolio-skel--title"></span>
+                  <div class="project-bestfor-card">
+                    <section class="project-fit-section">
+                      <h5 class="project-fit-title">Best For</h5>
+                      <ul class="project-fit-list">
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                        <li><span class="portfolio-skel portfolio-skel--line"></span></li>
+                      </ul>
+                    </section>
+                  </div>
+                </div>
+              </div>
             </div>
           </li>
         </ul>
@@ -7795,7 +7876,7 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-    import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement, goOffline as rtdbGoOffline, goOnline as rtdbGoOnline } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
     window.initializeApp = initializeApp;
@@ -7833,6 +7914,8 @@
     window.rtdbUpdate = update;
     window.rtdbGet = get;
     window.rtdbRemove = remove;
+    window.rtdbGoOffline = rtdbGoOffline;
+    window.rtdbGoOnline = rtdbGoOnline;
     window.rtdbQuery = rtdbQuery;
     window.rtdbOrderByChild = orderByChild;
     window.rtdbOrderByKey = orderByKey;
@@ -8284,9 +8367,9 @@
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/i18n.js?v=package-offers-20261005"></script>
+  <script src="/assets/js/i18n.js?v=portfolio-skeleton-20261006"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=cover-rotator-20261006"></script>
+  <script src="/assets/js/script.js?v=portfolio-skeleton-20261006d"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=timer-width-20261005"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>

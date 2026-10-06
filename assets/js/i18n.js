@@ -95,6 +95,8 @@
       'portfolio.industry':    'Industry',
       'portfolio.filter_all':  'All',
       'portfolio.loading':     'Loading projects\u2026',
+      'portfolio.load_error':  'Couldn\u2019t load projects. Check your connection and try again.',
+      'portfolio.retry':       'Retry',
 
       /* ── Services & Pricing ─────────────────────────────── */
       'services.title':        'Services &amp; Pricing',
@@ -348,6 +350,8 @@
       'portfolio.industry':   'Industria',
       'portfolio.filter_all': 'Todos',
       'portfolio.loading':    'Cargando proyectos\u2026',
+      'portfolio.load_error': 'No se pudieron cargar los proyectos. Revisa tu conexi\u00f3n e int\u00e9ntalo de nuevo.',
+      'portfolio.retry':      'Reintentar',
 
       /* ── Services & Pricing ─────────────────────────────── */
       'services.title':       'Servicios y Precios',

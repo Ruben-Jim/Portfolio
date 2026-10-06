@@ -8573,6 +8573,133 @@ body.package-examples-open {
   text-align: center;
 }
 
+/* Portfolio skeleton cards — real card classes with shimmer bars in place of
+   content (index.html #portfolio-project-list), so the grid, cover frame and
+   "Best For" block already sit where the loaded cards will. */
+.project-item--skeleton {
+  pointer-events: none;
+}
+
+.project-img:has(.portfolio-skel--cover) {
+  aspect-ratio: 16 / 10;
+}
+
+.portfolio-skel {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    hsla(0, 0%, 100%, 0.04) 0%,
+    hsla(0, 0%, 100%, 0.1) 40%,
+    hsla(0, 0%, 100%, 0.04) 80%
+  );
+  background-size: 220% 100%;
+  animation: portfolio-skel-shimmer 1.5s ease-in-out infinite;
+}
+
+[data-theme="light"] .portfolio-skel {
+  background-image: linear-gradient(
+    90deg,
+    hsla(0, 0%, 0%, 0.05) 0%,
+    hsla(0, 0%, 0%, 0.1) 40%,
+    hsla(0, 0%, 0%, 0.05) 80%
+  );
+}
+
+.portfolio-skel--cover {
+  position: absolute;
+  inset: 0;
+  border-radius: 0;
+}
+
+.portfolio-skel--title {
+  width: 62%;
+  height: 26px;
+  margin-bottom: 16px;
+}
+
+.project-item--skeleton .project-fit-list li {
+  display: flex;
+  align-items: center;
+}
+
+.portfolio-skel--line {
+  display: inline-block;
+  width: 80%;
+  height: 11px;
+}
+
+.project-item--skeleton .project-fit-list li:nth-child(2) .portfolio-skel--line { width: 64%; }
+.project-item--skeleton .project-fit-list li:nth-child(3) .portfolio-skel--line { width: 88%; }
+.project-item--skeleton .project-fit-list li:nth-child(4) .portfolio-skel--line { width: 54%; }
+
+@keyframes portfolio-skel-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -120% 0; }
+}
+
+@media (max-width: 579px) {
+  .portfolio-skel--title {
+    height: 18px;
+    margin-bottom: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-skel {
+    animation: none;
+  }
+}
+
+/* Failed project load: message + Retry across the whole grid. */
+.portfolio-load-error {
+  grid-column: 1 / -1;
+}
+
+.portfolio-load-error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.portfolio-load-error-card > ion-icon {
+  font-size: 34px;
+  color: var(--orange-yellow-crayola);
+}
+
+.portfolio-load-error-text {
+  max-width: 34em;
+  margin: 0;
+  color: var(--light-gray);
+  font-size: var(--fs-6);
+  line-height: 1.6;
+}
+
+.portfolio-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid hsla(45, 100%, 72%, 0.3);
+  background: hsla(45, 100%, 72%, 0.08);
+  color: var(--orange-yellow-crayola);
+  font-family: var(--ff-poppins);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-600);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.portfolio-retry-btn:hover,
+.portfolio-retry-btn:focus-visible {
+  background: hsla(45, 100%, 72%, 0.15);
+  border-color: hsla(45, 100%, 72%, 0.5);
+}
+
 .portfolio-projects-loading-text {
   margin: 0;
   color: var(--light-gray);

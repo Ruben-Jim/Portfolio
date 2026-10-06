@@ -3079,6 +3079,10 @@ const defaultBlogPosts = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 let portfolioProjectsRtdb = [];
+/** True when the last portfolioProjects read errored or timed out (not when it was just empty). */
+let portfolioProjectsLoadFailed = false;
+/** True while a portfolioProjects read is in flight (first load or Retry). */
+let portfolioProjectsLoading = false;
 
 const PORTFOLIO_PLACEHOLDER_IMAGE = '/assets/images/projects/project-comingsoon.svg';
 
@@ -4076,9 +4080,20 @@ function normalizePortfolioRtdbRow(row) {
   return out;
 }
 
-async function loadPortfolioProjectsFromRtdb() {
+async function loadPortfolioProjectsFromRtdb(timeoutMs) {
+  portfolioProjectsLoading = true;
+  try {
+    await readPortfolioProjectsFromRtdb(timeoutMs || 5000);
+  } finally {
+    portfolioProjectsLoading = false;
+  }
+}
+
+async function readPortfolioProjectsFromRtdb(timeoutMs) {
   portfolioProjectsRtdb = [];
+  portfolioProjectsLoadFailed = false;
   if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) {
+    portfolioProjectsLoadFailed = true;
     window.AdminLoading.mark('portfolioProjects');
     syncWindowPortfolioProjectsRef();
     return;
@@ -4091,7 +4106,7 @@ async function loadPortfolioProjectsFromRtdb() {
       new Promise(function (_, reject) {
         window.setTimeout(function () {
           reject(new Error('Realtime Database read timeout (portfolioProjects)'));
-        }, 5000);
+        }, timeoutMs);
       })
     ]);
     const val = snap.val();
@@ -4103,7 +4118,9 @@ async function loadPortfolioProjectsFromRtdb() {
       portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
     }
   } catch (err) {
-    console.error('Portfolio RTDB load failed; falling back to built-in projects', err);
+    // The public page shows a Retry message for this (renderPublicPortfolioProjects).
+    console.error('Portfolio RTDB load failed', err);
+    portfolioProjectsLoadFailed = true;
   }
   // After the await, on both success and failure — a read that times out must
   // fall through to the real empty state rather than shimmer forever.
@@ -4653,6 +4670,7 @@ function renderPortfolioNicheFilters() {
       portfolioEscapeHtml(n.label) +
       '</button>';
   });
+  const hadOnlyAll = container.querySelectorAll('[data-portfolio-niche]').length <= 1;
   container.innerHTML = html;
   if (prevNiche !== 'all' && !niches.some(function (n) { return n.slug === prevNiche; })) {
     portfolioFilterNiche = 'all';
@@ -4660,6 +4678,41 @@ function renderPortfolioNicheFilters() {
   container.scrollLeft = 0;
   initPortfolioNicheScrollFades();
   updatePortfolioNicheScrollFades();
+  if (hadOnlyAll && niches.length) portfolioAnimateNicheChipsIn(container);
+}
+
+/**
+ * First render of the industry chips: each one starts stacked under "All",
+ * invisible, and slides right into its own place, staggered left to right.
+ * Skipped when the row isn't on screen (another page is open) or the visitor
+ * prefers reduced motion.
+ */
+function portfolioAnimateNicheChipsIn(container) {
+  if (!container.offsetParent) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const all = container.querySelector('[data-portfolio-niche="all"]');
+  if (!all) return;
+  const allLeft = all.getBoundingClientRect().left;
+  const chips = container.querySelectorAll('[data-portfolio-niche]:not([data-portfolio-niche="all"])');
+  chips.forEach(function (chip) {
+    chip.style.transition = 'none';
+    chip.style.opacity = '0';
+    chip.style.transform = 'translateX(' + Math.round(allLeft - chip.getBoundingClientRect().left) + 'px)';
+  });
+  // Commit the start position before transitioning away from it.
+  void container.offsetWidth;
+  chips.forEach(function (chip, i) {
+    const delay = i * 70;
+    chip.style.transition =
+      'transform 650ms cubic-bezier(0.22, 0.8, 0.25, 1) ' + delay + 'ms, opacity 450ms ease ' + (delay + 80) + 'ms';
+    chip.style.opacity = '';
+    chip.style.transform = '';
+    chip.addEventListener('transitionend', function clear(e) {
+      if (e.propertyName !== 'transform') return;
+      chip.style.transition = '';
+      chip.removeEventListener('transitionend', clear);
+    });
+  });
 }
 
 function applyPortfolioFilters() {
@@ -4955,9 +5008,65 @@ function buildPortfolioProjectCardHtml(p) {
   );
 }
 
+/** The skeleton cards shipped in the page, kept so Retry can show them again. */
+let portfolioSkeletonHtml = '';
+
+function renderPortfolioLoadError(ul) {
+  ul.innerHTML =
+    '<li class="project-item active portfolio-load-error" data-filter-item role="alert">' +
+    '<div class="project-card portfolio-load-error-card">' +
+    '<ion-icon name="cloud-offline-outline" aria-hidden="true"></ion-icon>' +
+    '<p class="portfolio-load-error-text">' +
+    portfolioEscapeHtml(
+      window.cwrT
+        ? window.cwrT('portfolio.load_error', "Couldn't load projects. Check your connection and try again.")
+        : "Couldn't load projects. Check your connection and try again."
+    ) +
+    '</p>' +
+    '<button type="button" class="portfolio-retry-btn" data-portfolio-retry>' +
+    '<ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>' +
+    portfolioEscapeHtml(window.cwrT ? window.cwrT('portfolio.retry', 'Retry') : 'Retry') +
+    '</button>' +
+    '</div></li>';
+  if (ul.dataset.retryBound === '1') return;
+  ul.dataset.retryBound = '1';
+  ul.addEventListener('click', function (e) {
+    if (!e.target.closest('[data-portfolio-retry]')) return;
+    retryPortfolioProjects();
+  });
+}
+
+async function retryPortfolioProjects() {
+  const ul = document.getElementById('portfolio-project-list');
+  if (!ul) return;
+  // Firebase never initialised: a fresh page load is the only real retry.
+  if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) {
+    window.location.reload();
+    return;
+  }
+  if (portfolioSkeletonHtml) ul.innerHTML = portfolioSkeletonHtml;
+  // After an outage the SDK waits out a reconnect backoff that can pass 20s.
+  // Cycling the connection makes it reconnect now.
+  if (typeof window.rtdbGoOffline === 'function' && typeof window.rtdbGoOnline === 'function') {
+    window.rtdbGoOffline(window.rtdb);
+    window.rtdbGoOnline(window.rtdb);
+  }
+  await loadPortfolioProjectsFromRtdb(15000);
+  renderPublicPortfolioProjects();
+  applyCurrentPortfolioFilter();
+}
+
 function renderPublicPortfolioProjects() {
   const ul = document.getElementById('portfolio-project-list');
   if (!ul) return;
+  if (!portfolioSkeletonHtml && ul.querySelector('[data-portfolio-skeleton]')) {
+    portfolioSkeletonHtml = ul.innerHTML;
+  }
+  // A failed read shows Retry instead of silently swapping in the built-in list.
+  if (portfolioProjectsLoadFailed && !portfolioProjectsRtdb.length) {
+    renderPortfolioLoadError(ul);
+    return;
+  }
   const list = getEffectivePortfolioProjects();
   ul.innerHTML = '';
   if (!list.length) {
@@ -9351,11 +9460,9 @@ window.addEventListener('load', function() {
       window.setTimeout(function () {
         const list = document.getElementById('portfolio-project-list');
         if (!list) return;
-        const loadingText = list.querySelector('.portfolio-projects-loading-text');
-        if (!loadingText) return;
-        const text = String(loadingText.textContent || '').toLowerCase();
-        if (text.indexOf('loading projects') === -1) return;
-        console.warn('Portfolio list still showing loading placeholder; forcing fallback render.');
+        // A Retry in progress owns the skeletons; it renders when its read settles.
+        if (!list.querySelector('[data-portfolio-skeleton]') || portfolioProjectsLoading) return;
+        console.warn('Portfolio list still showing skeleton cards; forcing render.');
         renderPublicPortfolioProjects();
         applyCurrentPortfolioFilter();
       }, 1200);
