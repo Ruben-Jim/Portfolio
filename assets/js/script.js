@@ -11379,6 +11379,37 @@ window.addEventListener('load', function() {
         '{{linkLine}}\n' +
         'If it’s relevant for {{projectName}}, I’ll set it up with your menu and hold 15 minutes — fit call, not a pitch deck.\n\n' +
         '— Ruben'
+    },
+    {
+      id: 'photographer',
+      group: 'Professional',
+      label: 'Photographer — weddings & quince',
+      vertical: 'wedding, quinceañera, and portrait photographers',
+      // English demo; swap the link to photographer.expo.app/es for Spanish-speaking leads.
+      defaultLink: 'https://photographer.expo.app',
+      defaultSubject: '{{projectName}} — book dates and retainers without the DMs?',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'Most wedding and quinceañera photographers I talk to in your area book through Instagram DMs: “how much?”, “are you free on the 14th?”, then chasing the retainer over Venmo and sending the contract as a PDF.\n\n' +
+        'I build booking sites for photographers that handle that part for you. Clients browse your gallery by session type, compare your packages, pick their date, and pay the retainer to hold it. After that they get a client portal with their session status, balance due, and contract in one place. Every page comes in English and Spanish, so families searching in Spanish find you too.\n\n' +
+        '{{linkLine}}\n' +
+        'If it’s relevant for {{projectName}}, I’ll set it up with your packages and hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
+    },
+    {
+      id: 'photographer-ads',
+      group: 'Running ads',
+      label: 'Photographer — running ads',
+      vertical: 'wedding, quinceañera, and portrait photographers',
+      defaultLink: 'https://photographer.expo.app',
+      defaultSubject: '{{projectName}} — your ads are landing in your DMs',
+      defaultBody:
+        'Hi {{clientName}},\n\n' +
+        'I saw {{projectName}} running ads that land on your Instagram. That sends a couple who is ready to book into your DMs to ask about prices and dates, and by the time you reply, some have booked someone else.\n\n' +
+        'I build the page that ad should land on: they see your packages, check your date, and pay the retainer to hold it, in English or Spanish. Their contract and balance live in a client portal, so you’re not chasing either one.\n\n' +
+        '{{linkLine}}\n' +
+        'That’s a live demo you can click through. If it fits {{projectName}}, I’ll hold 15 minutes — fit call, not a pitch deck.\n\n' +
+        '— Ruben'
     }
   ];
 
@@ -11391,7 +11422,8 @@ window.addEventListener('load', function() {
     trades: 'trades-ads',
     salon: 'salon-ads',
     carpet: 'cleaning-ads',
-    restaurant: 'restaurant-ads'
+    restaurant: 'restaurant-ads',
+    photographer: 'photographer-ads'
   };
 
   function demoBaseId(id) {
@@ -11403,6 +11435,22 @@ window.addEventListener('load', function() {
   }
 
   var ADMIN_CLIENT_EMAIL_DEMO_PITCH = {
+    photographer: {
+      niche: 'photography',
+      services: 'weddings, quinceañeras, portraits, and events',
+      highlights: 'your packages, date booking with a retainer, and a client portal',
+      quickPitch: 'clients pick a package and a date and pay the retainer online — no “how much?” DMs',
+      refreshAdds: 'online booking that takes the retainer',
+      noSiteHook: 'clients can see your packages, pick a date, and pay the retainer before you even reply',
+      features: [
+        'Modern home page with your branding',
+        'Gallery by session type',
+        'Packages with the retainer that holds each date',
+        'Online booking that takes the retainer',
+        'Client portal: session status, balance, and contract',
+        'English and Spanish pages'
+      ]
+    },
     restaurant: {
       niche: 'restaurant',
       services: 'your menu, pickup orders, and catering',
@@ -11577,7 +11625,7 @@ window.addEventListener('load', function() {
       shortSubject: 'A fresh look for {{projectName}}’s website?',
       shortBody:
         'Hi {{clientName}} — Ruben with CodeWithRuben in Fresno.\n\n' +
-        'I came across {{siteRef}} and would love to give it a fresh, mobile-friendly look — same content, same web address, plus online estimates. You only pay if you like it.\n\n' +
+        'I came across {{siteRef}} and would love to give it a fresh, mobile-friendly look — same content, same web address, plus {{refreshAdds}}. You only pay if you like it.\n\n' +
         'Here’s a {{niche}} example:\n' +
         '{{linkLine}}\n' +
         'Worth a quick look?\n\n' +
@@ -11588,7 +11636,7 @@ window.addEventListener('load', function() {
       defaultSubject: 'A fresh look for {{projectName}}’s website?',
       defaultBody:
         'Hi {{clientName}},\n\n' +
-        'I’m Ruben with CodeWithRuben here in Fresno. I came across {{siteRef}} and would love to give it a fresh, mobile-friendly look — keeping all your existing content and your same web address, and adding online estimates.\n\n' +
+        'I’m Ruben with CodeWithRuben here in Fresno. I came across {{siteRef}} and would love to give it a fresh, mobile-friendly look — keeping all your existing content and your same web address, and adding {{refreshAdds}}.\n\n' +
         'You only pay if you like the final result. No deposit.\n\n' +
         'Here’s a {{niche}} example I built:\n' +
         '{{linkLine}}\n\n' +
@@ -11633,7 +11681,7 @@ window.addEventListener('load', function() {
       defaultSubject: 'A website for {{projectName}}?',
       defaultBody:
         'Hi {{clientName}},\n\n' +
-        'I’m Ruben with CodeWithRuben. I noticed {{projectName}} doesn’t have a website up yet — I build booking sites for {{vertical}} in the Central Valley, so customers can request a job and pick a time before you even call back.\n\n' +
+        'I’m Ruben with CodeWithRuben. I noticed {{projectName}} doesn’t have a website up yet — I build booking sites for {{vertical}} in the Central Valley, so {{noSiteHook}}.\n\n' +
         'You only pay if you like the final result. No deposit required.\n\n' +
         'I’ve already got one built — here’s a live demo:\n' +
         '{{linkLine}}\n\n' +
@@ -11944,6 +11992,9 @@ window.addEventListener('load', function() {
       services: pitch.services || 'your services',
       highlights: pitch.highlights || 'booking, payments, and scheduling',
       quickPitch: pitch.quickPitch || 'customers book online and pay up front — no more phone tag',
+      // Situation-script phrases; defaults are the original wording every niche used.
+      refreshAdds: pitch.refreshAdds || 'online estimates',
+      noSiteHook: pitch.noSiteHook || 'customers can request a job and pick a time before you even call back',
       features: Array.isArray(pitch.features) && pitch.features.length
         ? pitch.features
         : ['Modern home page with your branding', 'Online booking', 'Free quote requests', 'Contact / messaging']
@@ -12089,6 +12140,8 @@ window.addEventListener('load', function() {
       services: pitch.services,
       highlights: pitch.highlights,
       quickPitch: pitch.quickPitch,
+      refreshAdds: pitch.refreshAdds,
+      noSiteHook: pitch.noSiteHook,
       featureList: pitch.features.map(function (f) { return '• ' + f; }).join('\n'),
       vertical: (demo && demo.vertical) || 'local service businesses',
       nextStep: nextRaw || 'Reply with your notes when ready',
@@ -12115,6 +12168,8 @@ window.addEventListener('load', function() {
       .replace(/\{\{\s*services\s*\}\}/g, vars.services || '')
       .replace(/\{\{\s*highlights\s*\}\}/g, vars.highlights || '')
       .replace(/\{\{\s*quickPitch\s*\}\}/g, vars.quickPitch || '')
+      .replace(/\{\{\s*refreshAdds\s*\}\}/g, vars.refreshAdds || 'online estimates')
+      .replace(/\{\{\s*noSiteHook\s*\}\}/g, vars.noSiteHook || 'customers can request a job and pick a time before you even call back')
       .replace(/\{\{\s*featureList\s*\}\}/g, vars.featureList || '')
       .replace(/\{\{\s*agreedTimeBlock\s*\}\}/g, vars.agreedTimeBlock || '')
       .replace(/\{\{\s*agreedTime\s*\}\}/g, vars.agreedTime || '')

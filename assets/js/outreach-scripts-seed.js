@@ -521,6 +521,92 @@
         '[close] "Can I text you the live demo?"'
     },
     {
+      id: 'photographer',
+      label: 'Photographer — weddings & quince',
+      tag: 'Photographer Booking Platform (CWR photographer template) · send photographer.expo.app/es to Spanish-speaking leads',
+      vertical: 'wedding, quinceañera, and portrait photographers',
+      demoLink: 'https://photographer.expo.app',
+      order: 95,
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so I’ll cut right to the chase: I build booking sites for wedding and quinceañera photographers in [City]. Clients see your packages, pick their date, and pay the retainer online, instead of “how much for a quince?” in your DMs. English and Spanish pages included. Live demo: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
+      subject: 'Subject: [Company] — book dates and retainers without the DMs?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most wedding and quinceañera photographers I talk to in [City] book through Instagram DMs: “how much?”, “are you free on the 14th?”, then chasing the retainer over Venmo and sending the contract as a PDF.\n' +
+        '\n' +
+        'I build booking sites for photographers that handle that part for you. Clients browse your gallery by session type, compare your packages, pick their date, and pay the retainer to hold it. After that they get a client portal with their session status, balance due, and contract in one place. Every page comes in English and Spanish, so families searching in Spanish find you too.\n' +
+        '\n' +
+        'Here’s a live demo you can click through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll set it up with your packages and hold 15 minutes — fit call, not a pitch deck.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben with CodeWithRuben — I build booking sites for wedding and quinceañera photographers in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
+        '[continue] "Most of your bookings probably start as a DM asking for prices. This lets clients see your packages, pick a date, and pay the retainer online, then follow their session and contract in a client portal. English and Spanish."\n' +
+        '[if they say DMs work fine] "Keep Instagram for showing your work. This just takes the back-and-forth off your phone once someone is ready to book."\n' +
+        '[close] "Can I text you the live demo?"'
+    },
+    {
+      id: 'photographer-ads',
+      label: 'Photographer — running ads',
+      tag: 'Running Ads — Photographer · send photographer.expo.app/es to Spanish-speaking leads',
+      vertical: 'wedding, quinceañera, and portrait photographers',
+      demoLink: 'https://photographer.expo.app',
+      order: 96,
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so I’ll cut right to the chase: I saw your ad. It lands on your Instagram, so a couple ready to book ends up in your DMs asking for prices, and some book someone else before you reply. Here’s what it could land on instead: [demo link]\n\nPackages, date, and retainer, no DM needed. Worth a 2-minute look? Reply STOP to opt out.',
+      subject: 'Subject: [Company] — your ads are landing in your DMs',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'I saw [Company] running ads that land on your Instagram. That sends a couple who is ready to book into your DMs to ask about prices and dates, and by the time you reply, some have booked someone else.\n' +
+        '\n' +
+        'I build the page that ad should land on: they see your packages, check your date, and pay the retainer to hold it, in English or Spanish. Their contract and balance live in a client portal, so you’re not chasing either one.\n' +
+        '\n' +
+        '[demo link]\n' +
+        '\n' +
+        'That’s a live demo you can click through. If it fits [Company], I’ll hold 15 minutes — fit call, not a pitch deck.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I build booking sites for wedding and quinceañera photographers in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
+        '[continue] "Your ads point at your Instagram, so every lead starts as a DM asking how much. I build the page the ad lands on: packages, date, and the retainer paid online. Worth a 15-minute look?"'
+    },
+    {
+      id: 'no-site-ig-photographer',
+      label: 'No website — IG · photographer',
+      tag: 'No Website · IG DM · Photographer · send photographer.expo.app/es to Spanish-speaking leads',
+      vertical: 'photographers on Instagram without a website',
+      demoLink: 'https://photographer.expo.app',
+      order: 105,
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: your Instagram already shows your work, but [Company] doesn’t have a website where clients can book. I build booking sites for photographers: packages, date, and retainer online, in English and Spanish. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/link-in-bio',
+      subject: 'Subject: [Company] — a booking site to go with your Instagram?',
+      email:
+        'Hi,\n' +
+        '\n' +
+        'I\'m Ruben with CodeWithRuben (@codewithruben). Your Instagram already shows your work, but [Company] doesn\'t have a website yet, so every booking starts as a DM.\n' +
+        '\n' +
+        'Happy to build you a booking site to your needs: your gallery by session type, your packages, and online booking that takes the retainer to hold the date, with English and Spanish pages. Changes along the way, and you only pay if you like the final result. No deposit required.\n' +
+        '\n' +
+        'Live example you can click through: [demo link]\n' +
+        '\n' +
+        'Want a quick mockup for [Company]?\n' +
+        '\n' +
+        'For reference, [package], with your first month of care included.\n' +
+        '\n' +
+        'Not ready for a full website yet? I can start you with a custom link page for your Instagram bio — a branded Linktree with your logo, packages, and a booking or contact button. Live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben. Got 20 seconds?"\n' +
+        '[continue] "I saw your work on Instagram but couldn\'t find a website to book you. I build booking sites for photographers: packages, date, and the retainer paid online, in English and Spanish. No deposit, and you only pay if you like it. Want me to send a mockup or the live demo?"\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from $99. Want me to text you an example?"\n' +
+        '[if they ask the price] "For reference, [package], with your first month of care included."'
+    },
+    {
       id: 'site-down',
       label: 'Website down / error',
       tag: 'Website Down · Heads-up (site not loading or showing an error) · check it again right before you send',
