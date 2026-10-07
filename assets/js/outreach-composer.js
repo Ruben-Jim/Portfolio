@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=photographer-20261006';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=realtor-anchor-20261007';
   var STORE_KEY = 'cwrOutreachVars';
   // Last script used on this device, so the picker reopens on it (never empty).
   var LAST_SCRIPT_KEY = 'cwrOutreachLastScript';

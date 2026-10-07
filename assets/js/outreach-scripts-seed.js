@@ -23,7 +23,7 @@
       vertical: 'real estate and insurance offices',
       demoLink: '',
       order: 10,
-      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build client portals for real estate & insurance offices. Listings or plans, quotes, signed docs, and messages in one branded app instead of split across email and DocuSign. [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build client portals for real estate & insurance offices. Listings or plans, quotes, signed docs, and messages in one branded app instead of split across email and DocuSign. Custom builds like this usually run $15k–$40k; I offer it as a fixed $3,500 package. [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — one place for listings, quotes & client docs?',
       email:
         'Hi [Name],\n' +
@@ -32,13 +32,15 @@
         '\n' +
         'I build a branded platform that puts all of it in one place: property or plan browsing, a guided quote flow, a client portal for documents and payments, and direct messaging — plus an admin dashboard for leads and policies.\n' +
         '\n' +
+        'A custom platform like this usually costs $15,000–$40,000 from an agency. I offer it as our Growth Platform package: a fixed $3,500, 50% to start, launched in about 3–4 weeks.\n' +
+        '\n' +
         'If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how your office runs today.\n' +
         '\n' +
         '— Ruben',
       call:
         'You:\n' +
         '"Hi, is this [Name]? This is Ruben — I build client portals for real estate and insurance offices in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
-        '[continue] "It’s one branded app for listings or plans, quotes, signed docs, and client messages — instead of split across email, DocuSign, and text. Worth a 15-minute look at how it’d fit [Company]?"'
+        '[continue] "It’s one branded app for listings or plans, quotes, signed docs, and client messages — instead of split across email, DocuSign, and text. Custom builds like this usually run $15k to $40k. I do it as a fixed $3,500 package. Worth a 15-minute look at how it’d fit [Company]?"'
     },
     {
       id: 'lawn',
