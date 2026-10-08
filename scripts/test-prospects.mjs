@@ -48,8 +48,18 @@ ok(T.rowsToProspects(T.parseTable('Phone,Niche\n1,2\n'), {}).error !== '', 'miss
 const real = process.argv[2];
 if (real && fs.existsSync(real)) {
   const r = T.rowsToProspects(T.parseTable(fs.readFileSync(real, 'utf8')), { city: 'Fresno' });
-  ok(!r.error && r.records.length === 33, 'real lead list imports 33 rows (got ' + r.records.length + ')');
+  const want = T.parseTable(fs.readFileSync(real, 'utf8')).length - 1;
+  ok(!r.error && r.records.length === want, 'real lead list imports every row (' + r.records.length + ' of ' + want + ')');
 }
+
+// ——— website filter ———
+const kinds = records.map((r) => T.websiteKind(r)).join(',');
+ok(kinds === 'weak,none,none,weak', 'website kinds: Google Sites note, NONE, NONE, site error (got ' + kinds + ')');
+ok(T.websiteKind({ website: 'Facebook page only' }) === 'none', '"Facebook page only" counts as no website');
+ok(T.websiteKind({ website: 'facebook.com/barkavenue' }) === 'none', 'facebook.com link counts as no website');
+ok(T.websiteKind({ website: 'sites.google.com/view/x' }) === 'weak', 'Google Sites is weak');
+ok(T.websiteKind({ website: 'cutitright.com', finding: 'Site footer says 2015' }) === 'weak', 'old footer year is weak');
+ok(T.websiteKind({ website: 'goodsite.com', finding: 'Quote form only' }) === 'has', 'normal site with no red flags is "has"');
 
 // ——— dedupe ———
 const existing = [{ id: 'a', business: 'Poodle Town USA', phone: '' }];

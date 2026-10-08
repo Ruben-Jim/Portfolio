@@ -6040,7 +6040,7 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 .prospects-toolbar { display: grid; gap: 8px; margin-bottom: 12px; }
 .prospects-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .prospects-filters::-webkit-scrollbar { display: none; }
-.prospects-toolbar-row { display: grid; gap: 8px; grid-template-columns: 1fr auto auto auto; align-items: center; }
+.prospects-toolbar-row { display: grid; gap: 8px; grid-template-columns: 1fr auto auto auto auto; align-items: center; }
 .prospects-toolbar-row .form-input { min-height: 40px; min-width: 0; font-size: 15px; }
 .prospects-toolbar-row .outreach-btn { flex: none; min-height: 40px; padding: 8px 12px; font-size: 13px; }
 
@@ -6137,8 +6137,9 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 }
 
 @media (max-width: 580px) {
-  .prospects-toolbar-row { grid-template-columns: 1fr auto auto; }
+  .prospects-toolbar-row { grid-template-columns: 1fr 1fr; }
   .prospects-toolbar-row input[type="search"] { grid-column: 1 / -1; }
+  .prospects-niche-select { min-width: 0; }
   .prospects-goal-meta { flex-basis: 100%; }
 }
 

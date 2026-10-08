@@ -220,6 +220,20 @@
     return { status: 'working', nextAt: addDays(days === 1 ? 3 : 4, now) };
   }
 
+  // Free builders and subdomains read as "weak" even when the notes say nothing.
+  var WEAK_HOSTS = /sites\.google\.|\.wordpress\.com|\.square\.site|\.wixsite\.|\.ueniweb\.|\.manus\.space|\.lovable\.app|\.godaddysites\.|\.weebly\.|\.carrd\.co/i;
+  var WEAK_NOTES = /\b(19|20)[01]\d\b|outdated|not mobile|no viewport|wix|godaddy|google sites|wordpress\.com|square site|site (is )?down|\berror\b|broken/i;
+
+  /** 'none' (blank, NONE, or a Facebook/IG page only) · 'weak' · 'has'. */
+  function websiteKind(p) {
+    var w = String(p.website || '').trim();
+    if (!w || /^none$/i.test(w) || /\s/.test(w) || /(^|\.)(facebook|instagram)\.com/i.test(w)) return 'none';
+    if (WEAK_HOSTS.test(w) || WEAK_NOTES.test(String(p.finding || ''))) return 'weak';
+    return 'has';
+  }
+
+  var WEBSITE_LABELS = { none: 'No website', weak: 'Weak or outdated site', has: 'Has a website' };
+
   function isDue(p, today) {
     today = today || dateKey();
     if (p.status === 'dead' || p.status === 'promoted') return false;
@@ -309,6 +323,7 @@
   var bound = false;
   var filter = 'due';
   var nicheFilter = '';
+  var websiteFilter = '';
   var query = '';
   var pendingImport = null;
   var expanded = {};
@@ -553,6 +568,7 @@
     var q = query.toLowerCase();
     return sortProspects(prospects, today).filter(function (p) {
       if (nicheFilter && (p.niche || 'Other') !== nicheFilter) return false;
+      if (websiteFilter && websiteKind(p) !== websiteFilter) return false;
       if (q && [p.business, p.owner, p.phone, p.city, p.niche, p.finding].join(' ').toLowerCase().indexOf(q) === -1) return false;
       if (filter === 'all') return true;
       if (filter === 'due') return isDue(p, today);
@@ -610,6 +626,13 @@
         Object.keys(niches).sort().map(function (n) { return { value: n, label: n }; })
       ), { value: nicheFilter, keepValue: false });
     }
+    if (els.website && typeof global.setBusinessDocSelectOptions === 'function') {
+      var kinds = { none: 0, weak: 0, has: 0 };
+      prospects.forEach(function (p) { kinds[websiteKind(p)] += 1; });
+      global.setBusinessDocSelectOptions(els.website, [{ value: '', label: 'All websites' }].concat(
+        ['none', 'weak', 'has'].map(function (k) { return { value: k, label: WEBSITE_LABELS[k] + ' (' + kinds[k] + ')' }; })
+      ), { value: websiteFilter, keepValue: false });
+    }
   }
 
   function siteHref(w) {
@@ -622,7 +645,7 @@
     var last = touches[touches.length - 1];
     var st = p.status || 'new';
     var due = isDue(p, today);
-    var meta = [p.niche, p.city, p.reviews ? '★ ' + p.reviews : ''].filter(Boolean).map(esc).join(' · ');
+    var meta = [p.niche, p.city, p.reviews && !/^none$/i.test(p.reviews) ? '★ ' + p.reviews : ''].filter(Boolean).map(esc).join(' · ');
     var href = siteHref(p.website);
     var tel = digits(p.phone);
     var nextLine = st === 'dead' ? 'Closed'
@@ -797,6 +820,7 @@
 
     if (els.search) els.search.addEventListener('input', function () { query = els.search.value.trim(); renderList(); });
     if (els.niche) els.niche.addEventListener('change', function () { nicheFilter = els.niche.value; renderList(); });
+    if (els.website) els.website.addEventListener('change', function () { websiteFilter = els.website.value; renderList(); });
     if (els.importFile) els.importFile.addEventListener('change', function () {
       var file = els.importFile.files && els.importFile.files[0];
       if (!file) return;
@@ -814,6 +838,7 @@
       score: document.getElementById('prospects-score'),
       filters: document.getElementById('prospects-filters'),
       niche: document.getElementById('prospects-niche'),
+      website: document.getElementById('prospects-website'),
       search: document.getElementById('prospects-search'),
       list: document.getElementById('prospects-list'),
       importFile: document.getElementById('prospects-import-file'),
@@ -853,7 +878,7 @@
     get: function (id) { return byId[id] || null; },
     _test: {
       parseTable: parseTable, rowsToProspects: rowsToProspects, dedupe: dedupe, applyOutcome: applyOutcome,
-      isDue: isDue, sortProspects: sortProspects, scoreboard: scoreboard, toCsv: toCsv, dateKey: dateKey, addDays: addDays
+      isDue: isDue, websiteKind: websiteKind, sortProspects: sortProspects, scoreboard: scoreboard, toCsv: toCsv, dateKey: dateKey, addDays: addDays
     }
   };
 
