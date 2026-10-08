@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=realtor-anchor-20261007';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=region-variants-20261008';
   var STORE_KEY = 'cwrOutreachVars';
   // Last script used on this device, so the picker reopens on it (never empty).
   var LAST_SCRIPT_KEY = 'cwrOutreachLastScript';
@@ -489,7 +489,71 @@
     }
   }
 
+  // ——— working a prospect from the Prospects tab ———
+
+  // Set by "Open script" on a prospect: Text / Email taps get logged to it, and
+  // "Add to pipeline" links the new lead back to it.
+  var activeProspectId = '';
+
+  function logProspect(kind) {
+    if (!activeProspectId || !global.CWR_PROSPECTS) return;
+    global.CWR_PROSPECTS.logTouch(activeProspectId, kind).catch(function (err) {
+      console.warn('Outreach composer: prospect log failed', err);
+    });
+  }
+
+  function setProspect(id) {
+    activeProspectId = id || '';
+    var p = activeProspectId && global.CWR_PROSPECTS ? global.CWR_PROSPECTS.get(activeProspectId) : null;
+    if (!p) activeProspectId = '';
+    var bar = document.getElementById('outreach-prospect-bar');
+    if (!bar && els.root && activeProspectId) {
+      bar = document.createElement('div');
+      bar.id = 'outreach-prospect-bar';
+      bar.className = 'outreach-prospect-bar';
+      bar.setAttribute('role', 'status');
+      els.root.insertBefore(bar, els.root.firstChild);
+      bar.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-prospect-act]');
+        if (!btn) return;
+        if (btn.getAttribute('data-prospect-act') === 'back') {
+          var tab = document.getElementById('admin-tab-prospects');
+          if (tab) tab.click();
+        }
+        setProspect('');
+      });
+    }
+    if (!bar) return;
+    bar.hidden = !activeProspectId;
+    if (!activeProspectId) { bar.innerHTML = ''; return; }
+    bar.innerHTML = '<span>Working <strong>' + escapeHtml(p.business) + '</strong> · Text and Email taps are logged to Prospects.</span>' +
+      '<button type="button" class="outreach-prospect-btn" data-prospect-act="back">Back to Prospects</button>' +
+      '<button type="button" class="outreach-prospect-btn" data-prospect-act="clear" aria-label="Stop logging to this prospect">×</button>';
+  }
+
+  /** Called by Prospects → "Open script": fill the helpers and pick the script. */
+  async function prefill(opts) {
+    opts = opts || {};
+    await open();
+    cache();
+    var set = function (el, v) { if (el) el.value = v || ''; };
+    set(els.name, opts.name);
+    set(els.company, opts.company);
+    set(els.city, opts.city);
+    set(els.phone, opts.phone);
+    set(els.emailAddr, opts.email);
+    if (opts.scriptId && hasScript(opts.scriptId)) {
+      if (els.adsToggle) els.adsToggle.checked = baseOf(opts.scriptId) !== opts.scriptId;
+      applyScriptSelection(opts.scriptId);
+    } else {
+      renderPreview(true);
+    }
+    saveVars();
+    setProspect(opts.prospectId);
+  }
+
   function doText() {
+    logProspect('texted');
     var vars = readVars();
     var body = getBody();
     var href = 'sms:' + (vars.phone || '') + '?&body=' + encodeURIComponent(body);
@@ -500,6 +564,7 @@
     var s = current();
     var vars = readVars();
     if (!s) return;
+    logProspect('emailed');
     var subject = activeStep === 'subject'
       ? getBody().replace(/^Subject:\s*/i, '')
       : fill(s.subject || '', vars).replace(/^Subject:\s*/i, '');
@@ -716,6 +781,12 @@
     }
     dirty = false;
     renderPreview(true);
+    setProspect('');
+  }
+
+  function linkProspect(leadId) {
+    if (!activeProspectId || !global.CWR_PROSPECTS) return Promise.resolve();
+    return global.CWR_PROSPECTS.linkLead(activeProspectId, leadId);
   }
 
   async function addToPipeline() {
@@ -769,6 +840,7 @@
           if (!Number(dup.value)) patch.value = global.PackagePricing.packagePrice(upPkg.id);
         }
         await global.rtdbUpdate(global.rtdbRef(global.rtdb, PIPELINE_PATH + '/' + dup.id), patch);
+        await linkProspect(dup.id);
         clearLeadForm();
         showLeadStatus('Updated “' + (dup.company || dup.name) + '” in Client Pipeline · follow up ' + dateKey(follow) + '.', false);
         refreshScriptStats();
@@ -801,6 +873,7 @@
     };
     var ref = global.rtdbPush(global.rtdbRef(global.rtdb, PIPELINE_PATH));
     await global.rtdbSet(ref, lead);
+    await linkProspect(ref.key);
     clearLeadForm();
     showLeadStatus('Added “' + who + '” to Client Pipeline · follow up ' + dateKey(follow) + '.', false);
     refreshScriptStats();
@@ -1009,7 +1082,7 @@
     }
   }
 
-  global.CWR_OUTREACH = { open: open };
+  global.CWR_OUTREACH = { open: open, prefill: prefill };
 
   // The admin can reopen straight onto this tab (saved active tab) before this
   // file loads, so the tab's own open() call would have found nothing.

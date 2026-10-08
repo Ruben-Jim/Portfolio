@@ -194,12 +194,12 @@
     },
     {
       id: 'roof-exterior',
-      label: 'Roof cleaning & exterior wash',
+      label: 'Roof cleaning & exterior wash — Seattle / PNW',
       tag: 'Roof & Exterior Platform (Trade Service Specialists demo)',
       vertical: 'roof cleaning and exterior washing crews',
       demoLink: 'https://roofcleaning.expo.app',
       order: 48,
-      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for roof cleaning & exterior crews in [City]. Homeowners pick roof cleaning, moss removal, or a house wash, send the address, and request a quote, with no site visit just to price it. Here’s a live build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for roof cleaning & exterior crews in [City]. Homeowners pick roof cleaning, moss removal, or a house wash, send the address, and request a quote, with no site visit just to price it. I already build for a Seattle-area exterior cleaning crew. Here’s a live build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — roof & exterior quotes with the address already in?',
       email:
         'Hi [Name],\n' +
@@ -243,6 +243,90 @@
         'You:\n' +
         '"Hi, is this [Name]? This is Ruben — I build booking sites for tree service companies in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
         '[continue] "Homeowners request trimming, removal, or stump grinding with their address from their phone, so you’re not driving out just to price a job. I can send you a live build right now. Worth a 15-minute look?"'
+    },
+    {
+      id: 'roof-exterior-fresno',
+      label: 'Roof cleaning & exterior wash — Fresno / Central Valley',
+      tag: 'Roof & Exterior Platform (Trade Service Specialists demo)',
+      vertical: 'roof, solar panel and exterior cleaning crews',
+      demoLink: 'https://roofcleaning.expo.app',
+      order: 48.5,
+      text: '[Name] — this is Ruben with CodeWithRuben here in [City]. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for exterior cleaning crews. Homeowners pick solar panel cleaning, a house wash, roof and gutter cleaning, or driveway pressure washing, send the address, and request a quote, with no drive-by just to price it. Here’s a live build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
+      subject: 'Subject: [Company] — solar & house wash quotes with the address already in?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most exterior cleaning crews I talk to around [City] burn time on calls and drive-bys just to price a solar panel or house wash job — and homeowners who wait for a callback often book someone else.\n' +
+        '\n' +
+        'I build a branded app for exterior crews: homeowners pick solar panel cleaning, house washing, roof and gutter cleaning, or driveway pressure washing, add their address and job details, and request a free quote. You see every request in one dashboard, and your crew sees the jobs on their phone.\n' +
+        '\n' +
+        'Fall is solar and gutter season before the rains, so it’s a good time to have quotes coming in on their own.\n' +
+        '\n' +
+        'Here’s a live exterior build you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I’m local here in [City], and I build booking apps for exterior cleaning crews. Have I caught you for 20 seconds, or is [later today / tomorrow morning] better?"\n' +
+        '[continue] "Homeowners pick solar panel cleaning, a house wash, or gutters, drop their address, and request a quote from their phone — fewer drive-bys just to price a job, right as fall solar and gutter season starts. I can send you a live build right now. Worth a 15-minute look?"'
+    },
+    {
+      id: 'tree-fresno',
+      label: 'Tree service — Fresno / Central Valley',
+      tag: 'Tree Service Platform (Tree Service demo)',
+      vertical: 'tree service companies',
+      demoLink: 'https://treeservice.expo.app',
+      order: 49.5,
+      text: '[Name] — this is Ruben with CodeWithRuben here in [City]. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking sites for tree service companies. Homeowners pick trimming, palm trimming, dead tree removal, or stump grinding, add the address and a photo, and request an estimate before you even call back. Here’s a live build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
+      subject: 'Subject: [Company] — tree estimates booked before the winter wind?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most tree service companies I talk to around [City] are pricing jobs over the phone and driving out just to see the tree — and homeowners who wait for a callback call the next company on the list.\n' +
+        '\n' +
+        'I build a branded booking site for tree crews: homeowners pick trimming, palm trimming, dead or drought-stressed tree removal, or stump grinding, add their address and a photo, and request an estimate before you even call back. You see every request in one dashboard.\n' +
+        '\n' +
+        'With winter wind coming, homeowners start looking now — it’s a good time to have estimate requests coming in on their own.\n' +
+        '\n' +
+        'Here’s a live tree service build you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I’m local here in [City], and I build booking sites for tree service companies. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
+        '[continue] "Homeowners request trimming, palm trimming, dead tree removal, or stump grinding with their address and a photo, so you’re not driving out just to price a job — right before winter wind season. I can send you a live build right now. Worth a 15-minute look?"'
+    },
+    {
+      id: 'tree-seattle',
+      label: 'Tree service — Seattle / PNW',
+      tag: 'Tree Service Platform (Tree Service demo)',
+      vertical: 'tree service companies',
+      demoLink: 'https://treeservice.expo.app',
+      order: 49.6,
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking sites for tree service companies in [City]. Homeowners pick hazard tree removal, storm cleanup, view pruning, or stump grinding, add the address and a photo, and request an estimate before you even call back. I already build for a Seattle-area service crew. Here’s a live build: [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
+      subject: 'Subject: [Company] — storm-season estimates with the address already in?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Most tree service companies I talk to in [City] get slammed with calls every storm season — pricing jobs over the phone, driving out just to see the tree, and losing homeowners who don’t wait for a callback.\n' +
+        '\n' +
+        'I build a branded booking site for tree crews: homeowners pick hazard tree removal, storm cleanup, view pruning, or stump grinding, add their address and a photo, and request an estimate before you even call back. You see every request in one dashboard.\n' +
+        '\n' +
+        'I already build and maintain the booking app for a Seattle-area service company, live on the App Store and Google Play.\n' +
+        '\n' +
+        'Here’s a live tree service build you can tap through: [demo link]\n' +
+        '\n' +
+        'If it’s relevant for [Company], I’ll hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n' +
+        '\n' +
+        '— Ruben',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben — I build booking sites for tree service companies in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
+        '[continue] "Homeowners request hazard removal, storm cleanup, or view pruning with their address and a photo, so you’re not driving out just to price a job — before the windstorms hit. I already build for a Seattle-area service crew. Worth a 15-minute look?"'
     },
     {
       id: 'lawn-ads',

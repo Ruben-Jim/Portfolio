@@ -92,7 +92,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=timer-width-20261005">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=prospects-20261008">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3334,6 +3334,10 @@
                   <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Outreach Scripts</span><span class="admin-tab-label-mobile">Outreach</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-prospects" data-admin-tab="prospects" aria-selected="false" aria-controls="admin-panel-prospects" tabindex="-1" aria-label="Prospects">
+                  <ion-icon name="list-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Prospects</span><span class="admin-tab-label-mobile">Prospects</span></span>
+                </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-client-projects" data-admin-tab="client-projects" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-client-projects" tabindex="-1" aria-label="Clients">
                   <ion-icon name="briefcase-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Clients</span><span class="admin-tab-label-mobile">Clients</span></span>
@@ -4657,6 +4661,65 @@
             </div>
           </section>
           </div><!-- /admin-panel-outreach -->
+
+          <!-- Prospects (researched businesses not yet in the pipeline) -->
+          <div id="admin-panel-prospects" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-prospects" data-admin-tab="prospects" hidden>
+          <section class="service admin-collapsible-section admin-collapsible-open">
+            <div class="admin-panel-heading">
+              <h3 class="h3 admin-panel-title">Prospects</h3>
+              <p class="admin-panel-lead">Businesses you've researched but haven't heard back from. Work the due list, log each outcome, and follow-ups schedule themselves. Replies move to Client Pipeline.</p>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <section class="ops-card prospects" id="prospects-root">
+                  <p class="prospects-status" id="prospects-status" role="status" hidden></p>
+                  <div class="prospects-score" id="prospects-score"></div>
+
+                  <details class="prospects-add">
+                    <summary>Add prospects</summary>
+                    <div class="prospects-add-body">
+                      <div class="prospects-import-defaults">
+                        <label class="prospect-field">City for rows without one<input type="text" class="form-input" id="prospects-import-city" value="Fresno" autocomplete="off"></label>
+                        <label class="prospect-field">List name <em>(optional)</em><input type="text" class="form-input" id="prospects-import-list" placeholder="Fresno trades Oct 8" autocomplete="off"></label>
+                      </div>
+                      <label class="prospect-field">Upload a CSV<input type="file" id="prospects-import-file" accept=".csv,.tsv,.txt,text/csv"></label>
+                      <label class="prospect-field">Or paste rows from a spreadsheet <em>(first row = headers: Business, Phone, Website, Niche, Script…)</em>
+                        <textarea class="form-input" id="prospects-import-text" rows="4" placeholder="Business,Phone,Niche,Script&#10;Valley Tree Co,(559) 555-0100,Tree,tree-fresno"></textarea>
+                      </label>
+                      <div class="prospect-actions"><button type="button" class="outreach-btn" data-act="paste-preview">Preview pasted rows</button></div>
+                      <div class="prospects-import-preview" id="prospects-import-preview" hidden></div>
+
+                      <form class="prospects-add-form" id="prospects-add-form">
+                        <p class="prospects-add-title">Add one business</p>
+                        <div class="prospect-edit">
+                          <label class="prospect-field">Business<input type="text" class="form-input" name="business" required autocomplete="off"></label>
+                          <label class="prospect-field">Owner<input type="text" class="form-input" name="owner" autocomplete="off"></label>
+                          <label class="prospect-field">Phone<input type="tel" class="form-input" name="phone" inputmode="tel" autocomplete="off"></label>
+                          <label class="prospect-field">Website<input type="text" class="form-input" name="website" autocomplete="off"></label>
+                          <label class="prospect-field">City<input type="text" class="form-input" name="city" value="Fresno" autocomplete="off"></label>
+                          <label class="prospect-field">Niche<input type="text" class="form-input" name="niche" placeholder="Tree" autocomplete="off"></label>
+                          <label class="prospect-field">Script id<input type="text" class="form-input" name="script" placeholder="tree-fresno" autocomplete="off"></label>
+                          <label class="prospect-field">What you found<input type="text" class="form-input" name="finding" autocomplete="off"></label>
+                        </div>
+                        <div class="prospect-actions"><button type="submit" class="outreach-btn outreach-btn--primary">Add prospect</button></div>
+                      </form>
+                    </div>
+                  </details>
+
+                  <div class="prospects-toolbar">
+                    <div class="prospects-filters" id="prospects-filters" role="group" aria-label="Filter prospects"></div>
+                    <div class="prospects-toolbar-row">
+                      <input type="search" class="form-input" id="prospects-search" placeholder="Search business, phone, city…" aria-label="Search prospects">
+                      <select class="form-input" id="prospects-niche" aria-label="Filter by niche"><option value="">All niches</option></select>
+                      <button type="button" class="outreach-btn" data-act="export">Export CSV</button>
+                    </div>
+                  </div>
+                  <div class="prospects-list" id="prospects-list"></div>
+                </section>
+              </div>
+            </div>
+          </section>
+          </div><!-- /admin-panel-prospects -->
 
           <!-- Time Capacity -->
           <div id="admin-panel-time-capacity" data-planner-legacy="1" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="admin-tab-time-capacity" data-admin-tab="time-capacity" hidden>
@@ -8369,13 +8432,14 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=portfolio-skeleton-20261006"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=photographer-outreach-20261006c"></script>
+  <script src="/assets/js/script.js?v=prospects-20261008"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=timer-width-20261005"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=photographer-20261006"></script>
+  <script src="/assets/js/outreach-composer.js?v=prospects-20261008"></script>
+  <script src="/assets/js/prospects.js?v=prospects-20261008"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

@@ -19794,11 +19794,11 @@ window.addEventListener('load', function() {
     var MOBILE_ORDER_KEY = 'adminMobileTabOrder';
     var PRIMARY_SLOT_COUNT = 4;
     var DEFAULT_ORDER = [
-      'overview', 'crm-hub', 'content-hub', 'outreach', 'ops', 'referrals', 'studio-costs'
+      'overview', 'crm-hub', 'content-hub', 'outreach', 'prospects', 'ops', 'referrals', 'studio-costs'
     ];
     var VALID_TAB = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
-      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1, outreach: 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1, outreach: 1, prospects: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
@@ -20610,7 +20610,7 @@ window.addEventListener('load', function() {
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
-      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1, outreach: 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1, outreach: 1, prospects: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
@@ -20691,6 +20691,9 @@ window.addEventListener('load', function() {
       // Outreach scripts live in RTDB — load them the first time the tab opens.
       if (tabId === 'outreach' && window.CWR_OUTREACH) {
         window.CWR_OUTREACH.open();
+      }
+      if (tabId === 'prospects' && window.CWR_PROSPECTS) {
+        window.CWR_PROSPECTS.open();
       }
       if (tabId === 'planner' || tabId === 'bookings') {
         if (typeof window.subscribeAgencyBookingsFromRtdb === 'function') {
