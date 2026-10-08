@@ -6134,11 +6134,9 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 .prospect-log span,
 .prospects-import-list span { display: inline; }
 
-/* The admin has no other native <select>; match the dark inputs. */
-#prospects-niche {
-  background: var(--eerie-black-1);
-  color: var(--white-2);
-  border: 1px solid var(--jet);
-  border-radius: 12px;
-  padding: 0 10px;
+.prospects-niche-select { min-width: 170px; }
+
+/* Wide screens: cards fill the row instead of one narrow column. */
+@media (min-width: 900px) {
+  .prospects-list { grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); align-items: start; }
 }

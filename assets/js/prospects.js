@@ -492,6 +492,8 @@
     if (els.importText) els.importText.value = '';
     if (els.importFile) els.importFile.value = '';
     renderImportPreview();
+    var add = els.root.querySelector('.prospects-add');
+    if (add) add.open = false;
     filter = 'due';
     status('Imported ' + n + ' prospect' + (n === 1 ? '' : 's') + '.');
   }
@@ -592,12 +594,13 @@
       return '<button type="button" class="prospects-chip' + (filter === c[0] ? ' is-active' : '') + '" data-prospect-filter="' + c[0] + '">' +
         esc(c[1]) + ' <span>' + (counts[c[0]] || 0) + '</span></button>';
     }).join('');
-    if (els.niche) {
+    if (els.niche && typeof global.setBusinessDocSelectOptions === 'function') {
       var niches = {};
       prospects.forEach(function (p) { niches[p.niche || 'Other'] = 1; });
-      els.niche.innerHTML = '<option value="">All niches</option>' + Object.keys(niches).sort().map(function (n) {
-        return '<option value="' + esc(n) + '"' + (n === nicheFilter ? ' selected' : '') + '>' + esc(n) + '</option>';
-      }).join('');
+      if (nicheFilter && !niches[nicheFilter]) nicheFilter = '';
+      global.setBusinessDocSelectOptions(els.niche, [{ value: '', label: 'All niches' }].concat(
+        Object.keys(niches).sort().map(function (n) { return { value: n, label: n }; })
+      ), { value: nicheFilter, keepValue: false });
     }
   }
 
@@ -619,12 +622,12 @@
       : st === 'new' ? (p.contactHow ? esc(p.contactHow) : 'Not contacted yet')
       : 'Next: ' + esc(p.nextAt || '—') + (due ? ' · <strong>due</strong>' : '');
     var open = expanded[p.id];
-    return '<article class="prospect-card prospect-card--' + st + (due ? ' is-due' : '') + '" data-id="' + esc(p.id) + '">' +
-      '<header class="prospect-card-head">' +
+    return '<div class="prospect-card prospect-card--' + st + (due ? ' is-due' : '') + '" data-id="' + esc(p.id) + '">' +
+      '<div class="prospect-card-head">' +
         '<div><h4 class="prospect-name">' + esc(p.business) + (p.owner ? ' <span>· ' + esc(p.owner) + '</span>' : '') + '</h4>' +
         '<p class="prospect-meta">' + meta + '</p></div>' +
         '<span class="prospect-pill">' + esc(STATUS[st] || st) + '</span>' +
-      '</header>' +
+      '</div>' +
       (p.finding ? '<p class="prospect-finding">' + esc(p.finding) + '</p>' : '') +
       '<p class="prospect-links">' +
         (p.phone ? '<a href="tel:' + esc(tel) + '">' + esc(p.phone) + '</a>' : '') +
@@ -638,7 +641,7 @@
         '<button type="button" class="outreach-btn" data-act="toggle" aria-expanded="' + (open ? 'true' : 'false') + '">' + (open ? 'Close' : 'Log outcome') + '</button>' +
       '</div>' +
       (open ? detail(p, touches) : '') +
-    '</article>';
+    '</div>';
   }
 
   function detail(p, touches) {
