@@ -92,7 +92,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=prospects-20261008b">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=prospects-20261008d">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -4667,7 +4667,7 @@
           <section class="service admin-collapsible-section admin-collapsible-open">
             <div class="admin-panel-heading">
               <h3 class="h3 admin-panel-title">Prospects</h3>
-              <p class="admin-panel-lead">Businesses you've researched but haven't heard back from. Work the due list, log each outcome, and follow-ups schedule themselves. Replies move to Client Pipeline.</p>
+              <p class="admin-panel-lead">Work the due list, log each outcome — follow-ups schedule themselves and replies move to Client Pipeline.</p>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
@@ -4675,8 +4675,24 @@
                   <p class="prospects-status" id="prospects-status" role="status" hidden></p>
                   <div class="prospects-score" id="prospects-score"></div>
 
-                  <details class="prospects-add">
-                    <summary>Add prospects</summary>
+                  <div class="prospects-toolbar">
+                    <div class="prospects-filters" id="prospects-filters" role="group" aria-label="Filter prospects"></div>
+                    <div class="prospects-toolbar-row">
+                      <input type="search" class="form-input" id="prospects-search" placeholder="Search business, phone, city…" aria-label="Search prospects">
+                      <div class="business-doc-select prospects-niche-select" data-select-name="prospects-niche">
+                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filter by niche">
+                          <span class="business-doc-select-trigger-label">All niches</span>
+                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                        </button>
+                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
+                        <input type="hidden" id="prospects-niche" value="">
+                      </div>
+                      <button type="button" class="outreach-btn outreach-btn--pipeline" data-act="toggle-add" aria-expanded="false" aria-controls="prospects-add">+ Add</button>
+                      <button type="button" class="outreach-btn" data-act="export">Export</button>
+                    </div>
+                  </div>
+
+                  <div class="prospects-add" id="prospects-add" hidden>
                     <div class="prospects-add-body">
                       <div class="prospects-import-defaults">
                         <label class="prospect-field">City for rows without one<input type="text" class="form-input" id="prospects-import-city" value="Fresno" autocomplete="off"></label>
@@ -4704,23 +4720,8 @@
                         <div class="prospect-actions"><button type="submit" class="outreach-btn outreach-btn--primary">Add prospect</button></div>
                       </form>
                     </div>
-                  </details>
-
-                  <div class="prospects-toolbar">
-                    <div class="prospects-filters" id="prospects-filters" role="group" aria-label="Filter prospects"></div>
-                    <div class="prospects-toolbar-row">
-                      <input type="search" class="form-input" id="prospects-search" placeholder="Search business, phone, city…" aria-label="Search prospects">
-                      <div class="business-doc-select prospects-niche-select" data-select-name="prospects-niche">
-                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Filter by niche">
-                          <span class="business-doc-select-trigger-label">All niches</span>
-                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
-                        </button>
-                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
-                        <input type="hidden" id="prospects-niche" value="">
-                      </div>
-                      <button type="button" class="outreach-btn" data-act="export">Export CSV</button>
-                    </div>
                   </div>
+
                   <div class="prospects-list" id="prospects-list"></div>
                 </section>
               </div>
@@ -8446,7 +8447,7 @@
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
   <script src="/assets/js/outreach-composer.js?v=prospects-20261008"></script>
-  <script src="/assets/js/prospects.js?v=prospects-20261008b"></script>
+  <script src="/assets/js/prospects.js?v=prospects-20261008c"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--

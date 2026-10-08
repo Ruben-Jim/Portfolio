@@ -5971,16 +5971,22 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 .prospects-status[hidden] { display: none; }
 
 .prospects-goal {
-  padding: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 10px 14px;
   border: 1px solid var(--jet);
   border-radius: 12px;
   background: var(--eerie-black-1);
 }
-.prospects-goal-top { font-size: 14px; color: var(--light-gray); }
-.prospects-goal-top strong { font-size: 22px; color: var(--white-2); margin-right: 4px; }
+.prospects-goal-count { font-size: 14px; color: var(--light-gray); white-space: nowrap; }
+.prospects-goal-count strong { font-size: 20px; color: var(--white-2); }
+.prospects-goal-count span { display: inline; margin-left: 2px; }
 .prospects-goal-bar {
-  height: 8px;
-  margin: 10px 0 8px;
+  flex: 1 1 120px;
+  min-width: 80px;
+  height: 6px;
   border-radius: 999px;
   background: var(--jet);
   overflow: hidden;
@@ -5992,22 +5998,27 @@ body.cp-ticket-viewer-open { overflow: hidden; }
   background: var(--orange-yellow-crayola);
   transition: width 0.3s ease;
 }
-.prospects-goal-meta { font-size: 13px; color: var(--light-gray); }
-
-.prospects-table-wrap { margin-top: 12px; overflow-x: auto; }
-
-.prospects-add {
-  margin: 16px 0;
+.prospects-goal-meta { font-size: 13px; color: var(--light-gray); white-space: nowrap; }
+.prospects-niche-toggle {
+  min-height: 32px;
+  padding: 4px 12px;
   border: 1px solid var(--jet);
-  border-radius: 12px;
-}
-.prospects-add > summary {
-  padding: 12px 14px;
-  font-weight: 600;
-  color: var(--white-2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--orange-yellow-crayola);
+  font-size: 13px;
   cursor: pointer;
 }
-.prospects-add-body { padding: 0 14px 14px; display: grid; gap: 12px; }
+
+.prospects-table-wrap { margin-top: 8px; overflow-x: auto; }
+
+.prospects-add {
+  margin: 0 0 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  border-radius: 12px;
+}
+.prospects-add[hidden] { display: none; }
+.prospects-add-body { padding: 14px; display: grid; gap: 12px; }
 .prospects-import-defaults { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 .prospects-add-title { margin: 8px 0 0; font-weight: 600; color: var(--white-2); }
 .prospects-add-form { display: grid; gap: 10px; padding-top: 12px; border-top: 1px solid var(--jet); }
@@ -6024,10 +6035,12 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 .prospect-field .form-input { width: 100%; min-height: 40px; font-size: 15px; }
 .prospect-edit { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 
-.prospects-toolbar { display: grid; gap: 10px; margin-bottom: 12px; }
+.prospects-score { margin-bottom: 10px; }
+
+.prospects-toolbar { display: grid; gap: 8px; margin-bottom: 12px; }
 .prospects-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .prospects-filters::-webkit-scrollbar { display: none; }
-.prospects-toolbar-row { display: grid; gap: 8px; grid-template-columns: 1fr auto auto; align-items: center; }
+.prospects-toolbar-row { display: grid; gap: 8px; grid-template-columns: 1fr auto auto auto; align-items: center; }
 .prospects-toolbar-row .form-input { min-height: 40px; min-width: 0; font-size: 15px; }
 .prospects-toolbar-row .outreach-btn { flex: none; min-height: 40px; padding: 8px 12px; font-size: 13px; }
 
@@ -6124,8 +6137,9 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 }
 
 @media (max-width: 580px) {
-  .prospects-toolbar-row { grid-template-columns: 1fr 1fr; }
+  .prospects-toolbar-row { grid-template-columns: 1fr auto auto; }
   .prospects-toolbar-row input[type="search"] { grid-column: 1 / -1; }
+  .prospects-goal-meta { flex-basis: 100%; }
 }
 
 /* style.css resets span to display:block — keep these inline. */

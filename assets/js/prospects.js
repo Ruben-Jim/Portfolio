@@ -312,6 +312,11 @@
   var query = '';
   var pendingImport = null;
   var expanded = {};
+  // Niche table is folded away by default so the list starts near the top.
+  var NICHES_KEY = 'cwrProspectsShowNiches';
+  var showNiches = (function () {
+    try { return localStorage.getItem(NICHES_KEY) === '1'; } catch (e) { return false; }
+  })();
 
   function esc(t) {
     return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -492,8 +497,7 @@
     if (els.importText) els.importText.value = '';
     if (els.importFile) els.importFile.value = '';
     renderImportPreview();
-    var add = els.root.querySelector('.prospects-add');
-    if (add) add.open = false;
+    setAddOpen(false);
     filter = 'due';
     status('Imported ' + n + ' prospect' + (n === 1 ? '' : 's') + '.');
   }
@@ -567,12 +571,16 @@
     }).join('');
     els.score.innerHTML =
       '<div class="prospects-goal">' +
-        '<div class="prospects-goal-top"><strong>' + s.contactedToday + ' / ' + DAILY_GOAL + '</strong> businesses contacted today</div>' +
-        '<div class="prospects-goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="' + DAILY_GOAL + '" aria-valuenow="' + s.contactedToday + '"><span style="width:' + pct + '%"></span></div>' +
-        '<div class="prospects-goal-meta">' + s.repliesToday + ' repl' + (s.repliesToday === 1 ? 'y' : 'ies') + ' today · ' +
-          s.due + ' follow-up' + (s.due === 1 ? '' : 's') + ' due · ' + s.fresh + ' not contacted yet</div>' +
+        '<div class="prospects-goal-count"><strong>' + s.contactedToday + '</strong>/' + DAILY_GOAL + ' <span>today</span></div>' +
+        '<div class="prospects-goal-bar" role="progressbar" aria-label="Businesses contacted today" aria-valuemin="0" aria-valuemax="' + DAILY_GOAL + '" aria-valuenow="' + s.contactedToday + '"><span style="width:' + pct + '%"></span></div>' +
+        '<div class="prospects-goal-meta">' + s.repliesToday + ' repl' + (s.repliesToday === 1 ? 'y' : 'ies') + ' · ' +
+          s.due + ' due · ' + s.fresh + ' new</div>' +
+        (nicheRows
+          ? '<button type="button" class="prospects-niche-toggle" data-act="toggle-niches" aria-expanded="' + (showNiches ? 'true' : 'false') + '">' +
+              (showNiches ? 'Hide niches' : 'Niche breakdown') + '</button>'
+          : '') +
       '</div>' +
-      (nicheRows
+      (nicheRows && showNiches
         ? '<div class="prospects-table-wrap"><table class="outreach-stats-table prospects-niche-table"><thead><tr><th>Niche</th><th>Total</th><th>Contacted</th><th>Replied</th><th>Reply rate</th><th>Mockups</th><th>Pipeline</th></tr></thead><tbody>' + nicheRows + '</tbody></table></div>'
         : '');
   }
@@ -676,7 +684,7 @@
     var today = dateKey();
     var rows = filtered();
     if (!prospects.length) {
-      els.list.innerHTML = '<p class="prospects-empty">No prospects yet. Use “Add prospects” above to upload your list.</p>';
+      els.list.innerHTML = '<p class="prospects-empty">No prospects yet. Tap “+ Add” above to upload your list.</p>';
       return;
     }
     if (!rows.length) {
@@ -719,6 +727,16 @@
 
   // ——— events ———
 
+  function setAddOpen(open) {
+    if (!els.addPanel) return;
+    els.addPanel.hidden = !open;
+    var btn = els.root.querySelector('[data-act="toggle-add"]');
+    if (btn) {
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.textContent = open ? 'Close' : '+ Add';
+    }
+  }
+
   function cardId(el) {
     var c = el.closest('[data-id]');
     return c ? c.getAttribute('data-id') : '';
@@ -752,6 +770,12 @@
       var act = btn.getAttribute('data-act');
       var id = cardId(btn);
       if (act === 'toggle') { expanded[id] = !expanded[id]; renderList(); }
+      else if (act === 'toggle-add') setAddOpen(els.addPanel.hidden);
+      else if (act === 'toggle-niches') {
+        showNiches = !showNiches;
+        try { localStorage.setItem(NICHES_KEY, showNiches ? '1' : '0'); } catch (err) { /* private mode */ }
+        renderScore();
+      }
       else if (act === 'script') openScript(id);
       else if (act === 'promote') run(promote(id));
       else if (act === 'save') {
@@ -797,7 +821,8 @@
       importCity: document.getElementById('prospects-import-city'),
       importList: document.getElementById('prospects-import-list'),
       importPreview: document.getElementById('prospects-import-preview'),
-      addForm: document.getElementById('prospects-add-form')
+      addForm: document.getElementById('prospects-add-form'),
+      addPanel: document.getElementById('prospects-add')
     };
   }
 
