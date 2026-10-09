@@ -4643,6 +4643,21 @@
                             <span>Your lead-in</span>
                             <input type="text" id="outreach-offer-lead-custom" autocomplete="off" maxlength="60" placeholder="For my first Fresno clients" enterkeyhint="done">
                           </label>
+                          <div class="outreach-offer-oneoff" id="outreach-offer-oneoff" hidden>
+                            <p class="outreach-offer-oneoff-note" id="outreach-offer-oneoff-note">One-off offer for this message only. Your site still shows the regular price.</p>
+                            <label class="outreach-var">
+                              <span>Offer price</span>
+                              <input type="number" id="outreach-offer-price" inputmode="numeric" min="1" step="1" placeholder="699" enterkeyhint="next">
+                            </label>
+                            <label class="outreach-var">
+                              <span>Spots <em>(optional)</em></span>
+                              <input type="number" id="outreach-offer-spots" inputmode="numeric" min="1" step="1" placeholder="5" enterkeyhint="next">
+                            </label>
+                            <label class="outreach-var">
+                              <span>Ends <em>(optional)</em></span>
+                              <input type="date" id="outreach-offer-ends">
+                            </label>
+                          </div>
                         </div>
                         <label class="outreach-ads-toggle" id="outreach-linktree-wrap">
                           <input type="checkbox" id="outreach-linktree">
@@ -8481,7 +8496,7 @@
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=pricing-blocks-20261009"></script>
+  <script src="/assets/js/outreach-composer.js?v=offer-oneoff-20261009"></script>
   <script src="/assets/js/prospects.js?v=prospects-20261008f"></script>
   <script src="/assets/js/dm-migration.js"></script>
 

@@ -31194,8 +31194,31 @@ body.admin-page-active .site-footer {
   margin: 8px 0 0 24px;
 }
 
+.outreach-offer-oneoff {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.outreach-offer-oneoff[hidden] {
+  display: none;
+}
+
+.outreach-offer-oneoff-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+  color: var(--light-gray-70, #a8a8a8);
+}
+
+.outreach-offer-oneoff-note.is-error {
+  color: var(--bittersweet-shimmer, #e5735d);
+}
+
 @media (max-width: 560px) {
-  .outreach-offer-lead-row {
+  .outreach-offer-lead-row,
+  .outreach-offer-oneoff {
     grid-template-columns: 1fr;
     margin-left: 0;
   }

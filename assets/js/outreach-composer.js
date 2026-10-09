@@ -273,6 +273,31 @@
     return PP && id ? PP.activeOffer(id) : null;
   }
 
+  function wholeNumber(el) {
+    var n = Math.round(Number(el && el.value));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  /**
+   * Offer typed into the composer for this message only, used when the package
+   * has no live offer. Same shape as PackagePricing.activeOffer(); null until
+   * the price is below the regular price.
+   */
+  function oneOffOffer() {
+    var PP = global.PackagePricing;
+    var p = PP && selectedPackageId() ? PP.packageById(selectedPackageId()) : null;
+    var price = wholeNumber(els.offerPrice);
+    if (!p || !price || price >= p.price) return null;
+    var spots = wholeNumber(els.offerSpots);
+    var ends = els.offerEnds && /^\d{4}-\d{2}-\d{2}$/.test(els.offerEnds.value) ? els.offerEnds.value : '';
+    return { price: price, spots: spots, claimed: 0, spotsLeft: spots, endsAt: ends, oneOff: true };
+  }
+
+  /** What "Lead with the offer" uses: the live offer, else the one-off one. */
+  function leadOffer() {
+    return selectedOffer() || oneOffOffer();
+  }
+
   /**
    * "Business Website — $999: 1–3 pages, … . First month of care included."
    * With "Lead with the offer" on and an offer live:
@@ -283,13 +308,14 @@
     var PP = global.PackagePricing;
     var p = PP && selectedPackageId() ? PP.packageById(selectedPackageId()) : null;
     if (!p) return '';
-    var offer = selectedOffer();
-    if (offer && els.offerLead && els.offerLead.checked) {
-      var limit = PP.offerLimitText(offer, 'en');
-      return offerLeadIn() + ': our ' + p.name + ' package is ' + money(offer.price) +
+    var lead = els.offerLead && els.offerLead.checked ? leadOffer() : null;
+    if (lead) {
+      var limit = PP.offerLimitText(lead, 'en');
+      return offerLeadIn() + ': our ' + p.name + ' package is ' + money(lead.price) +
         ' (normally ' + PP.regularLabel(p) + ')' + (limit ? ' ' + limit : '') +
         '. First month of care included.';
     }
+    var offer = selectedOffer();
     var price = offer ? money(offer.price) + ' (normally ' + PP.regularLabel(p) + ')' : PP.regularLabel(p);
     return p.summary
       ? p.name + ' — ' + price + ': ' + p.summary + '. First month of care included.'
@@ -318,14 +344,24 @@
     var hasLinkTree = templateHas('[link tree line]');
     els.pricingBlocks.hidden = !hasPackage && !hasLinkTree;
     var offer = hasPackage ? selectedOffer() : null;
+    var leading = !!(hasPackage && els.offerLead && els.offerLead.checked);
     if (els.offerWrap) els.offerWrap.hidden = !hasPackage || !selectedPackageId();
-    if (els.offerLead) els.offerLead.disabled = !offer;
+    if (els.offerLead) els.offerLead.disabled = false;
     if (els.offerHint) {
       els.offerHint.textContent = offer
         ? '(' + global.PackagePricing.packageOptionLabel(selectedPackageId()) + ')'
-        : '(no live offer on this package — set one in Clients → Pricing & offers)';
+        : '(no live offer on this package — add a one-off offer for this message)';
     }
-    if (els.offerLeadRow) els.offerLeadRow.hidden = !(offer && els.offerLead && els.offerLead.checked);
+    if (els.offerLeadRow) els.offerLeadRow.hidden = !leading;
+    if (els.offerOneOff) els.offerOneOff.hidden = !leading || !!offer;
+    if (els.offerOneOffNote && leading && !offer) {
+      var p = global.PackagePricing.packageById(selectedPackageId());
+      var needsPrice = !oneOffOffer();
+      els.offerOneOffNote.textContent = needsPrice
+        ? 'Enter an offer price below ' + (p ? global.PackagePricing.regularLabel(p).split('–')[0] : 'the regular price') + ' to use it.'
+        : 'One-off offer for this message only. Your site still shows the regular price.';
+      els.offerOneOffNote.classList.toggle('is-error', needsPrice);
+    }
     if (els.offerLeadCustomWrap) {
       els.offerLeadCustomWrap.hidden = !els.offerLeadSelect || els.offerLeadSelect.value !== CUSTOM_LEAD;
     }
@@ -1132,6 +1168,11 @@
       offerLeadSelect: document.getElementById('outreach-offer-lead-select'),
       offerLeadCustomWrap: document.getElementById('outreach-offer-lead-custom-wrap'),
       offerLeadCustom: document.getElementById('outreach-offer-lead-custom'),
+      offerOneOff: document.getElementById('outreach-offer-oneoff'),
+      offerOneOffNote: document.getElementById('outreach-offer-oneoff-note'),
+      offerPrice: document.getElementById('outreach-offer-price'),
+      offerSpots: document.getElementById('outreach-offer-spots'),
+      offerEnds: document.getElementById('outreach-offer-ends'),
       linkTreeWrap: document.getElementById('outreach-linktree-wrap'),
       linkTree: document.getElementById('outreach-linktree'),
       btnCopy: document.getElementById('outreach-copy'),
@@ -1163,7 +1204,10 @@
     [els.packageSelect, els.offerLead, els.offerLeadSelect, els.linkTree].forEach(function (el) {
       if (el) el.addEventListener('change', onPricingChange);
     });
-    if (els.offerLeadCustom) els.offerLeadCustom.addEventListener('input', onPricingChange);
+    [els.offerLeadCustom, els.offerPrice, els.offerSpots, els.offerEnds].forEach(function (el) {
+      if (el) el.addEventListener('input', onPricingChange);
+    });
+    if (els.offerEnds) els.offerEnds.addEventListener('change', onPricingChange);
     if (global.CarePricing && typeof global.CarePricing.onChange === 'function') {
       global.CarePricing.onChange(function () {
         renderPackageSelect();

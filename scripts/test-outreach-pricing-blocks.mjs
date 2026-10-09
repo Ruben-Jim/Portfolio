@@ -35,7 +35,8 @@ const ids = ['outreach-composer', 'outreach-script-select', 'outreach-steps', 'o
   'outreach-ads-wrap', 'outreach-ask', 'outreach-ask-text', 'outreach-ask-actions', 'outreach-lead-status',
   'outreach-pricing-blocks', 'outreach-offer-wrap', 'outreach-offer-lead', 'outreach-offer-hint',
   'outreach-offer-lead-row', 'outreach-offer-lead-select', 'outreach-offer-lead-custom-wrap',
-  'outreach-offer-lead-custom', 'outreach-linktree-wrap', 'outreach-linktree'];
+  'outreach-offer-lead-custom', 'outreach-linktree-wrap', 'outreach-linktree', 'outreach-offer-oneoff',
+  'outreach-offer-oneoff-note', 'outreach-offer-price', 'outreach-offer-spots', 'outreach-offer-ends'];
 const store = Object.fromEntries(ids.map(i => [i, mkEl(i, i === 'outreach-preview' ? 'textarea' : 'div')]));
 store['outreach-var-package'].value = 'website';
 
@@ -129,8 +130,25 @@ ok(body().includes('Link Tree — $99–$199: a branded link-in-bio page'), 'pac
 // Offer-first: unavailable without an offer, then live once one exists.
 store['outreach-var-package'].value = 'starter';
 store['outreach-var-package'].change();
-ok(store['outreach-offer-lead'].disabled === true, 'Lead with the offer is disabled with no live offer');
+ok(store['outreach-offer-lead'].disabled === false, 'Lead with the offer can be checked with no live offer');
 ok(body().includes('Starter Presence — $1,500: everything in Business Website'), 'regular price when no offer');
+store['outreach-offer-lead'].checked = true;
+store['outreach-offer-lead'].change();
+ok(store['outreach-offer-oneoff'].hidden === false, 'one-off offer fields appear when there is no live offer');
+ok(body().includes('Starter Presence — $1,500:'), 'no one-off price yet → regular line stays');
+ok(/below \$1,500/.test(store['outreach-offer-oneoff-note'].textContent), 'note asks for a price below the regular one');
+store['outreach-offer-price'].value = '1800';
+store['outreach-offer-price'].input();
+ok(body().includes('Starter Presence — $1,500:'), 'a price above regular is ignored');
+store['outreach-offer-price'].value = '1200';
+store['outreach-offer-spots'].value = '3';
+store['outreach-offer-ends'].value = '2026-11-30';
+store['outreach-offer-ends'].change();
+ok(body().includes('This month only: our Starter Presence package is $1,200 (normally $1,500) until Nov 30 or for the next 3 clients, whichever comes first. First month of care included.'),
+  'one-off offer line uses price, spots and end date');
+store['outreach-offer-lead'].checked = false;
+store['outreach-offer-lead'].change();
+ok(body().includes('Starter Presence — $1,500:'), 'unchecking drops the one-off offer');
 store['outreach-var-package'].value = 'website';
 store['outreach-var-package'].change();
 ok(store['outreach-offer-lead'].disabled === false, 'Lead with the offer enabled once an offer is live');
@@ -138,6 +156,7 @@ ok(body().includes('Business Website — $499 (normally $999): 1–3 pages'), 's
 store['outreach-offer-lead'].checked = true;
 store['outreach-offer-lead'].change();
 ok(store['outreach-offer-lead-row'].hidden === false, 'lead-in dropdown appears');
+ok(store['outreach-offer-oneoff'].hidden === true, 'one-off fields hidden when a live offer exists');
 ok(body().includes('This month only: our Business Website package is $499 (normally $999) for the next 3 clients. First month of care included.'),
   'offer-first line with default lead-in');
 store['outreach-offer-lead-select'].value = '__custom';
