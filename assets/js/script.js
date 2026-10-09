@@ -3328,8 +3328,48 @@ function portfolioPrimaryImageUrl(row) {
   return urls[0];
 }
 
+/**
+ * Screens only the business owner or crew sees (admin-overview.webp,
+ * dls-admin-orders.webp, crew-jobs.webp). Fine in the detail popup, never a
+ * card cover — a visitor browsing should see what their customers would see.
+ */
+function portfolioIsBackOfficeMediaUrl(url) {
+  var base = String(String(url || '').split('?')[0].split('/').pop() || '');
+  return /(?:^|[-_])(?:admin|dashboard|crew|staff|worker|timesheet)(?:[-_.]|$)/i.test(base);
+}
+
+/** The cover the admin picked in Portfolio Projects, if it is still one of the record's slides. */
+function portfolioExplicitCoverUrl(row) {
+  if (!row || !row.coverImageUrl) return '';
+  var cover = portfolioNormalizeAssetImageUrl(row.coverImageUrl);
+  return portfolioImageUrlsFromRecord(row).indexOf(cover) >= 0 ? cover : '';
+}
+
+/**
+ * Card cover when the admin hasn't picked one: the first customer-facing still,
+ * else the first video's poster (videos open on the homepage), else any still.
+ */
+function portfolioAutoCoverStillUrl(row) {
+  var urls = portfolioImageUrlsFromRecord(row);
+  var stills = urls.filter(function (u) {
+    return !portfolioIsVideoUrl(u) && !/\.md(?:\?|$)/i.test(u);
+  });
+  for (var i = 0; i < stills.length; i++) {
+    if (!portfolioIsBackOfficeMediaUrl(stills[i])) return stills[i];
+  }
+  for (var j = 0; j < urls.length; j++) {
+    if (portfolioIsVideoUrl(urls[j]) && !portfolioIsBackOfficeMediaUrl(urls[j])) {
+      var poster = portfolioVideoPosterUrlBest(urls[j]);
+      if (poster) return poster;
+    }
+  }
+  return stills[0] || (urls.length ? portfolioVideoPosterUrlBest(urls[0]) || '' : '');
+}
+
 /** Best still for compact previews (examples sheet): skip docs/video, prefer a cover or demo poster. */
 function portfolioCoverImageUrl(row) {
+  var explicitCover = portfolioExplicitCoverUrl(row);
+  if (explicitCover) return explicitCover;
   var urls = portfolioImageUrlsFromRecord(row) || [];
   var stills = [];
   urls.forEach(function (u) {
@@ -4255,6 +4295,11 @@ function portfolioSanitizeDocumentPayload(data) {
     projectUrl: String(data.projectUrl != null ? data.projectUrl : '').trim().slice(0, 2000),
     imageUrls: imageUrls,
     imageUrl: imageUrls.length ? imageUrls[0] : '',
+    // Card cover picked in admin; empty means auto (first customer-facing still).
+    coverImageUrl: (function () {
+      var cover = portfolioNormalizeAssetImageUrl(data.coverImageUrl || '');
+      return cover && imageUrls.indexOf(cover) >= 0 ? cover : '';
+    })(),
     imageAlt: String(data.imageAlt != null ? data.imageAlt : '').slice(0, 200),
     description: String(data.description != null ? data.description : '').slice(0, 8000),
     techTags: portfolioParseTechTags(data.techTags),
@@ -4802,16 +4847,13 @@ function portfolioObserveAutoplayVideos(root) {
 }
 
 /**
- * Full-size still for a rotating card cover: the first screenshot, else the
- * video poster. Not portfolioCoverImageUrl(), which prefers the 480px poster
- * and looks soft at card size.
+ * Full-size still for a rotating card cover: the cover picked in admin, else
+ * the first customer-facing screenshot (see portfolioAutoCoverStillUrl). Not
+ * portfolioCoverImageUrl(), which prefers the 480px poster and looks soft at
+ * card size.
  */
 function portfolioCardStillUrl(row) {
-  var urls = portfolioImageUrlsFromRecord(row);
-  for (var i = 0; i < urls.length; i++) {
-    if (!portfolioIsVideoUrl(urls[i]) && !/\.md(?:\?|$)/i.test(urls[i])) return urls[i];
-  }
-  return urls.length ? portfolioVideoPosterUrlBest(urls[0]) || '' : '';
+  return portfolioExplicitCoverUrl(row) || portfolioAutoCoverStillUrl(row);
 }
 
 /**
@@ -4923,6 +4965,16 @@ function portfolioObserveCoverRotators(root) {
 function portfolioRenderCardCoverHtml(p, alt) {
   const rotator = portfolioRenderCardRotatorHtml(p, alt);
   if (rotator) return rotator;
+  const explicitCover = portfolioExplicitCoverUrl(p);
+  if (explicitCover) {
+    return (
+      '<img src="' +
+      portfolioEscapeHtml(portfolioDisplayImageSrc(explicitCover)) +
+      '" alt="' +
+      portfolioEscapeHtml(alt) +
+      '" loading="lazy" onerror="portfolioHandleImageError(this)">'
+    );
+  }
   const urls = portfolioImageUrlsFromRecord(p);
   const cover = urls.length ? urls[0] : '';
   if (cover && portfolioIsVideoUrl(cover)) {
@@ -5443,19 +5495,35 @@ function initPortfolioSlidesListDrag() {
   });
 }
 
+/** Card cover picked in the project form; '' = auto. Slide order stays the popup order. */
+var portfolioFormCoverUrl = '';
+
 function renderPortfolioFormImagesList(urls) {
   const list = document.getElementById('portfolio-project-images-list');
   const empty = document.getElementById('portfolio-project-images-empty');
   const parsed = portfolioParseImageUrls(urls);
   if (!list) return;
 
+  if (portfolioFormCoverUrl && parsed.indexOf(portfolioFormCoverUrl) < 0) portfolioFormCoverUrl = '';
+  const effectiveCover = portfolioFormCoverUrl || portfolioAutoCoverStillUrl({ imageUrls: parsed });
+
   list.innerHTML = parsed
     .map(function (url, i) {
       const displayPath = portfolioRelativeAssetPathForForm(url);
-      const coverBadge =
-        i === 0
-          ? '<span class="portfolio-slides-cover-badge">Card cover</span>'
-          : '';
+      const isStill = !portfolioIsVideoUrl(url) && !/\.md(?:\?|$)/i.test(url);
+      let coverBadge = '';
+      if (url === effectiveCover) {
+        coverBadge = portfolioFormCoverUrl
+          ? '<button type="button" class="portfolio-slides-cover-badge" data-portfolio-image-cover-auto' +
+            ' title="Picked as the card cover. Click to go back to auto.">Card cover</button>'
+          : '<span class="portfolio-slides-cover-badge is-auto"' +
+            ' title="First customer-facing still. Pick another with Set as cover.">Card cover · auto</span>';
+      } else if (isStill) {
+        coverBadge =
+          '<button type="button" class="portfolio-slides-cover-set" data-portfolio-image-cover="' +
+          i +
+          '">Set as cover</button>';
+      }
       return (
         '<li class="portfolio-project-images-list-item" draggable="true" data-portfolio-image-index="' +
         i +
@@ -5579,6 +5647,7 @@ function serializePortfolioProjectFormState() {
         document.getElementById('portfolio-project-is-template').checked)
     },
     images: typeof getPortfolioFormImageUrlsFromDom === 'function' ? getPortfolioFormImageUrlsFromDom() : [],
+    cover: portfolioFormCoverUrl,
     sections: typeof collectPortfolioDetailSectionsFromDom === 'function'
       ? collectPortfolioDetailSectionsFromDom()
       : []
@@ -5693,6 +5762,7 @@ function openPortfolioProjectModal(isNew, project) {
   if (!modal || !form) return;
   closePortfolioUnsavedConfirmModal();
   form.reset();
+  portfolioFormCoverUrl = !isNew && project ? portfolioExplicitCoverUrl(project) : '';
   document.getElementById('portfolio-project-edit-id').value = isNew ? '' : (project && project.id) || '';
   if (titleEl) titleEl.textContent = isNew ? 'New portfolio project' : 'Edit portfolio project';
   if (!isNew && project) {
@@ -5968,6 +6038,17 @@ function setupPortfolioAdminControls() {
   if (imagesList && !imagesList.dataset.bound) {
     imagesList.dataset.bound = '1';
     imagesList.addEventListener('click', function (e) {
+      const setCover = e.target.closest('[data-portfolio-image-cover]');
+      const autoCover = e.target.closest('[data-portfolio-image-cover-auto]');
+      if (setCover || autoCover) {
+        e.preventDefault();
+        const urls = getPortfolioFormImageUrlsFromDom();
+        portfolioFormCoverUrl = setCover
+          ? urls[parseInt(setCover.getAttribute('data-portfolio-image-cover'), 10)] || ''
+          : '';
+        renderPortfolioFormImagesList(urls);
+        return;
+      }
       const remove = e.target.closest('[data-portfolio-image-remove]');
       if (!remove) return;
       e.preventDefault();
@@ -6055,6 +6136,7 @@ function setupPortfolioAdminControls() {
         projectUrl: document.getElementById('portfolio-project-url').value,
         imageUrls: formImageUrls,
         imageUrl: formImageUrls.length ? formImageUrls[0] : '',
+        coverImageUrl: portfolioFormCoverUrl,
         imageAlt: document.getElementById('portfolio-project-image-alt').value,
         description: document.getElementById('portfolio-project-description').value,
         techTags: document.getElementById('portfolio-project-tech').value,

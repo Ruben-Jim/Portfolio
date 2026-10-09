@@ -12095,6 +12095,35 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   text-transform: uppercase;
 }
 
+button.portfolio-slides-cover-badge {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.portfolio-slides-cover-badge.is-auto {
+  border-style: dashed;
+}
+
+.portfolio-slides-cover-set {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--jet);
+  color: var(--light-gray-70);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.portfolio-slides-cover-set:hover,
+.portfolio-slides-cover-set:focus-visible {
+  border-color: hsla(45, 100%, 72%, 0.35);
+  color: var(--orange-yellow-crayola);
+}
+
 .portfolio-project-images-url-input {
   width: 100%;
   min-width: 0;

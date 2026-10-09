@@ -67,6 +67,11 @@ window.PORTFOLIO_ASSET_GROUPS = [
         "name": "video-home.webm",
         "kind": "video",
         "poster": "/assets/images/projects/abo/video-home-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/abo/video-home.webp",
+        "name": "video-home.webp",
+        "kind": "image"
       }
     ]
   },
