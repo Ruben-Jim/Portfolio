@@ -4611,7 +4611,7 @@
                           <input type="email" id="outreach-var-email" autocomplete="email" inputmode="email" placeholder="owner@…" enterkeyhint="done">
                         </label>
                         <div class="outreach-var outreach-var--package">
-                          <span id="outreach-var-package-label">Package <em>(fills [package])</em></span>
+                          <span id="outreach-var-package-label">Package <em>(fills the package line)</em></span>
                           <div class="business-doc-select" data-select-name="outreach-package">
                             <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="outreach-var-package-label">
                               <span class="business-doc-select-trigger-label">Business Website — $999</span>
@@ -4621,6 +4621,33 @@
                             <input type="hidden" id="outreach-var-package" value="website">
                           </div>
                         </div>
+                      </div>
+                      <div class="outreach-pricing-blocks" id="outreach-pricing-blocks" hidden>
+                        <label class="outreach-ads-toggle" id="outreach-offer-wrap">
+                          <input type="checkbox" id="outreach-offer-lead">
+                          <span>Lead with the offer <em id="outreach-offer-hint">(no live offer on this package)</em></span>
+                        </label>
+                        <div class="outreach-offer-lead-row" id="outreach-offer-lead-row" hidden>
+                          <div class="outreach-var">
+                            <span id="outreach-offer-lead-label">Offer lead-in</span>
+                            <div class="business-doc-select" data-select-name="outreach-offer-lead">
+                              <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="outreach-offer-lead-label">
+                                <span class="business-doc-select-trigger-label">This month only</span>
+                                <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                              </button>
+                              <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
+                              <input type="hidden" id="outreach-offer-lead-select" value="This month only">
+                            </div>
+                          </div>
+                          <label class="outreach-var" id="outreach-offer-lead-custom-wrap" hidden>
+                            <span>Your lead-in</span>
+                            <input type="text" id="outreach-offer-lead-custom" autocomplete="off" maxlength="60" placeholder="For my first Fresno clients" enterkeyhint="done">
+                          </label>
+                        </div>
+                        <label class="outreach-ads-toggle" id="outreach-linktree-wrap">
+                          <input type="checkbox" id="outreach-linktree">
+                          <span>Include Link Tree option <em>(for leads not ready for a full site)</em></span>
+                        </label>
                       </div>
                     </div>
 
@@ -8440,7 +8467,7 @@
   <script src="/assets/js/portfolio-built-in-data.js?v=pkg-examples-20260820"></script>
   <script src="/assets/js/portfolio-assets.js?v=media-picker-20260929"></script>
   <script src="/assets/js/business-systems-data.js?v=expo-app-demo-20260911"></script>
-  <script src="/assets/js/care-pricing.js?v=package-offers-20261005"></script>
+  <script src="/assets/js/care-pricing.js?v=pricing-blocks-20261009"></script>
   <script src="/assets/js/business-doc-shared.js?v=package-offers-20261005"></script>
   <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
@@ -8454,7 +8481,7 @@
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=prospects-20261008"></script>
+  <script src="/assets/js/outreach-composer.js?v=pricing-blocks-20261009"></script>
   <script src="/assets/js/prospects.js?v=prospects-20261008f"></script>
   <script src="/assets/js/dm-migration.js"></script>
 

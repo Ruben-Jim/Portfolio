@@ -439,7 +439,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 90,
-      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/link-in-bio',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: [Company] — free mockup for a simple website?',
       email:
         'Hi,\n' +
@@ -450,9 +450,9 @@
         '\n' +
         'Want me to put together a quick mockup?\n' +
         '\n' +
-        'For reference, [package], with your first month of care included.\n' +
+        '[package line]\n' +
         '\n' +
-        'Not ready for a full website yet? I also build a custom link page for your Instagram bio — a branded Linktree with your logo, services, and booking or contact buttons. It’s live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '[link tree line]\n' +
         '\n' +
         '— Ruben',
       call:
@@ -469,7 +469,7 @@
       vertical: 'trade, junk removal, and field service crews',
       demoLink: 'https://tradeservice.expo.app',
       order: 100,
-      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/link-in-bio',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: [Company] — mockup for a site (no deposit)?',
       email:
         'Hi,\n' +
@@ -482,9 +482,9 @@
         '\n' +
         'Want a quick mockup for [Company]?\n' +
         '\n' +
-        'For reference, [package], with your first month of care included.\n' +
+        '[package line]\n' +
         '\n' +
-        'Not ready for a full website yet? I can start you with a custom link page for your Instagram bio — a branded Linktree with your logo, services, and a quote or booking button. Live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '[link tree line]\n' +
         '\n' +
         '— Ruben',
       call:
@@ -501,7 +501,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 110,
-      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?\n\nFor reference, [package], with your first month of care included.\n\nOr if a full site is too much right now, I can start you with a custom link page for your Instagram bio (a branded Linktree), from $99: rubenjimenez.dev/link-in-bio',
+      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: Re: mockup for [Company]?',
       email:
         'Hi,\n' +
@@ -510,9 +510,9 @@
         '\n' +
         'Want me to send one over?\n' +
         '\n' +
-        'For reference, [package], with your first month of care included.\n' +
+        '[package line]\n' +
         '\n' +
-        'Or, if a full site is too much right now, I can start you with a custom link page for your Instagram bio — a branded Linktree, live in a few days from $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '[link tree line]\n' +
         '\n' +
         '— Ruben',
       call:
@@ -667,7 +667,7 @@
       vertical: 'photographers on Instagram without a website',
       demoLink: 'https://photographer.expo.app',
       order: 105,
-      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: your Instagram already shows your work, but [Company] doesn’t have a website where clients can book. I build booking sites for photographers: packages, date, and retainer online, in English and Spanish. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/link-in-bio',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: your Instagram already shows your work, but [Company] doesn’t have a website where clients can book. I build booking sites for photographers: packages, date, and retainer online, in English and Spanish. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: [Company] — a booking site to go with your Instagram?',
       email:
         'Hi,\n' +
@@ -680,9 +680,9 @@
         '\n' +
         'Want a quick mockup for [Company]?\n' +
         '\n' +
-        'For reference, [package], with your first month of care included.\n' +
+        '[package line]\n' +
         '\n' +
-        'Not ready for a full website yet? I can start you with a custom link page for your Instagram bio — a branded Linktree with your logo, packages, and a booking or contact button. Live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '[link tree line]\n' +
         '\n' +
         '— Ruben',
       call:
@@ -699,7 +699,7 @@
       vertical: 'local businesses whose website is down or erroring',
       demoLink: '',
       order: 115,
-      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. Quick heads-up: I tried [Company]’s website and it isn’t loading right now (it shows an error), so customers searching for you may be hitting the same thing. I build websites and booking apps for local service businesses, and you’d keep your same domain. Want me to send a quick mockup?\n\nHere’s one I built: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nIn the meantime, I can also put up a custom link page (a branded Linktree) so customers can still reach you while the site is down, live in a day or two from $99: rubenjimenez.dev/link-in-bio',
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. Quick heads-up: I tried [Company]’s website and it isn’t loading right now (it shows an error), so customers searching for you may be hitting the same thing. I build websites and booking apps for local service businesses, and you’d keep your same domain. Want me to send a quick mockup?\n\nHere’s one I built: [demo link]\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: Heads up — [Company]’s website is down',
       email:
         'Hi [Name],\n' +
@@ -710,9 +710,9 @@
         '\n' +
         'You’d keep your same domain. Happy to help either way.\n' +
         '\n' +
-        'For reference, [package], with your first month of care included.\n' +
+        '[package line]\n' +
         '\n' +
-        'In the meantime, I can put up a custom link page — a branded Linktree with your phone, services, and booking or contact buttons — so customers can still reach you while the site is down. It’s live in a day or two, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '[link tree line]\n' +
         '\n' +
         '— Ruben',
       call:
@@ -731,7 +731,7 @@
       vertical: 'local businesses with an outdated website',
       demoLink: '',
       order: 116,
-      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I pulled up [Company]’s website on my phone and it’s hard to use there, which is where most of your customers are looking. I can rebuild it mobile-friendly, keep your content and the same web address, and add online booking or estimate requests.\n\nHere’s one I built: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full rebuild? I also build a custom link page for your Instagram bio (a branded Linktree), from $99: rubenjimenez.dev/link-in-bio',
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I pulled up [Company]’s website on my phone and it’s hard to use there, which is where most of your customers are looking. I can rebuild it mobile-friendly, keep your content and the same web address, and add online booking or estimate requests.\n\nHere’s one I built: [demo link]\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: A fresh, mobile-friendly site for [Company]?',
       email:
         'Hi [Name],\n' +
@@ -742,9 +742,9 @@
         '\n' +
         'Here’s one I built: [demo link]\n' +
         '\n' +
-        'For reference, [package], with your first month of care included.\n' +
+        '[package line]\n' +
         '\n' +
-        'Not ready for a full rebuild? I also build a custom link page for your Instagram bio — a branded Linktree with your logo, services, and booking or contact buttons. It’s live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '[link tree line]\n' +
         '\n' +
         'Want me to put together a quick mockup of the new homepage?\n' +
         '\n' +
@@ -764,7 +764,7 @@
       vertical: 'businesses on WordPress, Wix, Squarespace, or GoDaddy builders',
       demoLink: '',
       order: 117,
-      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I noticed [Company]’s site is on a website builder. A lot of owners I talk to are paying for the builder plus add-ons every month and still don’t have online booking. I can move you to a custom, mobile-friendly site — same content, same web address — with booking or estimate requests built in, and hosting included in your care plan.\n\nHere’s one I built: [demo link]\n\nFor reference, [package], with your first month of care included.\n\nNot ready for a full move? I also build a custom link page for your Instagram bio (a branded Linktree), from $99: rubenjimenez.dev/link-in-bio',
+      text: 'Hey! I’m Ruben with CodeWithRuben here in [City]. I know you’re busy, so I’ll cut right to the chase: I noticed [Company]’s site is on a website builder. A lot of owners I talk to are paying for the builder plus add-ons every month and still don’t have online booking. I can move you to a custom, mobile-friendly site — same content, same web address — with booking or estimate requests built in, and hosting included in your care plan.\n\nHere’s one I built: [demo link]\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: [Company] — off the website builder, with booking built in',
       email:
         'Hi [Name],\n' +
@@ -775,9 +775,9 @@
         '\n' +
         'Here’s one I built: [demo link]\n' +
         '\n' +
-        'For reference, [package], with your first month of care included.\n' +
+        '[package line]\n' +
         '\n' +
-        'Not ready for a full move? I also build a custom link page for your Instagram bio — a branded Linktree with your logo, services, and booking or contact buttons. It’s live in a few days, starting at $99. Example: rubenjimenez.dev/link-in-bio\n' +
+        '[link tree line]\n' +
         '\n' +
         'Want me to put together a quick mockup?\n' +
         '\n' +

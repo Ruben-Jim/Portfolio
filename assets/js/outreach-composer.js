@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=region-variants-20261008';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=pricing-blocks-20261009';
   var STORE_KEY = 'cwrOutreachVars';
   // Last script used on this device, so the picker reopens on it (never empty).
   var LAST_SCRIPT_KEY = 'cwrOutreachLastScript';
@@ -32,10 +32,33 @@
     { token: '[City]', field: 'city' },
     { token: '[demo link]', field: 'demo' },
     // "our Business Website package is $999" — or the live offer wording.
-    { token: '[package]', field: 'package' }
+    { token: '[package]', field: 'package' },
+    // Whole paragraphs the composer writes from the controls under Package.
+    // Removed (with their blank line) when empty, so templates never carry a
+    // half-sentence. See packageLine() / linkTreeLine().
+    { token: '[package line]', field: 'packageLine', block: true },
+    { token: '[link tree line]', field: 'linkTreeLine', block: true }
   ];
 
+  var BLOCK_TOKENS = TOKENS.filter(function (t) { return t.block; });
+
   var DEFAULT_PACKAGE = 'website';
+  var LINK_TREE_EXAMPLE = 'rubenjimenez.dev/link-in-bio';
+  var OFFER_LEADS = ['This month only', 'This week only', 'Limited-time offer', 'Launch special'];
+  var CUSTOM_LEAD = '__custom';
+
+  /**
+   * Older saved scripts carry these paragraphs as plain text, which is how they
+   * got hand-edited away. Swap them for the block tokens when scripts load.
+   */
+  var LEGACY_PACKAGE_RE = /For reference, \[package\], with your first month of care included\./g;
+  var LEGACY_LINK_TREE_RE = /^(?:Not ready for a full|Or,? if a full site|In the meantime, I can)[^\n]*(?:Linktree|Link Tree|link-in-bio)[^\n]*$/gm;
+
+  function migrateBlocks(body) {
+    return String(body || '')
+      .replace(LEGACY_PACKAGE_RE, '[package line]')
+      .replace(LEGACY_LINK_TREE_RE, '[link tree line]');
+  }
 
   function selectedPackageId() {
     return els.packageSelect ? String(els.packageSelect.value || '') : '';
@@ -130,9 +153,9 @@
           vertical: r.vertical || '',
           demoLink: r.demoLink || '',
           order: typeof r.order === 'number' ? r.order : 999,
-          text: r.text || '',
+          text: migrateBlocks(r.text),
           subject: r.subject || '',
-          email: r.email || '',
+          email: migrateBlocks(r.email),
           call: r.call || '',
           group: r.group || ''
         };
@@ -224,8 +247,145 @@
       email: (els.emailAddr && els.emailAddr.value || '').trim(),
       package: selectedPackageId() && global.PackagePricing
         ? global.PackagePricing.packagePhrase(selectedPackageId())
-        : ''
+        : '',
+      packageLine: packageLine(),
+      linkTreeLine: linkTreeLine()
     };
+  }
+
+  // ——— package + Link Tree paragraphs ———
+
+  function money(n) { return '$' + Number(n || 0).toLocaleString('en-US'); }
+
+  function offerLeadIn() {
+    var v = els.offerLeadSelect ? String(els.offerLeadSelect.value || '') : OFFER_LEADS[0];
+    if (v === CUSTOM_LEAD) {
+      var custom = (els.offerLeadCustom && els.offerLeadCustom.value || '').trim();
+      return custom || OFFER_LEADS[0];
+    }
+    return v || OFFER_LEADS[0];
+  }
+
+  /** The selected package's live offer, or null when none is running. */
+  function selectedOffer() {
+    var PP = global.PackagePricing;
+    var id = selectedPackageId();
+    return PP && id ? PP.activeOffer(id) : null;
+  }
+
+  /**
+   * "Business Website — $999: 1–3 pages, … . First month of care included."
+   * With "Lead with the offer" on and an offer live:
+   * "This month only: our Business Website package is $499 (normally $999) for
+   *  the next 3 clients. First month of care included."
+   */
+  function packageLine() {
+    var PP = global.PackagePricing;
+    var p = PP && selectedPackageId() ? PP.packageById(selectedPackageId()) : null;
+    if (!p) return '';
+    var offer = selectedOffer();
+    if (offer && els.offerLead && els.offerLead.checked) {
+      var limit = PP.offerLimitText(offer, 'en');
+      return offerLeadIn() + ': our ' + p.name + ' package is ' + money(offer.price) +
+        ' (normally ' + PP.regularLabel(p) + ')' + (limit ? ' ' + limit : '') +
+        '. First month of care included.';
+    }
+    var price = offer ? money(offer.price) + ' (normally ' + PP.regularLabel(p) + ')' : PP.regularLabel(p);
+    return p.summary
+      ? p.name + ' — ' + price + ': ' + p.summary + '. First month of care included.'
+      : p.name + ' — ' + price + ', with your first month of care included.';
+  }
+
+  /** Off when unchecked, and when Link Tree is already the package being pitched. */
+  function linkTreeLine() {
+    var PP = global.PackagePricing;
+    if (!PP || !els.linkTree || !els.linkTree.checked || selectedPackageId() === 'linktree') return '';
+    var phrase = PP.packagePhrase('linktree');
+    if (!phrase) return '';
+    return 'Not ready for a full site? ' + phrase.charAt(0).toUpperCase() + phrase.slice(1) +
+      ', with your first month of care included. Example: ' + LINK_TREE_EXAMPLE;
+  }
+
+  function templateHas(token) {
+    var s = current();
+    return !!(s && String(s[activeStep] || '').indexOf(token) !== -1);
+  }
+
+  /** Shows the controls only for scripts whose current step uses the blocks. */
+  function syncPricingControls() {
+    if (!els.pricingBlocks) return;
+    var hasPackage = templateHas('[package line]');
+    var hasLinkTree = templateHas('[link tree line]');
+    els.pricingBlocks.hidden = !hasPackage && !hasLinkTree;
+    var offer = hasPackage ? selectedOffer() : null;
+    if (els.offerWrap) els.offerWrap.hidden = !hasPackage || !selectedPackageId();
+    if (els.offerLead) els.offerLead.disabled = !offer;
+    if (els.offerHint) {
+      els.offerHint.textContent = offer
+        ? '(' + global.PackagePricing.packageOptionLabel(selectedPackageId()) + ')'
+        : '(no live offer on this package — set one in Clients → Pricing & offers)';
+    }
+    if (els.offerLeadRow) els.offerLeadRow.hidden = !(offer && els.offerLead && els.offerLead.checked);
+    if (els.offerLeadCustomWrap) {
+      els.offerLeadCustomWrap.hidden = !els.offerLeadSelect || els.offerLeadSelect.value !== CUSTOM_LEAD;
+    }
+    if (els.linkTreeWrap) els.linkTreeWrap.hidden = !hasLinkTree || selectedPackageId() === 'linktree';
+  }
+
+  /** New script → Link Tree starts checked on the no-website DMs, unchecked elsewhere. */
+  function resetLinkTreeDefault() {
+    if (els.linkTree) els.linkTree.checked = /^no-site/.test(baseOf(activeId));
+  }
+
+  function renderOfferLeadSelect() {
+    if (!els.offerLeadSelect || typeof global.setBusinessDocSelectOptions !== 'function') return;
+    var options = OFFER_LEADS.map(function (l) { return { value: l, label: l }; })
+      .concat([{ value: CUSTOM_LEAD, label: 'Custom…' }]);
+    global.setBusinessDocSelectOptions(els.offerLeadSelect, options, {
+      value: els.offerLeadSelect.value || OFFER_LEADS[0],
+      keepValue: false
+    });
+  }
+
+  /** What the block tokens last rendered as, so a hand-edited message can be patched in place. */
+  var lastBlocks = { package: '', packageLine: '', linkTreeLine: '' };
+
+  function rememberBlocks(vars) {
+    lastBlocks = { package: vars.package, packageLine: vars.packageLine, linkTreeLine: vars.linkTreeLine };
+  }
+
+  function swapBlock(body, oldText, newText) {
+    if (oldText && body.indexOf(oldText) !== -1) {
+      return newText ? body.split(oldText).join(newText) : tidyBlankLines(body.split(oldText).join(''));
+    }
+    return newText ? body.replace(/\s*$/, '') + '\n\n' + newText : body;
+  }
+
+  function tidyBlankLines(body) {
+    return body.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').replace(/\s+$/, '');
+  }
+
+  /**
+   * A pricing control changed. An untouched message just re-renders; a
+   * hand-edited one keeps the edit and only has the generated lines swapped.
+   */
+  function onPricingChange() {
+    syncPricingControls();
+    if (!dirty) {
+      renderPreview(true);
+    } else {
+      var vars = readVars();
+      var body = getBody();
+      if (lastBlocks.package && vars.package && lastBlocks.package !== vars.package) {
+        body = body.split(lastBlocks.package).join(vars.package);
+      }
+      if (templateHas('[package line]')) body = swapBlock(body, lastBlocks.packageLine, vars.packageLine);
+      if (templateHas('[link tree line]')) body = swapBlock(body, lastBlocks.linkTreeLine, vars.linkTreeLine);
+      setBody(body);
+      rememberBlocks(vars);
+      renderPreview(false);
+    }
+    saveVars();
   }
 
   function renderPackageSelect() {
@@ -244,7 +404,12 @@
   function saveVars() {
     var v = readVars();
     v.packageId = selectedPackageId();
+    v.offerLead = !!(els.offerLead && els.offerLead.checked);
+    v.offerLeadIn = els.offerLeadSelect ? els.offerLeadSelect.value : '';
+    v.offerLeadCustom = els.offerLeadCustom ? els.offerLeadCustom.value : '';
     delete v.package;
+    delete v.packageLine;
+    delete v.linkTreeLine;
     try { localStorage.setItem(STORE_KEY, JSON.stringify(v)); } catch (e) { /* private mode */ }
   }
 
@@ -256,17 +421,25 @@
       if (el && v[k]) el.value = v[k];
     });
     if (els.packageSelect && v.packageId != null) els.packageSelect.value = v.packageId;
+    if (els.offerLead) els.offerLead.checked = v.offerLead === true;
+    if (els.offerLeadSelect && v.offerLeadIn) els.offerLeadSelect.value = v.offerLeadIn;
+    if (els.offerLeadCustom && v.offerLeadCustom) els.offerLeadCustom.value = v.offerLeadCustom;
   }
 
   function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
   function fill(body, vars) {
     var out = body || '';
+    var droppedBlock = false;
     TOKENS.forEach(function (t) {
       var v = vars[t.field];
       if (v) out = out.replace(new RegExp(escapeRe(t.token), 'g'), v);
+      else if (t.block && out.indexOf(t.token) !== -1) {
+        out = out.split(t.token).join('');
+        droppedBlock = true;
+      }
     });
-    return out;
+    return droppedBlock ? tidyBlankLines(out) : out;
   }
 
   function remainingTokens(body) {
@@ -310,6 +483,7 @@
     if (!found) return;
     activeId = id;
     rememberScript(id);
+    resetLinkTreeDefault();
     dirty = false;
     if (els.demo) els.demo.value = found.demoLink || '';
     if (!fromUi && els.scriptSelect && typeof global.setBusinessDocSelectValue === 'function') {
@@ -439,9 +613,11 @@
     if (!s || !els.preview) return;
     var vars = readVars();
 
+    syncPricingControls();
     if (force || !dirty) {
       var raw = s[activeStep] || '';
       setBody(fill(raw, vars));
+      rememberBlocks(vars);
       dirty = false;
     }
 
@@ -648,7 +824,7 @@
 
   /** Puts the [Name]/[Company]/… tokens back where the filled-in values sit,
    *  so a saved edit works for the next lead too. Longest values first. */
-  function toTemplate(body, vars) {
+  function toTemplate(body, vars, original) {
     var out = body || '';
     TOKENS.slice()
       .filter(function (t) { return vars[t.field] && vars[t.field].length > 1; })
@@ -656,6 +832,13 @@
       .forEach(function (t) {
         out = out.split(vars[t.field]).join(t.token);
       });
+    // A block that was switched off for this lead (or deleted by hand) stays in
+    // the template, so the next lead still gets the package and Link Tree lines.
+    BLOCK_TOKENS.forEach(function (t) {
+      if (String(original || '').indexOf(t.token) !== -1 && out.indexOf(t.token) === -1) {
+        out = out.replace(/\s*$/, '') + '\n\n' + t.token;
+      }
+    });
     return out;
   }
 
@@ -686,7 +869,7 @@
     ]);
     if (choice === 'cancel' || choice === null) return false;
     if (choice === 'discard') { dirty = false; return true; }
-    var template = toTemplate(getBody(), readVars());
+    var template = toTemplate(getBody(), readVars(), s[activeStep]);
     if (choice === 'update') {
       var patch = {};
       patch[activeStep] = template;
@@ -941,6 +1124,16 @@
       phone: document.getElementById('outreach-var-phone'),
       emailAddr: document.getElementById('outreach-var-email'),
       packageSelect: document.getElementById('outreach-var-package'),
+      pricingBlocks: document.getElementById('outreach-pricing-blocks'),
+      offerWrap: document.getElementById('outreach-offer-wrap'),
+      offerLead: document.getElementById('outreach-offer-lead'),
+      offerHint: document.getElementById('outreach-offer-hint'),
+      offerLeadRow: document.getElementById('outreach-offer-lead-row'),
+      offerLeadSelect: document.getElementById('outreach-offer-lead-select'),
+      offerLeadCustomWrap: document.getElementById('outreach-offer-lead-custom-wrap'),
+      offerLeadCustom: document.getElementById('outreach-offer-lead-custom'),
+      linkTreeWrap: document.getElementById('outreach-linktree-wrap'),
+      linkTree: document.getElementById('outreach-linktree'),
       btnCopy: document.getElementById('outreach-copy'),
       btnText: document.getElementById('outreach-text'),
       btnEmail: document.getElementById('outreach-email'),
@@ -965,17 +1158,16 @@
         saveVars();
       });
     });
-    if (els.packageSelect) {
-      els.packageSelect.addEventListener('change', function () {
-        dirty = false;
-        renderPreview(true);
-        saveVars();
-      });
-    }
+    // Pricing controls patch the generated lines in place, so a hand-edited
+    // message survives switching package, offer wording, or the Link Tree line.
+    [els.packageSelect, els.offerLead, els.offerLeadSelect, els.linkTree].forEach(function (el) {
+      if (el) el.addEventListener('change', onPricingChange);
+    });
+    if (els.offerLeadCustom) els.offerLeadCustom.addEventListener('input', onPricingChange);
     if (global.CarePricing && typeof global.CarePricing.onChange === 'function') {
       global.CarePricing.onChange(function () {
         renderPackageSelect();
-        if (!dirty) renderPreview(true);
+        onPricingChange();
       });
     }
     if (els.scriptSelect) {
@@ -1063,6 +1255,8 @@
       dirty = false;
       renderScriptSelect();
       renderPackageSelect();
+      renderOfferLeadSelect();
+      resetLinkTreeDefault();
       renderSteps();
       renderPreview(true);
       rendered = true;

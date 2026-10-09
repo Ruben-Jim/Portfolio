@@ -224,14 +224,23 @@
   // Regular prices match llms.txt / the Services page. Offers live at
   // /agencyPricing/packageOffers/<id> = { enabled, price, endsAt, spots, claimed }.
 
+  // `summary` is the one-line "what's included" used in outreach DMs. Keep it
+  // in step with the package bullets in llms.txt and the Services page.
   var PACKAGES = [
-    { id: 'linktree', name: 'Link Tree', price: 99, max: 199, projectType: 'web', offerable: true },
-    { id: 'starter-page', name: 'Starter Page', price: 499, projectType: 'web', offerable: true },
-    { id: 'website', name: 'Business Website', price: 999, projectType: 'web', offerable: true },
-    { id: 'starter', name: 'Starter Presence', price: 1500, projectType: 'both', offerable: true },
-    { id: 'growth', name: 'Growth Platform', price: 3500, projectType: 'both', offerable: true },
-    { id: 'agency', name: 'Business Platform', price: 6000, max: 12000, projectType: 'both', offerable: false },
-    { id: 'studio', name: 'Studio Build', price: 15000, max: 40000, projectType: 'both', offerable: false }
+    { id: 'linktree', name: 'Link Tree', price: 99, max: 199, projectType: 'web', offerable: true,
+      summary: 'a branded link-in-bio page with your logo, links, and social icons' },
+    { id: 'starter-page', name: 'Starter Page', price: 499, projectType: 'web', offerable: true,
+      summary: 'one page plus an owner admin for quotes, messages, and jobs, in English and Spanish' },
+    { id: 'website', name: 'Business Website', price: 999, projectType: 'web', offerable: true,
+      summary: '1–3 pages, live chat, gallery, SEO, hosting, and a branded Link Tree' },
+    { id: 'starter', name: 'Starter Presence', price: 1500, projectType: 'both', offerable: true,
+      summary: 'everything in Business Website, plus iOS and Android apps for you and your team' },
+    { id: 'growth', name: 'Growth Platform', price: 3500, projectType: 'both', offerable: true,
+      summary: 'a website for customers, iOS and Android for your crew, and an admin for leads, jobs, and payments' },
+    { id: 'agency', name: 'Business Platform', price: 6000, max: 12000, projectType: 'both', offerable: false,
+      summary: 'a website plus a mobile app for your field crew, with owner and worker logins' },
+    { id: 'studio', name: 'Studio Build', price: 15000, max: 40000, projectType: 'both', offerable: false,
+      summary: 'a full custom platform, from quote to invoice, with recurring billing and multi-location' }
   ];
 
   var packageOffers = {};
