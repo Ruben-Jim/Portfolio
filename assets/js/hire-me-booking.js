@@ -603,14 +603,11 @@
         if (typeof window.sendPortfolioEmailRequest === 'function') {
           await window.sendPortfolioEmailRequest({
             type: 'booking_confirmation',
+            // The server reads name, email, and time from agencyBookings/<id>.
             payload: {
-              name: lead.name,
-              email: lead.email,
-              call_type_label: ct.label,
+              booking_id: bookingId,
               start_display: formatSlotFull(slot.start),
-              timezone_label: (state.availability && state.availability.timezone) || '',
-              start_iso: startISO,
-              end_iso: endISO
+              timezone_label: (state.availability && state.availability.timezone) || ''
             }
           });
         }

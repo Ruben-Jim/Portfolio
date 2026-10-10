@@ -5,12 +5,14 @@ service cloud.firestore {
       return field is string && field.size() > 0 && field.size() <= maxLen;
     }
 
+    // Admin = the `admin` custom claim (scripts/set-admin-claim.mjs). The
+    // verified-email allowlist is the transition fallback — remove it once the
+    // claim is confirmed (see the security notes (~/Dev/Apps/blueprints/portfolio-security.md, kept out of this public repo)).
     function isPortfolioAdmin() {
-      return request.auth != null &&
-        request.auth.token.email != null &&
-        request.auth.token.email in [
-          'ruben.jim.co@gmail.com'
-        ];
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        (request.auth.token.email in ['ruben.jim.co@gmail.com'] && request.auth.token.email_verified == true)
+      );
     }
 
     // Legacy contact intake collection.
@@ -67,7 +69,10 @@ service cloud.firestore {
 
     // One-time testimonial invite links (admin creates; customer reads + marks used on submit).
     match /testimonialTokens/{tokenId} {
-      allow read: if true;
+      // Open one invite by its id (the link); listing them all is admin-only —
+      // otherwise anyone could read every invitee's name and email.
+      allow get: if true;
+      allow list: if isPortfolioAdmin();
       allow create: if
         isPortfolioAdmin() &&
         tokenId is string &&

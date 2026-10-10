@@ -19,10 +19,13 @@ async function verifyAdminBearer(req) {
   if (!match) return null;
   try {
     const decoded = await admin.auth().verifyIdToken(match[1]);
+    // Admin = the `admin` custom claim (scripts/set-admin-claim.mjs). The email
+    // allowlist is the transition fallback until the claim is confirmed live.
+    if (decoded.admin === true) return decoded;
     const email = String(decoded.email || "")
       .trim()
       .toLowerCase();
-    if (!email || !ADMIN_ALLOWLIST_EMAILS.includes(email)) return null;
+    if (!email || decoded.email_verified !== true || !ADMIN_ALLOWLIST_EMAILS.includes(email)) return null;
     return decoded;
   } catch (err) {
     console.warn("verifyAdminBearer:", err.message || err);
@@ -359,19 +362,37 @@ exports.sendPortfolioEmail = onRequest(
       }
 
       if (type === "booking_confirmation") {
-        const name = String(payload.name || "").trim();
-        const email = String(payload.email || "").trim();
-        const callTypeLabel = String(payload.call_type_label || "").trim();
-        const startDisplay = String(payload.start_display || "").trim();
-        const timezoneLabel = String(payload.timezone_label || "").trim();
-        const startISO = String(payload.start_iso || "").trim();
-        const endISO = String(payload.end_iso || "").trim();
-        const meetUrl = String(payload.meet_url || "").trim();
-        if (!name || !validEmail(email) || !callTypeLabel || !startDisplay) {
-          res.status(400).json({
-            ok: false,
-            error: "Missing name, email, call_type_label, or start_display",
-          });
+        // Public endpoint, so it only confirms a booking that really exists:
+        // recipient, name, call type and time come from agencyBookings, not the
+        // request — otherwise anyone could send branded email to any address.
+        // Sent once per booking (confirmationSentAt).
+        const bookingId = String(payload.booking_id || "").trim();
+        if (!/^bkg_[a-z0-9_]{4,60}$/i.test(bookingId)) {
+          res.status(400).json({ ok: false, error: "Missing booking_id" });
+          return;
+        }
+        const bookingRef = admin.database().ref("agencyBookings/" + bookingId);
+        const booking = (await bookingRef.once("value")).val();
+        if (!booking || !booking.email) {
+          res.status(404).json({ ok: false, error: "Booking not found" });
+          return;
+        }
+        const claimed = await bookingRef.child("confirmationSentAt").transaction((cur) => (cur ? undefined : Date.now()));
+        if (!claimed.committed) {
+          res.status(200).json({ ok: true, alreadySent: true });
+          return;
+        }
+        const name = String(booking.name || "").trim().slice(0, 120);
+        const email = String(booking.email || "").trim();
+        const callTypeLabel = String(booking.callTypeLabel || "Call").trim().slice(0, 80);
+        const startISO = String(booking.startISO || "").trim();
+        const endISO = String(booking.endISO || "").trim();
+        // Display strings are formatting only; keep them short and plain.
+        const startDisplay = String(payload.start_display || startISO).trim().slice(0, 80);
+        const timezoneLabel = String(payload.timezone_label || "").trim().slice(0, 60);
+        const meetUrl = "";
+        if (!name || !validEmail(email)) {
+          res.status(400).json({ ok: false, error: "Booking is missing a name or email" });
           return;
         }
 
@@ -1013,3 +1034,36 @@ exports.leadFromBooking = onValueCreated(
     }
   }
 );
+
+/* ── Client portal + customer inbox (see the security notes (~/Dev/Apps/blueprints/portfolio-security.md, kept out of this public repo)) ───────────────────
+   The browser never reads client records or other people's conversations
+   directly; these endpoints check the portal token / scope the session. */
+const portalApi = require("./portal-api");
+const dmSession = require("./dm-session");
+
+function clientIp(req) {
+  return String(req.headers["x-forwarded-for"] || req.ip || "").split(",")[0].trim();
+}
+
+function jsonEndpoint(handler) {
+  return async (req, res) => {
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    if (req.method !== "POST") { res.status(405).json({ ok: false, error: "Method not allowed" }); return; }
+    try {
+      const out = await handler(req.body || {}, req);
+      res.status(200).json(Object.assign({ ok: true }, out));
+    } catch (err) {
+      const status = err && err.status ? err.status : 500;
+      if (status >= 500) console.error(err);
+      res.status(status).json({ ok: false, error: status >= 500 ? "Something went wrong. Try again." : err.message });
+    }
+  };
+}
+
+const PUBLIC_JSON = { region: "us-central1", cors: true, invoker: "public", memory: "256MiB", timeoutSeconds: 30 };
+
+exports.portalApi = onRequest(PUBLIC_JSON, jsonEndpoint((body) =>
+  portalApi.handle(admin.database(), body, Date.now())));
+
+exports.dmSession = onRequest(PUBLIC_JSON, jsonEndpoint((body, req) =>
+  dmSession.handle({ db: admin.database(), auth: admin.auth() }, body, clientIp(req), Date.now())));

@@ -308,111 +308,86 @@
    * - source / lead fields update on existing threads
    * - originSource is set once on create (or backfilled if missing) and never overwritten
    */
+  // ——— session: dmSession function + a token scoped to one conversation ———
+  // The browser can't query dm/meta by email (database.rules.json). The
+  // dmSession function finds or creates the conversation and returns a custom
+  // token whose dmConv claim is that conversation, which is all the rules let
+  // a customer read or write. See the security notes (~/Dev/Apps/blueprints/portfolio-security.md, kept out of this public repo).
+
+  function dmSessionUrl() {
+    var base = window.CWR_FUNCTIONS_BASE || 'https://us-central1-portfolio-2578e.cloudfunctions.net';
+    return base.replace(/\/+$/, '') + '/dmSession';
+  }
+
+  function authInstance() {
+    if (window.firebaseAuth) return window.firebaseAuth;
+    if (typeof window.getAuth === 'function') {
+      try { window.firebaseAuth = window.getAuth(); } catch (e) { return null; }
+    }
+    return window.firebaseAuth || null;
+  }
+
+  /** Signed in as the site owner — admin rules already cover every thread. */
+  function signedInAsAdmin() {
+    var auth = authInstance();
+    var u = auth && auth.currentUser;
+    return !!(u && u.email && typeof window.isAdminEmail === 'function' && window.isAdminEmail(u.email));
+  }
+
+  async function callDmSession(body) {
+    var res = await promiseWithTimeout(fetch(dmSessionUrl(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }), 20000);
+    var data = {};
+    try { data = await res.json(); } catch (e) { /* non-JSON error */ }
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Could not open your conversation. Try again.');
+    return data;
+  }
+
+  async function signInWithSessionToken(token) {
+    if (!token || signedInAsAdmin()) return;
+    var auth = authInstance();
+    if (!auth || typeof window.signInWithCustomToken !== 'function') {
+      throw new Error('Sign-in is not ready yet. Refresh and try again.');
+    }
+    await window.signInWithCustomToken(auth, token);
+  }
+
+  /** Make sure this browser holds a session for `conversationId` (silently re-opens it by email). */
+  async function ensureCustomerAuth(session) {
+    if (!session || !session.conversationId || signedInAsAdmin()) return;
+    var auth = authInstance();
+    var u = auth && auth.currentUser;
+    if (u) {
+      try {
+        var tok = await u.getIdTokenResult();
+        if (tok && tok.claims && tok.claims.dmConv === session.conversationId) return;
+      } catch (e) { /* fall through and re-open */ }
+    }
+    if (!session.customerEmail) throw new Error('Open your conversation with your email first.');
+    var data = await callDmSession({ email: session.customerEmail, name: session.customerName || '', lookupOnly: true });
+    await signInWithSessionToken(data.token);
+  }
+
+  /**
+   * Find or create one conversation per email.
+   * options: source, subject, projectType, budget, tags, portalToken
+   * - source / lead fields update on existing threads
+   * - originSource is set once on create (or backfilled if missing) and never overwritten
+   * - client-portal chat passes portalToken; the server links agencyProjectId from it
+   */
   async function getOrCreateConversationForEmail(email, name, options) {
     options = options || {};
-    var metaRoot = window.rtdbRef(window.rtdb, 'dm/meta');
-    var q = window.rtdbQuery(
-      metaRoot,
-      window.rtdbOrderByChild('customerEmail'),
-      window.rtdbEqualTo(email.toLowerCase()),
-      window.rtdbLimitToFirst(1)
-    );
-    var snap = await promiseWithTimeout(window.rtdbGet(q), 20000);
-    var val = snap.val();
-    var source = normalizeDmSource(options.source) || 'portal';
-    var subject = options.subject != null ? String(options.subject).trim().slice(0, 160) : '';
-    var projectType =
-      options.projectType != null
-        ? String(options.projectType).trim().slice(0, 120)
-        : options.project_type != null
-          ? String(options.project_type).trim().slice(0, 120)
-          : '';
-    var budget = options.budget != null ? String(options.budget).trim().slice(0, 80) : '';
-
-    if (val) {
-      var id = Object.keys(val)[0];
-      var existing = Object.assign({}, val[id], { id: id });
-      var patch = { updatedAt: window.rtdbServerTimestamp() };
-      var dirty = false;
-
-      if (options.agencyProjectId && !existing.agencyProjectId) {
-        patch.agencyProjectId = options.agencyProjectId;
-        existing.agencyProjectId = options.agencyProjectId;
-        dirty = true;
-      }
-      if (name && name !== existing.customerName) {
-        patch.customerName = name;
-        existing.customerName = name;
-        dirty = true;
-      }
-      if (options.source != null && source) {
-        patch.source = source;
-        existing.source = source;
-        dirty = true;
-      }
-      if (!existing.originSource && source) {
-        patch.originSource = source;
-        existing.originSource = source;
-        dirty = true;
-      }
-      if (options.subject != null) {
-        patch.subject = subject;
-        existing.subject = subject;
-        dirty = true;
-      }
-      if (options.projectType != null || options.project_type != null) {
-        patch.projectType = projectType;
-        existing.projectType = projectType;
-        dirty = true;
-      }
-      if (options.budget != null) {
-        patch.budget = budget;
-        existing.budget = budget;
-        dirty = true;
-      }
-
-      if (dirty) {
-        await promiseWithTimeout(window.rtdbUpdate(rtdbMetaRef(id), patch), 20000).catch(function () {});
-      }
-      return existing;
-    }
-
-    var newRef = window.rtdbPush(metaRoot);
-    var newId = newRef.key;
-    var now = window.rtdbServerTimestamp();
-    var tags = Array.isArray(options.tags) ? options.tags.slice() : defaultTagsForSource(source);
-    await promiseWithTimeout(
-      window.rtdbSet(newRef, {
-        customerName: name,
-        customerEmail: email.toLowerCase(),
-        source: source,
-        originSource: source,
-        subject: subject,
-        projectType: projectType,
-        budget: budget,
-        status: 'open',
-        priority: 'normal',
-        tags: tags,
-        assignee: 'Admin',
-        agencyProjectId: options.agencyProjectId || '',
-        unreadAdmin: 0,
-        unreadCustomer: 0,
-        lastMessage: '',
-        createdAt: now,
-        updatedAt: now
-      }),
-      20000
-    );
-    return {
-      id: newId,
-      customerName: name,
-      customerEmail: email.toLowerCase(),
-      source: source,
-      originSource: source,
-      subject: subject,
-      projectType: projectType,
-      budget: budget
-    };
+    var body = { email: String(email || '').trim().toLowerCase(), name: name || '' };
+    ['source', 'subject', 'projectType', 'budget', 'tags', 'portalToken'].forEach(function (k) {
+      if (options[k] != null) body[k] = options[k];
+    });
+    if (body.projectType == null && options.project_type != null) body.projectType = options.project_type;
+    var data = await callDmSession(body);
+    await signInWithSessionToken(data.token);
+    return data.conversation;
   }
 
   function rtdbTimestampToIso(value) {
@@ -436,19 +411,11 @@
    */
   async function lookupConversationByEmail(email) {
     email = String(email || '').trim().toLowerCase();
-    if (!email || !window.rtdb || !window.rtdbGet) return null;
-    var metaRoot = window.rtdbRef(window.rtdb, 'dm/meta');
-    var q = window.rtdbQuery(
-      metaRoot,
-      window.rtdbOrderByChild('customerEmail'),
-      window.rtdbEqualTo(email),
-      window.rtdbLimitToFirst(1)
-    );
-    var snap = await promiseWithTimeout(window.rtdbGet(q), 20000);
-    var val = snap.val();
-    if (!val) return null;
-    var id = Object.keys(val)[0];
-    return Object.assign({}, val[id], { id: id });
+    if (!email) return null;
+    var data = await callDmSession({ email: email, lookupOnly: true });
+    if (!data.conversation) return null;
+    await signInWithSessionToken(data.token);
+    return data.conversation;
   }
 
   /**
@@ -507,9 +474,18 @@
 
     var unsubMessages = null;
     var unsubMeta = null;
+    var stopped = false;
     var threadRef = rtdbThreadRef(conversationId);
     var q = window.rtdbQuery(threadRef, window.rtdbOrderByChild('createdAt'), window.rtdbLimitToFirst(200));
 
+    // Listeners only work once this browser holds the conversation's session.
+    ensureCustomerAuth(session).then(start, function (err) {
+      console.warn('Customer DM: could not open session', err);
+      if (typeof callbacks.onError === 'function') callbacks.onError(err);
+    });
+
+    function start() {
+    if (stopped) return;
     unsubMessages = window.rtdbOnValue(q, async function (snap) {
       var val = snap.val() || {};
       var messages = Object.keys(val)
@@ -565,9 +541,11 @@
         })
         .catch(function () {});
     }
+    }
 
     return {
       stop: function () {
+        stopped = true;
         if (unsubMessages && typeof unsubMessages === 'function') unsubMessages();
         if (unsubMeta && typeof unsubMeta === 'function') unsubMeta();
         unsubMessages = null;
@@ -581,6 +559,7 @@
     var body = String(text || '').trim();
     if (!body && !cleanAttachmentUrl) return;
     var displayName = (session && session.customerName) || 'Customer';
+    await ensureCustomerAuth(Object.assign({}, session || {}, { conversationId: conversationId }));
     var msgRef = window.rtdbPush(rtdbThreadRef(conversationId));
     await window.rtdbSet(msgRef, {
       senderRole: 'customer',
@@ -642,6 +621,7 @@
     renderStatusBadgesHtml: renderStatusBadgesHtml,
     getOrCreateConversationForEmail: getOrCreateConversationForEmail,
     lookupConversationByEmail: lookupConversationByEmail,
+    ensureCustomerAuth: ensureCustomerAuth,
     fetchOpeningInquiryMessage: fetchOpeningInquiryMessage,
     buildHireMeInquiryFromConversation: buildHireMeInquiryFromConversation,
     subscribeCustomerThread: subscribeCustomerThread,

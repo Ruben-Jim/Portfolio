@@ -8006,14 +8006,14 @@
   <!--
     - Firebase config
   -->
-  <script src="/assets/js/config.js?v=google-auth-20260527"></script>
+  <script src="/assets/js/config.js?v=security-20261010"></script>
 
   <!--
     - Firebase SDKs
   -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement, goOffline as rtdbGoOffline, goOnline as rtdbGoOnline } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
@@ -8024,6 +8024,8 @@
     window.onAuthStateChanged = onAuthStateChanged;
     window.GoogleAuthProvider = GoogleAuthProvider;
     window.signInWithPopup = signInWithPopup;
+    // Customer inbox sessions from the dmSession function (customer-dm-shared.js).
+    window.signInWithCustomToken = signInWithCustomToken;
     window.getFirestore = getFirestore;
     window.collection = collection;
     window.addDoc = addDoc;
@@ -8503,13 +8505,13 @@
   <script src="/assets/js/care-pricing.js?v=pricing-blocks-20261009"></script>
   <script src="/assets/js/lead-match.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/business-doc-shared.js?v=package-offers-20261005"></script>
-  <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
+  <script src="/assets/js/hire-me-booking.js?v=security-20261010"></script>
+  <script src="/assets/js/customer-dm-shared.js?v=security-20261010"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=lang-param-20261009"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=leads-flow-20261010"></script>
+  <script src="/assets/js/script.js?v=security-20261010"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
   <script src="/assets/js/agency-tools.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>

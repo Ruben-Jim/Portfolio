@@ -22,9 +22,12 @@
     <p class="client-portal-loading">Loading your project…</p>
   </main>
 
-  <script src="/assets/js/config.js?v=portal-dm-overlay-20260606"></script>
+  <script src="/assets/js/config.js?v=security-20261010"></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    // Auth only for the portal chat: a session scoped to the client's own
+    // conversation (dmSession function). Portal data comes from portalApi.
+    import { getAuth, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import {
       getDatabase,
       ref,
@@ -41,6 +44,8 @@
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
     window.initializeApp = initializeApp;
+    window.getAuth = getAuth;
+    window.signInWithCustomToken = signInWithCustomToken;
     window.getDatabase = getDatabase;
     window.rtdbRef = ref;
     window.rtdbGet = get;
@@ -54,13 +59,13 @@
     window.rtdbLimitToFirst = limitToFirst;
     window.rtdbServerTimestamp = serverTimestamp;
   </script>
-  <script src="/assets/js/customer-dm-shared.js?v=portal-dm-overlay-20260606"></script>
+  <script src="/assets/js/customer-dm-shared.js?v=security-20261010"></script>
   <script src="/assets/js/care-pricing.js?v=package-offers-20261005"></script>
   <script src="/assets/js/business-doc-shared.js?v=package-offers-20261005"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <!-- Booking controller: the portal mounts the same flow /schedule uses. -->
-  <script src="/assets/js/hire-me-booking.js?v=portal-booking-20260819h"></script>
-  <script src="/assets/js/client-portal.js?v=package-offers-20261005"></script>
+  <script src="/assets/js/hire-me-booking.js?v=security-20261010"></script>
+  <script src="/assets/js/client-portal.js?v=security-20261010"></script>
 
 </body>
 

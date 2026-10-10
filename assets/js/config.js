@@ -64,6 +64,8 @@ const TESTIMONIAL_BRAND_LOGO = "/assets/images/logo/logo.svg";
 
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
+/** Base for the public JSON endpoints: dmSession (customer inbox), portalApi (client portal). */
+window.CWR_FUNCTIONS_BASE = 'https://us-central1-portfolio-2578e.cloudfunctions.net';
 window.ADMIN_ALLOWLIST_EMAILS = ADMIN_ALLOWLIST_EMAILS;
 window.RESEND_EMAIL_CONFIG = RESEND_EMAIL_CONFIG;
 window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;

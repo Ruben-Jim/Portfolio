@@ -2,182 +2,247 @@
   "rules": {
     "dm": {
       "meta": {
-        ".read": true,
-        ".indexOn": ["updatedAt", "customerEmail"],
+        ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+        ".indexOn": [
+          "updatedAt",
+          "customerEmail"
+        ],
         "$conversationId": {
-          ".write": true
+          ".read": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || (auth != null && auth.token.dmConv === $conversationId)",
+          ".write": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || (auth != null && auth.token.dmConv === $conversationId && data.exists() && newData.exists())",
+          "customerEmail": {
+            ".validate": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || newData.val() == data.val()"
+          },
+          "leadId": {
+            ".validate": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || newData.val() == data.val()"
+          },
+          "agencyProjectId": {
+            ".validate": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || newData.val() == data.val()"
+          },
+          "assignee": {
+            ".validate": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || newData.val() == data.val()"
+          },
+          "priority": {
+            ".validate": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || newData.val() == data.val()"
+          },
+          "createdAt": {
+            ".validate": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || newData.val() == data.val()"
+          }
         }
       },
       "threadMessages": {
-        ".read": true,
+        ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
         "$conversationId": {
-          ".write": true,
-          ".indexOn": ["createdAt"]
+          ".read": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || (auth != null && auth.token.dmConv === $conversationId)",
+          ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+          ".indexOn": [
+            "createdAt"
+          ],
+          "$messageId": {
+            ".write": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || (auth != null && auth.token.dmConv === $conversationId && !data.exists() && newData.child('senderRole').val() === 'customer')",
+            "readByCustomer": {
+              ".write": "auth != null && auth.token.dmConv === $conversationId"
+            },
+            "readAtCustomer": {
+              ".write": "auth != null && auth.token.dmConv === $conversationId"
+            }
+          }
         }
       },
       "presence": {
-        ".read": true,
+        ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
         "$conversationId": {
-          ".write": true,
+          ".read": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || (auth != null && auth.token.dmConv === $conversationId)",
           "admin": {
-            ".write": true
+            ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
           },
           "customer": {
-            ".write": true
+            ".write": "(auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))) || (auth != null && auth.token.dmConv === $conversationId)"
           }
         }
       },
       "magicLinks": {
-        ".read": true,
-        "$token": {
-          ".write": true
-        }
+        ".read": false,
+        ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
       }
     },
     "portfolioProjects": {
       ".read": true,
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "pipelineLeads": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["stage", "updatedAt", "createdAt"]
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "stage",
+        "updatedAt",
+        "createdAt"
+      ]
     },
     "agencyProjects": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["leadId", "updatedAt"],
-      "$projectId": {
-        ".read": true
-      }
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "leadId",
+        "updatedAt"
+      ]
     },
     "agencyMatcherSubmissions": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
       "$submissionId": {
         ".write": "!data.exists()"
       }
     },
     "agencyPricing": {
       ".read": true,
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyMaintenance": {
-      ".read": true,
-      "$maintId": {
-        ".write": true
-      }
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyReferrals": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyStudioCosts": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["renewalDate", "order", "status"]
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "renewalDate",
+        "order",
+        "status"
+      ]
     },
     "agencyStudioDocs": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["order"]
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "order"
+      ]
     },
     "agencyProspects": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["status", "nextAt"]
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "status",
+        "nextAt"
+      ]
     },
     "agencyOutreachScripts": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["order"]
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "order"
+      ]
     },
     "agencyEmailDrafts": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["updatedAt", "leadId"]
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "updatedAt",
+        "leadId"
+      ]
     },
     "agencyClientPortals": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      "$token": {
-        ".read": true
-      }
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyBusinessDocuments": {
-      ".read": true,
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyBusinessDocDeletes": {
-      ".read": true,
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyContractSignatures": {
-      ".read": true,
-      "$docId": {
-        ".write": "!data.exists()",
-        ".validate": "newData.hasChildren(['signedByName', 'agreedToTerms', 'signedAt'])"
-      }
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyFirebaseHealth": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyTimeEntries": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["date", "projectId", "maintenanceId"]
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "date",
+        "projectId",
+        "maintenanceId"
+      ]
     },
     "agencyAvailability": {
       ".read": true,
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "agencyBookedSlots": {
       ".read": true,
       "$slotKey": {
-        ".write": "!data.exists() || (auth != null && auth.token.email == 'ruben.jim.co@gmail.com')"
+        ".write": "!data.exists() || (auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true)))",
+        ".validate": "!newData.exists() || newData.hasChildren(['startISO', 'endISO'])"
       }
     },
     "agencyBookings": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
       "$bookingId": {
-        ".write": "!data.exists() || (auth != null && auth.token.email == 'ruben.jim.co@gmail.com')",
-        ".validate": "!newData.exists() || newData.hasChildren(['name', 'email', 'startISO', 'endISO', 'callTypeId'])"
+        ".write": "!data.exists() || (auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true)))",
+        ".validate": "!newData.exists() || (newData.hasChildren(['name', 'email', 'startISO', 'endISO', 'callTypeId']) && newData.child('name').isString() && newData.child('name').val().length <= 120 && newData.child('email').isString() && newData.child('email').val().length <= 160 && (data.exists() || (!newData.hasChild('leadId') && !newData.hasChild('confirmationSentAt'))))"
       }
     },
     "agencyInboundEmails": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
       ".write": false,
-      ".indexOn": ["receivedAt", "createdAt"]
+      ".indexOn": [
+        "receivedAt",
+        "createdAt"
+      ]
     },
     "agencyInboundDedupe": {
       ".read": false,
       ".write": false
     },
     "agencyOutboundEvents": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
       ".write": false,
-      ".indexOn": ["type", "eventAt", "createdAt"]
+      ".indexOn": [
+        "type",
+        "eventAt",
+        "createdAt"
+      ]
     },
     "agencyOutboundReplies": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".indexOn": ["sentAt", "createdAt", "threadKey", "toEmail"]
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".indexOn": [
+        "sentAt",
+        "createdAt",
+        "threadKey",
+        "toEmail"
+      ]
     },
     "agencyOutboundDedupe": {
       ".read": false,
       ".write": false
     },
     "instagramPosts": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "postDesigns": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
     "postDesignIndex": {
-      ".read": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'",
-      ".write": "auth != null && auth.token.email == 'ruben.jim.co@gmail.com'"
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
+    },
+    "agencyInstallPages": {
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      "$projectId": {
+        ".read": true
+      }
     }
   }
 }

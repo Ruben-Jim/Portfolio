@@ -5,12 +5,31 @@
 (function () {
   'use strict';
 
-  var PATH_PORTALS = 'agencyClientPortals';
-  var PATH_PROJECTS = 'agencyProjects';
   var PATH_PORTFOLIO = 'portfolioProjects';
-  var PATH_BUSINESS_DOCS = 'agencyBusinessDocuments';
-  var PATH_CONTRACT_SIGNATURES = 'agencyContractSignatures';
-  var PATH_MAINTENANCE = 'agencyMaintenance';
+
+  /**
+   * Client data comes from the portalApi function, which checks the link's
+   * token and returns only this client's project, documents, signatures, and
+   * care plan. The browser can't read those paths directly (the security notes (~/Dev/Apps/blueprints/portfolio-security.md, kept out of this public repo)).
+   */
+  var portalTokenCurrent = '';
+
+  async function portalApi(action, fields) {
+    var base = (window.CWR_FUNCTIONS_BASE || 'https://us-central1-portfolio-2578e.cloudfunctions.net').replace(/\/+$/, '');
+    var res = await fetch(base + '/portalApi', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ action: action, token: portalTokenCurrent }, fields || {}))
+    });
+    var data = {};
+    try { data = await res.json(); } catch (e) { /* non-JSON error */ }
+    if (!res.ok || !data.ok) {
+      var err = new Error(data.error || 'Something went wrong. Try again in a moment.');
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
 
   /**
    * How CWR receives portal payments — invoices and maintenance plans both use
@@ -223,17 +242,9 @@
   }
 
   async function loadAllMaintenanceRecords() {
-    if (!rtdbReady()) return [];
-    try {
-      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_MAINTENANCE));
-    } catch (err) {
-      console.warn('Could not load maintenance records for portal:', err);
-      return [];
-    }
-    var val = snap.val();
-    if (!val || typeof val !== 'object') return [];
-    return Object.keys(val).map(function (key) {
-      return normalizeMaintenanceRecord(key, val[key]);
+    var data = await portalApi('load');
+    return (data.maintenance || []).map(function (row) {
+      return normalizeMaintenanceRecord(row.id, row);
     });
   }
 
@@ -831,7 +842,7 @@
    * Zelle / PayPal / Venmo cannot tell us on their own.
    */
   async function submitMaintenancePlanSelection(ctx, tier, billingPref) {
-    if (!rtdbWriteReady() || !ctx) return;
+    if (!ctx) return;
     var feedback = document.getElementById('portal-maint-feedback');
     if (feedback) {
       feedback.textContent = 'Setting up your plan…';
@@ -863,18 +874,16 @@
       payload.promoMonthsLeft = null;
     }
     try {
-      if (ctx.maintId) {
-        delete payload.tickets;
-        await window.rtdbUpdate(
-          window.rtdbRef(window.rtdb, PATH_MAINTENANCE + '/' + ctx.maintId),
-          payload
-        );
-      } else {
-        payload.createdAt = window.rtdbServerTimestamp();
-        var ref = window.rtdbPush(window.rtdbRef(window.rtdb, PATH_MAINTENANCE));
-        await window.rtdbSet(ref, payload);
-        ctx.maintId = ref.key;
-      }
+      // Status, payment state, and the project link are set server-side.
+      var planRes = await portalApi('requestPlan', {
+        planTier: tier,
+        billingPreference: billingPref,
+        hoursIncluded: payload.hoursIncluded,
+        slaHours: payload.slaHours,
+        promoPct: payload.promoPct,
+        promoMonthsLeft: payload.promoMonthsLeft
+      });
+      ctx.maintId = planRes.maintId;
       if (feedback) feedback.textContent = '';
       var allMaint = await loadAllMaintenanceRecords();
       var hubRow = { clientName: ctx.clientName, id: ctx.projectId };
@@ -1091,7 +1100,7 @@
       if (nameLooksGeneric && prefillName && saved.customerEmail) {
         DM.getOrCreateConversationForEmail(saved.customerEmail, prefillName, {
           source: 'client-portal',
-          agencyProjectId: (ctx && ctx.projectId) || ''
+          portalToken: portalTokenCurrent
         })
           .then(function (conv) {
             var fixed = Object.assign({}, saved, { customerName: conv.customerName || prefillName });
@@ -1148,7 +1157,7 @@
           source: 'client-portal',
           subject: 'Client portal message',
           tags: ['client-portal'],
-          agencyProjectId: activeCtx.projectId || ''
+          portalToken: portalTokenCurrent
         })
           .then(function (conv) {
             startPortalDmConversation({
@@ -1896,58 +1905,6 @@
       '" hidden></div>' +
       '</div>'
     );
-  }
-
-  async function loadBusinessDocumentsForHub(hubRow, project) {
-    if (!rtdbReady()) return [];
-    var deletedIds = {};
-    try {
-      var delSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, 'agencyBusinessDocDeletes'));
-      var delVal = delSnap.val();
-      if (delVal && typeof delVal === 'object') deletedIds = delVal;
-    } catch (delErr) {
-      console.warn('Could not load business doc delete markers for portal:', delErr);
-    }
-    try {
-      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_BUSINESS_DOCS));
-    } catch (err) {
-      console.warn('Could not load business documents for portal:', err);
-      return [];
-    }
-    var val = snap.val();
-    if (!val || typeof val !== 'object') return [];
-    var bid = String(hubRow.businessDocId || project.businessDocId || '').trim();
-    var cn = String(hubRow.clientName || project.clientName || '').toLowerCase().trim();
-    var seen = {};
-    var docs = [];
-    Object.keys(val).forEach(function (key) {
-      if (deletedIds[key]) return;
-      var d = Object.assign({ id: key }, val[key] || {});
-      if (!d.id || seen[d.id] || deletedIds[d.id]) return;
-      if (String(d.status || '').toLowerCase() === 'draft') return;
-      var match = false;
-      if (bid && d.id === bid) match = true;
-      else if (cn && String(d.clientName || '').toLowerCase().trim() === cn) match = true;
-      if (!match) return;
-      seen[d.id] = true;
-      docs.push(d);
-    });
-    docs.sort(function (a, b) {
-      return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
-    });
-    return docs;
-  }
-
-  async function loadContractSignatures() {
-    if (!rtdbReady()) return {};
-    try {
-      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_CONTRACT_SIGNATURES));
-      var val = snap.val();
-      return val && typeof val === 'object' ? val : {};
-    } catch (err) {
-      console.warn('Could not load contract signatures for portal:', err);
-      return {};
-    }
   }
 
   function getPortalContractDoc(docId) {
@@ -2828,11 +2785,6 @@
         if (subjEl) subjEl.focus();
         return;
       }
-      if (!rtdbWriteReady() || !window.rtdbGet) {
-        if (feedback) feedback.textContent = 'Could not connect. Try again in a moment.';
-        return;
-      }
-
       btn.disabled = true;
       if (feedback) feedback.textContent = 'Sending…';
 
@@ -2846,19 +2798,13 @@
       };
 
       try {
-        var snap = await window.rtdbGet(
-          window.rtdbRef(window.rtdb, PATH_MAINTENANCE + '/' + maint.id)
-        );
-        var row = snap.val() || {};
-        var list = Array.isArray(row.tickets) ? row.tickets.slice() : [];
-        // Numbered off the freshly-read list so concurrent submits from two
-        // devices cannot both claim the same reference.
-        ticket.ref = makeTicketRef(maint, list);
-        list.push(ticket);
-        await window.rtdbUpdate(
-          window.rtdbRef(window.rtdb, PATH_MAINTENANCE + '/' + maint.id),
-          { tickets: list, updatedAt: window.rtdbServerTimestamp() }
-        );
+        // Numbered server-side in a transaction, so two devices can't claim the same reference.
+        var ticketRes = await portalApi('submitTicket', {
+          title: ticket.title,
+          area: ticket.area,
+          details: ticket.details
+        });
+        ticket = ticketRes.ticket;
 
         if (feedback) feedback.textContent = '';
         if (subjEl) subjEl.value = '';
@@ -2978,28 +2924,21 @@
       }
       return;
     }
-    if (!rtdbWriteReady()) {
-      if (feedback) {
-        feedback.textContent = 'Unable to sign right now. Please try again shortly.';
-        feedback.classList.add('is-error');
-      }
-      return;
-    }
     if (submitBtn) submitBtn.disabled = true;
     if (feedback) {
       feedback.textContent = 'Signing…';
       feedback.classList.remove('is-error');
     }
-    var payload = {
-      docId: docId,
-      signedByName: name,
-      agreedToTerms: true,
-      signedAt: window.rtdbServerTimestamp(),
-      userAgent: (navigator && navigator.userAgent) || '',
-      portalToken: (portalCtx && portalCtx.token) || ''
-    };
+    var payload;
     try {
-      await window.rtdbSet(window.rtdbRef(window.rtdb, PATH_CONTRACT_SIGNATURES + '/' + docId), payload);
+      // The server checks the document belongs to this client and stamps the time.
+      var signRes = await portalApi('signContract', {
+        docId: docId,
+        signedByName: name,
+        agreedToTerms: true,
+        userAgent: (navigator && navigator.userAgent) || ''
+      });
+      payload = signRes.signature;
       if (window.portalContractSignaturesById) window.portalContractSignaturesById[docId] = payload;
       var signBtn = document.querySelector('[data-portal-sign-doc="' + docId + '"]');
       var card = signBtn ? signBtn.closest('.client-portal-doc-card') : null;
@@ -3603,15 +3542,18 @@
     }
 
     try {
-      var linkSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PORTALS + '/' + token));
-      var link = linkSnap.val();
-      if (!link || !link.projectId || (link.expiresAt && link.expiresAt < Date.now())) {
-        renderError(inner, 'This client link is invalid or expired.');
+      portalTokenCurrent = token;
+      var portalData;
+      try {
+        portalData = await portalApi('load');
+      } catch (loadErr) {
+        renderError(inner, loadErr.status === 403 || loadErr.status === 404
+          ? 'This client link is invalid or expired.'
+          : 'Unable to load project data. Please try again later.');
         return;
       }
-
-      var projSnap = await window.rtdbGet(window.rtdbRef(window.rtdb, PATH_PROJECTS + '/' + link.projectId));
-      var hubRow = projSnap.val() || {};
+      var link = portalData.link;
+      var hubRow = portalData.hub || {};
       var project = normalizeProject(link.projectId, hubRow);
       if (window.CarePricing) {
         try { await window.CarePricing.load(); } catch (e) { /* defaults are fine */ }
@@ -3633,24 +3575,14 @@
         adminSectionLabel: 'Admin dashboard'
       };
 
-      var businessDocs = [];
-      var allMaint = [];
-      var contractSignatures = {};
-      try {
-        businessDocs = await loadBusinessDocumentsForHub(hubRow, project);
-      } catch (err) {
-        console.warn('Business documents skipped:', err);
-      }
-      try {
-        contractSignatures = await loadContractSignatures();
-      } catch (err) {
-        console.warn('Contract signatures skipped:', err);
-      }
-      try {
-        allMaint = await loadAllMaintenanceRecords();
-      } catch (err) {
-        console.warn('Maintenance records skipped:', err);
-      }
+      // Already filtered to this client by portalApi.
+      var businessDocs = (portalData.businessDocs || []).slice().sort(function (a, b) {
+        return new Date(b.updatedAt || b.createdAt || 0).getTime() - new Date(a.updatedAt || a.createdAt || 0).getTime();
+      });
+      var contractSignatures = portalData.contractSignatures || {};
+      var allMaint = (portalData.maintenance || []).map(function (row) {
+        return normalizeMaintenanceRecord(row.id, row);
+      });
       var maint = findMaintenanceForHub(hubRow, link.projectId, allMaint);
       var portalCtx = {
         projectId: link.projectId,
