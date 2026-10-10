@@ -69,7 +69,10 @@ const tracked = spawnSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8' }).
 for (const f of tracked) {
   if (/serviceAccount.*\.json$|-firebase-adminsdk-.*\.json$/i.test(f)) fail(`secret file tracked in git: ${f}`);
 }
-const keyHits = spawnSync('git', ['grep', '-l', '-I', '-e', '-----BEGIN PRIVATE KEY-----', '-e', '"private_key":'], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
+// Patterns are split so this file doesn't match its own scan.
+const PEM_HEADER = '-----BEGIN ' + 'PRIVATE KEY-----';
+const JSON_KEY_FIELD = '"private' + '_key":';
+const keyHits = spawnSync('git', ['grep', '-l', '-I', '-e', PEM_HEADER, '-e', JSON_KEY_FIELD], { cwd: ROOT, encoding: 'utf8' }).stdout.trim();
 if (keyHits) fail(`private key material tracked in git: ${keyHits.split('\n').join(', ')}`);
 
 // ---------------------------------------------------------------------------
