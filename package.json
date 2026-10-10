@@ -1,0 +1,11 @@
+{
+  "name": "portfolio",
+  "private": true,
+  "description": "rubenjimenez.dev — static site hosted on EAS Hosting (see scripts/build-site.mjs)",
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "preflight": "node scripts/preflight.mjs",
+    "deploy:preview": "node scripts/build-site.mjs && EXPO_NO_DOTENV=1 npx eas-cli@latest deploy --export-dir _site",
+    "deploy:prod": "node scripts/build-site.mjs && EXPO_NO_DOTENV=1 npx eas-cli@latest deploy --export-dir _site --prod"
+  }
+}

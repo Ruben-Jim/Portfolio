@@ -25,6 +25,9 @@ import vm from 'node:vm';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = join(ROOT, 'index.html');
 const SEO_JS = join(ROOT, 'assets/js/seo.js');
+// Where the route shells + 404.html are written. Default: repo root (GitHub Pages).
+// scripts/build-site.mjs sets SITE_OUT=_site so only the publish folder gets them.
+const OUT = process.env.SITE_OUT ? join(ROOT, process.env.SITE_OUT) : ROOT;
 
 /** Routes that get a physical <route>/index.html shell. */
 const ROUTES = [
@@ -214,7 +217,7 @@ console.log('Syncing SPA shells from index.html\n');
   const templatePath = join(ROOT, 'assets/templates/site-404.html');
   try {
     const branded = readFileSync(templatePath, 'utf8');
-    writeFileSync(join(ROOT, '404.html'), branded);
+    writeFileSync(join(OUT, '404.html'), branded);
     console.log('  ✓ 404.html  →  branded not-found (from assets/templates/site-404.html)');
   } catch (err) {
     failed = true;
@@ -226,8 +229,8 @@ for (const route of ROUTES) {
   const entry = seo.resolve(route);
   const articleSlug = ARTICLE_FOR_ROUTE[route] || route;
   const { html, misses } = stamp(source, entry, seo.ORIGIN, articleSlug);
-  mkdirSync(join(ROOT, route), { recursive: true });
-  writeFileSync(join(ROOT, route, 'index.html'), html);
+  mkdirSync(join(OUT, route), { recursive: true });
+  writeFileSync(join(OUT, route, 'index.html'), html);
   report(`${route}/index.html  →  ${entry.title}`, misses);
 }
 

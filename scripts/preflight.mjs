@@ -43,7 +43,7 @@ const versions = (html) => new Set(html.match(/\.(?:js|css)\?v=[\w.-]+/g) || [])
 const source = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const want = versions(source);
 const shells = readdirSync(ROOT, { withFileTypes: true })
-  .filter((d) => d.isDirectory())
+  .filter((d) => d.isDirectory() && d.name !== '_site') // _site/ is build output (build-site.mjs)
   .map((d) => join(d.name, 'index.html'))
   .filter((p) => {
     try { return readFileSync(join(ROOT, p), 'utf8').includes('script.js?v='); } catch { return false; }

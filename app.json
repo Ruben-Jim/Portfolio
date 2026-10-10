@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "name": "rubenjimenez.dev",
+    "slug": "rubenjimenez-dev",
+    "owner": "rubjim",
+    "extra": {
+      "eas": {
+        "projectId": "b98b68d9-495c-4df5-b5c8-c630da8689c7"
+      }
+    }
+  }
+}

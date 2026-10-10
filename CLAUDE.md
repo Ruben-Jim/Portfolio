@@ -6,7 +6,8 @@
 CWR's marketing site, plus the admin hub (pipeline CRM, DM inbox, blog/portfolio admin, bookings) and the client portal. **Legacy stack: plain HTML/CSS/JS. Don't hold it to the Expo rules.** A migration is planned but not scheduled.
 
 ### Stack in this repo
-- Static pages hosted on GitHub Pages (`CNAME`). SPA routes like `/admin` are served through `404.html`.
+- **Hosting is moving from GitHub Pages to EAS Hosting** (project `@rubjim/rubenjimenez-dev`). `npm run build` → `scripts/build-site.mjs` copies ONLY the public files into `_site/` (gitignored) and generates the route shells there. `npm run deploy:preview` / `deploy:prod` publish `_site/`. Never publish the repo root: `functions/`, `scripts/`, rules, and docs must stay private. A new public page or asset folder goes in `PUBLIC` in `build-site.mjs`.
+- Until the DNS cutover, GitHub Pages still serves the repo root (`CNAME`) and the committed route shells.
 - Firebase project `portfolio-2578e`: Firestore (`firestore.rules`), RTDB (`database.rules.json`), and Storage (`storage.rules`)
 - Cloud Functions (plain JS): `functions/index.js`, `dm-session.js`, `portal-api.js`, `inbound-leads.js`, `lead-match.js`, and the email templates. Email goes through Resend (`RESEND_SETUP.md`).
 - The security model is the imported `portfolio-security.md`. **The README's admin section (`admin123`, open rules) is outdated.** Trust the security file.

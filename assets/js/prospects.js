@@ -19,6 +19,11 @@
   var PATH = 'agencyProspects';
   var PIPELINE_PATH = 'pipelineLeads';
   var DAILY_GOAL = 30;
+  // Council plan (2026-10-10): quote at least 3 explicit prices a day.
+  var QUOTE_GOAL = 3;
+  // One-tap deposit text (card → "Text deposit").
+  var DEPOSIT_AMOUNT = 250;
+  var ZELLE_ID = 'ruben.jim.co@gmail.com';
 
   var STATUS = {
     new: 'New',
@@ -42,6 +47,10 @@
     { id: 'talked', label: 'Talked', status: 'replied', next: 2 },
     { id: 'replied', label: 'They replied', status: 'replied', next: 1 },
     { id: 'wants-mockup', label: 'Wants mockup', status: 'mockup', next: 1, promote: true },
+    // A deposit link carries a price, so both count toward the daily quote goal.
+    { id: 'quoted', label: 'Price quoted', status: 'replied', next: 1, quote: true },
+    { id: 'deposit-sent', label: 'Deposit link sent', status: 'replied', next: 1, quote: true },
+    { id: 'paid', label: 'Deposit paid', status: 'mockup', next: 1, promote: true, paid: true },
     { id: 'not-interested', label: 'Not interested', status: 'dead' },
     { id: 'bad-number', label: 'Wrong number', status: 'dead' }
   ];
@@ -254,6 +263,9 @@
     var today = dateKey(now);
     var contactedToday = 0;
     var repliesToday = 0;
+    var quotedToday = 0;
+    var depositsSentToday = 0;
+    var paidToday = 0;
     var niches = {};
     list.forEach(function (p) {
       var touches = touchList(p);
@@ -262,6 +274,9 @@
       if (todays.some(function (t) { var o = OUTCOME_BY_ID[t.kind]; return o && !o.outbound && o.status !== 'dead'; })) {
         repliesToday += 1;
       }
+      if (todays.some(function (t) { return (OUTCOME_BY_ID[t.kind] || {}).quote; })) quotedToday += 1;
+      if (todays.some(function (t) { return t.kind === 'deposit-sent'; })) depositsSentToday += 1;
+      if (todays.some(function (t) { return t.kind === 'paid'; })) paidToday += 1;
       var key = p.niche || 'Other';
       var row = niches[key] || (niches[key] = { niche: key, total: 0, contacted: 0, replied: 0, mockup: 0, promoted: 0 });
       row.total += 1;
@@ -275,11 +290,30 @@
     return {
       contactedToday: contactedToday,
       repliesToday: repliesToday,
+      quotedToday: quotedToday,
+      depositsSentToday: depositsSentToday,
+      paidToday: paidToday,
       due: list.filter(function (p) { return isDue(p, today) && p.status !== 'new'; }).length,
       fresh: list.filter(function (p) { return p.status === 'new'; }).length,
       niches: Object.keys(niches).map(function (k) { return niches[k]; })
         .sort(function (a, b) { return b.total - a.total; })
     };
+  }
+
+  /** Prefilled deposit text for the one-tap SMS link. */
+  function depositMessage(p) {
+    var first = String((p && p.owner) || '').trim().split(/\s+/)[0];
+    return (first ? 'Hi ' + first + ', ' : 'Hi, ') +
+      'the deposit to start is $' + DEPOSIT_AMOUNT + ' (half up front, the rest at milestone and launch). ' +
+      'Easiest is Apple Cash right here in Messages, or Zelle ' + ZELLE_ID + '. ' +
+      'Once it lands I lock in your start date. — Ruben, CodeWithRuben';
+  }
+
+  /** sms: link with the body prefilled. `?&body=` opens correctly on both iOS and Android. */
+  function depositSmsHref(p) {
+    var tel = digits(p && p.phone);
+    if (!tel) return '';
+    return 'sms:' + (tel.length === 10 ? '+1' + tel : tel) + '?&body=' + encodeURIComponent(depositMessage(p));
   }
 
   function csvCell(v) {
@@ -640,6 +674,10 @@
         '<div class="prospects-goal-bar" role="progressbar" aria-label="Businesses contacted today" aria-valuemin="0" aria-valuemax="' + DAILY_GOAL + '" aria-valuenow="' + s.contactedToday + '"><span style="width:' + pct + '%"></span></div>' +
         '<div class="prospects-goal-meta">' + s.repliesToday + ' repl' + (s.repliesToday === 1 ? 'y' : 'ies') + ' · ' +
           s.due + ' due · ' + s.fresh + ' new</div>' +
+        '<div class="prospects-goal-meta prospects-goal-money">' +
+          '<strong>' + s.quotedToday + '</strong>/' + QUOTE_GOAL + ' prices quoted · ' +
+          s.depositsSentToday + ' deposit link' + (s.depositsSentToday === 1 ? '' : 's') + ' · ' +
+          s.paidToday + ' paid</div>' +
         (nicheRows
           ? '<button type="button" class="prospects-niche-toggle" data-act="toggle-niches" aria-expanded="' + (showNiches ? 'true' : 'false') + '">' +
               (showNiches ? 'Hide niches' : 'Niche breakdown') + '</button>'
@@ -717,6 +755,7 @@
       '<p class="prospect-next">' + nextLine + (last ? ' · last: ' + esc((OUTCOME_BY_ID[last.kind] || {}).label || last.kind) + ' ' + esc(dateKey(new Date(last.at))) : '') + '</p>' +
       '<div class="prospect-actions">' +
         (p.scriptId ? '<button type="button" class="outreach-btn outreach-btn--primary" data-act="script">Open script</button>' : '') +
+        (tel && st !== 'dead' ? '<a class="outreach-btn" data-act="deposit-text" href="' + esc(depositSmsHref(p)) + '">Text deposit ($' + DEPOSIT_AMOUNT + ')</a>' : '') +
         ((st === 'replied' || st === 'mockup') && !p.leadId ? '<button type="button" class="outreach-btn outreach-btn--pipeline" data-act="promote">Add to pipeline</button>' : '') +
         '<button type="button" class="outreach-btn" data-act="toggle" aria-expanded="' + (open ? 'true' : 'false') + '">' + (open ? 'Close' : 'Log outcome') + '</button>' +
       '</div>' +
@@ -849,6 +888,8 @@
         renderScore();
       }
       else if (act === 'script') openScript(id);
+      // The link opens Messages; log the touch so it counts toward today's quotes.
+      else if (act === 'deposit-text') run(logTouch(id, 'deposit-sent', 'One-tap deposit text ($' + DEPOSIT_AMOUNT + ')'));
       else if (act === 'promote') run(promote(id));
       else if (act === 'save') {
         var c = btn.closest('.prospect-card');
@@ -953,7 +994,7 @@
     OUTCOME_LABELS: OUTCOMES.reduce(function (acc, o) { acc[o.id] = o.label; return acc; }, {}),
     _test: {
       parseTable: parseTable, rowsToProspects: rowsToProspects, dedupe: dedupe, applyOutcome: applyOutcome,
-      isDue: isDue, websiteKind: websiteKind, sortProspects: sortProspects, scoreboard: scoreboard, toCsv: toCsv, dateKey: dateKey, addDays: addDays
+      isDue: isDue, websiteKind: websiteKind, sortProspects: sortProspects, scoreboard: scoreboard, toCsv: toCsv, depositMessage: depositMessage, depositSmsHref: depositSmsHref, dateKey: dateKey, addDays: addDays
     }
   };
 

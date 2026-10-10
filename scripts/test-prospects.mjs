@@ -118,6 +118,21 @@ ok(sb.contactedToday === 2 && sb.repliesToday === 1, 'scoreboard counts business
 const tree = sb.niches.find((n) => n.niche === 'Tree');
 ok(tree.contacted === 2 && tree.replied === 1, 'per-niche contacted / replied');
 
+// ——— money metrics (council plan: ≥3 prices quoted a day) ———
+ok(T.applyOutcome({ status: 'working', touches: {} }, 'quoted', day('2026-10-15')).status === 'replied', 'price quoted → replied');
+ok(T.applyOutcome({ status: 'working', touches: {} }, 'paid', day('2026-10-15')).status === 'mockup', 'deposit paid → mockup (then promoted)');
+const money = T.scoreboard([
+  { niche: 'Tree', status: 'replied', touches: { a: { at: now.getTime(), kind: 'quoted' } } },
+  { niche: 'Tree', status: 'replied', touches: { a: { at: now.getTime(), kind: 'deposit-sent' } } },
+  { niche: 'Lawn', status: 'mockup', touches: { a: { at: now.getTime(), kind: 'paid' } } },
+  { niche: 'Lawn', status: 'working', touches: { a: { at: now.getTime() - 3 * 86400000, kind: 'quoted' } } }
+], now);
+ok(money.quotedToday === 2, 'quoted + deposit-sent count as prices quoted today, old quotes do not (got ' + money.quotedToday + ')');
+ok(money.depositsSentToday === 1 && money.paidToday === 1, 'deposit links + paid counted today');
+const href = T.depositSmsHref({ owner: 'Maria Lopez', phone: '(559) 555-0123' });
+ok(href.startsWith('sms:+15595550123?&body=') && decodeURIComponent(href).includes('Hi Maria,') && decodeURIComponent(href).includes('$250'), 'deposit sms link: +1 number, first name, amount');
+ok(T.depositSmsHref({ phone: '' }) === '', 'no phone → no deposit link');
+
 const out = T.toCsv([{ business: 'A, "B"', status: 'new', touches: {} }]);
 ok(out.split('\n')[1].startsWith('"A, ""B"""'), 'export escapes commas and quotes');
 
