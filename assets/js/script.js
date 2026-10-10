@@ -7700,19 +7700,21 @@ function initPackageExamplesSheet() {
 const navigationLinks = document.querySelectorAll("[data-nav-link]");
 const pages = document.querySelectorAll("[data-page]");
 
+// 480px thumbnails (assets/images/landing-marquee/) — the tiles render ~140px wide,
+// so the full-size project images cost ~880 KB for no visible gain.
 var LANDING_MARQUEE_PROJECTS = [
-  { src: '/assets/images/projects/procleaning/procleaning1.webp' },
-  { src: '/assets/images/projects/tradeservice/tradeservice-demo-poster.webp' },
-  { src: '/assets/images/projects/realtor-template/listing-desktop.webp' },
-  { src: '/assets/images/projects/barbershop/barbershop-1.webp' },
-  { src: '/assets/images/projects/lawncare/lawncare.webp' },
-  { src: '/assets/images/projects/rosasalon/rosasalon-1.webp' },
-  { src: '/assets/images/projects/homecontractors/homecontractors-demo-poster.webp' },
-  { src: '/assets/images/projects/pawshine/pawshine-demo-poster.webp' },
-  { src: '/assets/images/projects/inktattoo/inktattoo-demo-poster.webp' },
-  { src: '/assets/images/projects/sheltonsprings/sheltonsprings.webp' },
-  { src: '/assets/images/projects/grippysocks/grippysocks.webp' },
-  { src: '/assets/images/projects/rizopizzeria/rizopizzeria.webp' }
+  { src: '/assets/images/landing-marquee/procleaning.webp' },
+  { src: '/assets/images/landing-marquee/tradeservice.webp' },
+  { src: '/assets/images/landing-marquee/realtor-template.webp' },
+  { src: '/assets/images/landing-marquee/barbershop.webp' },
+  { src: '/assets/images/landing-marquee/lawncare.webp' },
+  { src: '/assets/images/landing-marquee/rosasalon.webp' },
+  { src: '/assets/images/landing-marquee/homecontractors.webp' },
+  { src: '/assets/images/landing-marquee/pawshine.webp' },
+  { src: '/assets/images/landing-marquee/inktattoo.webp' },
+  { src: '/assets/images/landing-marquee/sheltonsprings.webp' },
+  { src: '/assets/images/landing-marquee/grippysocks.webp' },
+  { src: '/assets/images/landing-marquee/rizopizzeria.webp' }
 ];
 
 function buildLandingMarqueeTile(project, eager) {
@@ -7721,15 +7723,20 @@ function buildLandingMarqueeTile(project, eager) {
 
 function buildLandingMarqueeColumn(projects, direction, extraClass) {
   if (!projects.length) return '';
-  var tiles = projects.map(function (project, index) {
-    return buildLandingMarqueeTile(project, index === 0);
+  // The first copy is on screen at first paint (the down column starts mid-track),
+  // so it loads eagerly; the looping duplicate stays lazy.
+  var tiles = projects.map(function (project) {
+    return buildLandingMarqueeTile(project, true);
+  }).join('');
+  var loopTiles = projects.map(function (project) {
+    return buildLandingMarqueeTile(project, false);
   }).join('');
   var dirClass = direction === 'down' ? ' cwr-landing-marquee-col--down' : ' cwr-landing-marquee-col--up';
   var extra = extraClass ? ' ' + extraClass : '';
   return '<div class="cwr-landing-marquee-col' + dirClass + extra + '">' +
     '<div class="cwr-landing-marquee-track">' +
     '<ul class="cwr-landing-tiles">' + tiles + '</ul>' +
-    '<ul class="cwr-landing-tiles" aria-hidden="true">' + tiles + '</ul>' +
+    '<ul class="cwr-landing-tiles" aria-hidden="true">' + loopTiles + '</ul>' +
     '</div></div>';
 }
 
@@ -13228,6 +13235,12 @@ window.addEventListener('load', function() {
   };
 
   function afterAdminSessionReady() {
+    // Admin scripts (agency tools, post builder, outreach…) aren't on public pages;
+    // load them before anything subscribes to admin data or listens for adminSessionReady.
+    if (typeof window.loadAdminBundle === 'function' && !window.__adminBundleLoaded) {
+      window.loadAdminBundle().then(afterAdminSessionReady);
+      return;
+    }
     showDashboard();
     if (typeof fetchMessages === 'function') fetchMessages();
     if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
@@ -24631,8 +24644,13 @@ function initHomeHeroEaseIn(homeArticle) {
     initLandingOfferDots(homeArticle);
   }
 
+  // On slow phones this runs seconds after the hero has already painted; hiding it
+  // then (opacity 0 + fade) makes it flash away and back, and delays LCP to the
+  // end of the fade. Only animate when we get here before it's been seen.
+  var heroAlreadySeen = performance.now() > 1000;
+
   var copy = homeArticle.querySelector('[data-cwr-landing-reveal]');
-  if (copy) {
+  if (copy && !heroAlreadySeen) {
     var parts = copy.querySelectorAll(
       '.cwr-landing-title, .cwr-landing-offer, .cwr-landing-price, .cwr-landing-proof, .cwr-landing-actions'
     );
@@ -24650,10 +24668,12 @@ function initHomeHeroEaseIn(homeArticle) {
         }
       });
     });
+  } else if (copy && typeof initLandingOfferTypewriter === 'function') {
+    initLandingOfferTypewriter(homeArticle);
   }
 
   var visual = homeArticle.querySelector('.cwr-landing-visual-stage');
-  if (visual) {
+  if (visual && !heroAlreadySeen) {
     visual.classList.add('cwr-ease-in');
     visual.style.transitionDelay = '150ms';
     requestAnimationFrame(function () {
@@ -26089,8 +26109,8 @@ document.addEventListener('DOMContentLoaded', function () {
       '<div class="dm-customer-auth" id="dm-customer-auth">',
       '<form id="dm-portal-open-form" class="form">',
       '<div class="input-wrapper">',
-      '<input type="text" id="dm-portal-name" class="form-input" placeholder="Your name" required>',
-      '<input type="email" id="dm-portal-email" class="form-input" placeholder="Your email" required>',
+      '<input type="text" id="dm-portal-name" class="form-input" aria-label="Your name" placeholder="Your name" autocomplete="name" required>',
+      '<input type="email" id="dm-portal-email" class="form-input" aria-label="Your email" placeholder="Your email" autocomplete="email" required>',
       '</div>',
       '<p id="dm-portal-status" class="dm-portal-status" role="status" aria-live="polite"></p>',
       '<button class="form-btn" type="submit"><ion-icon name="chatbubbles-outline"></ion-icon><span>Open my conversation</span></button>',

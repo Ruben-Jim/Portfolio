@@ -171,6 +171,29 @@ function stamp(html, seoEntry, origin, articleSlug) {
 
 // --- main ------------------------------------------------------------------
 
+// --- landing marquee: render it into index.html ---------------------------
+// The marquee tiles are the homepage's LCP on phones. Built by script.js they
+// can't start loading until that (large) bundle runs, so we render the same
+// markup into the raw HTML from LANDING_MARQUEE_PROJECTS in script.js, which
+// stays the single source. script.js skips its rebuild when data-marquee-ready="1".
+function stampLandingMarquee() {
+  const js = readFileSync(join(ROOT, 'assets/js/script.js'), 'utf8');
+  const start = js.indexOf('var LANDING_MARQUEE_PROJECTS');
+  const end = js.indexOf('window.initLandingProjectMarquee');
+  if (start < 0 || end < 0) throw new Error('marquee code not found in script.js');
+  const stage = { dataset: {}, innerHTML: '' };
+  vm.runInNewContext(js.slice(start, end) + '\ninitLandingProjectMarquee();', {
+    document: { querySelector: () => stage }
+  });
+  const html = readFileSync(SRC, 'utf8');
+  const re = /<div class="cwr-landing-visual-stage" data-landing-marquee[^>]*>[\s\S]*?<\/div><!-- \/landing-marquee -->|<div class="cwr-landing-visual-stage" data-landing-marquee><\/div>/;
+  if (!re.test(html)) throw new Error('marquee stage not found in index.html');
+  const out = html.replace(re, '<div class="cwr-landing-visual-stage" data-landing-marquee data-marquee-ready="1">' + stage.innerHTML + '</div><!-- /landing-marquee -->');
+  writeFileSync(SRC, out);
+  console.log('  ✓ index.html  →  landing marquee rendered into HTML');
+}
+stampLandingMarquee();
+
 const seo = loadSeo();
 const source = readFileSync(SRC, 'utf8');
 let failed = false;

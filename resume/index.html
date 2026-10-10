@@ -222,7 +222,7 @@
             <span class="client-portal-recovery-chevron" aria-hidden="true"><ion-icon name="chevron-down"></ion-icon></span>
           </button>
           <form class="client-portal-recovery-form" id="client-portal-recovery-form" hidden>
-            <input type="email" class="form-input client-portal-recovery-input" id="client-portal-recovery-email" data-i18n-ph="portal.recovery_email_ph" placeholder="Your client email" autocomplete="email" required>
+            <input aria-label="Your client email" type="email" class="form-input client-portal-recovery-input" id="client-portal-recovery-email" data-i18n-ph="portal.recovery_email_ph" placeholder="Your client email" autocomplete="email" required>
             <p class="client-portal-recovery-status" id="client-portal-recovery-status" role="status" aria-live="polite" hidden></p>
             <button type="submit" class="client-portal-recovery-submit" data-i18n="portal.recovery_submit">Email me my portal link</button>
           </form>
@@ -369,7 +369,7 @@
             </div>
             <div class="cwr-landing-visual" aria-hidden="true">
               <div class="cwr-landing-visual-fade" aria-hidden="true"></div>
-              <div class="cwr-landing-visual-stage" data-landing-marquee></div>
+              <div class="cwr-landing-visual-stage" data-landing-marquee data-marquee-ready="1"><div class="cwr-landing-marquee"><div class="cwr-landing-marquee-col cwr-landing-marquee-col--up cwr-landing-marquee-col--fast"><div class="cwr-landing-marquee-track"><ul class="cwr-landing-tiles"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/procleaning.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/tradeservice.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/realtor-template.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/barbershop.webp" alt="" loading="eager"></li></ul><ul class="cwr-landing-tiles" aria-hidden="true"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/procleaning.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/tradeservice.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/realtor-template.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/barbershop.webp" alt="" loading="lazy"></li></ul></div></div><div class="cwr-landing-marquee-col cwr-landing-marquee-col--down"><div class="cwr-landing-marquee-track"><ul class="cwr-landing-tiles"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/lawncare.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/rosasalon.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/homecontractors.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/pawshine.webp" alt="" loading="eager"></li></ul><ul class="cwr-landing-tiles" aria-hidden="true"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/lawncare.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/rosasalon.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/homecontractors.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/pawshine.webp" alt="" loading="lazy"></li></ul></div></div><div class="cwr-landing-marquee-col cwr-landing-marquee-col--up cwr-landing-marquee-col--slow"><div class="cwr-landing-marquee-track"><ul class="cwr-landing-tiles"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/inktattoo.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/sheltonsprings.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/grippysocks.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/rizopizzeria.webp" alt="" loading="eager"></li></ul><ul class="cwr-landing-tiles" aria-hidden="true"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/inktattoo.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/sheltonsprings.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/grippysocks.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/rizopizzeria.webp" alt="" loading="lazy"></li></ul></div></div></div></div><!-- /landing-marquee -->
             </div>
           </div>
         </section>
@@ -2709,8 +2709,8 @@
           </p>
           <form class="hire-inquiry-recall-form" data-hire-inquiry-recall-form hidden>
             <div class="hire-inquiry-recall-fields">
-              <input type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
-              <input type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
+              <input aria-label="Email address" type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
+              <input aria-label="Name (optional)" type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
             </div>
             <p class="hire-inquiry-recall-status" data-hire-inquiry-recall-status role="status" aria-live="polite" hidden></p>
             <button type="submit" class="hire-inquiry-recall-submit">Open my inquiry</button>
@@ -2780,8 +2780,8 @@
 
             <form class="form" data-form>
               <div class="input-wrapper">
-                <input type="text" name="fullname" class="form-input" placeholder="Full name" data-i18n-ph="contact.ph_name" required data-form-input>
-                <input type="email" name="email" class="form-input" placeholder="Email address" data-i18n-ph="contact.ph_email" required data-form-input>
+                <input aria-label="Full name" type="text" name="fullname" class="form-input" placeholder="Full name" data-i18n-ph="contact.ph_name" autocomplete="name" required data-form-input>
+                <input aria-label="Email address" type="email" name="email" class="form-input" placeholder="Email address" data-i18n-ph="contact.ph_email" autocomplete="email" required data-form-input>
               </div>
               <div class="hire-package-select-wrap">
                 <label class="hire-package-select-label" id="hire-package-select-label" data-i18n="hire.package_label">Package or service</label>
@@ -2809,7 +2809,7 @@
                   <button type="button" class="hire-package-hint-link" data-i18n="hire.package_hint_link" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See package details</button>
                 </p>
               </div>
-              <textarea name="message" class="form-input" placeholder="Walk me through your idea — what it does, who it's for, and your rough timeline." required data-form-input></textarea>
+              <textarea aria-label="Walk me through your idea — what it does, who it's for, and your rough timeline." name="message" class="form-input" placeholder="Walk me through your idea — what it does, who it's for, and your rough timeline." required data-form-input></textarea>
 
               <button class="form-btn" type="submit" disabled data-form-btn>
                 <ion-icon name="paper-plane-outline"></ion-icon>
@@ -3097,8 +3097,8 @@
             </p>
             <form class="hire-inquiry-recall-form" data-contact-conversation-recall-form hidden>
               <div class="hire-inquiry-recall-fields">
-                <input type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
-                <input type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
+                <input aria-label="Email address" type="email" name="email" class="form-input hire-inquiry-recall-input" placeholder="Email address" required autocomplete="email">
+                <input aria-label="Name (optional)" type="text" name="name" class="form-input hire-inquiry-recall-input" placeholder="Name (optional)" autocomplete="name">
               </div>
               <p class="hire-inquiry-recall-status" data-contact-conversation-recall-status role="status" aria-live="polite" hidden></p>
               <button type="submit" class="hire-inquiry-recall-submit">Open my conversation</button>
@@ -3108,12 +3108,12 @@
           <form class="form" data-form>
 
             <div class="input-wrapper">
-              <input type="text" name="fullname" class="form-input" placeholder="Full name" data-i18n-ph="contact.ph_name" required data-form-input>
+              <input aria-label="Full name" type="text" name="fullname" class="form-input" placeholder="Full name" data-i18n-ph="contact.ph_name" autocomplete="name" required data-form-input>
 
-              <input type="email" name="email" class="form-input" placeholder="Email address" data-i18n-ph="contact.ph_email" required data-form-input>
+              <input aria-label="Email address" type="email" name="email" class="form-input" placeholder="Email address" data-i18n-ph="contact.ph_email" autocomplete="email" required data-form-input>
             </div>
 
-            <textarea name="message" class="form-input" placeholder="Your quick question or note" data-i18n-ph="contact.ph_message" required data-form-input></textarea>
+            <textarea aria-label="Your quick question or note" name="message" class="form-input" placeholder="Your quick question or note" data-i18n-ph="contact.ph_message" required data-form-input></textarea>
 
             <button class="form-btn" type="submit" disabled data-form-btn>
               <ion-icon name="paper-plane"></ion-icon>
@@ -8081,10 +8081,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
-  <!--
-    - html2pdf.js for Business Docs PDFs
-  -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <!--
     - custom js link
@@ -8509,17 +8505,53 @@
   <script src="/assets/js/customer-dm-shared.js?v=security-20261010"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/i18n.js?v=lang-param-20261009"></script>
-  <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=security-20261010"></script>
+  <script src="/assets/js/i18n.js?v=lcp-labels-20261010"></script>
+  <!--
+    - Admin-only scripts: loaded on /admin or after admin sign-in, never for
+      public visitors (they were ~220 KB gz of the homepage). Order matches the
+      old <script> tags. Keep the ?v= cache-busters here.
+  -->
+  <script>
+    (function () {
+      var CLASSIC = [
+        { src: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', integrity: 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==' },
+        { src: '/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729' },
+        { src: '/assets/js/agency-tools.js?v=leads-flow-20261010' },
+        { src: '/assets/js/ig-posts.js?v=ig-library-20260827' },
+        { src: '/assets/js/outreach-composer.js?v=leads-flow-20261010' },
+        { src: '/assets/js/prospects.js?v=leads-flow-20261010' },
+        { src: '/assets/js/dm-migration.js' }
+      ];
+      var MODULE = '/assets/js/post-builder/index.js?v=pb2';
+      var pending = null;
+      window.loadAdminBundle = function () {
+        if (pending) return pending;
+        pending = new Promise(function (resolve) {
+          var left = CLASSIC.length + 1;
+          var done = function () { if (--left === 0) { window.__adminBundleLoaded = true; resolve(); } };
+          CLASSIC.forEach(function (item) {
+            var s = document.createElement('script');
+            s.src = item.src;
+            s.async = false; // run in list order
+            if (item.integrity) { s.integrity = item.integrity; s.crossOrigin = 'anonymous'; s.referrerPolicy = 'no-referrer'; }
+            s.onload = s.onerror = done;
+            document.body.appendChild(s);
+          });
+          var m = document.createElement('script');
+          m.type = 'module';
+          m.src = MODULE;
+          m.onload = m.onerror = done;
+          document.body.appendChild(m);
+        });
+        return pending;
+      };
+      if (/^\/admin(\/|$)/.test(location.pathname)) {
+        document.addEventListener('DOMContentLoaded', function () { window.loadAdminBundle(); });
+      }
+    })();
+  </script>
+  <script src="/assets/js/script.js?v=admin-lazy-20261010"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=leads-flow-20261010"></script>
-  <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
-  <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
-  <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=leads-flow-20261010"></script>
-  <script src="/assets/js/prospects.js?v=leads-flow-20261010"></script>
-  <script src="/assets/js/dm-migration.js"></script>
 
   <!--
     - ionicons link

@@ -539,7 +539,10 @@
     document.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
       var key = el.getAttribute('data-i18n-ph');
       var val = CWR_I18N[lang][key];
-      if (val !== undefined) el.placeholder = val;
+      if (val === undefined) return;
+      el.placeholder = val;
+      // Placeholder-only fields carry the same text as their accessible name.
+      if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', val);
     });
 
     document.querySelectorAll('.cwr-lang-btn').forEach(function (btn) {
