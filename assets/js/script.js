@@ -6667,6 +6667,9 @@ form.addEventListener("submit", async function(e) {
           message: String(message),
           project_type: String(projectType),
           budget: String(budget),
+          // Package id (e.g. "website") — the leadFromInquiry function uses it
+          // for the lead's package, value, and live offer price.
+          package_id: String(formData.get('hire-package') || ''),
           submittedAt: new Date().toISOString()
         };
         try {
@@ -20898,7 +20901,7 @@ window.addEventListener('load', function() {
   });
 
   // ----------------------------
-  // Client Pipeline (Realtime Database: pipelineLeads)
+  // Leads Pipeline (Realtime Database: pipelineLeads)
   // ----------------------------
 
   var PIPELINE_RTD_PATH = 'pipelineLeads';
@@ -20997,15 +21000,61 @@ window.addEventListener('load', function() {
       referral: 'Referral',
       social: 'Social',
       cold: 'Cold outreach',
+      website: 'Website',
       other: 'Other'
     };
     return map[source] || source;
   }
 
+  // Timeline entries from Prospects, Outreach Scripts, and website inquiries.
+  var PIPELINE_HISTORY_LABELS = {
+    texted: 'Texted', emailed: 'Emailed', dm: 'DM sent', 'walked-in': 'Walked in',
+    'no-answer': 'Called · no answer', voicemail: 'Called · voicemail', talked: 'Talked',
+    replied: 'They replied', 'wants-mockup': 'Wants mockup',
+    inquiry: 'Hire Me inquiry', contact: 'Contact message', 'booked-call': 'Booked a call'
+  };
+  var PIPELINE_HISTORY_FROM = { prospect: 'Prospects', outreach: 'Outreach Scripts', website: 'Website' };
+
+  function pipelineHistoryList(lead) {
+    var h = lead && lead.history;
+    if (!h || typeof h !== 'object') return [];
+    return Object.keys(h).map(function (k) { return h[k]; })
+      .filter(function (e) { return e && e.at; })
+      .sort(function (a, b) { return b.at - a.at; });
+  }
+
+  function buildLeadHistoryHtml(lead) {
+    var items = pipelineHistoryList(lead);
+    var links = [];
+    if (lead.dmConversationId) {
+      links.push('<button type="button" class="btn btn-secondary btn-sm" data-lead-open-dm="' +
+        escapeHtml(lead.dmConversationId) + '"><ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon> Open conversation</button>');
+    }
+    if (lead.prospectId) {
+      links.push('<button type="button" class="btn btn-secondary btn-sm" data-lead-open-prospects><ion-icon name="search-outline" aria-hidden="true"></ion-icon> From Prospects</button>');
+    }
+    if (!items.length && !links.length) return '';
+    return '<div class="lead-drawer-history">' +
+      '<h4 class="h4">History</h4>' +
+      (links.length ? '<div class="lead-drawer-history-links">' + links.join('') + '</div>' : '') +
+      (items.length
+        ? '<ol class="lead-drawer-history-list">' + items.slice(0, 30).map(function (e) {
+            var when = formatDateDisplay(new Date(e.at).toISOString());
+            return '<li><span class="lead-drawer-history-what">' + escapeHtml(PIPELINE_HISTORY_LABELS[e.kind] || e.kind) + '</span>' +
+              '<span class="lead-drawer-history-meta">' + escapeHtml(when) +
+              (PIPELINE_HISTORY_FROM[e.from] ? ' · ' + escapeHtml(PIPELINE_HISTORY_FROM[e.from]) : '') + '</span>' +
+              (e.note ? '<span class="lead-drawer-history-note">' + escapeHtml(e.note) + '</span>' : '') + '</li>';
+          }).join('') + '</ol>'
+        : '') +
+      '</div>';
+  }
+
   // Outreach is a map of method -> when it was last logged, so a lead can carry
   // several touches at once and the card can surface the most recent one.
-  var PIPELINE_OUTREACH_METHODS = ['email', 'text', 'call'];
-  var PIPELINE_OUTREACH_LABELS = { email: 'Emailed', text: 'Texted', call: 'Called' };
+  var PIPELINE_OUTREACH_METHODS = ['email', 'text', 'call', 'dm', 'visit'];
+  var PIPELINE_OUTREACH_LABELS = { email: 'Emailed', text: 'Texted', call: 'Called', dm: 'DM sent', visit: 'Walked in' };
+  /** Methods you can tick by hand in the lead drawer; dm / visit come from Prospects. */
+  var PIPELINE_OUTREACH_MANUAL = ['email', 'text', 'call'];
 
   function normalizePipelineOutreach(raw) {
     var out = {};
@@ -21050,7 +21099,7 @@ window.addEventListener('load', function() {
     var projectType = String(row.projectType || 'web').toLowerCase();
     if (['web', 'app', 'both', 'other'].indexOf(projectType) < 0) projectType = 'web';
     var source = String(row.source || 'other').toLowerCase();
-    if (['dm', 'email', 'referral', 'social', 'cold', 'other'].indexOf(source) < 0) source = 'other';
+    if (['dm', 'email', 'referral', 'social', 'cold', 'website', 'other'].indexOf(source) < 0) source = 'other';
     return {
       id: id,
       name: String(row.name || '').trim().slice(0, 120),
@@ -21075,10 +21124,28 @@ window.addEventListener('load', function() {
       packageId: String(row.packageId || '').slice(0, 40),
       packageOfferPrice: Math.max(0, Number(row.packageOfferPrice) || 0),
       offerClaimed: row.offerClaimed === true,
+      // One timeline from cold to client: prospect touches, outreach sends,
+      // website inquiries. {key: {at, kind, note, from}} — see lead-match.js.
+      history: row.history && typeof row.history === 'object' ? row.history : null,
+      prospectId: String(row.prospectId || '').slice(0, 80),
+      dmConversationId: String(row.dmConversationId || '').slice(0, 120),
+      bookingId: String(row.bookingId || '').slice(0, 80),
+      inboundSource: String(row.inboundSource || '').slice(0, 20),
+      wonAt: row.wonAt || null,
       createdAt: row.createdAt || null,
       updatedAt: row.updatedAt || null
     };
   }
+
+  /**
+   * Fields the lead form doesn't edit. A form save is a full overwrite, so
+   * these are copied from the saved lead — otherwise editing a lead's name
+   * would wipe its outreach stamps, history, and links.
+   */
+  var PIPELINE_SYSTEM_FIELDS = [
+    'outreach', 'history', 'prospectId', 'dmConversationId', 'bookingId', 'inboundSource',
+    'outreachScriptId', 'outreachScriptLabel', 'packageId', 'packageOfferPrice', 'offerClaimed', 'wonAt', 'createdAt'
+  ];
 
   function sanitizePipelinePayload(data) {
     var norm = normalizePipelineLead('tmp', data);
@@ -21272,7 +21339,7 @@ window.addEventListener('load', function() {
       multi: true,
       placeholder: 'No outreach',
       selected: selected,
-      options: PIPELINE_OUTREACH_METHODS.map(function (method) {
+      options: PIPELINE_OUTREACH_MANUAL.map(function (method) {
         return { value: method, label: PIPELINE_OUTREACH_LABELS[method] };
       })
     });
@@ -21428,7 +21495,49 @@ window.addEventListener('load', function() {
       }
     });
 
+    syncPipelineWonToggle(counts.deposit || 0);
     initBusinessDocCustomSelects();
+  }
+
+  // ——— Won archive ———
+  // Deposit = won: the lead is a client now (Clients tab). Its column stays
+  // on the board as an archive you can show, so nothing is listed twice by default.
+  var PIPELINE_SHOW_WON_KEY = 'cwrPipelineShowWon';
+
+  function pipelineShowWon() {
+    try { return localStorage.getItem(PIPELINE_SHOW_WON_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  function syncPipelineWonToggle(wonCount) {
+    var board = document.getElementById('pipeline-board');
+    var btn = document.getElementById('pipeline-won-toggle');
+    var label = document.getElementById('pipeline-won-toggle-label');
+    var show = pipelineShowWon();
+    if (board) board.classList.toggle('pipeline-board--hide-won', !show);
+    if (btn) btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+    if (label) label.textContent = (show ? 'Hide won (' : 'Show won (') + wonCount + ')';
+  }
+
+  var pipelineWonToggle = document.getElementById('pipeline-won-toggle');
+  if (pipelineWonToggle && !pipelineWonToggle.dataset.bound) {
+    pipelineWonToggle.dataset.bound = '1';
+    pipelineWonToggle.addEventListener('click', function () {
+      try { localStorage.setItem(PIPELINE_SHOW_WON_KEY, pipelineShowWon() ? '0' : '1'); } catch (e) { /* private mode */ }
+      syncPipelineWonToggle(pipelineLeads.filter(function (l) { return l.stage === 'deposit'; }).length);
+    });
+  }
+
+  /**
+   * A lead just reached Deposit: stamp when it was won and, unless it already
+   * has one, open "Set up client" in the Clients tab prefilled from the lead.
+   */
+  function onPipelineLeadWon(lead) {
+    if (!lead || !lead.id) return;
+    var tools = window.AgencyTools;
+    var hasClient = tools && typeof tools.getHubByLeadId === 'function' && tools.getHubByLeadId(lead.id);
+    if (!hasClient && tools && typeof tools.createHubFromLead === 'function') {
+      tools.createHubFromLead(lead);
+    }
   }
 
   function findPipelineLead(id) {
@@ -21635,6 +21744,7 @@ window.addEventListener('load', function() {
       '</dd></div>' +
       '</dl>' +
       hubDeliveryHtml +
+      buildLeadHistoryHtml(lead) +
       '<div class="lead-drawer-notes">' +
       '<h4 class="h4">Notes</h4>' +
       '<p class="lead-drawer-notes-text">' +
@@ -21734,6 +21844,23 @@ window.addEventListener('load', function() {
     openAdminClientEmailDrawer();
   }
 
+  if (leadDrawerBody && !leadDrawerBody.dataset.historyBound) {
+    leadDrawerBody.dataset.historyBound = '1';
+    leadDrawerBody.addEventListener('click', function (e) {
+      var dm = e.target.closest('[data-lead-open-dm]');
+      var pros = e.target.closest('[data-lead-open-prospects]');
+      if (!dm && !pros) return;
+      e.preventDefault();
+      closeLeadDetail();
+      if (dm) {
+        if (typeof window.adminActivateTab === 'function') window.adminActivateTab('messages');
+        if (typeof window.openAdminDmConversation === 'function') window.openAdminDmConversation(dm.getAttribute('data-lead-open-dm'));
+      } else if (typeof window.adminActivateTab === 'function') {
+        window.adminActivateTab('prospects');
+      }
+    });
+  }
+
   var leadDrawerHubBtn = document.getElementById('lead-drawer-hub-btn');
   if (leadDrawerHubBtn && !leadDrawerHubBtn.dataset.bound) {
     leadDrawerHubBtn.dataset.bound = '1';
@@ -21797,23 +21924,27 @@ window.addEventListener('load', function() {
         var existing = findPipelineLead(id);
         payload.updatedAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
         if (existing && existing.createdAt) payload.createdAt = existing.createdAt;
-        // The form has no script field — keep what Outreach Scripts recorded.
         if (existing) {
-          payload.outreachScriptId = existing.outreachScriptId || null;
-          payload.outreachScriptLabel = existing.outreachScriptLabel || null;
-          payload.packageId = existing.packageId || null;
-          payload.packageOfferPrice = existing.packageOfferPrice || null;
-          payload.offerClaimed = existing.offerClaimed || null;
+          PIPELINE_SYSTEM_FIELDS.forEach(function (f) {
+            var v = existing[f];
+            var empty = v == null || v === '' || (typeof v === 'object' && !Object.keys(v).length);
+            payload[f] = empty ? null : v;
+          });
         }
+        var wonNow = existing && payload.stage === 'deposit' && existing.stage !== 'deposit';
+        if (wonNow) payload.wonAt = Date.now();
         await window.rtdbSet(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + id), payload);
-        if (existing && payload.stage === 'deposit' && existing.stage !== 'deposit') {
+        if (wonNow) {
           await claimPackageOfferSpot(Object.assign({ id: id }, existing));
+          onPipelineLeadWon(Object.assign({}, existing, payload, { id: id }));
         }
       } else {
         payload.createdAt = window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now();
         payload.updatedAt = payload.createdAt;
+        if (payload.stage === 'deposit') payload.wonAt = Date.now();
         var newRef = window.rtdbPush(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH));
         await window.rtdbSet(newRef, payload);
+        if (payload.stage === 'deposit') onPipelineLeadWon(Object.assign({}, payload, { id: newRef.key }));
       }
       closeLeadModal();
       closeLeadDetail();
@@ -21838,8 +21969,12 @@ window.addEventListener('load', function() {
     var previous = lead.outreach || {};
     var next = {};
     var now = Date.now();
+    // DM / walk-in stamps come from Prospects and aren't in this dropdown — keep them.
+    PIPELINE_OUTREACH_METHODS.forEach(function (method) {
+      if (PIPELINE_OUTREACH_MANUAL.indexOf(method) < 0 && previous[method]) next[method] = previous[method];
+    });
     parseBusinessDocMultiValue(csv).forEach(function (method) {
-      if (PIPELINE_OUTREACH_METHODS.indexOf(method) < 0) return;
+      if (PIPELINE_OUTREACH_MANUAL.indexOf(method) < 0) return;
       next[method] = previous[method] || now;
     });
 
@@ -21875,12 +22010,16 @@ window.addEventListener('load', function() {
     if (!isAdmin()) return;
     var before = findPipelineLead(leadId);
     try {
-      await window.rtdbUpdate(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + leadId), {
+      var stagePatch = {
         stage: stage,
         updatedAt: window.rtdbServerTimestamp ? window.rtdbServerTimestamp() : Date.now()
-      });
-      if (stage === 'deposit' && before && before.stage !== 'deposit') {
+      };
+      var justWon = stage === 'deposit' && before && before.stage !== 'deposit';
+      if (justWon) stagePatch.wonAt = Date.now();
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + leadId), stagePatch);
+      if (justWon) {
         await claimPackageOfferSpot(before);
+        onPipelineLeadWon(before);
       }
     } catch (err) {
       console.error('moveLeadStage', err);
@@ -22201,6 +22340,8 @@ window.addEventListener('load', function() {
     var tab = opts.tab ? ' data-overview-tab="' + overviewEsc(opts.tab) + '"' : '';
     var hub = opts.hubId ? ' data-overview-hub="' + overviewEsc(opts.hubId) + '"' : '';
     var lead = opts.leadId ? ' data-overview-lead="' + overviewEsc(opts.leadId) + '"' : '';
+    // Opens the lead's drawer (follow-ups) — data-overview-lead opens/creates its client.
+    lead += opts.openLeadId ? ' data-overview-open-lead="' + overviewEsc(opts.openLeadId) + '"' : '';
     var emailTpl = opts.emailTemplateId
       ? ' data-overview-email-template="' + overviewEsc(opts.emailTemplateId) + '"'
       : '';
@@ -22255,6 +22396,13 @@ window.addEventListener('load', function() {
     var hubId = item.getAttribute('data-overview-hub');
     var leadId = item.getAttribute('data-overview-lead');
     var tabId = item.getAttribute('data-overview-tab');
+    var openLeadId = item.getAttribute('data-overview-open-lead');
+    if (openLeadId) {
+      if (typeof window.adminActivateTab === 'function') window.adminActivateTab('pipeline');
+      var openLead = findPipelineLead(openLeadId);
+      if (openLead) openLeadDetail(openLead);
+      return;
+    }
     if (hubId && window.AgencyTools && typeof window.AgencyTools.openClientProject === 'function') {
       window.AgencyTools.openClientProject(hubId);
       return;
@@ -22340,6 +22488,50 @@ window.addEventListener('load', function() {
         tab: 'messages',
         priority: 2
       });
+    }
+
+    // One "Do today" for the whole funnel: lead follow-ups, prospects due,
+    // and won leads that still need their client set up.
+    var todayKey = pipelineTodayKey();
+    pipelineLeads
+      .filter(function (l) { return l.stage !== 'deposit' && l.followUpAt && l.followUpAt <= todayKey; })
+      .sort(function (a, b) { return a.followUpAt < b.followUpAt ? -1 : 1; })
+      .slice(0, 6)
+      .forEach(function (lead) {
+        var late = overviewDaysUntil(lead.followUpAt);
+        push({
+          label: (lead.name || lead.company || 'Untitled') + ' — follow up',
+          meta: pipelineStageLabel(lead.stage) + ' · ' + (late < 0 ? Math.abs(late) + 'd overdue' : 'due today'),
+          tab: 'pipeline',
+          openLeadId: lead.id,
+          priority: 2
+        });
+      });
+
+    if (window.AgencyTools && typeof window.AgencyTools.getHubByLeadId === 'function') {
+      pipelineLeads
+        .filter(function (l) { return l.stage === 'deposit' && !window.AgencyTools.getHubByLeadId(l.id); })
+        .forEach(function (lead) {
+          push({
+            label: (lead.name || lead.company || 'Untitled') + ' — set up client',
+            meta: 'Won · ' + formatPipelineMoney(lead.value),
+            tab: 'client-projects',
+            leadId: lead.id,
+            priority: 2
+          });
+        });
+    }
+
+    if (window.CWR_PROSPECTS && typeof window.CWR_PROSPECTS.dueToday === 'function') {
+      var dueProspects = window.CWR_PROSPECTS.dueToday();
+      if (dueProspects.length) {
+        push({
+          label: dueProspects.length + ' prospect' + (dueProspects.length === 1 ? '' : 's') + ' due for follow-up',
+          meta: dueProspects.slice(0, 3).map(function (p) { return p.business; }).join(', ') + (dueProspects.length > 3 ? '…' : ''),
+          tab: 'prospects',
+          priority: 3
+        });
+      }
     }
 
     overviewStuckLeads().slice(0, 4).forEach(function (lead) {
@@ -22481,7 +22673,7 @@ window.addEventListener('load', function() {
     if (!listEl || listEl.dataset.overviewBound) return;
     listEl.dataset.overviewBound = '1';
     var itemSel =
-      '.admin-overview-item[data-overview-tab], .admin-overview-item[data-overview-hub], .admin-overview-item[data-overview-lead], .admin-overview-item[data-overview-email-template]';
+      '.admin-overview-item[data-overview-tab], .admin-overview-item[data-overview-hub], .admin-overview-item[data-overview-lead], .admin-overview-item[data-overview-open-lead], .admin-overview-item[data-overview-email-template]';
     listEl.addEventListener('click', function(e) {
       var item = e.target.closest(itemSel);
       if (!item) return;
@@ -22522,8 +22714,16 @@ window.addEventListener('load', function() {
     });
   }
 
+  var overviewProspectsHooked = false;
+
   function renderAdminOverview() {
     if (!isAdmin()) return;
+    // Prospects load in the background so "Do today" can count who's due.
+    if (!overviewProspectsHooked && window.CWR_PROSPECTS && typeof window.CWR_PROSPECTS.ensureLoaded === 'function') {
+      overviewProspectsHooked = true;
+      document.addEventListener('cwrProspectsChanged', function () { renderAdminOverview(); });
+      window.CWR_PROSPECTS.ensureLoaded();
+    }
 
     var greetingEl = document.getElementById('admin-overview-greeting');
     var dateEl = document.getElementById('admin-overview-date');
@@ -26871,6 +27071,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const message = String((payload && payload.message) || '').trim();
       const projectType = String((payload && payload.project_type) || 'Not specified').trim();
       const budget = String((payload && payload.budget) || 'Not specified').trim();
+      const packageId = String((payload && payload.package_id) || '').trim().slice(0, 40);
       if (!name || !email || !message) {
         throw new Error('Please fill in all required fields');
       }
@@ -26912,7 +27113,8 @@ document.addEventListener('DOMContentLoaded', function () {
         type: 'text',
         source: 'hire-me',
         project_type: projectType,
-        budget: budget
+        budget: budget,
+        package_id: packageId || null
       });
 
       const metaPatch = {
@@ -26923,6 +27125,7 @@ document.addEventListener('DOMContentLoaded', function () {
         subject: 'New Hire Me Inquiry',
         projectType: projectType,
         budget: budget,
+        packageId: packageId || null,
         updatedAt: window.rtdbServerTimestamp()
       };
       if (!conv.originSource) {

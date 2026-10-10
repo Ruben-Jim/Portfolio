@@ -819,6 +819,7 @@
     bar.innerHTML = '<span>Working <strong>' + escapeHtml(p.business) + '</strong> · Text and Email taps are logged to Prospects.</span>' +
       '<button type="button" class="outreach-prospect-btn" data-prospect-act="back">Back to Prospects</button>' +
       '<button type="button" class="outreach-prospect-btn" data-prospect-act="clear" aria-label="Stop logging to this prospect">×</button>';
+    syncSaveButton();
   }
 
   /** Called by Prospects → "Open script": fill the helpers and pick the script. */
@@ -1024,12 +1025,10 @@
     return true;
   }
 
-  // ——— push the filled-in lead to Client Pipeline ———
+  // ——— save a send: Prospects (no reply yet) or the matching lead ———
 
   var PIPELINE_PATH = 'pipelineLeads';
   var FOLLOW_UP_DAYS = 3;
-
-  function digits(v) { return String(v || '').replace(/\D/g, '').slice(-10); }
 
   function dateKey(d) {
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -1044,19 +1043,6 @@
   }
 
   /** Same phone (last 10 digits), same email, or same company name. */
-  function findDuplicate(leads, vars) {
-    var phone = digits(vars.phone);
-    var email = vars.email.toLowerCase();
-    var company = vars.company.toLowerCase();
-    return leads.find(function (l) {
-      return (
-        (phone.length === 10 && digits(l.phone) === phone) ||
-        (email && String(l.email || '').trim().toLowerCase() === email) ||
-        (company && String(l.company || '').trim().toLowerCase() === company)
-      );
-    }) || null;
-  }
-
   function buildLeadNote(s, vars) {
     var stepLabel = (STEPS.filter(function (st) { return st.id === activeStep; })[0] || {}).label || activeStep;
     var bits = ['Outreach · ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })];
@@ -1084,98 +1070,138 @@
     setProspect('');
   }
 
-  function linkProspect(leadId) {
-    if (!activeProspectId || !global.CWR_PROSPECTS) return Promise.resolve();
-    return global.CWR_PROSPECTS.linkLead(activeProspectId, leadId);
+  function selectedPackageFields() {
+    var PP = global.PackagePricing;
+    var pkgId = selectedPackageId();
+    var pkg = pkgId && PP ? PP.packageById(pkgId) : null;
+    if (!pkg) return {};
+    var offer = PP.activeOffer(pkgId);
+    return {
+      packageId: pkg.id,
+      projectType: pkg.projectType,
+      value: PP.packagePrice(pkgId),
+      // Set while an offer is live, so a deposit on this lead claims a spot.
+      packageOfferPrice: offer ? offer.price : null
+    };
   }
 
-  async function addToPipeline() {
-    if (!global.rtdb || !global.rtdbRef || !global.rtdbGet || !global.rtdbSet || !global.rtdbPush) {
-      showLeadStatus('Realtime Database is not ready — sign in to admin first.', true);
-      return;
-    }
-    var vars = readVars();
-    if (!vars.name && !vars.company) {
-      showLeadStatus('Add at least a name or a company first.', true);
-      return;
-    }
-    // A hand-edited message gets the save prompt first; the lead keeps the
-    // message exactly as written either way.
-    var note = buildLeadNote(current(), vars);
-    if (!(await offerToSaveEdits(activeId))) return;
+  /** What this send counts as on a prospect: the channel, or the call's outcome. */
+  async function touchKindForStep() {
+    if (activeStep === 'text') return 'texted';
+    if (activeStep === 'email' || activeStep === 'subject') return 'emailed';
+    return ask('How did the call go?', [
+      { value: 'talked', label: 'Talked', primary: true },
+      { value: 'voicemail', label: 'Voicemail' },
+      { value: 'no-answer', label: 'No answer' },
+      { value: null, label: 'Cancel' }
+    ]);
+  }
 
+  var KIND_TO_METHOD = { texted: 'text', emailed: 'email', talked: 'call', voicemail: 'call', 'no-answer': 'call' };
+
+  /** Button text follows where the composer was opened from. */
+  function syncSaveButton() {
+    if (!els.btnAddLead) return;
+    var p = activeProspectId && global.CWR_PROSPECTS ? global.CWR_PROSPECTS.get(activeProspectId) : null;
+    if (p && p.leadId) {
+      els.btnAddLead.textContent = 'In Leads Pipeline';
+      els.btnAddLead.disabled = true;
+    } else {
+      els.btnAddLead.textContent = p ? 'They replied → Add to Leads' : 'Save';
+      els.btnAddLead.disabled = false;
+    }
+    els.btnAddLead.title = p
+      ? 'Text / Email taps are already logged on this prospect. Use this once they reply.'
+      : 'Logs this send on the matching lead or prospect, or saves a new prospect.';
+  }
+
+  /**
+   * Opened from a prospect: Text / Email taps already log there, so the button
+   * promotes the prospect once they reply. Opened on its own: match by phone,
+   * email, or business — a lead gets the touch on the lead, a prospect gets it
+   * on the prospect, and anyone new is saved as a Contacted prospect.
+   */
+  async function saveContact() {
+    if (!global.rtdb || !global.rtdbRef || !global.rtdbGet || !global.rtdbSet || !global.rtdbPush || !global.CWR_PROSPECTS) {
+      showLeadStatus('Database is not ready — sign in to admin first.', true);
+      return;
+    }
+    var M = global.CWR_LEAD_MATCH;
+    var vars = readVars();
     var s = current();
+    var pkg = selectedPackageFields();
+
+    if (activeProspectId) {
+      var prospect = global.CWR_PROSPECTS.get(activeProspectId);
+      if (!prospect) return;
+      var blanks = M.fillBlanks(prospect, { owner: vars.name, phone: vars.phone, email: vars.email, city: vars.city });
+      if (Object.keys(blanks).length) await global.CWR_PROSPECTS.saveFields(activeProspectId, blanks);
+      await global.CWR_PROSPECTS.logTouch(activeProspectId, 'replied', s ? 'Script: ' + s.label : null);
+      await global.CWR_PROSPECTS.promote(activeProspectId, Object.assign({ scriptId: s ? s.id : null }, pkg));
+      showLeadStatus('“' + prospect.business + '” moved to Leads Pipeline with its contact history.', false);
+      syncSaveButton();
+      refreshScriptStats();
+      return;
+    }
+
+    if (!vars.name && !vars.company) {
+      showLeadStatus('Add at least a name or a business first.', true);
+      return;
+    }
+    if (!(await offerToSaveEdits(activeId))) return;
+    var kind = await touchKindForStep();
+    if (!kind) return;
+
+    var who = vars.company || vars.name;
+    var probe = { company: vars.company, business: vars.company, phone: vars.phone, email: vars.email };
+    var stamp = Date.now();
     var follow = new Date();
     follow.setDate(follow.getDate() + FOLLOW_UP_DAYS);
-    var now = global.rtdbServerTimestamp ? global.rtdbServerTimestamp() : Date.now();
-    var leads = await loadPipelineLeads();
-    var dup = findDuplicate(leads, vars);
-    var who = vars.company || vars.name;
 
-    if (dup) {
-      var choice = await ask('“' + (dup.company || dup.name) + '” is already in your pipeline (' + (dup.stage || 'lead') + '). What should I do?', [
-        { value: 'update', label: 'Update it', primary: true },
-        { value: 'new', label: 'Add as new lead' },
-        { value: 'cancel', label: 'Cancel' }
-      ]);
-      if (choice !== 'update' && choice !== 'new') return;
-      if (choice === 'update') {
-        var patch = {
-          notes: (dup.notes ? String(dup.notes) + '\n\n' : '') + note,
-          followUpAt: dateKey(follow),
-          outreachScriptId: s ? s.id : null,
-          outreachScriptLabel: s ? s.label : null,
-          updatedAt: now
-        };
-        // Only fill blanks — never overwrite what the lead already has.
-        if (!dup.name && (vars.name || vars.company)) patch.name = vars.name || vars.company;
-        if (!dup.company && vars.company) patch.company = vars.company;
-        if (!dup.phone && vars.phone) patch.phone = vars.phone;
-        if (!dup.email && vars.email) patch.email = vars.email;
-        var upPkg = selectedPackageId() && global.PackagePricing ? global.PackagePricing.packageById(selectedPackageId()) : null;
-        if (upPkg) {
-          var upOffer = global.PackagePricing.activeOffer(upPkg.id);
-          patch.packageId = upPkg.id;
-          patch.packageOfferPrice = upOffer ? upOffer.price : null;
-          if (!Number(dup.value)) patch.value = global.PackagePricing.packagePrice(upPkg.id);
-        }
-        await global.rtdbUpdate(global.rtdbRef(global.rtdb, PIPELINE_PATH + '/' + dup.id), patch);
-        await linkProspect(dup.id);
-        clearLeadForm();
-        showLeadStatus('Updated “' + (dup.company || dup.name) + '” in Client Pipeline · follow up ' + dateKey(follow) + '.', false);
-        refreshScriptStats();
-        return;
-      }
+    var lead = M.findMatch(probe, await loadPipelineLeads());
+    if (lead) {
+      var outreach = Object.assign({}, lead.outreach || {});
+      outreach[KIND_TO_METHOD[kind]] = stamp;
+      var patch = M.fillBlanks(lead, {
+        name: vars.name || vars.company, company: vars.company, phone: vars.phone, email: vars.email,
+        packageId: pkg.packageId, packageOfferPrice: pkg.packageOfferPrice, value: pkg.value
+      });
+      patch.outreach = outreach;
+      patch['history/h' + stamp + '_' + kind] = { at: stamp, kind: kind, note: s ? 'Script: ' + s.label : null, from: 'outreach' };
+      patch.notes = (lead.notes ? String(lead.notes) + '\n\n' : '') + buildLeadNote(s, vars);
+      patch.followUpAt = dateKey(follow);
+      patch.updatedAt = global.rtdbServerTimestamp ? global.rtdbServerTimestamp() : stamp;
+      await global.rtdbUpdate(global.rtdbRef(global.rtdb, PIPELINE_PATH + '/' + lead.id), patch);
+      clearLeadForm();
+      showLeadStatus('Logged on lead “' + (lead.company || lead.name) + '” (Leads Pipeline) · follow up ' + dateKey(follow) + '.', false);
+      refreshScriptStats();
+      return;
     }
 
-    var pkgId = selectedPackageId();
-    var PP = global.PackagePricing;
-    var pkg = pkgId && PP ? PP.packageById(pkgId) : null;
-    var offer = pkg ? PP.activeOffer(pkgId) : null;
-    var lead = {
-      name: vars.name || vars.company,
-      email: vars.email,
+    await global.CWR_PROSPECTS.ensureLoaded();
+    var known = M.findMatch(probe, global.CWR_PROSPECTS.list());
+    if (known) {
+      var fill = M.fillBlanks(known, { owner: vars.name, phone: vars.phone, email: vars.email, city: vars.city, scriptId: s ? s.id : '' });
+      if (Object.keys(fill).length) await global.CWR_PROSPECTS.saveFields(known.id, fill);
+      await global.CWR_PROSPECTS.logTouch(known.id, kind, s ? 'Script: ' + s.label : null);
+      clearLeadForm();
+      showLeadStatus('Logged on prospect “' + known.business + '”.', false);
+      refreshScriptStats();
+      return;
+    }
+
+    await global.CWR_PROSPECTS.createContacted({
+      business: who,
+      owner: vars.name,
       phone: vars.phone,
-      company: vars.company,
-      projectType: pkg ? pkg.projectType : 'web',
-      value: pkg ? PP.packagePrice(pkgId) : 0,
-      packageId: pkg ? pkg.id : null,
-      // Set while an offer is live, so a deposit on this lead claims a spot.
-      packageOfferPrice: offer ? offer.price : null,
-      stage: 'lead',
-      source: 'cold',
-      notes: note,
-      followUpAt: dateKey(follow),
-      outreachScriptId: s ? s.id : null,
-      outreachScriptLabel: s ? s.label : null,
-      createdAt: now,
-      updatedAt: now
-    };
-    var ref = global.rtdbPush(global.rtdbRef(global.rtdb, PIPELINE_PATH));
-    await global.rtdbSet(ref, lead);
-    await linkProspect(ref.key);
+      email: vars.email,
+      city: vars.city,
+      scriptId: s ? s.id : '',
+      contactHow: (STEPS.filter(function (st) { return st.id === activeStep; })[0] || {}).label || '',
+      note: s ? 'Script: ' + s.label : null
+    }, kind);
     clearLeadForm();
-    showLeadStatus('Added “' + who + '” to Client Pipeline · follow up ' + dateKey(follow) + '.', false);
+    showLeadStatus('Saved “' + who + '” to Prospects as Contacted · follow up in 3 days.', false);
     refreshScriptStats();
   }
 
@@ -1187,36 +1213,55 @@
     return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  /**
+   * Script results as a funnel: Sent (prospects and leads a script reached) →
+   * Replied (became a lead) → Reached a call → Won. Cold sends live in
+   * Prospects now, so they count as Sent without padding the pipeline.
+   */
   async function refreshScriptStats() {
     if (!els.statsBody || !global.rtdbGet) return;
     var leads;
     try { leads = await loadPipelineLeads(); } catch (e) { return; }
+    var prospects = [];
+    if (global.CWR_PROSPECTS) {
+      try { await global.CWR_PROSPECTS.ensureLoaded(); prospects = global.CWR_PROSPECTS.list(); } catch (e) { /* stats still show leads */ }
+    }
+    var labels = {};
+    scripts.forEach(function (sc) { labels[sc.id] = sc.label; });
     var rows = {};
+    function row(key, label) {
+      return rows[key] || (rows[key] = { label: label || labels[key] || key, sent: 0, replied: 0, call: 0, won: 0 });
+    }
+    var leadIds = {};
     leads.forEach(function (l) {
       if (!l.outreachScriptId) return;
-      var key = l.outreachScriptId;
-      var row = rows[key] || (rows[key] = { label: l.outreachScriptLabel || key, leads: 0, call: 0, won: 0 });
+      leadIds[l.id] = 1;
+      var r = row(l.outreachScriptId, l.outreachScriptLabel);
       var rank = STAGE_RANK[String(l.stage || 'lead')] || 0;
-      row.leads += 1;
-      if (rank >= 1) row.call += 1;
-      if (rank >= 3) row.won += 1;
+      r.sent += 1;
+      r.replied += 1;
+      if (rank >= 1) r.call += 1;
+      if (rank >= 3) r.won += 1;
+    });
+    prospects.forEach(function (p) {
+      if (!p.scriptId || p.status === 'new' || (p.leadId && leadIds[p.leadId])) return;
+      row(p.scriptId).sent += 1;
     });
     var list = Object.keys(rows).map(function (k) { return rows[k]; })
-      .sort(function (a, b) { return b.leads - a.leads; });
+      .sort(function (a, b) { return b.sent - a.sent; });
     if (!list.length) {
-      els.statsBody.innerHTML = '<p class="outreach-stats-empty">No leads added from Outreach Scripts yet.</p>';
+      els.statsBody.innerHTML = '<p class="outreach-stats-empty">No sends logged from Outreach Scripts yet.</p>';
       return;
     }
     function pct(n, d) { return d ? Math.round((n / d) * 100) + '%' : '—'; }
+    function cell(n, d) { return '<td>' + n + ' <span class="outreach-stats-pct">' + pct(n, d) + '</span></td>'; }
     els.statsBody.innerHTML =
       '<table class="outreach-stats-table"><thead><tr>' +
-      '<th scope="col">Script</th><th scope="col">Leads</th><th scope="col">Reached a call</th><th scope="col">Won</th>' +
+      '<th scope="col">Script</th><th scope="col">Sent</th><th scope="col">Replied</th><th scope="col">Reached a call</th><th scope="col">Won</th>' +
       '</tr></thead><tbody>' +
       list.map(function (r) {
-        return '<tr><th scope="row">' + escapeHtml(r.label) + '</th>' +
-          '<td>' + r.leads + '</td>' +
-          '<td>' + r.call + ' <span class="outreach-stats-pct">' + pct(r.call, r.leads) + '</span></td>' +
-          '<td>' + r.won + ' <span class="outreach-stats-pct">' + pct(r.won, r.leads) + '</span></td></tr>';
+        return '<tr><th scope="row">' + escapeHtml(r.label) + '</th><td>' + r.sent + '</td>' +
+          cell(r.replied, r.sent) + cell(r.call, r.sent) + cell(r.won, r.sent) + '</tr>';
       }).join('') +
       '</tbody></table>';
   }
@@ -1353,9 +1398,9 @@
       });
     });
     if (els.btnAddLead) els.btnAddLead.addEventListener('click', function () {
-      addToPipeline().catch(function (err) {
-        console.warn('Outreach composer: add to pipeline failed', err);
-        showLeadStatus('Could not save the lead — check your connection and try again.', true);
+      saveContact().catch(function (err) {
+        console.warn('Outreach composer: save failed', err);
+        showLeadStatus('Could not save — check your connection and try again.', true);
       });
     });
   }
@@ -1398,7 +1443,9 @@
       renderSteps();
       renderPreview(true);
       rendered = true;
+      syncSaveButton();
       refreshScriptStats();
+      if (typeof document.addEventListener === 'function') document.addEventListener('cwrProspectsChanged', syncSaveButton);
     } catch (err) {
       console.warn('Outreach composer:', err);
       if (els.status) {

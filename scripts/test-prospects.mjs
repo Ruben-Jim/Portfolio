@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const ctx = vm.createContext({ console, Date, setTimeout });
+vm.runInContext('var window = this; var self = this;' + fs.readFileSync('assets/js/lead-match.js', 'utf8'), ctx);
 vm.runInContext('var window = this;' + fs.readFileSync('assets/js/prospects.js', 'utf8'), ctx);
 const T = ctx.CWR_PROSPECTS._test;
 

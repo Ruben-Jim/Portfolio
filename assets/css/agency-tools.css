@@ -5813,7 +5813,7 @@ body.cp-ticket-viewer-open { overflow: hidden; }
   z-index: 30;
 }
 
-/* ── Outreach → Client Pipeline ─────────────────────────────── */
+/* ── Outreach → Leads Pipeline ─────────────────────────────── */
 .outreach-btn--pipeline {
   border-color: hsla(45, 100%, 72%, 0.45);
   color: var(--orange-yellow-crayola);

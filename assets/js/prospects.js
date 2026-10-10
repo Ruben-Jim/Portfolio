@@ -7,7 +7,7 @@
  *
  * Flow: import a list (CSV upload / pasted rows / one at a time) → work the
  * "Due today" list → log each outcome → follow-ups schedule themselves →
- * promote replies to Client Pipeline.
+ * promote replies to Leads Pipeline.
  *
  * Cadence (outbound touches with no reply, counted in distinct days):
  *   1st day → follow up in 3 days · 2nd → 4 days later (day 7) ·
@@ -158,16 +158,9 @@
     return { records: records, error: '' };
   }
 
-  /** Same phone (last 10 digits) or same business name. */
+  /** Same phone, email, or business name — the shared rules in lead-match.js. */
   function findMatch(rec, pool) {
-    var p = digits(rec.phone);
-    var n = normName(rec.business || rec.company);
-    for (var i = 0; i < pool.length; i++) {
-      var o = pool[i];
-      if (p.length === 10 && digits(o.phone) === p) return o;
-      if (n && normName(o.business || o.company || o.name) === n) return o;
-    }
-    return null;
+    return global.CWR_LEAD_MATCH.findMatch(rec, pool);
   }
 
   /** Split an import into new rows and duplicates (of saved prospects, pipeline leads, or earlier rows). */
@@ -366,8 +359,12 @@
     els.status.classList.toggle('is-error', !!isError);
   }
 
+  var firstLoad = null;
+  var resolveFirstLoad = null;
+
   function subscribe() {
     if (unsub) return;
+    firstLoad = firstLoad || new Promise(function (r) { resolveFirstLoad = r; });
     unsub = global.rtdbOnValue(ref(PATH), function (snap) {
       var val = snap && typeof snap.val === 'function' ? snap.val() : null;
       byId = {};
@@ -377,6 +374,8 @@
         return p;
       });
       render();
+      if (resolveFirstLoad) { resolveFirstLoad(); resolveFirstLoad = null; }
+      try { document.dispatchEvent(new CustomEvent('cwrProspectsChanged')); } catch (e) { /* old browsers */ }
     }, function (err) {
       console.warn('Prospects:', err);
       status('Could not load prospects — make sure you’re signed in and the database rules are deployed.', true);
@@ -431,42 +430,92 @@
     return lines.join('\n');
   }
 
-  /** Create (or link) a Client Pipeline lead for this prospect. */
-  async function promote(id) {
+  /**
+   * Create (or link) a Leads Pipeline lead for this prospect. The prospect's
+   * touches carry over as the lead's history and "last contacted" methods, so
+   * one timeline follows the business from cold to client.
+   */
+  async function promote(id, extra) {
     var p = byId[id];
-    if (!p) return;
-    if (p.leadId) { status('“' + p.business + '” is already in Client Pipeline.'); return; }
+    if (!p) return null;
+    if (p.leadId) { status('“' + p.business + '” is already in Leads Pipeline.'); return p.leadId; }
+    var M = global.CWR_LEAD_MATCH;
+    extra = extra || {};
     var leads = await loadLeads();
     var dup = findMatch(p, leads);
     var leadId;
     if (dup) {
       leadId = dup.id;
-      await global.rtdbUpdate(ref(PIPELINE_PATH + '/' + dup.id), {
-        notes: (dup.notes ? String(dup.notes) + '\n\n' : '') + leadNotes(p),
-        updatedAt: now()
+      var patch = M.fillBlanks(dup, {
+        name: p.owner || p.business, company: p.business, phone: p.phone, email: p.email,
+        packageId: extra.packageId, packageOfferPrice: extra.packageOfferPrice, value: extra.value
       });
+      patch.notes = (dup.notes ? String(dup.notes) + '\n\n' : '') + leadNotes(p);
+      patch.outreach = M.outreachFromTouches(p.touches, dup.outreach);
+      patch.history = M.mergeHistory(dup.history, p.touches, 'prospect');
+      patch.prospectId = id;
+      patch.updatedAt = now();
+      await global.rtdbUpdate(ref(PIPELINE_PATH + '/' + dup.id), patch);
     } else {
       var leadRef = global.rtdbPush(ref(PIPELINE_PATH));
       leadId = leadRef.key;
+      var scriptId = extra.scriptId || p.scriptId || null;
       await global.rtdbSet(leadRef, {
         name: p.owner || p.business,
         company: p.business,
         phone: p.phone || '',
         email: p.email || '',
-        projectType: 'web',
-        value: 0,
+        projectType: extra.projectType || 'web',
+        value: extra.value || 0,
+        packageId: extra.packageId || null,
+        packageOfferPrice: extra.packageOfferPrice || null,
         stage: 'lead',
         source: 'cold',
         notes: leadNotes(p),
+        outreach: M.outreachFromTouches(p.touches),
+        history: M.mergeHistory(null, p.touches, 'prospect'),
+        prospectId: id,
         followUpAt: p.nextAt || addDays(1),
-        outreachScriptId: p.scriptId || null,
-        outreachScriptLabel: p.scriptId ? await scriptLabel(p.scriptId) : null,
+        outreachScriptId: scriptId,
+        outreachScriptLabel: scriptId ? await scriptLabel(scriptId) : null,
         createdAt: now(),
         updatedAt: now()
       });
     }
     await linkLead(id, leadId);
-    status((dup ? 'Linked “' : 'Added “') + p.business + '” to Client Pipeline.');
+    status((dup ? 'Linked “' : 'Added “') + p.business + '” to Leads Pipeline.');
+    return leadId;
+  }
+
+  /**
+   * Save a business you just contacted from Outreach Scripts as a prospect
+   * (status Contacted, first touch logged, follow-up scheduled). Callers match
+   * against existing leads and prospects first — see CWR_OUTREACH.
+   */
+  async function createContacted(fields, kind) {
+    var rec = {
+      business: String(fields.business || fields.owner || '').slice(0, 160),
+      owner: String(fields.owner || '').slice(0, 120),
+      phone: String(fields.phone || '').slice(0, 40),
+      email: String(fields.email || '').slice(0, 160),
+      website: '',
+      city: String(fields.city || '').slice(0, 80),
+      niche: String(fields.niche || 'Other').slice(0, 60),
+      reviews: '',
+      finding: String(fields.finding || '').slice(0, 600),
+      scriptId: String(fields.scriptId || '').slice(0, 80),
+      contactHow: String(fields.contactHow || '').slice(0, 120),
+      order: 900,
+      list: 'Outreach Scripts',
+      status: 'new',
+      createdAt: now(),
+      updatedAt: now()
+    };
+    var newRef = global.rtdbPush(ref(PATH));
+    await global.rtdbSet(newRef, rec);
+    byId[newRef.key] = Object.assign({ id: newRef.key }, rec);
+    if (kind) await logTouch(newRef.key, kind, fields.note || null);
+    return newRef.key;
   }
 
   async function linkLead(id, leadId) {
@@ -649,7 +698,7 @@
     var href = siteHref(p.website);
     var tel = digits(p.phone);
     var nextLine = st === 'dead' ? 'Closed'
-      : st === 'promoted' ? 'In Client Pipeline'
+      : st === 'promoted' ? 'In Leads Pipeline'
       : st === 'new' ? (p.contactHow ? esc(p.contactHow) : 'Not contacted yet')
       : 'Next: ' + esc(p.nextAt || '—') + (due ? ' · <strong>due</strong>' : '');
     var open = expanded[p.id];
@@ -853,8 +902,18 @@
 
   var opening = null;
 
+  /** Live prospects without opening the tab (composer matching, Overview). */
+  async function ensureSubscribed() {
+    if (!unsub) {
+      if (!(await waitReady(30000))) return;
+      cache();
+      subscribe();
+    }
+    return firstLoad;
+  }
+
   function open() {
-    if (unsub) return Promise.resolve();
+    if (unsub && els.root) return Promise.resolve();
     if (!opening) opening = openOnce().then(function () { opening = null; }, function () { opening = null; });
     return opening;
   }
@@ -869,13 +928,29 @@
       return;
     }
     subscribe();
+    // Already subscribed in the background (composer / Overview): draw now.
+    if (firstLoad) firstLoad.then(render);
   }
 
   global.CWR_PROSPECTS = {
     open: open,
     logTouch: function (id, kind, note) { return byId[id] ? logTouch(id, kind, note) : Promise.resolve(); },
     linkLead: linkLead,
+    promote: promote,
+    createContacted: createContacted,
+    saveFields: saveFields,
     get: function (id) { return byId[id] || null; },
+    /** Prospects loaded so far (live once the tab or composer subscribed). */
+    list: function () { return Object.keys(byId).map(function (k) { return byId[k]; }); },
+    /** Subscribe without rendering the tab — the composer needs the list. */
+    ensureLoaded: function () { return ensureSubscribed(); },
+    /** Prospects due today, for the Overview "Do today" list. */
+    dueToday: function () {
+      var today = dateKey();
+      return Object.keys(byId).map(function (k) { return byId[k]; })
+        .filter(function (p) { return p.status !== 'new' && isDue(p, today); });
+    },
+    OUTCOME_LABELS: OUTCOMES.reduce(function (acc, o) { acc[o.id] = o.label; return acc; }, {}),
     _test: {
       parseTable: parseTable, rowsToProspects: rowsToProspects, dedupe: dedupe, applyOutcome: applyOutcome,
       isDue: isDue, websiteKind: websiteKind, sortProspects: sortProspects, scoreboard: scoreboard, toCsv: toCsv, dateKey: dateKey, addDays: addDays

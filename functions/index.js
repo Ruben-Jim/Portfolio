@@ -971,3 +971,45 @@ exports.resendOutboundWebhook = onRequest(
     }
   }
 );
+
+/* ── Website inquiries → Leads Pipeline ─────────────────────────────────
+   Hire Me / Contact write a customer message into the DM thread; Schedule a
+   call writes agencyBookings. Both are public writes, so the lead is made
+   here with the admin SDK. Logic + tests: inbound-leads.js,
+   scripts/test-inbound-leads.mjs. */
+const { onValueCreated } = require("firebase-functions/v2/database");
+const { upsertInboundLead, eventFromMessage, eventFromBooking } = require("./inbound-leads");
+
+const RTDB_TRIGGER = { instance: "portfolio-2578e-default-rtdb", region: "us-central1" };
+
+exports.leadFromInquiry = onValueCreated(
+  Object.assign({ ref: "/dm/threadMessages/{conversationId}/{messageId}" }, RTDB_TRIGGER),
+  async (event) => {
+    const db = admin.database();
+    const ev = await eventFromMessage(db, event.params.conversationId, event.data.val());
+    if (!ev) return;
+    try {
+      const res = await upsertInboundLead(db, ev, Date.now());
+      console.log("leadFromInquiry", ev.kind, res);
+    } catch (err) {
+      console.error("leadFromInquiry failed", err);
+      throw err;
+    }
+  }
+);
+
+exports.leadFromBooking = onValueCreated(
+  Object.assign({ ref: "/agencyBookings/{bookingId}" }, RTDB_TRIGGER),
+  async (event) => {
+    const db = admin.database();
+    const ev = eventFromBooking(event.params.bookingId, event.data.val());
+    if (!ev) return;
+    try {
+      const res = await upsertInboundLead(db, ev, Date.now());
+      console.log("leadFromBooking", res);
+    } catch (err) {
+      console.error("leadFromBooking failed", err);
+      throw err;
+    }
+  }
+);

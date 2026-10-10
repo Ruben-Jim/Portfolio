@@ -5527,7 +5527,7 @@
         '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="edit-lead">Edit full lead →</button>' +
         '<p class="cp-section-feedback" data-cp-feedback="pipeline" role="status"></p></div>'
       : '<div class="cp-section-empty"><p>No pipeline lead linked. Add a Pipeline lead ID in Project Hub above, then save.</p>' +
-        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="open-tab" data-tab="pipeline">Open Client Pipeline →</button></div>';
+        '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="open-tab" data-tab="pipeline">Open Leads Pipeline →</button></div>';
 
     var portfolioBody =
       portfolioHtml +

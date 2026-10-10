@@ -27451,6 +27451,69 @@ body.lead-drawer-open {
   font-size: var(--fs-5);
 }
 
+/* History: one timeline from Prospects → Outreach → website inquiries */
+.lead-drawer-history {
+  margin: 0 0 18px;
+}
+
+.lead-drawer-history .h4 {
+  margin: 0 0 8px;
+  font-size: var(--fs-5);
+}
+
+.lead-drawer-history-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.lead-drawer-history-links .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lead-drawer-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--jet);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lead-drawer-history-list li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 13px;
+}
+
+.lead-drawer-history-list li::before {
+  content: '';
+  position: absolute;
+  left: -19px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--orange-yellow-crayola);
+}
+
+.lead-drawer-history-what {
+  color: var(--white-2, #fff);
+  font-weight: var(--fw-500, 500);
+}
+
+.lead-drawer-history-meta,
+.lead-drawer-history-note {
+  color: var(--light-gray-70);
+  font-size: 12px;
+}
+
 .lead-drawer-notes-text {
   font-size: 13px;
   line-height: 1.55;
@@ -27646,7 +27709,7 @@ body.lead-drawer-open {
   }
 }
 
-/* Responsive: Client Pipeline */
+/* Responsive: Leads Pipeline */
 @media (max-width: 1100px) {
   .pipeline-board--four {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -31231,5 +31294,54 @@ body.admin-page-active .site-footer {
   .outreach-offer-oneoff {
     grid-template-columns: 1fr;
     margin-left: 0;
+  }
+}
+
+/* Leads Pipeline — Won archive. Deposit leads are clients now, so their
+   column is hidden until "Show won" is on. */
+.pipeline-won-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 4px 0 12px;
+}
+
+.pipeline-won-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--jet);
+  background: transparent;
+  color: var(--light-gray);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: var(--fw-600, 600);
+  cursor: pointer;
+}
+
+.pipeline-won-toggle[aria-pressed="true"] {
+  border-color: hsla(45, 100%, 72%, 0.45);
+  color: var(--orange-yellow-crayola);
+}
+
+.pipeline-won-hint {
+  font-size: 12px;
+  color: var(--light-gray-70);
+}
+
+.pipeline-board--four.pipeline-board--hide-won {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.pipeline-board--hide-won .pipeline-col[data-stage="deposit"] {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .pipeline-board--four.pipeline-board--hide-won {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

@@ -197,7 +197,9 @@
         "firebase-debug.*.log",
         "*.local"
       ],
-      "predeploy": []
+      "predeploy": [
+        "cp \"$RESOURCE_DIR/../assets/js/lead-match.js\" \"$RESOURCE_DIR/lead-match.js\""
+      ]
     }
   ]
 }

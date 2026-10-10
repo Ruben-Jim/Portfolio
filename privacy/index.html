@@ -84,7 +84,7 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=portfolio-skeleton-20261006">
+  <link rel="stylesheet" href="/assets/css/style.css?v=leads-flow-20261010">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -92,7 +92,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=prospects-20261008e">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=leads-flow-20261010">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3326,9 +3326,9 @@
                 <ion-icon name="chevron-down-outline" class="admin-nav-group-chevron" aria-hidden="true"></ion-icon>
               </button>
               <div class="admin-nav-group-items" id="admin-nav-items-clients" role="group" aria-labelledby="admin-nav-toggle-clients">
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-pipeline" data-admin-tab="pipeline" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-pipeline" tabindex="-1" aria-label="Client Pipeline">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-pipeline" data-admin-tab="pipeline" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-pipeline" tabindex="-1" aria-label="Leads Pipeline">
                   <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Client Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Leads Pipeline</span><span class="admin-tab-label-mobile">Pipeline</span></span>
                 </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-outreach" data-admin-tab="outreach" aria-selected="false" aria-controls="admin-panel-outreach" tabindex="-1" aria-label="Outreach Scripts">
                   <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
@@ -4363,13 +4363,13 @@
           </section>
           </div><!-- /admin-panel-portfolio -->
 
-          <!-- Client Pipeline (CRM) -->
+          <!-- Leads Pipeline (CRM) -->
           <div id="admin-panel-pipeline" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-pipeline" data-admin-tab="pipeline" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open" id="pipeline-section">
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
-                <h3 class="h3 admin-panel-title">Client Pipeline</h3>
-                <p class="admin-panel-lead">Four stages: new lead → discovery call → proposal sent → deposit paid. Discovery call is optional — skip straight to proposal when a lead doesn't need one.</p>
+                <h3 class="h3 admin-panel-title">Leads Pipeline</h3>
+                <p class="admin-panel-lead">Real conversations only: new lead → discovery call → proposal sent → deposit paid (won). Cold outreach lives in Prospects until they reply; Hire Me, Contact, and booked calls land here on their own. Discovery call is optional.</p>
               </div>
               <button type="button" class="btn btn-primary" id="admin-add-lead-btn">
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
@@ -4404,8 +4404,17 @@
                   </div>
                 </div>
 
+                <!-- Won leads are clients now (Clients tab); the column is an archive you can show. -->
+                <div class="pipeline-won-bar">
+                  <button type="button" class="pipeline-won-toggle" id="pipeline-won-toggle" aria-pressed="false" aria-controls="pipeline-board">
+                    <ion-icon name="trophy-outline" aria-hidden="true"></ion-icon>
+                    <span id="pipeline-won-toggle-label">Show won (0)</span>
+                  </button>
+                  <span class="pipeline-won-hint">Moving a lead to Deposit sets them up as a client.</span>
+                </div>
+
                 <!-- Kanban board -->
-                <div class="pipeline-board pipeline-board--four" id="pipeline-board">
+                <div class="pipeline-board pipeline-board--four pipeline-board--hide-won" id="pipeline-board">
 
                   <div class="pipeline-col" data-stage="lead">
                     <div class="pipeline-col-header">
@@ -4443,7 +4452,7 @@
                   <div class="pipeline-col" data-stage="deposit">
                     <div class="pipeline-col-header">
                       <span class="pipeline-stage-dot pipeline-dot--deposit"></span>
-                      <h4 class="pipeline-col-title">Deposit Paid</h4>
+                      <h4 class="pipeline-col-title">Won · Deposit paid</h4>
                       <span class="pipeline-col-count" id="pipeline-count-deposit">0</span>
                     </div>
                     <div class="pipeline-cards" id="pipeline-cards-deposit">
@@ -4694,7 +4703,7 @@
                     <button type="button" class="outreach-btn" id="outreach-text">Text</button>
                     <button type="button" class="outreach-btn" id="outreach-email">Email</button>
                     <button type="button" class="outreach-btn" id="outreach-call">Call</button>
-                    <button type="button" class="outreach-btn outreach-btn--pipeline" id="outreach-add-lead">Add to pipeline</button>
+                    <button type="button" class="outreach-btn outreach-btn--pipeline" id="outreach-add-lead">Save</button>
                   </div>
                   <div class="outreach-ask" id="outreach-ask" role="alertdialog" aria-live="polite" hidden>
                     <p class="outreach-ask-text" id="outreach-ask-text"></p>
@@ -4704,7 +4713,7 @@
                 </section>
                 <section class="outreach-stats" id="outreach-stats" aria-labelledby="outreach-stats-title">
                   <h4 class="outreach-stats-title" id="outreach-stats-title">Script results</h4>
-                  <p class="outreach-stats-lead">Leads added from each script, and how far they got in the pipeline.</p>
+                  <p class="outreach-stats-lead">Businesses each script reached (Prospects + Leads), and how many replied, got on a call, and paid a deposit.</p>
                   <div class="outreach-stats-body" id="outreach-stats-body"><p class="outreach-stats-empty">No leads added from Outreach Scripts yet.</p></div>
                 </section>
               </div>
@@ -4717,7 +4726,7 @@
           <section class="service admin-collapsible-section admin-collapsible-open">
             <div class="admin-panel-heading">
               <h3 class="h3 admin-panel-title">Prospects</h3>
-              <p class="admin-panel-lead">Work the due list, log each outcome — follow-ups schedule themselves and replies move to Client Pipeline.</p>
+              <p class="admin-panel-lead">Work the due list, log each outcome — follow-ups schedule themselves and replies move to Leads Pipeline.</p>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
@@ -5613,7 +5622,7 @@
           </section>
         </div>
 
-        <!-- Lead add/edit modal (Client Pipeline) -->
+        <!-- Lead add/edit modal (Leads Pipeline) -->
         <div class="business-doc-modal lead-modal" id="lead-modal" style="display: none;" aria-hidden="true">
           <div class="business-doc-modal-overlay" id="lead-modal-overlay"></div>
           <div class="business-doc-modal-content">
@@ -5698,6 +5707,7 @@
                         <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="referral">Referral</button>
                         <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="social">Social</button>
                         <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="cold">Cold outreach</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="website">Website (Hire Me / Contact / Booking)</button>
                         <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="other">Other</button>
                       </div>
                       <input type="hidden" id="lead-source" value="dm">
@@ -8491,6 +8501,7 @@
   <script src="/assets/js/portfolio-assets.js?v=media-picker-20260929"></script>
   <script src="/assets/js/business-systems-data.js?v=expo-app-demo-20260911"></script>
   <script src="/assets/js/care-pricing.js?v=pricing-blocks-20261009"></script>
+  <script src="/assets/js/lead-match.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/business-doc-shared.js?v=package-offers-20261005"></script>
   <script src="/assets/js/hire-me-booking.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
@@ -8498,14 +8509,14 @@
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
   <script src="/assets/js/i18n.js?v=lang-param-20261009"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
-  <script src="/assets/js/script.js?v=prospects-20261008"></script>
+  <script src="/assets/js/script.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
-  <script src="/assets/js/agency-tools.js?v=timer-width-20261005"></script>
+  <script src="/assets/js/agency-tools.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=demo-picker-20261009"></script>
-  <script src="/assets/js/prospects.js?v=prospects-20261008f"></script>
+  <script src="/assets/js/outreach-composer.js?v=leads-flow-20261010"></script>
+  <script src="/assets/js/prospects.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/dm-migration.js"></script>
 
   <!--
