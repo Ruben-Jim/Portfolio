@@ -439,7 +439,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 90,
-      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?\n\n[package line]\n\n[link tree line]',
+      text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you one to your needs, with changes along the way, and you only pay if you like the final result. No deposit required. Want to see a quick mockup?\n\n[demo line]\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: [Company] — free mockup for a simple website?',
       email:
         'Hi,\n' +
@@ -449,6 +449,8 @@
         'Happy to build you one to your needs, with changes along the way — you only pay if you like the final result. No deposit required.\n' +
         '\n' +
         'Want me to put together a quick mockup?\n' +
+        '\n' +
+        '[demo line]\n' +
         '\n' +
         '[package line]\n' +
         '\n' +
@@ -501,7 +503,7 @@
       vertical: 'local businesses on Instagram without a website',
       demoLink: '',
       order: 110,
-      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?\n\n[package line]\n\n[link tree line]',
+      text: 'Hey, Ruben again. I know you’re busy, so I’ll keep this quick: still happy to put together a mockup for [Company] at no cost and no deposit. You only pay if you like how it looks. Want me to send one over?\n\n[demo line]\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: Re: mockup for [Company]?',
       email:
         'Hi,\n' +
@@ -509,6 +511,8 @@
         'Quick bump — still glad to put a mockup together for [Company]. No deposit, and you only pay if you like the final result.\n' +
         '\n' +
         'Want me to send one over?\n' +
+        '\n' +
+        '[demo line]\n' +
         '\n' +
         '[package line]\n' +
         '\n' +

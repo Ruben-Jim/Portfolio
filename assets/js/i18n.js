@@ -574,12 +574,21 @@
     applyTranslations(cur === 'en' ? 'es' : 'en');
   };
 
-  // Apply saved (or default) language once DOM is ready
+  /** ?lang=es on a link (e.g. the Spanish ad → /hire-me) wins over the saved choice. */
+  function initialLang() {
+    try {
+      var fromUrl = new URLSearchParams(window.location.search).get('lang');
+      if (fromUrl && CWR_I18N[fromUrl.toLowerCase()]) return fromUrl.toLowerCase();
+    } catch (e) { /* old browsers */ }
+    return localStorage.getItem('cwr-lang') || 'en';
+  }
+
+  // Apply linked, saved, or default language once DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
-      applyTranslations(localStorage.getItem('cwr-lang') || 'en');
+      applyTranslations(initialLang());
     });
   } else {
-    applyTranslations(localStorage.getItem('cwr-lang') || 'en');
+    applyTranslations(initialLang());
   }
 })();

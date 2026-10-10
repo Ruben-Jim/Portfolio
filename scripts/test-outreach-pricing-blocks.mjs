@@ -36,7 +36,7 @@ const ids = ['outreach-composer', 'outreach-script-select', 'outreach-steps', 'o
   'outreach-pricing-blocks', 'outreach-offer-wrap', 'outreach-offer-lead', 'outreach-offer-hint',
   'outreach-offer-lead-row', 'outreach-offer-lead-select', 'outreach-offer-lead-custom-wrap',
   'outreach-offer-lead-custom', 'outreach-linktree-wrap', 'outreach-linktree', 'outreach-offer-oneoff',
-  'outreach-offer-oneoff-note', 'outreach-offer-price', 'outreach-offer-spots', 'outreach-offer-ends'];
+  'outreach-offer-oneoff-note', 'outreach-offer-price', 'outreach-offer-spots', 'outreach-offer-ends', 'outreach-var-demo-select'];
 const store = Object.fromEntries(ids.map(i => [i, mkEl(i, i === 'outreach-preview' ? 'textarea' : 'div')]));
 store['outreach-var-package'].value = 'website';
 
@@ -117,6 +117,23 @@ ok(body().includes('Not ready for a full site? Our Link Tree package runs $99–
   'Link Tree line uses the agreed wording + example link');
 ok(!/\[(package line|link tree line)\]/.test(body()), 'no block tokens left in the message');
 
+// Demo picker → Live example line, right after the mockup ask.
+ok(!body().includes('Live example'), 'no-website script starts on No demo (no Live example line)');
+ok(store['outreach-var-demo-select'].value === '', 'demo picker shows No demo');
+store['outreach-var-demo-select'].value = 'https://pawshine.expo.app';
+store['outreach-var-demo-select'].change();
+ok(/mockup!\n\nLive example: https:\/\/pawshine\.expo\.app\n\nBusiness Website/.test(body()),
+  'Live example line sits after the mockup ask, before the package line');
+store['outreach-var-demo-select'].value = '__custom';
+store['outreach-var-demo-select'].change();
+ok(store['outreach-var-demo'].hidden === false, 'Custom URL shows the URL box');
+store['outreach-var-demo'].value = 'https://barkavenue.expo.app';
+store['outreach-var-demo'].input();
+ok(body().includes('Live example: https://barkavenue.expo.app'), 'custom demo URL used');
+store['outreach-var-demo-select'].value = '';
+store['outreach-var-demo-select'].change();
+ok(!body().includes('Live example') && !/\n{3,}/.test(body()), 'No demo removes the line cleanly');
+
 store['outreach-linktree'].checked = false;
 store['outreach-linktree'].change();
 ok(!body().includes('Link Tree package runs'), 'unchecking removes the Link Tree line');
@@ -171,6 +188,12 @@ store['outreach-preview'].input();
 store['outreach-offer-lead'].checked = false;
 store['outreach-offer-lead'].change();
 ok(body().startsWith('Hey there!'), 'hand edit kept when a pricing control changes');
+store['outreach-var-demo-select'].value = 'https://pizza.expo.app';
+store['outreach-var-demo-select'].change();
+ok(body().startsWith('Hey there!') && /Live example: https:\/\/pizza\.expo\.app\n\nBusiness Website/.test(body()),
+  'picking a demo in an edited message inserts it before the package line');
+store['outreach-var-demo-select'].value = '';
+store['outreach-var-demo-select'].change();
 ok(body().includes('Business Website — $499 (normally $999): 1–3 pages'), 'generated line swapped inside the edited message');
 
 // Saving that edit with Link Tree off keeps both tokens in the template.
@@ -184,6 +207,7 @@ await new Promise(r => setTimeout(r, 0));
 const saved = scripts['no-site-ig'].text;
 ok(saved.startsWith('Hey there!'), 'edit saved to the script');
 ok(saved.includes('[package line]') && saved.includes('[link tree line]'), 'saved template keeps both block tokens');
+ok(/\[demo line\]\n\n\[package line\]/.test(saved), 'saved template keeps the demo line, in order, even with No demo picked');
 ok(!saved.includes('$499') && !saved.includes('Link Tree package runs'), 'no hard-coded prices saved into the template');
 
 // Call step keeps its spoken [package] phrase; vertical scripts stay untouched.
@@ -194,3 +218,6 @@ ok(store['outreach-pricing-blocks'].hidden === true, 'pricing controls hidden on
 store['outreach-steps'].children[0].click();
 pick('restaurant');
 ok(store['outreach-pricing-blocks'].hidden === true, 'pricing controls hidden on scripts without the blocks');
+
+pick('grooming');
+ok(store['outreach-var-demo-select'].value === 'https://pawshine.expo.app', 'niche script selects its own demo in the picker');

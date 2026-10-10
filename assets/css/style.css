@@ -31167,6 +31167,16 @@ body.admin-page-active .site-footer {
   gap: 6px;
 }
 
+.outreach-var--demo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.outreach-var--demo input[hidden] {
+  display: none;
+}
+
 /* Package line + Link Tree controls, under the Package picker */
 .outreach-pricing-blocks {
   display: flex;

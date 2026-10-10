@@ -4598,10 +4598,18 @@
                           <span>City</span>
                           <input type="text" id="outreach-var-city" autocomplete="address-level2" placeholder="Fresno" enterkeyhint="next">
                         </label>
-                        <label class="outreach-var">
-                          <span>Demo link</span>
-                          <input type="url" id="outreach-var-demo" autocomplete="off" inputmode="url" placeholder="https://…" enterkeyhint="next">
-                        </label>
+                        <div class="outreach-var outreach-var--demo">
+                          <span id="outreach-var-demo-label">Demo <em>(fills the Live example line)</em></span>
+                          <div class="business-doc-select" data-select-name="outreach-demo">
+                            <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="outreach-var-demo-label">
+                              <span class="business-doc-select-trigger-label">No demo</span>
+                              <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
+                            </button>
+                            <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
+                            <input type="hidden" id="outreach-var-demo-select" value="">
+                          </div>
+                          <input type="url" id="outreach-var-demo" autocomplete="off" inputmode="url" placeholder="https://…" enterkeyhint="next" aria-label="Custom demo URL" hidden>
+                        </div>
                         <label class="outreach-var">
                           <span>Phone</span>
                           <input type="tel" id="outreach-var-phone" autocomplete="tel" inputmode="tel" placeholder="559…" enterkeyhint="next">
@@ -8488,7 +8496,7 @@
   <script src="/assets/js/customer-dm-shared.js?v=hireme-cross-device-20260727"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/i18n.js?v=portfolio-skeleton-20261006"></script>
+  <script src="/assets/js/i18n.js?v=lang-param-20261009"></script>
   <script src="/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729"></script>
   <script src="/assets/js/script.js?v=prospects-20261008"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
@@ -8496,7 +8504,7 @@
   <script src="/assets/js/ig-posts.js?v=ig-library-20260827"></script>
   <script type="module" src="/assets/js/post-builder/index.js?v=pb2"></script>
   <!-- Composer logic only; the scripts themselves load from RTDB on open. -->
-  <script src="/assets/js/outreach-composer.js?v=offer-oneoff-20261009"></script>
+  <script src="/assets/js/outreach-composer.js?v=demo-picker-20261009"></script>
   <script src="/assets/js/prospects.js?v=prospects-20261008f"></script>
   <script src="/assets/js/dm-migration.js"></script>
 

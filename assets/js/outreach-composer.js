@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=pricing-blocks-20261009';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=demo-picker-20261009';
   var STORE_KEY = 'cwrOutreachVars';
   // Last script used on this device, so the picker reopens on it (never empty).
   var LAST_SCRIPT_KEY = 'cwrOutreachLastScript';
@@ -33,9 +33,11 @@
     { token: '[demo link]', field: 'demo' },
     // "our Business Website package is $999" — or the live offer wording.
     { token: '[package]', field: 'package' },
-    // Whole paragraphs the composer writes from the controls under Package.
-    // Removed (with their blank line) when empty, so templates never carry a
-    // half-sentence. See packageLine() / linkTreeLine().
+    // Whole paragraphs the composer writes from the Demo picker and the controls
+    // under Package. Removed (with their blank line) when empty, so templates
+    // never carry a half-sentence. Listed in message order — toTemplate() relies
+    // on it. See demoLine() / packageLine() / linkTreeLine().
+    { token: '[demo line]', field: 'demoLine', block: true },
     { token: '[package line]', field: 'packageLine', block: true },
     { token: '[link tree line]', field: 'linkTreeLine', block: true }
   ];
@@ -55,9 +57,65 @@
   var LEGACY_LINK_TREE_RE = /^(?:Not ready for a full|Or,? if a full site|In the meantime, I can)[^\n]*(?:Linktree|Link Tree|link-in-bio)[^\n]*$/gm;
 
   function migrateBlocks(body) {
-    return String(body || '')
+    var out = String(body || '')
       .replace(LEGACY_PACKAGE_RE, '[package line]')
       .replace(LEGACY_LINK_TREE_RE, '[link tree line]');
+    // Scripts with a package line but no demo at all get the Live example
+    // line right before it (proof before price).
+    if (out.indexOf('[package line]') !== -1 && out.indexOf('[demo link]') === -1 && out.indexOf('[demo line]') === -1) {
+      out = out.replace('[package line]', '[demo line]\n\n[package line]');
+    }
+    return out;
+  }
+
+  /** Live demos for the Demo picker. Scripts' own demoLink values are added if missing. */
+  var DEMOS = [
+    { url: 'https://pawshine.expo.app', label: 'Paw Shine — grooming' },
+    { url: 'https://pizza.expo.app', label: 'Restaurant — ordering' },
+    { url: 'https://tradeservice.expo.app', label: 'Trade Service — quotes & jobs' },
+    { url: 'https://roofcleaning.expo.app', label: 'Roof & exterior cleaning' },
+    { url: 'https://lawncare.expo.app', label: 'Lawn care' },
+    { url: 'https://treeservice.expo.app', label: 'Tree service' },
+    { url: 'https://carpet.expo.app', label: 'Carpet cleaning' },
+    { url: 'https://procleaning.expo.app', label: 'Pro Cleaning — house cleaning' },
+    { url: 'https://sunergyelectricservices.expo.app', label: 'Electrician' },
+    { url: 'https://barbershoptemplate.expo.app', label: 'Barber shop' },
+    { url: 'https://beautysalon.expo.app', label: 'Beauty salon' },
+    { url: 'https://photographer.expo.app', label: 'Photographer' },
+    { url: 'https://realtor.expo.app', label: 'Realtor & insurance' }
+  ];
+  var CUSTOM_DEMO = '__custom';
+
+  function demoOptions() {
+    var list = DEMOS.slice();
+    scripts.forEach(function (s) {
+      var u = String(s.demoLink || '').trim();
+      if (u && !list.some(function (d) { return d.url === u; })) {
+        list.push({ url: u, label: u.replace(/^https?:\/\//, '') });
+      }
+    });
+    return [{ value: '', label: 'No demo' }]
+      .concat(list.map(function (d) { return { value: d.url, label: d.label + ' · ' + d.url.replace(/^https?:\/\//, '') }; }))
+      .concat([{ value: CUSTOM_DEMO, label: 'Custom URL…' }]);
+  }
+
+  /** Points the picker at whatever URL the demo box holds (script default, prefill, typing). */
+  function syncDemoSelect() {
+    if (!els.demoSelect || !els.demo) return;
+    var url = els.demo.value.trim();
+    var known = demoOptions().some(function (o) { return o.value && o.value !== CUSTOM_DEMO && o.value === url; });
+    var value = !url ? '' : known ? url : CUSTOM_DEMO;
+    if (typeof global.setBusinessDocSelectOptions === 'function') {
+      global.setBusinessDocSelectOptions(els.demoSelect, demoOptions(), { value: value, keepValue: false });
+    } else {
+      els.demoSelect.value = value;
+    }
+    els.demo.hidden = value !== CUSTOM_DEMO;
+  }
+
+  function demoLine() {
+    var url = (els.demo && els.demo.value || '').trim();
+    return url ? 'Live example: ' + url : '';
   }
 
   function selectedPackageId() {
@@ -248,6 +306,7 @@
       package: selectedPackageId() && global.PackagePricing
         ? global.PackagePricing.packagePhrase(selectedPackageId())
         : '',
+      demoLine: demoLine(),
       packageLine: packageLine(),
       linkTreeLine: linkTreeLine()
     };
@@ -384,17 +443,31 @@
   }
 
   /** What the block tokens last rendered as, so a hand-edited message can be patched in place. */
-  var lastBlocks = { package: '', packageLine: '', linkTreeLine: '' };
+  var lastBlocks = { demo: '', package: '', demoLine: '', packageLine: '', linkTreeLine: '' };
 
   function rememberBlocks(vars) {
-    lastBlocks = { package: vars.package, packageLine: vars.packageLine, linkTreeLine: vars.linkTreeLine };
+    lastBlocks = {
+      demo: vars.demo,
+      package: vars.package,
+      demoLine: vars.demoLine,
+      packageLine: vars.packageLine,
+      linkTreeLine: vars.linkTreeLine
+    };
   }
 
-  function swapBlock(body, oldText, newText) {
+  /**
+   * Replaces a generated line inside an edited message. A line that wasn't
+   * there yet goes in front of the first later block still present (so the
+   * demo line lands before the price), else at the end.
+   */
+  function swapBlock(body, oldText, newText, laterTexts) {
     if (oldText && body.indexOf(oldText) !== -1) {
       return newText ? body.split(oldText).join(newText) : tidyBlankLines(body.split(oldText).join(''));
     }
-    return newText ? body.replace(/\s*$/, '') + '\n\n' + newText : body;
+    if (!newText) return body;
+    var later = (laterTexts || []).filter(function (t) { return t && body.indexOf(t) !== -1; })[0];
+    if (later) return body.replace(later, newText + '\n\n' + later);
+    return body.replace(/\s*$/, '') + '\n\n' + newText;
   }
 
   function tidyBlankLines(body) {
@@ -412,10 +485,13 @@
     } else {
       var vars = readVars();
       var body = getBody();
-      if (lastBlocks.package && vars.package && lastBlocks.package !== vars.package) {
-        body = body.split(lastBlocks.package).join(vars.package);
+      if (templateHas('[demo line]')) {
+        body = swapBlock(body, lastBlocks.demoLine, vars.demoLine, [lastBlocks.packageLine, lastBlocks.linkTreeLine]);
       }
-      if (templateHas('[package line]')) body = swapBlock(body, lastBlocks.packageLine, vars.packageLine);
+      ['package', 'demo'].forEach(function (k) {
+        if (lastBlocks[k] && vars[k] && lastBlocks[k] !== vars[k]) body = body.split(lastBlocks[k]).join(vars[k]);
+      });
+      if (templateHas('[package line]')) body = swapBlock(body, lastBlocks.packageLine, vars.packageLine, [lastBlocks.linkTreeLine]);
       if (templateHas('[link tree line]')) body = swapBlock(body, lastBlocks.linkTreeLine, vars.linkTreeLine);
       setBody(body);
       rememberBlocks(vars);
@@ -522,6 +598,7 @@
     resetLinkTreeDefault();
     dirty = false;
     if (els.demo) els.demo.value = found.demoLink || '';
+    syncDemoSelect();
     if (!fromUi && els.scriptSelect && typeof global.setBusinessDocSelectValue === 'function') {
       global.setBusinessDocSelectValue(els.scriptSelect, baseOf(id), true);
     }
@@ -599,6 +676,7 @@
       global.initBusinessDocCustomSelects();
     }
     if (els.demo && current()) els.demo.value = current().demoLink || '';
+    syncDemoSelect();
     renderScriptMeta();
   }
 
@@ -870,10 +948,12 @@
       });
     // A block that was switched off for this lead (or deleted by hand) stays in
     // the template, so the next lead still gets the package and Link Tree lines.
-    BLOCK_TOKENS.forEach(function (t) {
-      if (String(original || '').indexOf(t.token) !== -1 && out.indexOf(t.token) === -1) {
-        out = out.replace(/\s*$/, '') + '\n\n' + t.token;
-      }
+    BLOCK_TOKENS.forEach(function (t, i) {
+      if (String(original || '').indexOf(t.token) === -1 || out.indexOf(t.token) !== -1) return;
+      var later = BLOCK_TOKENS.slice(i + 1).filter(function (l) { return out.indexOf(l.token) !== -1; })[0];
+      out = later
+        ? out.replace(later.token, t.token + '\n\n' + later.token)
+        : out.replace(/\s*$/, '') + '\n\n' + t.token;
     });
     return out;
   }
@@ -994,6 +1074,7 @@
       if (els[k]) els[k].value = '';
     });
     try { localStorage.removeItem(STORE_KEY); } catch (e) { /* private mode */ }
+    syncDemoSelect();
     if (els.packageSelect) {
       els.packageSelect.value = DEFAULT_PACKAGE;
       if (typeof global.syncBusinessDocSelectUI === 'function') global.syncBusinessDocSelectUI(els.packageSelect);
@@ -1157,6 +1238,7 @@
       company: document.getElementById('outreach-var-company'),
       city: document.getElementById('outreach-var-city'),
       demo: document.getElementById('outreach-var-demo'),
+      demoSelect: document.getElementById('outreach-var-demo-select'),
       phone: document.getElementById('outreach-var-phone'),
       emailAddr: document.getElementById('outreach-var-email'),
       packageSelect: document.getElementById('outreach-var-package'),
@@ -1191,7 +1273,7 @@
   }
 
   function bind() {
-    ['name', 'company', 'city', 'demo', 'phone', 'emailAddr'].forEach(function (k) {
+    ['name', 'company', 'city', 'phone', 'emailAddr'].forEach(function (k) {
       if (!els[k]) return;
       els[k].addEventListener('input', function () {
         dirty = false;
@@ -1204,6 +1286,18 @@
     [els.packageSelect, els.offerLead, els.offerLeadSelect, els.linkTree].forEach(function (el) {
       if (el) el.addEventListener('change', onPricingChange);
     });
+    if (els.demoSelect) {
+      els.demoSelect.addEventListener('change', function () {
+        var v = els.demoSelect.value;
+        if (v !== CUSTOM_DEMO && els.demo) els.demo.value = v;
+        if (els.demo) {
+          els.demo.hidden = v !== CUSTOM_DEMO;
+          if (v === CUSTOM_DEMO && typeof els.demo.focus === 'function') els.demo.focus();
+        }
+        onPricingChange();
+      });
+    }
+    if (els.demo) els.demo.addEventListener('input', onPricingChange);
     [els.offerLeadCustom, els.offerPrice, els.offerSpots, els.offerEnds].forEach(function (el) {
       if (el) el.addEventListener('input', onPricingChange);
     });
