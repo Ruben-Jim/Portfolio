@@ -205,6 +205,8 @@ input, textarea {
 :focus { outline-color: var(--orange-yellow-crayola); }
 
 html {
+  /* Matches body so Safari never tints its top strip from a transparent root. */
+  background-color: var(--smoky-black);
   font-family: var(--ff-poppins);
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -1007,7 +1009,9 @@ article.home .cwr-landing-navbar {
   padding-top: calc(clamp(14px, 2.5vw, 22px) + env(safe-area-inset-top, 0px));
   z-index: 100;
   box-sizing: border-box;
-  background: hsla(0, 0%, 2%, 0.28);
+  /* Solid at the top edge (that's what Safari samples for the status-bar strip, so the
+     strip and navbar read as one surface), fading out so the hero still shows below. */
+  background: linear-gradient(180deg, hsl(0, 0%, 2%) 0%, hsl(0, 0%, 2%) 55%, hsla(0, 0%, 2%, 0.6) 100%);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid hsla(0, 0%, 100%, 0.04);
@@ -31733,4 +31737,39 @@ html[data-lang="es"] .cwr-landing-lang-chip {
     font-size: 10px;
     letter-spacing: 0.06em;
   }
+}
+
+/* Phones: the return pill stacks into two short lines instead of a tall block. */
+@media (max-width: 479px) {
+  .cwr-landing-copy #hire-inquiry-return-banner:not([hidden]),
+  .cwr-landing-copy #home-conversation-return-banner:not([hidden]) {
+    flex-direction: column;
+    gap: 4px;
+    width: max-content;
+    padding: 8px 16px;
+    border-radius: 22px;
+  }
+
+  .cwr-landing-copy #hire-inquiry-return-banner .hire-inquiry-return-actions,
+  .cwr-landing-copy #home-conversation-return-banner .hire-inquiry-return-actions {
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .cwr-landing-copy #hire-inquiry-return-banner .hire-inquiry-return-link,
+  .cwr-landing-copy #home-conversation-return-banner .hire-inquiry-return-link {
+    padding: 0;
+    font-size: 13px;
+  }
+
+  .cwr-landing-copy #hire-inquiry-return-banner .hire-inquiry-return-link ion-icon,
+  .cwr-landing-copy #home-conversation-return-banner .hire-inquiry-return-link ion-icon {
+    font-size: 15px;
+  }
+}
+
+/* The homepage body is darker than --smoky-black; the root must match it for Safari's top strip. */
+html:has(body.home-page-active) {
+  background-color: hsl(0, 0%, 2%);
 }

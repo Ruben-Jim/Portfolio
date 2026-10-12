@@ -32,7 +32,14 @@
   <meta name="robots" content="index, follow">
   <meta name="language" content="English">
   <meta name="revisit-after" content="7 days">
-  <meta name="theme-color" content="#ceb15a">
+  <!-- Page black: Safari 26 samples the page top for its chrome; older iOS + Android read theme-color. -->
+  <meta name="theme-color" content="#050505">
+  <!-- Home Screen web app: content runs under the clock (the navbar pads with env(safe-area-inset-top)). -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CodeWithRuben">
+  <link rel="apple-touch-icon" href="/assets/images/hero/apple-touch-icon.png">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
@@ -85,7 +92,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=hero-polish-20261012">
+  <link rel="stylesheet" href="/assets/css/style.css?v=safari-top-20261012">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
