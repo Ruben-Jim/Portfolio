@@ -31490,15 +31490,34 @@ html[data-lang="es"] .cwr-landing-lang-chip {
     background: #0b0b0c;
   }
 
-  .cwr-hero-video {
-    display: block;
-    width: 100%;
-    height: auto;
+  /* Laptop "screen": a 16:10 window the stitched desktop capture scrolls through. */
+  .cwr-device-laptop-screen .cwr-hero-shot {
     aspect-ratio: 16 / 10;
     border-radius: 6px;
     background: #111;
-    object-fit: cover;
   }
+
+  .cwr-hero-shot {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Two stacked layers per screen: the next project fades in over the current one. */
+  .cwr-hero-shot-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 100%;
+    height: auto;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .cwr-hero-shot-img.is-current {
+    opacity: 1;
+  }
+
 
   .cwr-device-laptop-base {
     position: relative;
@@ -31521,52 +31540,70 @@ html[data-lang="es"] .cwr-landing-lang-chip {
     transform: translateX(-50%);
   }
 
+  /* iPhone-style frame: titanium rim → black bezel → screen, Dynamic Island, side buttons. */
   .cwr-device-phone {
     position: absolute;
     right: 0;
     bottom: 2%;
     width: 29%;
-    aspect-ratio: 9 / 19.5;
-    padding: 2.4%;
-    border: 1px solid hsla(0, 0%, 100%, 0.18);
-    border-radius: 16% / 7.4%;
-    background: #0b0b0c;
-    box-shadow: 0 30px 70px hsla(0, 0%, 0%, 0.65);
-    animation: hero-phone-float 6s ease-in-out infinite;
+    aspect-ratio: 9 / 19.3;
+    padding: 1.1%;
+    border-radius: 17% / 8%;
+    background: linear-gradient(145deg, #5b5b60 0%, #2a2a2e 22%, #1c1c1f 50%, #3a3a3f 78%, #626267 100%);
+    box-shadow:
+      0 0 0 1px hsla(0, 0%, 100%, 0.08) inset,
+      0 30px 70px hsla(0, 0%, 0%, 0.65),
+      0 8px 20px hsla(0, 0%, 0%, 0.4);
+    box-sizing: border-box;
   }
 
-  .cwr-device-phone::before {
+  .cwr-device-phone-screen {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border: 5px solid #050506;
+    border-radius: 16% / 7.6%;
+    background: #050506;
+    box-sizing: border-box;
+  }
+
+  /* Glass sheen over the screen */
+  .cwr-device-phone-screen::after {
     content: '';
     position: absolute;
-    top: 3.4%;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    background: linear-gradient(125deg, hsla(0, 0%, 100%, 0.09) 0%, transparent 32%);
+    pointer-events: none;
+  }
+
+  .cwr-device-phone-island {
+    position: absolute;
+    top: 2.2%;
     left: 50%;
-    z-index: 1;
-    width: 30%;
-    height: 2.6%;
+    z-index: 3;
+    width: 31%;
+    height: 3.6%;
     border-radius: 999px;
-    background: #0b0b0c;
+    background: #000;
     transform: translateX(-50%);
   }
 
-  .cwr-device-phone img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    border-radius: 13% / 6%;
-    object-fit: cover;
-    object-position: top center;
+  .cwr-device-phone-btn {
+    position: absolute;
+    width: 1.6%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #2a2a2e, #5a5a5f);
   }
 
-  @keyframes hero-phone-float {
-    50% { transform: translateY(-8px); }
-  }
+  .cwr-device-phone-btn--action { left: -1.2%; top: 17%; height: 4.5%; }
+  .cwr-device-phone-btn--vol-up { left: -1.2%; top: 24%; height: 8%; }
+  .cwr-device-phone-btn--vol-down { left: -1.2%; top: 34%; height: 8%; }
+  .cwr-device-phone-btn--power { right: -1.2%; top: 26%; height: 12%; background: linear-gradient(90deg, #5a5a5f, #2a2a2e); }
 }
 
-@media (min-width: 960px) and (prefers-reduced-motion: reduce) {
-  .cwr-device-phone {
-    animation: none;
-  }
-}
 
 /**
  * Hero polish (2026-10-12): 2-line headline, bigger devices, crisp marquee,
@@ -31608,11 +31645,6 @@ html[data-lang="es"] .cwr-landing-lang-chip {
     border-color: hsla(45, 70%, 55%, 0.7);
     background: hsla(45, 70%, 55%, 0.08);
   }
-}
-
-/* The admin clip is a dark UI: lift it so "software" reads at a glance. */
-.cwr-hero-video {
-  filter: brightness(1.38) contrast(1.06) saturate(1.1);
 }
 
 @media (min-width: 960px) {
