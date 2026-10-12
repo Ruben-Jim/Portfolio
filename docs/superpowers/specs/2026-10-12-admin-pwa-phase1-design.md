@@ -1,6 +1,6 @@
 # Admin Home Screen app — Phase 1 design
 
-Date: 2026-10-12 · Status: approved in chat, sign-in gate passed, awaiting spec review
+Date: 2026-10-12 · Status: approved (2026-10-12), sign-in gate passed
 
 ## Goal
 
@@ -71,7 +71,9 @@ Applied to `index.html` + every `*/index.html` (find with `grep -rl "script.js?v
 
 - **Every page:** `<link rel="apple-touch-icon" href="/assets/images/app-icons/apple-touch-icon.png">`.
 - **`theme-color`:** change `#ceb15a` → `#121212`.
-- **Existing inline theme script** (the one that reads `portfolio-theme`, ~line 111 of `index.html`): also set the `theme-color` meta to `#ffffff` for light, `#121212` for dark, so there's no flash of the wrong tint.
+- **Existing inline theme script** (the one that reads `portfolio-theme`, ~line 111 of `index.html`):
+  - When running as an installed app (`matchMedia('(display-mode: standalone)').matches || navigator.standalone`), always use `dark` and ignore the saved preference.
+  - Otherwise keep today's behavior, and also set the `theme-color` meta to `#ffffff` for light, `#121212` for dark, so there's no flash of the wrong tint.
 - **`/admin` only** — inside that same early inline script, when `/^\/admin(\/|$)/.test(location.pathname)` (same test `loadAdminBundle` uses), append:
   - `<link rel="manifest" href="/assets/admin.webmanifest">`
   - `<meta name="apple-mobile-web-app-capable" content="yes">`
@@ -89,7 +91,7 @@ Already in place: `article` pads its top with `env(safe-area-inset-top)`; the ad
 
 New, scoped to `@media (display-mode: standalone)` and `body.admin-page-active`:
 - `.navbar` (`position: absolute; top: 0`) → `top: env(safe-area-inset-top, 0px)` so the nav sits below the clock.
-- **Light theme:** `black-translucent` always draws a white clock, which disappears on the white light-theme background. Add a fixed strip of height `env(safe-area-inset-top)` behind the clock, colored `#121212`, shown only for `[data-theme="light"]` in standalone. Dark theme stays fully edge to edge.
+- **Always dark (decided 2026-10-12):** `black-translucent` always draws a white clock, so the installed app is always dark (§3) and runs fully edge to edge with no strip behind the clock. Light theme stays available in the browser. No custom status bar or island-style banner (considered and declined; the real Dynamic Island needs a native app with Live Activities).
 
 Any other admin element pinned to the top edge that turns up during device testing gets the same `env(safe-area-inset-top)` offset — no hard-coded notch pixels, no negative `env()` margins (master context §4 banned list).
 
@@ -106,7 +108,7 @@ Any other admin element pinned to the top edge that turns up during device testi
 
 - `node scripts/preflight.mjs` (syntax, shells in sync, 9 test suites, secrets) and `npm run build` (confirms `_site/` contains the manifest and icons, nothing private).
 - Desktop Chrome: on `/admin`, DevTools → Application → Manifest shows CWR Admin, icons load, installable. On `/`, no manifest.
-- **Physical iPhone (required — the clock area only shows on a real device):** install from `/admin`; check icon, name, splash, nav below the clock, tab bar above the home indicator, light and dark theme, sign-in persists after closing the app.
+- **Physical iPhone (required — the clock area only shows on a real device):** install from `/admin`; check icon, name, splash, nav below the clock, tab bar above the home indicator, app is dark even with a saved light preference, sign-in persists after closing the app.
 - Physical Android Chrome: install prompt appears on `/admin`; maskable icon looks right.
 - Safari tab on `/`: top strip tint matches the page in both themes.
 
