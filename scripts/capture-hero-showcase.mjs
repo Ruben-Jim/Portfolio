@@ -23,8 +23,7 @@ const PROJECTS = [
   ['lawncare', 'https://lawncare.expo.app'],
   ['beautysalon', 'https://beautysalon.expo.app'],
   ['barbershop', 'https://barbershoptemplate.expo.app'],
-  ['photographer', 'https://photographer.expo.app'],
-  ['aimnshoot', 'https://aimnshootrecords.expo.app']
+  ['photographer', 'https://photographer.expo.app']
 ].filter(([id]) => !ONLY || ONLY.includes(id));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
