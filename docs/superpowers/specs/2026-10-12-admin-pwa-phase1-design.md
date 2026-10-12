@@ -34,7 +34,7 @@ Probe (no code): on iOS 26, Safari → `rubenjimenez.dev/admin` → Share → Ad
 
 ### 1. Icons — `assets/images/app-icons/`
 
-Generated once from `assets/images/logo/logo.png` (1008×1024), padded to square and flattened onto `#121212` so iOS never fills transparency on its own:
+Generated from `assets/images/logo/logo.png` (1008×1024) by `scripts/build-app-icons.sh` (ImageMagick). That PNG has a fake transparency checkerboard baked into its corners, so the script keeps only the gold circle and places it on `#121212`, with no alpha channel. (`logo.svg` is a different, incomplete glyph and isn't usable.)
 
 | File | Size | Use |
 |---|---|---|
@@ -82,6 +82,8 @@ Applied to `index.html` + every `*/index.html` (find with `grep -rl "script.js?v
   - `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`
 
   Public pages never get the manifest, so "Add to Home Screen" from the homepage is a plain bookmark with the logo icon.
+
+  The site switches pages without reloading (`showPage` in `assets/js/script.js`), so the same tags are also added when it switches to `admin` and removed when it leaves `admin`.
 
 `portal.html` is out of scope (not selected).
 
