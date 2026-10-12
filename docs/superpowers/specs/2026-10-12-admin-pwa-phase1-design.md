@@ -1,6 +1,6 @@
 # Admin Home Screen app — Phase 1 design
 
-Date: 2026-10-12 · Status: approved in chat, awaiting spec review
+Date: 2026-10-12 · Status: approved in chat, sign-in gate passed, awaiting spec review
 
 ## Goal
 
@@ -27,6 +27,8 @@ The installed app has its own storage (not shared with Safari), so Ruben signs i
 Probe (no code): on iOS 26, Safari → `rubenjimenez.dev/admin` → Share → Add to Home Screen ("Open as Web App" on) → open the icon → Google sign-in.
 - **Works** → build Phase 1 as below.
 - **Fails** → stop; choose a fallback (email sign-in link for the admin account is the likely one) and amend this spec before building.
+
+**Result (2026-10-12, Ruben's iPhone, iOS 26):** passed. The installed app opens to the sign-in state, Google sign-in completes, and the dashboard loads. No fallback needed.
 
 ## Design
 
