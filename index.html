@@ -84,7 +84,8 @@
   <!--
     - custom css link
   -->
-  <link rel="stylesheet" href="/assets/css/style.css?v=leads-flow-20261010">
+  <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
+  <link rel="stylesheet" href="/assets/css/style.css?v=hero-polish-20261012">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -325,6 +326,7 @@
 
           <div class="cwr-landing-hero-grid">
             <div class="cwr-landing-copy" data-cwr-landing-reveal>
+              <button type="button" class="cwr-landing-lang-chip" lang="es" onclick="if (typeof cwrSetLang === 'function') cwrSetLang('es')">🇲🇽 Hablamos español</button>
               <h1 class="cwr-landing-title" id="cwr-landing-title" data-i18n="home.hero_title">Run your business<br>from your phone</h1>
               <div class="cwr-landing-offer" aria-label="Website plus software">
                 <span class="cwr-landing-offer-box">
@@ -336,11 +338,17 @@
                 </span>
               </div>
               <p class="cwr-landing-price" data-i18n="home.price_line">Packages from <strong>$499</strong> · Maintenance starting as low as <strong>$44/mo</strong></p>
-              <p class="cwr-landing-proof" data-i18n="home.proof_line"><span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards <span class="cwr-landing-stars" aria-hidden="true">★★★★★</span></p>
+              <p class="cwr-landing-proof" data-i18n="home.proof_line"><span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards</p>
+              <figure class="cwr-landing-quote" data-hero-quote hidden></figure>
               <div class="cwr-landing-actions">
                 <button type="button" class="btn btn-primary cwr-landing-cta" data-i18n="home.cta_start" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;">Start a project</button>
                 <button type="button" class="btn cwr-landing-btn-outline" data-i18n="home.cta_pricing" onclick="if(typeof switchToPage === 'function') { switchToPage('services-pricing'); } return false;">See pricing</button>
-                <button type="button" class="btn cwr-landing-btn-outline" data-i18n="home.cta_work" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">View work</button>
+              </div>
+              <div class="cwr-landing-clients">
+                <span class="cwr-landing-clients-label" data-i18n="home.clients_label">Trusted by</span>
+                <img src="/assets/images/hero/client-procleaning.webp" alt="ProCleaning Seattle" width="96" height="96" loading="lazy" decoding="async">
+                <img src="/assets/images/hero/client-rizo.webp" alt="Rizo's Pizzeria" width="96" height="96" loading="lazy" decoding="async">
+                <img src="/assets/images/hero/client-hoa.webp" alt="Shelton Springs HOA" width="96" height="96" loading="lazy" decoding="async">
               </div>
               <div class="hire-inquiry-return-banner" id="hire-inquiry-return-banner" hidden role="region" aria-label="Your open inquiry">
                 <span class="hire-inquiry-return-kicker">Your inquiry is open</span>
@@ -367,9 +375,34 @@
                 </div>
               </div>
             </div>
-            <div class="cwr-landing-visual" aria-hidden="true">
+            <div class="cwr-landing-visual has-devices" aria-hidden="true">
               <div class="cwr-landing-visual-fade" aria-hidden="true"></div>
               <div class="cwr-landing-visual-stage" data-landing-marquee data-marquee-ready="1"><div class="cwr-landing-marquee"><div class="cwr-landing-marquee-col cwr-landing-marquee-col--up cwr-landing-marquee-col--fast"><div class="cwr-landing-marquee-track"><ul class="cwr-landing-tiles"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/procleaning.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/tradeservice.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/realtor-template.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/barbershop.webp" alt="" loading="eager"></li></ul><ul class="cwr-landing-tiles" aria-hidden="true"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/procleaning.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/tradeservice.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/realtor-template.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/barbershop.webp" alt="" loading="lazy"></li></ul></div></div><div class="cwr-landing-marquee-col cwr-landing-marquee-col--down"><div class="cwr-landing-marquee-track"><ul class="cwr-landing-tiles"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/lawncare.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/rosasalon.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/homecontractors.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/pawshine.webp" alt="" loading="eager"></li></ul><ul class="cwr-landing-tiles" aria-hidden="true"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/lawncare.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/rosasalon.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/homecontractors.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/pawshine.webp" alt="" loading="lazy"></li></ul></div></div><div class="cwr-landing-marquee-col cwr-landing-marquee-col--up cwr-landing-marquee-col--slow"><div class="cwr-landing-marquee-track"><ul class="cwr-landing-tiles"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/inktattoo.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/sheltonsprings.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/grippysocks.webp" alt="" loading="eager"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/rizopizzeria.webp" alt="" loading="eager"></li></ul><ul class="cwr-landing-tiles" aria-hidden="true"><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/inktattoo.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/sheltonsprings.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/grippysocks.webp" alt="" loading="lazy"></li><li class="cwr-landing-tile"><img src="/assets/images/landing-marquee/rizopizzeria.webp" alt="" loading="lazy"></li></ul></div></div></div></div><!-- /landing-marquee -->
+              <div class="cwr-hero-devices" aria-hidden="true">
+                <div class="cwr-device-laptop">
+                  <div class="cwr-device-laptop-screen">
+                    <video class="cwr-hero-video" muted loop playsinline preload="none" poster="/assets/images/hero/laptop-admin-poster.webp" width="960" height="600">
+                      <source src="/assets/images/hero/laptop-admin.webm" type="video/webm">
+                      <source src="/assets/images/hero/laptop-admin.mp4" type="video/mp4">
+                    </video>
+                  </div>
+                  <div class="cwr-device-laptop-base"></div>
+                </div>
+                <div class="cwr-device-phone">
+                  <img src="/assets/images/hero/phone-procleaning.webp" alt="" width="360" height="779" loading="lazy" decoding="async">
+                </div>
+              </div>
+              <script>
+                /* Desktop only: start the laptop clip after load so it never competes with first paint. */
+                window.addEventListener('load', function () {
+                  var v = document.querySelector('.cwr-hero-video');
+                  if (!v || !window.matchMedia('(min-width: 960px)').matches) return;
+                  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                  v.preload = 'auto';
+                  var p = v.play();
+                  if (p && p.catch) p.catch(function () { /* autoplay blocked: poster stays */ });
+                });
+              </script>
             </div>
           </div>
         </section>
@@ -7905,16 +7938,57 @@
   <!--
     - Loading Screen
   -->
-  <div class="loading-screen" id="loading-screen">
-    <div class="loading-content">
-      <div class="loading-spinner">
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
-        <div class="spinner-ring"></div>
+  <div class="loading-screen" id="loading-screen" aria-hidden="true">
+    <div class="brand-intro">
+      <div class="brand-intro-badge">
+        <img class="brand-intro-r" src="/assets/images/hero/brand-r.webp" alt="" width="96" height="96" decoding="sync">
       </div>
-      <p class="loading-text">Loading Portfolio...</p>
     </div>
   </div>
+  <script>
+    /* Logo intro (~1s, once per session). Home reveals on its own timer: the hero is
+       pre-rendered, so it never waits for script.js. Deep links (/contact…) keep the
+       badge up until script.js routes (restoreActivePage hides it), max 8s. */
+    (function () {
+      var el = document.getElementById('loading-screen');
+      if (!el) return;
+      var path = location.pathname.replace(/^\/+|\/+$/g, '');
+      var params = new URLSearchParams(location.search);
+      var home = (path === '' || path === 'index.html' || path === 'home') && !params.get('redirect') && !params.get('p');
+      var seen = false;
+      try { seen = sessionStorage.getItem('cwrIntroSeen') === '1'; sessionStorage.setItem('cwrIntroSeen', '1'); } catch (e) { /* private mode */ }
+      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function hide() {
+        el.classList.add('hidden');
+        setTimeout(function () { el.style.display = 'none'; }, 500);
+      }
+      if (seen) el.classList.add('is-repeat');
+      if (!home) {
+        el.classList.add('is-waiting');
+        setTimeout(hide, 8000);
+        return;
+      }
+      if (seen) { el.style.display = 'none'; el.classList.add('hidden'); return; }
+      if (reduce) { setTimeout(hide, 300); return; }
+      setTimeout(function () {
+        var badge = el.querySelector('.brand-intro');
+        var target = document.querySelector('.cwr-landing-brand');
+        el.classList.add('is-leaving');
+        if (badge && target && badge.animate) {
+          var a = badge.getBoundingClientRect();
+          var b = target.getBoundingClientRect();
+          var size = Math.max(24, Math.min(40, b.height));
+          var dx = (b.left + size / 2) - (a.left + a.width / 2);
+          var dy = (b.top + b.height / 2) - (a.top + a.height / 2);
+          badge.animate(
+            [{ transform: 'none', opacity: 1 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + (size / a.width) + ')', opacity: 0 }],
+            { duration: 380, easing: 'cubic-bezier(.6,0,.2,1)', fill: 'forwards' }
+          );
+        }
+        setTimeout(function () { el.classList.add('hidden'); el.style.display = 'none'; }, 400);
+      }, 700);
+    })();
+  </script>
 
   <!--
     - Structured Data (JSON-LD) for SEO
@@ -8505,7 +8579,7 @@
   <script src="/assets/js/customer-dm-shared.js?v=security-20261010"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=requality-20260818o"></script>
   <script src="/assets/js/email-templates-client.js?v=bookings-hub-20260803"></script>
-  <script src="/assets/js/i18n.js?v=lcp-labels-20261010"></script>
+  <script src="/assets/js/i18n.js?v=hero-intro-20261012"></script>
   <!--
     - Admin-only scripts: loaded on /admin or after admin sign-in, never for
       public visitors (they were ~220 KB gz of the homepage). Order matches the
@@ -8550,7 +8624,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=admin-lazy-20261010"></script>
+  <script src="/assets/js/script.js?v=hero-polish-20261012"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

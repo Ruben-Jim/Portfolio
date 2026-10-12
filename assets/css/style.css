@@ -16083,7 +16083,11 @@ body.portfolio-project-modal-open .cp-client-drawer {
   z-index: 9999;
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
+  transition: opacity 0.5s ease, visibility 0.5s ease, background-color 0.35s ease;
+}
+
+.loading-screen.is-leaving {
+  background-color: transparent;
 }
 
 .loading-screen.hidden {
@@ -16092,58 +16096,10 @@ body.portfolio-project-modal-open .cp-client-drawer {
   pointer-events: none;
 }
 
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
 .loading-spinner {
   position: relative;
   width: 80px;
   height: 80px;
-}
-
-.spinner-ring {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border: 3px solid transparent;
-  border-top-color: var(--vegas-gold);
-  border-radius: 50%;
-  animation: spin-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-}
-
-.spinner-ring:nth-child(1) {
-  animation-delay: -0.45s;
-}
-
-.spinner-ring:nth-child(2) {
-  animation-delay: -0.3s;
-  border-top-color: var(--orange-yellow-crayola);
-  width: 70%;
-  height: 70%;
-  top: 15%;
-  left: 15%;
-}
-
-.spinner-ring:nth-child(3) {
-  animation-delay: -0.15s;
-  border-top-color: var(--vegas-gold);
-  width: 50%;
-  height: 50%;
-  top: 25%;
-  left: 25%;
-}
-
-@keyframes spin-ring {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 .loading-text {
@@ -31343,5 +31299,438 @@ body.admin-page-active .site-footer {
 @media (max-width: 1100px) {
   .pipeline-board--four.pipeline-board--hide-won {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/**
+ * Logo intro (replaces the "Loading Portfolio…" spinner)
+ * Gold badge pops in → script R is "written" left→right → shine → flies to the header.
+ * Timing is driven by the inline script after #loading-screen in index.html.
+ */
+.brand-intro {
+  width: 112px;
+  height: 112px;
+  will-change: transform, opacity;
+}
+
+.brand-intro-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fcd515 0%, #febc37 55%, #ff9d4c 100%);
+  box-shadow: 0 18px 50px hsla(38, 95%, 55%, 0.28);
+  animation: brand-pop 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+}
+
+.brand-intro-r {
+  width: 82%;
+  height: auto;
+  clip-path: inset(0 100% 0 0);
+  animation: brand-write 0.5s cubic-bezier(0.65, 0, 0.35, 1) 0.14s forwards;
+}
+
+.brand-intro-badge::after {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(115deg, transparent 40%, hsla(0, 0%, 100%, 0.55) 50%, transparent 60%);
+  transform: translateX(-120%);
+  animation: brand-shine 0.45s ease 0.55s forwards;
+}
+
+/* Repeat visit to a deep link: no write-on, just the finished badge. */
+.loading-screen.is-repeat .brand-intro-badge,
+.loading-screen.is-repeat .brand-intro-r,
+.loading-screen.is-repeat .brand-intro-badge::after {
+  animation: none;
+  clip-path: none;
+}
+
+/* Deep links wait for script.js to route: breathe gently instead of freezing. */
+.loading-screen.is-waiting .brand-intro {
+  animation: brand-breathe 1.4s ease-in-out 0.9s infinite;
+}
+
+@keyframes brand-pop {
+  from { transform: scale(0.55); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes brand-write {
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes brand-shine {
+  to { transform: translateX(120%); }
+}
+
+@keyframes brand-breathe {
+  50% { transform: scale(0.94); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-intro,
+  .brand-intro-badge,
+  .brand-intro-r,
+  .brand-intro-badge::after {
+    animation: none !important;
+    clip-path: none !important;
+  }
+}
+
+/**
+ * Hero: "Hablamos español" chip + client logo strip
+ */
+.cwr-landing-lang-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: clamp(10px, 1.4vw, 16px);
+  padding: 6px 12px;
+  border: 1px solid hsla(45, 90%, 60%, 0.35);
+  border-radius: 999px;
+  background: hsla(45, 90%, 55%, 0.08);
+  color: hsl(45, 95%, 70%);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.cwr-landing-lang-chip:hover,
+.cwr-landing-lang-chip:active {
+  background: hsla(45, 90%, 55%, 0.16);
+}
+
+html[data-lang="es"] .cwr-landing-lang-chip {
+  display: none;
+}
+
+.cwr-landing-clients {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px 18px;
+  margin-top: clamp(16px, 2vw, 24px);
+}
+
+.cwr-landing-clients-label {
+  color: hsla(0, 0%, 100%, 0.55);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cwr-landing-clients img {
+  width: auto;
+  height: 44px;
+  opacity: 0.88;
+}
+
+@media (max-width: 959px) {
+  .cwr-landing-clients {
+    justify-content: center;
+    gap: 8px 12px;
+    margin-top: 14px;
+  }
+
+  .cwr-landing-clients img {
+    height: 34px;
+  }
+}
+
+/**
+ * Hero: laptop (admin clip) + phone (customer site), desktop only.
+ * Sits in front of the tilted marquee, which dims behind it.
+ */
+.cwr-hero-devices {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .cwr-landing-visual.has-devices .cwr-landing-visual-stage {
+    opacity: 0.3;
+    filter: blur(1.5px) saturate(0.8);
+  }
+
+  .cwr-hero-devices {
+    display: block;
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    right: clamp(8px, 2vw, 32px);
+    width: min(580px, 94%);
+    aspect-ratio: 4 / 3;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .cwr-device-laptop {
+    position: absolute;
+    top: 8%;
+    left: 0;
+    width: 84%;
+    filter: drop-shadow(0 30px 60px hsla(0, 0%, 0%, 0.6));
+  }
+
+  .cwr-device-laptop-screen {
+    padding: 2.2% 2.2% 2.6%;
+    border: 1px solid hsla(0, 0%, 100%, 0.14);
+    border-radius: 14px 14px 4px 4px;
+    background: #0b0b0c;
+  }
+
+  .cwr-hero-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    border-radius: 6px;
+    background: #111;
+    object-fit: cover;
+  }
+
+  .cwr-device-laptop-base {
+    position: relative;
+    width: 112%;
+    height: 14px;
+    margin-left: -6%;
+    border-radius: 0 0 14px 14px;
+    background: linear-gradient(180deg, #3a3a3e 0%, #18181a 100%);
+  }
+
+  .cwr-device-laptop-base::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 18%;
+    height: 5px;
+    border-radius: 0 0 6px 6px;
+    background: #0e0e10;
+    transform: translateX(-50%);
+  }
+
+  .cwr-device-phone {
+    position: absolute;
+    right: 0;
+    bottom: 2%;
+    width: 29%;
+    aspect-ratio: 9 / 19.5;
+    padding: 2.4%;
+    border: 1px solid hsla(0, 0%, 100%, 0.18);
+    border-radius: 16% / 7.4%;
+    background: #0b0b0c;
+    box-shadow: 0 30px 70px hsla(0, 0%, 0%, 0.65);
+    animation: hero-phone-float 6s ease-in-out infinite;
+  }
+
+  .cwr-device-phone::before {
+    content: '';
+    position: absolute;
+    top: 3.4%;
+    left: 50%;
+    z-index: 1;
+    width: 30%;
+    height: 2.6%;
+    border-radius: 999px;
+    background: #0b0b0c;
+    transform: translateX(-50%);
+  }
+
+  .cwr-device-phone img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 13% / 6%;
+    object-fit: cover;
+    object-position: top center;
+  }
+
+  @keyframes hero-phone-float {
+    50% { transform: translateY(-8px); }
+  }
+}
+
+@media (min-width: 960px) and (prefers-reduced-motion: reduce) {
+  .cwr-device-phone {
+    animation: none;
+  }
+}
+
+/**
+ * Hero polish (2026-10-12): 2-line headline, bigger devices, crisp marquee,
+ * real quote instead of bare stars, legible logos, clear CTA hierarchy,
+ * returning-visitor notice as a floating pill.
+ */
+@media (min-width: 960px) {
+  .cwr-landing-hero-grid {
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  }
+
+  .cwr-landing-copy {
+    max-width: 47rem;
+  }
+
+  .cwr-landing-visual.has-devices .cwr-landing-visual-stage {
+    opacity: 0.38;
+    filter: saturate(0.85);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+  }
+
+  .cwr-hero-devices {
+    top: 47%;
+    width: min(680px, 96%);
+  }
+
+  /* Bleed the visual to the screen edge (the grid caps at 1400px, leaving a dark strip). */
+  .cwr-landing-visual.has-devices {
+    margin-right: calc((min(1400px, 100vw - 96px) - 100vw) / 2);
+  }
+
+  .cwr-landing-actions .cwr-landing-btn-outline {
+    border: 1px solid hsla(0, 0%, 100%, 0.34);
+    color: hsla(0, 0%, 100%, 0.9);
+  }
+
+  .cwr-landing-actions .cwr-landing-btn-outline:hover {
+    border-color: hsla(45, 70%, 55%, 0.7);
+    background: hsla(45, 70%, 55%, 0.08);
+  }
+}
+
+/* The admin clip is a dark UI: lift it so "software" reads at a glance. */
+.cwr-hero-video {
+  filter: brightness(1.38) contrast(1.06) saturate(1.1);
+}
+
+@media (min-width: 960px) {
+  .cwr-device-laptop-screen {
+    box-shadow: 0 0 70px hsla(45, 90%, 55%, 0.16);
+  }
+}
+
+/* Real testimonial line (filled by fillHeroQuote in script.js) */
+.cwr-landing-quote {
+  max-width: 34rem;
+  margin: 0 0 clamp(18px, 2.2vw, 26px);
+}
+
+.cwr-landing-quote blockquote {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  margin: 0 0 6px;
+  color: hsla(0, 0%, 100%, 0.84);
+  font-size: 0.95rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.cwr-landing-quote figcaption {
+  color: hsla(0, 0%, 100%, 0.6);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.cwr-landing-quote-stars {
+  margin-right: 4px;
+  color: var(--orange-yellow-crayola);
+  letter-spacing: 1px;
+}
+
+@media (max-width: 959px) {
+  .cwr-landing-quote {
+    max-width: 22rem;
+    margin: 0 auto 14px;
+    text-align: center;
+  }
+
+  .cwr-landing-quote blockquote {
+    font-size: 0.85rem;
+  }
+}
+
+/* Short phones: the hero is a fixed 100dvh, so the quote yields first. */
+@media (max-width: 959px) and (max-height: 760px) {
+  .cwr-landing-quote {
+    display: none;
+  }
+}
+
+/* Bigger logos so every mark is legible (they're colour logos made for dark backgrounds) */
+.cwr-landing-clients img {
+  height: 58px;
+  opacity: 1;
+  filter: drop-shadow(0 4px 12px hsla(0, 0%, 0%, 0.45));
+}
+
+@media (max-width: 959px) {
+  .cwr-landing-clients img {
+    height: 40px;
+  }
+}
+
+/* Returning-visitor notices: a floating pill instead of an in-hero block */
+.cwr-landing-copy #hire-inquiry-return-banner:not([hidden]),
+.cwr-landing-copy #home-conversation-return-banner:not([hidden]) {
+  position: fixed;
+  z-index: 900;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100vw - 32px);
+  margin: 0;
+  padding: 8px 10px 8px 16px;
+  border: 1px solid hsla(45, 90%, 60%, 0.35);
+  border-top: 1px solid hsla(45, 90%, 60%, 0.35);
+  border-radius: 999px;
+  background: hsla(240, 8%, 9%, 0.92);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 14px 40px hsla(0, 0%, 0%, 0.5);
+  text-align: left;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+
+.cwr-landing-copy #hire-inquiry-return-banner .hire-inquiry-return-lead,
+.cwr-landing-copy #home-conversation-return-banner .hire-inquiry-return-lead {
+  display: none;
+}
+
+.cwr-landing-copy #hire-inquiry-return-banner .hire-inquiry-return-kicker,
+.cwr-landing-copy #home-conversation-return-banner .hire-inquiry-return-kicker {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.cwr-landing-copy #hire-inquiry-return-banner .hire-inquiry-return-actions,
+.cwr-landing-copy #home-conversation-return-banner .hire-inquiry-return-actions {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+
+.cwr-landing-copy #hire-inquiry-return-banner .hire-inquiry-return-link,
+.cwr-landing-copy #home-conversation-return-banner .hire-inquiry-return-link {
+  white-space: nowrap;
+}
+
+@media (max-width: 479px) {
+  .cwr-landing-copy #hire-inquiry-return-banner .hire-inquiry-return-kicker,
+  .cwr-landing-copy #home-conversation-return-banner .hire-inquiry-return-kicker {
+    font-size: 10px;
+    letter-spacing: 0.06em;
   }
 }

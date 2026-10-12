@@ -9685,6 +9685,25 @@ window.addEventListener('load', function() {
     }
   }
 
+  /** Hero proof: the newest public quote that reads well in one or two lines (public text only, never private notes). */
+  function fillHeroQuote(rows) {
+    var el = document.querySelector('[data-hero-quote]');
+    if (!el) return;
+    for (var i = 0; i < rows.length; i++) {
+      var d = rows[i].data || {};
+      var text = String(d.text || '').replace(/\s+/g, ' ').trim();
+      if (text.length < 40 || text.length > 220) continue; // CSS clamps it to 3 lines
+      if (d.rating != null && Number(d.rating) < 4) continue;
+      var stars = Math.max(1, Math.min(5, Math.round(Number(d.rating) || 5)));
+      var who = escapeTestimonialHtml(d.name || '') + (d.company ? ', ' + escapeTestimonialHtml(d.company) : '');
+      el.innerHTML =
+        '<blockquote>\u201C' + escapeTestimonialHtml(text) + '\u201D</blockquote>' +
+        (who ? '<figcaption><span class="cwr-landing-quote-stars" aria-label="' + stars + ' out of 5 stars">' + new Array(stars + 1).join('\u2605') + '</span> ' + who + '</figcaption>' : '');
+      el.hidden = false;
+      return;
+    }
+  }
+
   async function loadDynamicTestimonials() {
     if (!window.db || !window.collection || !window.getDocs) {
       return;
@@ -9704,6 +9723,7 @@ window.addEventListener('load', function() {
         return testimonialCreatedMs(b.data) - testimonialCreatedMs(a.data);
       });
       rows = rows.slice(0, 40);
+      fillHeroQuote(rows);
       lists.forEach(function (list) {
         list.querySelectorAll('li[data-dynamic-testimonial="1"]').forEach(function (n) {
           n.remove();
