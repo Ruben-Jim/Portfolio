@@ -4962,6 +4962,51 @@ function portfolioObserveCoverRotators(root) {
  * stays on the element so there is something to paint before the first frame
  * decodes, and preload="none" keeps offscreen cards off the network entirely.
  */
+/**
+ * Phone captures from the hero showcase (assets/images/hero/showcase/<id>-mobile.webp), keyed by the
+ * project's live expo.app host. On phones the card shows this instead of a shrunken desktop shot.
+ */
+var PORTFOLIO_MOBILE_SHOTS = {
+  'procleaning.expo.app': 'procleaning',
+  'tradeservice.expo.app': 'tradeservice',
+  'roofcleaning.expo.app': 'roofcleaning',
+  'treeservice.expo.app': 'treeservice',
+  'carpet.expo.app': 'carpet',
+  'sunergyelectricservices.expo.app': 'sunergy',
+  'pawshine.expo.app': 'pawshine',
+  'lawncare.expo.app': 'lawncare',
+  'beautysalon.expo.app': 'beautysalon',
+  'barbershoptemplate.expo.app': 'barbershop',
+  'photographer.expo.app': 'photographer',
+  'realtor.expo.app': 'realtor',
+  'ruben-jim.github.io/DEMO': 'homeverse',
+  'ruben-jim.github.io/ZoomRealty2025-main': 'zoomrealty'
+};
+var PORTFOLIO_MOBILE_SHOT_VERSION = 3; // keep in sync with SHOT_VERSION in index.html
+// Where to crop a capture whose hero starts with empty space (default: top).
+var PORTFOLIO_MOBILE_SHOT_POSITION = { realtor: 'center 11%' };
+
+function portfolioMobileShotUrl(p) {
+  try {
+    var u = new URL(String(p.projectUrl || ''));
+    var firstSeg = u.pathname.split('/').filter(Boolean)[0];
+    var id = PORTFOLIO_MOBILE_SHOTS[u.hostname] || (firstSeg && PORTFOLIO_MOBILE_SHOTS[u.hostname + '/' + firstSeg]);
+    return id ? '/assets/images/hero/showcase/' + id + '-mobile.webp?v=' + PORTFOLIO_MOBILE_SHOT_VERSION : '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function portfolioRenderMobileShotHtml(p, alt) {
+  var src = portfolioMobileShotUrl(p);
+  if (!src) return '';
+  var id = (src.match(/showcase\/([a-z]+)-mobile/) || [])[1];
+  var pos = PORTFOLIO_MOBILE_SHOT_POSITION[id];
+  return '<img class="project-img-mobile" src="' + portfolioEscapeHtml(src) + '"' +
+    (pos ? ' style="object-position:' + pos + '"' : '') + ' alt="' +
+    portfolioEscapeHtml(alt) + '" loading="lazy" decoding="async">';
+}
+
 function portfolioRenderCardCoverHtml(p, alt) {
   const rotator = portfolioRenderCardRotatorHtml(p, alt);
   if (rotator) return rotator;
@@ -5042,11 +5087,12 @@ function buildPortfolioProjectCardHtml(p) {
     '<a href="' +
     portfolioEscapeHtml(liveHref) +
     '" class="project-link">' +
-    '<figure class="project-img">' +
+    '<figure class="project-img' + (portfolioMobileShotUrl(p) ? ' has-mobile-shot' : '') + '">' +
     '<div class="project-item-icon-box">' +
     '<ion-icon name="eye-outline"></ion-icon>' +
     '</div>' +
     portfolioRenderCardCoverHtml(p, p.imageAlt || p.title || '') +
+    portfolioRenderMobileShotHtml(p, p.imageAlt || p.title || '') +
     portfolioRenderBuildsBadgeHtml(p) +
     '</figure>' +
     '<div class="project-content">' +

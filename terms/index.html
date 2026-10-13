@@ -87,7 +87,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=showcase2-20261012">
+  <link rel="stylesheet" href="/assets/css/style.css?v=interior-20261013">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -8006,6 +8006,11 @@
   <!--
     - Loading Screen
   -->
+  <!-- Phones: sticky CTA on Portfolio (shown via :has(article[data-page="portfolio"].active)). -->
+  <div class="cwr-sticky-cta" role="region" aria-label="Start a project">
+    <button type="button" class="btn btn-primary cwr-sticky-cta-btn" data-i18n="nav.start_project" onclick="if (typeof switchToPage === 'function') { switchToPage('hire-me'); }">Start a project</button>
+  </div>
+
   <div class="loading-screen" id="loading-screen" aria-hidden="true">
     <div class="brand-intro">
       <div class="brand-intro-badge">
@@ -8692,7 +8697,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=hero-polish-20261012"></script>
+  <script src="/assets/js/script.js?v=interior-20261013"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

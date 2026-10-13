@@ -23,7 +23,11 @@ const PROJECTS = [
   ['lawncare', 'https://lawncare.expo.app'],
   ['beautysalon', 'https://beautysalon.expo.app'],
   ['barbershop', 'https://barbershoptemplate.expo.app'],
-  ['photographer', 'https://photographer.expo.app']
+  ['photographer', 'https://photographer.expo.app'],
+  // Portfolio cards only (phone captures on phones), not in the hero rotation:
+  ['realtor', 'https://realtor.expo.app'],
+  ['homeverse', 'https://ruben-jim.github.io/DEMO/'],
+  ['zoomrealty', 'https://ruben-jim.github.io/ZoomRealty2025-main/']
 ].filter(([id]) => !ONLY || ONLY.includes(id));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));

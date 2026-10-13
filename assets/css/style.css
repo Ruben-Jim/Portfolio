@@ -31805,3 +31805,80 @@ html[data-lang="es"] .cwr-landing-lang-chip {
 html:has(body.home-page-active) {
   background-color: hsl(0, 0%, 2%);
 }
+
+/**
+ * Interior pages on phones (2026-10-13)
+ */
+@media (max-width: 579px) {
+  /* Start the profile card closer to the top, and the page card closer to it. */
+  main {
+    margin-top: 6px;
+  }
+
+  .sidebar {
+    margin-bottom: 10px;
+  }
+}
+
+/* Portfolio cards: on phones, a readable phone capture replaces the shrunken desktop shot.
+   Hidden (and never downloaded, it's loading="lazy") on wider screens. */
+.project-img .project-img-mobile {
+  display: none;
+}
+
+@media (max-width: 579px) {
+  .project-img.has-mobile-shot > img:not(.project-img-mobile),
+  .project-img.has-mobile-shot > video,
+  .project-img.has-mobile-shot > .project-card-rotator,
+  .project-img.has-mobile-shot > [class*="rotator"] {
+    display: none;
+  }
+
+  .project-img.has-mobile-shot .project-img-mobile {
+    display: block;
+    padding: 0;
+    object-fit: cover;
+    object-position: top center;
+  }
+}
+
+/* Sticky "Start a project" bar: phones, Portfolio only, above Safari's bottom toolbar. */
+.cwr-sticky-cta {
+  display: none;
+}
+
+@media (max-width: 579px) {
+  body:has(article[data-page="portfolio"].active) .cwr-sticky-cta {
+    position: fixed;
+    z-index: 800;
+    left: 16px;
+    right: 16px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+  }
+
+  /* Solid fill: it floats over content, so the outlined button style would show text through it. */
+  .cwr-sticky-cta-btn,
+  .cwr-sticky-cta-btn:hover,
+  .cwr-sticky-cta-btn:active {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+    border: 1px solid hsl(45, 90%, 62%);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #fcd515 0%, #febc37 55%, #ff9d4c 100%);
+    color: #111;
+    font-weight: 600;
+    box-shadow: 0 12px 30px hsla(0, 0%, 0%, 0.55);
+  }
+
+  .cwr-sticky-cta-btn::before,
+  .cwr-sticky-cta-btn::after {
+    display: none;
+  }
+
+  /* Keep the last card clear of the bar. */
+  body:has(article[data-page="portfolio"].active) main {
+    margin-bottom: 110px;
+  }
+}
