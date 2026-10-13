@@ -86,7 +86,7 @@ ok(!warn.hidden && /Still has/.test(warn.textContent), `soft hint shown: "${warn
 store['outreach-var-name'].value='Maria';
 store['outreach-var-company'].value='Valley Lawn Co';
 store['outreach-var-city'].value='Fresno';
-store['outreach-var-demo'].value='https://tradeservice.expo.app';
+store['outreach-var-demo'].value='https://roofcleaning.expo.app';
 store['outreach-var-name'].input();
 
 ok(copy.disabled===false, 'Copy stays enabled after fills');

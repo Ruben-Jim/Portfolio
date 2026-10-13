@@ -5,7 +5,7 @@
 (function (global) {
   'use strict';
 
-  var BOOKING_DEMO_URL = 'https://tradeservice.expo.app';
+  var BOOKING_DEMO_URL = 'https://roofcleaning.expo.app';
 
   global.BUSINESS_SYSTEMS_DATA = {
     pageTitle: 'What We Build',

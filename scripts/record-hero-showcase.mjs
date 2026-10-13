@@ -19,7 +19,6 @@ mkdirSync(TMP, { recursive: true });
 const PROJECTS = [
   ['realtor', 'https://realtor.expo.app'],
   ['procleaning', 'https://procleaning.expo.app'],
-  ['tradeservice', 'https://tradeservice.expo.app'],
   ['roofcleaning', 'https://roofcleaning.expo.app'],
   ['treeservice', 'https://treeservice.expo.app'],
   ['carpet', 'https://carpet.expo.app'],
@@ -51,16 +50,18 @@ const DEVICES = {
 };
 
 // In-page: find the element that actually scrolls (RN-web pages use an inner scroller).
+// Picks whichever scrolls furthest: the document or an inner overflow box.
 const MARK_SCROLLER = () => {
+  document.querySelectorAll('[data-rec-scroller]').forEach((e) => e.removeAttribute('data-rec-scroller'));
   const se = document.scrollingElement;
-  if (se.scrollHeight > innerHeight + 80) { se.setAttribute('data-rec-scroller', '1'); return; }
-  let best = null, bestH = 0;
+  let best = se, bestH = se.scrollHeight - se.clientHeight;
   document.querySelectorAll('*').forEach((e) => {
     const cs = getComputedStyle(e);
     const d = e.scrollHeight - e.clientHeight;
     if (d > bestH && /(auto|scroll)/.test(cs.overflowY) && e.clientHeight > innerHeight * 0.6) { best = e; bestH = d; }
   });
-  (best || se).setAttribute('data-rec-scroller', '1');
+  best.setAttribute('data-rec-scroller', '1');
+  return bestH;
 };
 const HIDE_COOKIES = () => document.querySelectorAll('body *').forEach((e) => {
   const cs = getComputedStyle(e);
@@ -83,7 +84,7 @@ async function record(id, url, kind, scrollSecs) {
   // Warm-up pass: scroll through once so every lazy image is cached.
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 }).catch(() => {});
   await sleep(2500);
-  await page.evaluate(MARK_SCROLLER);
+  const warmRange = await page.evaluate(MARK_SCROLLER);
   for (let y = 0; y <= 20000; y += 250) {
     const at = await page.evaluate((y) => { const el = document.querySelector('[data-rec-scroller]'); el.scrollTop = y; return el.scrollTop; }, y);
     await sleep(220);
@@ -91,9 +92,9 @@ async function record(id, url, kind, scrollSecs) {
   }
 
   // Real take: reload so the hero animation starts fresh, then hold + scroll at a steady speed.
+  // The app renders its scroller after load, so wait until the page scrolls about as far as in the warm-up.
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 }).catch(() => {});
-  await page.evaluate(HIDE_COOKIES);
-  await page.evaluate(MARK_SCROLLER);
+  for (let k = 0; k < 40 && (await page.evaluate(MARK_SCROLLER)) < warmRange * 0.8; k++) await sleep(250);
   await page.evaluate(HIDE_COOKIES);
 
   const dir = join(TMP, `${id}-${kind}`);
@@ -106,7 +107,8 @@ async function record(id, url, kind, scrollSecs) {
     await s.send('Page.screencastFrameAck', { sessionId: f.sessionId }).catch(() => {});
   });
   await s.send('Page.startScreencast', { format: 'jpeg', quality: 90, maxWidth: 1440, maxHeight: 2200 });
-  const t0 = Date.now() / 1000;
+  // Skip the first 0.1s: the screencast's first frame can be a stale paint (e.g. a cookie banner already hidden).
+  const t0 = Date.now() / 1000 + 0.1;
   const range = await page.evaluate(() => { const el = document.querySelector('[data-rec-scroller]'); return el.scrollHeight - el.clientHeight; });
   const secs = scrollSecs || Math.max(MIN_SCROLL, Math.min(MAX_SCROLL, range / PHONE_SPEED));
   await page.evaluate((hold, secs, endHold) => new Promise((resolve) => {

@@ -384,7 +384,7 @@
                 <div class="cwr-device-laptop">
                   <div class="cwr-device-laptop-screen">
                     <div class="cwr-hero-shot" data-screen="desktop">
-                      <video class="cwr-hero-shot-img is-current" muted playsinline preload="none" poster="/assets/video/showcase/realtor-desktop-poster.webp?v=2" width="960" height="600"></video>
+                      <video class="cwr-hero-shot-img is-current" muted playsinline preload="none" poster="/assets/video/showcase/realtor-desktop-poster.webp?v=3" width="960" height="600"></video>
                       <video class="cwr-hero-shot-img" muted playsinline preload="none" width="960" height="600"></video>
                     </div>
                   </div>
@@ -397,7 +397,7 @@
                   <span class="cwr-device-phone-btn cwr-device-phone-btn--power"></span>
                   <div class="cwr-device-phone-screen cwr-hero-shot" data-screen="mobile">
                     <div class="cwr-safari-status"><span>9:41</span><span class="cwr-safari-status-icons"><svg viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx=".8"/><rect x="5" y="5.5" width="3" height="6.5" rx=".8"/><rect x="10" y="3" width="3" height="9" rx=".8"/><rect x="15" y="0" width="3" height="12" rx=".8"/></svg><svg viewBox="0 0 16 12" fill="#fff"><path d="M8 11.6 5.6 9a3.4 3.4 0 0 1 4.8 0L8 11.6Zm-4.3-4.5L2 5.3a8.5 8.5 0 0 1 12 0l-1.7 1.8a6 6 0 0 0-8.6 0ZM.3 3.5 0 3.2l-.2-.1A11 11 0 0 1 16.2 3l-1.7 1.8a8.6 8.6 0 0 0-14.2-1.3Z"/></svg><svg viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="rgba(255,255,255,.5)"/><rect x="2" y="2" width="17" height="8" rx="1.8" fill="#fff"/><rect x="23.6" y="4" width="1.6" height="4" rx=".8" fill="rgba(255,255,255,.5)"/></svg></span></div>
-                    <video class="cwr-hero-shot-img is-current" muted playsinline preload="none" poster="/assets/video/showcase/realtor-mobile-poster.webp?v=2" width="393" height="710"></video>
+                    <video class="cwr-hero-shot-img is-current" muted playsinline preload="none" poster="/assets/video/showcase/realtor-mobile-poster.webp?v=3" width="393" height="710"></video>
                     <video class="cwr-hero-shot-img" muted playsinline preload="none" width="393" height="710"></video>
                     <div class="cwr-safari-bar">
                       <span class="cwr-safari-btn">‹</span>
@@ -417,16 +417,16 @@
                   var root = document.querySelector('[data-showcase]');
                   if (!root || !window.matchMedia('(min-width: 960px)').matches) return;
                   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-                  var SLIDES = ['realtor', 'procleaning', 'tradeservice', 'roofcleaning', 'treeservice', 'carpet', 'sunergy',
+                  var SLIDES = ['realtor', 'procleaning', 'roofcleaning', 'treeservice', 'carpet', 'sunergy',
                     'pawshine', 'lawncare', 'beautysalon', 'barbershop', 'photographer'];
                   var BASE = '/assets/video/showcase/';
                   // Shown in the phone's Safari address bar.
-                  var HOSTS = { realtor: 'realtor.expo.app', procleaning: 'procleaning.expo.app', tradeservice: 'tradeservice.expo.app',
+                  var HOSTS = { realtor: 'realtor.expo.app', procleaning: 'procleaning.expo.app',
                     roofcleaning: 'roofcleaning.expo.app', treeservice: 'treeservice.expo.app', carpet: 'carpet.expo.app',
                     sunergy: 'sunergyelectricservices.expo.app', pawshine: 'pawshine.expo.app', lawncare: 'lawncare.expo.app',
                     beautysalon: 'beautysalon.expo.app', barbershop: 'barbershoptemplate.expo.app', photographer: 'photographer.expo.app' };
                   var hostEl = root.querySelector('[data-safari-host]');
-                  var CLIP_VERSION = 2; // bump after re-recording so cached clips refresh
+                  var CLIP_VERSION = 3; // bump after re-recording so cached clips refresh
                   var FADE_MS = 600;
                   var HOLD_MS = 700;   // pause on the final frame before switching
                   var screens = [].map.call(root.querySelectorAll('[data-screen]'), function (wrap) {
@@ -452,6 +452,16 @@
                     });
                   }
 
+                  function phoneClip() { return screens.filter(function (sc) { return sc.kind === 'mobile'; })[0].cur; }
+
+                  // Safety net if "ended" never fires: whatever is left of the clip, plus a few seconds.
+                  function armSafety() {
+                    var v = phoneClip();
+                    var left = isFinite(v.duration) && v.duration > 0 ? v.duration - v.currentTime : 45;
+                    clearTimeout(timer);
+                    timer = setTimeout(advance, left * 1000 + 3000);
+                  }
+
                   function playCurrent() {
                     if (reduce) { timer = setTimeout(advance, 6000); return; }
                     screens.forEach(function (sc) {
@@ -460,10 +470,8 @@
                       if (p && p.catch) p.catch(function () {});
                     });
                     // The phone clip is the longer one: switch when it ends.
-                    var phone = screens.filter(function (sc) { return sc.kind === 'mobile'; })[0].cur;
-                    phone.onended = function () { timer = setTimeout(advance, HOLD_MS); };
-                    clearTimeout(timer);
-                    timer = setTimeout(advance, 20000); // safety net if "ended" never fires
+                    phoneClip().onended = function () { clearTimeout(timer); timer = setTimeout(advance, HOLD_MS); };
+                    armSafety();
                   }
 
                   function advance() {
@@ -484,7 +492,9 @@
                   }
 
                   document.addEventListener('visibilitychange', function () {
-                    screens.forEach(function (sc) { if (document.hidden) sc.cur.pause(); else if (!reduce && !sc.cur.ended) sc.cur.play().catch(function () {}); });
+                    if (reduce) return;
+                    screens.forEach(function (sc) { if (document.hidden) sc.cur.pause(); else if (!sc.cur.ended) sc.cur.play().catch(function () {}); });
+                    if (document.hidden) clearTimeout(timer); else if (!phoneClip().ended) armSafety();
                   });
 
                   Promise.all(screens.map(function (sc) { return prime(sc.cur, SLIDES[0], sc.kind); })).then(playCurrent);
@@ -550,7 +560,7 @@
               <h2 class="cwr-landing-band-title" id="cwr-demo-title" data-i18n="home.demo_title">See what we ship for local businesses</h2>
               <p class="cwr-landing-band-lead" data-i18n="home.demo_lead">Custom websites, booking flows, admin dashboards, and mobile apps — built for how service businesses actually run day to day.</p>
               <ul class="cwr-landing-demo-links">
-                <li><a href="https://tradeservice.expo.app" target="_blank" rel="noopener noreferrer">Trade Service demo</a></li>
+                <li><a href="https://roofcleaning.expo.app" target="_blank" rel="noopener noreferrer">Trade Service demo</a></li>
                 <li><button type="button" data-i18n="home.demo_link_full" onclick="if(typeof switchToPage === 'function') { switchToPage('portfolio'); } return false;">Full portfolio</button></li>
               </ul>
             </div>
@@ -8414,7 +8424,7 @@
             <p class="form-hint">Only portfolio projects marked as starter templates. Assigning prefills template repo + demo Firebase while stage is Demo.</p>
           </div>
           <div class="form-row">
-          <div class="form-group form-group-half"><label for="hub-expo-url" id="hub-expo-label">Demo / preview URL</label><input type="url" id="hub-expo-url" placeholder="https://tradeservice.expo.app"></div>
+          <div class="form-group form-group-half"><label for="hub-expo-url" id="hub-expo-label">Demo / preview URL</label><input type="url" id="hub-expo-url" placeholder="https://roofcleaning.expo.app"></div>
             <div class="form-group form-group-half"><label for="hub-repo-url" id="hub-repo-label">Template / working repo URL</label><input type="url" id="hub-repo-url"></div>
           </div>
           <div class="form-row">

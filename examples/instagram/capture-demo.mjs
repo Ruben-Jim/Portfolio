@@ -47,6 +47,24 @@ async function waitReady(page, readyText) {
       { timeout: 25000 },
       readyText
     );
+  }
+  // RN-web banners have no cookie class: hide small fixed/sticky boxes by their text.
+  await sleep(800);
+  await page.evaluate(() => {
+    document.querySelectorAll("body *").forEach((el) => {
+      const cs = getComputedStyle(el);
+      if ((cs.position === "fixed" || cs.position === "sticky") && el.offsetHeight < innerHeight * 0.6 &&
+          /cookie preferences|we use cookies|accept analytics/i.test(el.textContent || "")) {
+        el.style.setProperty("display", "none", "important");
+      }
+    });
+  });
+  if (readyText) {
+    await page.waitForFunction(
+      (needle) => (document.body?.innerText || "").includes(needle),
+      { timeout: 25000 },
+      readyText
+    );
     await page.evaluate(() => {
       document.querySelectorAll("*").forEach((el) => {
         try {
@@ -60,7 +78,7 @@ async function waitReady(page, readyText) {
   }
 }
 
-async function waitForAlso(page, alsoReady) {
+async function waitForAlso(page, alsoReady, freeze) {
   if (!alsoReady) return;
   try {
     await page.waitForFunction(
@@ -68,6 +86,11 @@ async function waitForAlso(page, alsoReady) {
       { timeout: 15000 },
       alsoReady
     );
+    // freeze: stop a typewriter headline on its full word by clearing every page timer.
+    if (freeze) await page.evaluate(() => {
+      const last = setTimeout(() => {}, 0);
+      for (let i = 0; i <= last; i++) { clearTimeout(i); clearInterval(i); }
+    });
   } catch (e) {}
 }
 
@@ -196,7 +219,7 @@ async function shoot(page, project, outPath, viewport) {
   if (project.ready) {
     await waitReady(page, project.ready);
   }
-  await waitForAlso(page, project.alsoReady || "");
+  await waitForAlso(page, project.alsoReady || "", project.freeze);
   await sleep(project.fitHome ? 2500 : 0);
   if (project.ready === "Featured Video") {
     await showFeaturedAndReels(page, viewport);

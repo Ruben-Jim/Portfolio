@@ -7,9 +7,11 @@
   },
   {
     "id": "tradeservice",
-    "url": "https://tradeservice.expo.app",
+    "url": "https://roofcleaning.expo.app",
     "niche": "Booking apps for trade crews",
-    "ready": "Moss Removal"
+    "ready": "What We",
+    "alsoReady": "Home Additions",
+    "freeze": true
   },
   {
     "id": "procleaning",

@@ -71,16 +71,16 @@
       label: 'Trade services',
       tag: 'Trade Services Platform (reference demo)',
       vertical: 'trade crews',
-      demoLink: 'https://tradeservice.expo.app',
+      demoLink: 'https://roofcleaning.expo.app',
       order: 30,
-      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for [trade] crews in [City]. Customers pick a service and time slot and pay a deposit up front, so you’re not chasing calls. https://tradeservice.expo.app\n\nWorth a 2-minute look? Reply STOP to opt out.',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking apps for [trade] crews in [City]. Customers pick a service and time slot and pay a deposit up front, so you’re not chasing calls. https://roofcleaning.expo.app\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — fewer calls, more booked jobs?',
       email:
         'Hi [Name],\n' +
         '\n' +
         'Most [trade] crews I talk to in [City] are still running scheduling through phone tag and texts — and it’s easy for a job to slip through the cracks between the quote and the deposit.\n' +
         '\n' +
-        'I build a branded booking app for trade crews: customers pick a service, a time slot, and pay a deposit before you show up — you see every request and job status in one dashboard. Live reference build: https://tradeservice.expo.app\n' +
+        'I build a branded booking app for trade crews: customers pick a service, a time slot, and pay a deposit before you show up — you see every request and job status in one dashboard. Live reference build: https://roofcleaning.expo.app\n' +
         '\n' +
         'If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how you run jobs today.\n' +
         '\n' +
@@ -385,7 +385,7 @@
       label: 'Trade services — running ads',
       tag: 'Running Ads · No Website — Trades',
       vertical: 'trade crews',
-      demoLink: 'https://tradeservice.expo.app',
+      demoLink: 'https://roofcleaning.expo.app',
       order: 70,
       text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build booking pages for trade crews in [City]. Saw your ad. It points at your Facebook page, so you paid for a click from someone with a problem right now, then asked them to send a message and wait. Here’s where that click could go instead: [demo link]\n\nService, time slot, deposit, before you drive out. Worth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — ad traffic going to Facebook instead of your calendar',
@@ -469,7 +469,7 @@
       label: 'No website — IG · trades / junk / field',
       tag: 'No Website · IG DM · Trades / Junk / Field',
       vertical: 'trade, junk removal, and field service crews',
-      demoLink: 'https://tradeservice.expo.app',
+      demoLink: 'https://roofcleaning.expo.app',
       order: 100,
       text: 'Hey! I’m Ruben with @codewithruben. I know you’re busy, so I’ll cut right to the chase: I noticed [Company] doesn’t have a website up yet. I’m happy to build you a simple site (and booking if you want it) to your needs, with changes along the way. You only pay if you like the final result. No deposit required. Want a quick mockup?\n\nLive example: [demo link]\n\n[package line]\n\n[link tree line]',
       subject: 'Subject: [Company] — mockup for a site (no deposit)?',

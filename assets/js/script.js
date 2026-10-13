@@ -4968,7 +4968,6 @@ function portfolioObserveCoverRotators(root) {
  */
 var PORTFOLIO_MOBILE_SHOTS = {
   'procleaning.expo.app': 'procleaning',
-  'tradeservice.expo.app': 'tradeservice',
   'roofcleaning.expo.app': 'roofcleaning',
   'treeservice.expo.app': 'treeservice',
   'carpet.expo.app': 'carpet',
@@ -11326,7 +11325,7 @@ window.addEventListener('load', function() {
       group: 'Home services',
       label: 'Trade services',
       vertical: 'trade crews',
-      defaultLink: 'https://tradeservice.expo.app',
+      defaultLink: 'https://roofcleaning.expo.app',
       defaultSubject: '{{projectName}} — fewer calls, more booked jobs?',
       defaultBody:
         'Hi {{clientName}},\n\n' +
@@ -11467,7 +11466,7 @@ window.addEventListener('load', function() {
       group: 'Running ads',
       label: 'Trade services — running ads',
       vertical: 'trade crews',
-      defaultLink: 'https://tradeservice.expo.app',
+      defaultLink: 'https://roofcleaning.expo.app',
       defaultSubject: '{{projectName}} — ad traffic going to Facebook instead of your calendar',
       defaultBody:
         'Hi {{clientName}},\n\n' +
@@ -12877,7 +12876,7 @@ window.addEventListener('load', function() {
         var demoLink = demo.defaultLink || '';
         var currentLink = String(els.link.value || '').trim();
         var isKnownDemoLink =
-          /rubenjimenez\.dev\/demos\/tradeservice|tradeservice\.expo\.app|rosasalon\.expo\.app/i.test(currentLink) ||
+          /rubenjimenez\.dev\/demos\/tradeservice|tradeservice\.expo\.app|roofcleaning\.expo\.app|rosasalon\.expo\.app/i.test(currentLink) ||
           ADMIN_CLIENT_EMAIL_DEMOS.some(function (d) {
             return !!d.defaultLink && d.defaultLink.replace(/\/+$/, '') === currentLink.replace(/\/+$/, '');
           });

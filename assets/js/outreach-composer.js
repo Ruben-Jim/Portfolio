@@ -72,8 +72,7 @@
   var DEMOS = [
     { url: 'https://pawshine.expo.app', label: 'Paw Shine — grooming' },
     { url: 'https://pizza.expo.app', label: 'Restaurant — ordering' },
-    { url: 'https://tradeservice.expo.app', label: 'Trade Service — quotes & jobs' },
-    { url: 'https://roofcleaning.expo.app', label: 'Roof & exterior cleaning' },
+    { url: 'https://roofcleaning.expo.app', label: 'Trade Service — quotes & jobs' },
     { url: 'https://lawncare.expo.app', label: 'Lawn care' },
     { url: 'https://treeservice.expo.app', label: 'Tree service' },
     { url: 'https://carpet.expo.app', label: 'Carpet cleaning' },

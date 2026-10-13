@@ -15,7 +15,6 @@ mkdirSync(TMP, { recursive: true });
 const PROJECTS = [
   ['realtor', 'https://realtor.expo.app'],
   ['procleaning', 'https://procleaning.expo.app'],
-  ['tradeservice', 'https://tradeservice.expo.app'],
   ['roofcleaning', 'https://roofcleaning.expo.app'],
   ['treeservice', 'https://treeservice.expo.app'],
   ['carpet', 'https://carpet.expo.app'],
