@@ -1346,6 +1346,77 @@ article.home .cwr-landing-navbar.open .navbar-menu {
   }
 }
 
+/* Home navbar polish: solid gold "Start a project" pill (shown from 768px), compact EN | ES toggle. */
+article.home .cwr-landing-nav-cta,
+article.home .cwr-landing-nav-cta:hover,
+article.home .cwr-landing-nav-cta:focus-visible {
+  border: 1px solid hsl(45, 90%, 62%);
+  background: linear-gradient(180deg, #fcd515 0%, #febc37 55%, #ff9d4c 100%);
+  color: #111;
+}
+
+article.home .cwr-landing-nav-cta:hover,
+article.home .cwr-landing-nav-cta:focus-visible {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px hsla(45, 90%, 50%, 0.35);
+}
+
+@media (min-width: 768px) {
+  /* The pill replaces the navbar's "Start a project" link wherever it shows; phones keep the link in the menu. */
+  article.home .cwr-landing-navbar .navbar-item:has(> [data-page-name="hire-me"]) {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  article.home .cwr-landing-brand {
+    order: 1;
+    margin-right: auto;
+  }
+
+  article.home .cwr-landing-nav-cta {
+    display: inline-flex;
+    order: 2;
+    flex: 0 0 auto;
+    width: auto;
+    padding: 9px 18px;
+    font-size: 13px;
+  }
+
+  article.home .cwr-landing-navbar .navbar-toggle {
+    order: 3;
+  }
+}
+
+@media (min-width: 1200px) {
+  article.home .cwr-landing-navbar .cwr-lang-toggle {
+    gap: 0;
+    padding: 2px;
+    border: 1px solid hsla(0, 0%, 100%, 0.14);
+    border-radius: 999px;
+    background: hsla(0, 0%, 100%, 0.04);
+  }
+
+  article.home .cwr-landing-navbar .cwr-lang-btn {
+    padding: 3px 10px;
+    border: none;
+    border-radius: 999px;
+    background: transparent;
+    color: hsla(0, 0%, 100%, 0.55);
+    font-size: 11px;
+  }
+
+  article.home .cwr-landing-navbar .cwr-lang-btn.active {
+    background: hsla(45, 90%, 55%, 0.16);
+    color: var(--orange-yellow-crayola);
+  }
+
+  article.home .cwr-landing-navbar .cwr-lang-btn:hover:not(.active) {
+    color: var(--white-1);
+  }
+}
+
 /* Home — returning Hire Me inquiry (below hero CTAs) */
 .cwr-landing-copy .hire-inquiry-return-banner {
   margin-top: clamp(18px, 2.5vw, 24px);
@@ -1409,9 +1480,6 @@ article.home .cwr-landing-navbar.open .navbar-menu {
   flex-shrink: 0;
 }
 
-article.home.has-hire-inquiry-banner .cwr-landing-nav-cta {
-  display: none !important;
-}
 
 @media (max-width: 959px) {
   .cwr-landing-copy .hire-inquiry-return-banner {

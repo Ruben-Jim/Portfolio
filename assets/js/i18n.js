@@ -246,6 +246,7 @@
       'cookie.desc':    'Google Analytics helps us understand how visitors use this site. No personal data is sold or shared with advertisers.',
       'cookie.decline': 'Decline',
       'cookie.accept':  'Accept',
+      'cookie.learn':   'Learn more',
 
       /* ── Contact ────────────────────────────────────────── */
       'contact.title':          'Contact',
@@ -502,6 +503,7 @@
       'cookie.desc':    'Google Analytics nos ayuda a entender c\u00f3mo los visitantes usan este sitio. No se venden ni comparten datos personales con anunciantes.',
       'cookie.decline': 'Rechazar',
       'cookie.accept':  'Aceptar',
+      'cookie.learn':   'M\u00e1s informaci\u00f3n',
 
       /* ── Contact ────────────────────────────────────────── */
       'contact.title':          'Contacto',
