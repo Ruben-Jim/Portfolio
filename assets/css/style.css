@@ -32081,3 +32081,19 @@ html:has(body.home-page-active) {
     z-index: 4;
   }
 }
+
+/* Inline SVG flags: Windows and Android-on-desktop browsers render flag emoji as "US"/"MX" letters. */
+.cwr-flag {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 1.4em;
+  height: 0.95em;
+  margin-right: 0.4em;
+  border-radius: 2px;
+  vertical-align: -0.12em;
+  box-shadow: 0 0 0 0.5px hsla(0, 0%, 100%, 0.3);
+}
+
+.cwr-landing-lang-chip .cwr-flag {
+  margin-right: 0;
+}

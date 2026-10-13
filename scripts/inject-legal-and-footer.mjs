@@ -37,8 +37,8 @@ function nav() {
               <li class="navbar-item" style="display: none;"><button class="navbar-link" data-nav-link data-page-name="admin">Admin</button></li>
               <li class="navbar-item navbar-item--lang-toggle">
                 <div class="cwr-lang-toggle" role="group" aria-label="Language / Idioma">
-                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true">🇺🇸 EN</button>
-                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false">🇲🇽 ES</button>
+                  <button type="button" class="cwr-lang-btn active" data-lang-target="en" onclick="cwrSetLang('en')" aria-pressed="true"><svg class="cwr-flag" viewBox="0 0 19 10" preserveAspectRatio="none" aria-hidden="true"><rect width="19" height="10" fill="#b22234"/><path d="M0 1.15h19M0 2.69h19M0 4.23h19M0 5.77h19M0 7.31h19M0 8.85h19" stroke="#fff" stroke-width=".77"/><rect width="7.6" height="5.38" fill="#3c3b6e"/></svg>EN</button>
+                  <button type="button" class="cwr-lang-btn" data-lang-target="es" onclick="cwrSetLang('es')" aria-pressed="false"><svg class="cwr-flag" viewBox="0 0 21 12" preserveAspectRatio="none" aria-hidden="true"><rect width="7" height="12" fill="#006847"/><rect x="7" width="7" height="12" fill="#fff"/><rect x="14" width="7" height="12" fill="#ce1126"/><circle cx="10.5" cy="6" r="1.6" fill="#8a6d3b"/></svg>ES</button>
                 </div>
               </li>
             </ul>
