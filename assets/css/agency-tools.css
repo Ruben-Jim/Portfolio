@@ -5652,6 +5652,43 @@ body.cp-ticket-viewer-open { overflow: hidden; }
   -webkit-overflow-scrolling: touch;
 }
 
+/* Same gold scrollbar + resize grip as the Portfolio editor's text boxes, so a long
+   script shows there's more below and the corner reads as "drag to expand". */
+/* Firefox only: in Chrome/Safari these standard properties would switch off the always-visible
+   ::-webkit-scrollbar styling below and fall back to macOS's hide-until-scroll bar. */
+@supports not selector(::-webkit-scrollbar) {
+  .outreach-preview.has-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--orange-yellow-crayola) var(--onyx);
+  }
+}
+
+.outreach-preview.has-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.outreach-preview.has-scrollbar::-webkit-scrollbar-track {
+  margin: 10px 0;
+  background: var(--onyx);
+  border-radius: 5px;
+}
+
+.outreach-preview.has-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--orange-yellow-crayola);
+  border-radius: 5px;
+}
+
+.outreach-preview.has-scrollbar::-webkit-resizer {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 0 0 12px 0;
+  background-color: var(--bg-smoky-black, hsl(0, 0%, 7%));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cg stroke='%23f5d76e' stroke-width='1.25' stroke-linecap='round' opacity='0.9'%3E%3Cline x1='13' y1='1' x2='1' y2='13'/%3E%3Cline x1='13' y1='5' x2='5' y2='13'/%3E%3Cline x1='13' y1='9' x2='9' y2='13'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: bottom right;
+}
+
 .outreach-preview:focus {
   outline: none;
   border-color: hsla(45, 100%, 72%, 0.45);

@@ -9511,7 +9511,11 @@
           milestones: p.milestones || []
         };
       }),
-      maintenance: agencyMaintenance.map(function (m) {
+      // Retainers = active, paid plans only. A portal plan request that hasn't been paid
+      // (or a declined plan) isn't a retainer; it's flagged under attention instead.
+      maintenance: agencyMaintenance.filter(function (m) {
+        return m.effectivePlanStatus === 'active' && m.paymentStatus !== 'awaiting';
+      }).map(function (m) {
         return {
           clientName: m.clientName,
           renewalDate: m.renewalDate,
