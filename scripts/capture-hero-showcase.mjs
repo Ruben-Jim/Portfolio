@@ -13,6 +13,7 @@ mkdirSync(OUT, { recursive: true });
 mkdirSync(TMP, { recursive: true });
 
 const PROJECTS = [
+  ['realtor', 'https://realtor.expo.app'],
   ['procleaning', 'https://procleaning.expo.app'],
   ['tradeservice', 'https://tradeservice.expo.app'],
   ['roofcleaning', 'https://roofcleaning.expo.app'],
@@ -25,7 +26,6 @@ const PROJECTS = [
   ['barbershop', 'https://barbershoptemplate.expo.app'],
   ['photographer', 'https://photographer.expo.app'],
   // Portfolio cards only (phone captures on phones), not in the hero rotation:
-  ['realtor', 'https://realtor.expo.app'],
   ['homeverse', 'https://ruben-jim.github.io/DEMO/'],
   ['zoomrealty', 'https://ruben-jim.github.io/ZoomRealty2025-main/']
 ].filter(([id]) => !ONLY || ONLY.includes(id));

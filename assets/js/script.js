@@ -4982,7 +4982,7 @@ var PORTFOLIO_MOBILE_SHOTS = {
   'ruben-jim.github.io/DEMO': 'homeverse',
   'ruben-jim.github.io/ZoomRealty2025-main': 'zoomrealty'
 };
-var PORTFOLIO_MOBILE_SHOT_VERSION = 3; // keep in sync with SHOT_VERSION in index.html
+var PORTFOLIO_MOBILE_SHOT_VERSION = 4; // keep in sync with SHOT_VERSION in index.html
 // Where to crop a capture whose hero starts with empty space (default: top).
 var PORTFOLIO_MOBILE_SHOT_POSITION = { realtor: 'center 11%' };
 

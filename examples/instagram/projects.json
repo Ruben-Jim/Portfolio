@@ -1,5 +1,11 @@
 [
   {
+    "id": "realtor",
+    "url": "https://realtor.expo.app",
+    "niche": "Realtor & insurance portals",
+    "ready": "Free Quote"
+  },
+  {
     "id": "tradeservice",
     "url": "https://tradeservice.expo.app",
     "niche": "Booking apps for trade crews",
@@ -29,7 +35,7 @@
     "ready": "View Menu"
   },
   {
-    "id": "grippysocks",
+    "id": "aimnshoot",
     "url": "https://aimnshootrecords.expo.app",
     "niche": "Soccer media and merch",
     "ready": "Featured Video",

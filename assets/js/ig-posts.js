@@ -456,12 +456,13 @@
     });
     // Known export filenames from the examples folder (in case projects.json is incomplete)
     [
+      'realtor',
       'tradeservice',
       'procleaning',
       'rosasalon',
       'barbershop',
       'rizo',
-      'grippysocks',
+      'aimnshoot',
       'hoa',
       'zoomrealty',
       'estate',

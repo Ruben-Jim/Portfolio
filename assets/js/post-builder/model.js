@@ -60,12 +60,13 @@ export const TEXT_PRESETS = {
 
 // Captures that exist under examples/instagram/captures/<id>/.
 export const CAPTURES = [
+  { id: 'realtor', label: 'Realtor & insurance', phone: true, laptop: true },
   { id: 'barbershop', label: 'Barbershop', phone: true, laptop: true },
   { id: 'rosasalon', label: 'Salon', phone: true, laptop: true },
   { id: 'rizo', label: 'Restaurant', phone: true, laptop: true },
   { id: 'tradeservice', label: 'Trade service', phone: true, laptop: true },
   { id: 'procleaning', label: 'ProCleaning', phone: true, laptop: true },
-  { id: 'grippysocks', label: 'Soccer media', phone: true, laptop: true },
+  { id: 'aimnshoot', label: 'Aim N Shoot Records', phone: true, laptop: true },
   { id: 'hoa', label: 'HOA', phone: true, laptop: true },
   { id: 'estate', label: 'Real estate', phone: true, laptop: true },
   { id: 'homeverse', label: 'Homeverse', phone: true, laptop: true },
