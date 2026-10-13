@@ -31546,7 +31546,7 @@ html[data-lang="es"] .cwr-landing-lang-chip {
     right: 0;
     bottom: 2%;
     width: 29%;
-    aspect-ratio: 9 / 19.3;
+    aspect-ratio: 9 / 19.5; /* iPhone 15 */
     padding: 1.1%;
     border-radius: 17% / 8%;
     background: linear-gradient(145deg, #5b5b60 0%, #2a2a2e 22%, #1c1c1f 50%, #3a3a3f 78%, #626267 100%);
@@ -31880,5 +31880,136 @@ html:has(body.home-page-active) {
   /* Keep the last card clear of the bar. */
   body:has(article[data-page="portfolio"].active) main {
     margin-bottom: 110px;
+  }
+}
+
+/* Showcase screens now play live recordings: fill the screen like the old screenshots. */
+@media (min-width: 960px) {
+  .cwr-hero-shot video.cwr-hero-shot-img {
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    background: #111;
+  }
+}
+
+/**
+ * Phone = a website in iPhone Safari: status bar on top, the page (recorded at Safari's
+ * visible size, 390×712), and Safari's floating bottom bar. Sizes are in cqw so the
+ * chrome scales with the phone (390px-wide phone → 1cqw = 3.9px).
+ */
+@media (min-width: 960px) {
+  .cwr-device-phone-screen {
+    container-type: inline-size;
+    background: #0b0b0c;
+  }
+
+  /* iPhone 15: 393×852 screen; status bar 59 (6.9%), page 710, Safari's bar 83 (9.7%). */
+  .cwr-device-phone-screen video.cwr-hero-shot-img {
+    top: 6.9%;
+    height: 83.4%;
+  }
+
+  .cwr-safari-status {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 6.9%;
+    padding: 0 9cqw 0 11cqw;
+    color: #fff;
+    font-size: 4cqw;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .cwr-safari-status-icons {
+    display: flex;
+    align-items: center;
+    gap: 1.4cqw;
+  }
+
+  .cwr-safari-status-icons svg {
+    display: block;
+    height: 3cqw;
+    width: auto;
+  }
+
+  .cwr-safari-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 2.2cqw;
+    height: 9.7%;
+    padding: 0 4cqw 2.4cqw;
+    background: linear-gradient(180deg, transparent, hsla(0, 0%, 4%, 0.92) 35%);
+    color: #fff;
+  }
+
+  .cwr-safari-btn,
+  .cwr-safari-url {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 11.5cqw;
+    border: 1px solid hsla(0, 0%, 100%, 0.16);
+    border-radius: 999px;
+    background: hsla(0, 0%, 100%, 0.12);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 0 hsla(0, 0%, 100%, 0.12);
+  }
+
+  .cwr-safari-btn {
+    flex: 0 0 11.5cqw;
+    font-size: 6cqw;
+    line-height: 1;
+  }
+
+  /* Tabs icon: two overlapping rounded squares */
+  .cwr-safari-btn--tabs::before {
+    content: '';
+    width: 3.6cqw;
+    height: 3.6cqw;
+    border: 0.45cqw solid #fff;
+    border-radius: 0.9cqw;
+    box-shadow: 0.9cqw -0.9cqw 0 -0.45cqw #0b0b0c, 0.9cqw -0.9cqw 0 0 #fff;
+  }
+
+  .cwr-safari-url {
+    flex: 1;
+    gap: 2.2cqw;
+    min-width: 0;
+    padding: 0 3cqw;
+    font-size: 3.6cqw;
+    font-weight: 500;
+  }
+
+  .cwr-safari-url [data-safari-host] {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cwr-safari-url-menu,
+  .cwr-safari-url-reload {
+    flex: 0 0 auto;
+    font-size: 4.4cqw;
+    opacity: 0.9;
+  }
+
+  /* The island sits inside the status bar on a real iPhone. */
+  .cwr-device-phone-island {
+    top: 1.4%;
+    height: 3.2%;
+    z-index: 4;
   }
 }
