@@ -31539,11 +31539,13 @@ html[data-lang="es"] .cwr-landing-lang-chip {
     pointer-events: none;
   }
 
+  /* Side by side with a gap (laptop 70% · gap 4% · phone 26%), so the whole laptop shows. */
   .cwr-device-laptop {
     position: absolute;
-    top: 8%;
+    top: 50%;
     left: 0;
-    width: 84%;
+    width: 70%;
+    transform: translateY(-62%);
     filter: drop-shadow(0 30px 60px hsla(0, 0%, 0%, 0.6));
   }
 
@@ -31608,8 +31610,8 @@ html[data-lang="es"] .cwr-landing-lang-chip {
   .cwr-device-phone {
     position: absolute;
     right: 0;
-    bottom: 2%;
-    width: 29%;
+    bottom: 4%;
+    width: 26%;
     aspect-ratio: 9 / 19.5; /* iPhone 15 */
     padding: 1.1%;
     border-radius: 17% / 8%;
@@ -31692,7 +31694,7 @@ html[data-lang="es"] .cwr-landing-lang-chip {
 
   .cwr-hero-devices {
     top: 47%;
-    width: min(680px, 96%);
+    width: min(760px, 100%);
   }
 
   /* Bleed the visual to the screen edge (the grid caps at 1400px, leaving a dark strip). */
