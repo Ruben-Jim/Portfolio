@@ -582,7 +582,7 @@
       adminNotificationFieldsPanel(fieldRows) +
       adminNotificationMessageBlock(message) +
       adminNotificationMetaHtml(p.website || "", p.user_agent || "") +
-      clientCtaButton(buildReplyMailto(email, subject), "Reply to " + fullname);
+      clientCtaButton(p.reply_url || buildReplyMailto(email, subject), "Reply to " + fullname);
     var preheader = String(message || subject)
       .trim()
       .slice(0, 140);

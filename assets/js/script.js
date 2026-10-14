@@ -6712,8 +6712,8 @@ form.addEventListener("submit", async function(e) {
           message: String(message),
           project_type: String(projectType),
           budget: String(budget),
-          // Package id (e.g. "website") — the leadFromInquiry function uses it
-          // for the lead's package, value, and live offer price.
+          // Package id (e.g. "website") — admin's "Convert to lead" (inquiryToLead)
+          // uses it for the lead's package, value, and live offer price.
           package_id: String(formData.get('hire-package') || ''),
           submittedAt: new Date().toISOString()
         };
@@ -11147,10 +11147,10 @@ window.addEventListener('load', function() {
         'Worth a quick look?'
     },
     {
-      // Outreach Scripts' Email button: the script's own subject and message,
-      // left exactly as written (picking it by hand keeps whatever is typed).
+      // Your own subject + message, left exactly as written: Outreach Scripts'
+      // Email button and Hire Me "Reply to [name]" links fill it in.
       id: 'outreach-script',
-      label: 'From Outreach Scripts',
+      label: 'Custom message',
       group: 'Sales',
       defaultSubject: '',
       defaultBody: ''
@@ -13276,6 +13276,33 @@ window.addEventListener('load', function() {
     return true;
   };
 
+  /**
+   * /admin?compose=reply&name=&email=&msg=&at= (the Hire Me notification's "Reply to [name]"):
+   * open Compose email with a blank reply and their inquiry quoted underneath.
+   */
+  function openAdminComposeFromLink() {
+    var q;
+    try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    if (q.get('compose') !== 'reply') return;
+    var name = String(q.get('name') || '').trim();
+    var email = String(q.get('email') || '').trim();
+    var msg = String(q.get('msg') || '').trim();
+    var at = q.get('at') ? new Date(q.get('at')) : null;
+    var when = at && !isNaN(at) ? at.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    var quoted = msg ? msg.split(/\r?\n/).map(function (l) { return '> ' + l; }).join('\n') : '';
+    var message = '\n\n\n' + (quoted ? '— ' + (when ? 'On ' + when + ', ' : '') + (name || 'They') + ' wrote:\n' + quoted : '');
+    // Drop the query so a refresh doesn't open the drawer again.
+    try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
+    var lead = typeof window.findPipelineLead === 'function' ? window.findPipelineLead({ email: email }) : null;
+    var ok = window.openAdminClientEmailWithScript({ name: name, email: email, subject: 'Re: your project inquiry', message: message });
+    if (ok && lead) adminClientEmailState.activeLeadId = lead.id;
+    var els = adminClientEmailEls();
+    if (ok && els.message) {
+      try { els.message.focus(); els.message.setSelectionRange(0, 0); } catch (e) {}
+    }
+  }
+  window.openAdminComposeFromLink = openAdminComposeFromLink;
+
   window.prefillAdminClientEmail = function (data) {
     var els = adminClientEmailEls();
     if (!els.form) return;
@@ -13348,6 +13375,10 @@ window.addEventListener('load', function() {
       return;
     }
     showDashboard();
+    if (typeof window.openAdminComposeFromLink === 'function') {
+      // After the dashboard renders, so the compose form exists.
+      setTimeout(window.openAdminComposeFromLink, 400);
+    }
     if (typeof fetchMessages === 'function') fetchMessages();
     if (typeof renderAdminBlogPosts === 'function') renderAdminBlogPosts();
     if (typeof renderAdminPortfolioProjects === 'function') renderAdminPortfolioProjects();
@@ -21762,6 +21793,21 @@ window.addEventListener('load', function() {
     }
   }
 
+  // The DM inbox ("Open lead") and the email reply link reach leads from outside this scope.
+  window.findPipelineLead = function (q) {
+    q = q || {};
+    var email = String(q.email || '').trim().toLowerCase();
+    return pipelineLeads.find(function (l) {
+      return (q.id && l.id === q.id) || (email && String(l.email || '').trim().toLowerCase() === email);
+    }) || null;
+  };
+  window.openPipelineLeadById = function (id, tries) {
+    var lead = window.findPipelineLead({ id: id });
+    if (lead) { openLeadDetail(lead); return; }
+    // Leads stream in after sign-in; a just-converted lead can take a moment to arrive.
+    if ((tries || 0) < 20) setTimeout(function () { window.openPipelineLeadById(id, (tries || 0) + 1); }, 300);
+  };
+
   function openLeadDetail(lead) {
     if (!leadDrawer || !leadDrawerBody || !lead) return;
     mountLeadDrawerToBody();
@@ -25387,12 +25433,66 @@ document.addEventListener('DOMContentLoaded', function () {
     return s || 'dm';
   }
 
+  /** Hire Me / contact conversations wait here until admin converts them to a lead. */
+  function isInquiryConversation(conv) {
+    var src = String((conv && (conv.originSource || conv.source)) || '').toLowerCase();
+    return src === 'hire-me' || src === 'contact';
+  }
+
+  function renderAdminDmLeadActionHtml(conv) {
+    if (!isInquiryConversation(conv)) return '';
+    var id = escapeDmHtml(conv.id || '');
+    return conv.leadId
+      ? '<button type="button" class="btn btn-secondary btn-sm admin-dm-lead-action" data-dm-open-lead="' + escapeDmHtml(conv.leadId) + '">' +
+          '<ion-icon name="open-outline" aria-hidden="true"></ion-icon><span>Open lead</span></button>'
+      : '<button type="button" class="btn btn-primary btn-sm admin-dm-lead-action" data-dm-convert-lead="' + id + '">' +
+          '<ion-icon name="person-add-outline" aria-hidden="true"></ion-icon><span>Convert to lead</span></button>';
+  }
+
+  async function convertDmConversationToLead(btn) {
+    var conversationId = btn.getAttribute('data-dm-convert-lead');
+    var label = btn.querySelector('span');
+    btn.disabled = true;
+    if (label) label.textContent = 'Converting…';
+    try {
+      var token = await window.getAdminIdToken();
+      var base = String(window.CWR_FUNCTIONS_BASE || '').replace(/\/$/, '');
+      var res = await fetch(base + '/inquiryToLead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ conversationId: conversationId })
+      });
+      var out = await res.json().catch(function () { return {}; });
+      if (!res.ok || !out.ok || !out.leadId) throw new Error(out.error || 'Could not convert this conversation.');
+      var conv = DM.conversations.find(function (c) { return c.id === conversationId; }) || DM.activeConversationData;
+      if (conv) conv.leadId = out.leadId;
+      syncAdminDmLeadMeta(conv);
+      if (typeof window.openPipelineLeadById === 'function') window.openPipelineLeadById(out.leadId);
+    } catch (err) {
+      console.error('Convert to lead', err);
+      btn.disabled = false;
+      if (label) label.textContent = 'Convert to lead';
+      alert((err && err.message) || 'Could not convert this conversation.');
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var convertBtn = e.target && e.target.closest ? e.target.closest('[data-dm-convert-lead]') : null;
+    if (convertBtn) { convertDmConversationToLead(convertBtn); return; }
+    var openBtn = e.target && e.target.closest ? e.target.closest('[data-dm-open-lead]') : null;
+    if (openBtn && typeof window.openPipelineLeadById === 'function') {
+      window.openPipelineLeadById(openBtn.getAttribute('data-dm-open-lead'));
+    }
+  });
+
   function renderAdminDmLeadMetaHtml(conv) {
     if (!conv) return '';
     var projectType = String(conv.projectType || conv.project_type || '').trim();
     var budget = String(conv.budget || '').trim();
-    if (!projectType && !budget) return '';
+    var action = renderAdminDmLeadActionHtml(conv);
+    if (!projectType && !budget) return action ? '<div class="admin-dm-lead-actions">' + action + '</div>' : '';
     return [
+      action ? '<div class="admin-dm-lead-actions">' + action + '</div>' : '',
       '<div class="message-card-hire-meta admin-dm-lead-meta">',
       projectType
         ? '<div class="message-card-hire-section message-card-hire-section--project"><div class="message-card-hire-section-head">' +
@@ -26051,6 +26151,11 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         DM.conversations = records;
         syncAdminMessagesView();
+        // Keep the open thread's Convert / Open lead button current.
+        if (typeof dmDetailOpenId !== 'undefined' && dmDetailOpenId) {
+          const openConv = records.find(function (r) { return r.id === dmDetailOpenId; });
+          if (openConv) syncAdminDmLeadMeta(openConv);
+        }
         if (DM.activeConversationId) {
           const stillThere = records.some(function (r) { return r.id === DM.activeConversationId; });
           if (stillThere) {

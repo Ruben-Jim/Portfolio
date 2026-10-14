@@ -113,6 +113,33 @@ function isNonEmptyString(v) {
   return typeof v === "string" && v.trim().length > 0;
 }
 
+// Plain-text twin of the admin notification emails. HTML-only mail scores worse with
+// spam filters, and Gmail was sending Hire Me / contact notifications to Spam.
+function adminNotificationText(title, fields, message) {
+  const lines = [title, ""];
+  fields.forEach(([label, value]) => {
+    const v = String(value || "").trim();
+    if (v) lines.push(label + ": " + v);
+  });
+  lines.push("", "Message:", String(message || "").trim(), "", "Reply to this email to answer them directly.");
+  return lines.join("\n");
+}
+
+const PUBLIC_SITE = "https://rubenjimenez.dev";
+
+/** Deep link into admin's Compose email drawer for replying to a Hire Me inquiry. */
+function adminReplyUrl(name, email, message, timestamp) {
+  const q = new URLSearchParams({
+    compose: "reply",
+    name: String(name || "").slice(0, 120),
+    email: String(email || "").slice(0, 180),
+    // The inquiry is quoted under the reply; long ones are trimmed to keep the link sane.
+    msg: String(message || "").slice(0, 1200),
+    at: String(timestamp || "").slice(0, 40),
+  });
+  return PUBLIC_SITE + "/admin?" + q.toString();
+}
+
 function validEmail(v) {
   if (!isNonEmptyString(v)) return false;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
@@ -304,6 +331,7 @@ exports.sendPortfolioEmail = onRequest(
           replyTo: email,
           subject,
           html,
+          text: adminNotificationText(subject, [["Name", fullname], ["Email", email]], message),
         });
         if (error) {
           console.error("Resend error (contact):", error);
@@ -334,11 +362,14 @@ exports.sendPortfolioEmail = onRequest(
           return;
         }
         const subject = String(payload.subject || "New Hire Me Inquiry - Portfolio");
+        // "Reply to [name]" opens admin's Compose email drawer, not a mailto: link.
+        const replyUrl = adminReplyUrl(fullname, email, message, payload.timestamp);
         const html = buildHireMeNotificationHtml({
           fullname,
           email,
           message,
           subject,
+          reply_url: replyUrl,
           project_type: String(payload.project_type || ""),
           budget: String(payload.budget || ""),
           timestamp: String(payload.timestamp || ""),
@@ -351,6 +382,12 @@ exports.sendPortfolioEmail = onRequest(
           replyTo: email,
           subject,
           html,
+          text: adminNotificationText(subject, [
+            ["Name", fullname],
+            ["Email", email],
+            ["Project type", payload.project_type],
+            ["Budget", payload.budget],
+          ], message) + "\nReply in admin: " + replyUrl,
         });
         if (error) {
           console.error("Resend error (hire_me):", error);
@@ -995,30 +1032,17 @@ exports.resendOutboundWebhook = onRequest(
 
 /* ── Website inquiries → Leads Pipeline ─────────────────────────────────
    Hire Me / Contact write a customer message into the DM thread; Schedule a
-   call writes agencyBookings. Both are public writes, so the lead is made
-   here with the admin SDK. Logic + tests: inbound-leads.js,
+   call writes agencyBookings. Both are public writes, so leads are made here
+   with the admin SDK: booked calls automatically, Hire Me / contact when admin
+   presses "Convert to lead". Logic + tests: inbound-leads.js,
    scripts/test-inbound-leads.mjs. */
 const { onValueCreated } = require("firebase-functions/v2/database");
-const { upsertInboundLead, eventFromMessage, eventFromBooking } = require("./inbound-leads");
+const { upsertInboundLead, eventFromBooking, convertConversationToLead } = require("./inbound-leads");
 
 const RTDB_TRIGGER = { instance: "portfolio-2578e-default-rtdb", region: "us-central1" };
 
-exports.leadFromInquiry = onValueCreated(
-  Object.assign({ ref: "/dm/threadMessages/{conversationId}/{messageId}" }, RTDB_TRIGGER),
-  async (event) => {
-    const db = admin.database();
-    const ev = await eventFromMessage(db, event.params.conversationId, event.data.val());
-    if (!ev) return;
-    try {
-      const res = await upsertInboundLead(db, ev, Date.now());
-      console.log("leadFromInquiry", ev.kind, res);
-    } catch (err) {
-      console.error("leadFromInquiry failed", err);
-      throw err;
-    }
-  }
-);
-
+// Hire Me / contact messages no longer make leads automatically: admin converts
+// them from the DM inbox (inquiryToLead below). Booked calls still do.
 exports.leadFromBooking = onValueCreated(
   Object.assign({ ref: "/agencyBookings/{bookingId}" }, RTDB_TRIGGER),
   async (event) => {
@@ -1067,3 +1091,13 @@ exports.portalApi = onRequest(PUBLIC_JSON, jsonEndpoint((body) =>
 
 exports.dmSession = onRequest(PUBLIC_JSON, jsonEndpoint((body, req) =>
   dmSession.handle({ db: admin.database(), auth: admin.auth() }, body, clientIp(req), Date.now())));
+
+// Admin "Convert to lead" on a Hire Me / contact conversation in the DM inbox.
+exports.inquiryToLead = onRequest(PUBLIC_JSON, jsonEndpoint(async (body, req) => {
+  if (!(await verifyAdminBearer(req))) {
+    const err = new Error("Admin sign-in required.");
+    err.status = 401;
+    throw err;
+  }
+  return convertConversationToLead(admin.database(), body.conversationId, Date.now());
+}));

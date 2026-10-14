@@ -2,9 +2,11 @@
  * Website inquiries → Leads Pipeline.
  *
  * Hire Me, Contact, and Schedule-a-call are written by the public site, which
- * can't touch admin-only `pipelineLeads`. These triggers (wired in index.js)
- * create the lead, or link to the one that already exists, with the same
- * matching rules the admin uses (lead-match.js):
+ * can't touch admin-only `pipelineLeads`. A booked call makes its lead on its own
+ * (trigger in index.js). Hire Me and contact messages wait in the DM inbox until
+ * admin presses "Convert to lead" (convertConversationToLead → inquiryToLead).
+ * Either way the lead is created, or linked to the one that already exists, with
+ * the same matching rules the admin uses (lead-match.js):
  *
  *   Hire Me inquiry   → stage Lead, package + live offer price, DM thread link
  *   Contact message   → stage Lead, DM thread link (once per conversation)
@@ -201,4 +203,38 @@ function eventFromBooking(bookingId, b) {
   };
 }
 
-module.exports = { upsertInboundLead, eventFromMessage, eventFromBooking, activeOffer, PACKAGES };
+function httpError(status, message) {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+}
+
+/**
+ * Admin's "Convert to lead" on a DM conversation. Hire Me and contact messages no
+ * longer make leads on their own; this builds the lead from the conversation's
+ * latest Hire Me message (it carries package + budget), else its latest contact
+ * message, with the same rules the automatic trigger used.
+ * @returns {Promise<{leadId: string, created: boolean, already?: boolean, skipped?: string}>}
+ */
+async function convertConversationToLead(db, conversationId, now) {
+  const id = String(conversationId || "").trim();
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(id)) throw httpError(400, "Pick a conversation.");
+  const meta = (await db.ref("dm/meta/" + id).once("value")).val();
+  if (!meta) throw httpError(404, "Conversation not found.");
+  if (meta.leadId) {
+    const existing = (await db.ref("pipelineLeads/" + meta.leadId).once("value")).val();
+    if (existing) return { leadId: meta.leadId, created: false, already: true };
+  }
+  const all = (await db.ref("dm/threadMessages/" + id).once("value")).val() || {};
+  const list = Object.keys(all)
+    .map((k) => all[k])
+    .filter((m) => m && m.senderRole === "customer" && (m.source === "hire-me" || m.source === "contact"))
+    .sort((a, b) => (Number(a.createdAt) || 0) - (Number(b.createdAt) || 0));
+  const msg = list.slice().reverse().find((m) => m.source === "hire-me") || list[list.length - 1];
+  if (!msg) throw httpError(400, "This conversation has no Hire Me or contact message to convert.");
+  const ev = await eventFromMessage(db, id, msg);
+  if (!ev) throw httpError(400, "This conversation can't be converted.");
+  return upsertInboundLead(db, ev, now);
+}
+
+module.exports = { upsertInboundLead, eventFromMessage, eventFromBooking, convertConversationToLead, activeOffer, PACKAGES };

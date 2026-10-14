@@ -14,7 +14,7 @@ import vm from 'node:vm';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const { upsertInboundLead, eventFromMessage, eventFromBooking, PACKAGES } = require('../functions/inbound-leads.js');
+const { upsertInboundLead, eventFromMessage, eventFromBooking, convertConversationToLead, PACKAGES } = require('../functions/inbound-leads.js');
 
 let data = {};
 const parts = p => String(p || '').split('/').filter(Boolean);
@@ -93,6 +93,31 @@ setAt('dm/meta/C3', { customerName: 'Lee', customerEmail: 'lee@x.com' });
 await upsertInboundLead(db, await eventFromMessage(db, 'C3', { senderRole: 'customer', source: 'hire-me', package_id: 'website' }), NOW);
 const lee = leads().find(([, l]) => l.email === 'lee@x.com')[1];
 ok(lee.value === 999 && !lee.packageOfferPrice, 'expired offer falls back to the regular price');
+
+// Manual "Convert to lead" from the DM inbox (Hire Me / contact no longer auto-convert).
+data.agencyPricing.packageOffers.website.endsAt = '2026-11-09';
+setAt('dm/meta/C9', { customerName: 'Ana', customerEmail: 'ana@shop.com' });
+setAt('dm/threadMessages/C9', {
+  m1: { senderRole: 'customer', source: 'contact', body: 'Do you build sites?', createdAt: 1 },
+  m2: { senderRole: 'admin', body: 'Yes!', createdAt: 2 },
+  m3: { senderRole: 'customer', source: 'hire-me', body: 'Here are details', package_id: 'website', budget: '$500–$1k', createdAt: 3 }
+});
+const before = leads().length;
+const conv = await convertConversationToLead(db, 'C9', NOW);
+const ana = leads().find(([, l]) => l.email === 'ana@shop.com');
+ok(conv.created && leads().length === before + 1, 'Convert to lead creates one lead');
+ok(ana && ana[1].inboundSource === 'hire-me' && ana[1].value === 699, 'conversion uses the Hire Me message (package + offer price), not the earlier contact one');
+ok(getAt('dm/meta/C9/leadId') === conv.leadId, 'conversation is linked to the new lead');
+const again = await convertConversationToLead(db, 'C9', NOW);
+ok(again.already && again.leadId === conv.leadId && leads().length === before + 1, 'converting twice reuses the lead');
+setAt('dm/meta/C10', { customerName: 'Bo', customerEmail: 'bo@x.com' });
+setAt('dm/threadMessages/C10', { m1: { senderRole: 'customer', source: 'client-portal', body: 'hi' } });
+let threw = null;
+try { await convertConversationToLead(db, 'C10', NOW); } catch (e) { threw = e; }
+ok(threw && threw.status === 400, 'a conversation without a Hire Me / contact message is refused');
+threw = null;
+try { await convertConversationToLead(db, '../pipelineLeads', NOW); } catch (e) { threw = e; }
+ok(threw && threw.status === 400, 'bad conversation ids are refused');
 
 // Server price table matches the site.
 const ctx = vm.createContext({ window: {}, document: { querySelectorAll: () => [] }, console, setTimeout });

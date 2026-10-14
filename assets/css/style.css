@@ -32097,3 +32097,20 @@ html:has(body.home-page-active) {
 .cwr-landing-lang-chip .cwr-flag {
   margin-right: 0;
 }
+
+/* DM inbox: Hire Me / contact conversations get "Convert to lead" (then "Open lead"). */
+.admin-dm-lead-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 10px;
+}
+
+.admin-dm-lead-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-dm-lead-action ion-icon {
+  font-size: 16px;
+}
