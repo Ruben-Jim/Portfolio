@@ -31533,19 +31533,20 @@ html[data-lang="es"] .cwr-landing-lang-chip {
     z-index: 2;
     top: 50%;
     right: clamp(8px, 2vw, 32px);
-    width: min(580px, 94%);
+    width: min(580px, calc(100% - clamp(8px, 2vw, 32px)));
     aspect-ratio: 4 / 3;
     transform: translateY(-50%);
     pointer-events: none;
   }
 
   /* Side by side with a gap (laptop 70% · gap 4% · phone 26%), so the whole laptop shows. */
+  /* The pair is centred in the frame and the phone stands on the same line as the
+     laptop's base (its bottom just below it), instead of hanging lower. */
   .cwr-device-laptop {
     position: absolute;
-    top: 50%;
+    top: 22%;
     left: 0;
     width: 70%;
-    transform: translateY(-62%);
     filter: drop-shadow(0 30px 60px hsla(0, 0%, 0%, 0.6));
   }
 
@@ -31610,7 +31611,7 @@ html[data-lang="es"] .cwr-landing-lang-chip {
   .cwr-device-phone {
     position: absolute;
     right: 0;
-    bottom: 4%;
+    bottom: 13%;
     width: 26%;
     aspect-ratio: 9 / 19.5; /* iPhone 15 */
     padding: 1.1%;
@@ -31694,7 +31695,8 @@ html[data-lang="es"] .cwr-landing-lang-chip {
 
   .cwr-hero-devices {
     top: 47%;
-    width: min(760px, 100%);
+    /* Subtract the right inset, or a narrow column pushes the laptop's left edge out of view. */
+    width: min(760px, calc(100% - clamp(8px, 2vw, 32px)));
   }
 
   /* Bleed the visual to the screen edge (the grid caps at 1400px, leaving a dark strip). */
