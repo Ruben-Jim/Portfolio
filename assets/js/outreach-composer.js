@@ -859,10 +859,15 @@
       ? getBody().replace(/^Subject:\s*/i, '')
       : fill(s.subject || '', vars).replace(/^Subject:\s*/i, '');
     var body = activeStep === 'email' ? getBody() : fill(s.email || '', vars);
-    var href = 'mailto:' + encodeURIComponent(vars.email || '') +
-      '?subject=' + encodeURIComponent(subject) +
-      '&body=' + encodeURIComponent(body);
-    global.location.href = href;
+    // Opens admin's own Compose email drawer (branded, sent through Resend), not the mail app.
+    if (typeof global.openAdminClientEmailWithScript === 'function') {
+      global.openAdminClientEmailWithScript({
+        name: vars.name || '',
+        email: vars.email || '',
+        subject: subject,
+        message: body
+      });
+    }
   }
 
   /** Overwrite the saved copy of the current script with its latest seed template. */

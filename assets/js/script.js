@@ -7747,19 +7747,20 @@ const pages = document.querySelectorAll("[data-page]");
 
 // 480px thumbnails (assets/images/landing-marquee/) — the tiles render ~140px wide,
 // so the full-size project images cost ~880 KB for no visible gain.
+// Tiles are captured from the live demos at 480px; bump the ?v= after re-capturing.
 var LANDING_MARQUEE_PROJECTS = [
-  { src: '/assets/images/landing-marquee/procleaning.webp' },
-  { src: '/assets/images/landing-marquee/tradeservice.webp' },
-  { src: '/assets/images/landing-marquee/realtor-template.webp' },
-  { src: '/assets/images/landing-marquee/barbershop.webp' },
-  { src: '/assets/images/landing-marquee/lawncare.webp' },
-  { src: '/assets/images/landing-marquee/rosasalon.webp' },
-  { src: '/assets/images/landing-marquee/homecontractors.webp' },
-  { src: '/assets/images/landing-marquee/pawshine.webp' },
-  { src: '/assets/images/landing-marquee/inktattoo.webp' },
-  { src: '/assets/images/landing-marquee/sheltonsprings.webp' },
-  { src: '/assets/images/landing-marquee/grippysocks.webp' },
-  { src: '/assets/images/landing-marquee/rizopizzeria.webp' }
+  { src: '/assets/images/landing-marquee/procleaning.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/roofcleaning.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/realtor.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/barbershop.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/lawncare.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/beautysalon.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/generalcontractor.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/pawshine.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/inktattoo.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/sheltonsprings.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/aimnshoot.webp?v=20261013' },
+  { src: '/assets/images/landing-marquee/rizopizzeria.webp?v=20261013' }
 ];
 
 function buildLandingMarqueeTile(project, eager) {
@@ -11146,6 +11147,15 @@ window.addEventListener('load', function() {
         'Worth a quick look?'
     },
     {
+      // Outreach Scripts' Email button: the script's own subject and message,
+      // left exactly as written (picking it by hand keeps whatever is typed).
+      id: 'outreach-script',
+      label: 'From Outreach Scripts',
+      group: 'Sales',
+      defaultSubject: '',
+      defaultBody: ''
+    },
+    {
       id: 'send-proposal',
       group: 'Sales',
       label: 'Send proposal & invoice',
@@ -12862,6 +12872,12 @@ window.addEventListener('load', function() {
     if (!opts.preserveUserLink) {
       clearAdminClientEmailLinkUserSet(els);
     }
+    if (template.id === 'outreach-script') {
+      // No generated copy: the subject and message are the script's own text.
+      updateAdminClientEmailPreview(els);
+      saveAdminClientEmailDraft(els);
+      return;
+    }
     if (els.nextStep && !String(els.nextStep.value || '').trim()) {
       var defaultNext = defaultNextStepForEmailTemplate(template.id);
       if (defaultNext) els.nextStep.value = defaultNext;
@@ -13234,6 +13250,31 @@ window.addEventListener('load', function() {
     updateAdminClientEmailPreview(els);
     adminClientEmailState.initialized = true;
   }
+
+  /**
+   * Outreach Scripts → Email: open the compose drawer with the script's subject and
+   * message as written, sent as a branded email through Resend (not a mailto: link).
+   */
+  window.openAdminClientEmailWithScript = function (data) {
+    data = data || {};
+    var els = adminClientEmailEls();
+    if (!els.form) return false;
+    var ok = window.prefillAdminClientEmail({
+      name: data.name || '',
+      email: data.email || '',
+      templateId: 'outreach-script',
+      nextStep: '',
+      link: ''
+    });
+    if (ok === false) return false;
+    if (els.subject) els.subject.value = String(data.subject || '');
+    if (els.message) els.message.value = String(data.message || '');
+    if (els.ctaLabel) els.ctaLabel.value = '';
+    updateAdminClientEmailPreview(els);
+    saveAdminClientEmailDraft(els);
+    openAdminClientEmailDrawer();
+    return true;
+  };
 
   window.prefillAdminClientEmail = function (data) {
     var els = adminClientEmailEls();

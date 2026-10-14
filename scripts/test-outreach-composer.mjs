@@ -120,3 +120,19 @@ ok(store['outreach-var-demo'].value==='https://procleaning.expo.app',
    `demo link prefilled from script data (got "${store['outreach-var-demo'].value}")`);
 store['outreach-steps'].children[0].click();   // back to Text
 ok(body().includes('procleaning.expo.app'), 'preview uses the prefilled demo link');
+
+// Email opens admin's own compose drawer with the script text (not a mailto: link).
+let composed = null;
+sandbox.openAdminClientEmailWithScript = (d) => { composed = d; return true; };
+sandbox.location = { href: 'about:blank' };
+store['outreach-var-email'].value = 'owner@example.com';
+store['outreach-var-email'].input();
+store['outreach-steps'].children[2].click();   // Email step
+store['outreach-preview'].value = 'Edited email body';
+store['outreach-preview'].input();
+store['outreach-email'].click();
+ok(!!composed, 'Email opens the in-app compose drawer');
+ok(composed && composed.email === 'owner@example.com', 'compose gets the quick-fill email');
+ok(composed && composed.message === 'Edited email body', 'compose gets the edited email body');
+ok(composed && composed.subject && !/^Subject:/i.test(composed.subject), `compose gets the script subject (got "${composed && composed.subject}")`);
+ok(sandbox.location.href === 'about:blank', 'no mailto: navigation');

@@ -2139,10 +2139,6 @@ article.home .cwr-landing-nav-cta:focus-visible {
   animation-duration: 32s;
 }
 
-.cwr-landing-marquee:hover .cwr-landing-marquee-track {
-  animation-play-state: paused;
-}
-
 @keyframes cwrLandingMarqueeUp {
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(0, -50%, 0); }
