@@ -4010,6 +4010,18 @@
                       <div class="admin-client-email-preview-box has-scrollbar" id="admin-client-email-preview"></div>
                     </div>
                   </div>
+                  <!-- After a successful send (same look as the inbox's Confirm send).
+                       OK, Escape or the backdrop closes it and the compose drawer. -->
+                  <div class="admin-email-reply-confirm-modal" id="admin-client-email-sent-modal" hidden aria-modal="true" role="dialog" aria-labelledby="admin-client-email-sent-title" aria-describedby="admin-client-email-sent-body">
+                    <div class="admin-email-reply-confirm-backdrop" id="admin-client-email-sent-backdrop"></div>
+                    <div class="admin-email-reply-confirm-dialog">
+                      <h4 class="admin-email-reply-confirm-title" id="admin-client-email-sent-title">Email sent</h4>
+                      <p class="admin-email-reply-confirm-body" id="admin-client-email-sent-body"></p>
+                      <div class="admin-email-reply-confirm-actions">
+                        <button type="button" class="btn btn-primary btn-sm" id="admin-client-email-sent-ok">OK</button>
+                      </div>
+                    </div>
+                  </div>
                   <div class="admin-client-email-actions">
                     <button type="submit" class="btn btn-primary" id="admin-client-email-send-btn">
                       <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
@@ -8767,7 +8779,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=compose-none-20261014"></script>
+  <script src="/assets/js/script.js?v=compose-sent-20261014"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

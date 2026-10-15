@@ -13121,7 +13121,8 @@ window.addEventListener('load', function() {
       var sentDraftId = adminClientEmailState.activeDraftId;
       adminClientEmailState.activeDraftId = '';
       setAdminClientEmailDirty(false);
-      setAdminClientEmailFeedback(els, 'Email sent successfully.', false);
+      setAdminClientEmailFeedback(els, '', false);
+      showAdminClientEmailSent(toName, toEmail, subject);
       saveAdminClientEmailDraft(els);
       if (sentDraftId) {
         // The email is out, so a failed cleanup must not read as a failed send.
@@ -13353,6 +13354,11 @@ window.addEventListener('load', function() {
         openAdminClientEmailPreview(els);
       });
     }
+
+    ['admin-client-email-sent-ok', 'admin-client-email-sent-backdrop'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('click', closeAdminClientEmailSent);
+    });
 
     if (els.previewModal) {
       els.previewModal.addEventListener('click', function (e) {
@@ -15888,7 +15894,76 @@ window.addEventListener('load', function() {
     if (body) body.appendChild(sourceSection);
     sourcePanel.hidden = true;
     sourcePanel.setAttribute('aria-hidden', 'true');
+    bindAdminEmailDrawerChrome(drawer);
     return drawer;
+  }
+
+  /**
+   * Close button, backdrop, Escape and resize. Wired where the drawer is built,
+   * not in the Email tab's setup: a client drawer's "Send email" can open the
+   * composer before the Email tab has ever loaded.
+   */
+  function bindAdminEmailDrawerChrome(drawer) {
+    if (!drawer || drawer.dataset.bound === '1') return;
+    drawer.dataset.bound = '1';
+    drawer.addEventListener('click', function (e) {
+      if (e.target && e.target.hasAttribute('data-email-drawer-close')) closeAdminClientEmailDrawer();
+    });
+    var closeBtn = drawer.querySelector('#admin-email-drawer-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeAdminClientEmailDrawer);
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !drawer.classList.contains('is-open')) return;
+      // Escape on "Email sent" is its OK; with the preview open it closes just the preview.
+      if (isAdminClientEmailSentOpen()) {
+        closeAdminClientEmailSent();
+      } else if (!isAdminClientEmailPreviewOpen()) {
+        closeAdminClientEmailDrawer();
+      }
+    });
+    bindAdminEmailDrawerResize(drawer);
+  }
+
+  function isAdminClientEmailSentOpen() {
+    var modal = document.getElementById('admin-client-email-sent-modal');
+    return !!(modal && !modal.hidden);
+  }
+
+  /** Replaces the old inline "Email sent successfully." line. */
+  function showAdminClientEmailSent(toName, toEmail, subject) {
+    var modal = document.getElementById('admin-client-email-sent-modal');
+    var body = document.getElementById('admin-client-email-sent-body');
+    if (!modal) return;
+    if (body) {
+      body.innerHTML =
+        '<strong>✓ Sent to ' + escHtml(toName) + '</strong><br>' +
+        escHtml(toEmail) + '<br>' +
+        '“' + escHtml(subject) + '”';
+    }
+    modal.hidden = false;
+    var ok = document.getElementById('admin-client-email-sent-ok');
+    if (ok) ok.focus();
+  }
+
+  /**
+   * OK: close the dialog and the drawer, and leave a blank None email behind so
+   * nothing from this one carries into the next. (Reset alone keeps None's text.)
+   */
+  function closeAdminClientEmailSent() {
+    var modal = document.getElementById('admin-client-email-sent-modal');
+    if (modal) modal.hidden = true;
+    var els = adminClientEmailEls();
+    if (els.template && typeof window.setBusinessDocSelectValue === 'function') {
+      window.setBusinessDocSelectValue(els.template, ADMIN_CLIENT_EMAIL_TEMPLATES[0].id, true);
+    } else if (els.template) {
+      els.template.value = ADMIN_CLIENT_EMAIL_TEMPLATES[0].id;
+    }
+    resetAdminClientEmailDraft(els);
+    if (els.subject) els.subject.value = '';
+    if (els.message) els.message.value = '';
+    setAdminClientEmailFeedback(els, '', false);
+    updateAdminClientEmailPreview(els);
+    saveAdminClientEmailDraft(els);
+    closeAdminClientEmailDrawer();
   }
 
   function closeAdminClientEmailDrawer() {
@@ -15913,22 +15988,7 @@ window.addEventListener('load', function() {
       composeBtn.dataset.bound = '1';
       composeBtn.addEventListener('click', openAdminClientEmailDrawer);
     }
-    var drawer = ensureAdminClientEmailDrawer();
-    if (drawer && drawer.dataset.bound !== '1') {
-      drawer.dataset.bound = '1';
-      drawer.addEventListener('click', function (e) {
-        if (e.target && e.target.hasAttribute('data-email-drawer-close')) closeAdminClientEmailDrawer();
-      });
-      var closeBtn = drawer.querySelector('#admin-email-drawer-close');
-      if (closeBtn) closeBtn.addEventListener('click', closeAdminClientEmailDrawer);
-      document.addEventListener('keydown', function (e) {
-        // Escape with the preview open closes just the preview.
-        if (e.key === 'Escape' && drawer.classList.contains('is-open') && !isAdminClientEmailPreviewOpen()) {
-          closeAdminClientEmailDrawer();
-        }
-      });
-      bindAdminEmailDrawerResize(drawer);
-    }
+    ensureAdminClientEmailDrawer();
   }
 
   // ── Compose drawer width (desktop) ──────────────────────────────────────────
