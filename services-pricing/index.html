@@ -3971,11 +3971,11 @@
                 <input type="text" id="admin-client-email-site-url" class="form-input" placeholder="calwesttree.com" autocomplete="off" spellcheck="false">
                 <p class="form-hint">Used in the message (“I came across calwesttree.com…”). Leave blank to say “[Company]’s website”.</p>
               </div>
-                    <div class="form-group admin-client-email-grid-full">
+                    <div class="form-group admin-client-email-grid-full" id="admin-client-email-next-step-wrap">
                       <label class="form-label" for="admin-client-email-next-step">Next step</label>
                       <input class="form-input" type="text" id="admin-client-email-next-step" maxlength="180" placeholder="Review the update and send any edits by Friday">
                     </div>
-                    <div class="form-group admin-client-email-grid-full">
+                    <div class="form-group admin-client-email-grid-full" id="admin-client-email-link-wrap">
                       <label class="form-label" for="admin-client-email-link">Link (optional)</label>
                       <input class="form-input" type="text" id="admin-client-email-link" maxlength="2000" placeholder="https://rubenjimenez.dev/portal.html?token=...">
                     </div>
@@ -3992,6 +3992,11 @@
                       <label class="form-label" for="admin-client-email-message">Message</label>
                       <textarea class="form-input has-scrollbar admin-client-email-message" id="admin-client-email-message" rows="10" maxlength="12000" placeholder="Write your email here..." required></textarea>
                     </div>
+                    <!-- Template "None": only shown when the client's portal link is known. -->
+                    <label class="admin-client-email-ads-toggle admin-client-email-grid-full" id="admin-client-email-portal-btn-wrap" hidden>
+                      <input type="checkbox" id="admin-client-email-portal-btn">
+                      <span>Add portal button <em>(“Open Portal →” at the end of the email)</em></span>
+                    </label>
                   </div>
                   <div class="admin-client-email-preview-modal" id="admin-client-email-preview-modal" hidden>
                     <div class="admin-client-email-preview-backdrop" data-preview-close></div>
@@ -8728,7 +8733,7 @@
       var CLASSIC = [
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', integrity: 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==' },
         { src: '/assets/js/blog-tiptap-editor.js?v=tiptap-blog-20260729' },
-        { src: '/assets/js/agency-tools.js?v=plan-invoice-20261014' },
+        { src: '/assets/js/agency-tools.js?v=compose-none-20261014' },
         { src: '/assets/js/ig-posts.js?v=ig-library-20260827' },
         { src: '/assets/js/outreach-composer.js?v=outreach-compose-20261013' },
         { src: '/assets/js/prospects.js?v=deposit-text-20261010' },
@@ -8762,7 +8767,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=doc-drawer-20261014"></script>
+  <script src="/assets/js/script.js?v=compose-none-20261014"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

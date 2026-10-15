@@ -11131,6 +11131,16 @@ window.addEventListener('load', function() {
 
   var ADMIN_CLIENT_EMAIL_TEMPLATES = [
     {
+      // "None": your own subject + message, sent exactly as written (no demo,
+      // no line-level rewrites), plus an optional portal button. First, so it
+      // is also the fallback. The id predates the rename — drafts, Outreach
+      // Scripts' Email button and Hire Me "Reply to [name]" links use it.
+      id: 'outreach-script',
+      label: 'None — write your own',
+      defaultSubject: '',
+      defaultBody: ''
+    },
+    {
       // Cold outreach to a new lead. Demo picks the niche, Situation picks the
       // angle, Length picks Short (this copy) or Full (the niche's long pitch).
       // Replaces the old 'lead-intro' (Short) and 'send-demo' (Full) templates.
@@ -11145,15 +11155,6 @@ window.addEventListener('load', function() {
         'Here’s what it looks like:\n' +
         '{{linkLine}}\n' +
         'Worth a quick look?'
-    },
-    {
-      // Your own subject + message, left exactly as written: Outreach Scripts'
-      // Email button and Hire Me "Reply to [name]" links fill it in.
-      id: 'outreach-script',
-      label: 'Custom message',
-      group: 'Sales',
-      defaultSubject: '',
-      defaultBody: ''
     },
     {
       id: 'send-proposal',
@@ -11297,6 +11298,31 @@ window.addEventListener('load', function() {
         'Thank you,\nCodeWithRuben'
     }
   ];
+
+  /**
+   * Cold outreach with "Select demo: None": no niche wording and no demo link.
+   * Its copy is the General pitch; other situations use their `noDemo` copy,
+   * and the demo-only ones (branded, quick) are hidden while this is picked.
+   */
+  var ADMIN_CLIENT_EMAIL_NO_DEMO = {
+    id: 'none',
+    label: 'None — generic pitch',
+    vertical: 'local businesses',
+    defaultLink: '',
+    shortSubject: 'A website for {{projectName}}?',
+    shortBody:
+      'Hey — love the work {{projectName}} does 🔥\n\n' +
+      'I’m a local developer from Fresno. I build websites and booking apps for local businesses in the Central Valley, and you only pay if you like the result.\n\n' +
+      'Worth a quick chat?',
+    defaultSubject: 'A website and booking app for {{projectName}}?',
+    defaultBody:
+      'Hi {{clientName}},\n\n' +
+      'I’m Ruben with CodeWithRuben here in Fresno. I build websites and booking apps for local businesses in the Central Valley — {{highlights}}, all in one place.\n\n' +
+      'You only pay if you like the final result. No deposit.\n\n' +
+      'Want me to put together a quick mockup for {{projectName}}?\n\n' +
+      '{{packageLine}}\n\n' +
+      '— Ruben'
+  };
 
   var ADMIN_CLIENT_EMAIL_DEMOS = [
     {
@@ -11799,6 +11825,21 @@ window.addEventListener('load', function() {
         '{{packageLine}}\n\n' +
         '— Ruben',
       label: 'Has a website — outdated (refresh it)',
+      noDemo: {
+        shortBody:
+          'Hi {{clientName}} — Ruben with CodeWithRuben in Fresno.\n\n' +
+          'I came across {{siteRef}} and would love to give it a fresh, mobile-friendly look — same content, same web address, plus {{refreshAdds}}. You only pay if you like it.\n\n' +
+          'Worth a quick look?\n\n' +
+          '{{packageLine}}\n\n' +
+          '— Ruben',
+        defaultBody:
+          'Hi {{clientName}},\n\n' +
+          'I’m Ruben with CodeWithRuben here in Fresno. I came across {{siteRef}} and would love to give it a fresh, mobile-friendly look — keeping all your existing content and your same web address, and adding {{refreshAdds}}.\n\n' +
+          'You only pay if you like the final result. No deposit.\n\n' +
+          'Want me to put together a quick mockup for {{projectName}}?\n\n' +
+          '{{packageLine}}\n\n' +
+          '— Ruben'
+      },
       needsSite: true,
       defaultSubject: 'A fresh look for {{projectName}}’s website?',
       defaultBody:
@@ -11823,6 +11864,20 @@ window.addEventListener('load', function() {
         '{{packageLine}}\n\n' +
         '— Ruben',
       label: 'Website is down / broken',
+      noDemo: {
+        shortBody:
+          'Hi {{clientName}} — Ruben with CodeWithRuben in Fresno.\n\n' +
+          'Heads up: {{siteRef}} isn’t loading right now (it shows an error).\n\n' +
+          'I build websites for local businesses and can get a new one up quickly. You’d keep your same domain. Want a quick mockup?\n\n' +
+          '{{packageLine}}\n\n' +
+          '— Ruben',
+        defaultBody:
+          'Hi {{clientName}},\n\n' +
+          'This is Ruben with CodeWithRuben here in Fresno. Heads up — I noticed {{siteRef}} is currently down (it isn’t loading / shows an error).\n\n' +
+          'I build websites and apps for local businesses, and I can get a new site up quickly. You’d keep your same domain. Happy to help either way.\n\n' +
+          '{{packageLine}}\n\n' +
+          '— Ruben'
+      },
       needsSite: true,
       defaultSubject: 'Heads up — {{projectName}}’s website is down',
       defaultBody:
@@ -11845,6 +11900,21 @@ window.addEventListener('load', function() {
         '{{packageLine}}\n\n' +
         '— Ruben',
       label: 'No website yet',
+      noDemo: {
+        shortBody:
+          'Hi {{clientName}} — Ruben with CodeWithRuben in Fresno.\n\n' +
+          'I noticed {{projectName}} doesn’t have a website yet. I build websites for local businesses — no deposit, and you only pay if you like it.\n\n' +
+          'Want me to put together a quick mockup for {{projectName}}?\n\n' +
+          '{{packageLine}}\n\n' +
+          '— Ruben',
+        defaultBody:
+          'Hi {{clientName}},\n\n' +
+          'I’m Ruben with CodeWithRuben. I noticed {{projectName}} doesn’t have a website up yet — I build websites and booking sites for local businesses in the Central Valley, so {{noSiteHook}}.\n\n' +
+          'You only pay if you like the final result. No deposit required.\n\n' +
+          'Want me to put together a quick mockup for {{projectName}}?\n\n' +
+          '{{packageLine}}\n\n' +
+          '— Ruben'
+      },
       defaultSubject: 'A website for {{projectName}}?',
       defaultBody:
         'Hi {{clientName}},\n\n' +
@@ -11956,8 +12026,13 @@ window.addEventListener('load', function() {
       toName: document.getElementById('admin-client-email-to-name'),
       toEmail: document.getElementById('admin-client-email-to-email'),
       nextStep: document.getElementById('admin-client-email-next-step'),
+      nextStepWrap: document.getElementById('admin-client-email-next-step-wrap'),
       link: document.getElementById('admin-client-email-link'),
+      linkWrap: document.getElementById('admin-client-email-link-wrap'),
       ctaLabel: document.getElementById('admin-client-email-cta-label'),
+      ctaWrap: document.getElementById('admin-client-email-cta-wrap'),
+      portalBtn: document.getElementById('admin-client-email-portal-btn'),
+      portalBtnWrap: document.getElementById('admin-client-email-portal-btn-wrap'),
       subject: document.getElementById('admin-client-email-subject'),
       message: document.getElementById('admin-client-email-message'),
       preview: document.getElementById('admin-client-email-preview'),
@@ -12000,6 +12075,16 @@ window.addEventListener('load', function() {
     return templateId === 'cold-outreach';
   }
 
+  /** Template "None": the admin's own words, sent exactly as written. */
+  function isPlainEmailTemplate(templateId) {
+    return templateId === 'outreach-script';
+  }
+
+  /** Cold outreach with "Select demo: None". */
+  function isNoDemoSelected(els) {
+    return !!(els.demo && els.demo.value === ADMIN_CLIENT_EMAIL_NO_DEMO.id);
+  }
+
   /** Old drafts and links still say 'lead-intro' / 'send-demo' / 'demo-*'. */
   var LEGACY_COLD_TEMPLATES = {
     'lead-intro': { length: 'short' },
@@ -12021,6 +12106,7 @@ window.addEventListener('load', function() {
   }
 
   function getDemoById(demoId) {
+    if (demoId === ADMIN_CLIENT_EMAIL_NO_DEMO.id) return ADMIN_CLIENT_EMAIL_NO_DEMO;
     return (
       ADMIN_CLIENT_EMAIL_DEMOS.find(function (d) {
         return d.id === demoId;
@@ -12102,17 +12188,20 @@ window.addEventListener('load', function() {
       if (els.adsToggle) els.adsToggle.checked = base !== String(preferredId);
       preferredId = base;
     }
-    var options = ADMIN_CLIENT_EMAIL_DEMOS.filter(function (d) {
+    var demoOptions = ADMIN_CLIENT_EMAIL_DEMOS.filter(function (d) {
       return demoBaseId(d.id) === d.id;
     }).map(function (d) {
       return { value: d.id, label: d.label, group: d.group };
     });
-    var selected = preferredId || (els.demo.value || '') || (options[0] && options[0].value) || '';
+    // None sits first but is never the default: a cold email still starts on a demo.
+    var firstDemo = (demoOptions[0] && demoOptions[0].value) || '';
+    var options = [{ value: ADMIN_CLIENT_EMAIL_NO_DEMO.id, label: ADMIN_CLIENT_EMAIL_NO_DEMO.label }].concat(demoOptions);
+    var selected = preferredId || (els.demo.value || '') || firstDemo;
     if (preferredId) {
       var found = options.some(function (o) {
         return o.value === String(preferredId);
       });
-      selected = found ? String(preferredId) : (options[0] && options[0].value) || '';
+      selected = found ? String(preferredId) : firstDemo;
     }
     if (typeof window.setBusinessDocSelectOptions === 'function') {
       window.setBusinessDocSelectOptions(els.demo, options, { value: selected, keepValue: false });
@@ -12138,10 +12227,16 @@ window.addEventListener('load', function() {
 
   function ensureAdminClientEmailSituations(els, preferredId) {
     if (!els.situation) return getSituationById(preferredId);
-    var options = ADMIN_CLIENT_EMAIL_SITUATIONS.map(function (s) {
+    // Without a demo, only situations that read true without one are offered.
+    var noDemo = isNoDemoSelected(els);
+    var allowed = ADMIN_CLIENT_EMAIL_SITUATIONS.filter(function (s) {
+      return !noDemo || !s.defaultBody || !!s.noDemo;
+    });
+    var options = allowed.map(function (s) {
       return { value: s.id, label: s.label };
     });
     var selected = getSituationById(preferredId || els.situation.value || '').id;
+    if (!allowed.some(function (s) { return s.id === selected; })) selected = allowed[0].id;
     if (typeof window.setBusinessDocSelectOptions === 'function') {
       window.setBusinessDocSelectOptions(els.situation, options, { value: selected, keepValue: false });
     } else {
@@ -12190,17 +12285,23 @@ window.addEventListener('load', function() {
     if (!usesDemoCopyEmailTemplate(template.id)) return template;
     var situation = getSelectedAdminSituation(els);
     var isShort = getAdminClientEmailLength(els) === 'short';
+    var demo = getSelectedAdminDemo(els);
+    var noDemo = demo === ADMIN_CLIENT_EMAIL_NO_DEMO;
     if (situation.defaultBody) {
+      var copy = noDemo && situation.noDemo ? situation.noDemo : situation;
       return {
         id: template.id,
         label: template.label,
         defaultSubject: isShort && situation.shortSubject ? situation.shortSubject : situation.defaultSubject,
-        defaultBody: isShort && situation.shortBody ? situation.shortBody : situation.defaultBody
+        defaultBody: isShort && copy.shortBody ? copy.shortBody : copy.defaultBody
       };
     }
-    // General pitch: Short is the template's own opener, Full is the niche pitch.
-    if (isShort) return template;
-    var demo = getSelectedAdminDemo(els);
+    // General pitch: Short is the template's own opener (or the no-demo one),
+    // Full is the niche pitch.
+    if (isShort && !noDemo) return template;
+    if (isShort) {
+      return { id: template.id, label: template.label, defaultSubject: demo.shortSubject, defaultBody: demo.shortBody };
+    }
     return {
       id: template.id,
       label: template.label,
@@ -12282,7 +12383,12 @@ window.addEventListener('load', function() {
       : (templateId === 'reschedule-call'
         ? ('No worries — use the button below to pick a new date and time. The call type is already set, so you’ll go straight to open slots. You’ll get a fresh confirmation email with the calendar invite and Meet link.\n\n')
         : '');
-    var linkLine = link
+    // Demo "None" has no demo to link, so there is no Link line at all.
+    var noDemoLink = isDemoOutreachEmailTemplate(templateId) && isNoDemoSelected(els);
+    if (noDemoLink) link = '';
+    var linkLine = noDemoLink
+      ? ''
+      : link
       ? 'Link: ' + link
       : (isScheduleInviteEmailTemplate(templateId) || isAgreedReschedule
         ? ''
@@ -12394,7 +12500,8 @@ window.addEventListener('load', function() {
     if (els.message && isDemoOutreachEmailTemplate(templateId) && isAdminClientEmailMessageAuto(els)) {
       els.message.value = renderEmailTemplateText(getActiveEmailCopyTemplate(els, templateId).defaultBody, vars);
       markAdminClientEmailMessageAuto(els);
-    } else if (els.message) {
+    } else if (els.message && !isPlainEmailTemplate(templateId)) {
+      // ("None" is sent exactly as written, so it skips these line fixes.)
       var msg = String(els.message.value || '');
       msg = msg.replace(/^Link:.*$/gm, vars.linkLine);
       msg = msg.replace(/^Next step:\s*.*/gm, 'Next step: ' + vars.nextStep);
@@ -12458,6 +12565,9 @@ window.addEventListener('load', function() {
     if (templateId === 'reschedule-call' && agreedTime && !link) {
       return { cta_label: '', header_subtitle: 'Reschedule confirmation' };
     }
+    if (isPlainEmailTemplate(templateId)) {
+      return { cta_label: plainEmailPortalLink(els) ? 'Open Portal →' : '', header_subtitle: '' };
+    }
     var meta = ADMIN_CLIENT_EMAIL_CTA[templateId] || null;
     if (!meta && /\/schedule(\/|\?|$)/i.test(link)) {
       meta = ADMIN_CLIENT_EMAIL_CTA['schedule-call'];
@@ -12473,7 +12583,7 @@ window.addEventListener('load', function() {
     if (!els.preview) return;
     var vars = getAdminClientEmailVars(els);
     var subject = renderEmailTemplateText((els.subject && els.subject.value) || '', vars);
-    var message = renderEmailTemplateText((els.message && els.message.value) || '', vars);
+    var message = withPlainEmailPortalButton(els, renderEmailTemplateText((els.message && els.message.value) || '', vars));
     var meta = getAdminClientEmailMeta(els);
     var tpl = window.CwrClientEmailTemplates;
     if (!tpl || typeof tpl.buildAdminReplyHtml !== 'function') {
@@ -12538,6 +12648,7 @@ window.addEventListener('load', function() {
       nextStep: (els.nextStep && els.nextStep.value) || '',
       link: (els.link && els.link.value) || '',
       ctaLabel: (els.ctaLabel && els.ctaLabel.value) || '',
+      portalButton: !!(els.portalBtn && els.portalBtn.checked),
       subject: (els.subject && els.subject.value) || '',
       message: (els.message && els.message.value) || ''
     };
@@ -12577,6 +12688,7 @@ window.addEventListener('load', function() {
     if (draft.link) markAdminClientEmailLinkUserSet(els);
     else clearAdminClientEmailLinkUserSet(els);
     if (els.ctaLabel) els.ctaLabel.value = draft.ctaLabel || '';
+    if (els.portalBtn) els.portalBtn.checked = !!draft.portalButton;
     if (els.subject) els.subject.value = draft.subject || '';
     if (els.message) {
       els.message.value = draft.message || '';
@@ -12590,7 +12702,7 @@ window.addEventListener('load', function() {
       ensureAdminClientEmailSituations(els, draft.situationId || '');
       ensureAdminClientEmailPackages(els, draft.packageId != null ? draft.packageId : 'website');
       setAdminClientEmailLength(els, draft.length || 'short');
-      setAdminClientEmailSituationVisibility(els, (els.template && els.template.value) || '');
+      setAdminClientEmailCallTypeVisibility(els, (els.template && els.template.value) || '');
     }
     if (draft.messageAuto) markAdminClientEmailMessageAuto(els);
     if (isScheduleInviteEmailTemplate((els.template && els.template.value) || '')) {
@@ -12619,6 +12731,7 @@ window.addEventListener('load', function() {
       nextStep: String(row.nextStep || ''),
       link: String(row.link || ''),
       ctaLabel: String(row.ctaLabel || ''),
+      portalButton: !!row.portalButton,
       subject: String(row.subject || ''),
       message: String(row.message || ''),
       leadId: String(row.leadId || ''),
@@ -12816,8 +12929,34 @@ window.addEventListener('load', function() {
     if (els.demoWrap) {
       els.demoWrap.hidden = !isDemoOutreachEmailTemplate(templateId);
     }
+    // "None" is just To / Subject / Message; a demo-less cold email has no link.
+    var plain = isPlainEmailTemplate(templateId);
+    var noDemoLink = isDemoOutreachEmailTemplate(templateId) && isNoDemoSelected(els);
+    if (els.nextStepWrap) els.nextStepWrap.hidden = plain;
+    if (els.linkWrap) els.linkWrap.hidden = plain || noDemoLink;
+    if (els.ctaWrap) els.ctaWrap.hidden = plain || noDemoLink;
+    syncAdminClientEmailPortalButton(els, templateId);
     setAdminClientEmailSituationVisibility(els, templateId);
     syncDemoOutreachFieldLabels(els, templateId);
+  }
+
+  /** The "Add portal button" box only makes sense on None with a known portal link. */
+  function syncAdminClientEmailPortalButton(els, templateId) {
+    if (!els.portalBtnWrap) return;
+    var hasLink = !!String((els.link && els.link.value) || '').trim();
+    els.portalBtnWrap.hidden = !(isPlainEmailTemplate(templateId) && hasLink);
+  }
+
+  /** None + ticked box: the portal link, sent as the email's Link line (its button). */
+  function plainEmailPortalLink(els) {
+    var templateId = (els.template && els.template.value) || '';
+    if (!isPlainEmailTemplate(templateId) || !els.portalBtn || !els.portalBtn.checked) return '';
+    return String((els.link && els.link.value) || '').trim();
+  }
+
+  function withPlainEmailPortalButton(els, message) {
+    var link = plainEmailPortalLink(els);
+    return link ? String(message || '').replace(/\s+$/, '') + '\n\nLink: ' + link : message;
   }
 
   async function ensureAdminClientEmailCallTypes(els, preferredId) {
@@ -12943,7 +13082,7 @@ window.addEventListener('load', function() {
     var toEmail = String((els.toEmail && els.toEmail.value) || '').trim();
     var vars = getAdminClientEmailVars(els);
     var subject = renderEmailTemplateText((els.subject && els.subject.value) || '', vars).trim();
-    var message = renderEmailTemplateText((els.message && els.message.value) || '', vars).trim();
+    var message = withPlainEmailPortalButton(els, renderEmailTemplateText((els.message && els.message.value) || '', vars).trim());
 
     if (!toName || !toEmail || !subject || !message) {
       setAdminClientEmailFeedback(els, 'Please complete client name, email, subject, and message.', true);
@@ -13007,6 +13146,7 @@ window.addEventListener('load', function() {
     if (els.toEmail) els.toEmail.value = '';
     if (els.nextStep) els.nextStep.value = '';
     if (els.link) els.link.value = '';
+    if (els.portalBtn) els.portalBtn.checked = false;
     if (els.siteUrl) els.siteUrl.value = '';
     clearAdminClientEmailLinkUserSet(els);
     if (els.ctaLabel) els.ctaLabel.value = '';
@@ -13126,6 +13266,13 @@ window.addEventListener('load', function() {
     if (els.siteUrl) {
       els.siteUrl.addEventListener('input', function () {
         syncAdminClientEmailDynamicFields(els);
+      });
+    }
+
+    if (els.portalBtn) {
+      els.portalBtn.addEventListener('change', function () {
+        updateAdminClientEmailPreview(els);
+        saveAdminClientEmailDraft(els);
       });
     }
 
@@ -13252,6 +13399,18 @@ window.addEventListener('load', function() {
   }
 
   /**
+   * Every "email this client" button: fill the composer, then open it as the
+   * drawer. Don't navigate to the old Client Email tab instead — once the Email
+   * tab has run, the drawer owns the form and that tab is an empty panel.
+   * If the admin chooses to keep an unsaved draft, the drawer opens on it.
+   */
+  window.openAdminClientEmailCompose = function (prefill) {
+    var filled = window.prefillAdminClientEmail(prefill || {});
+    openAdminClientEmailDrawer();
+    return filled !== false;
+  };
+
+  /**
    * Outreach Scripts → Email: open the compose drawer with the script's subject and
    * message as written, sent as a branded email through Resend (not a mailto: link).
    */
@@ -13316,6 +13475,7 @@ window.addEventListener('load', function() {
     if (data.name != null && els.toName) els.toName.value = String(data.name);
     if (data.email != null && els.toEmail) els.toEmail.value = String(data.email);
     if (data.link != null && els.link) els.link.value = String(data.link);
+    if (els.portalBtn) els.portalBtn.checked = !!data.portalButton;
     if (data.nextStep != null && els.nextStep) els.nextStep.value = String(data.nextStep);
     if (els.link && els.link.dataset) {
       if (data.agreedTime != null) {
@@ -13346,6 +13506,11 @@ window.addEventListener('load', function() {
       setAdminClientEmailLength(els, preferredLength || 'short');
     }
     var preferredType = data.callTypeId ? String(data.callTypeId).trim() : '';
+    if (isPlainEmailTemplate(templateId)) {
+      // None has no generated copy, so the last email's text must not linger.
+      if (els.subject) els.subject.value = data.subject != null ? String(data.subject) : '';
+      if (els.message) els.message.value = data.message != null ? String(data.message) : '';
+    }
     var finish = function () {
       if (isScheduleInviteEmailTemplate(templateId)) {
         var hubId = data.hubId ? String(data.hubId).trim() : '';
@@ -16711,9 +16876,8 @@ window.addEventListener('load', function() {
             : String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '') + '/schedule';
         payload.nextStep = 'Pick a new time that works for you';
       }
-      if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
-      if (typeof window.prefillAdminClientEmail === 'function') {
-        window.prefillAdminClientEmail(payload);
+      if (typeof window.openAdminClientEmailCompose === 'function') {
+        window.openAdminClientEmailCompose(payload);
       }
     };
 
@@ -18589,16 +18753,19 @@ window.addEventListener('load', function() {
     }
     // Options that carry a `group` render as collapsible categories, in the
     // order each group first appears. Only the selected item's group opens.
+    // An option without a group (e.g. "None") stays a plain item in place.
     var grouped = list.some(function (opt) { return opt && opt.group; });
     if (grouped) {
       var order = [];
       var byGroup = {};
       list.forEach(function (opt) {
-        var g = String((opt && opt.group) || 'Other');
+        var g = opt && opt.group ? String(opt.group) : '';
+        if (!g) { order.push({ option: opt }); return; }
         if (!byGroup[g]) { byGroup[g] = []; order.push(g); }
         byGroup[g].push(opt);
       });
       order.forEach(function (g) {
+        if (typeof g !== 'string') { html += optionHtml(g.option); return; }
         var safe = g.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
         html +=
           '<div class="business-doc-select-group" data-group="' + safe + '">' +
@@ -20943,6 +21110,9 @@ window.addEventListener('load', function() {
     function resolveAdminTab(tabId) {
       if (LEGACY_AGENCY_TABS[tabId]) return 'client-projects';
       if (tabId === 'bookings' || tabId === 'time-capacity') return 'planner';
+      // The composer lives in the Email tab's drawer now; a restored session
+      // must not reopen the old full-page form.
+      if (tabId === 'client-email') return 'email';
       return tabId;
     }
 
@@ -22633,9 +22803,8 @@ window.addEventListener('load', function() {
     if (!item) return;
     var emailTpl = item.getAttribute('data-overview-email-template');
     if (emailTpl) {
-      if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
-      if (typeof window.prefillAdminClientEmail === 'function') {
-        window.prefillAdminClientEmail({
+      if (typeof window.openAdminClientEmailCompose === 'function') {
+        window.openAdminClientEmailCompose({
           templateId: emailTpl,
           name: item.getAttribute('data-overview-email-name') || '',
           email: item.getAttribute('data-overview-email-addr') || '',

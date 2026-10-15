@@ -1713,9 +1713,8 @@
                   type: callTypeId || ''
                 })
               : String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '') + '/schedule';
-          if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
-          if (typeof window.prefillAdminClientEmail === 'function') {
-            window.prefillAdminClientEmail({
+          if (typeof window.openAdminClientEmailCompose === 'function') {
+            window.openAdminClientEmailCompose({
               name: schedName,
               email: schedEmail,
               link: schedLink,
@@ -6231,9 +6230,15 @@
       var emailLink = hub.portalToken ? clientPortalUrl(hub.portalToken) : '';
       closeCpClientDrawer();
       window.requestAnimationFrame(function () {
-        if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
-        if (typeof window.prefillAdminClientEmail === 'function') {
-          window.prefillAdminClientEmail({ name: emailName, email: emailAddr, link: emailLink });
+        if (typeof window.openAdminClientEmailCompose === 'function') {
+          // A plain email to an existing client, not whatever template was used last.
+          window.openAdminClientEmailCompose({
+            name: emailName,
+            email: emailAddr,
+            link: emailLink,
+            templateId: 'outreach-script',
+            portalButton: !!emailLink
+          });
         }
       });
       return;
@@ -6249,9 +6254,8 @@
       var liveLink = hub.portalToken ? clientPortalUrl(hub.portalToken) : '';
       closeCpClientDrawer();
       window.requestAnimationFrame(function () {
-        if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
-        if (typeof window.prefillAdminClientEmail === 'function') {
-          window.prefillAdminClientEmail({
+        if (typeof window.openAdminClientEmailCompose === 'function') {
+          window.openAdminClientEmailCompose({
             name: liveName,
             email: liveAddr,
             link: liveLink,
@@ -6279,9 +6283,8 @@
           : 'Pick a plan in your portal';
       closeCpClientDrawer();
       window.requestAnimationFrame(function () {
-        if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
-        if (typeof window.prefillAdminClientEmail === 'function') {
-          window.prefillAdminClientEmail({
+        if (typeof window.openAdminClientEmailCompose === 'function') {
+          window.openAdminClientEmailCompose({
             name: maintEmailName,
             email: maintEmailAddr,
             link: maintEmailLink,
@@ -6309,9 +6312,8 @@
             : String(window.PORTFOLIO_PUBLIC_ORIGIN || location.origin || '').replace(/\/$/, '') + '/schedule';
         closeCpClientDrawer();
         window.requestAnimationFrame(function () {
-          if (typeof window.adminActivateTab === 'function') window.adminActivateTab('client-email');
-          if (typeof window.prefillAdminClientEmail === 'function') {
-            window.prefillAdminClientEmail({
+          if (typeof window.openAdminClientEmailCompose === 'function') {
+            window.openAdminClientEmailCompose({
               name: schedName,
               email: schedEmail,
               link: schedLink,
