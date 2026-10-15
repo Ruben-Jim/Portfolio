@@ -703,6 +703,8 @@
       return p && String(p.builtFromTemplateId || '') === id;
     });
     if (!builds.length) return '';
+    // Same order as the card and tabs (portfolio-skins.js), when it's loaded.
+    if (typeof window !== 'undefined' && window.PortfolioSkins) builds = window.PortfolioSkins.orderSkins(builds);
 
     return (
       '<section class="project-detail-section project-detail-built-with">' +

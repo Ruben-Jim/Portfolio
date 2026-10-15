@@ -3347,11 +3347,13 @@ function portfolioIsBackOfficeMediaUrl(url) {
   return /(?:^|[-_])(?:admin|dashboard|crew|staff|worker|timesheet)(?:[-_.]|$)/i.test(base);
 }
 
-/** The cover the admin picked in Portfolio Projects, if it is still one of the record's slides. */
+/** The cover the admin picked in Portfolio Projects, if it is still one of the record's slides or its video's poster. */
 function portfolioExplicitCoverUrl(row) {
   if (!row || !row.coverImageUrl) return '';
   var cover = portfolioNormalizeAssetImageUrl(row.coverImageUrl);
-  return portfolioImageUrlsFromRecord(row).indexOf(cover) >= 0 ? cover : '';
+  return window.PortfolioSkins.isAllowedCover(portfolioImageUrlsFromRecord(row), cover, portfolioVideoPosterUrlBest)
+    ? cover
+    : '';
 }
 
 /**
@@ -4304,11 +4306,15 @@ function portfolioSanitizeDocumentPayload(data) {
     projectUrl: String(data.projectUrl != null ? data.projectUrl : '').trim().slice(0, 2000),
     imageUrls: imageUrls,
     imageUrl: imageUrls.length ? imageUrls[0] : '',
-    // Card cover picked in admin; empty means auto (first customer-facing still).
+    // Card cover picked in admin: a slide still or one of its videos' posters;
+    // empty means auto (first customer-facing still).
     coverImageUrl: (function () {
       var cover = portfolioNormalizeAssetImageUrl(data.coverImageUrl || '');
-      return cover && imageUrls.indexOf(cover) >= 0 ? cover : '';
+      return window.PortfolioSkins.isAllowedCover(imageUrls, cover, portfolioVideoPosterUrlBest) ? cover : '';
     })(),
+    // Short label on the card slide / popup tab, and position among a platform's skins.
+    skinLabel: window.PortfolioSkins.skinPatch({ skinLabel: data.skinLabel }).skinLabel,
+    skinOrder: window.PortfolioSkins.skinPatch({ skinOrder: data.skinOrder }).skinOrder,
     imageAlt: String(data.imageAlt != null ? data.imageAlt : '').slice(0, 200),
     description: String(data.description != null ? data.description : '').slice(0, 8000),
     techTags: portfolioParseTechTags(data.techTags),
@@ -4880,11 +4886,20 @@ function portfolioCardStillUrl(row) {
  * screen (see fillProjectModal). Returns '' when there is nothing to rotate.
  */
 function portfolioRenderCardRotatorHtml(p, alt) {
-  var slides = [{ index: 0, label: 'Platform', src: portfolioCardStillUrl(p) }].concat(
+  return portfolioRenderRotatorFromSlides(portfolioCardRotatorSlides(p), alt);
+}
+
+/** Platform still first, then each skin's still, in skin order, with card labels. */
+function portfolioCardRotatorSlides(p) {
+  return [{ index: 0, label: window.PortfolioSkins.labelFor(p, true), src: portfolioCardStillUrl(p) }].concat(
     getPortfolioDerivedBuilds(p).map(function (b, k) {
-      return { index: k + 1, label: b.title || 'Build', src: portfolioCardStillUrl(b) };
+      return { index: k + 1, label: window.PortfolioSkins.labelFor(b, false), src: portfolioCardStillUrl(b) };
     })
   ).filter(function (s) { return !!s.src; });
+}
+
+/** Rotator markup from slides; the admin Skins preview builds its own slides. */
+function portfolioRenderRotatorFromSlides(slides, alt) {
   if (slides.length < 2) return '';
   return (
     '<div class="project-cover-rotator" data-portfolio-rotator data-current="' + slides[0].index + '">' +
@@ -5558,6 +5573,10 @@ function initPortfolioSlidesListDrag() {
 
 /** Card cover picked in the project form; '' = auto. Slide order stays the popup order. */
 var portfolioFormCoverUrl = '';
+// The edited record's own skin label / order, written back on save (the Skins
+// section edits the label; order only changes from a platform's Skins section).
+var portfolioFormSkinLabel = '';
+var portfolioFormSkinOrder = null;
 
 function renderPortfolioFormImagesList(urls) {
   const list = document.getElementById('portfolio-project-images-list');
@@ -5565,7 +5584,9 @@ function renderPortfolioFormImagesList(urls) {
   const parsed = portfolioParseImageUrls(urls);
   if (!list) return;
 
-  if (portfolioFormCoverUrl && parsed.indexOf(portfolioFormCoverUrl) < 0) portfolioFormCoverUrl = '';
+  if (portfolioFormCoverUrl && !window.PortfolioSkins.isAllowedCover(parsed, portfolioFormCoverUrl, portfolioVideoPosterUrlBest)) {
+    portfolioFormCoverUrl = '';
+  }
   const effectiveCover = portfolioFormCoverUrl || portfolioAutoCoverStillUrl({ imageUrls: parsed });
 
   list.innerHTML = parsed
@@ -5573,12 +5594,20 @@ function renderPortfolioFormImagesList(urls) {
       const displayPath = portfolioRelativeAssetPathForForm(url);
       const isStill = !portfolioIsVideoUrl(url) && !/\.md(?:\?|$)/i.test(url);
       let coverBadge = '';
-      if (url === effectiveCover) {
+      // A video's home-page poster can be the cover too (portfolio-skins.js).
+      const posterUrl = portfolioIsVideoUrl(url) ? portfolioVideoPosterUrlBest(url) : '';
+      if (url === effectiveCover || (posterUrl && posterUrl === effectiveCover)) {
         coverBadge = portfolioFormCoverUrl
           ? '<button type="button" class="portfolio-slides-cover-badge" data-portfolio-image-cover-auto' +
-            ' title="Picked as the card cover. Click to go back to auto.">Card cover</button>'
+            ' title="Picked as the card cover. Click to go back to auto.">' +
+            (posterUrl ? 'Card cover · poster' : 'Card cover') + '</button>'
           : '<span class="portfolio-slides-cover-badge is-auto"' +
             ' title="First customer-facing still. Pick another with Set as cover.">Card cover · auto</span>';
+      } else if (posterUrl) {
+        coverBadge =
+          '<button type="button" class="portfolio-slides-cover-set" data-portfolio-image-poster-cover="' +
+          i +
+          '" title="Use this video\'s home-page poster as the card cover">Set poster as cover</button>';
       } else if (isStill) {
         coverBadge =
           '<button type="button" class="portfolio-slides-cover-set" data-portfolio-image-cover="' +
@@ -5709,6 +5738,8 @@ function serializePortfolioProjectFormState() {
     },
     images: typeof getPortfolioFormImageUrlsFromDom === 'function' ? getPortfolioFormImageUrlsFromDom() : [],
     cover: portfolioFormCoverUrl,
+    skinLabel: portfolioFormSkinLabel,
+    skins: portfolioSkinsForm.rows.map(function (r) { return [r.id, r.label, r.order, r.cover]; }),
     sections: typeof collectPortfolioDetailSectionsFromDom === 'function'
       ? collectPortfolioDetailSectionsFromDom()
       : []
@@ -5724,6 +5755,248 @@ var portfolioProjectFormBaseline = '';
 
 function capturePortfolioProjectFormBaseline() {
   portfolioProjectFormBaseline = serializePortfolioProjectFormState();
+}
+
+/**
+ * Skins section: a template's skins (projects built from it) with their card
+ * label, cover and order. Edits stay here until the platform is saved
+ * (savePortfolioSkinRows). Rules live in portfolio-skins.js.
+ */
+var portfolioSkinsForm = { platformId: '', reordered: false, rows: [] };
+
+function portfolioSkinsLoad(platform) {
+  var id = platform && platform.id ? String(platform.id) : '';
+  var skins = id
+    ? window.PortfolioSkins.orderSkins(portfolioProjectsRtdb.filter(function (p) {
+        return p && String(p.builtFromTemplateId || '') === id;
+      }))
+    : [];
+  portfolioSkinsForm = {
+    platformId: id,
+    reordered: false,
+    rows: skins.map(function (p) {
+      var row = {
+        id: String(p.id),
+        title: p.title || 'Build',
+        label: String(p.skinLabel || ''),
+        order: window.PortfolioSkins.skinPatch({ skinOrder: p.skinOrder }).skinOrder,
+        cover: portfolioExplicitCoverUrl(p),
+        urls: portfolioImageUrlsFromRecord(p),
+        isPrivate: !isPortfolioPublic(p)
+      };
+      row.original = { label: row.label, order: row.order, cover: row.cover };
+      return row;
+    })
+  };
+}
+
+/** Rows whose label, order or cover differ from what was loaded. */
+function portfolioSkinsChangedRows() {
+  return portfolioSkinsForm.rows.filter(function (r) {
+    return r.label !== r.original.label || r.order !== r.original.order || r.cover !== r.original.cover;
+  });
+}
+
+function portfolioSkinCoverOptionsHtml(urls, current) {
+  return window.PortfolioSkins.coverChoices(urls, portfolioVideoPosterUrlBest)
+    .map(function (c) {
+      return (
+        '<option value="' + portfolioEscapeHtml(c.value) + '"' + (c.value === current ? ' selected' : '') + '>' +
+        portfolioEscapeHtml(c.label) +
+        '</option>'
+      );
+    })
+    .join('');
+}
+
+function portfolioSkinThumbHtml(src) {
+  return src
+    ? '<img src="' + portfolioEscapeHtml(portfolioDisplayImageSrc(src)) + '" alt="" loading="lazy">'
+    : '<span class="portfolio-skin-thumb-empty" aria-hidden="true"></span>';
+}
+
+function renderPortfolioSkinsSection() {
+  var section = document.getElementById('portfolio-editor-section-skins');
+  var list = document.getElementById('portfolio-skins-list');
+  if (!section || !list) return;
+  var isTemplateEl = document.getElementById('portfolio-project-is-template');
+  var editId = document.getElementById('portfolio-project-edit-id').value.trim();
+  section.hidden = !(isTemplateEl && isTemplateEl.checked && editId);
+
+  var formUrls = getPortfolioFormImageUrlsFromDom();
+  var platformCover = portfolioFormCoverUrl || portfolioAutoCoverStillUrl({ imageUrls: formUrls });
+
+  var html =
+    '<li class="portfolio-skin-row is-platform" data-skin-row="' + portfolioEscapeHtml(editId) + '">' +
+    '<div class="portfolio-skin-thumb">' + portfolioSkinThumbHtml(platformCover) + '</div>' +
+    '<div class="portfolio-skin-body">' +
+    '<p class="portfolio-skin-title">This platform</p>' +
+    '<label class="portfolio-skin-field">Card label' +
+    '<input type="text" class="form-input" id="portfolio-project-skin-label" maxlength="40" placeholder="Platform" value="' +
+    portfolioEscapeHtml(portfolioFormSkinLabel) + '"></label>' +
+    '<label class="portfolio-skin-field">Cover' +
+    '<select class="form-input" data-skin-platform-cover>' +
+    portfolioSkinCoverOptionsHtml(formUrls, portfolioFormCoverUrl) +
+    '</select></label>' +
+    '</div></li>';
+
+  html += portfolioSkinsForm.rows.map(function (r, i) {
+    var src = r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls });
+    var chips =
+      (r.isPrivate ? '<span class="portfolio-skin-chip">Private</span>' : '') +
+      (!r.urls.length ? '<span class="portfolio-skin-chip is-warn">No images yet — not on the card</span>' : '');
+    return (
+      '<li class="portfolio-skin-row" data-skin-row="' + portfolioEscapeHtml(r.id) + '">' +
+      '<div class="portfolio-skin-thumb">' + portfolioSkinThumbHtml(src) + '</div>' +
+      '<div class="portfolio-skin-body">' +
+      '<p class="portfolio-skin-title">' + portfolioEscapeHtml(r.title) + chips +
+      '<button type="button" class="portfolio-skin-edit" data-skin-edit>Edit full skin →</button></p>' +
+      '<label class="portfolio-skin-field">Card label' +
+      '<input type="text" class="form-input" data-skin-label maxlength="40" placeholder="' +
+      portfolioEscapeHtml(r.title) + '" value="' + portfolioEscapeHtml(r.label) + '"></label>' +
+      '<label class="portfolio-skin-field">Cover' +
+      '<select class="form-input" data-skin-cover>' + portfolioSkinCoverOptionsHtml(r.urls, r.cover) + '</select></label>' +
+      '</div>' +
+      '<div class="portfolio-skin-move">' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-skin-up aria-label="Move ' +
+      portfolioEscapeHtml(r.title) + ' up"' + (i === 0 ? ' disabled' : '') +
+      '><ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon></button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-skin-down aria-label="Move ' +
+      portfolioEscapeHtml(r.title) + ' down"' + (i === portfolioSkinsForm.rows.length - 1 ? ' disabled' : '') +
+      '><ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon></button>' +
+      '</div></li>'
+    );
+  }).join('');
+  list.innerHTML = html;
+  renderPortfolioSkinsPreview();
+}
+
+/** The card cover rotator built from the in-form values, like the public card. */
+function renderPortfolioSkinsPreview() {
+  var box = document.getElementById('portfolio-skins-preview');
+  if (!box) return;
+  var formUrls = getPortfolioFormImageUrlsFromDom();
+  var slides = [{
+    index: 0,
+    label: window.PortfolioSkins.labelFor({ skinLabel: portfolioFormSkinLabel }, true),
+    src: portfolioFormCoverUrl || portfolioAutoCoverStillUrl({ imageUrls: formUrls })
+  }].concat(
+    portfolioSkinsForm.rows
+      .filter(function (r) { return r.urls.length; })
+      .map(function (r, k) {
+        return {
+          index: k + 1,
+          label: window.PortfolioSkins.labelFor({ skinLabel: r.label, title: r.title }, false),
+          src: r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls })
+        };
+      })
+  ).filter(function (s) { return !!s.src; });
+  box.innerHTML =
+    portfolioRenderRotatorFromSlides(slides, 'Card preview') ||
+    '<p class="form-hint">Add a skin with images to see the card rotate.</p>';
+  portfolioObserveCoverRotators(box);
+}
+
+function bindPortfolioSkinsSection() {
+  var list = document.getElementById('portfolio-skins-list');
+  if (!list || list.dataset.bound === '1') return;
+  list.dataset.bound = '1';
+  function rowOf(el) {
+    var li = el.closest('[data-skin-row]');
+    if (!li) return null;
+    var id = li.getAttribute('data-skin-row');
+    return portfolioSkinsForm.rows.find(function (r) { return r.id === id; }) || null;
+  }
+  list.addEventListener('input', function (e) {
+    if (e.target.id === 'portfolio-project-skin-label') {
+      portfolioFormSkinLabel = e.target.value;
+      renderPortfolioSkinsPreview();
+      return;
+    }
+    var row = rowOf(e.target);
+    if (row && e.target.hasAttribute('data-skin-label')) {
+      row.label = e.target.value;
+      renderPortfolioSkinsPreview();
+    }
+  });
+  list.addEventListener('change', function (e) {
+    if (e.target.hasAttribute('data-skin-platform-cover')) {
+      portfolioFormCoverUrl = e.target.value;
+      renderPortfolioFormImagesList(getPortfolioFormImageUrlsFromDom());
+      renderPortfolioSkinsSection();
+      return;
+    }
+    var row = rowOf(e.target);
+    if (row && e.target.hasAttribute('data-skin-cover')) {
+      row.cover = e.target.value;
+      renderPortfolioSkinsSection();
+    }
+  });
+  list.addEventListener('click', function (e) {
+    var row = rowOf(e.target);
+    if (!row) return;
+    var rows = portfolioSkinsForm.rows;
+    var i = rows.indexOf(row);
+    if (e.target.closest('[data-skin-up]') && i > 0) {
+      rows.splice(i - 1, 0, rows.splice(i, 1)[0]);
+    } else if (e.target.closest('[data-skin-down]') && i < rows.length - 1) {
+      rows.splice(i + 1, 0, rows.splice(i, 1)[0]);
+    } else if (e.target.closest('[data-skin-edit]')) {
+      var skin = portfolioProjectsRtdb.find(function (p) { return String(p.id) === row.id; });
+      portfolioRunAfterEditorCloses(function () {
+        if (skin) openPortfolioProjectModal(false, skin);
+      });
+      return;
+    } else {
+      return;
+    }
+    // Any reorder renumbers every skin, so later inserts don't collide.
+    portfolioSkinsForm.reordered = true;
+    rows.forEach(function (r, k) { r.order = (k + 1) * 10; });
+    renderPortfolioSkinsSection();
+  });
+  var addBtn = document.getElementById('portfolio-skins-add');
+  if (addBtn) {
+    addBtn.addEventListener('click', function () {
+      var platformId = portfolioSkinsForm.platformId;
+      portfolioRunAfterEditorCloses(function () {
+        openPortfolioProjectModal(true, { builtFromTemplateId: platformId, showQuoteButton: true });
+      });
+    });
+  }
+  var isTemplateEl = document.getElementById('portfolio-project-is-template');
+  if (isTemplateEl) isTemplateEl.addEventListener('change', renderPortfolioSkinsSection);
+}
+
+/**
+ * Writes each changed skin's label, order and cover — a partial update, so
+ * nothing else on the skin is touched. Returns the titles that failed.
+ */
+async function savePortfolioSkinRows() {
+  var failed = [];
+  var rows = portfolioSkinsChangedRows();
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var patch = window.PortfolioSkins.skinPatch({ skinLabel: r.label, skinOrder: r.order, coverImageUrl: r.cover });
+    try {
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, 'portfolioProjects/' + r.id), patch);
+      // Keep the loaded copy current: the skin's own editor saves from it.
+      var rec = portfolioProjectsRtdb.find(function (p) { return String(p.id) === r.id; });
+      if (rec) Object.assign(rec, patch);
+      r.original = { label: r.label, order: r.order, cover: r.cover };
+    } catch (err) {
+      console.error('Skin save failed', r.id, err);
+      failed.push(r.title);
+    }
+  }
+  return { failed: failed };
+}
+
+/** Runs fn once the editor actually closes: now, or after the unsaved prompt is resolved. */
+var portfolioAfterEditorClose = null;
+function portfolioRunAfterEditorCloses(fn) {
+  portfolioAfterEditorClose = fn;
+  closePortfolioProjectModal();
 }
 
 function isPortfolioProjectFormDirty() {
@@ -5771,6 +6044,7 @@ function setupPortfolioUnsavedConfirmModal() {
   modal.dataset.bound = '1';
 
   function keepEditing() {
+    portfolioAfterEditorClose = null;
     closePortfolioUnsavedConfirmModal();
   }
 
@@ -5824,6 +6098,8 @@ function openPortfolioProjectModal(isNew, project) {
   closePortfolioUnsavedConfirmModal();
   form.reset();
   portfolioFormCoverUrl = !isNew && project ? portfolioExplicitCoverUrl(project) : '';
+  portfolioFormSkinLabel = !isNew && project ? String(project.skinLabel || '') : '';
+  portfolioFormSkinOrder = !isNew && project ? window.PortfolioSkins.skinPatch({ skinOrder: project.skinOrder }).skinOrder : null;
   document.getElementById('portfolio-project-edit-id').value = isNew ? '' : (project && project.id) || '';
   if (titleEl) titleEl.textContent = isNew ? 'New portfolio project' : 'Edit portfolio project';
   if (!isNew && project) {
@@ -5860,6 +6136,8 @@ function openPortfolioProjectModal(isNew, project) {
     if (showPublicEl) showPublicEl.checked = isPortfolioPublic(project);
     renderPortfolioDetailSectionsList(project.detailSections);
   } else if (isNew && project) {
+    // "Add skin" opens a new project already built from its platform.
+    fillPortfolioBuiltFromSelect(project.builtFromTemplateId || '', '');
     document.getElementById('portfolio-project-title').value = project.title || '';
     document.getElementById('portfolio-project-url').value = project.projectUrl || '';
     document.getElementById('portfolio-project-description').value = project.description || '';
@@ -5923,6 +6201,9 @@ function openPortfolioProjectModal(isNew, project) {
   const panel = modal.querySelector('.portfolio-project-modal-content');
   if (panel) panel.style.zIndex = '10101';
   modal.setAttribute('aria-hidden', 'false');
+  portfolioSkinsLoad(isNew ? null : project);
+  bindPortfolioSkinsSection();
+  renderPortfolioSkinsSection();
   // Baseline immediately so outside-click before rAF isn't treated as "clean".
   capturePortfolioProjectFormBaseline();
   requestAnimationFrame(function () {
@@ -5966,6 +6247,10 @@ function closePortfolioProjectModal(options) {
   if (panel) panel.style.zIndex = '';
   modal.setAttribute('aria-hidden', 'true');
   portfolioProjectFormBaseline = '';
+  // Skins section: "Edit full skin" / "Add skin" open the next form only once this one is closed.
+  var next = portfolioAfterEditorClose;
+  portfolioAfterEditorClose = null;
+  if (next) setTimeout(next, 0);
 }
 
 window.closePortfolioProjectModal = closePortfolioProjectModal;
@@ -6100,14 +6385,21 @@ function setupPortfolioAdminControls() {
     imagesList.dataset.bound = '1';
     imagesList.addEventListener('click', function (e) {
       const setCover = e.target.closest('[data-portfolio-image-cover]');
+      const posterCover = e.target.closest('[data-portfolio-image-poster-cover]');
       const autoCover = e.target.closest('[data-portfolio-image-cover-auto]');
-      if (setCover || autoCover) {
+      if (setCover || posterCover || autoCover) {
         e.preventDefault();
         const urls = getPortfolioFormImageUrlsFromDom();
-        portfolioFormCoverUrl = setCover
-          ? urls[parseInt(setCover.getAttribute('data-portfolio-image-cover'), 10)] || ''
-          : '';
+        if (setCover) {
+          portfolioFormCoverUrl = urls[parseInt(setCover.getAttribute('data-portfolio-image-cover'), 10)] || '';
+        } else if (posterCover) {
+          const vid = urls[parseInt(posterCover.getAttribute('data-portfolio-image-poster-cover'), 10)] || '';
+          portfolioFormCoverUrl = vid ? portfolioVideoPosterUrlBest(vid) : '';
+        } else {
+          portfolioFormCoverUrl = '';
+        }
         renderPortfolioFormImagesList(urls);
+        if (typeof renderPortfolioSkinsSection === 'function') renderPortfolioSkinsSection();
         return;
       }
       const remove = e.target.closest('[data-portfolio-image-remove]');
@@ -6198,6 +6490,8 @@ function setupPortfolioAdminControls() {
         imageUrls: formImageUrls,
         imageUrl: formImageUrls.length ? formImageUrls[0] : '',
         coverImageUrl: portfolioFormCoverUrl,
+        skinLabel: portfolioFormSkinLabel,
+        skinOrder: portfolioFormSkinOrder,
         imageAlt: document.getElementById('portfolio-project-image-alt').value,
         description: document.getElementById('portfolio-project-description').value,
         techTags: document.getElementById('portfolio-project-tech').value,
@@ -6239,6 +6533,19 @@ function setupPortfolioAdminControls() {
           const existing = portfolioProjectsRtdb.find(function (x) { return x.id === editId; });
           payload.order = existing ? portfolioNumericOrder(existing) : 0;
           await updatePortfolioProjectDoc(editId, payload);
+          if (portfolioSkinsForm.platformId === editId) {
+            var skinResult = await savePortfolioSkinRows();
+            if (skinResult.failed.length) {
+              // Stay open and unsaved so closing still prompts; Save again
+              // re-sends only the failed skins (saved ones are marked done).
+              showErrorMessage(
+                'Saved the platform, but these skins did not save: ' +
+                  skinResult.failed.join(', ') +
+                  '. Save again to retry.'
+              );
+              return;
+            }
+          }
           showSuccessMessage('Project updated.');
         } else {
           payload.order = getNextPortfolioOrderValue();
@@ -6874,10 +7181,11 @@ function getPortfolioDerivedBuilds(record) {
   // it does not publish them as browsable portfolio entries. A build with no
   // images contributes nothing, so it is skipped.
   var all = window.portfolioProjectsAll || window.portfolioProjects || [];
-  return all.filter(function (p) {
+  // Skin order (portfolio-skins.js) here, so the card, tabs and counts agree.
+  return window.PortfolioSkins.orderSkins(all.filter(function (p) {
     if (!p || String(p.builtFromTemplateId || '') !== String(record.id)) return false;
     return portfolioImageUrlsFromRecord(p).length > 0;
-  });
+  }));
 }
 
 function renderPortfolioVariantTabs(record) {
@@ -6890,8 +7198,8 @@ function renderPortfolioVariantTabs(record) {
     return;
   }
 
-  var tabs = [{ label: 'Platform', record: record }].concat(
-    builds.map(function (p) { return { label: p.title || 'Build', record: p }; })
+  var tabs = [{ label: window.PortfolioSkins.labelFor(record, true), record: record }].concat(
+    builds.map(function (p) { return { label: window.PortfolioSkins.labelFor(p, false), record: p }; })
   );
 
   wrap.innerHTML = tabs
