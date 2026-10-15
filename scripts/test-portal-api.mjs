@@ -7,9 +7,11 @@
  * documents, signatures, and care plan, private hub fields never leave the
  * server, and writes can't be pointed at another client's records.
  */
+import fs from 'node:fs';
+import vm from 'node:vm';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const { handle, PRIVATE_PROJECT_FIELDS } = require('../functions/portal-api.js');
+const { handle, PRIVATE_PROJECT_FIELDS, carePlanPrice } = require('../functions/portal-api.js');
 
 let data;
 const parts = (p) => String(p || '').split('/').filter(Boolean);
@@ -85,3 +87,78 @@ const mb = getAt('agencyMaintenance/MB');
 ok(mb.planTier === 'priority' && mb.paymentStatus === 'awaiting' && mb.hoursIncluded === 40, 'plan request: payment status forced to awaiting, hours clamped');
 ok(await fails(handle(db, { action: 'requestPlan', token: TB, planTier: 'free' }, NOW), 400), 'unknown tier refused');
 ok(await fails(handle(db, { action: 'drop', token: TB }, NOW), 400), 'unknown action refused');
+
+// Picking a care plan bills it right away: an unpaid invoice the board can
+// download before paying. NOW is Jan 15, 2027 in Fresno.
+const invoicesFor = (maintId) => Object.entries(getAt('agencyBusinessDocuments') || {})
+  .filter(([, d]) => d.sourceMaintenanceId === maintId);
+reset();
+data.agencyBusinessDocuments.D6 = { clientName: 'Pro Cleaning', type: 'invoice', invoiceNumber: 'INV-2027-0007' };
+data.agencyBusinessDocuments.D7 = { clientName: 'Pro Cleaning', type: 'invoice', invoiceNumber: 'INV-2026-0042' };
+const pick = await handle(db, { action: 'requestPlan', token: TA, planTier: 'standard', billingPreference: 'annual', total: 1, amount: 1 }, NOW);
+const inv = pick.invoice && getAt('agencyBusinessDocuments/' + pick.invoice.id);
+ok(inv && inv.type === 'invoice' && inv.status === 'sent', 'picking a plan creates an unpaid invoice');
+ok(inv && inv.total === 990, 'annual Standard billed at the site price, not a number from the browser');
+ok(inv && inv.invoiceNumber === 'INV-2027-0008', 'invoice takes the next number for the year');
+ok(inv && inv.dueDate === '2027-01-30', 'invoice due 15 days out');
+ok(inv && inv.clientName === 'Shelton Springs' && inv.maintenancePlanId === 'standard' && inv.maintenanceBilling === 'annual' &&
+  inv.maintenanceInvoiceKind === 'setup' && inv.sourceMaintenanceId === 'MA', 'invoice is tied to the plan');
+ok(inv && JSON.stringify(inv.addOns).includes('Jan 15, 2027 – Jan 14, 2028'), 'annual line shows the service year');
+ok(inv && getAt('agencyMaintenance/MA/pendingInvoiceId') === pick.invoice.id, 'plan remembers its unpaid invoice');
+ok(inv && pick.invoice.invoiceNumber === inv.invoiceNumber, 'portal gets the invoice back so it can open it');
+const A2 = await handle(db, { action: 'load', token: TA }, NOW);
+ok(inv && A2.businessDocs.some((d) => d.id === pick.invoice.id), 'invoice shows in their portal documents');
+
+await handle(db, { action: 'requestPlan', token: TA, planTier: 'essential', billingPreference: 'monthly' }, NOW + 60000);
+const re = invoicesFor('MA');
+ok(inv && re.length === 1 && re[0][0] === pick.invoice.id && re[0][1].invoiceNumber === 'INV-2027-0008', 're-picking before paying updates the same invoice');
+ok(re.length === 1 && re[0][1].total === 79 && re[0][1].maintenancePlanId === 'essential' && re[0][1].maintenanceBilling === 'monthly',
+  're-picked invoice carries the new plan and price');
+
+if (inv) setAt('agencyBusinessDocuments/' + pick.invoice.id + '/status', 'paid');
+const again = await handle(db, { action: 'requestPlan', token: TA, planTier: 'standard', billingPreference: 'annual' }, NOW);
+ok(inv && again.invoice && again.invoice.id !== pick.invoice.id && invoicesFor('MA').length === 2, 'a paid invoice is never reused');
+ok(inv && getAt('agencyBusinessDocuments/' + pick.invoice.id + '/total') === 79, 'the paid invoice is left untouched');
+
+// Prices come from site settings and the project's own yearly rate, never the browser.
+reset();
+data.agencyPricing = { yearlyDiscountPct: 40, promo: { enabled: true, months: 3, pct: 50 } };
+const mo = await handle(db, { action: 'requestPlan', token: TB, planTier: 'standard', billingPreference: 'monthly', promoPct: 90, promoMonthsLeft: 24 }, NOW);
+ok(mo.invoice && getAt('agencyBusinessDocuments/' + mo.invoice.id + '/total') === 75, 'monthly invoice uses the site promo price');
+ok(getAt('agencyMaintenance/MB/promoPct') === 50 && getAt('agencyMaintenance/MB/promoMonthsLeft') === 3, 'plan promo comes from site settings, not the browser');
+data.agencyProjects.PB.yearlyDiscountPct = 30;
+const yr = await handle(db, { action: 'requestPlan', token: TB, planTier: 'standard', billingPreference: 'annual' }, NOW);
+ok(yr.invoice && getAt('agencyBusinessDocuments/' + yr.invoice.id + '/total') === 1260, "the project's own yearly rate wins");
+
+// 8pm Oct 14 in Fresno is already Oct 15 in UTC.
+reset();
+const late = await handle(db, { action: 'requestPlan', token: TB, planTier: 'essential', billingPreference: 'annual' }, Date.UTC(2026, 9, 15, 3, 0));
+const li = late.invoice && getAt('agencyBusinessDocuments/' + late.invoice.id);
+ok(li && li.dueDate === '2026-10-29' && li.invoiceNumber === 'INV-2026-0001', 'due date and invoice year follow Pacific time');
+// The invoice prints the date part of createdAt, so it must be the Pacific day.
+ok(li && li.createdAt.slice(0, 10) === '2026-10-14' && Date.parse(li.createdAt) === Date.UTC(2026, 9, 15, 3, 0), 'issued date is the Pacific day and still the exact moment');
+
+// The server's price math must match assets/js/care-pricing.js, which the
+// portal uses to show prices before the client picks.
+async function browserPricing(raw) {
+  const win = { rtdb: {}, rtdbRef: () => ({}), rtdbGet: async () => ({ val: () => raw }), console };
+  win.window = win;
+  vm.createContext(win);
+  vm.runInContext(fs.readFileSync(new URL('../assets/js/care-pricing.js', import.meta.url), 'utf8'), win);
+  await win.CarePricing.load();
+  return win.CarePricing;
+}
+const mismatches = [];
+for (const raw of [null, { yearlyDiscountPct: 40, promo: { enabled: true, months: 2, pct: 25 } }]) {
+  const CP = await browserPricing(raw);
+  for (const hub of [{}, { yearlyDiscountPct: 30 }]) {
+    for (const tier of ['essential', 'standard', 'priority']) {
+      const annual = CP.quote(tier, hub.yearlyDiscountPct).annual;
+      const monthly = CP.config.promo.enabled ? CP.promoMonthly(tier) : CP.quote(tier).monthly;
+      if (typeof carePlanPrice !== 'function' || carePlanPrice(tier, 'annual', raw, hub) !== annual || carePlanPrice(tier, 'monthly', raw, hub) !== monthly) {
+        mismatches.push(`${tier} ${JSON.stringify(raw)} ${JSON.stringify(hub)}`);
+      }
+    }
+  }
+}
+ok(mismatches.length === 0, 'server prices match care-pricing.js' + (mismatches.length ? ': ' + mismatches.join('; ') : ''));

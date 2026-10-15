@@ -219,7 +219,8 @@
       renewalDate: String(row.renewalDate || ''),
       slaHours: Number(row.slaHours) || defs.slaHours,
       promoPct: Number(row.promoPct) || 0,
-      promoMonthsLeft: Math.max(0, Number(row.promoMonthsLeft) || 0)
+      promoMonthsLeft: Math.max(0, Number(row.promoMonthsLeft) || 0),
+      pendingInvoiceId: String(row.pendingInvoiceId || '').slice(0, 200)
     };
     m.effectivePlanStatus = inferMaintenancePlanStatus(m);
     return m;
@@ -606,11 +607,18 @@
       );
     }
 
+    // The unpaid invoice made when they picked the plan, if it's in their documents.
+    var invoice =
+      awaiting && maint.pendingInvoiceId && window.portalBusinessDocsById
+        ? window.portalBusinessDocsById[maint.pendingInvoiceId]
+        : null;
     return (
       '<div class="client-portal-maint-pay">' +
       (awaiting
         ? '<p class="client-portal-maint-awaiting" role="status">' +
-          'Your plan is set up. Send your first ' +
+          'Your plan is set up' +
+          (invoice ? ' and your invoice is ready' : '') +
+          '. Send your first ' +
           (annual ? 'yearly' : 'monthly') +
           ' payment to start it — we’ll confirm once it clears.</p>'
         : '<p class="client-portal-maint-due" role="status">' +
@@ -621,6 +629,11 @@
       '<span class="client-portal-maint-pay-amount">' +
       esc(maintenancePayAmountLabel(maint)) +
       '</span>' +
+      (invoice
+        ? '<button type="button" class="btn btn-secondary btn-sm" data-portal-signed-view="' +
+          esc(invoice.id) +
+          '">View invoice</button>'
+        : '') +
       '<button type="button" class="btn btn-primary btn-sm" data-portal-maint-pay-btn aria-expanded="false">' +
       (awaiting ? 'Pay now →' : 'Pay renewal →') +
       '</button>' +
@@ -782,7 +795,7 @@
       '</fieldset>' +
       renderMaintenancePlanCards('standard') +
       '<button type="button" class="btn btn-primary" id="portal-request-plan-btn">Start this plan</button>' +
-      '<p class="client-portal-maint-picker-note">You’ll get payment details on the next screen. Your plan starts once your first payment clears.</p>' +
+      '<p class="client-portal-maint-picker-note">Your invoice opens next, so you can download it for your records before you pay. Your plan starts once your first payment clears.</p>' +
       '<p class="client-portal-maint-feedback" id="portal-maint-feedback" role="status"></p></div>'
     );
   }
@@ -884,6 +897,15 @@
         promoMonthsLeft: payload.promoMonthsLeft
       });
       ctx.maintId = planRes.maintId;
+      if (planRes.invoice && planRes.invoice.id) {
+        // Reload so the invoice joins their documents, then open it: boards and
+        // bookkeepers need an invoice in hand before they can pay.
+        await loadClientPortal(portalTokenCurrent);
+        var support = document.querySelector('.client-portal-support-footer');
+        if (support) support.scrollIntoView({ block: 'start' });
+        openPortalDocSheet(planRes.invoice.id);
+        return;
+      }
       if (feedback) feedback.textContent = '';
       var allMaint = await loadAllMaintenanceRecords();
       var hubRow = { clientName: ctx.clientName, id: ctx.projectId };

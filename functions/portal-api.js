@@ -10,7 +10,7 @@
  *
  * Actions (POST JSON):
  *   load          { token }                                  → project + that client's docs, signatures, plan
- *   requestPlan   { token, planTier, billingPreference, hoursIncluded, slaHours, promoPct, promoMonthsLeft }
+ *   requestPlan   { token, planTier, billingPreference, hoursIncluded, slaHours } → { maintId, invoice }
  *   submitTicket  { token, title, area, details }            → { ticket }
  *   signContract  { token, docId, signedByName, agreedToTerms, userAgent }
  */
@@ -21,7 +21,18 @@ const PRIVATE_PROJECT_FIELDS = [
   "portalToken", "clientRepoUrl", "repoUrl", "demoBranch",
 ];
 
+const crypto = require("crypto");
+
 const PLAN_TIERS = ["essential", "standard", "priority"];
+const PLAN_TITLES = { essential: "Essential Care", standard: "Standard Care", priority: "Priority Care" };
+
+// Care plan prices. Keep in sync with assets/js/care-pricing.js — the browser
+// shows prices with that file, the server bills with this one, and
+// test-portal-api.mjs fails if the two ever disagree.
+const CARE_MONTHLY = { essential: 79, standard: 150, priority: 300 };
+const CARE_DEFAULTS = { yearlyDiscountPct: 45, promoMonths: 3, promoPct: 50 };
+const INVOICE_DUE_DAYS = 15;
+const CWR_TIME_ZONE = "America/Los_Angeles";
 
 class PortalError extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -89,6 +100,127 @@ function makeTicketRef(maint, existing) {
   return "CWR-" + ticketClientTag(maint) + "-" + String(highest + 1).padStart(3, "0");
 }
 
+function clampPct(v) {
+  if (v === null || v === undefined || String(v).trim() === "") return null;
+  const n = Number(v);
+  if (!isFinite(n) || n < 0 || n > 90) return null;
+  return Math.round(n * 10) / 10;
+}
+
+/** agencyPricing as care-pricing.js reads it: site yearly discount + optional first-months promo. */
+function carePricingConfig(raw) {
+  raw = raw || {};
+  const promo = raw.promo || {};
+  const yearly = clampPct(raw.yearlyDiscountPct);
+  const promoPct = clampPct(promo.pct);
+  const months = Math.round(Number(promo.months));
+  return {
+    yearlyDiscountPct: yearly === null ? CARE_DEFAULTS.yearlyDiscountPct : yearly,
+    promo: {
+      enabled: promo.enabled === true || promo.enabled === "true",
+      months: months >= 1 && months <= 24 ? months : CARE_DEFAULTS.promoMonths,
+      pct: promoPct === null || promoPct === 0 ? CARE_DEFAULTS.promoPct : promoPct,
+    },
+  };
+}
+
+/** Whole dollars, rounded up the way care-pricing.js does it (integer math, no float drift). */
+function discounted(amount, pct) {
+  return Math.ceil((amount * (1000 - pct * 10)) / 1000 - 1e-9);
+}
+
+/**
+ * What the first invoice charges: the whole year (the project's own yearly
+ * rate wins over the site's), or one month at the promo price while a promo runs.
+ */
+function carePlanPrice(tier, billing, pricingRaw, hub) {
+  const monthly = CARE_MONTHLY[tier] || CARE_MONTHLY.standard;
+  const cfg = carePricingConfig(pricingRaw);
+  if (billing === "annual") {
+    const own = clampPct(hub && hub.yearlyDiscountPct);
+    return discounted(monthly * 12, own === null ? cfg.yearlyDiscountPct : own);
+  }
+  return cfg.promo.enabled ? discounted(monthly, cfg.promo.pct) : monthly;
+}
+
+/** Fresno wall-clock time as [year, month, day, hour, minute, second]. Invoices follow CWR's calendar, not UTC. */
+function pacificParts(ms) {
+  const parts = {};
+  new Intl.DateTimeFormat("en-US", {
+    timeZone: CWR_TIME_ZONE, hourCycle: "h23",
+    year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric",
+  }).formatToParts(new Date(ms)).forEach((p) => { parts[p.type] = Number(p.value); });
+  return [parts.year, parts.month, parts.day, parts.hour, parts.minute, parts.second];
+}
+
+const pacificDate = (ms) => pacificParts(ms).slice(0, 3);
+
+/**
+ * The same moment as an ISO string carrying Fresno's offset. Invoices print
+ * the date part of createdAt, and a UTC string reads as tomorrow after 5pm.
+ */
+function pacificIso(ms) {
+  const [y, mo, d, h, mi, s] = pacificParts(ms);
+  const offsetMin = Math.round((Date.UTC(y, mo - 1, d, h, mi, s) - Math.floor(ms / 1000) * 1000) / 60000);
+  const pad = (n) => String(Math.abs(n)).padStart(2, "0");
+  return y + "-" + pad(mo) + "-" + pad(d) + "T" + pad(h) + ":" + pad(mi) + ":" + pad(s) +
+    (offsetMin < 0 ? "-" : "+") + pad(Math.trunc(offsetMin / 60)) + ":" + pad(offsetMin % 60);
+}
+
+/** Calendar math in UTC so no time zone can shift the day. Overflowing days roll into the next month. */
+function ymdPlus(ymd, years, days) {
+  return new Date(Date.UTC(ymd[0] + years, ymd[1] - 1, ymd[2] + days));
+}
+
+const isoDay = (d) => d.toISOString().slice(0, 10);
+const longDay = (d) => d.toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" });
+
+function nextInvoiceNumber(allDocs, year) {
+  let max = 0;
+  const re = new RegExp("^INV-" + year + "-(\\d+)$", "i");
+  Object.keys(allDocs || {}).forEach((id) => {
+    const d = allDocs[id] || {};
+    if (String(d.type || "").toLowerCase() !== "invoice") return;
+    const m = String(d.invoiceNumber || "").trim().match(re);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  });
+  return "INV-" + year + "-" + String(max + 1).padStart(4, "0");
+}
+
+/**
+ * The unpaid invoice a client gets the moment they pick a care plan, so a
+ * board or bookkeeper has something to approve before paying. Same fields
+ * admin's createPaidMaintenanceInvoiceFromPlan uses, so "Mark paid" can flip
+ * this one instead of writing a second invoice.
+ */
+function carePlanInvoice({ tier, billing, total, maintId, hub, now }) {
+  const today = pacificDate(now);
+  const start = ymdPlus(today, 0, 0);
+  const title = PLAN_TITLES[tier];
+  const billingLabel = billing === "annual" ? "Annual" : "Monthly";
+  const description = billing === "annual"
+    ? "Care plan, " + longDay(start) + " – " + longDay(ymdPlus(today, 1, -1))
+    : "Care plan, first month (starts " + longDay(start) + ")";
+  const period = billing === "annual" ? today[0] + "-annual" : today[0] + "-" + String(today[1]).padStart(2, "0");
+  return {
+    type: "invoice",
+    clientName: str(hub.clientName, 120),
+    clientEmail: str(hub.clientEmail, 200),
+    total,
+    status: "sent",
+    dueDate: isoDay(ymdPlus(today, 0, INVOICE_DUE_DAYS)),
+    theme: "cwr",
+    notes: "",
+    maintenancePlanId: tier,
+    maintenanceBilling: billing,
+    maintenanceInvoiceKind: "setup",
+    maintenancePaymentKey: maintId + ":" + period,
+    sourceMaintenanceId: maintId,
+    addOns: [{ name: title + " — " + billingLabel, description, priceOptions: [{ label: billingLabel, amount: total }] }],
+    updatedAt: pacificIso(now),
+  };
+}
+
 async function handle(db, body, now) {
   now = now || Date.now();
   const action = str(body && body.action, 40);
@@ -120,7 +252,30 @@ async function handle(db, body, now) {
     if (PLAN_TIERS.indexOf(tier) < 0) throw new PortalError(400, "Pick a care plan.");
     const billing = str(body.billingPreference, 20) === "annual" ? "annual" : "monthly";
     const num = (v, lo, hi) => Math.min(hi, Math.max(lo, Number(v) || 0));
-    const existing = maintenanceForHub((await db.ref("agencyMaintenance").once("value")).val(), ctx.projectId, ctx.hub);
+    const [maintSnap, docsSnap, delSnap, pricingSnap] = await Promise.all([
+      db.ref("agencyMaintenance").once("value"),
+      db.ref("agencyBusinessDocuments").once("value"),
+      db.ref("agencyBusinessDocDeletes").once("value"),
+      db.ref("agencyPricing").once("value"),
+    ]);
+    const existing = maintenanceForHub(maintSnap.val(), ctx.projectId, ctx.hub);
+    const maintRef = existing ? db.ref("agencyMaintenance/" + existing.id) : db.ref("agencyMaintenance").push();
+    const maintId = existing ? existing.id : maintRef.key;
+    const promo = carePricingConfig(pricingSnap.val()).promo;
+    const promoOn = billing === "monthly" && promo.enabled;
+
+    // Picking again before paying edits the same invoice, so its number stays put.
+    const allDocs = docsSnap.val() || {};
+    const pendingId = existing ? str(existing.pendingInvoiceId, 200) : "";
+    const pending = pendingId && !(delSnap.val() || {})[pendingId] ? allDocs[pendingId] : null;
+    const reuse = !!pending && String(pending.status || "").toLowerCase() !== "paid";
+    const invoiceId = reuse ? pendingId : "doc_" + now.toString(36) + "_" + crypto.randomBytes(3).toString("hex");
+    const invoice = Object.assign(
+      reuse ? pending : { createdAt: pacificIso(now), invoiceNumber: nextInvoiceNumber(allDocs, pacificDate(now)[0]) },
+      carePlanInvoice({ tier, billing, total: carePlanPrice(tier, billing, pricingSnap.val(), ctx.hub), maintId, hub: ctx.hub, now }),
+      { id: invoiceId }
+    );
+
     // Status and money fields are set here, never taken from the browser.
     const payload = {
       projectId: ctx.projectId,
@@ -132,20 +287,19 @@ async function handle(db, body, now) {
       planRequestedAt: now,
       hoursIncluded: num(body.hoursIncluded, 0, 40),
       slaHours: num(body.slaHours, 1, 240),
-      promoPct: billing === "monthly" && Number(body.promoPct) > 0 ? num(body.promoPct, 0, 90) : null,
-      promoMonthsLeft: billing === "monthly" && Number(body.promoMonthsLeft) > 0 ? num(body.promoMonthsLeft, 0, 24) : null,
+      promoPct: promoOn ? promo.pct : null,
+      promoMonthsLeft: promoOn ? promo.months : null,
+      pendingInvoiceId: invoiceId,
       updatedAt: now,
     };
-    let maintId;
+    // Plan first: if the invoice write fails, a retry finds no pending invoice and makes a fresh one.
     if (existing) {
-      maintId = existing.id;
-      await db.ref("agencyMaintenance/" + maintId).update(payload);
+      await maintRef.update(payload);
     } else {
-      const ref = db.ref("agencyMaintenance").push();
-      maintId = ref.key;
-      await ref.set(Object.assign(payload, { hoursUsed: 0, renewalDate: "", notes: "", createdAt: now }));
+      await maintRef.set(Object.assign(payload, { hoursUsed: 0, renewalDate: "", notes: "", createdAt: now }));
     }
-    return { maintId };
+    await db.ref("agencyBusinessDocuments/" + invoiceId).set(invoice);
+    return { maintId, invoice };
   }
 
   if (action === "submitTicket") {
@@ -200,4 +354,4 @@ async function handle(db, body, now) {
   throw new PortalError(400, "Unknown action.");
 }
 
-module.exports = { handle, PortalError, docsForHub, maintenanceForHub, makeTicketRef, publicHub, PRIVATE_PROJECT_FIELDS };
+module.exports = { handle, PortalError, docsForHub, maintenanceForHub, makeTicketRef, publicHub, PRIVATE_PROJECT_FIELDS, carePlanPrice };

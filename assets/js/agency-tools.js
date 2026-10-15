@@ -6025,7 +6025,9 @@
           billing: billing,
           maintenanceId: maintId,
           amount: chargeAmount,
-          invoiceKind: 'setup'
+          invoiceKind: 'setup',
+          // Set when the client picked the plan in the portal; that invoice gets marked paid.
+          invoiceId: row.pendingInvoiceId || ''
         });
       } catch (invErr) {
         console.warn('Could not create maintenance invoice', invErr);
@@ -6036,6 +6038,7 @@
       planStatus: 'active',
       paymentStatus: 'paid',
       paymentConfirmedAt: ts(),
+      pendingInvoiceId: null,
       updatedAt: ts()
     });
     if (usePromo) {
@@ -6061,10 +6064,14 @@
     var row = snap.val() || {};
     var note = String(row.notes || '').trim();
     var declineNote = 'Plan request declined ' + new Date().toLocaleDateString() + '.';
+    if (row.pendingInvoiceId && typeof window.removeUnpaidMaintenanceInvoice === 'function') {
+      await window.removeUnpaidMaintenanceInvoice(row.pendingInvoiceId);
+    }
     var payload = Object.assign({}, row, {
       planStatus: 'none',
       paymentStatus: null,
       planRequestedAt: null,
+      pendingInvoiceId: null,
       notes: note ? note + '\n' + declineNote : declineNote,
       updatedAt: ts()
     });

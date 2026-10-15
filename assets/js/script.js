@@ -19905,6 +19905,35 @@ window.addEventListener('load', function() {
   };
 
   /**
+   * Declining a plan request also removes the unpaid invoice the portal made
+   * for it, so the client isn't left looking at a bill for a plan they don't
+   * have. A paid invoice is a record of money received and is never removed.
+   */
+  window.removeUnpaidMaintenanceInvoice = async function (docId) {
+    docId = String(docId || '').trim();
+    if (!docId) return false;
+    var doc = businessDocs.find(function (d) {
+      return d && d.id === docId;
+    });
+    if (doc && String(doc.status || '').toLowerCase() === 'paid') return false;
+    suppressBusinessDocsSync();
+    markBusinessDocDeleted(docId);
+    businessDocs = businessDocs.filter(function (d) {
+      return d.id !== docId;
+    });
+    saveBusinessDocs(businessDocs);
+    renderBusinessDocs();
+    try {
+      return await removeBusinessDocFromRtdb(docId);
+    } catch (err) {
+      console.warn('Failed to remove unpaid maintenance invoice', err);
+      return false;
+    } finally {
+      releaseBusinessDocsSync();
+    }
+  };
+
+  /**
    * Create (or reuse) a paid maintenance invoice when admin confirms payment.
    * @param {{
    *   clientName: string,
@@ -19913,7 +19942,8 @@ window.addEventListener('load', function() {
    *   billing?: string,
    *   maintenanceId?: string,
    *   paymentKey?: string,
-   *   amount?: number
+   *   amount?: number,
+   *   invoiceId?: string
    * }} opts
    * @returns {Promise<{ doc: object, created: boolean }|null>}
    */
@@ -19921,6 +19951,30 @@ window.addEventListener('load', function() {
     opts = opts || {};
     var clientName = String(opts.clientName || '').trim();
     if (!clientName) return null;
+
+    // The unpaid invoice the portal made when the client picked the plan: mark
+    // that one paid rather than writing a second invoice for the same money.
+    var pendingId = String(opts.invoiceId || '').trim();
+    var pending = pendingId
+      ? businessDocs.find(function (d) {
+          return d && d.id === pendingId;
+        })
+      : null;
+    if (pending) {
+      if (String(pending.status || '').toLowerCase() !== 'paid') {
+        pending.status = 'paid';
+        pending.paidAt = todayDateInputValue();
+        pending.updatedAt = new Date().toISOString();
+        saveBusinessDocs(businessDocs);
+        try {
+          await syncBusinessDocToRtdb(pending);
+        } catch (err) {
+          console.warn('Maintenance invoice RTDB sync failed', err);
+        }
+        if (typeof renderBusinessDocs === 'function') renderBusinessDocs();
+      }
+      return { doc: normalizeBusinessDocRecord(pending), created: false };
+    }
 
     var planId = String(opts.planId || 'standard').toLowerCase();
     if (planId !== 'essential' && planId !== 'standard' && planId !== 'priority') {
