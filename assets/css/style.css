@@ -27733,6 +27733,288 @@ body.lead-drawer-open {
   }
 }
 
+/* =============================================
+   ADMIN — CREATE / EDIT DOCUMENT DRAWER
+   Numbered sections, one label and hint style, quiet "PDF:" tags, and a
+   footer outside the scroll area so Save is always in reach. Scoped to
+   #business-doc-modal so other admin forms keep their look.
+   ============================================= */
+#business-doc-modal .business-doc-modal-header {
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+.business-doc-modal-heading {
+  min-width: 0;
+}
+
+#business-doc-modal .business-doc-modal-header .h3 {
+  text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.business-doc-modal-subtitle {
+  margin: 4px 0 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+#business-doc-modal .business-doc-modal-body {
+  padding: 4px 24px 24px;
+}
+
+.business-doc-form {
+  counter-reset: business-doc-section;
+}
+
+/* Hidden sections render nothing, so they also skip the count. */
+.business-doc-section {
+  counter-increment: business-doc-section;
+  padding: 22px 0 4px;
+  border-top: 1px solid var(--jet);
+}
+
+.business-doc-section:first-of-type {
+  padding-top: 16px;
+  border-top: 0;
+}
+
+.business-doc-section[hidden] {
+  display: none !important;
+}
+
+.business-doc-section-head {
+  margin-bottom: 16px;
+}
+
+#business-doc-modal .business-doc-section-head .business-doc-scope-title-row {
+  margin-bottom: 0;
+}
+
+.business-doc-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: var(--fs-5);
+  font-weight: var(--fw-600);
+  color: var(--white-1);
+}
+
+.business-doc-section-title::before {
+  content: counter(business-doc-section);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid hsla(45, 100%, 72%, 0.3);
+  background: hsla(45, 100%, 72%, 0.1);
+  color: var(--orange-yellow-crayola);
+  font-size: 12px;
+  font-weight: var(--fw-600);
+}
+
+.business-doc-section-hint {
+  margin: 6px 0 0 34px;
+  font-size: var(--fs-8);
+  line-height: 1.5;
+  color: var(--light-gray);
+}
+
+/* One label style for every field, including JS-built rows and cards. */
+#business-doc-modal .form-group label,
+#business-doc-modal .business-doc-scope-label,
+#business-doc-modal .business-doc-addons-label,
+#business-doc-modal .business-doc-addon-field label,
+#business-doc-modal .business-doc-core-feature-card label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--white-2);
+  cursor: default;
+}
+
+#business-doc-modal .business-doc-scope-title-row {
+  margin-bottom: 6px;
+}
+
+#business-doc-modal .business-doc-scope-title-row label {
+  margin: 0;
+}
+
+.business-doc-optional {
+  font-weight: var(--fw-400);
+  color: var(--light-gray-70);
+}
+
+/* Help text sits between the label and the field, full width. */
+#business-doc-modal .business-doc-scope-hint,
+#business-doc-modal .business-doc-addons-hint {
+  max-width: none;
+  margin: -2px 0 8px;
+  font-size: var(--fs-8);
+  line-height: 1.5;
+  color: var(--light-gray-70);
+}
+
+/* ...except under toggles, where it explains the choice just made. */
+#business-doc-modal .business-doc-toggle-group ~ .business-doc-scope-hint {
+  margin: 8px 0 0;
+}
+
+#business-doc-modal .business-doc-scope-badge {
+  padding: 2px 8px;
+  border: 1px solid var(--jet);
+  border-radius: 6px;
+  background: none;
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: var(--fw-500);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--light-gray-70);
+}
+
+/* Textareas match the inputs instead of a darker well. */
+#business-doc-modal .business-doc-notes-input {
+  min-height: 88px;
+  padding: 12px 16px;
+  border: 1px solid var(--jet);
+  background: var(--onyx);
+  font-family: var(--ff-poppins);
+  font-size: 14px;
+}
+
+.business-doc-why-intro {
+  margin-bottom: 8px;
+}
+
+#business-doc-modal .business-doc-payment-schedule-section {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* Payment stages: one compact row each, column labels on the first row only. */
+#business-doc-modal .business-doc-payment-stage-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+#business-doc-modal .business-doc-payment-stage-row .business-doc-payment-stage-fields {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#business-doc-modal .business-doc-payment-stage-row .business-doc-addon-card-header {
+  order: 2;
+  margin: 0;
+}
+
+#business-doc-modal .business-doc-payment-stage-row .business-doc-addon-card-title {
+  display: none;
+}
+
+#business-doc-modal .business-doc-payment-stage-row .business-doc-addon-remove {
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  font-size: 0;
+}
+
+#business-doc-modal .business-doc-payment-stage-row .business-doc-addon-remove ion-icon {
+  font-size: 18px;
+}
+
+#business-doc-modal .business-doc-payment-stage-row:not(:first-child) .business-doc-payment-stage-fields label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.business-doc-payment-stages-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+#business-doc-modal .business-doc-payment-stages-foot .business-doc-add-addon-btn {
+  width: auto;
+}
+
+#business-doc-modal .business-doc-payment-stages-total {
+  margin: 0;
+}
+
+#business-doc-modal .business-doc-add-package {
+  gap: 0;
+  margin-top: 16px;
+}
+
+.business-doc-modal-footer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--jet);
+  background: var(--eerie-black-1);
+}
+
+.business-doc-modal-footer .btn {
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.business-doc-modal-footer .btn-primary {
+  font-weight: var(--fw-600);
+}
+
+@media (max-width: 579px) {
+  #business-doc-modal .business-doc-modal-header,
+  .business-doc-modal-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .business-doc-modal-footer .btn-primary {
+    flex: 1;
+  }
+
+  #business-doc-modal .business-doc-payment-stage-percent-field {
+    flex-basis: 72px;
+  }
+
+  #business-doc-modal .business-doc-modal-body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .business-doc-section-hint {
+    margin-left: 0;
+  }
+}
+
 /* Responsive: Leads Pipeline */
 @media (max-width: 1100px) {
   .pipeline-board--four {

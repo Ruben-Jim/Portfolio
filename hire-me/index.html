@@ -87,7 +87,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=inquiry-lead-20261013">
+  <link rel="stylesheet" href="/assets/css/style.css?v=doc-drawer-20261014">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -6021,108 +6021,131 @@
           <div class="business-doc-modal-overlay" id="business-doc-modal-overlay"></div>
           <div class="business-doc-modal-content">
             <div class="business-doc-modal-header">
-              <h3 class="h3">Create / Edit Document</h3>
+              <div class="business-doc-modal-heading">
+                <h3 class="h3" id="business-doc-modal-title">New proposal</h3>
+                <p class="business-doc-modal-subtitle">Save, then use the PDF icon and <strong>Print → Save as PDF</strong>.</p>
+              </div>
               <button type="button" class="business-doc-modal-close" id="business-doc-modal-close" aria-label="Close">
                 <ion-icon name="close-outline"></ion-icon>
               </button>
             </div>
             <div class="business-doc-modal-body has-scrollbar">
-              <p class="business-docs-form-hint">Create a document, save it, then click the PDF icon to open and use <strong>Print → Save as PDF</strong>.</p>
-              <form id="business-doc-form">
+              <!-- Numbered sections. Sections hidden for the current type drop
+                   out of the numbering (CSS counter), and every field keeps its
+                   id, so the type toggles in script.js work unchanged. -->
+              <form id="business-doc-form" class="business-doc-form">
                 <input type="hidden" id="business-doc-id">
                 <input type="hidden" id="business-doc-source-proposal-id">
-                <div class="form-row">
-                  <div class="form-group form-group-half">
-                    <label id="business-doc-type-label">Type</label>
-                    <div class="business-doc-select" data-select-name="type">
-                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-type-label">
-                        <span class="business-doc-select-trigger-label">Proposal</span>
-                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
-                      </button>
-                      <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
-                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="proposal">Proposal</button>
-                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="estimate">Estimate</button>
-                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="invoice">Invoice</button>
-                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="contract">Contract</button>
+
+                <section class="business-doc-section" aria-labelledby="business-doc-sec-basics">
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="business-doc-sec-basics">Basics</h4>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group form-group-half">
+                      <label id="business-doc-type-label">Type</label>
+                      <div class="business-doc-select" data-select-name="type">
+                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-type-label">
+                          <span class="business-doc-select-trigger-label">Proposal</span>
+                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                        </button>
+                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                          <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="proposal">Proposal</button>
+                          <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="estimate">Estimate</button>
+                          <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="invoice">Invoice</button>
+                          <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="contract">Contract</button>
+                        </div>
+                        <input type="hidden" id="business-doc-type" value="proposal">
                       </div>
-                      <input type="hidden" id="business-doc-type" value="proposal">
+                    </div>
+                    <div class="form-group form-group-half">
+                      <label id="business-doc-status-label">Status</label>
+                      <div class="business-doc-select" data-select-name="status">
+                        <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-status-label">
+                          <span class="business-doc-select-trigger-label">Draft</span>
+                          <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                        </button>
+                        <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                          <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="draft">Draft</button>
+                          <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="sent">Sent</button>
+                          <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="accepted">Accepted</button>
+                          <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="paid">Paid</button>
+                        </div>
+                        <input type="hidden" id="business-doc-status" value="draft">
+                      </div>
                     </div>
                   </div>
-                  <div class="form-group form-group-half">
-                    <label id="business-doc-status-label">Status</label>
-                    <div class="business-doc-select" data-select-name="status">
-                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-status-label">
-                        <span class="business-doc-select-trigger-label">Draft</span>
-                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
-                      </button>
-                      <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
-                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="draft">Draft</button>
-                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="sent">Sent</button>
-                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="accepted">Accepted</button>
-                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="paid">Paid</button>
-                      </div>
-                      <input type="hidden" id="business-doc-status" value="draft">
+
+                  <div class="form-row">
+                    <div class="form-group form-group-half">
+                      <label for="business-doc-client-name">Client name</label>
+                      <input type="text" id="business-doc-client-name" required placeholder="Client or business">
+                    </div>
+                    <div class="form-group form-group-half">
+                      <label for="business-doc-client-email">Client email <span class="business-doc-optional">(optional)</span></label>
+                      <input type="email" id="business-doc-client-email" placeholder="name@example.com">
                     </div>
                   </div>
-                </div>
+                  <!-- Invoices: script.js inserts the company logo picker here. -->
+                </section>
 
-                <div class="form-row">
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-client-name">Client Name</label>
-                    <input type="text" id="business-doc-client-name" required placeholder="Client or Business">
+                <section class="business-doc-section" aria-labelledby="business-doc-sec-amount">
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="business-doc-sec-amount">Amount &amp; look</h4>
                   </div>
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-client-email">Client Email (optional)</label>
-                    <input type="email" id="business-doc-client-email" placeholder="name@example.com">
-                  </div>
-                </div>
-
-                <div class="form-group" id="business-doc-proposed-site-wrap" style="display: none;">
-                  <label for="business-doc-proposed-site">Demo / proposed site URL (optional)</label>
-                  <input type="text" id="business-doc-proposed-site" inputmode="url" autocomplete="url" placeholder="https://example.expo.app or clientname.com">
-                </div>
-
-                <div class="form-group" id="business-doc-foundation-wrap" style="display: none;">
-                  <label for="business-doc-foundation-url">Foundation / GitHub URL (optional)</label>
-                  <input type="text" id="business-doc-foundation-url" inputmode="url" autocomplete="url" placeholder="https://github.com/…">
-                  <p class="business-doc-addons-hint" style="margin-top:6px;">Used in proposal Next Steps · “Review the Foundation”.</p>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-total">Total Amount</label>
-                    <input type="number" id="business-doc-total" min="0" step="0.01" required placeholder="1500.00">
-                  </div>
-                  <div class="form-group form-group-half">
-                    <label for="business-doc-due-date">Due Date (optional)</label>
-                    <input type="date" id="business-doc-due-date">
-                  </div>
-                </div>
-
-                <div class="form-group business-doc-theme-field">
-                  <label id="business-doc-theme-label">Document theme</label>
-                  <p class="business-doc-addons-hint" style="margin-top:0;margin-bottom:8px;">Accent palette for PDFs. Light/dark follows the viewer’s device theme.</p>
-                  <div class="business-doc-theme-picker" id="business-doc-theme-picker" role="radiogroup" aria-labelledby="business-doc-theme-label"></div>
-                  <input type="hidden" id="business-doc-theme" value="cwr">
-                </div>
-
-                <!-- Proposal-only pitch fields (Pro Cleaning–style PDF) -->
-                <div id="business-doc-proposal-fields" class="business-doc-proposal-fields">
-                  <div class="form-group business-doc-scope-section">
-                    <div class="business-doc-scope-header">
-                      <div class="business-doc-scope-title-row">
-                        <label class="business-doc-scope-label" for="business-doc-proposal-headline">Proposal headline</label>
-                        <span class="business-doc-scope-badge" aria-hidden="true">PDF · Title</span>
-                      </div>
-                      <p class="business-doc-scope-hint">Defaults to “CLIENT: HIGH-PERFORMANCE TURN-KEY SYSTEM” if left blank.</p>
+                  <div class="form-row">
+                    <div class="form-group form-group-half">
+                      <label for="business-doc-total">Total amount</label>
+                      <input type="number" id="business-doc-total" min="0" step="0.01" required placeholder="1500.00">
                     </div>
+                    <div class="form-group form-group-half">
+                      <label for="business-doc-due-date">Due date (optional)</label>
+                      <input type="date" id="business-doc-due-date">
+                    </div>
+                  </div>
+
+                  <div class="form-group business-doc-theme-field">
+                    <label id="business-doc-theme-label">Document theme</label>
+                    <p class="business-doc-scope-hint">Accent color for the PDF. Light or dark follows the viewer’s device.</p>
+                    <div class="business-doc-theme-picker" id="business-doc-theme-picker" role="radiogroup" aria-labelledby="business-doc-theme-label"></div>
+                    <input type="hidden" id="business-doc-theme" value="cwr">
+                  </div>
+                </section>
+
+                <!-- Proposal only (Pro Cleaning–style PDF) -->
+                <section class="business-doc-section business-doc-proposal-fields" id="business-doc-proposal-fields" aria-labelledby="business-doc-sec-pitch">
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="business-doc-sec-pitch">Proposal pitch</h4>
+                    <p class="business-doc-section-hint">What the client reads on the proposal PDF. Empty fields are left off.</p>
+                  </div>
+
+                  <div class="form-group" id="business-doc-proposed-site-wrap" style="display: none;">
+                    <label for="business-doc-proposed-site">Demo or proposed site URL <span class="business-doc-optional">(optional)</span></label>
+                    <input type="text" id="business-doc-proposed-site" inputmode="url" autocomplete="url" placeholder="https://example.expo.app or clientname.com">
+                  </div>
+
+                  <div class="form-group" id="business-doc-foundation-wrap" style="display: none;">
+                    <div class="business-doc-scope-title-row">
+                      <label for="business-doc-foundation-url">Foundation / GitHub URL <span class="business-doc-optional">(optional)</span></label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Next steps</span>
+                    </div>
+                    <p class="business-doc-scope-hint">Linked from “Review the Foundation”.</p>
+                    <input type="text" id="business-doc-foundation-url" inputmode="url" autocomplete="url" placeholder="https://github.com/…">
+                  </div>
+
+                  <div class="form-group">
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-scope-label" for="business-doc-proposal-headline">Headline</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Title</span>
+                    </div>
+                    <p class="business-doc-scope-hint">Defaults to “CLIENT: HIGH-PERFORMANCE TURN-KEY SYSTEM” when blank.</p>
                     <input type="text" id="business-doc-proposal-headline" placeholder="Pro Cleaning: High-Performance Turn-Key System">
                   </div>
 
                   <div class="form-group">
                     <div class="business-doc-scope-title-row">
                       <label class="business-doc-scope-label" for="business-doc-value-proposition">Value proposition</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · Intro</span>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Intro</span>
                     </div>
                     <p class="business-doc-scope-hint">Short paragraph under “The Value Proposition”.</p>
                     <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-value-proposition" rows="3" spellcheck="true" placeholder="A fast, reliable system built for real-world use…"></textarea>
@@ -6130,10 +6153,10 @@
 
                   <div class="form-group business-doc-core-features-section">
                     <div class="business-doc-scope-title-row">
-                      <label class="business-doc-addons-label">System core features</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · 4 columns</span>
+                      <label class="business-doc-addons-label">Core features</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: 4 columns</span>
                     </div>
-                    <p class="business-doc-addons-hint">Up to four titled features (empty slots are omitted on the PDF).</p>
+                    <p class="business-doc-addons-hint">Up to four. Empty slots are left off the PDF.</p>
                     <div class="business-doc-core-features-grid" id="business-doc-core-features">
                       <div class="business-doc-core-feature-card">
                         <label for="business-doc-core-title-0">Feature 1 title</label>
@@ -6164,57 +6187,67 @@
 
                   <div class="form-group">
                     <div class="business-doc-scope-title-row">
-                      <label class="business-doc-scope-label" for="business-doc-included-items">Included with turn-key price</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · Gold card</span>
+                      <label class="business-doc-scope-label" for="business-doc-included-items">Included with the turn-key price</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Included list</span>
                     </div>
-                    <p class="business-doc-scope-hint">One line per item under the gold “Included” list.</p>
+                    <p class="business-doc-scope-hint">One item per line.</p>
                     <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-included-items" rows="5" spellcheck="true" placeholder="Full App Deployment&#10;Custom Branding&#10;Firebase Integration&#10;Lead Management&#10;12 Months Technical Support"></textarea>
                   </div>
 
                   <div class="form-group">
                     <div class="business-doc-scope-title-row">
                       <label class="business-doc-scope-label" for="business-doc-why-intro">Why this build is different</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF</span>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Why us</span>
                     </div>
-                    <input type="text" id="business-doc-why-intro" placeholder="Optional intro sentence" style="margin-bottom:8px;">
-                    <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-why-different" rows="4" spellcheck="true" placeholder="One bullet per line&#10;Tech stack: …&#10;Design standards: …&#10;Speed: …"></textarea>
+                    <p class="business-doc-scope-hint">An optional intro sentence, then one bullet per line.</p>
+                    <input type="text" id="business-doc-why-intro" placeholder="Optional intro sentence" class="business-doc-why-intro">
+                    <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-why-different" rows="4" spellcheck="true" aria-label="Why this build is different, one bullet per line" placeholder="Tech stack: …&#10;Design standards: …&#10;Speed: …"></textarea>
                   </div>
-                </div>
+                </section>
 
-                <!-- Estimate / Invoice scope (jot list PDF) -->
-                <div class="form-group business-doc-scope-section" id="business-doc-scope-section" hidden>
-                  <div class="business-doc-scope-header">
+                <!-- Estimate / invoice / contract scope (jot list PDF) -->
+                <section class="business-doc-section" id="business-doc-scope-section" aria-labelledby="business-doc-sec-scope" hidden>
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="business-doc-sec-scope">Scope</h4>
+                  </div>
+                  <div class="form-group">
                     <div class="business-doc-scope-title-row">
                       <label class="business-doc-scope-label" for="business-doc-notes">Project scope &amp; notes</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF · Scope list</span>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Scope list</span>
                     </div>
-                    <p class="business-doc-scope-hint">Each line becomes one bullet. Optional markers (<kbd>•</kbd> <kbd>-</kbd> <kbd>1.</kbd>) are stripped automatically.</p>
-                  </div>
-                  <div class="business-doc-scope-editor-wrap">
+                    <p class="business-doc-scope-hint">Each line becomes one bullet. Markers like <kbd>•</kbd> <kbd>-</kbd> <kbd>1.</kbd> are removed for you.</p>
                     <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-notes" rows="7" spellcheck="true" placeholder="One line per deliverable or feature&#10;&#10;Example:&#10;One-page site&#10;Quote request form&#10;Admin dashboard&#10;Offline payment (cash/check)"></textarea>
                   </div>
-                </div>
+                </section>
 
-                <!-- Contract-only fields -->
-                <div class="form-group business-doc-contract-section" id="business-doc-contract-fields" hidden>
-                  <label id="business-doc-ip-mode-label">IP / ownership transfer</label>
-                  <div class="business-doc-select" data-select-name="ip-mode">
-                    <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-ip-mode-label">
-                      <span class="business-doc-select-trigger-label">License to use only (buyout sold separately)</span>
-                      <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
-                    </button>
-                    <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
-                      <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="license">License to use only (buyout sold separately)</button>
-                      <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="buyout">Full IP transfer included (buyout)</button>
-                    </div>
-                    <input type="hidden" id="business-doc-ip-mode" value="license">
+                <!-- Contract only -->
+                <section class="business-doc-section business-doc-contract-section" id="business-doc-contract-fields" aria-labelledby="business-doc-sec-terms" hidden>
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="business-doc-sec-terms">Payment terms</h4>
+                    <p class="business-doc-section-hint">Scope becomes Clause 1 and the due date becomes the target completion date in Clause 3. Clause 4 covers the care plan picked below.</p>
                   </div>
 
-                  <div class="business-doc-payment-schedule-section">
+                  <div class="form-group">
+                    <label id="business-doc-ip-mode-label">IP / ownership transfer</label>
+                    <div class="business-doc-select" data-select-name="ip-mode">
+                      <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-ip-mode-label">
+                        <span class="business-doc-select-trigger-label">License to use only (buyout sold separately)</span>
+                        <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
+                      </button>
+                      <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
+                        <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="license">License to use only (buyout sold separately)</button>
+                        <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="buyout">Full IP transfer included (buyout)</button>
+                      </div>
+                      <input type="hidden" id="business-doc-ip-mode" value="license">
+                    </div>
+                  </div>
+
+                  <div class="form-group business-doc-payment-schedule-section">
                     <div class="business-doc-scope-title-row">
                       <label id="business-doc-payment-schedule-type-label">Payment schedule</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">Clause 2</span>
+                      <span class="business-doc-scope-badge" aria-hidden="true">Contract: Clause 2</span>
                     </div>
+                    <p class="business-doc-scope-hint">Picking a schedule refills the stages below. Edit labels or percentages after.</p>
                     <div class="business-doc-select" data-select-name="payment-schedule-type">
                       <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-payment-schedule-type-label">
                         <span class="business-doc-select-trigger-label">Deposit + Milestone + Final (50/25/25)</span>
@@ -6228,33 +6261,32 @@
                       </div>
                       <input type="hidden" id="business-doc-payment-schedule-type" value="deposit-milestone-final">
                     </div>
-                    <p class="business-doc-addons-hint" style="margin-top:6px;">Picking a schedule refills the stages below — edit labels or percentages afterward if needed.</p>
 
                     <div class="business-doc-payment-stages-list" id="business-doc-payment-stages-list"></div>
-                    <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="business-doc-add-payment-stage-btn">
-                      <ion-icon name="add-outline"></ion-icon> Add stage
-                    </button>
-                    <p class="business-doc-payment-stages-total" id="business-doc-payment-stages-total"></p>
-
-                    <div class="form-group business-doc-payment-methods-field">
-                      <label for="business-doc-payment-methods">Accepted payment methods</label>
-                      <input type="text" id="business-doc-payment-methods" placeholder="Bank transfer (ACH/Zelle), major credit/debit cards">
+                    <div class="business-doc-payment-stages-foot">
+                      <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="business-doc-add-payment-stage-btn">
+                        <ion-icon name="add-outline"></ion-icon> Add stage
+                      </button>
+                      <p class="business-doc-payment-stages-total" id="business-doc-payment-stages-total"></p>
                     </div>
                   </div>
 
-                  <p class="business-doc-scope-hint">Scope above becomes Clause 1 on the agreement; Due Date above becomes the target completion date in Clause 3. Pick a maintenance plan below to cover post-launch revisions &amp; support — Clause 4 references it automatically.</p>
-                </div>
+                  <div class="form-group business-doc-payment-methods-field">
+                    <label for="business-doc-payment-methods">Accepted payment methods</label>
+                    <input type="text" id="business-doc-payment-methods" placeholder="Bank transfer (ACH/Zelle), major credit/debit cards">
+                  </div>
+                </section>
 
-                <div class="form-group business-doc-maintenance-section">
-                  <div class="business-doc-maintenance-header">
+                <section class="business-doc-section business-doc-maintenance-section" aria-labelledby="business-doc-maintenance-label">
+                  <div class="business-doc-section-head">
                     <div class="business-doc-scope-title-row">
-                      <label class="business-doc-addons-label" id="business-doc-maintenance-label">Maintenance plan</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF section</span>
+                      <h4 class="business-doc-section-title" id="business-doc-maintenance-label">Care plan</h4>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Care plan</span>
                     </div>
-                    <p class="business-doc-addons-hint" id="business-doc-maintenance-hint">Proposals show Essential, Standard + Priority as compact cards beside the gold turn-key price.</p>
+                    <p class="business-doc-section-hint" id="business-doc-maintenance-hint" hidden></p>
                   </div>
                   <div id="business-doc-maintenance-proposal-note" class="business-doc-maintenance-note">
-                    PDF shows <strong>all three portal plans</strong> (Essential, Standard &amp; Priority) in a compact card row next to Base Turn-Key pricing.
+                    The PDF shows <strong>all three portal plans</strong> (Essential, Standard &amp; Priority) as compact cards beside the turn-key price.
                   </div>
                   <div id="business-doc-maintenance-pickers" class="business-doc-maintenance-pickers" hidden>
                     <div class="form-row">
@@ -6285,20 +6317,20 @@
                       </div>
                     </div>
                   </div>
-                </div>
+                </section>
 
-                <div class="form-group business-doc-addons-section">
-                  <div class="business-doc-addons-header">
-                    <label class="business-doc-addons-label">Optional upgrades for the proposed site</label>
-                    <p class="business-doc-addons-hint">Optional upgrades for the proposed build. Turn on “Price includes usage” to show “$amount + usage” with limit rows underneath on the PDF.</p>
+                <section class="business-doc-section business-doc-addons-section" aria-labelledby="business-doc-addons-title">
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="business-doc-addons-title">Optional upgrades</h4>
+                    <p class="business-doc-section-hint" id="business-doc-addons-hint">Extras the client can add. Turn on “Price includes usage” to show “$amount + usage” with limit rows on the PDF.</p>
                   </div>
                   <div id="business-doc-addons-list" class="business-doc-addons-list" aria-live="polite"></div>
                   <button type="button" class="btn btn-secondary business-doc-add-addon-btn" id="business-doc-add-addon-btn">
                     <ion-icon name="add-circle-outline"></ion-icon>
-                    Add upgrade option
+                    <span id="business-doc-add-addon-text">Add upgrade option</span>
                   </button>
-                  <div class="business-doc-add-package">
-                    <span class="business-doc-add-package-label" id="business-doc-add-package-label">Add a setup package <em>(uses the live offer, normal price shown crossed out)</em></span>
+                  <div class="form-group business-doc-add-package">
+                    <label id="business-doc-add-package-label">Setup package <span class="business-doc-optional">(uses the live offer, with the normal price crossed out)</span></label>
                     <div class="business-doc-select" data-select-name="business-doc-add-package">
                       <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="business-doc-add-package-label">
                         <span class="business-doc-select-trigger-label">Choose a package…</span>
@@ -6308,21 +6340,19 @@
                       <input type="hidden" id="business-doc-add-package" value="">
                     </div>
                   </div>
-                </div>
-
-                <div class="form-actions">
-                  <button type="button" class="btn btn-secondary" id="business-doc-reset-btn">
-                    <ion-icon name="refresh-outline"></ion-icon>
-                    Reset
-                  </button>
-                  <div style="display: flex; gap: 12px; margin-left: auto;">
-                    <button type="submit" class="btn btn-primary" id="business-doc-save-btn">
-                      <ion-icon name="save-outline"></ion-icon>
-                      Save Document
-                    </button>
-                  </div>
-                </div>
+                </section>
               </form>
+            </div>
+            <!-- Outside the scroll area so Save is always in reach; form= ties them to the form. -->
+            <div class="business-doc-modal-footer">
+              <button type="button" class="btn btn-secondary" id="business-doc-reset-btn">
+                <ion-icon name="refresh-outline"></ion-icon>
+                Reset
+              </button>
+              <button type="submit" form="business-doc-form" class="btn btn-primary" id="business-doc-save-btn">
+                <ion-icon name="save-outline"></ion-icon>
+                Save document
+              </button>
             </div>
           </div>
         </div>
@@ -8732,7 +8762,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=plan-invoice-20261014"></script>
+  <script src="/assets/js/script.js?v=doc-drawer-20261014"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

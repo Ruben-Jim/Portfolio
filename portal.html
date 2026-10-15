@@ -9,7 +9,7 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Project portal — CodeWithRuben</title>
   <link rel="shortcut icon" href="/assets/images/logo/logo.jpg" type="image/x-icon">
-  <link rel="stylesheet" href="/assets/css/client-portal.css?v=plan-compare-bottom-20261003">
+  <link rel="stylesheet" href="/assets/css/client-portal.css?v=portal-skeleton-20261014">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-video-20260816">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,41 @@
 <body class="client-portal-page has-scrollbar">
 
   <main class="client-portal-inner" id="client-portal-inner" role="main">
-    <p class="client-portal-loading">Loading your project…</p>
+    <!-- Loading skeleton: the portal's real header and panel classes with
+         shimmer bars in place of content, like the home page portfolio cards.
+         client-portal.js replaces all of it once the project loads. -->
+    <p class="portal-skel-sr" role="status">Loading your project…</p>
+    <div class="portal-skeleton" aria-hidden="true">
+      <div class="client-portal-brand">
+        <span class="portal-skel portal-skel--name"></span>
+        <span class="portal-skel portal-skel--tagline"></span>
+      </div>
+      <div class="client-portal-grid">
+        <div class="client-portal-docs-footer">
+          <div class="portal-skel-summary"><span class="portal-skel portal-skel--heading"></span></div>
+          <div class="client-portal-docs-footer-body">
+            <ul class="client-portal-docs-list">
+              <li class="client-portal-doc-card">
+                <div class="client-portal-doc-card-main">
+                  <span class="portal-skel portal-skel--badge"></span>
+                  <span class="portal-skel portal-skel--amount"></span>
+                  <span class="portal-skel portal-skel--line"></span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="client-portal-support-footer">
+          <div class="portal-skel-summary"><span class="portal-skel portal-skel--heading"></span></div>
+          <div class="client-portal-support-body portal-skel-lines">
+            <span class="portal-skel portal-skel--subhead"></span>
+            <span class="portal-skel portal-skel--line"></span>
+            <span class="portal-skel portal-skel--line"></span>
+            <span class="portal-skel portal-skel--line"></span>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script src="/assets/js/config.js?v=security-20261010"></script>

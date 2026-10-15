@@ -17796,9 +17796,9 @@ window.addEventListener('load', function() {
     wrap.innerHTML =
       '<div class="business-doc-scope-title-row">' +
       '<label class="business-doc-addons-label" id="business-doc-client-logo-label">Company logo</label>' +
-      '<span class="business-doc-scope-badge" aria-hidden="true">Invoice</span>' +
+      '<span class="business-doc-scope-badge" aria-hidden="true">PDF: Bill to</span>' +
       '</div>' +
-      '<p class="business-doc-addons-hint">Shown in Bill to on the invoice PDF. Optional — pick a preset.</p>' +
+      '<p class="business-doc-addons-hint">Optional. Pick a preset.</p>' +
       '<input type="hidden" id="business-doc-client-logo" value="">' +
       '<div class="business-doc-client-logo-editor">' +
       '<div class="business-doc-client-logo-current">' +
@@ -18312,7 +18312,7 @@ window.addEventListener('load', function() {
     var percentFg = document.createElement('div');
     percentFg.className = 'business-doc-addon-field business-doc-payment-stage-percent-field';
     var pl = document.createElement('label');
-    pl.textContent = 'Percent (%)';
+    pl.textContent = 'Percent';
     var pi = document.createElement('input');
     pi.type = 'number';
     pi.className = 'business-doc-payment-stage-percent';
@@ -18813,8 +18813,10 @@ window.addEventListener('load', function() {
       businessDocMaintenancePickers.hidden = isProposal;
     }
     if (businessDocMaintenanceHint) {
+      // Proposals explain the care plan in the note card instead.
+      businessDocMaintenanceHint.hidden = isProposal;
       businessDocMaintenanceHint.textContent = isProposal
-        ? 'Proposals show Essential, Standard + Priority as compact cards beside the gold turn-key price.'
+        ? ''
         : type === 'invoice'
           ? 'Pick a plan for a care-only invoice. The PDF shows plan summary + what’s included, labeled Setup / Maintenance / Renewal.'
           : 'Pick one portal plan for this document. Monthly also shows annual so the client can see savings; annual shows annual only.';
@@ -18872,8 +18874,33 @@ window.addEventListener('load', function() {
     if (type === 'invoice' && status === 'paid') {
       label.textContent = 'Date paid';
     } else {
-      label.textContent = 'Due Date (optional)';
+      label.innerHTML = 'Due date <span class="business-doc-optional">(optional)</span>';
     }
+  }
+
+  /**
+   * Drawer header names what's being edited ("Edit invoice · Test HOA"). On an
+   * invoice the add-ons print as its line items, so the section says so.
+   */
+  function updateBusinessDocModalChrome() {
+    var type = businessDocTypeInput ? businessDocTypeInput.value || 'proposal' : 'proposal';
+    var isInvoice = type === 'invoice';
+    var titleEl = document.getElementById('business-doc-modal-title');
+    if (titleEl) {
+      var client = businessDocClientNameInput ? String(businessDocClientNameInput.value || '').trim() : '';
+      var editing = !!(businessDocIdInput && businessDocIdInput.value);
+      titleEl.textContent = (editing ? 'Edit ' : 'New ') + type + (client ? ' · ' + client : '');
+    }
+    var addonsTitle = document.getElementById('business-doc-addons-title');
+    if (addonsTitle) addonsTitle.textContent = isInvoice ? 'Line items' : 'Optional upgrades';
+    var addonsHint = document.getElementById('business-doc-addons-hint');
+    if (addonsHint) {
+      addonsHint.textContent = isInvoice
+        ? 'Each item is a priced row on the invoice.'
+        : 'Extras the client can add. Turn on “Price includes usage” to show “$amount + usage” with limit rows on the PDF.';
+    }
+    var addText = document.getElementById('business-doc-add-addon-text');
+    if (addText) addText.textContent = isInvoice ? 'Add line item' : 'Add upgrade option';
   }
 
   function todayDateInputValue() {
@@ -18930,6 +18957,7 @@ window.addEventListener('load', function() {
     updateBusinessDocMaintenanceVisibility();
     updateBusinessDocContractVisibility();
     updateBusinessDocDueDateLabel();
+    updateBusinessDocModalChrome();
     mountBusinessDocModalToBody();
     if (businessDocModal) {
       businessDocModal.style.display = 'flex';
@@ -18982,6 +19010,7 @@ window.addEventListener('load', function() {
     updateBusinessDocMaintenanceVisibility();
     updateBusinessDocContractVisibility();
     updateBusinessDocDueDateLabel();
+    updateBusinessDocModalChrome();
   }
 
   /**
@@ -19831,6 +19860,7 @@ window.addEventListener('load', function() {
       updateBusinessDocMaintenanceVisibility();
       updateBusinessDocContractVisibility();
       updateBusinessDocDueDateLabel();
+      updateBusinessDocModalChrome();
       if (businessDocTypeInput.value === 'invoice') {
         applyRememberedBusinessDocClientLogo();
       }
@@ -19839,9 +19869,11 @@ window.addEventListener('load', function() {
     updateBusinessDocMaintenanceVisibility();
     updateBusinessDocContractVisibility();
     updateBusinessDocDueDateLabel();
+    updateBusinessDocModalChrome();
   }
 
   if (businessDocClientNameInput) {
+    businessDocClientNameInput.addEventListener('input', updateBusinessDocModalChrome);
     businessDocClientNameInput.addEventListener('change', function () {
       applyRememberedBusinessDocClientLogo();
     });
@@ -19902,6 +19934,7 @@ window.addEventListener('load', function() {
     if (typeof window.adminActivateTab === 'function') window.adminActivateTab('docs');
     openBusinessDocModal();
     if (businessDocClientNameInput && clientName) businessDocClientNameInput.value = clientName;
+    updateBusinessDocModalChrome();
   };
 
   /**
