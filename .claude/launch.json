@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "site-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8765", "--directory", "_site"],
+      "port": 8765
+    },
+    {
+      "name": "hatdrops-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "/Users/ruben/Dev/Templates/cwr-hatdrops", "run", "web"],
+      "port": 43147
+    },
+    {
+      "name": "glb-compare",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8790", "--directory", "/private/tmp/claude-501/-Users-ruben-Dev-Apps-Portfolio/9c8fe68b-8e13-4059-b91e-660be7bae910/scratchpad/compare"],
+      "port": 8790
+    }
+  ]
+}

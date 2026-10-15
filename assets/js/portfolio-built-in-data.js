@@ -97,12 +97,12 @@ window.DEFAULT_PORTFOLIO_PROJECTS = [
   {
     order: 70,
     category: 'professional',
-    title: "Rosa's Beauty Salon",
+    title: 'Chair & Studio Platform',
     projectUrl: 'https://beautysalon.expo.app',
     imageUrl: '/assets/images/projects/rosasalon/rosasalon.webp',
-    imageAlt: "Rosa's Beauty Salon",
+    imageAlt: 'Chair & Studio Platform',
     description:
-      'A modern booking and management system for beauty salons. Features appointment scheduling, client management, and service tracking.',
+      'Booking and client management for beauty salons, barbershops, and tattoo studios. Clients book online, and you manage appointments, clients, and services in one place.',
     techTags: ['Web App', 'JavaScript'],
     showQuoteButton: true
   },

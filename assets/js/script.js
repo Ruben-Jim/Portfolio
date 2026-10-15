@@ -450,7 +450,7 @@ function normalizeBlogPostRecord(input, id) {
     title: String(rec.title || ''),
     category: String(rec.category || 'General'),
     date: String(rec.date || toIsoDateOnly(Date.now())),
-    image: String(rec.image || '/assets/images/blog/blog-1.jpg'),
+    image: String(rec.image || ''),
     imageAlt: String(rec.imageAlt || rec.title || ''),
     imageCaption: String(rec.imageCaption || ''),
     excerpt: String(rec.excerpt || ''),
@@ -486,9 +486,15 @@ function isBlogPostVisible(post) {
   return isBlogPostPublished(post);
 }
 
+// The post's own image, or its category cover when it has none (assets/js/blog-covers.js)
+function blogPostCover(post) {
+  if (typeof window.BlogCovers !== 'undefined') return window.BlogCovers.coverFor(post);
+  return post.image || '/assets/images/blog/category/web-development.webp';
+}
+
 // Opens the blog reader modal with the given post's content
 function openBlogReader(post) {
-  blogModalImage.src = post.image;
+  blogModalImage.src = blogPostCover(post);
   blogModalImage.alt = post.imageAlt || post.title;
   blogModalCategory.innerHTML = post.category;
   blogModalDate.innerHTML = formatDate(post.date);
@@ -781,7 +787,7 @@ function renderBlogPosts() {
     blogItem.innerHTML = `
       <a href="#" data-blog-item data-blog-id="${post.id}" data-blog-private="${isPrivate}">
         <figure class="blog-banner-box">
-          <img src="${post.image}" alt="${post.title}" loading="lazy" data-blog-image>
+          <img src="${blogPostCover(post)}" alt="${post.title}" loading="lazy" data-blog-image>
           ${isPrivate ? '<div class="blog-private-lock"><ion-icon name="lock-closed-outline"></ion-icon></div>' : ''}
         </figure>
         
@@ -831,7 +837,7 @@ function renderAdminBlogPosts() {
     blogItem.innerHTML = `
       <a href="#" data-blog-item data-blog-id="${post.id}">
         <figure class="blog-banner-box">
-          <img src="${post.image}" alt="${post.title}" loading="lazy" data-blog-image>
+          <img src="${blogPostCover(post)}" alt="${post.title}" loading="lazy" data-blog-image>
         </figure>
 
         <div class="blog-content">
@@ -1322,7 +1328,7 @@ function collectBlogPostFromForm(form, isEdit) {
   const category = String(formData.get('category') || '').trim();
   const excerpt = String(formData.get('excerpt') || '').trim();
   const content = sanitizeBlogContentHtml(String(formData.get('content') || ''));
-  const image = String(formData.get('image') || '').trim() || '/assets/images/blog/blog-1.jpg';
+  const image = String(formData.get('image') || '').trim(); // empty → category cover
   const authorName = String(formData.get('authorName') || '').trim();
   const status = String(formData.get('status') || '').toLowerCase().trim();
   const publishAt = String(formData.get('publishAt') || '').trim();
@@ -2361,7 +2367,10 @@ async function openEditBlogModal(postId) {
     if (typeof window.syncBusinessDocSelectUI === 'function') window.syncBusinessDocSelectUI(editCategoryEl);
   }
   document.getElementById('edit-blog-date').value = post.date;
-  document.getElementById('edit-blog-image').value = post.image || '';
+  // Template placeholders show as empty: the post falls back to its category cover.
+  var editImageIsPlaceholder = typeof window.BlogCovers !== 'undefined' && window.BlogCovers.isPlaceholder(post.image);
+  document.getElementById('edit-blog-image').value = editImageIsPlaceholder ? '' : (post.image || '');
+  if (typeof window.refreshBlogCoverPickers === 'function') window.refreshBlogCoverPickers();
   document.getElementById('edit-blog-excerpt').value = post.excerpt;
   var editSlugEl = document.getElementById('edit-blog-slug');
   if (editSlugEl) editSlugEl.value = post.slug || slugifyPostTitle(post.title);
@@ -4418,6 +4427,11 @@ const PORTFOLIO_DETAIL_PRESETS = {
   'Rizo Pizzeria': {
     bestFor: ['Restaurants', 'Pizzerias', 'Takeout kitchens', 'Food delivery operators']
   },
+  // Renamed from "Rosa's Beauty Salon" (it now has barber and tattoo skins).
+  // The old key stays until the live title is changed in admin.
+  'Chair & Studio Platform': {
+    bestFor: ['Beauty salons', 'Barbershops', 'Tattoo studios', 'Nail & spa']
+  },
   "Rosa's Beauty Salon": {
     bestFor: ['Beauty salons', 'Spas', 'Nail studios', 'Appointment-based personal care businesses']
   },
@@ -4478,11 +4492,13 @@ const PORTFOLIO_CURATED_NICHES = [
   {
     id: 'barber',
     label: 'Barber & salon',
-    titleMatch: /\bbarber\b|beauty|rosa.*salon/i,
+    titleMatch: /\bbarber\b|beauty|rosa.*salon|chair\s*&\s*studio/i,
     slugMatch: [
       'barbershops',
       'salons',
       'beauty-salons',
+      'tattoo-studios',
+      'nail-spa',
       'spas',
       'nail-studios',
       'studios-with-appointments',

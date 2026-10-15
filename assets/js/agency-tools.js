@@ -57,7 +57,7 @@
 
   var MATCHER_RULES = {
     lawn: ['lawn', 'landscap', 'mow', 'ruiz', 'cleaning', 'pro cleaning'],
-    barber: ['barber', 'salon', 'rosa', 'beauty'],
+    barber: ['barber', 'salon', 'rosa', 'beauty', 'chair & studio', 'tattoo'],
     food: ['pizza', 'rizo', 'restaurant', 'food'],
     hoa: ['hoa', 'shelton', 'community', 'home owner'],
     shop: ['grippy', 'sock', 'shop', 'ecommerce', 'store'],

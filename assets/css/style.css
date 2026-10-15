@@ -15005,6 +15005,13 @@ body.portfolio-project-modal-open .cp-client-drawer {
   border-color: var(--vegas-gold);
 }
 
+.blog-cover-picker { margin-top: 10px; }
+
+.blog-tiptap-image-card.is-selected {
+  border-color: var(--orange-yellow-crayola);
+  box-shadow: 0 0 0 1px var(--orange-yellow-crayola);
+}
+
 .blog-tiptap-image-card img {
   width: 100%;
   height: 72px;
@@ -17011,7 +17018,7 @@ body.portfolio-project-modal-open .cp-client-drawer {
   margin: 0;
 }
 
-.admin-tabs #blog-section .blog-posts-list,
+/* The blog list flows with the page; only testimonials keep a scroll box. */
 .admin-tabs #admin-testimonials-combined-list {
   max-height: min(48vh, 520px);
   overflow-y: auto;
@@ -17070,7 +17077,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
 }
 
 @media (min-width: 1280px) {
-  .admin-tabs #blog-section .blog-posts-list,
   .admin-tabs #admin-testimonials-combined-list {
     max-height: min(50vh, 560px);
   }
@@ -17082,7 +17088,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
 }
 
 @media (min-width: 1600px) {
-  .admin-tabs #blog-section .blog-posts-list,
   .admin-tabs #admin-testimonials-combined-list {
     max-height: min(52vh, 600px);
   }

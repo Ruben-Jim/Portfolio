@@ -10,14 +10,10 @@
     return 'https://esm.sh/' + pkg + '@' + TIPTAP_VERSION;
   };
 
-  var BLOG_ASSET_IMAGES = [
-    '/assets/images/blog/blog-1.jpg',
-    '/assets/images/blog/blog-2.jpg',
-    '/assets/images/blog/blog-3.jpg',
-    '/assets/images/blog/blog-4.jpg',
-    '/assets/images/blog/blog-5.jpg',
-    '/assets/images/blog/blog-6.jpg'
-  ];
+  // The category covers from assets/js/blog-covers.js (house style: docs/blog-covers.md).
+  var BLOG_ASSET_IMAGES = typeof window.BlogCovers !== 'undefined'
+    ? window.BlogCovers.CATEGORIES.map(function (c) { return c.image; })
+    : [];
 
   var SLASH_ITEMS = [
     { id: 'h1', label: 'Heading 1', hint: 'Large section title', icon: 'text-outline' },
@@ -829,4 +825,60 @@
     var ed = isEdit ? window.editEditor : window.addEditor;
     if (ed && typeof ed.clearDraft === 'function') ed.clearDraft();
   };
+
+  // Featured image: the 9 category covers under the "Image URL" field.
+  // An empty field shows the post's category cover; a pasted URL still overrides it.
+  function markCoverPicker(input) {
+    var row = input.nextElementSibling;
+    if (!row || !row.classList.contains('blog-cover-picker')) return;
+    var current = input.value.trim();
+    row.querySelectorAll('[data-src]').forEach(function (card) {
+      card.classList.toggle('is-selected', card.getAttribute('data-src') === current);
+    });
+  }
+
+  function mountCoverPicker(inputId) {
+    var input = document.getElementById(inputId);
+    if (!input || input.getAttribute('data-cover-picker') || typeof window.BlogCovers === 'undefined') return;
+    input.setAttribute('data-cover-picker', '1');
+    // type="url" rejects site paths like /assets/... and requestSubmit() would block the save.
+    input.type = 'text';
+    input.placeholder = 'Empty = category cover, or paste a custom image URL';
+
+    var row = document.createElement('div');
+    row.className = 'blog-tiptap-image-grid blog-cover-picker';
+    row.innerHTML = window.BlogCovers.CATEGORIES.map(function (c) {
+      return (
+        '<button type="button" class="blog-tiptap-image-card" data-src="' + esc(c.image) + '" title="' + esc(c.name) + '">' +
+        '<img src="' + esc(c.image) + '" alt="" loading="lazy">' +
+        '<span>' + esc(c.name) + '</span></button>'
+      );
+    }).join('');
+    var hint = document.createElement('p');
+    hint.className = 'form-hint';
+    hint.textContent = 'Leave empty to use the post\'s category cover. Click a cover to pick it, click it again to clear.';
+    input.insertAdjacentElement('afterend', row);
+    row.insertAdjacentElement('afterend', hint);
+
+    row.addEventListener('click', function (e) {
+      var card = e.target.closest('[data-src]');
+      if (!card) return;
+      var src = card.getAttribute('data-src');
+      input.value = input.value.trim() === src ? '' : src;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    input.addEventListener('input', function () { markCoverPicker(input); });
+    // 'reset' fires before the fields clear, so re-mark on the next tick.
+    if (input.form) input.form.addEventListener('reset', function () { setTimeout(function () { markCoverPicker(input); }, 0); });
+    markCoverPicker(input);
+  }
+
+  window.refreshBlogCoverPickers = function () {
+    ['blog-image', 'edit-blog-image'].forEach(function (id) {
+      var input = document.getElementById(id);
+      if (input) markCoverPicker(input);
+    });
+  };
+  mountCoverPicker('blog-image');
+  mountCoverPicker('edit-blog-image');
 })();
