@@ -6308,6 +6308,209 @@ body.package-examples-open {
   line-height: 1.6;
 }
 
+/* Services & Pricing — FAQ: sticky intro + one-open accordion (index.html .sp-faq-split) */
+.sp-faq-split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.7fr);
+  gap: 48px;
+  align-items: start;
+  margin-top: 56px;
+  interpolate-size: allow-keywords;
+}
+
+.sp-faq-intro {
+  position: sticky;
+  top: 24px;
+}
+
+.sp-faq-eyebrow {
+  margin: 0 0 10px;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange-yellow-crayola);
+}
+
+.sp-faq-title {
+  margin: 0 0 10px;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.12;
+  color: var(--white-1);
+  /* Sentence case ("Questions, answered"); the shared .h3 style capitalizes every word. */
+  text-transform: none;
+}
+
+.sp-faq-lead {
+  margin: 0 0 22px;
+  color: var(--light-gray);
+  font-size: var(--fs-6);
+}
+
+.sp-faq-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sp-faq-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  color: var(--white-2);
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.sp-faq-cta:hover,
+.sp-faq-cta:focus-visible {
+  border-color: hsla(45, 100%, 72%, 0.45);
+}
+
+.sp-faq-cta.is-primary {
+  border-color: hsla(45, 100%, 72%, 0.45);
+  background: hsla(45, 100%, 72%, 0.1);
+  color: var(--orange-yellow-crayola);
+}
+
+.sp-faq-cta.is-primary:hover,
+.sp-faq-cta.is-primary:focus-visible {
+  background: hsla(45, 100%, 72%, 0.16);
+}
+
+.sp-faq-list {
+  border-top: 1px solid var(--jet);
+}
+
+.sp-faq-q {
+  border-bottom: 1px solid var(--jet);
+}
+
+.sp-faq-q summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 2px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--white-2);
+  font-size: var(--fs-5);
+  font-weight: var(--fw-500);
+  transition: color 0.2s ease;
+}
+
+.sp-faq-q summary::-webkit-details-marker {
+  display: none;
+}
+
+.sp-faq-q summary:hover,
+.sp-faq-q[open] summary {
+  color: var(--white-1);
+}
+
+.sp-faq-q summary:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+/* A gold + in a ring that turns into × when open. */
+.sp-faq-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  border-radius: 50%;
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.sp-faq-icon::before,
+.sp-faq-icon::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--orange-yellow-crayola);
+  transform: translate(-50%, -50%);
+}
+
+.sp-faq-icon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.sp-faq-q[open] .sp-faq-icon {
+  transform: rotate(45deg);
+  background: hsla(45, 100%, 72%, 0.1);
+}
+
+.sp-faq-a {
+  padding: 0 46px 22px 2px;
+}
+
+.sp-faq-a p {
+  margin: 0;
+  color: var(--light-gray);
+  font-size: var(--fs-6);
+  line-height: 1.65;
+}
+
+.sp-faq-a strong {
+  color: var(--white-2);
+}
+
+/* Smooth open where the browser can animate <details>; instant elsewhere. */
+.sp-faq-q::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 0.3s ease, content-visibility 0.3s allow-discrete;
+}
+
+.sp-faq-q[open]::details-content {
+  block-size: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-faq-icon,
+  .sp-faq-q::details-content {
+    transition: none;
+  }
+}
+
+/* Phones and tablets: heading, then the questions, then the buttons. */
+@media (max-width: 899px) {
+  .sp-faq-split {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-top: 40px;
+  }
+
+  .sp-faq-intro {
+    display: contents;
+  }
+
+  .sp-faq-ctas {
+    order: 1;
+    margin-top: 6px;
+  }
+
+  .sp-faq-lead {
+    margin-bottom: 4px;
+  }
+
+  .sp-faq-a {
+    padding-right: 2px;
+  }
+}
+
 .service-item-featured {
   border: 2px solid var(--orange-yellow-crayola);
 }
@@ -32551,4 +32754,56 @@ html:has(body.home-page-active) {
 
 .admin-dm-lead-action ion-icon {
   font-size: 16px;
+}
+
+/* Admin → Testimonials: "Request a testimonial" popup (reuses the inbox's Confirm send dialog look) */
+.admin-testimonial-request-bar {
+  margin: 4px 0 8px;
+}
+
+.admin-testimonial-request-dialog {
+  width: min(440px, calc(100vw - 32px));
+}
+
+.admin-testimonial-request-fields {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0 4px;
+}
+
+.admin-testimonial-request-fields .form-input {
+  margin-bottom: 8px;
+}
+
+.admin-testimonial-optional {
+  display: inline; /* a shared label rule makes spans block */
+  font-weight: var(--fw-400);
+  text-transform: none;
+  color: var(--light-gray-70);
+}
+
+.admin-testimonial-request-status {
+  min-height: 1.2em;
+  margin: 2px 0 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+  overflow-wrap: anywhere;
+}
+
+.admin-testimonial-request-status.is-error {
+  color: hsl(0, 70%, 65%);
+}
+
+.admin-testimonial-request-fields .form-label {
+  display: block;
+}
+
+.admin-testimonial-request-dialog .admin-email-reply-confirm-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.admin-testimonial-request-dialog .admin-email-reply-confirm-actions .btn {
+  padding: 10px 14px;
+  white-space: nowrap;
 }

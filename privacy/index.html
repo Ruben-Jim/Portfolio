@@ -87,7 +87,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=skins-final-20261015">
+  <link rel="stylesheet" href="/assets/css/style.css?v=testimonial-request3-20261016">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -2270,25 +2270,53 @@
               </div>
             </div>
 
-            <h3 class="h3 service-title standard-addons-heading" data-i18n="services.faq_h3">Details</h3>
-            <div class="sp-faq">
-              <details class="sp-faq-item" open>
-                <summary class="sp-faq-summary"><span data-i18n="services.maint_title">Maintenance Plans</span></summary>
-                <div class="sp-faq-body">
-                  <p data-i18n="services.maint_policy">
-                    Your first included month is the plan you pick. Queue is Priority, then Standard, then Essential. Custom work beyond the add-on cadence is quoted separately. We reply on the clock; the repair uses leftover hours. Weekdays 10am–6pm Pacific. Portal preferred; email and text also count.
-                  </p>
+            <!-- FAQ: plain answers before a call. Text lives in i18n.js (EN/ES); the
+                 {ess_mo}-style placeholders there are filled from care-pricing.js. -->
+            <section class="sp-faq-split" aria-labelledby="sp-faq-title">
+              <div class="sp-faq-intro">
+                <p class="sp-faq-eyebrow" data-i18n="services.faq_eyebrow">FAQ</p>
+                <h3 class="h3 sp-faq-title" id="sp-faq-title" data-i18n="services.faq_title">Questions, answered</h3>
+                <p class="sp-faq-lead" data-i18n="services.faq_lead">Plain answers before you call.</p>
+                <div class="sp-faq-ctas">
+                  <a class="sp-faq-cta is-primary" href="sms:+15596537380"><ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon><span data-i18n="services.faq_text_cta">Text Ruben &rarr;</span></a>
+                  <a class="sp-faq-cta" href="#hire-me" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;"><span data-i18n="services.faq_start_cta">Start a project</span></a>
                 </div>
-              </details>
-              <details class="sp-faq-item" open>
-                <summary class="sp-faq-summary"><span data-i18n="services.buyout_h3">Ownership Upgrade (Buyout)</span></summary>
-                <div class="sp-faq-body">
-                  <p>
-                    <span data-i18n="services.note"><strong>Note:</strong> Packages are a license to use what we build, plus the monthly care plan you pick (first month included). CodeWithRuben owns the product until an Ownership Upgrade (buyout) is completed. After buyout, hosting, maintenance, and support from CWR end.</span>
-                  </p>
-                </div>
-              </details>
-            </div>
+              </div>
+              <div class="sp-faq-list">
+                <details class="sp-faq-q" name="sp-faq" open>
+                  <summary><span data-i18n="services.faq_q1">How long until my site is live?</span><span class="sp-faq-icon" aria-hidden="true"></span></summary>
+                  <div class="sp-faq-a"><p data-i18n="services.faq_a1">Most sites are live in about 1&ndash;2 weeks. A Link Tree page takes 3&ndash;5 days, and a website with its own iOS and Android app takes 2&ndash;3 weeks. Bigger platforms get scheduled after a short discovery call.</p></div>
+                </details>
+                <details class="sp-faq-q" name="sp-faq">
+                  <summary><span data-i18n="services.faq_q2">What do I pay upfront?</span><span class="sp-faq-icon" aria-hidden="true"></span></summary>
+                  <div class="sp-faq-a"><p data-i18n="services.faq_a2">Nothing to see your design &mdash; you get a free mockup first. If you like it, 50% starts the build and the other 50% is due when your site goes live. You pay through your client portal with Zelle, PayPal or Venmo, and every package includes your first month of care.</p></div>
+                </details>
+                <details class="sp-faq-q" name="sp-faq">
+                  <summary><span data-i18n="services.faq_q3">Do I own my website?</span><span class="sp-faq-icon" aria-hidden="true"></span></summary>
+                  <div class="sp-faq-a"><p data-i18n="services.faq_a3">Your package is a license to use what we build. That way you can fully trust CodeWithRuben to manage the system made for your business: hosting, updates and support are all handled for you. If you&rsquo;d rather own the code outright, there&rsquo;s an Ownership Upgrade (buyout), usually $8,000&ndash;$15,000 &mdash; most often chosen by larger companies with their own tech team. After a buyout, hosting and support from CWR end.</p></div>
+                </details>
+                <details class="sp-faq-q" name="sp-faq">
+                  <summary><span data-i18n="services.faq_q4">What does a care plan cover?</span><span class="sp-faq-icon" aria-hidden="true"></span></summary>
+                  <div class="sp-faq-a"><p data-i18n="services.faq_a4">Hosting, security and keeping your site and app running. <strong>Essential</strong> ($79/mo) covers the basics, with app store updates 4 times a year. <strong>Standard</strong> ($150/mo) adds monthly updates and new features on request. <strong>Priority</strong> ($300/mo) adds weekly updates and the fastest replies. Paying yearly saves 45%.</p></div>
+                </details>
+                <details class="sp-faq-q" name="sp-faq">
+                  <summary><span data-i18n="services.faq_q5">Can I cancel my care plan?</span><span class="sp-faq-icon" aria-hidden="true"></span></summary>
+                  <div class="sp-faq-a"><p data-i18n="services.faq_a5">Yes &mdash; you can cancel going forward, anytime. A month or year that has already started isn&rsquo;t refunded.</p></div>
+                </details>
+                <details class="sp-faq-q" name="sp-faq">
+                  <summary><span data-i18n="services.faq_q6">I already have a domain. Can I keep it?</span><span class="sp-faq-icon" aria-hidden="true"></span></summary>
+                  <div class="sp-faq-a"><p data-i18n="services.faq_a6">Yes. You keep your domain and we point it to your new site. No domain yet? We&rsquo;ll register one for you, and it&rsquo;s covered by your care plan.</p></div>
+                </details>
+                <details class="sp-faq-q" name="sp-faq">
+                  <summary><span data-i18n="services.faq_q7">Do you build in Spanish?</span><span class="sp-faq-icon" aria-hidden="true"></span></summary>
+                  <div class="sp-faq-a"><p data-i18n="services.faq_a7">Yes. Every package includes English and Spanish.</p></div>
+                </details>
+                <details class="sp-faq-q" name="sp-faq">
+                  <summary><span data-i18n="services.faq_q8">How do I ask for a change or report a problem?</span><span class="sp-faq-icon" aria-hidden="true"></span></summary>
+                  <div class="sp-faq-a"><p data-i18n="services.faq_a8">Open a request in your client portal &mdash; that&rsquo;s fastest. Email and text work too. Support hours are weekdays 10am&ndash;6pm Pacific, and Standard and Priority also cover nights and weekends if your site is down.</p></div>
+                </details>
+              </div>
+            </section>
           </div>
 
         </section>
@@ -3995,7 +4023,7 @@
                     <!-- Template "None": only shown when the client's portal link is known. -->
                     <label class="admin-client-email-ads-toggle admin-client-email-grid-full" id="admin-client-email-portal-btn-wrap" hidden>
                       <input type="checkbox" id="admin-client-email-portal-btn">
-                      <span>Add portal button <em>(“Open Portal →” at the end of the email)</em></span>
+                      <span id="admin-client-email-portal-btn-text">Add portal button <em>(“Open Portal →” at the end of the email)</em></span>
                     </label>
                   </div>
                   <div class="admin-client-email-preview-modal" id="admin-client-email-preview-modal" hidden>
@@ -4227,32 +4255,42 @@
             <div class="admin-panel-heading">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Testimonial requests</h3>
-                <p class="admin-panel-lead">Send a unique link by email. When the customer submits, their testimonial appears on the Home and About pages.</p>
+                <p class="admin-panel-lead">Request a testimonial to get a one-time link, then email it from Compose in your own words or copy it to text. When the customer submits, their testimonial appears on the Home and About pages.</p>
               </div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
-                <form class="admin-testimonial-invite-form" id="admin-testimonial-invite-form" novalidate>
-                  <div class="form-row" style="display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));margin-bottom:12px;">
-                    <div>
-                      <label class="form-label" for="admin-testimonial-invite-name">Customer name</label>
-                      <input class="form-input" type="text" id="admin-testimonial-invite-name" name="name" required maxlength="120" placeholder="Jane Doe" autocomplete="name">
-                    </div>
-                    <div>
-                      <label class="form-label" for="admin-testimonial-invite-email">Email</label>
-                      <input class="form-input" type="email" id="admin-testimonial-invite-email" name="email" required maxlength="160" placeholder="jane@company.com" autocomplete="email">
-                    </div>
-                    <div style="grid-column:1/-1;">
-                      <label class="form-label" for="admin-testimonial-invite-product">Product / service</label>
-                      <input class="form-input" type="text" id="admin-testimonial-invite-product" name="product" required maxlength="200" placeholder="e.g. HOA ordering app">
-                    </div>
-                  </div>
-                  <button type="submit" class="btn btn-primary" id="admin-testimonial-invite-submit">
-                    <ion-icon name="send-outline" aria-hidden="true"></ion-icon>
-                    Send invite email
+                <div class="admin-testimonial-request-bar">
+                  <button type="button" class="btn btn-primary" id="admin-testimonial-request-btn">
+                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                    Request a testimonial
                   </button>
-                  <p class="admin-panel-lead" id="admin-testimonial-invite-status" style="margin-top:12px;margin-bottom:0;" aria-live="polite"></p>
-                </form>
+                </div>
+
+                <!-- Request popup: makes the one-time link (no automatic email). Same look as the inbox's Confirm send. -->
+                <div class="admin-email-reply-confirm-modal admin-testimonial-request-modal" id="admin-testimonial-request-modal" hidden role="dialog" aria-modal="true" aria-labelledby="admin-testimonial-request-title">
+                  <div class="admin-email-reply-confirm-backdrop" data-testimonial-request-close></div>
+                  <form class="admin-email-reply-confirm-dialog admin-testimonial-request-dialog" id="admin-testimonial-request-form" novalidate>
+                    <h4 class="admin-email-reply-confirm-title" id="admin-testimonial-request-title">Request a testimonial</h4>
+                    <p class="admin-email-reply-confirm-body">Makes a one-time link. Write the email in Compose, or copy the link to text it.</p>
+                    <div class="admin-testimonial-request-fields">
+                      <label class="form-label" for="admin-testimonial-invite-name">Customer name</label>
+                      <input class="form-input" type="text" id="admin-testimonial-invite-name" name="name" maxlength="120" placeholder="Shelton Springs Board" autocomplete="off">
+                      <label class="form-label" for="admin-testimonial-invite-email">Email <span class="admin-testimonial-optional">(optional)</span></label>
+                      <input class="form-input" type="email" id="admin-testimonial-invite-email" name="email" maxlength="160" placeholder="board@example.com" autocomplete="off">
+                      <label class="form-label" for="admin-testimonial-invite-product">Product / service</label>
+                      <input class="form-input" type="text" id="admin-testimonial-invite-product" name="product" maxlength="200" placeholder="e.g. Shelton Springs app" autocomplete="off">
+                    </div>
+                    <p class="admin-testimonial-request-status" id="admin-testimonial-invite-status" role="status" aria-live="polite"></p>
+                    <div class="admin-email-reply-confirm-actions">
+                      <button type="button" class="btn btn-secondary btn-sm" data-testimonial-request-close>Cancel</button>
+                      <button type="button" class="btn btn-secondary btn-sm" id="admin-testimonial-copy-link">
+                        <ion-icon name="copy-outline" aria-hidden="true"></ion-icon> Copy link
+                      </button>
+                      <button type="submit" class="btn btn-primary btn-sm" id="admin-testimonial-write-email">Write email &rarr;</button>
+                    </div>
+                  </form>
+                </div>
 
                 <h4 class="h4 service-item-title" style="margin-top:24px;">Invites & submissions</h4>
                 <p class="admin-panel-lead" style="margin-top:4px;">Each row is one invite. Use <strong>View questionnaire</strong> to read the full wizard (private answers + published quote). Delete link revokes unused invites. Remove testimonial unpublishes the quote from the site.</p>
@@ -8766,7 +8804,7 @@
   <script src="/assets/js/portfolio-built-in-data.js?v=chair-studio-20261015"></script>
   <script src="/assets/js/portfolio-assets.js?v=media-picker-20260929"></script>
   <script src="/assets/js/business-systems-data.js?v=expo-app-demo-20260911"></script>
-  <script src="/assets/js/care-pricing.js?v=package-names-20261016"></script>
+  <script src="/assets/js/care-pricing.js?v=faq-20261016"></script>
   <script src="/assets/js/blog-covers.js?v=category-covers-20261015"></script>
   <script src="/assets/js/lead-match.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/business-doc-shared.js?v=package-offers-20261005"></script>
@@ -8775,7 +8813,7 @@
   <script src="/assets/js/portfolio-skins.js?v=skins-20261015"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=skins-20261015"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
-  <script src="/assets/js/i18n.js?v=package-names-20261016"></script>
+  <script src="/assets/js/i18n.js?v=faq2-20261016"></script>
   <!--
     - Admin-only scripts: loaded on /admin or after admin sign-in, never for
       public visitors (they were ~220 KB gz of the homepage). Order matches the
@@ -8820,7 +8858,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=package-names-20261016"></script>
+  <script src="/assets/js/script.js?v=testimonial-request-20261016"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

@@ -11278,75 +11278,124 @@ window.addEventListener('load', function() {
       });
     }
 
-    const inviteForm = document.getElementById('admin-testimonial-invite-form');
+    // Testimonial requests: the popup makes a one-time link (no automatic email).
+    // Write email opens Compose on None with a thank-you draft you can edit;
+    // Copy link is for texting it. One invite per filled-in form.
+    const requestBtn = document.getElementById('admin-testimonial-request-btn');
+    const requestModal = document.getElementById('admin-testimonial-request-modal');
+    const requestForm = document.getElementById('admin-testimonial-request-form');
     const inviteStatus = document.getElementById('admin-testimonial-invite-status');
-    if (inviteForm && !inviteForm.dataset.boundTestimonial) {
-      inviteForm.dataset.boundTestimonial = '1';
-      inviteForm.addEventListener('submit', async function (ev) {
-        ev.preventDefault();
-        if (!isAdmin()) return;
+    if (requestBtn && requestModal && requestForm && !requestForm.dataset.boundTestimonial) {
+      requestForm.dataset.boundTestimonial = '1';
+      let pendingInvite = null;
+
+      const setRequestStatus = function (msg, isError) {
+        if (!inviteStatus) return;
+        inviteStatus.textContent = msg || '';
+        inviteStatus.classList.toggle('is-error', !!isError);
+      };
+      const requestFields = function () {
+        return {
+          name: document.getElementById('admin-testimonial-invite-name').value.trim(),
+          email: document.getElementById('admin-testimonial-invite-email').value.trim(),
+          product: document.getElementById('admin-testimonial-invite-product').value.trim()
+        };
+      };
+      const newTestimonialToken = function () {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+          var r = (Math.random() * 16) | 0;
+          var v = c === 'x' ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        });
+      };
+      // Saves the invite once; Copy then Write email (same fields) reuse it.
+      const ensureTestimonialInvite = async function () {
+        if (!isAdmin()) return null;
+        var f = requestFields();
+        if (!f.name || !f.product) {
+          setRequestStatus('Add the customer name and the product or service.', true);
+          return null;
+        }
+        var key = [f.name, f.email, f.product].join('\n');
+        if (pendingInvite && pendingInvite.key === key) return pendingInvite;
         if (!window.db || !window.setDoc || !window.doc || !window.serverTimestamp) {
-          if (inviteStatus) inviteStatus.textContent = 'Firestore is not ready.';
-          return;
+          setRequestStatus('Firestore is not ready.', true);
+          return null;
         }
-        var name = document.getElementById('admin-testimonial-invite-name').value.trim();
-        var email = document.getElementById('admin-testimonial-invite-email').value.trim();
-        var product = document.getElementById('admin-testimonial-invite-product').value.trim();
-        if (!name || !email || !product) {
-          if (inviteStatus) inviteStatus.textContent = 'Fill in name, email, and product.';
-          return;
-        }
-        var token;
-        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-          token = crypto.randomUUID();
-        } else {
-          token = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = (Math.random() * 16) | 0;
-            var v = c === 'x' ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-          });
-        }
+        var token = newTestimonialToken();
         var origin =
           (window.PORTFOLIO_PUBLIC_ORIGIN && String(window.PORTFOLIO_PUBLIC_ORIGIN).trim()) ||
           window.location.origin;
-        origin = origin.replace(/\/$/, '');
-        var url = origin + '/testimonial.html?token=' + encodeURIComponent(token);
-        if (inviteStatus) inviteStatus.textContent = 'Saving invite and sending email…';
+        var url = origin.replace(/\/$/, '') + '/testimonial.html?token=' + encodeURIComponent(token);
+        setRequestStatus('Creating link…', false);
         try {
           await window.setDoc(window.doc(window.db, 'testimonialTokens', token), {
-            name: name,
-            email: email,
-            product: product,
+            name: f.name,
+            email: f.email,
+            product: f.product,
             used: false,
             createdAt: window.serverTimestamp()
           });
-          if (typeof sendPortfolioEmailRequest !== 'function') {
-            throw new Error('Email helper missing');
-          }
-          await sendPortfolioEmailRequest(
-            {
-              type: 'testimonial_request',
-              payload: {
-                to_email: email,
-                to_name: name,
-                product: product,
-                testimonial_url: url,
-                subject: 'Quick testimonial request from Ruben Jimenez'
-              }
-            },
-            { requireAdmin: true }
-          );
-          inviteForm.reset();
-          if (inviteStatus) inviteStatus.textContent = 'Invite sent to ' + email + '.';
-          if (typeof window.loadTestimonialAdminPanel === 'function') {
-            window.loadTestimonialAdminPanel();
-          }
         } catch (err) {
           console.error(err);
-          if (inviteStatus) {
-            inviteStatus.textContent = (err && err.message) ? String(err.message) : 'Failed to send invite.';
-          }
+          setRequestStatus((err && err.message) ? String(err.message) : 'Could not create the link.', true);
+          return null;
         }
+        pendingInvite = { key: key, url: url, fields: f };
+        setRequestStatus('', false);
+        if (typeof window.loadTestimonialAdminPanel === 'function') window.loadTestimonialAdminPanel();
+        return pendingInvite;
+      };
+      const closeRequestModal = function () {
+        requestModal.hidden = true;
+      };
+
+      requestBtn.addEventListener('click', function () {
+        requestForm.reset();
+        pendingInvite = null;
+        setRequestStatus('', false);
+        requestModal.hidden = false;
+        document.getElementById('admin-testimonial-invite-name').focus();
+      });
+      requestModal.querySelectorAll('[data-testimonial-request-close]').forEach(function (el) {
+        el.addEventListener('click', closeRequestModal);
+      });
+      requestModal.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeRequestModal();
+      });
+
+      document.getElementById('admin-testimonial-copy-link').addEventListener('click', async function () {
+        var invite = await ensureTestimonialInvite();
+        if (!invite) return;
+        try {
+          await navigator.clipboard.writeText(invite.url);
+          setRequestStatus('Link copied. It works once.', false);
+        } catch (err) {
+          setRequestStatus('Copy this link: ' + invite.url, false);
+        }
+      });
+
+      requestForm.addEventListener('submit', async function (ev) {
+        ev.preventDefault();
+        var invite = await ensureTestimonialInvite();
+        if (!invite) return;
+        closeRequestModal();
+        var f = invite.fields;
+        window.openAdminClientEmailCompose({
+          name: f.name,
+          email: f.email,
+          link: invite.url,
+          templateId: 'outreach-script',
+          portalButton: true,
+          buttonLabel: 'Share your testimonial →',
+          subject: 'Thank you, and a small favor',
+          message:
+            'Hi ' + f.name + ',\n\n' +
+            'Thank you again for trusting me with the ' + f.product + '. I’m glad it’s been helpful.\n\n' +
+            'If you have a minute, would you share a few words about the experience? It helps others decide if working with me is a good fit. There’s no rush at all.\n\n' +
+            'Thank you,\nRuben Jimenez\nCodeWithRuben'
+        });
       });
     }
 
@@ -12479,6 +12528,7 @@ window.addEventListener('load', function() {
       ctaWrap: document.getElementById('admin-client-email-cta-wrap'),
       portalBtn: document.getElementById('admin-client-email-portal-btn'),
       portalBtnWrap: document.getElementById('admin-client-email-portal-btn-wrap'),
+      portalBtnText: document.getElementById('admin-client-email-portal-btn-text'),
       subject: document.getElementById('admin-client-email-subject'),
       message: document.getElementById('admin-client-email-message'),
       preview: document.getElementById('admin-client-email-preview'),
@@ -13012,7 +13062,7 @@ window.addEventListener('load', function() {
       return { cta_label: '', header_subtitle: 'Reschedule confirmation' };
     }
     if (isPlainEmailTemplate(templateId)) {
-      return { cta_label: plainEmailPortalLink(els) ? 'Open Portal →' : '', header_subtitle: '' };
+      return { cta_label: plainEmailPortalLink(els) ? plainEmailButtonLabel(els) : '', header_subtitle: '' };
     }
     var meta = ADMIN_CLIENT_EMAIL_CTA[templateId] || null;
     if (!meta && /\/schedule(\/|\?|$)/i.test(link)) {
@@ -13095,6 +13145,7 @@ window.addEventListener('load', function() {
       link: (els.link && els.link.value) || '',
       ctaLabel: (els.ctaLabel && els.ctaLabel.value) || '',
       portalButton: !!(els.portalBtn && els.portalBtn.checked),
+      buttonLabel: (els.portalBtn && els.portalBtn.dataset.label) || '',
       subject: (els.subject && els.subject.value) || '',
       message: (els.message && els.message.value) || ''
     };
@@ -13135,6 +13186,7 @@ window.addEventListener('load', function() {
     else clearAdminClientEmailLinkUserSet(els);
     if (els.ctaLabel) els.ctaLabel.value = draft.ctaLabel || '';
     if (els.portalBtn) els.portalBtn.checked = !!draft.portalButton;
+    setPlainEmailButtonLabel(els, draft.buttonLabel || '');
     if (els.subject) els.subject.value = draft.subject || '';
     if (els.message) {
       els.message.value = draft.message || '';
@@ -13178,6 +13230,7 @@ window.addEventListener('load', function() {
       link: String(row.link || ''),
       ctaLabel: String(row.ctaLabel || ''),
       portalButton: !!row.portalButton,
+      buttonLabel: String(row.buttonLabel || ''),
       subject: String(row.subject || ''),
       message: String(row.message || ''),
       leadId: String(row.leadId || ''),
@@ -13400,6 +13453,23 @@ window.addEventListener('load', function() {
     return String((els.link && els.link.value) || '').trim();
   }
 
+  var ADMIN_EMAIL_DEFAULT_BUTTON_LABEL = 'Open Portal \u2192';
+
+  /** None's button label: "Open Portal →" unless whoever opened Compose set one (e.g. testimonial requests). */
+  function plainEmailButtonLabel(els) {
+    return (els.portalBtn && els.portalBtn.dataset.label) || ADMIN_EMAIL_DEFAULT_BUTTON_LABEL;
+  }
+
+  function setPlainEmailButtonLabel(els, label) {
+    if (els.portalBtn) els.portalBtn.dataset.label = String(label || '').trim().slice(0, 60);
+    if (els.portalBtnText) {
+      var custom = !!(els.portalBtn && els.portalBtn.dataset.label);
+      els.portalBtnText.innerHTML =
+        (custom ? 'Add button' : 'Add portal button') +
+        ' <em>(\u201c' + escHtml(plainEmailButtonLabel(els)) + '\u201d at the end of the email)</em>';
+    }
+  }
+
   function withPlainEmailPortalButton(els, message) {
     var link = plainEmailPortalLink(els);
     return link ? String(message || '').replace(/\s+$/, '') + '\n\nLink: ' + link : message;
@@ -13594,6 +13664,7 @@ window.addEventListener('load', function() {
     if (els.nextStep) els.nextStep.value = '';
     if (els.link) els.link.value = '';
     if (els.portalBtn) els.portalBtn.checked = false;
+    setPlainEmailButtonLabel(els, '');
     if (els.siteUrl) els.siteUrl.value = '';
     clearAdminClientEmailLinkUserSet(els);
     if (els.ctaLabel) els.ctaLabel.value = '';
@@ -13928,6 +13999,7 @@ window.addEventListener('load', function() {
     if (data.email != null && els.toEmail) els.toEmail.value = String(data.email);
     if (data.link != null && els.link) els.link.value = String(data.link);
     if (els.portalBtn) els.portalBtn.checked = !!data.portalButton;
+    setPlainEmailButtonLabel(els, data.buttonLabel || '');
     if (data.nextStep != null && els.nextStep) els.nextStep.value = String(data.nextStep);
     if (els.link && els.link.dataset) {
       if (data.agreedTime != null) {

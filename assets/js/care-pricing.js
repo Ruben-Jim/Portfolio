@@ -128,6 +128,8 @@
     var promo = config.promo;
     return {
       yearly_pct: pctLabel(e.pct),
+      // Month-to-month prices (Services FAQ).
+      ess_mo: money(e.monthly), std_mo: money(s.monthly), pri_mo: money(p.monthly),
       ess_annual: money(e.annual), ess_permo: money(e.perMonth), ess_save: money(e.save),
       std_annual: money(s.annual), std_permo: money(s.perMonth), std_save: money(s.save),
       pri_annual: money(p.annual), pri_permo: money(p.perMonth), pri_save: money(p.save),
