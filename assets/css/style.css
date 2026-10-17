@@ -32793,3 +32793,14 @@ html:has(body.home-page-active) {
   padding: 10px 14px;
   white-space: nowrap;
 }
+
+/* Phones (iPhone Safari) zoom into any text box whose text is under 16px, and
+   stay zoomed. On touch screens every text field uses at least 16px; desktop
+   sizes are untouched. !important so compact per-component sizes can't undo it. */
+@media (max-width: 767px), (pointer: coarse) and (max-width: 1024px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
