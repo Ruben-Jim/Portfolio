@@ -21,10 +21,10 @@ const M = require("./lead-match");
 // assets/js/care-pricing.js — scripts/test-inbound-leads.mjs fails if they drift.
 const PACKAGES = {
   linktree: { name: "Link Tree", price: 99, projectType: "web" },
-  "starter-page": { name: "Starter Page", price: 499, projectType: "web" },
-  website: { name: "Business Website", price: 999, projectType: "web" },
-  starter: { name: "Starter Presence", price: 1500, projectType: "both" },
-  growth: { name: "Growth Platform", price: 3500, projectType: "both" },
+  "starter-page": { name: "Starter Package", price: 499, projectType: "web" },
+  website: { name: "Multi-Page Package", price: 999, projectType: "web" },
+  starter: { name: "Website + App Package", price: 1500, projectType: "both" },
+  growth: { name: "Growth Package", price: 3500, projectType: "both" },
   agency: { name: "Business Platform", price: 6000, projectType: "both" },
   studio: { name: "Studio Build", price: 15000, projectType: "both" },
 };

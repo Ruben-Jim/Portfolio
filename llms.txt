@@ -21,10 +21,10 @@ a setup package, then a monthly care plan for hosting, updates and support.
 
 Every package is fixed-price and includes one month of a care plan.
 
-- **Starter Page — $499** (~1 week): one public page plus an owner admin at `/admin`. Quotes, inbox, simple job list, self-serve edits to services/photos/hours, reviews, English + Spanish. No phone app.
-- **Business Website — $999** (~1–2 weeks): everything in Starter Page, expanded to 1–3 pages. Live chat, gallery, extra forms, SEO, hosting and a branded Link Tree.
-- **Starter Presence — $1,500** (~2–3 weeks): everything in Business Website, plus native iOS and Android for the owner and team, app store setup, and alerts on new inquiries. Customers stay on the website.
-- **Growth Platform — $3,500** (3–4 weeks, most popular): branded website for customers, iOS and Android for the crew, and an admin that runs leads, jobs, money and team. Calendar, crew and job workflow, Stripe, PDFs, Tap to Pay, crew hours, before/after approval.
+- **Starter Package — $499** (~1 week): one public page plus an owner admin at `/admin`. Quotes, inbox, simple job list, self-serve edits to services/photos/hours, reviews, English + Spanish. No phone app.
+- **Multi-Page Package — $999** (~1–2 weeks): everything in Starter Package, expanded to 1–3 pages. Live chat, gallery, extra forms, SEO, hosting and a branded Link Tree.
+- **Website + App Package — $1,500** (~2–3 weeks): everything in Multi-Page Package, plus native iOS and Android for the owner and team, app store setup, and alerts on new inquiries. Customers stay on the website.
+- **Growth Package — $3,500** (3–4 weeks, most popular): branded website for customers, iOS and Android for the crew, and an admin that runs leads, jobs, money and team. Calendar, crew and job workflow, Stripe, PDFs, Tap to Pay, crew hours, before/after approval.
 - **Business Platform — $6,000–$12,000** (scoped after discovery): website plus mobile app for field crews. Role-based staff logins (owner vs. worker), one shared app for customers and crew, custom field-ops scope.
 - **Studio Build — $15,000–$40,000** (custom scope): full field-service operations platform. Quote → estimate → job → invoice pipeline, recurring billing, multi-location, tax regions, tips, promo codes, back-office automation.
 - **Link Tree — $99–$199** (~3–5 days, standalone): one branded link-in-bio page for Instagram/TikTok with avatar, bio, stacked action links and social icons. No full website required.

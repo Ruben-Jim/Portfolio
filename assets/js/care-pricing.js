@@ -229,13 +229,13 @@
   var PACKAGES = [
     { id: 'linktree', name: 'Link Tree', price: 99, max: 199, projectType: 'web', offerable: true,
       summary: 'a branded link-in-bio page with your logo, links, and social icons' },
-    { id: 'starter-page', name: 'Starter Page', price: 499, projectType: 'web', offerable: true,
+    { id: 'starter-page', name: 'Starter Package', price: 499, projectType: 'web', offerable: true,
       summary: 'one page plus an owner admin for quotes, messages, and jobs, in English and Spanish' },
-    { id: 'website', name: 'Business Website', price: 999, projectType: 'web', offerable: true,
+    { id: 'website', name: 'Multi-Page Package', price: 999, projectType: 'web', offerable: true,
       summary: '1–3 pages, live chat, gallery, SEO, hosting, and a branded Link Tree' },
-    { id: 'starter', name: 'Starter Presence', price: 1500, projectType: 'both', offerable: true,
-      summary: 'everything in Business Website, plus iOS and Android apps for you and your team' },
-    { id: 'growth', name: 'Growth Platform', price: 3500, projectType: 'both', offerable: true,
+    { id: 'starter', name: 'Website + App Package', price: 1500, projectType: 'both', offerable: true,
+      summary: 'everything in Multi-Page Package, plus iOS and Android apps for you and your team' },
+    { id: 'growth', name: 'Growth Package', price: 3500, projectType: 'both', offerable: true,
       summary: 'a website for customers, iOS and Android for your crew, and an admin for leads, jobs, and payments' },
     { id: 'agency', name: 'Business Platform', price: 6000, max: 12000, projectType: 'both', offerable: false,
       summary: 'a website plus a mobile app for your field crew, with owner and worker logins' },
@@ -289,6 +289,12 @@
     };
   }
 
+  /** "Growth Package" stays as-is; "Link Tree" becomes "Link Tree package". */
+  function withPackageWord(name) {
+    var n = String(name || '').trim();
+    return /\bpackage$/i.test(n) ? n : n + ' package';
+  }
+
   function regularLabel(p) {
     return p.max ? money(p.price) + '–' + money(p.max) : money(p.price);
   }
@@ -324,8 +330,8 @@
 
   /**
    * What [package] / {{package}} becomes in a message, e.g.
-   * "our Business Website package is $999" or
-   * "our Business Website package is $499 (normally $999) until Oct 31".
+   * "our Multi-Page Package is $999" or
+   * "our Multi-Page Package is $499 (normally $999) until Oct 31".
    */
   function packagePhrase(id) {
     var p = packageById(id);
@@ -333,12 +339,12 @@
     var offer = activeOffer(id);
     if (offer) {
       var limit = offerLimitText(offer, 'en');
-      return 'our ' + p.name + ' package is ' + money(offer.price) + ' (normally ' + regularLabel(p) + ')' + (limit ? ' ' + limit : '');
+      return 'our ' + withPackageWord(p.name) + ' is ' + money(offer.price) + ' (normally ' + regularLabel(p) + ')' + (limit ? ' ' + limit : '');
     }
-    return 'our ' + p.name + ' package ' + (p.max ? 'runs ' + regularLabel(p) : 'is ' + money(p.price));
+    return 'our ' + withPackageWord(p.name) + ' ' + (p.max ? 'runs ' + regularLabel(p) : 'is ' + money(p.price));
   }
 
-  /** Dropdown label, e.g. "Business Website — $499 offer (normally $999)". */
+  /** Dropdown label, e.g. "Multi-Page Package — $499 offer (normally $999)". */
   function packageOptionLabel(id) {
     var p = packageById(id);
     if (!p) return '';
@@ -405,12 +411,13 @@
   }
 
   window.PackagePricing = {
+    packagePhrase: packagePhrase,
+    withPackageWord: withPackageWord,
     PACKAGES: PACKAGES,
     get offers() { return packageOffers; },
     packageById: packageById,
     activeOffer: activeOffer,
     packagePrice: packagePrice,
-    packagePhrase: packagePhrase,
     packageOptionLabel: packageOptionLabel,
     regularLabel: regularLabel,
     offerLimitText: offerLimitText,

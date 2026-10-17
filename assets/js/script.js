@@ -4294,6 +4294,41 @@ function collectPortfolioDetailSectionsFromDom() {
   return out.slice(0, 8);
 }
 
+/** Pricing packages a starter template can have a live demo for (site ids; 'starter' = Website + App $1,500). */
+var PORTFOLIO_TEMPLATE_DEMO_PACKAGES = ['starter-page', 'website', 'starter', 'growth'];
+
+/** Keep only https demo URLs for known packages. */
+function portfolioSanitizePackageDemos(raw) {
+  var out = {};
+  if (!raw || typeof raw !== 'object') return out;
+  PORTFOLIO_TEMPLATE_DEMO_PACKAGES.forEach(function (id) {
+    var url = String(raw[id] != null ? raw[id] : '').trim().slice(0, 500);
+    if (/^https:\/\/[^\s]+$/i.test(url)) out[id] = url;
+  });
+  return out;
+}
+
+function portfolioPackageDemoInputId(id) {
+  return 'portfolio-project-demo-' + id;
+}
+
+function portfolioPackageDemosFromForm() {
+  var out = {};
+  PORTFOLIO_TEMPLATE_DEMO_PACKAGES.forEach(function (id) {
+    var el = document.getElementById(portfolioPackageDemoInputId(id));
+    if (el) out[id] = el.value;
+  });
+  return out;
+}
+
+function portfolioFillPackageDemosForm(demos) {
+  var d = demos && typeof demos === 'object' ? demos : {};
+  PORTFOLIO_TEMPLATE_DEMO_PACKAGES.forEach(function (id) {
+    var el = document.getElementById(portfolioPackageDemoInputId(id));
+    if (el) el.value = d[id] || '';
+  });
+}
+
 function portfolioSanitizeDocumentPayload(data) {
   const imageUrls = portfolioParseImageUrls(
     data.imageUrls,
@@ -4335,6 +4370,9 @@ function portfolioSanitizeDocumentPayload(data) {
       data.builtFromTemplateId != null ? data.builtFromTemplateId : ''
     ).trim().slice(0, 80),
     templateRepoUrl: String(data.templateRepoUrl != null ? data.templateRepoUrl : '').trim().slice(0, 500),
+    // Starter templates: one live demo URL per pricing package (EAS alias per package).
+    // Feeds "See examples" on Services & Pricing — see getTemplateDemosForPackage().
+    packageDemos: portfolioSanitizePackageDemos(data.packageDemos),
     demoFirebaseProjectId: String(
       data.demoFirebaseProjectId != null ? data.demoFirebaseProjectId : ''
     )
@@ -5724,7 +5762,11 @@ function serializePortfolioProjectFormState() {
     'portfolio-project-canvas-title',
     'portfolio-project-bestfor',
     'portfolio-project-template-repo',
-    'portfolio-project-demo-firebase'
+    'portfolio-project-demo-firebase',
+    'portfolio-project-demo-starter-page',
+    'portfolio-project-demo-website',
+    'portfolio-project-demo-starter',
+    'portfolio-project-demo-growth'
   ];
   var state = {
     fields: {},
@@ -6132,6 +6174,7 @@ function openPortfolioProjectModal(isNew, project) {
     if (templateRepoEl) templateRepoEl.value = project.templateRepoUrl || '';
     const demoFbEl = document.getElementById('portfolio-project-demo-firebase');
     if (demoFbEl) demoFbEl.value = project.demoFirebaseProjectId || '';
+    portfolioFillPackageDemosForm(project.packageDemos);
     const showPublicEl = document.getElementById('portfolio-project-show-public');
     if (showPublicEl) showPublicEl.checked = isPortfolioPublic(project);
     renderPortfolioDetailSectionsList(project.detailSections);
@@ -6144,6 +6187,7 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-show-quote').checked = project.showQuoteButton !== false;
     const showPublicEl = document.getElementById('portfolio-project-show-public');
     if (showPublicEl) showPublicEl.checked = project.visibility !== 'private';
+    portfolioFillPackageDemosForm({});
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
   } else {
@@ -6157,6 +6201,7 @@ function openPortfolioProjectModal(isNew, project) {
     if (templateRepoDefault) templateRepoDefault.value = '';
     const demoFbDefault = document.getElementById('portfolio-project-demo-firebase');
     if (demoFbDefault) demoFbDefault.value = '';
+    portfolioFillPackageDemosForm({});
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
   }
@@ -6522,6 +6567,7 @@ function setupPortfolioAdminControls() {
         demoFirebaseProjectId: document.getElementById('portfolio-project-demo-firebase')
           ? document.getElementById('portfolio-project-demo-firebase').value
           : '',
+        packageDemos: portfolioPackageDemosFromForm(),
         showPublicPortfolio: document.getElementById('portfolio-project-show-public')
           ? document.getElementById('portfolio-project-show-public').checked
           : true,
@@ -7322,15 +7368,72 @@ function getPortfolioPricingPackage(record) {
   return '';
 }
 
+/**
+ * Starter templates with a live demo for this package, as "See examples" rows.
+ * Each row opens that template's EAS alias for the package (e.g. …--website-app.expo.app),
+ * so the price on the card matches what the visitor sees.
+ */
+function getTemplateDemosForPackage(packageId) {
+  var list = window.portfolioProjects || [];
+  return list
+    .filter(function (p) {
+      return p && p.isTemplate === true && isPortfolioPublic(p) &&
+        p.packageDemos && p.packageDemos[packageId];
+    })
+    .map(function (p) {
+      var niches = Array.isArray(p.bestFor) ? p.bestFor.slice(0, 3) : [];
+      var cover = typeof portfolioCoverImageUrl === 'function' ? portfolioCoverImageUrl(p) : '';
+      return {
+        id: 'template-demo-' + p.id + '-' + packageId,
+        title: p.title || 'Template',
+        exampleHint: [cwrText('services.examples_live_demo', 'Live demo')].concat(niches).join(' · '),
+        externalUrl: p.packageDemos[packageId],
+        imageUrl: cover || (Array.isArray(p.imageUrls) && p.imageUrls[0]) || p.imageUrl || '',
+        imageAlt: p.imageAlt || p.title || ''
+      };
+    });
+}
+
 function getProjectsForPricingPackage(packageId) {
   var id = sanitizePricingPackage(packageId);
   if (!id) return [];
   var staticList = PRICING_PACKAGE_STATIC_EXAMPLES[id] || [];
+  var templateDemos = getTemplateDemosForPackage(id);
   var list = window.portfolioProjects || [];
   var fromPortfolio = list.filter(function (p) {
+    // A template already listed as a live demo for this package isn't repeated.
+    if (p && p.isTemplate === true && p.packageDemos && p.packageDemos[id]) return false;
     return getPortfolioPricingPackage(p) === id;
   });
-  return staticList.concat(fromPortfolio);
+  return staticList.concat(templateDemos, fromPortfolio);
+}
+
+/** Website/app packages in upgrade order; Premium on a Growth project points at Agency. */
+var PORTFOLIO_PLAN_LADDER = ['starter-page', 'website', 'starter', 'growth', 'agency'];
+
+function portfolioPlanName(pkg) {
+  return String((pkg && pkg.pill) || '').split(' · ')[0].trim();
+}
+
+function portfolioPlanPriceText(pkg) {
+  return String((pkg && pkg.price) || '').replace(/\s*fixed\s*$/i, '').trim();
+}
+
+/** Buy Now / Premium labels + target packages for a portfolio project, or null if it has no package. */
+function portfolioPlanBuyTargets(record) {
+  if (typeof HIRE_ME_PACKAGES === 'undefined') return null;
+  var id = getPortfolioPricingPackage(record);
+  var idx = PORTFOLIO_PLAN_LADDER.indexOf(id);
+  var pkg = HIRE_ME_PACKAGES[id];
+  if (idx < 0 || !pkg) return null;
+  var nextId = PORTFOLIO_PLAN_LADDER[idx + 1];
+  var next = nextId ? HIRE_ME_PACKAGES[nextId] : null;
+  return {
+    buyId: id,
+    buyLabel: 'Buy ' + portfolioPlanName(pkg) + ': ' + portfolioPlanPriceText(pkg),
+    premiumId: next ? nextId : '',
+    premiumLabel: next ? 'Upgrade to ' + portfolioPlanName(next) + ': ' + portfolioPlanPriceText(next) : ''
+  };
 }
 
 var PRICING_PACKAGE_STATIC_EXAMPLES = {
@@ -7756,8 +7859,15 @@ function initPortfolioProjectModal() {
     if (quoteFooterBtn) quoteFooterBtn.hidden = !showQuote;
 
     const showBuyButtons = window.PORTFOLIO_SHOW_BUY_BUTTONS === true;
+    // Buy buttons follow the project's pricing package (single source: HIRE_ME_PACKAGES).
+    // Buy Now = that package; Premium = the next package up. Projects without a package
+    // fall back to the labels saved in Admin and open Hire Me with no package selected.
+    const planBuy = portfolioPlanBuyTargets(record);
     if (buyNowBtn) {
-      const buyNowLabel = record && record.buyNowLabel != null ? String(record.buyNowLabel).trim() : '';
+      const buyNowLabel = planBuy
+        ? planBuy.buyLabel
+        : record && record.buyNowLabel != null ? String(record.buyNowLabel).trim() : '';
+      buyNowBtn.dataset.hirePackage = planBuy ? planBuy.buyId : '';
       if (showBuyButtons && buyNowLabel) {
         buyNowBtn.innerHTML = portfolioDetailBtnHtml('cart-outline', buyNowLabel);
         buyNowBtn.hidden = false;
@@ -7766,8 +7876,10 @@ function initPortfolioProjectModal() {
       }
     }
     if (buyPremiumBtn) {
-      const buyPremiumLabel =
-        record && record.buyPremiumLabel != null ? String(record.buyPremiumLabel).trim() : '';
+      const buyPremiumLabel = planBuy
+        ? planBuy.premiumLabel
+        : record && record.buyPremiumLabel != null ? String(record.buyPremiumLabel).trim() : '';
+      buyPremiumBtn.dataset.hirePackage = planBuy ? planBuy.premiumId : '';
       if (showBuyButtons && buyPremiumLabel) {
         buyPremiumBtn.innerHTML = portfolioDetailBtnHtml('star-outline', buyPremiumLabel);
         buyPremiumBtn.hidden = false;
@@ -7847,7 +7959,10 @@ function initPortfolioProjectModal() {
     buyNowBtn.addEventListener('click', function (event) {
       event.preventDefault();
       closeProjectModal();
-      if (typeof switchToPage === 'function') {
+      var pkg = buyNowBtn.dataset.hirePackage || '';
+      if (pkg && typeof switchToHireMePackage === 'function') {
+        switchToHireMePackage(pkg);
+      } else if (typeof switchToPage === 'function') {
         switchToPage('hire-me');
       }
     });
@@ -7857,7 +7972,10 @@ function initPortfolioProjectModal() {
     buyPremiumBtn.addEventListener('click', function (event) {
       event.preventDefault();
       closeProjectModal();
-      if (typeof switchToPage === 'function') {
+      var pkg = buyPremiumBtn.dataset.hirePackage || '';
+      if (pkg && typeof switchToHireMePackage === 'function') {
+        switchToHireMePackage(pkg);
+      } else if (typeof switchToPage === 'function') {
         switchToPage('hire-me');
       }
     });
@@ -7913,10 +8031,10 @@ function initPackageExamplesSheet() {
     linktree: 'services.examples_title_linktree'
   };
   var TITLE_FALLBACK = {
-    'starter-page': 'Starter Page examples',
-    website: 'Business Website examples',
-    starter: 'Starter Presence examples',
-    growth: 'Growth Platform examples',
+    'starter-page': 'Starter Package examples',
+    website: 'Multi-Page Package examples',
+    starter: 'Website + App Package examples',
+    growth: 'Growth Package examples',
     linktree: 'Link Tree examples'
   };
   var sheetPackageId = '';
@@ -7988,7 +8106,7 @@ function initPackageExamplesSheet() {
     listEl.innerHTML = matches
       .map(function (p, i) {
         var urls = typeof portfolioImageUrlsFromRecord === 'function' ? portfolioImageUrlsFromRecord(p) : [];
-        var img = p.exampleUrl
+        var img = p.exampleUrl || p.externalUrl
           ? p.imageUrl || ''
           : typeof portfolioCoverImageUrl === 'function'
             ? portfolioCoverImageUrl(p)
@@ -8040,6 +8158,10 @@ function initPackageExamplesSheet() {
       var recs = listEl._records || [];
       var record = recs[idx];
       if (!record) return;
+      if (record.externalUrl) {
+        window.open(record.externalUrl, '_blank', 'noopener');
+        return;
+      }
       if (showExampleFrame(record)) return;
       closeExamplesSheet();
       if (typeof window.openPortfolioProjectDetail === 'function') {
@@ -8467,15 +8589,15 @@ var HIRE_ME_PACKAGES = {
   },
   'starter-page': {
     id: 'starter-page',
-    pill: 'Starter Page',
+    pill: 'Starter Package',
     price: '$499 fixed',
     bannerNote: 'One public page + owner admin · ~1 week · 1 month maintenance included',
-    heroLabel: 'Starter Page',
+    heroLabel: 'Starter Package',
     heroTitle: 'Launch with a',
-    heroTitleAccent: 'Starter Page',
+    heroTitleAccent: 'Starter Package',
     heroSub:
       'One branded page for customers, plus an admin so you can see quotes, messages, and jobs — and change the page yourself. No phone app.',
-    timelineLabel: 'Your Starter Page path',
+    timelineLabel: 'Your Starter Package path',
     timelineSteps: [
       { title: 'Quick intake', desc: 'Logo, colors, services, and how customers should reach you.' },
       { title: 'Design & build', desc: 'One public page plus owner admin (quotes, inbox, jobs).' },
@@ -8483,24 +8605,24 @@ var HIRE_ME_PACKAGES = {
       { title: 'Go live', desc: 'You can edit services, photos, and hours from admin.' },
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
-    formTitle: 'Start Starter Page',
-    formLead: 'Tell me about your business — I\'ll confirm fit for the $499 Starter Page (one page + admin).',
-    projectType: 'Starter Page — one page + admin',
+    formTitle: 'Start Starter Package',
+    formLead: 'Tell me about your business — I\'ll confirm fit for the $499 Starter Package (one page + admin).',
+    projectType: 'Starter Package — one page + admin',
     budget: '$499',
     message:
-      'Interested in Starter Page ($499). I need one public page plus an owner admin for quotes, messages, a simple job list, and editing the page myself. English and Spanish. No phone app.',
+      'Interested in Starter Package ($499). I need one public page plus an owner admin for quotes, messages, a simple job list, and editing the page myself. English and Spanish. No phone app.',
     messagePlaceholder: 'What does your business do, and what should customers do on the page?'
   },
   website: {
     id: 'website',
-    pill: 'Business Website',
+    pill: 'Multi-Page Package',
     price: '$999 fixed',
     bannerNote: '1–3 pages + owner admin · ~1–2 weeks · 1 month maintenance included',
-    heroLabel: 'Business Website',
+    heroLabel: 'Multi-Page Package',
     heroTitle: 'Launch with a',
-    heroTitleAccent: 'Business Website',
+    heroTitleAccent: 'Multi-Page Package',
     heroSub:
-      'A branded 1–3 page site plus an owner admin for quotes, messages, and jobs — more room than Starter Page, still no phone app.',
+      'A branded 1–3 page site plus an owner admin for quotes, messages, and jobs — more room than Starter Package, still no phone app.',
     timelineLabel: 'Your website path',
     timelineSteps: [
       { title: 'Quick intake', desc: 'Brand basics, pages, and how customers should reach you.' },
@@ -8509,20 +8631,20 @@ var HIRE_ME_PACKAGES = {
       { title: 'Go live', desc: 'Hosting, SEO basics, and you can edit pages from admin.' },
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
-    formTitle: 'Start Business Website',
+    formTitle: 'Start Multi-Page Package',
     formLead: 'Tell me about your business and what the site should do — I\'ll confirm fit for the $999 website + admin package.',
-    projectType: 'Business Website',
+    projectType: 'Multi-Page Package',
     budget: '$999',
     message:
-      'Interested in a Business Website ($999). I need a branded 1–3 page site plus owner admin (quotes, inbox, jobs) with gallery, bilingual copy, and hosting — no phone app.',
+      'Interested in the Multi-Page Package ($999). I need a branded 1–3 page site plus owner admin (quotes, inbox, jobs) with gallery, bilingual copy, and hosting — no phone app.',
     messagePlaceholder: 'What does your business do, and what should customers do on the website?'
   },
   starter: {
     id: 'starter',
-    pill: 'Starter Presence · Website + App',
+    pill: 'Website + App Package',
     price: '$1,500 fixed',
     bannerNote: 'Website + iOS/Android · quotes & chat · ~2–3 weeks · 1 month maintenance included',
-    heroLabel: 'Starter Presence · Website + App',
+    heroLabel: 'Website + App Package',
     heroTitle: 'Launch with',
     heroTitleAccent: 'Website + App',
     heroSub:
@@ -8535,22 +8657,22 @@ var HIRE_ME_PACKAGES = {
       { title: 'Go live', desc: 'Hosting, store setup support, SEO basics, and analytics.' },
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
-    formTitle: 'Start Starter Presence',
+    formTitle: 'Start Website + App Package',
     formLead: 'Tell me about your business — I\'ll confirm fit for the $1,500 Website + App package.',
-    projectType: 'Starter Presence — Website + App',
+    projectType: 'Website + App Package',
     budget: '$1,500',
     message:
-      'Interested in Starter Presence ($1,500) — Website + App. I need a branded site for customers plus iOS/Android for the team (quotes and chat, not full admin).',
+      'Interested in the Website + App Package ($1,500). I need a branded site for customers plus iOS/Android for the team (quotes and chat, not full admin).',
     messagePlaceholder: 'What does your business do, and who on the team needs the phone app?'
   },
   growth: {
     id: 'growth',
-    pill: 'Growth Platform · Website + App',
+    pill: 'Growth Package',
     price: '$3,500 fixed',
     bannerNote: 'Website + iOS/Android + admin · 3–4 weeks · 1 month maintenance included',
-    heroLabel: 'Growth Platform · Website + App',
+    heroLabel: 'Growth Package',
     heroTitle: 'Run the business with',
-    heroTitleAccent: 'Growth Platform',
+    heroTitleAccent: 'Growth Package',
     heroSub:
       'One branded website for customers, iOS and Android for the crew, and an admin to run leads, jobs, money, and the team.',
     timelineLabel: 'Your growth platform path',
@@ -8561,12 +8683,12 @@ var HIRE_ME_PACKAGES = {
       { title: 'Test & train', desc: 'Walkthrough so you and the crew can run day one.' },
       { title: 'Launch + month 1', desc: 'Stores, hosting, and maintenance included.' }
     ],
-    formTitle: 'Start Growth Platform',
-    formLead: 'Share how jobs, crews, and payments work today — I\'ll confirm scope for the $3,500 Growth Platform.',
-    projectType: 'Growth Platform — Website + App',
+    formTitle: 'Start Growth Package',
+    formLead: 'Share how jobs, crews, and payments work today — I\'ll confirm scope for the $3,500 Growth Package.',
+    projectType: 'Growth Package',
     budget: '$3,500',
     message:
-      'Interested in the Growth Platform ($3,500) — website for customers, iOS/Android staff app, and admin for leads, jobs, Stripe, crew, and Tap to Pay.',
+      'Interested in the Growth Package ($3,500) — website for customers, iOS/Android staff app, and admin for leads, jobs, Stripe, crew, and Tap to Pay.',
     messagePlaceholder: 'How do jobs get booked, assigned, and paid today?'
   },
   agency: {
@@ -12725,7 +12847,7 @@ window.addEventListener('load', function() {
     var pitch = getDemoPitch(demo);
     var companyName = isDemo ? nextRaw || 'your company' : 'your project';
     var siteUrl = displaySiteUrl(els.siteUrl && els.siteUrl.value);
-    // "our Business Website package is $999" (or the live offer wording).
+    // "our Multi-Page Package is $999" (or the live offer wording).
     var packageId = isDemo && els.package ? String(els.package.value || '') : '';
     var packageText = packageId && window.PackagePricing ? window.PackagePricing.packagePhrase(packageId) : '';
     return {
@@ -18297,7 +18419,7 @@ window.addEventListener('load', function() {
       var offer = PP.activeOffer(p.id);
       var limit = offer ? PP.offerLimitText(offer, 'en') : '';
       businessDocAddonsList.appendChild(createAddonCardEl({
-        name: p.name + ' package',
+        name: PP.withPackageWord(p.name),
         description: offer
           ? 'Limited-time offer' + (limit ? ' — ' + limit : '') + '. Normally ' + PP.regularLabel(p) + '. First month of care included.'
           : 'Fixed-price setup package. First month of care included.',

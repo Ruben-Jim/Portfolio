@@ -51,10 +51,12 @@ const DM_FEATURE_FLAGS = {
 const PORTFOLIO_PUBLIC_ORIGIN = "https://rubenjimenez.dev";
 
 /**
- * When false, portfolio detail hides Buy Now / Premium CTAs (agency-style: quote on contact only).
- * Labels remain editable in Admin for when you re-enable public pricing.
+ * Shows Buy Now / Premium CTAs in portfolio project details.
+ * Projects tagged with a package ("Show as example on package") get labels from that package's price
+ * (Buy Now) and the next package up (Premium), and open Hire Me with it preselected.
+ * Untagged projects use the labels typed in Admin.
  */
-const PORTFOLIO_SHOW_BUY_BUTTONS = false;
+const PORTFOLIO_SHOW_BUY_BUTTONS = true;
 
 /**
  * Logo shown for customer-submitted testimonials on the Home page (dynamic cards).

@@ -397,7 +397,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Starter Page · ~1 week",
+        "text": "Starter Package · ~1 week",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -620,7 +620,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Starter Presence · ~2–3 weeks",
+        "text": "Website + App Package · ~2–3 weeks",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -820,7 +820,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Growth Platform · 3–4 weeks",
+        "text": "Growth Package · 3–4 weeks",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -1159,7 +1159,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Starter Page",
+        "text": "Starter Package",
         "preset": "body",
         "size": 22,
         "weight": 400,
@@ -1243,7 +1243,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Starter Presence",
+        "text": "Website + App Package",
         "preset": "body",
         "size": 22,
         "weight": 400,
@@ -1327,7 +1327,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Growth Platform",
+        "text": "Growth Package",
         "preset": "body",
         "size": 22,
         "weight": 400,
@@ -1986,7 +1986,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Starter Page · ~1 week",
+        "text": "Starter Package · ~1 week",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -2202,7 +2202,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Starter Presence · ~2–3 weeks",
+        "text": "Website + App Package · ~2–3 weeks",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -2402,7 +2402,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Growth Platform · 3–4 weeks",
+        "text": "Growth Package · 3–4 weeks",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -2998,7 +2998,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Página Starter · ~1 semana",
+        "text": "Paquete Inicial · ~1 semana",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -3221,7 +3221,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Presencia Inicial · ~2–3 semanas",
+        "text": "Paquete Sitio + App · ~2–3 semanas",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -3421,7 +3421,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Plataforma de Crecimiento · 3–4 semanas",
+        "text": "Paquete Crecimiento · 3–4 semanas",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -3760,7 +3760,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Página Starter",
+        "text": "Paquete Inicial",
         "preset": "body",
         "size": 22,
         "weight": 400,
@@ -3844,7 +3844,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Presencia Inicial",
+        "text": "Paquete Sitio + App",
         "preset": "body",
         "size": 22,
         "weight": 400,
@@ -3928,7 +3928,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Plataforma de Crecimiento",
+        "text": "Paquete Crecimiento",
         "preset": "body",
         "size": 22,
         "weight": 400,
@@ -4587,7 +4587,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Página Starter · ~1 semana",
+        "text": "Paquete Inicial · ~1 semana",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -4803,7 +4803,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Presencia Inicial · ~2–3 semanas",
+        "text": "Paquete Sitio + App · ~2–3 semanas",
         "preset": "body",
         "size": 20,
         "weight": 700,
@@ -5003,7 +5003,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Plataforma de Crecimiento · 3–4 semanas",
+        "text": "Paquete Crecimiento · 3–4 semanas",
         "preset": "body",
         "size": 20,
         "weight": 700,

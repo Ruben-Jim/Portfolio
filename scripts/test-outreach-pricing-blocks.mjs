@@ -49,7 +49,7 @@ const LEGACY_TEXT =
   '\n\nNot ready for a full site? I also build a custom link page for your Instagram bio (a branded Linktree), live in a few days from $99: rubenjimenez.dev/link-in-bio';
 
 let scripts = null;
-// Live offer on Business Website only; Starter Presence has none.
+// Live offer on Multi-Page Package only; Website + App Package has none.
 const pricing = { packageOffers: { website: { enabled: true, price: 499, spots: 5, claimed: 2 } } };
 
 const sandbox = {
@@ -109,7 +109,7 @@ store['outreach-var-company'].input();
 
 pick('no-site-ig');
 ok(!body().includes('For reference,'), 'legacy package sentence replaced by the package line');
-ok(body().includes('Business Website — $499 (normally $999): 1–3 pages, live chat, gallery, SEO, hosting, and a branded Link Tree. First month of care included.'),
+ok(body().includes('Multi-Page Package — $499 (normally $999): 1–3 pages, live chat, gallery, SEO, hosting, and a branded Link Tree. First month of care included.'),
   'package line shows price + what is included (with the live offer price)');
 ok(store['outreach-linktree'].checked === true && store['outreach-linktree-wrap'].hidden === false,
   'Link Tree checkbox shown and checked on a no-website script');
@@ -122,7 +122,7 @@ ok(!body().includes('Live example'), 'no-website script starts on No demo (no Li
 ok(store['outreach-var-demo-select'].value === '', 'demo picker shows No demo');
 store['outreach-var-demo-select'].value = 'https://pawshine.expo.app';
 store['outreach-var-demo-select'].change();
-ok(/mockup!\n\nLive example: https:\/\/pawshine\.expo\.app\n\nBusiness Website/.test(body()),
+ok(/mockup!\n\nLive example: https:\/\/pawshine\.expo\.app\n\nMulti-Page Package/.test(body()),
   'Live example line sits after the mockup ask, before the package line');
 store['outreach-var-demo-select'].value = '__custom';
 store['outreach-var-demo-select'].change();
@@ -148,39 +148,39 @@ ok(body().includes('Link Tree — $99–$199: a branded link-in-bio page'), 'pac
 store['outreach-var-package'].value = 'starter';
 store['outreach-var-package'].change();
 ok(store['outreach-offer-lead'].disabled === false, 'Lead with the offer can be checked with no live offer');
-ok(body().includes('Starter Presence — $1,500: everything in Business Website'), 'regular price when no offer');
+ok(body().includes('Website + App Package — $1,500: everything in Multi-Page Package'), 'regular price when no offer');
 store['outreach-offer-lead'].checked = true;
 store['outreach-offer-lead'].change();
 ok(store['outreach-offer-oneoff'].hidden === false, 'one-off offer fields appear when there is no live offer');
-ok(body().includes('Starter Presence — $1,500:'), 'no one-off price yet → regular line stays');
+ok(body().includes('Website + App Package — $1,500:'), 'no one-off price yet → regular line stays');
 ok(/below \$1,500/.test(store['outreach-offer-oneoff-note'].textContent), 'note asks for a price below the regular one');
 store['outreach-offer-price'].value = '1800';
 store['outreach-offer-price'].input();
-ok(body().includes('Starter Presence — $1,500:'), 'a price above regular is ignored');
+ok(body().includes('Website + App Package — $1,500:'), 'a price above regular is ignored');
 store['outreach-offer-price'].value = '1200';
 store['outreach-offer-spots'].value = '3';
 store['outreach-offer-ends'].value = '2026-11-30';
 store['outreach-offer-ends'].change();
-ok(body().includes('This month only: our Starter Presence package is $1,200 (normally $1,500) until Nov 30 or for the next 3 clients, whichever comes first. First month of care included.'),
+ok(body().includes('This month only: our Website + App Package is $1,200 (normally $1,500) until Nov 30 or for the next 3 clients, whichever comes first. First month of care included.'),
   'one-off offer line uses price, spots and end date');
 store['outreach-offer-lead'].checked = false;
 store['outreach-offer-lead'].change();
-ok(body().includes('Starter Presence — $1,500:'), 'unchecking drops the one-off offer');
+ok(body().includes('Website + App Package — $1,500:'), 'unchecking drops the one-off offer');
 store['outreach-var-package'].value = 'website';
 store['outreach-var-package'].change();
 ok(store['outreach-offer-lead'].disabled === false, 'Lead with the offer enabled once an offer is live');
-ok(body().includes('Business Website — $499 (normally $999): 1–3 pages'), 'summary line shows the offer price');
+ok(body().includes('Multi-Page Package — $499 (normally $999): 1–3 pages'), 'summary line shows the offer price');
 store['outreach-offer-lead'].checked = true;
 store['outreach-offer-lead'].change();
 ok(store['outreach-offer-lead-row'].hidden === false, 'lead-in dropdown appears');
 ok(store['outreach-offer-oneoff'].hidden === true, 'one-off fields hidden when a live offer exists');
-ok(body().includes('This month only: our Business Website package is $499 (normally $999) for the next 3 clients. First month of care included.'),
+ok(body().includes('This month only: our Multi-Page Package is $499 (normally $999) for the next 3 clients. First month of care included.'),
   'offer-first line with default lead-in');
 store['outreach-offer-lead-select'].value = '__custom';
 store['outreach-offer-lead-select'].change();
 store['outreach-offer-lead-custom'].value = 'For my first Hesperia clients';
 store['outreach-offer-lead-custom'].input();
-ok(body().includes('For my first Hesperia clients: our Business Website package is $499'), 'custom lead-in used');
+ok(body().includes('For my first Hesperia clients: our Multi-Page Package is $499'), 'custom lead-in used');
 
 // Hand edit survives a control change; only the generated line swaps.
 store['outreach-preview'].value = body().replace('Hey!', 'Hey there!');
@@ -190,11 +190,11 @@ store['outreach-offer-lead'].change();
 ok(body().startsWith('Hey there!'), 'hand edit kept when a pricing control changes');
 store['outreach-var-demo-select'].value = 'https://pizza.expo.app';
 store['outreach-var-demo-select'].change();
-ok(body().startsWith('Hey there!') && /Live example: https:\/\/pizza\.expo\.app\n\nBusiness Website/.test(body()),
+ok(body().startsWith('Hey there!') && /Live example: https:\/\/pizza\.expo\.app\n\nMulti-Page Package/.test(body()),
   'picking a demo in an edited message inserts it before the package line');
 store['outreach-var-demo-select'].value = '';
 store['outreach-var-demo-select'].change();
-ok(body().includes('Business Website — $499 (normally $999): 1–3 pages'), 'generated line swapped inside the edited message');
+ok(body().includes('Multi-Page Package — $499 (normally $999): 1–3 pages'), 'generated line swapped inside the edited message');
 
 // Saving that edit with Link Tree off keeps both tokens in the template.
 const ask = sandbox.document.getElementById('outreach-ask-actions');
@@ -213,7 +213,7 @@ ok(!saved.includes('$499') && !saved.includes('Link Tree package runs'), 'no har
 // Call step keeps its spoken [package] phrase; vertical scripts stay untouched.
 pick('no-site-ig');
 store['outreach-steps'].children[3].click();
-ok(body().includes('"For reference, our Business Website package is $499 (normally $999)'), 'call step still uses the spoken [package] phrase');
+ok(body().includes('"For reference, our Multi-Page Package is $499 (normally $999)'), 'call step still uses the spoken [package] phrase');
 ok(store['outreach-pricing-blocks'].hidden === true, 'pricing controls hidden on the call step');
 store['outreach-steps'].children[0].click();
 pick('restaurant');

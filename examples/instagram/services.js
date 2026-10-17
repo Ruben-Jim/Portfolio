@@ -29,14 +29,14 @@
     {
       key: 't499', price: '$499', capture: 'barbershop', layout: 'phone',
       en: {
-        name: 'Starter Page', time: '~1 week', short: 'Website',
+        name: 'Starter Package', time: '~1 week', short: 'Website',
         title: 'A website you update <em>from your phone</em>',
         checks: ['1-page website', 'Edit it yourself', 'Quotes + inbox', 'Reviews + English/Spanish'],
         chips: [['edit', 'Hours updated'], ['chat', 'New quote request']],
         fit: 'I need people to find me'
       },
       es: {
-        name: 'Página Starter', time: '~1 semana', short: 'Sitio web',
+        name: 'Paquete Inicial', time: '~1 semana', short: 'Sitio web',
         title: 'Un sitio web que cambias <em>desde tu teléfono</em>',
         checks: ['Sitio de 1 página', 'Lo editas tú mismo', 'Cotizaciones + bandeja', 'Reseñas + inglés/español'],
         chips: [['edit', 'Horario actualizado'], ['chat', 'Nueva cotización']],
@@ -46,14 +46,14 @@
     {
       key: 't1500', price: '$1,500', capture: 'rizo', layout: 'laptop',
       en: {
-        name: 'Starter Presence', time: '~2–3 weeks', short: 'Website + app',
+        name: 'Website + App Package', time: '~2–3 weeks', short: 'Website + app',
         title: 'Your website + <em>your own app</em>',
         checks: ['Everything in $499', '1–3 pages + SEO', 'iOS + Android app', 'Alerts on every inquiry'],
         chips: [['bell', 'New inquiry']],
         fit: 'I want my own app'
       },
       es: {
-        name: 'Presencia Inicial', time: '~2–3 semanas', short: 'Sitio + app',
+        name: 'Paquete Sitio + App', time: '~2–3 semanas', short: 'Sitio + app',
         title: 'Tu sitio web + <em>tu propia app</em>',
         checks: ['Todo lo de $499', '1–3 páginas + SEO', 'App iOS + Android', 'Alertas de cada consulta'],
         chips: [['bell', 'Nueva consulta']],
@@ -63,14 +63,14 @@
     {
       key: 't3500', price: '$3,500', capture: 'tradeservice', layout: 'laptop', popular: true,
       en: {
-        name: 'Growth Platform', time: '3–4 weeks', short: 'Full platform',
+        name: 'Growth Package', time: '3–4 weeks', short: 'Full platform',
         title: 'Run the whole business <em>from your phone</em>',
         checks: ['Everything in $1,500', 'Booking calendar + jobs', 'Stripe + Tap to Pay', 'Crew hours + photos'],
         chips: [['calendar', 'New booking · Sat 10 AM'], ['card', 'Deposit received · $50'], ['team', 'Job assigned · Crew 2']],
         fit: 'I take bookings + payments daily'
       },
       es: {
-        name: 'Plataforma de Crecimiento', time: '3–4 semanas', short: 'Plataforma completa',
+        name: 'Paquete Crecimiento', time: '3–4 semanas', short: 'Plataforma completa',
         title: 'Administra todo tu negocio <em>desde tu teléfono</em>',
         checks: ['Todo lo de $1,500', 'Agenda + trabajos', 'Stripe + Tap to Pay', 'Horas + fotos del equipo'],
         chips: [['calendar', 'Nueva reserva · sáb 10 AM'], ['card', 'Depósito recibido · $50'], ['team', 'Trabajo asignado · Equipo 2']],

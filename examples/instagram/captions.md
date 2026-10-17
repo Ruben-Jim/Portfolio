@@ -113,7 +113,7 @@ You no longer sell templates, so archive all six and replace each project with i
 > 📱 Crew app for jobs, hours and before/after photos
 > 💳 Admin with Stripe payments, subscriptions and Tap to Pay
 >
-> This is our Growth Platform, $3,500. DM me **START**.
+> This is our Growth Package, $3,500. DM me **START**.
 >
 > #CleaningBusiness #CleaningService #HouseCleaning #FieldServiceApp #CodeWithRuben
 

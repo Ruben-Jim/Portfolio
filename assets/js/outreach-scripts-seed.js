@@ -32,7 +32,7 @@
         '\n' +
         'I build a branded platform that puts all of it in one place: property or plan browsing, a guided quote flow, a client portal for documents and payments, and direct messaging — plus an admin dashboard for leads and policies.\n' +
         '\n' +
-        'A custom platform like this usually costs $15,000–$40,000 from an agency. I offer it as our Growth Platform package: a fixed $3,500, 50% to start, launched in about 3–4 weeks.\n' +
+        'A custom platform like this usually costs $15,000–$40,000 from an agency. I offer it as our Growth Package: a fixed $3,500, 50% to start, launched in about 3–4 weeks.\n' +
         '\n' +
         'If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how your office runs today.\n' +
         '\n' +

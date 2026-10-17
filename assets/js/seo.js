@@ -46,7 +46,7 @@
       image: 'services.jpg',
       title: 'Services & Pricing | Web & Mobile Apps from $499',
       description:
-        'Starter Page, website, and app packages from $499. First month of care included. Clear pricing before we start.',
+        'Starter, Multi-Page, and Website + App packages from $499. First month of care included. Clear pricing before we start.',
       robots: INDEX
     },
     'business-systems': {

@@ -32,8 +32,8 @@ What your current packages imply:
 
 | Package | Price | Marketing timeline | Rough implied rate |
 |---|---|---|---|
-| Business Website | $799 | 1–2 weeks | ~$40/hr |
-| Growth Platform | $3,500 | 3–4 weeks | ~$33/hr |
+| Multi-Page Package | $799 | 1–2 weeks | ~$40/hr |
+| Growth Package | $3,500 | 3–4 weeks | ~$33/hr |
 
 That is well under market for React Native and Firebase work. Listing $33/hr on Contra signals "junior" and attracts the worst clients on the platform.
 
@@ -130,7 +130,7 @@ Contra wants at least two. Four gives you more surface area in search. Each need
 
 Timelines below add a buffer to your marketing timelines on purpose — Contra buyers treat a missed date as a dispute, whereas a local client just texts you.
 
-### 4.1 Service — Growth Platform (lead with this one)
+### 4.1 Service — Growth Package (lead with this one)
 
 **Title:** Branded Website + Crew App + Admin Dashboard for Service Businesses
 
@@ -170,7 +170,7 @@ shipped for ProCleaning, which is live on the App Store today.
 - *What if I only need part of this?* Start with the website package below and add the app later. The build is designed for that path.
 - *How many revision rounds?* Two structured rounds per milestone during the build.
 
-### 4.2 Service — Starter Presence
+### 4.2 Service — Website + App Package
 
 **Title:** Branded Website + iOS & Android App for Your Team (React Native)
 
@@ -203,7 +203,7 @@ through software yet.
 - *What is the difference from the $3,500 package?* This one has no jobs, calendar, crew, or payments admin. It is quotes and chat. If you need to run jobs and take money in-app, start with Growth.
 - *Can I upgrade later?* Yes, this is built on the same foundation.
 
-### 4.3 Service — Business Website
+### 4.3 Service — Multi-Page Package
 
 **Title:** Bilingual Marketing Website for Local Service Businesses
 

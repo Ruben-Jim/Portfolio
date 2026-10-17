@@ -31,7 +31,7 @@
     { token: '[Company]', field: 'company' },
     { token: '[City]', field: 'city' },
     { token: '[demo link]', field: 'demo' },
-    // "our Business Website package is $999" — or the live offer wording.
+    // "our Multi-Page Package is $999" — or the live offer wording.
     { token: '[package]', field: 'package' },
     // Whole paragraphs the composer writes from the Demo picker and the controls
     // under Package. Removed (with their blank line) when empty, so templates
@@ -357,9 +357,9 @@
   }
 
   /**
-   * "Business Website — $999: 1–3 pages, … . First month of care included."
+   * "Multi-Page Package — $999: 1–3 pages, … . First month of care included."
    * With "Lead with the offer" on and an offer live:
-   * "This month only: our Business Website package is $499 (normally $999) for
+   * "This month only: our Multi-Page Package is $499 (normally $999) for
    *  the next 3 clients. First month of care included."
    */
   function packageLine() {
@@ -369,7 +369,7 @@
     var lead = els.offerLead && els.offerLead.checked ? leadOffer() : null;
     if (lead) {
       var limit = PP.offerLimitText(lead, 'en');
-      return offerLeadIn() + ': our ' + p.name + ' package is ' + money(lead.price) +
+      return offerLeadIn() + ': our ' + PP.withPackageWord(p.name) + ' is ' + money(lead.price) +
         ' (normally ' + PP.regularLabel(p) + ')' + (limit ? ' ' + limit : '') +
         '. First month of care included.';
     }

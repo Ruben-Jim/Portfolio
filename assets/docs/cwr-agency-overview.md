@@ -112,21 +112,21 @@ Every package includes **1 month of the maintenance plan the customer picks** af
 
 | Package | Platform | Price | Typical fit | Timeline (marketing) |
 |---------|----------|-------|-------------|----------------------|
-| **Business Website** | Website | $799 fixed | Marketing site only; customers on the web; no app, no admin | ~1–2 weeks |
-| **Starter Presence** | Website + App | $1,500 fixed | Same site + iOS/Android for the team (quotes/chat); customers stay on the web | ~2–3 weeks |
-| **Growth Platform** | Website + App | $3,500 fixed (Most Popular) | ProCleaning-class template: customer site, crew app, full admin (Stripe, jobs, Tap to Pay) | 3–4 weeks |
+| **Multi-Page Package** | Website | $799 fixed | Marketing site only; customers on the web; no app, no admin | ~1–2 weeks |
+| **Website + App Package** | Website + App | $1,500 fixed | Same site + iOS/Android for the team (quotes/chat); customers stay on the web | ~2–3 weeks |
+| **Growth Package** | Website + App | $3,500 fixed (Most Popular) | ProCleaning-class template: customer site, crew app, full admin (Stripe, jobs, Tap to Pay) | 3–4 weeks |
 | **Business Platform** | Website + App | $6k – $12k (scoped) | Custom / larger ops beyond the fixed Growth template | After discovery |
 | **Studio Build** | Website + App | $15k – $40k (custom) | Full custom field-service ops platform | After discovery |
 
-Every build package includes a **branded Link Tree** (Instagram / TikTok bio link page) pointing into the product. **Customers use the website.** Native iOS/Android is the **staff app** (owner/crew), not a customer storefront app. Business Website is site-only.
+Every build package includes a **branded Link Tree** (Instagram / TikTok bio link page) pointing into the product. **Customers use the website.** Native iOS/Android is the **staff app** (owner/crew), not a customer storefront app. Multi-Page Package is site-only.
 
 **Home price line:** Packages from **$799** · Maintenance from about **$44/mo** (annual Essential Care).
 
 ### 5.2 Typical package themes
 
-**Business Website** — Branded marketing site (home, services, work, contact), quote/booking forms, gallery/reviews, chat, click-to-call/text, bilingual EN/ES, SEO/analytics, launch + hosting, Link Tree. No app, no admin.
+**Multi-Page Package** — Branded marketing site (home, services, work, contact), quote/booking forms, gallery/reviews, chat, click-to-call/text, bilingual EN/ES, SEO/analytics, launch + hosting, Link Tree. No app, no admin.
 
-**Starter Presence (Website + App)** — Same customer website plus iOS/Android for you and the team. Quotes and chat. Not the full jobs/payments admin. Store setup, SEO, hosting, Link Tree.
+**Website + App Package** — Same customer website plus iOS/Android for you and the team. Quotes and chat. Not the full jobs/payments admin. Store setup, SEO, hosting, Link Tree.
 
 **Growth (Website + App)** — The live template (ProCleaning-class): customer site (Home, Services, Work, Reviews, Contact), staff iOS/Android, admin for leads/jobs/calendar/customers/inbox, Stripe (tips, tax, subscriptions), PDFs, crew hours, before/after approval, reminders, Tap to Pay, store setup, Link Tree. GHL and similar integrations are not promised on this card — they stay in scoped Field Ops / Studio.
 

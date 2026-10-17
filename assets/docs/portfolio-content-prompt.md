@@ -63,8 +63,8 @@ WHAT TO FIX
 3. buyNowLabel / buyPremiumLabel are missing on several AND the existing ones
    are stale. Pro Cleaning says "Buy Now: $2,000", which matches no current
    package. Current tiers on /services-pricing are:
-     Starter Page $499 | Business Website $999 | Starter Presence $1,500
-     Growth Platform $3,500 | Business Platform $6k-12k | Studio Build $15k-40k
+     Starter Package $499 | Multi-Page Package $999 | Website + App Package $1,500
+     Growth Package $3,500 | Business Platform $6k-12k | Studio Build $15k-40k
      Link Tree $99-199
    Re-price every buyNowLabel to the tier that project actually represents, and
    tell me each change you make so I can sanity-check it.
