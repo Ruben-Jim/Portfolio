@@ -76,11 +76,12 @@ service cloud.firestore {
       allow create: if
         isPortfolioAdmin() &&
         tokenId is string &&
-        tokenId.size() >= 32 &&
-        tokenId.size() <= 48 &&
+        // 8-char /review/ codes and the original 36-char ones.
+        tokenId.matches('^[A-Za-z0-9-]{8,48}$') &&
         request.resource.data.keys().hasAll(['name', 'email', 'product', 'used']) &&
         isValidString(request.resource.data.name, 120) &&
-        isValidEmailField(request.resource.data.email, 160) &&
+        // Email is optional: the link may be texted instead of emailed.
+        (request.resource.data.email == '' || isValidEmailField(request.resource.data.email, 160)) &&
         isValidString(request.resource.data.product, 200) &&
         request.resource.data.used == false;
       allow update: if

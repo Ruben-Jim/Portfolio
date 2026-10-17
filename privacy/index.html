@@ -2,6 +2,38 @@
 <html lang="en" data-theme="dark">
 
 <head>
+  <!-- Short testimonial links: rubenjimenez.dev/review/<code> opens the
+       testimonial form. Unknown paths are served by this shell (GitHub Pages'
+       "not found" page), so this runs first, before anything else loads.
+       Also gives admin CwrReviewLink.newCode() for new invite codes.
+       Tested by scripts/test-review-link.mjs. -->
+  <script id="review-link-redirect">
+    (function (w) {
+      // Same pattern the Firestore rules accept for testimonialTokens ids.
+      var CODE_RE = /^\/review\/([A-Za-z0-9-]{8,48})\/?$/;
+      // No look-alikes (0 O 1 l I) so a code read aloud or retyped still works.
+      var ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+      function codeFromPath(path) {
+        var m = CODE_RE.exec(String(path || ''));
+        return m ? m[1] : '';
+      }
+      function newCode() {
+        var out = '';
+        var limit = 256 - (256 % ALPHABET.length); // skip bytes that would bias the pick
+        while (out.length < 8) {
+          var bytes = new Uint8Array(16);
+          w.crypto.getRandomValues(bytes);
+          for (var i = 0; i < bytes.length && out.length < 8; i++) {
+            if (bytes[i] < limit) out += ALPHABET.charAt(bytes[i] % ALPHABET.length);
+          }
+        }
+        return out;
+      }
+      w.CwrReviewLink = { codeFromPath: codeFromPath, newCode: newCode };
+      var code = codeFromPath(w.location.pathname);
+      if (code) w.location.replace('/testimonial.html?token=' + encodeURIComponent(code));
+    })(window);
+  </script>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZHKR19JXE1"></script>
   <script>
@@ -8858,7 +8890,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=testimonial-request-20261016"></script>
+  <script src="/assets/js/script.js?v=review-link-20261017"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

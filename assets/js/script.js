@@ -11302,6 +11302,8 @@ window.addEventListener('load', function() {
         };
       };
       const newTestimonialToken = function () {
+        // Short code for rubenjimenez.dev/review/<code> (index.html #review-link-redirect).
+        if (window.CwrReviewLink && typeof window.CwrReviewLink.newCode === 'function') return window.CwrReviewLink.newCode();
         if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
           var r = (Math.random() * 16) | 0;
@@ -11327,7 +11329,7 @@ window.addEventListener('load', function() {
         var origin =
           (window.PORTFOLIO_PUBLIC_ORIGIN && String(window.PORTFOLIO_PUBLIC_ORIGIN).trim()) ||
           window.location.origin;
-        var url = origin.replace(/\/$/, '') + '/testimonial.html?token=' + encodeURIComponent(token);
+        var url = origin.replace(/\/$/, '') + '/review/' + encodeURIComponent(token);
         setRequestStatus('Creating link…', false);
         try {
           await window.setDoc(window.doc(window.db, 'testimonialTokens', token), {

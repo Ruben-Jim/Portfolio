@@ -519,7 +519,8 @@
     async function main() {
       show(stateLoading, true);
 
-      if (!tokenId || tokenId.length < 32) {
+      // Short /review/ codes (8+) and the original long ones; same pattern as firestore.rules.
+      if (!/^[A-Za-z0-9-]{8,48}$/.test(tokenId)) {
         show(stateLoading, false);
         errorText.textContent = 'Missing or invalid invite link. Open the full URL from your email.';
         show(stateError, true);

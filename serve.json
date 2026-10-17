@@ -6,6 +6,10 @@
       "destination": "/portal.html"
     },
     {
+      "source": "/review/**",
+      "destination": "/index.html"
+    },
+    {
       "source": "/",
       "destination": "/index.html"
     },
