@@ -17372,12 +17372,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
   margin: 0;
 }
 
-/* The blog list flows with the page; only testimonials keep a scroll box. */
-.admin-tabs #admin-testimonials-combined-list {
-  max-height: min(48vh, 520px);
-  overflow-y: auto;
-}
-
 .admin-tabs .business-docs-table-wrapper {
   max-height: none;
   overflow: visible;
@@ -17431,10 +17425,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
 }
 
 @media (min-width: 1280px) {
-  .admin-tabs #admin-testimonials-combined-list {
-    max-height: min(50vh, 560px);
-  }
-
   .admin-tabs #messages-section .messages-list {
     max-height: none;
     overflow: visible;
@@ -17442,10 +17432,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
 }
 
 @media (min-width: 1600px) {
-  .admin-tabs #admin-testimonials-combined-list {
-    max-height: min(52vh, 600px);
-  }
-
   .admin-tabs #messages-section .messages-list {
     max-height: none;
     overflow: visible;
