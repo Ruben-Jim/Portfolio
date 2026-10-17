@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/style.css?v=no-zoom-20261017">
+  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-steps-20261017">
   <script>
     (function () {
       var saved = localStorage.getItem('portfolio-theme');
@@ -126,9 +126,12 @@
               <button type="button" class="t-choice-btn" data-choice="fair">Fair — exactly what it should cost</button>
               <button type="button" class="t-choice-btn" data-choice="expected_less">Honestly expected to pay less</button>
             </div>
-            <div class="t-price-row">
-              <span class="t-price-prefix">$</span>
-              <input class="form-input" type="number" id="t-value-amount" min="0" max="999999" placeholder="What feels like the right price? (optional)">
+            <div class="form-field t-price-field">
+              <label class="form-label" for="t-value-amount">What feels like the right price? <span class="t-optional">(optional)</span></label>
+              <div class="t-price-row">
+                <span class="t-price-prefix" aria-hidden="true">$</span>
+                <input class="form-input" type="number" id="t-value-amount" min="0" max="999999" step="1" inputmode="numeric" placeholder="e.g. 1500">
+              </div>
             </div>
           </div>
 
@@ -326,7 +329,13 @@
     setupChoiceGroup('t-value-group',    null);
     setupChoiceGroup('t-referral-group', 't-referral');
 
-    var brand = document.querySelector('.t-brand');
+    /* ── answers start blank ──
+       Safari puts back hidden input values when the visitor returns to the page
+       (Back/Forward, or iOS reloading the tab), but the stars and choice buttons
+       start blank — so a step could pass, and submit, an answer nobody can see. */
+    ['t-comm-rating', 't-timeline', 't-referral', 't-rating'].forEach(function (id) {
+      document.getElementById(id).value = '';
+    });
 
     /* ── progress update ── */
     function updateProgress() {
@@ -338,8 +347,6 @@
       navNext.innerHTML = current === TOTAL - 1
         ? 'Submit <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>'
         : 'Continue <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>';
-      // Show brand only on step 0
-      if (brand) brand.style.display = current === 0 ? '' : 'none';
       // Show improve-wrap only on step 1 (comm) when rating < 5
       var improveWrap  = document.getElementById('t-comm-improve-wrap');
       var commRatingEl = document.getElementById('t-comm-rating');
@@ -398,6 +405,8 @@
         case 1: {
           var commRating = document.getElementById('t-comm-rating').value;
           if (!commRating) return 'Please rate the communication.';
+          var commImprove = document.getElementById('t-comm-improve').value.trim();
+          if (parseInt(commRating, 10) < 5 && !commImprove) return 'Please share how communication could have been better.';
           return null;
         }
         case 2: {
@@ -454,8 +463,8 @@
 
       var commRatingRaw    = document.getElementById('t-comm-rating').value;
       var commRating       = commRatingRaw ? parseInt(commRatingRaw, 10) : null;
-      var commImprovement  = (document.getElementById('t-comm-improve') || {}).value || '';
-      commImprovement      = commImprovement.trim();
+      // Only asked for under 5 stars; text typed before switching to 5 isn't sent.
+      var commImprovement  = commRating < 5 ? document.getElementById('t-comm-improve').value.trim() : '';
       var timeline         = document.getElementById('t-timeline').value;
       var referral      = document.getElementById('t-referral').value;
       var source        = document.getElementById('t-source').value;

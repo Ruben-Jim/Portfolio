@@ -26595,7 +26595,10 @@ body.admin-testimonial-detail-open {
   display: inline-block;
 }
 
+/* span is display:block site-wide; keep "CodeWithRuben" on one line. */
 .t-brand-mark {
+  display: block;
+  white-space: nowrap;
   font-size: 17px;
   font-weight: var(--fw-600);
   color: var(--white-1);
@@ -26603,6 +26606,7 @@ body.admin-testimonial-detail-open {
 }
 
 .t-brand-accent {
+  display: inline;
   color: var(--orange-yellow-crayola);
 }
 
@@ -26852,7 +26856,8 @@ body.admin-testimonial-detail-open {
 }
 
 .t-improve-wrap--visible {
-  max-height: 160px;
+  /* room for a two-line label on phones plus the 3-row box */
+  max-height: 260px;
   opacity: 1;
   margin-top: 20px;
 }
@@ -26924,26 +26929,42 @@ body.admin-testimonial-detail-open {
    TESTIMONIAL WIZARD — price row + optional tag
    ============================================== */
 
+.t-price-field {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+/* $ sits inside the box, before the number. */
 .t-price-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 14px;
+  position: relative;
 }
 
 .t-price-prefix {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
   color: var(--orange-yellow-crayola);
   font-weight: var(--fw-600);
-  font-size: var(--fs-4);
-  flex-shrink: 0;
+  font-size: 16px;
   line-height: 1;
+  pointer-events: none;
 }
 
 .t-price-row .form-input {
-  flex: 1;
+  width: 100%;
+  padding-left: 36px;
+  -moz-appearance: textfield;
+}
+
+.t-price-row .form-input::-webkit-inner-spin-button,
+.t-price-row .form-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .t-optional {
+  display: inline;
   font-size: var(--fs-8);
   color: var(--light-gray-70);
   font-weight: var(--fw-400);
@@ -26977,6 +26998,11 @@ body.admin-testimonial-detail-open {
   font-family: var(--ff-poppins);
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
+}
+
+/* display above would otherwise show it on step 1, where it does nothing */
+.t-btn-back[hidden] {
+  display: none;
 }
 
 .t-btn-back:hover {
