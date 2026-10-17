@@ -4329,6 +4329,16 @@ function portfolioFillPackageDemosForm(demos) {
   });
 }
 
+/** Client logo for the homepage spotlight: a site asset path or an https URL, else ''. */
+function portfolioSanitizeLogoUrl(raw) {
+  var s = String(raw == null ? '' : raw).trim();
+  if (s.length > 500) return '';
+  if (/^\.?\/?assets\//i.test(s)) s = '/' + s.replace(/^\.?\//, '');
+  if (/^\/assets\/[A-Za-z0-9._\/-]+$/.test(s)) return s;
+  if (/^https:\/\/[^\s"'<>]+$/i.test(s)) return s;
+  return '';
+}
+
 function portfolioSanitizeDocumentPayload(data) {
   const imageUrls = portfolioParseImageUrls(
     data.imageUrls,
@@ -4358,6 +4368,8 @@ function portfolioSanitizeDocumentPayload(data) {
     buyPremiumLabel: data.buyPremiumLabel != null ? String(data.buyPremiumLabel).slice(0, 160) : '',
     showQuoteButton: data.showQuoteButton !== false,
     pricingPackage: sanitizePricingPackage(data.pricingPackage),
+    homeSpotlight: data.homeSpotlight === true,
+    clientLogoUrl: portfolioSanitizeLogoUrl(data.clientLogoUrl),
     adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
@@ -5761,6 +5773,7 @@ function serializePortfolioProjectFormState() {
     'portfolio-project-canvas-doc',
     'portfolio-project-canvas-title',
     'portfolio-project-bestfor',
+    'portfolio-project-client-logo',
     'portfolio-project-template-repo',
     'portfolio-project-demo-firebase',
     'portfolio-project-demo-starter-page',
@@ -5775,6 +5788,8 @@ function serializePortfolioProjectFormState() {
         document.getElementById('portfolio-project-show-public').checked),
       showQuote: !!(document.getElementById('portfolio-project-show-quote') &&
         document.getElementById('portfolio-project-show-quote').checked),
+      homeSpotlight: !!(document.getElementById('portfolio-project-home-spotlight') &&
+        document.getElementById('portfolio-project-home-spotlight').checked),
       isTemplate: !!(document.getElementById('portfolio-project-is-template') &&
         document.getElementById('portfolio-project-is-template').checked)
     },
@@ -6167,6 +6182,10 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-bestfor').value = Array.isArray(project.bestFor)
       ? project.bestFor.join('\n')
       : '';
+    const homeSpotlightEl = document.getElementById('portfolio-project-home-spotlight');
+    if (homeSpotlightEl) homeSpotlightEl.checked = project.homeSpotlight === true;
+    const clientLogoEl = document.getElementById('portfolio-project-client-logo');
+    if (clientLogoEl) clientLogoEl.value = project.clientLogoUrl || '';
     const isTemplateEl = document.getElementById('portfolio-project-is-template');
     if (isTemplateEl) isTemplateEl.checked = project.isTemplate === true;
     fillPortfolioBuiltFromSelect(project.builtFromTemplateId || '', project.id);
@@ -6555,6 +6574,12 @@ function setupPortfolioAdminControls() {
           .value.split(/\r?\n/)
           .map(function (l) { return l.trim(); })
           .filter(Boolean),
+        homeSpotlight: document.getElementById('portfolio-project-home-spotlight')
+          ? document.getElementById('portfolio-project-home-spotlight').checked
+          : false,
+        clientLogoUrl: document.getElementById('portfolio-project-client-logo')
+          ? document.getElementById('portfolio-project-client-logo').value
+          : '',
         isTemplate: document.getElementById('portfolio-project-is-template')
           ? document.getElementById('portfolio-project-is-template').checked
           : false,
@@ -8250,38 +8275,34 @@ function initLandingProjectMarquee() {
 
 window.initLandingProjectMarquee = initLandingProjectMarquee;
 
-var LANDING_SOCIAL_PROOF_SPOTLIGHT = [
-  {
-    logo: '/assets/images/logo/logo-2-color.png',
-    name: "Rizo's Pizzeria",
-    quote: 'Real-time order tracking for customers and a kitchen dashboard that keeps every order moving from pending to done.',
-    meta: 'Restaurant · online ordering'
-  },
-  {
-    logo: '/assets/images/logo/logo-1-color.png',
-    name: 'HOA communities',
-    quote: 'Portals and tools built for how neighborhoods and boards actually run day to day.',
-    meta: 'HOA · management portal'
-  },
-  {
-    logo: '/assets/images/logo/logo-3-color.png',
-    name: 'ProCleaning Seattle',
-    quote: 'Field service workflows that keep crews, schedules, and customers in sync from the job site.',
-    meta: 'Cleaning · field service'
-  },
-  {
-    logo: '/assets/images/logo/logo-4-color.png',
-    name: 'Local service brands',
-    quote: 'Websites and booking flows that turn searches into scheduled work — without the back-and-forth.',
-    meta: 'Trades · booking & CRM'
-  },
-  {
-    logo: '/assets/images/logo/logo-5-color.png',
-    name: 'Real estate teams',
-    quote: 'Listings, lead capture, and client tools in one place instead of scattered spreadsheets.',
-    meta: 'Real estate · lead portal'
+// "Trusted by local businesses": real client projects Ruben ticks
+// "Show on homepage" for in the portfolio editor. Nothing ticked → section hidden.
+var LANDING_SPOTLIGHT_MAX = 6;
+var LANDING_SPOTLIGHT_SUMMARY_MAX = 180;
+
+/** Public projects ticked "Show on homepage", in portfolio order. */
+function landingSpotlightProjects(list) {
+  return (Array.isArray(list) ? list : [])
+    .filter(function (p) {
+      return p && p.homeSpotlight === true && isPortfolioPublic(p);
+    })
+    .slice(0, LANDING_SPOTLIGHT_MAX);
+}
+
+/** The project's Outcome (else Description): first paragraph, cut on a word. */
+function landingSpotlightSummary(record) {
+  function firstParagraph(value) {
+    return String(value || '')
+      .split(/\n\s*\n/)
+      .map(function (part) { return part.replace(/\s+/g, ' ').trim(); })
+      .filter(Boolean)[0] || '';
   }
-];
+  var text = firstParagraph(record && record.outcome) || firstParagraph(record && record.description);
+  if (text.length <= LANDING_SPOTLIGHT_SUMMARY_MAX) return text;
+  var cut = text.slice(0, LANDING_SPOTLIGHT_SUMMARY_MAX);
+  var space = cut.lastIndexOf(' ');
+  return (space > 80 ? cut.slice(0, space) : cut).replace(/[\s,;:.–—-]+$/, '') + '…';
+}
 
 var landingSpotlightTimers = new WeakMap();
 
@@ -8349,28 +8370,53 @@ function initLandingSocialProofSpotlight(homeArticle) {
 
   stopLandingSocialProofSpotlight(root);
 
-  var items = LANDING_SOCIAL_PROOF_SPOTLIGHT;
-  if (!items.length) return;
+  var projects = landingSpotlightProjects(window.portfolioProjects);
+  // No ticked projects → hide the whole band rather than show placeholders.
+  var band = root.closest('section');
+  if (band) band.hidden = !projects.length;
+  root.innerHTML = '';
+  if (!projects.length) return;
 
   var staticMode = prefersReducedMotion();
   root.classList.toggle('is-static', staticMode);
-  root.innerHTML = '';
 
   var stage = document.createElement('div');
   stage.className = 'cwr-landing-spotlight-stage';
+  var esc = escapeLandingSpotlightText;
 
-  items.forEach(function (item, index) {
-    var slide = document.createElement('article');
+  projects.forEach(function (project, index) {
+    var name = project.title || 'Project';
+    var logo = portfolioSanitizeLogoUrl(project.clientLogoUrl);
+    var cover = !logo && typeof portfolioCoverImageUrl === 'function' ? portfolioCoverImageUrl(project) : '';
+    var imgSrc = logo || (cover ? portfolioDisplayImageSrc(cover) : '');
+    var summary = landingSpotlightSummary(project);
+
+    // A div, not <article>: site-wide article rules turn it into a fixed-width page card.
+    var slide = document.createElement('div');
     slide.className = 'cwr-landing-spotlight-slide' + (index === 0 ? ' is-active' : '');
+    slide.setAttribute('role', 'group');
     slide.setAttribute('aria-roledescription', 'slide');
-    slide.setAttribute('aria-label', (index + 1) + ' of ' + items.length + ': ' + item.name);
+    slide.setAttribute('aria-label', (index + 1) + ' of ' + projects.length + ': ' + name);
 
     slide.innerHTML =
-      '<div class="cwr-landing-spotlight-logo">' +
-      '<img src="' + escapeLandingSpotlightText(item.logo) + '" alt="' + escapeLandingSpotlightText(item.name) + ' logo" loading="' + (index === 0 ? 'eager' : 'lazy') + '">' +
-      '</div>' +
-      '<blockquote class="cwr-landing-spotlight-quote">' + escapeLandingSpotlightText(item.quote) + '</blockquote>' +
-      '<p class="cwr-landing-spotlight-meta">' + escapeLandingSpotlightText(item.meta) + '</p>';
+      (imgSrc
+        ? '<div class="cwr-landing-spotlight-logo' + (logo ? '' : ' is-cover') + '">' +
+          '<img src="' + esc(imgSrc) + '" alt="' + esc(logo ? name + ' logo' : (project.imageAlt || name)) + '" loading="' + (index === 0 ? 'eager' : 'lazy') + '">' +
+          '</div>'
+        : '') +
+      '<p class="cwr-landing-spotlight-meta">' + esc(cwrText('home.proof_project', 'Client project')) + '</p>' +
+      '<h3 class="cwr-landing-spotlight-name">' + esc(name) + '</h3>' +
+      (summary ? '<p class="cwr-landing-spotlight-summary">' + esc(summary) + '</p>' : '') +
+      '<button type="button" class="cwr-landing-spotlight-cta">' +
+      esc(cwrText('home.proof_view', 'View project')) + ' <span aria-hidden="true">&rarr;</span></button>';
+
+    slide.querySelector('.cwr-landing-spotlight-cta').addEventListener('click', function () {
+      if (typeof window.openPortfolioProjectDetail === 'function') {
+        window.openPortfolioProjectDetail(project);
+      } else if (typeof switchToPage === 'function') {
+        switchToPage('portfolio');
+      }
+    });
 
     stage.appendChild(slide);
   });
@@ -8378,18 +8424,19 @@ function initLandingSocialProofSpotlight(homeArticle) {
   root.appendChild(stage);
   root.dataset.spotlightIndex = '0';
 
-  if (!staticMode) {
+  // Dots even with reduced motion (it just doesn't auto-rotate); none for one project.
+  if (projects.length > 1) {
     var dots = document.createElement('div');
     dots.className = 'cwr-landing-spotlight-dots';
     dots.setAttribute('role', 'tablist');
-    dots.setAttribute('aria-label', 'Choose featured client');
+    dots.setAttribute('aria-label', 'Choose featured project');
 
-    items.forEach(function (item, index) {
+    projects.forEach(function (project, index) {
       var dot = document.createElement('button');
       dot.type = 'button';
       dot.className = 'cwr-landing-spotlight-dot' + (index === 0 ? ' is-active' : '');
       dot.setAttribute('role', 'tab');
-      dot.setAttribute('aria-label', item.name);
+      dot.setAttribute('aria-label', project.title || 'Project');
       dot.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
       dot.setAttribute('tabindex', index === 0 ? '0' : '-1');
       dot.addEventListener('click', function () {
@@ -8428,6 +8475,12 @@ function initLandingSocialProofSpotlight(homeArticle) {
 
 window.initLandingSocialProofSpotlight = initLandingSocialProofSpotlight;
 window.stopLandingSocialProofSpotlight = stopLandingSocialProofSpotlight;
+
+// Portfolio data arrives after first paint (and again after admin edits).
+document.addEventListener('portfolioProjectsLoaded', function () {
+  var home = document.querySelector('article.home');
+  if (home && home.classList.contains('active')) initLandingSocialProofSpotlight(home);
+});
 
 function updateLandingNavbarScroll() {
   var nav = document.querySelector("article.home.active .cwr-landing-navbar");

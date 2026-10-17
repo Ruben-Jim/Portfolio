@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=no-zoom-20261017">
+  <link rel="stylesheet" href="/assets/css/style.css?v=spotlight-20261017">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -7742,6 +7742,24 @@
                 <label for="portfolio-project-bestfor">“Best for” lines (optional, one per line)</label>
                 <textarea id="portfolio-project-bestfor" class="has-scrollbar" rows="3" placeholder="Barbershops&#10;Studios with appointments"></textarea>
               </div>
+              <div class="form-group form-group-checkbox-row">
+                <label class="portfolio-project-checkbox">
+                  <input type="checkbox" id="portfolio-project-home-spotlight" class="custom-switch-input">
+                  <span class="custom-switch" aria-hidden="true"></span>
+                  <span>Show on homepage (“Trusted by local businesses”)</span>
+                </label>
+                <p class="form-hint">Real client work only. Shows the logo, title, and Outcome (or Description) with a View project button. The section hides when nothing is ticked.</p>
+              </div>
+              <div class="form-group">
+                <label for="portfolio-project-client-logo">Client logo (optional)</label>
+                <input type="text" id="portfolio-project-client-logo" maxlength="500" list="portfolio-client-logo-options" placeholder="/assets/images/logo/logo-3-color.png" autocomplete="off">
+                <datalist id="portfolio-client-logo-options">
+                  <option value="/assets/images/logo/logo-1-color.png">HOA tree</option>
+                  <option value="/assets/images/logo/logo-2-color.png">Rizo’s Pizzeria</option>
+                  <option value="/assets/images/logo/logo-3-color.png">ProCleaning Seattle</option>
+                </datalist>
+                <p class="form-hint">For the homepage spotlight. A /assets/… path or an https link. Blank = the cover image.</p>
+              </div>
             </div>
           </details>
 
@@ -8845,7 +8863,7 @@
   <script src="/assets/js/portfolio-skins.js?v=skins-20261015"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=skins-20261015"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
-  <script src="/assets/js/i18n.js?v=faq2-20261016"></script>
+  <script src="/assets/js/i18n.js?v=spotlight-20261017"></script>
   <!--
     - Admin-only scripts: loaded on /admin or after admin sign-in, never for
       public visitors (they were ~220 KB gz of the homepage). Order matches the
@@ -8890,7 +8908,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=pricing-none-20261016"></script>
+  <script src="/assets/js/script.js?v=spotlight-20261017"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

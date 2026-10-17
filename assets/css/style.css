@@ -2763,14 +2763,13 @@ article.home .cwr-landing-nav-cta:focus-visible {
   margin-inline: auto;
 }
 
+/* Slides share one grid cell, so the stage is as tall as the tallest slide. */
 .cwr-landing-spotlight-stage {
-  position: relative;
-  min-height: clamp(168px, 28vw, 228px);
+  display: grid;
 }
 
 .cwr-landing-spotlight-slide {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2833,23 +2832,51 @@ article.home .cwr-landing-nav-cta:focus-visible {
   max-width: min(280px, 78vw);
 }
 
-.cwr-landing-spotlight-quote {
+/* No logo: the project's cover image as a rounded thumbnail. */
+.cwr-landing-spotlight-logo.is-cover img {
+  width: min(220px, 60vw);
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid var(--jet);
+}
+
+.cwr-landing-spotlight-name {
+  margin: 0;
+  font-size: clamp(var(--fs-4), 1.2vw + 0.7rem, var(--fs-3));
+  font-weight: var(--fw-600);
+  line-height: 1.25;
+  color: var(--white-1);
+}
+
+.cwr-landing-spotlight-summary {
   margin: 0;
   max-width: 32em;
   font-size: clamp(var(--fs-7), 0.85vw + 0.55rem, var(--fs-6));
   line-height: 1.65;
   color: hsla(0, 0%, 100%, 0.72);
-  font-style: italic;
 }
 
-.cwr-landing-spotlight-quote::before {
-  content: "\201C";
-  color: hsla(45, 70%, 58%, 0.75);
+.cwr-landing-spotlight-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 2px;
+  border: none;
+  background: none;
+  color: var(--orange-yellow-crayola);
+  font: inherit;
+  font-size: var(--fs-7);
+  font-weight: var(--fw-500);
+  cursor: pointer;
 }
 
-.cwr-landing-spotlight-quote::after {
-  content: "\201D";
-  color: hsla(45, 70%, 58%, 0.75);
+.cwr-landing-spotlight-cta:hover,
+.cwr-landing-spotlight-cta:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .cwr-landing-spotlight-meta {
@@ -2893,14 +2920,6 @@ article.home .cwr-landing-nav-cta:focus-visible {
   transform: scale(1.2);
 }
 
-.cwr-landing-spotlight.is-static .cwr-landing-spotlight-slide.is-active {
-  position: relative;
-  inset: auto;
-}
-
-.cwr-landing-spotlight.is-static .cwr-landing-spotlight-dots {
-  display: none;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .cwr-landing-spotlight-slide {
