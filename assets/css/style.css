@@ -26665,7 +26665,8 @@ body.admin-testimonial-detail-open {
   height: 100%;
   background: linear-gradient(90deg, var(--orange-yellow-crayola), var(--vegas-gold));
   border-radius: 100px;
-  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  /* same length + easing as the step slide, so both land together */
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   box-shadow: 0 0 8px hsla(45, 100%, 72%, 0.4);
 }
 
@@ -26673,6 +26674,12 @@ body.admin-testimonial-detail-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  transition: opacity 0.1s ease;
+}
+
+/* counter + label fade out, swap text, fade back in (~0.2s) */
+.t-wizard-progress-meta.is-fading {
+  opacity: 0;
 }
 
 .t-wizard-step-counter {

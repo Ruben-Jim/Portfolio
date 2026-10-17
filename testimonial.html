@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-steps-20261017">
+  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-sync-20261017">
   <script>
     (function () {
       var saved = localStorage.getItem('portfolio-theme');
@@ -338,11 +338,28 @@
     });
 
     /* ── progress update ── */
-    function updateProgress() {
+    var progressMeta = document.querySelector('.t-wizard-progress-meta');
+    var metaFadeTimer = 0;
+    function setStepText() {
+      stepCounter.textContent = 'Step ' + (current + 1) + ' of ' + TOTAL;
+      stepLabel.textContent   = STEP_LABELS[current] || '';
+    }
+
+    // fade: cross-fade the counter + label (on step changes, not first paint).
+    function updateProgress(fade) {
       var pct = ((current + 1) / TOTAL) * 100;
       progressFill.style.width = pct + '%';
-      stepCounter.textContent  = 'Step ' + (current + 1) + ' of ' + TOTAL;
-      stepLabel.textContent    = STEP_LABELS[current] || '';
+      clearTimeout(metaFadeTimer);
+      if (fade && progressMeta) {
+        progressMeta.classList.add('is-fading');
+        metaFadeTimer = setTimeout(function () {
+          setStepText();
+          progressMeta.classList.remove('is-fading');
+        }, 100);
+      } else {
+        setStepText();
+        if (progressMeta) progressMeta.classList.remove('is-fading');
+      }
       show(navBack, current > 0);
       navNext.innerHTML = current === TOTAL - 1
         ? 'Submit <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>'
@@ -359,14 +376,22 @@
     }
 
     /* ── step transition ── */
+    // True while a step slides in; taps on Continue/Back wait until it lands.
+    var moving = false;
+
     function goTo(nextIdx, forward) {
-      if (nextIdx < 0 || nextIdx >= TOTAL) return;
+      if (moving || nextIdx < 0 || nextIdx >= TOTAL) return;
+      moving = true;
 
       var curr = steps[current];
       var next = steps[nextIdx];
       formError.hidden = true;
 
       viewport.dataset.dir = forward ? 'fwd' : 'back';
+
+      // Counter, label, bar and buttons move with the step, not after it.
+      current = nextIdx;
+      updateProgress(true);
 
       curr.classList.add('t-step--exiting');
       curr.classList.remove('t-step--active');
@@ -380,8 +405,7 @@
             curr.style.display = '';
             next.classList.remove('t-step--entering');
             next.classList.add('t-step--active');
-            current = nextIdx;
-            updateProgress();
+            moving = false;
             // Focus first focusable element in new step
             var firstInput = next.querySelector('input:not([type=hidden]), textarea, select, .t-choice-btn, .testimonial-star-btn');
             if (firstInput) firstInput.focus({ preventScroll: true });
@@ -438,6 +462,7 @@
 
     /* ── next / submit ── */
     navNext.addEventListener('click', async function () {
+      if (moving) return;
       var err = validateStep(current);
       if (err) {
         formError.textContent = err;
