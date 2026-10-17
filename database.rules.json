@@ -243,6 +243,29 @@
       "$projectId": {
         ".read": true
       }
+    },
+    "socialProof": {
+      ".read": true,
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      "$id": {
+        ".validate": "newData.hasChildren(['client', 'published', 'order'])",
+        "client": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
+        "logoUrl": { ".validate": "newData.isString() && newData.val().length <= 500" },
+        "stat": { ".validate": "newData.isString() && newData.val().length <= 12" },
+        "label": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "source": { ".validate": "newData.isString() && newData.val().matches(/^(app|client)?$/)" },
+        "asOf": { ".validate": "newData.isString() && newData.val().matches(/^([0-9]{4}-(0[1-9]|1[0-2]))?$/)" },
+        "summary": { ".validate": "newData.isString() && newData.val().length <= 200" },
+        "projectId": { ".validate": "newData.isString() && newData.val().length <= 64" },
+        "published": { ".validate": "newData.isBoolean()" },
+        "order": { ".validate": "newData.isNumber()" },
+        "updatedAt": { ".validate": "newData.isNumber()" },
+        "$other": { ".validate": false }
+      }
+    },
+    "socialProofDetails": {
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     }
   }
 }

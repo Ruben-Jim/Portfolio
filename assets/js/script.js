@@ -4329,16 +4329,6 @@ function portfolioFillPackageDemosForm(demos) {
   });
 }
 
-/** Client logo for the homepage spotlight: a site asset path or an https URL, else ''. */
-function portfolioSanitizeLogoUrl(raw) {
-  var s = String(raw == null ? '' : raw).trim();
-  if (s.length > 500) return '';
-  if (/^\.?\/?assets\//i.test(s)) s = '/' + s.replace(/^\.?\//, '');
-  if (/^\/assets\/[A-Za-z0-9._\/-]+$/.test(s)) return s;
-  if (/^https:\/\/[^\s"'<>]+$/i.test(s)) return s;
-  return '';
-}
-
 function portfolioSanitizeDocumentPayload(data) {
   const imageUrls = portfolioParseImageUrls(
     data.imageUrls,
@@ -4368,10 +4358,6 @@ function portfolioSanitizeDocumentPayload(data) {
     buyPremiumLabel: data.buyPremiumLabel != null ? String(data.buyPremiumLabel).slice(0, 160) : '',
     showQuoteButton: data.showQuoteButton !== false,
     pricingPackage: sanitizePricingPackage(data.pricingPackage),
-    homeSpotlight: data.homeSpotlight === true,
-    clientLogoUrl: portfolioSanitizeLogoUrl(data.clientLogoUrl),
-    resultStat: data.resultStat != null ? String(data.resultStat).trim().slice(0, 12) : '',
-    resultLabel: data.resultLabel != null ? String(data.resultLabel).trim().slice(0, 80) : '',
     adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
@@ -5775,9 +5761,6 @@ function serializePortfolioProjectFormState() {
     'portfolio-project-canvas-doc',
     'portfolio-project-canvas-title',
     'portfolio-project-bestfor',
-    'portfolio-project-client-logo',
-    'portfolio-project-result-stat',
-    'portfolio-project-result-label',
     'portfolio-project-template-repo',
     'portfolio-project-demo-firebase',
     'portfolio-project-demo-starter-page',
@@ -5792,8 +5775,6 @@ function serializePortfolioProjectFormState() {
         document.getElementById('portfolio-project-show-public').checked),
       showQuote: !!(document.getElementById('portfolio-project-show-quote') &&
         document.getElementById('portfolio-project-show-quote').checked),
-      homeSpotlight: !!(document.getElementById('portfolio-project-home-spotlight') &&
-        document.getElementById('portfolio-project-home-spotlight').checked),
       isTemplate: !!(document.getElementById('portfolio-project-is-template') &&
         document.getElementById('portfolio-project-is-template').checked)
     },
@@ -6186,14 +6167,6 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-bestfor').value = Array.isArray(project.bestFor)
       ? project.bestFor.join('\n')
       : '';
-    const homeSpotlightEl = document.getElementById('portfolio-project-home-spotlight');
-    if (homeSpotlightEl) homeSpotlightEl.checked = project.homeSpotlight === true;
-    const clientLogoEl = document.getElementById('portfolio-project-client-logo');
-    if (clientLogoEl) clientLogoEl.value = project.clientLogoUrl || '';
-    const resultStatEl = document.getElementById('portfolio-project-result-stat');
-    if (resultStatEl) resultStatEl.value = project.resultStat || '';
-    const resultLabelEl = document.getElementById('portfolio-project-result-label');
-    if (resultLabelEl) resultLabelEl.value = project.resultLabel || '';
     const isTemplateEl = document.getElementById('portfolio-project-is-template');
     if (isTemplateEl) isTemplateEl.checked = project.isTemplate === true;
     fillPortfolioBuiltFromSelect(project.builtFromTemplateId || '', project.id);
@@ -6582,18 +6555,6 @@ function setupPortfolioAdminControls() {
           .value.split(/\r?\n/)
           .map(function (l) { return l.trim(); })
           .filter(Boolean),
-        homeSpotlight: document.getElementById('portfolio-project-home-spotlight')
-          ? document.getElementById('portfolio-project-home-spotlight').checked
-          : false,
-        clientLogoUrl: document.getElementById('portfolio-project-client-logo')
-          ? document.getElementById('portfolio-project-client-logo').value
-          : '',
-        resultStat: document.getElementById('portfolio-project-result-stat')
-          ? document.getElementById('portfolio-project-result-stat').value
-          : '',
-        resultLabel: document.getElementById('portfolio-project-result-label')
-          ? document.getElementById('portfolio-project-result-label').value
-          : '',
         isTemplate: document.getElementById('portfolio-project-is-template')
           ? document.getElementById('portfolio-project-is-template').checked
           : false,
@@ -8289,48 +8250,31 @@ function initLandingProjectMarquee() {
 
 window.initLandingProjectMarquee = initLandingProjectMarquee;
 
-// "Trusted by local businesses": real client projects Ruben ticks
-// "Show on homepage" for in the portfolio editor, public or client-only.
-// Nothing ticked → section hidden.
-var LANDING_SPOTLIGHT_MAX = 6;
-var LANDING_SPOTLIGHT_SUMMARY_MAX = 180;
+// "Trusted by local businesses": entries from Admin → Testimonials → Social
+// proof (RTDB socialProof). Until that list loads, or when it's empty or
+// unreadable (rules not deployed, offline), the built-ins in social-proof.js show.
+var landingSocialProofDb = null; // null = not loaded; Entry[] (with id) once read
+var landingSocialProofRequested = false;
 
-/** Projects ticked "Show on homepage" (public or client-only), in portfolio order. */
-function landingSpotlightProjects(list) {
-  return (Array.isArray(list) ? list : [])
-    .filter(function (p) {
-      return p && p.homeSpotlight === true;
+/** One read per page load, once the RTDB client exists. Redraws the home spotlight. */
+function loadLandingSocialProof() {
+  if (landingSocialProofRequested || !window.SocialProof) return;
+  if (!window.rtdb || !window.rtdbRef || !window.rtdbGet) return;
+  landingSocialProofRequested = true;
+  window.rtdbGet(window.rtdbRef(window.rtdb, 'socialProof'))
+    .then(function (snap) {
+      var val = snap.val();
+      landingSocialProofDb = val && typeof val === 'object'
+        ? Object.keys(val).map(function (id) {
+            return Object.assign(window.SocialProof.sanitizeEntry(val[id]), { id: id });
+          })
+        : [];
+      var home = document.querySelector('article.home');
+      if (home && home.classList.contains('active')) initLandingSocialProofSpotlight(home);
     })
-    .slice(0, LANDING_SPOTLIGHT_MAX);
-}
-
-/** The project's Outcome (else Description): first paragraph, cut on a word. */
-function landingSpotlightSummary(record) {
-  function firstParagraph(value) {
-    return String(value || '')
-      .split(/\n\s*\n/)
-      .map(function (part) { return part.replace(/\s+/g, ' ').trim(); })
-      .filter(Boolean)[0] || '';
-  }
-  var text = firstParagraph(record && record.outcome) || firstParagraph(record && record.description);
-  if (text.length <= LANDING_SPOTLIGHT_SUMMARY_MAX) return text;
-  var cut = text.slice(0, LANDING_SPOTLIGHT_SUMMARY_MAX);
-  var space = cut.lastIndexOf(' ');
-  return (space > 80 ? cut.slice(0, space) : cut).replace(/[\s,;:.–—-]+$/, '') + '…';
-}
-
-/** What one slide shows: the result number leads when entered, else the Outcome line. */
-function landingSpotlightSlide(project) {
-  var p = project || {};
-  var stat = String(p.resultStat || '').trim();
-  return {
-    name: String(p.title || '').trim() || 'Project',
-    stat: stat,
-    label: stat ? String(p.resultLabel || '').trim() : '',
-    summary: stat ? '' : landingSpotlightSummary(p),
-    // Client-only projects aren't on the Portfolio page, so there's nothing to open.
-    linked: isPortfolioPublic(p)
-  };
+    .catch(function (err) {
+      console.warn('Social proof read failed; showing the built-in clients.', err);
+    });
 }
 
 var landingSpotlightTimers = new WeakMap();
@@ -8395,56 +8339,58 @@ function initLandingSocialProofSpotlight(homeArticle) {
   if (!homeArticle) return;
 
   var root = homeArticle.querySelector('[data-landing-spotlight]');
-  if (!root) return;
+  if (!root || !window.SocialProof) return;
 
   stopLandingSocialProofSpotlight(root);
+  loadLandingSocialProof();
 
-  // portfolioProjectsAll includes client-only projects; they show without a link.
-  var projects = landingSpotlightProjects(window.portfolioProjectsAll || window.portfolioProjects);
-  // No ticked projects → hide the whole band rather than show placeholders.
+  var SP = window.SocialProof;
+  var entries = SP.visibleEntries(landingSocialProofDb, SP.BUILT_IN);
+  // Saved entries but none published: Ruben hid the section on purpose.
   var band = root.closest('section');
-  if (band) band.hidden = !projects.length;
+  if (band) band.hidden = !entries.length;
   root.innerHTML = '';
-  if (!projects.length) return;
+  if (!entries.length) return;
 
   var staticMode = prefersReducedMotion();
   root.classList.toggle('is-static', staticMode);
 
+  var lang = typeof window.cwrGetLang === 'function' ? window.cwrGetLang() : 'en';
+  // Public projects only, so a client-only project never gets a link.
+  var publicProjects = window.portfolioProjects || [];
   var stage = document.createElement('div');
   stage.className = 'cwr-landing-spotlight-stage';
   var esc = escapeLandingSpotlightText;
 
-  projects.forEach(function (project, index) {
-    var view = landingSpotlightSlide(project);
-    var logo = portfolioSanitizeLogoUrl(project.clientLogoUrl);
-    var cover = !logo && typeof portfolioCoverImageUrl === 'function' ? portfolioCoverImageUrl(project) : '';
-    var imgSrc = logo || (cover ? portfolioDisplayImageSrc(cover) : '');
+  entries.forEach(function (entry, index) {
+    var project = entry.projectId
+      ? publicProjects.filter(function (p) { return p && p.id === entry.projectId; })[0] || null
+      : null;
 
     // A div, not <article>: site-wide article rules turn it into a fixed-width page card.
     var slide = document.createElement('div');
     slide.className = 'cwr-landing-spotlight-slide' + (index === 0 ? ' is-active' : '');
     slide.setAttribute('role', 'group');
     slide.setAttribute('aria-roledescription', 'slide');
-    slide.setAttribute('aria-label', (index + 1) + ' of ' + projects.length + ': ' + view.name);
+    slide.setAttribute('aria-label', (index + 1) + ' of ' + entries.length + ': ' + entry.client);
 
-    var logoHtml = imgSrc
-      ? '<div class="cwr-landing-spotlight-logo' + (logo ? '' : ' is-cover') + '">' +
-        '<img src="' + esc(imgSrc) + '" alt="' + esc(logo ? view.name + ' logo' : (project.imageAlt || view.name)) + '" loading="' + (index === 0 ? 'eager' : 'lazy') + '">' +
+    var logoHtml = entry.logoUrl
+      ? '<div class="cwr-landing-spotlight-logo">' +
+        '<img src="' + esc(entry.logoUrl) + '" alt="' + esc(entry.client) + ' logo" loading="' + (index === 0 ? 'eager' : 'lazy') + '">' +
         '</div>'
       : '';
-    var bodyHtml = view.stat
-      // Result first: the number, what it measures, then whose project it was.
-      ? '<p class="cwr-landing-spotlight-stat">' + esc(view.stat) + '</p>' +
-        (view.label ? '<p class="cwr-landing-spotlight-stat-label">' + esc(view.label) + '</p>' : '') +
-        '<p class="cwr-landing-spotlight-meta">' + esc(view.name) + '</p>'
+    var bodyHtml = entry.stat
+      // Result first: the number, what it measures, then whose it is and where it came from.
+      ? '<p class="cwr-landing-spotlight-stat">' + esc(entry.stat) + '</p>' +
+        (entry.label ? '<p class="cwr-landing-spotlight-stat-label">' + esc(entry.label) + '</p>' : '') +
+        '<p class="cwr-landing-spotlight-meta">' + esc(SP.metaLine(entry, lang)) + '</p>'
       : '<p class="cwr-landing-spotlight-meta">' + esc(cwrText('home.proof_project', 'Client project')) + '</p>' +
-        '<h3 class="cwr-landing-spotlight-name">' + esc(view.name) + '</h3>' +
-        (view.summary ? '<p class="cwr-landing-spotlight-summary">' + esc(view.summary) + '</p>' : '');
-    var ctaHtml = view.linked
+        '<h3 class="cwr-landing-spotlight-name">' + esc(entry.client) + '</h3>' +
+        (entry.summary ? '<p class="cwr-landing-spotlight-summary">' + esc(entry.summary) + '</p>' : '');
+    var ctaHtml = project
       ? '<button type="button" class="cwr-landing-spotlight-cta">' +
         esc(cwrText('home.proof_view', 'View project')) + ' <span aria-hidden="true">&rarr;</span></button>'
       : '';
-
     slide.innerHTML = logoHtml + bodyHtml + ctaHtml;
 
     var cta = slide.querySelector('.cwr-landing-spotlight-cta');
@@ -8464,19 +8410,19 @@ function initLandingSocialProofSpotlight(homeArticle) {
   root.appendChild(stage);
   root.dataset.spotlightIndex = '0';
 
-  // Dots even with reduced motion (it just doesn't auto-rotate); none for one project.
-  if (projects.length > 1) {
+  // Dots even with reduced motion (it just doesn't auto-rotate); none for one entry.
+  if (entries.length > 1) {
     var dots = document.createElement('div');
     dots.className = 'cwr-landing-spotlight-dots';
     dots.setAttribute('role', 'tablist');
-    dots.setAttribute('aria-label', 'Choose featured project');
+    dots.setAttribute('aria-label', 'Choose featured client');
 
-    projects.forEach(function (project, index) {
+    entries.forEach(function (entry, index) {
       var dot = document.createElement('button');
       dot.type = 'button';
       dot.className = 'cwr-landing-spotlight-dot' + (index === 0 ? ' is-active' : '');
       dot.setAttribute('role', 'tab');
-      dot.setAttribute('aria-label', project.title || 'Project');
+      dot.setAttribute('aria-label', entry.client);
       dot.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
       dot.setAttribute('tabindex', index === 0 ? '0' : '-1');
       dot.addEventListener('click', function () {
@@ -8517,7 +8463,15 @@ window.initLandingSocialProofSpotlight = initLandingSocialProofSpotlight;
 window.stopLandingSocialProofSpotlight = stopLandingSocialProofSpotlight;
 
 // Portfolio data arrives after first paint (and again after admin edits).
+// Portfolio data (and the RTDB client) arrive after first paint, and again after admin edits.
 document.addEventListener('portfolioProjectsLoaded', function () {
+  loadLandingSocialProof();
+  var home = document.querySelector('article.home');
+  if (home && home.classList.contains('active')) initLandingSocialProofSpotlight(home);
+});
+
+// Source and month labels are translated, so redraw on a language switch.
+document.addEventListener('cwr:langchange', function () {
   var home = document.querySelector('article.home');
   if (home && home.classList.contains('active')) initLandingSocialProofSpotlight(home);
 });
@@ -21845,6 +21799,9 @@ window.addEventListener('load', function() {
       } catch (e) {}
       if (tabId === 'testimonials' && typeof window.loadTestimonialAdminPanel === 'function') {
         window.loadTestimonialAdminPanel();
+      }
+      if (tabId === 'testimonials' && window.CWR_SOCIAL_PROOF) {
+        window.CWR_SOCIAL_PROOF.open();
       }
       if (tabId === 'email' && typeof window.initAdminEmailPanel === 'function') {
         window.initAdminEmailPanel();

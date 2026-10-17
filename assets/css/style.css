@@ -2832,17 +2832,6 @@ article.home .cwr-landing-nav-cta:focus-visible {
   max-width: min(280px, 78vw);
 }
 
-/* No logo: the project's cover image as a rounded thumbnail. */
-.cwr-landing-spotlight-logo.is-cover img {
-  width: min(220px, 60vw);
-  max-width: none;
-  max-height: none;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  border-radius: 14px;
-  border: 1px solid var(--jet);
-}
-
 /* Result-first slide: big gold number, what it measures, then the client. */
 .cwr-landing-spotlight-stat {
   margin: 0;
@@ -32873,4 +32862,227 @@ html:has(body.home-page-active) {
   select {
     font-size: 16px !important;
   }
+}
+
+/* =============================================
+   ADMIN — SOCIAL PROOF (Testimonials tab)
+   ============================================= */
+.admin-social-proof-bar {
+  margin-bottom: 16px;
+}
+
+.admin-social-proof-status {
+  margin: 0 0 12px;
+  font-size: var(--fs-7);
+  color: var(--light-gray-70);
+}
+
+.admin-social-proof-status.is-error {
+  color: var(--bittersweet-shimmer);
+}
+
+.admin-social-proof-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-social-proof-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--jet);
+  border-radius: 14px;
+  background: var(--eerie-black-2);
+}
+
+.admin-social-proof-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: hsla(0, 0%, 100%, 0.04);
+}
+
+.admin-social-proof-main {
+  min-width: 0;
+}
+
+.admin-social-proof-name {
+  margin: 0;
+  font-weight: var(--fw-600);
+  color: var(--white-1);
+}
+
+.admin-social-proof-result {
+  margin: 2px 0 0;
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+}
+
+.admin-social-proof-result strong {
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-social-proof-muted {
+  display: inline;
+  color: var(--light-gray-70);
+}
+
+.admin-social-proof-meta {
+  margin: 2px 0 0;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+}
+
+.admin-social-proof-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 0;
+}
+
+.admin-social-proof-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--jet);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  color: var(--light-gray);
+}
+
+.admin-social-proof-chip.is-published {
+  color: hsl(140, 50%, 60%);
+  border-color: hsla(140, 50%, 60%, 0.35);
+}
+
+.admin-social-proof-chip.is-due {
+  color: var(--orange-yellow-crayola);
+  border-color: hsla(45, 100%, 72%, 0.35);
+}
+
+.admin-social-proof-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-social-proof-move {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--jet);
+  border-radius: 8px;
+  background: none;
+  color: var(--light-gray);
+  cursor: pointer;
+}
+
+.admin-social-proof-move:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+@media (max-width: 580px) {
+  .admin-social-proof-row {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .admin-social-proof-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .admin-social-proof-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+/* Drawer: same numbered sections as the document drawer. */
+#social-proof-modal .business-doc-modal-header {
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+/* position: relative keeps the switch's hidden checkbox inside the scrolling body,
+   so focusing it can't scroll the whole drawer and push the header off-screen. */
+#social-proof-modal .business-doc-modal-body {
+  position: relative;
+  padding: 4px 24px 24px;
+}
+
+#social-proof-modal .form-group label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: var(--fw-600);
+  text-transform: none;
+  color: var(--white-2);
+}
+
+#social-proof-modal [hidden] {
+  display: none !important;
+}
+
+/* Native selects otherwise render ~20px shorter than the text fields. */
+#social-proof-modal select.form-input {
+  height: 47px;
+  min-height: 47px;
+  padding: 0 14px;
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  background: var(--onyx);
+  color: var(--white-1);
+}
+
+#social-proof-modal .form-hint {
+  margin: 6px 0 0;
+  font-size: var(--fs-8);
+  line-height: 1.5;
+  color: var(--light-gray-70);
+}
+
+#social-proof-modal select.form-input option {
+  background: var(--eerie-black-2);
+  color: var(--white-1);
+}
+
+#social-proof-modal input[type="month"],
+#social-proof-modal input[type="date"] {
+  color-scheme: dark;
+}
+
+.social-proof-stat-preview {
+  margin: 0 0 16px;
+  font-size: var(--fs-6);
+  color: var(--light-gray);
+}
+
+.social-proof-stat-preview strong {
+  font-size: var(--fs-4);
+  color: var(--orange-yellow-crayola);
+}
+
+.social-proof-delete {
+  margin-top: 8px;
+}
+
+.social-proof-errors {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border: 1px solid hsla(0, 43%, 51%, 0.25);
+  border-radius: 10px;
+  background: hsla(0, 43%, 51%, 0.1);
+  font-size: var(--fs-7);
+  color: var(--bittersweet-shimmer);
 }

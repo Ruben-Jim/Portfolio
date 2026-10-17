@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=spotlight2-20261017">
+  <link rel="stylesheet" href="/assets/css/style.css?v=social-proof-admin-20261017">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -4332,6 +4332,26 @@
               </div>
             </div>
           </section>
+          <section class="service admin-collapsible-section admin-collapsible-open" id="social-proof-admin-section">
+            <div class="admin-panel-heading">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Social proof</h3>
+                <p class="admin-panel-lead">Real clients and real results for “Trusted by local businesses” on the homepage. Start a draft at kickoff with the before number. When <strong>Check-in due</strong> shows (60 days after launch), add the result from the app or the client’s reply, then publish.</p>
+              </div>
+            </div>
+            <div class="admin-collapsible-content">
+              <div class="admin-collapsible-inner-content">
+                <div class="admin-social-proof-bar">
+                  <button type="button" class="btn btn-primary" id="admin-social-proof-add-btn">
+                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                    Add client
+                  </button>
+                </div>
+                <p class="admin-social-proof-status" id="admin-social-proof-status" hidden></p>
+                <ul class="admin-social-proof-list" id="admin-social-proof-list" aria-label="Social proof entries"></ul>
+              </div>
+            </div>
+          </section>
           </div><!-- /admin-panel-testimonials -->
 
           <!-- Blog Management -->
@@ -6104,6 +6124,146 @@
         </aside>
 
         <!-- Create/Edit Document Modal -->
+        <div class="business-doc-modal" id="social-proof-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="social-proof-modal-title">
+          <div class="business-doc-modal-overlay" data-social-proof-close></div>
+          <div class="business-doc-modal-content">
+            <div class="business-doc-modal-header">
+              <div class="business-doc-modal-heading">
+                <h3 class="h3" id="social-proof-modal-title">Add client</h3>
+                <p class="business-doc-modal-subtitle">Only numbers you can back up. Before/after numbers and notes stay private.</p>
+              </div>
+              <button type="button" class="business-doc-modal-close" data-social-proof-close aria-label="Close">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+            <div class="business-doc-modal-body has-scrollbar">
+              <form id="social-proof-form" class="business-doc-form" novalidate>
+                <input type="hidden" id="social-proof-id">
+
+                <section class="business-doc-section" aria-labelledby="social-proof-sec-client">
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="social-proof-sec-client">Client</h4>
+                  </div>
+                  <div class="form-group">
+                    <label for="social-proof-client">Client name</label>
+                    <input type="text" id="social-proof-client" class="form-input" maxlength="80" placeholder="Rizo’s Pizzeria" autocomplete="off">
+                  </div>
+                  <div class="form-group">
+                    <label for="social-proof-logo">Logo</label>
+                    <input type="text" id="social-proof-logo" class="form-input" maxlength="500" list="social-proof-logo-options" placeholder="/assets/images/logo/logo-2-color.png" autocomplete="off">
+                    <datalist id="social-proof-logo-options">
+                      <option value="/assets/images/logo/logo-1-color.png">Shelton Springs HOA</option>
+                      <option value="/assets/images/logo/logo-2-color.png">Rizo’s Pizzeria</option>
+                      <option value="/assets/images/logo/logo-3-color.png">ProCleaning Seattle</option>
+                    </datalist>
+                    <p class="form-hint">A /assets/… path or an https link.</p>
+                  </div>
+                  <div class="form-group">
+                    <label for="social-proof-project">Portfolio project (optional)</label>
+                    <select id="social-proof-project" class="form-input"><option value="">None</option></select>
+                    <p class="form-hint">Adds “View project” when the project is public.</p>
+                  </div>
+                </section>
+
+                <section class="business-doc-section" aria-labelledby="social-proof-sec-result">
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="social-proof-sec-result">Result</h4>
+                  </div>
+                  <div class="form-group">
+                    <label for="social-proof-kind">Type</label>
+                    <select id="social-proof-kind" class="form-input">
+                      <option value="none">No number yet</option>
+                      <option value="change">% change (before → after)</option>
+                      <option value="count">Count</option>
+                    </select>
+                  </div>
+                  <div class="form-row" data-social-proof-kind="change" hidden>
+                    <div class="form-group form-group-half">
+                      <label for="social-proof-before">Before</label>
+                      <input type="text" inputmode="decimal" id="social-proof-before" class="form-input" placeholder="40" autocomplete="off">
+                    </div>
+                    <div class="form-group form-group-half">
+                      <label for="social-proof-after">After</label>
+                      <input type="text" inputmode="decimal" id="social-proof-after" class="form-input" placeholder="55" autocomplete="off">
+                    </div>
+                  </div>
+                  <div class="form-group" data-social-proof-kind="count" hidden>
+                    <label for="social-proof-count">Count</label>
+                    <input type="text" id="social-proof-count" class="form-input" maxlength="24" placeholder="1,240" autocomplete="off">
+                  </div>
+                  <p class="social-proof-stat-preview" id="social-proof-stat-preview" aria-live="polite" hidden></p>
+                  <div data-social-proof-has-number hidden>
+                    <div class="form-group">
+                      <label for="social-proof-label">What it measures</label>
+                      <input type="text" id="social-proof-label" class="form-input" maxlength="80" placeholder="more online orders per week" autocomplete="off">
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group form-group-half">
+                        <label for="social-proof-source">Source</label>
+                        <select id="social-proof-source" class="form-input">
+                          <option value="">Pick one…</option>
+                          <option value="app">From the app</option>
+                          <option value="client">Client-reported</option>
+                        </select>
+                      </div>
+                      <div class="form-group form-group-half">
+                        <label for="social-proof-as-of">Month</label>
+                        <input type="month" id="social-proof-as-of" class="form-input">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="social-proof-launch">Launch date</label>
+                    <input type="date" id="social-proof-launch" class="form-input">
+                    <p class="form-hint">“Check-in due” shows 60 days after this.</p>
+                  </div>
+                  <div class="form-group">
+                    <label for="social-proof-note">How you measured (private)</label>
+                    <textarea id="social-proof-note" class="form-input" rows="2" maxlength="500" placeholder="Rizo’s order dashboard: weekly online orders, Jul vs Sep"></textarea>
+                  </div>
+                </section>
+
+                <section class="business-doc-section" aria-labelledby="social-proof-sec-built">
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="social-proof-sec-built">What we built</h4>
+                  </div>
+                  <div class="form-group">
+                    <label for="social-proof-summary">One line</label>
+                    <textarea id="social-proof-summary" class="form-input" rows="2" maxlength="200" placeholder="Online ordering with live order tracking and a kitchen dashboard."></textarea>
+                    <p class="form-hint">Shows when there’s no number.</p>
+                  </div>
+                </section>
+
+                <section class="business-doc-section" aria-labelledby="social-proof-sec-publish">
+                  <div class="business-doc-section-head">
+                    <h4 class="business-doc-section-title" id="social-proof-sec-publish">Publish</h4>
+                  </div>
+                  <div class="form-group form-group-checkbox-row">
+                    <label class="portfolio-project-checkbox">
+                      <input type="checkbox" id="social-proof-published" class="custom-switch-input">
+                      <span class="custom-switch" aria-hidden="true"></span>
+                      <span>Show on the homepage</span>
+                    </label>
+                    <p class="form-hint">Off = draft. Drafts never show.</p>
+                  </div>
+                  <button type="button" class="btn btn-secondary social-proof-delete" id="social-proof-delete-btn" hidden>Delete entry</button>
+                </section>
+
+                <p class="social-proof-errors" id="social-proof-errors" role="alert" hidden></p>
+              </form>
+            </div>
+            <div class="business-doc-modal-footer">
+              <button type="button" class="btn btn-secondary" id="social-proof-checkin-btn" hidden>
+                <ion-icon name="mail-outline"></ion-icon>
+                Results check-in
+              </button>
+              <button type="submit" form="social-proof-form" class="btn btn-primary" id="social-proof-save-btn">
+                <ion-icon name="save-outline"></ion-icon>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="business-doc-modal" id="business-doc-modal" style="display: none;">
           <div class="business-doc-modal-overlay" id="business-doc-modal-overlay"></div>
           <div class="business-doc-modal-content">
@@ -7742,35 +7902,6 @@
                 <label for="portfolio-project-bestfor">“Best for” lines (optional, one per line)</label>
                 <textarea id="portfolio-project-bestfor" class="has-scrollbar" rows="3" placeholder="Barbershops&#10;Studios with appointments"></textarea>
               </div>
-              <div class="form-group form-group-checkbox-row">
-                <label class="portfolio-project-checkbox">
-                  <input type="checkbox" id="portfolio-project-home-spotlight" class="custom-switch-input">
-                  <span class="custom-switch" aria-hidden="true"></span>
-                  <span>Show on homepage (“Trusted by local businesses”)</span>
-                </label>
-                <p class="form-hint">Real client work, public or client-only. Client-only projects show without a View project button. The section hides when nothing is ticked.</p>
-              </div>
-              <div class="form-group">
-                <label for="portfolio-project-client-logo">Client logo (optional)</label>
-                <input type="text" id="portfolio-project-client-logo" maxlength="500" list="portfolio-client-logo-options" placeholder="/assets/images/logo/logo-3-color.png" autocomplete="off">
-                <datalist id="portfolio-client-logo-options">
-                  <option value="/assets/images/logo/logo-1-color.png">HOA tree</option>
-                  <option value="/assets/images/logo/logo-2-color.png">Rizo’s Pizzeria</option>
-                  <option value="/assets/images/logo/logo-3-color.png">ProCleaning Seattle</option>
-                </datalist>
-                <p class="form-hint">For the homepage spotlight. A /assets/… path or an https link. Blank = the cover image.</p>
-              </div>
-              <div class="form-row">
-                <div class="form-group form-group-half">
-                  <label for="portfolio-project-result-stat">Result (optional)</label>
-                  <input type="text" id="portfolio-project-result-stat" maxlength="12" placeholder="+38%" autocomplete="off">
-                </div>
-                <div class="form-group form-group-half">
-                  <label for="portfolio-project-result-label">What it measures</label>
-                  <input type="text" id="portfolio-project-result-label" maxlength="80" placeholder="more online orders in 90 days" autocomplete="off">
-                </div>
-              </div>
-              <p class="form-hint">The big number on the homepage spotlight. Use a real, measured result. Blank = the Outcome line shows instead.</p>
             </div>
           </details>
 
@@ -8872,9 +9003,10 @@
   <script src="/assets/js/hire-me-booking.js?v=security-20261010"></script>
   <script src="/assets/js/customer-dm-shared.js?v=security-20261010"></script>
   <script src="/assets/js/portfolio-skins.js?v=skins-20261015"></script>
+  <script src="/assets/js/social-proof.js?v=social-proof-20261017"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=skins-20261015"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
-  <script src="/assets/js/i18n.js?v=spotlight-20261017"></script>
+  <script src="/assets/js/i18n.js?v=social-proof-20261017"></script>
   <!--
     - Admin-only scripts: loaded on /admin or after admin sign-in, never for
       public visitors (they were ~220 KB gz of the homepage). Order matches the
@@ -8889,6 +9021,7 @@
         { src: '/assets/js/ig-posts.js?v=ig-library-20260827' },
         { src: '/assets/js/outreach-composer.js?v=package-names-20261016' },
         { src: '/assets/js/prospects.js?v=deposit-text-20261010' },
+        { src: '/assets/js/social-proof-admin.js?v=social-proof-20261017' },
         { src: '/assets/js/dm-migration.js' }
       ];
       var MODULE = '/assets/js/post-builder/index.js?v=pb2';
@@ -8919,7 +9052,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=spotlight2-20261017"></script>
+  <script src="/assets/js/script.js?v=social-proof-admin-20261017"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

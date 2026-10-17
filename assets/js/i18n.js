@@ -612,6 +612,11 @@
     if (hirePackageInput && typeof window.syncBusinessDocSelectUI === 'function') {
       window.syncBusinessDocSelectUI(hirePackageInput);
     }
+
+    // Script-rendered text (e.g. the homepage spotlight) redraws in the new language.
+    try {
+      document.dispatchEvent(new CustomEvent('cwr:langchange', { detail: { lang: lang } }));
+    } catch (e) {}
   }
 
   window.cwrSetLang = function (lang) { applyTranslations(lang); };
