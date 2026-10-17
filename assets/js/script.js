@@ -4370,6 +4370,8 @@ function portfolioSanitizeDocumentPayload(data) {
     pricingPackage: sanitizePricingPackage(data.pricingPackage),
     homeSpotlight: data.homeSpotlight === true,
     clientLogoUrl: portfolioSanitizeLogoUrl(data.clientLogoUrl),
+    resultStat: data.resultStat != null ? String(data.resultStat).trim().slice(0, 12) : '',
+    resultLabel: data.resultLabel != null ? String(data.resultLabel).trim().slice(0, 80) : '',
     adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
@@ -5774,6 +5776,8 @@ function serializePortfolioProjectFormState() {
     'portfolio-project-canvas-title',
     'portfolio-project-bestfor',
     'portfolio-project-client-logo',
+    'portfolio-project-result-stat',
+    'portfolio-project-result-label',
     'portfolio-project-template-repo',
     'portfolio-project-demo-firebase',
     'portfolio-project-demo-starter-page',
@@ -6186,6 +6190,10 @@ function openPortfolioProjectModal(isNew, project) {
     if (homeSpotlightEl) homeSpotlightEl.checked = project.homeSpotlight === true;
     const clientLogoEl = document.getElementById('portfolio-project-client-logo');
     if (clientLogoEl) clientLogoEl.value = project.clientLogoUrl || '';
+    const resultStatEl = document.getElementById('portfolio-project-result-stat');
+    if (resultStatEl) resultStatEl.value = project.resultStat || '';
+    const resultLabelEl = document.getElementById('portfolio-project-result-label');
+    if (resultLabelEl) resultLabelEl.value = project.resultLabel || '';
     const isTemplateEl = document.getElementById('portfolio-project-is-template');
     if (isTemplateEl) isTemplateEl.checked = project.isTemplate === true;
     fillPortfolioBuiltFromSelect(project.builtFromTemplateId || '', project.id);
@@ -6579,6 +6587,12 @@ function setupPortfolioAdminControls() {
           : false,
         clientLogoUrl: document.getElementById('portfolio-project-client-logo')
           ? document.getElementById('portfolio-project-client-logo').value
+          : '',
+        resultStat: document.getElementById('portfolio-project-result-stat')
+          ? document.getElementById('portfolio-project-result-stat').value
+          : '',
+        resultLabel: document.getElementById('portfolio-project-result-label')
+          ? document.getElementById('portfolio-project-result-label').value
           : '',
         isTemplate: document.getElementById('portfolio-project-is-template')
           ? document.getElementById('portfolio-project-is-template').checked
@@ -8276,15 +8290,16 @@ function initLandingProjectMarquee() {
 window.initLandingProjectMarquee = initLandingProjectMarquee;
 
 // "Trusted by local businesses": real client projects Ruben ticks
-// "Show on homepage" for in the portfolio editor. Nothing ticked → section hidden.
+// "Show on homepage" for in the portfolio editor, public or client-only.
+// Nothing ticked → section hidden.
 var LANDING_SPOTLIGHT_MAX = 6;
 var LANDING_SPOTLIGHT_SUMMARY_MAX = 180;
 
-/** Public projects ticked "Show on homepage", in portfolio order. */
+/** Projects ticked "Show on homepage" (public or client-only), in portfolio order. */
 function landingSpotlightProjects(list) {
   return (Array.isArray(list) ? list : [])
     .filter(function (p) {
-      return p && p.homeSpotlight === true && isPortfolioPublic(p);
+      return p && p.homeSpotlight === true;
     })
     .slice(0, LANDING_SPOTLIGHT_MAX);
 }
@@ -8302,6 +8317,20 @@ function landingSpotlightSummary(record) {
   var cut = text.slice(0, LANDING_SPOTLIGHT_SUMMARY_MAX);
   var space = cut.lastIndexOf(' ');
   return (space > 80 ? cut.slice(0, space) : cut).replace(/[\s,;:.–—-]+$/, '') + '…';
+}
+
+/** What one slide shows: the result number leads when entered, else the Outcome line. */
+function landingSpotlightSlide(project) {
+  var p = project || {};
+  var stat = String(p.resultStat || '').trim();
+  return {
+    name: String(p.title || '').trim() || 'Project',
+    stat: stat,
+    label: stat ? String(p.resultLabel || '').trim() : '',
+    summary: stat ? '' : landingSpotlightSummary(p),
+    // Client-only projects aren't on the Portfolio page, so there's nothing to open.
+    linked: isPortfolioPublic(p)
+  };
 }
 
 var landingSpotlightTimers = new WeakMap();
@@ -8370,7 +8399,8 @@ function initLandingSocialProofSpotlight(homeArticle) {
 
   stopLandingSocialProofSpotlight(root);
 
-  var projects = landingSpotlightProjects(window.portfolioProjects);
+  // portfolioProjectsAll includes client-only projects; they show without a link.
+  var projects = landingSpotlightProjects(window.portfolioProjectsAll || window.portfolioProjects);
   // No ticked projects → hide the whole band rather than show placeholders.
   var band = root.closest('section');
   if (band) band.hidden = !projects.length;
@@ -8385,38 +8415,48 @@ function initLandingSocialProofSpotlight(homeArticle) {
   var esc = escapeLandingSpotlightText;
 
   projects.forEach(function (project, index) {
-    var name = project.title || 'Project';
+    var view = landingSpotlightSlide(project);
     var logo = portfolioSanitizeLogoUrl(project.clientLogoUrl);
     var cover = !logo && typeof portfolioCoverImageUrl === 'function' ? portfolioCoverImageUrl(project) : '';
     var imgSrc = logo || (cover ? portfolioDisplayImageSrc(cover) : '');
-    var summary = landingSpotlightSummary(project);
 
     // A div, not <article>: site-wide article rules turn it into a fixed-width page card.
     var slide = document.createElement('div');
     slide.className = 'cwr-landing-spotlight-slide' + (index === 0 ? ' is-active' : '');
     slide.setAttribute('role', 'group');
     slide.setAttribute('aria-roledescription', 'slide');
-    slide.setAttribute('aria-label', (index + 1) + ' of ' + projects.length + ': ' + name);
+    slide.setAttribute('aria-label', (index + 1) + ' of ' + projects.length + ': ' + view.name);
 
-    slide.innerHTML =
-      (imgSrc
-        ? '<div class="cwr-landing-spotlight-logo' + (logo ? '' : ' is-cover') + '">' +
-          '<img src="' + esc(imgSrc) + '" alt="' + esc(logo ? name + ' logo' : (project.imageAlt || name)) + '" loading="' + (index === 0 ? 'eager' : 'lazy') + '">' +
-          '</div>'
-        : '') +
-      '<p class="cwr-landing-spotlight-meta">' + esc(cwrText('home.proof_project', 'Client project')) + '</p>' +
-      '<h3 class="cwr-landing-spotlight-name">' + esc(name) + '</h3>' +
-      (summary ? '<p class="cwr-landing-spotlight-summary">' + esc(summary) + '</p>' : '') +
-      '<button type="button" class="cwr-landing-spotlight-cta">' +
-      esc(cwrText('home.proof_view', 'View project')) + ' <span aria-hidden="true">&rarr;</span></button>';
+    var logoHtml = imgSrc
+      ? '<div class="cwr-landing-spotlight-logo' + (logo ? '' : ' is-cover') + '">' +
+        '<img src="' + esc(imgSrc) + '" alt="' + esc(logo ? view.name + ' logo' : (project.imageAlt || view.name)) + '" loading="' + (index === 0 ? 'eager' : 'lazy') + '">' +
+        '</div>'
+      : '';
+    var bodyHtml = view.stat
+      // Result first: the number, what it measures, then whose project it was.
+      ? '<p class="cwr-landing-spotlight-stat">' + esc(view.stat) + '</p>' +
+        (view.label ? '<p class="cwr-landing-spotlight-stat-label">' + esc(view.label) + '</p>' : '') +
+        '<p class="cwr-landing-spotlight-meta">' + esc(view.name) + '</p>'
+      : '<p class="cwr-landing-spotlight-meta">' + esc(cwrText('home.proof_project', 'Client project')) + '</p>' +
+        '<h3 class="cwr-landing-spotlight-name">' + esc(view.name) + '</h3>' +
+        (view.summary ? '<p class="cwr-landing-spotlight-summary">' + esc(view.summary) + '</p>' : '');
+    var ctaHtml = view.linked
+      ? '<button type="button" class="cwr-landing-spotlight-cta">' +
+        esc(cwrText('home.proof_view', 'View project')) + ' <span aria-hidden="true">&rarr;</span></button>'
+      : '';
 
-    slide.querySelector('.cwr-landing-spotlight-cta').addEventListener('click', function () {
-      if (typeof window.openPortfolioProjectDetail === 'function') {
-        window.openPortfolioProjectDetail(project);
-      } else if (typeof switchToPage === 'function') {
-        switchToPage('portfolio');
-      }
-    });
+    slide.innerHTML = logoHtml + bodyHtml + ctaHtml;
+
+    var cta = slide.querySelector('.cwr-landing-spotlight-cta');
+    if (cta) {
+      cta.addEventListener('click', function () {
+        if (typeof window.openPortfolioProjectDetail === 'function') {
+          window.openPortfolioProjectDetail(project);
+        } else if (typeof switchToPage === 'function') {
+          switchToPage('portfolio');
+        }
+      });
+    }
 
     stage.appendChild(slide);
   });

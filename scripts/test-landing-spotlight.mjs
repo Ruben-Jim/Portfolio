@@ -4,9 +4,10 @@
  *   node scripts/test-landing-spotlight.mjs
  *
  * Guards: only real projects admin ticked "Show on homepage" appear (no
- * built-in placeholder clients), each slide gets a short summary from the
- * project's Outcome (else Description), and the client logo field only
- * accepts a site asset path or an https URL.
+ * built-in placeholder clients), client-only (private) projects show without
+ * a link, a slide leads with the real result number when one is entered and
+ * falls back to the project's Outcome (else Description), and the client logo
+ * field only accepts a site asset path or an https URL.
  */
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -38,18 +39,19 @@ vm.runInNewContext([
   'function portfolioSanitizeLogoUrl(',
   'function landingSpotlightProjects(',
   'function landingSpotlightSummary(',
-].map(extract).join('\n') + '\nthis.api = { portfolioSanitizeLogoUrl, landingSpotlightProjects, landingSpotlightSummary, LANDING_SPOTLIGHT_MAX };', ctx);
-const { portfolioSanitizeLogoUrl: logo, landingSpotlightProjects: pick, landingSpotlightSummary: summary, LANDING_SPOTLIGHT_MAX: MAX } = ctx.api;
+  'function landingSpotlightSlide(',
+].map(extract).join('\n') + '\nthis.api = { portfolioSanitizeLogoUrl, landingSpotlightProjects, landingSpotlightSummary, landingSpotlightSlide, LANDING_SPOTLIGHT_MAX };', ctx);
+const { portfolioSanitizeLogoUrl: logo, landingSpotlightProjects: pick, landingSpotlightSummary: summary, landingSpotlightSlide: slide, LANDING_SPOTLIGHT_MAX: MAX } = ctx.api;
 
 // Which projects show
 const list = [
   { id: 'a', title: 'ProCleaning Seattle', homeSpotlight: true },
   { id: 'b', title: 'Not ticked' },
-  { id: 'c', title: 'Ticked but private', homeSpotlight: true, visibility: 'private' },
+  { id: 'c', title: 'Client-only project', homeSpotlight: true, visibility: 'private' },
   { id: 'd', title: 'Shelton Springs HOA', homeSpotlight: true },
   { id: 'e', title: 'Truthy string is not a tick', homeSpotlight: 'true' },
 ];
-ok(pick(list).map((p) => p.id).join() === 'a,d', 'only public projects ticked "Show on homepage", in portfolio order');
+ok(pick(list).map((p) => p.id).join() === 'a,c,d', 'only projects ticked "Show on homepage" (public or client-only), in portfolio order');
 ok(pick([]).length === 0 && pick(null).length === 0, 'nothing ticked → nothing to show');
 ok(pick(Array.from({ length: 12 }, (_, i) => ({ id: 'p' + i, homeSpotlight: true }))).length === MAX, `at most ${MAX} slides`);
 
@@ -60,6 +62,18 @@ ok(summary({ outcome: 'First paragraph\nwraps here.\n\nSecond paragraph.' }) ===
 const long = summary({ outcome: 'word '.repeat(80) });
 ok(long.length <= 181 && long.endsWith('…') && !/\s…$/.test(long), `long text is cut on a word with … (${long.length} chars)`);
 ok(summary({}) === '' && summary(null) === '', 'no text → empty');
+
+// Slide content
+let s = slide({ title: "Rizo's Pizzeria", visibility: 'private', resultStat: ' +38% ', resultLabel: ' more online orders in 90 days ', outcome: 'Online ordering.' });
+ok(s.stat === '+38%' && s.label === 'more online orders in 90 days', 'leads with the result number + what it measures');
+ok(s.name === "Rizo's Pizzeria", 'client name from the project title');
+ok(s.linked === false, 'client-only project: no View project link');
+ok(s.summary === '', 'no Outcome line when a number is shown');
+s = slide({ title: 'Shop', outcome: 'Crews see every job.' });
+ok(s.stat === '' && s.summary === 'Crews see every job.' && s.linked === true, 'no number → Outcome line; public project links to its page');
+s = slide({ title: 'Shop', resultLabel: 'label without a number', outcome: 'Outcome.' });
+ok(s.stat === '' && s.label === '' && s.summary === 'Outcome.', 'a label without a number is ignored');
+ok(slide({}).name === 'Project', 'untitled → "Project"');
 
 // Client logo field
 ok(logo('/assets/images/logo/logo-3-color.png') === '/assets/images/logo/logo-3-color.png', 'site asset path is kept');

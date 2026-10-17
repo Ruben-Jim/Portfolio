@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=spotlight-20261017">
+  <link rel="stylesheet" href="/assets/css/style.css?v=spotlight2-20261017">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -7748,7 +7748,7 @@
                   <span class="custom-switch" aria-hidden="true"></span>
                   <span>Show on homepage (“Trusted by local businesses”)</span>
                 </label>
-                <p class="form-hint">Real client work only. Shows the logo, title, and Outcome (or Description) with a View project button. The section hides when nothing is ticked.</p>
+                <p class="form-hint">Real client work, public or client-only. Client-only projects show without a View project button. The section hides when nothing is ticked.</p>
               </div>
               <div class="form-group">
                 <label for="portfolio-project-client-logo">Client logo (optional)</label>
@@ -7760,6 +7760,17 @@
                 </datalist>
                 <p class="form-hint">For the homepage spotlight. A /assets/… path or an https link. Blank = the cover image.</p>
               </div>
+              <div class="form-row">
+                <div class="form-group form-group-half">
+                  <label for="portfolio-project-result-stat">Result (optional)</label>
+                  <input type="text" id="portfolio-project-result-stat" maxlength="12" placeholder="+38%" autocomplete="off">
+                </div>
+                <div class="form-group form-group-half">
+                  <label for="portfolio-project-result-label">What it measures</label>
+                  <input type="text" id="portfolio-project-result-label" maxlength="80" placeholder="more online orders in 90 days" autocomplete="off">
+                </div>
+              </div>
+              <p class="form-hint">The big number on the homepage spotlight. Use a real, measured result. Blank = the Outcome line shows instead.</p>
             </div>
           </details>
 
@@ -8908,7 +8919,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=spotlight-20261017"></script>
+  <script src="/assets/js/script.js?v=spotlight2-20261017"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

@@ -2843,6 +2843,24 @@ article.home .cwr-landing-nav-cta:focus-visible {
   border: 1px solid var(--jet);
 }
 
+/* Result-first slide: big gold number, what it measures, then the client. */
+.cwr-landing-spotlight-stat {
+  margin: 0;
+  font-size: clamp(2.6rem, 5vw + 1rem, 4rem);
+  font-weight: var(--fw-600);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--orange-yellow-crayola);
+}
+
+.cwr-landing-spotlight-stat-label {
+  margin: -4px 0 0;
+  max-width: 24em;
+  font-size: clamp(var(--fs-6), 0.9vw + 0.6rem, var(--fs-5));
+  line-height: 1.4;
+  color: var(--white-1);
+}
+
 .cwr-landing-spotlight-name {
   margin: 0;
   font-size: clamp(var(--fs-4), 1.2vw + 0.7rem, var(--fs-3));
