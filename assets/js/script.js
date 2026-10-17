@@ -7359,13 +7359,9 @@ function sanitizePricingPackage(raw) {
   return allowed.indexOf(id) >= 0 ? id : '';
 }
 
+/** The package admin picked for this project; '' when it's None. */
 function getPortfolioPricingPackage(record) {
-  var pkg = sanitizePricingPackage(record && record.pricingPackage);
-  if (pkg) return pkg;
-  var title = String((record && record.title) || '');
-  var img = String((record && (record.imageUrl || (record.imageUrls && record.imageUrls[0]))) || '');
-  if (/lawn\s*care/i.test(title) || /\/lawncare\//i.test(img)) return 'starter-page';
-  return '';
+  return sanitizePricingPackage(record && record.pricingPackage);
 }
 
 /**
