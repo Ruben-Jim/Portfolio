@@ -29028,7 +29028,11 @@ body.admin-tab-reorder-active::before {
     width: 100%;
   }
 
-  /* Sidebar — full nav visible; page scrolls, not the nav column */
+  /* Sidebar — full nav visible; the page scrolls, not this column.
+     overflow-x: hidden pairs with overflow-y and turns the bar into a
+     scroll container. overscroll-behavior: contain then swallows the wheel,
+     so the page stays put until the pointer moves onto the main content.
+     clip hides sideways overflow without becoming a scroll container. */
   #admin-dashboard-content > .admin-tabs > .admin-tab-bar {
     flex-direction: column !important;
     flex-wrap: nowrap !important;
@@ -29042,9 +29046,8 @@ body.admin-tab-reorder-active::before {
     top: 8px;
     align-self: flex-start;
     max-height: none;
-    overflow-x: hidden !important;
+    overflow-x: clip !important;
     overflow-y: visible !important;
-    overscroll-behavior: contain;
   }
 
   #admin-dashboard-content > .admin-tabs > .admin-tab-bar::-webkit-scrollbar {
@@ -33049,6 +33052,7 @@ html:has(body.home-page-active) {
 
 .admin-social-proof-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
@@ -33068,6 +33072,20 @@ html:has(body.home-page-active) {
 .admin-social-proof-move:disabled {
   opacity: 0.35;
   cursor: default;
+}
+
+.admin-social-proof-delete {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid hsla(0, 43%, 51%, 0.35);
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-8);
+  color: var(--bittersweet-shimmer);
+  cursor: pointer;
 }
 
 @media (max-width: 580px) {

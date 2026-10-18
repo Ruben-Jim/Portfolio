@@ -128,7 +128,8 @@
 
   /** Use an Outcome: its first paragraph as the quote; the bottom line stays. */
   function prefillFromOutcome(p) {
-    return { summary: SP.quoteFromText(p.outcome) };
+    // Links the project too, so a card matched by name gets a real link on Save.
+    return { summary: SP.quoteFromText(p.outcome), projectId: p.id };
   }
 
   function newEntryFromTestimonial(t) {
@@ -283,6 +284,8 @@
             '<button type="button" class="admin-social-proof-move" data-move="1" aria-label="Move ' + esc(e.client) + ' down"' + (i === rows.length - 1 ? ' disabled' : '') + '>▼</button>' +
             '<button type="button" class="btn btn-secondary admin-social-proof-checkin" data-checkin>Check-in</button>' +
             '<button type="button" class="btn btn-secondary admin-social-proof-edit" data-edit>Edit</button>' +
+            // Built-ins aren't saved yet, so there's nothing to delete.
+            (r.builtIn ? '' : '<button type="button" class="admin-social-proof-delete" data-delete aria-label="Delete ' + esc(e.client) + '">Delete</button>') +
           '</div>' +
         '</div>' +
         '<div class="admin-social-proof-proof">' +
@@ -525,17 +528,22 @@
   }
 
   async function remove() {
-    var row = currentRow();
+    await removeRow(currentRow(), true);
+  }
+
+  /** Delete from the drawer, or straight from a card (fromDrawer false). Always confirms. */
+  async function removeRow(row, fromDrawer) {
     if (!row || row.builtIn) return;
-    if (!loadedOk) { showErrors([NOT_LOADED]); return; }
+    var report = function (msg) { if (fromDrawer) showErrors([msg]); else status(msg, true); };
+    if (!loadedOk) { report(NOT_LOADED); return; }
     if (!global.confirm(confirmDeleteText(row, rows))) return;
     try {
       await write(deletePaths(row.id));
-      closeDrawer();
+      if (fromDrawer) closeDrawer();
       await load();
     } catch (err) {
       console.error('Social proof delete failed', err);
-      showErrors(['Couldn’t delete. Try again.']);
+      report('Couldn’t delete. Try again.');
     }
   }
 
@@ -587,6 +595,7 @@
       var mv = ev.target.closest('[data-move]');
       if (mv && !mv.disabled) { move(i, Number(mv.getAttribute('data-move'))); return; }
       if (ev.target.closest('[data-checkin]')) { checkIn(rows[i]); return; }
+      if (ev.target.closest('[data-delete]')) { removeRow(rows[i], false); return; }
       var useT = ev.target.closest('[data-use-testimonial]');
       if (useT) {
         var t = findTestimonial(useT.getAttribute('data-use-testimonial'));

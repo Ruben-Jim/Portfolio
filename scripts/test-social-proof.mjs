@@ -185,3 +185,14 @@ ok(/CONTENT_SUB_TAB_IDS = \[[^\]]*'social-proof'/.test(script) && /'social-proof
 ok(/tabId === 'social-proof' && window\.CWR_SOCIAL_PROOF/.test(script) && !/tabId === 'testimonials' && window\.CWR_SOCIAL_PROOF/.test(script), 'opening the tab loads social proof (not the Testimonials tab)');
 ok(/getElementById\('admin-panel-social-proof'\)/.test(read('assets/js/social-proof-admin.js')), 'admin script auto-opens on the new panel');
 ok(/var VALID = \{[^}]*'social-proof': 1/.test(script), "activate() accepts 'social-proof' (otherwise the tab can't open)");
+
+// ── Follow-up: one card per client (possessives, other apostrophes, Outcomes matched by name) ──
+ok(SP.nameKey('Rizo‘s Pizzeria') === 'rizos pizzeria' && SP.nameKey('Rizoʼs Pizzeria') === 'rizos pizzeria', 'nameKey: ‘ and ʼ apostrophes too');
+ok(SP.testimonialsFor({ client: "Rizo's Pizzeria" }, [{ id: 'a', company: 'Rizo Pizzeria' }]).length === 1, 'possessive and plain spellings match (Rizo\'s ≈ Rizo)');
+const PN = [
+  { id: 'r1', title: "Rizo's Pizzeria", outcome: 'Online orders up.' },
+  { id: 'tp', title: "Rizo's Pizzeria", outcome: 'Template.', isTemplate: true },
+];
+ok((SP.outcomeFor({ client: "Rizo's Pizzeria", projectId: '' }, PN) || {}).id === 'r1', 'an unlinked card shows the same-name client project Outcome (not the template)');
+ok(SP.outcomeFor({ client: "Rizo's Pizzeria", projectId: 'other' }, PN) === null, 'an explicit project link wins over the name');
+ok(SP.unusedProof([{ client: "Rizo's Pizzeria", projectId: '' }], [], PN).outcomes.length === 0, 'a name-matched Outcome is not offered as "not on the homepage yet" (no duplicate card)');

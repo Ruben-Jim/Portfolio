@@ -74,3 +74,4 @@ ok(no.client === 'Shelton Springs HOA' && no.projectId === 'p2' && no.summary ==
 // line under the number stays (otherwise the number reads as reported by that person).
 ok(JSON.stringify(T.testimonialPrefillFor({ stat: '86' }, tdoc)) === JSON.stringify({ summary: 'Ruben built it.' }), 'number entry: Use testimonial fills the quote only');
 ok(T.testimonialPrefillFor({ stat: '' }, tdoc).tagline === "Roberto Rizo · Owner, Rizo's Pizzeria", 'no number: quote + credit');
+ok(T.prefillFromOutcome({ id: 'p9', outcome: 'x' }).projectId === 'p9', 'use outcome also links its project (saved on Save)');

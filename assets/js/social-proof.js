@@ -214,10 +214,22 @@
     return String(s == null ? '' : s)
       .normalize('NFD').replace(/[̀-ͯ]/g, '')
       .toLowerCase()
-      .replace(/['’`]/g, '')
+      .replace(/['’‘ʼ´`]/g, '')
       .replace(/[^a-z0-9]+/g, ' ')
       .trim()
       .replace(/^the /, '');
+  }
+
+  /** Same business? Also ignores a trailing "s" on longer words, so "Rizo's" ≈ "Rizo". */
+  function sameName(a, b) {
+    var ka = looseKey(a);
+    return !!ka && ka === looseKey(b);
+  }
+
+  function looseKey(s) {
+    return nameKey(s).split(' ').map(function (w) {
+      return w.length > 3 ? w.replace(/s$/, '') : w;
+    }).join(' ');
   }
 
   function newestFirst(a, b) {
@@ -226,35 +238,49 @@
 
   /** Testimonials from this entry's business, newest first. */
   function testimonialsFor(entry, testimonials) {
-    var key = nameKey(entry && entry.client);
-    if (!key) return [];
+    var client = entry && entry.client;
     return (testimonials || [])
-      .filter(function (t) { return t && nameKey(t.company) === key; })
+      .filter(function (t) { return t && sameName(t.company, client); })
       .sort(newestFirst);
   }
 
-  /** The linked portfolio project, when it has an Outcome. */
+  function hasOutcome(p) {
+    return !!(p && String(p.outcome || '').trim());
+  }
+
+  /**
+   * The entry's portfolio project, when it has an Outcome: the linked one, or, when the
+   * entry isn't linked yet, the client project with the same name (templates aren't clients).
+   */
   function outcomeFor(entry, projects) {
-    if (!entry || !entry.projectId) return null;
-    var p = (projects || []).filter(function (x) { return x && x.id === entry.projectId; })[0];
-    return p && String(p.outcome || '').trim() ? p : null;
+    if (!entry) return null;
+    var list = projects || [];
+    if (entry.projectId) {
+      var linked = list.filter(function (x) { return x && x.id === entry.projectId; })[0];
+      return hasOutcome(linked) ? linked : null;
+    }
+    return list.filter(function (p) {
+      return p && p.isTemplate !== true && hasOutcome(p) && sameName(p.title, entry.client);
+    })[0] || null;
   }
 
   /** Proof no entry uses yet: unmatched testimonials, unlinked client Outcomes. */
   function unusedProof(entries, testimonials, projects) {
-    var names = {};
-    var linked = {};
-    (entries || []).forEach(function (e) {
-      var k = nameKey(e && e.client);
-      if (k) names[k] = true;
-      if (e && e.projectId) linked[e.projectId] = true;
+    var list = entries || [];
+    var used = {};
+    list.forEach(function (e) {
+      if (e && e.projectId) used[e.projectId] = true;
+      var p = outcomeFor(e, projects);
+      if (p) used[p.id] = true;
     });
     return {
       testimonials: (testimonials || [])
-        .filter(function (t) { return t && !names[nameKey(t.company)]; })
+        .filter(function (t) {
+          return t && !list.some(function (e) { return e && sameName(e.client, t.company); });
+        })
         .sort(newestFirst),
       outcomes: (projects || []).filter(function (p) {
-        return p && p.isTemplate !== true && String(p.outcome || '').trim() && !linked[p.id];
+        return p && p.isTemplate !== true && hasOutcome(p) && !used[p.id];
       })
     };
   }
