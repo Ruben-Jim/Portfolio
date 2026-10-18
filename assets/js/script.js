@@ -8379,14 +8379,13 @@ function initLandingSocialProofSpotlight(homeArticle) {
         '<img src="' + esc(entry.logoUrl) + '" alt="' + esc(entry.client) + ' logo" loading="' + (index === 0 ? 'eager' : 'lazy') + '">' +
         '</div>'
       : '';
-    var bodyHtml = entry.stat
-      // Result first: the number, what it measures, then whose it is and where it came from.
+    // The original spotlight order: logo → quote → small bottom line. A real
+    // number (and what it measures) takes the quote's place.
+    var bodyHtml = (entry.stat
       ? '<p class="cwr-landing-spotlight-stat">' + esc(entry.stat) + '</p>' +
-        (entry.label ? '<p class="cwr-landing-spotlight-stat-label">' + esc(entry.label) + '</p>' : '') +
-        '<p class="cwr-landing-spotlight-meta">' + esc(SP.metaLine(entry, lang)) + '</p>'
-      : '<p class="cwr-landing-spotlight-meta">' + esc(cwrText('home.proof_project', 'Client project')) + '</p>' +
-        '<h3 class="cwr-landing-spotlight-name">' + esc(entry.client) + '</h3>' +
-        (entry.summary ? '<p class="cwr-landing-spotlight-summary">' + esc(entry.summary) + '</p>' : '');
+        (entry.label ? '<p class="cwr-landing-spotlight-stat-label">' + esc(entry.label) + '</p>' : '')
+      : (entry.summary ? '<blockquote class="cwr-landing-spotlight-quote">' + esc(entry.summary) + '</blockquote>' : '')) +
+      '<p class="cwr-landing-spotlight-meta">' + esc(SP.metaLine(entry, lang)) + '</p>';
     var ctaHtml = project
       ? '<button type="button" class="cwr-landing-spotlight-cta">' +
         esc(cwrText('home.proof_view', 'View project')) + ' <span aria-hidden="true">&rarr;</span></button>'
@@ -20912,7 +20911,7 @@ window.addEventListener('load', function() {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1, outreach: 1, prospects: 1
     };
-    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1, 'post-builder': 1 };
+    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, 'social-proof': 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
@@ -21461,11 +21460,12 @@ window.addEventListener('load', function() {
 
   // Mobile admin — Content section hub + second docked subtab bar (Portfolio · Blog · Reviews · IG)
   (function initAdminMobileContentSubtabBar() {
-    var CONTENT_SUB_TAB_IDS = ['portfolio', 'blog', 'testimonials', 'instagram', 'post-builder'];
+    var CONTENT_SUB_TAB_IDS = ['portfolio', 'blog', 'testimonials', 'social-proof', 'instagram', 'post-builder'];
     var CONTENT_SUB_META = {
       portfolio: { label: 'Portfolio', icon: 'albums-outline' },
       blog: { label: 'Blog', icon: 'newspaper-outline' },
       testimonials: { label: 'Reviews', icon: 'chatbox-ellipses-outline' },
+      'social-proof': { label: 'Proof', icon: 'ribbon-outline' },
       instagram: { label: 'IG posts', icon: 'logo-instagram' },
       'post-builder': { label: 'Builder', icon: 'color-palette-outline' }
     };
@@ -21721,10 +21721,10 @@ window.addEventListener('load', function() {
     }
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, blog: 1, portfolio: 1, pipeline: 1,
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, 'social-proof': 1, blog: 1, portfolio: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1, outreach: 1, prospects: 1
     };
-    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, instagram: 1, 'post-builder': 1 };
+    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, 'social-proof': 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
     var AGENCY_TABS = { 'client-projects': 1, planner: 1, referrals: 1 };
     var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
@@ -21800,7 +21800,7 @@ window.addEventListener('load', function() {
       if (tabId === 'testimonials' && typeof window.loadTestimonialAdminPanel === 'function') {
         window.loadTestimonialAdminPanel();
       }
-      if (tabId === 'testimonials' && window.CWR_SOCIAL_PROOF) {
+      if (tabId === 'social-proof' && window.CWR_SOCIAL_PROOF) {
         window.CWR_SOCIAL_PROOF.open();
       }
       if (tabId === 'email' && typeof window.initAdminEmailPanel === 'function') {

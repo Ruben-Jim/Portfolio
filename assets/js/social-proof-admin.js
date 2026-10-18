@@ -17,6 +17,8 @@
   // Only true after a read succeeded. A failed read shows the built-ins, and
   // saving from them would copy them over whatever is really in the database.
   var loadedOk = false;
+  var testimonials = [];
+  var testimonialsOk = true;
 
   // ── pure helpers (tested in scripts/test-social-proof-admin.mjs) ──
 
@@ -93,6 +95,50 @@
     };
   }
 
+  /** Public testimonial fields only; private answers are never read here. */
+  function testimonialFromDoc(id, d) {
+    var x = d || {};
+    var c = x.createdAt;
+    var ms = c && typeof c.toMillis === 'function' ? c.toMillis() : (c && c.seconds ? c.seconds * 1000 : Number(c) || 0);
+    return {
+      id: id,
+      name: String(x.name || '').trim(),
+      title: String(x.title || '').trim(),
+      company: String(x.company || '').trim(),
+      text: String(x.text || ''),
+      rating: Math.max(0, Math.min(5, parseInt(x.rating, 10) || 0)),
+      createdMs: ms
+    };
+  }
+
+  /** Use a testimonial: their words as the quote, who said it as the bottom line. */
+  function prefillFromTestimonial(t) {
+    return { summary: SP.quoteFromText(t.text), tagline: SP.creditFromTestimonial(t) };
+  }
+
+  /**
+   * Use a testimonial on an existing entry. If the entry shows a number, only the quote is
+   * filled: the bottom line sits under the number, and a person's name there would read as
+   * if they reported it.
+   */
+  function testimonialPrefillFor(entry, t) {
+    var pre = prefillFromTestimonial(t);
+    return entry && entry.stat ? { summary: pre.summary } : pre;
+  }
+
+  /** Use an Outcome: its first paragraph as the quote; the bottom line stays. */
+  function prefillFromOutcome(p) {
+    return { summary: SP.quoteFromText(p.outcome) };
+  }
+
+  function newEntryFromTestimonial(t) {
+    return Object.assign({ client: String(t.company || t.name || '').trim(), published: false }, prefillFromTestimonial(t));
+  }
+
+  function newEntryFromOutcome(p) {
+    return Object.assign({ client: String(p.title || '').trim(), projectId: p.id, published: false }, prefillFromOutcome(p));
+  }
+
   // ── DOM ──
 
   function $(id) { return doc.getElementById(id); }
@@ -105,7 +151,10 @@
 
   function cache() {
     els = {
-      panel: $('admin-panel-testimonials'),
+      panel: $('admin-panel-social-proof'),
+      unused: $('admin-social-proof-unused'),
+      unusedList: $('admin-social-proof-unused-list'),
+      numberNote: $('social-proof-number-note'),
       list: $('admin-social-proof-list'),
       status: $('admin-social-proof-status'),
       add: $('admin-social-proof-add-btn'),
@@ -127,6 +176,7 @@
       launch: $('social-proof-launch'),
       note: $('social-proof-note'),
       summary: $('social-proof-summary'),
+      tagline: $('social-proof-tagline'),
       published: $('social-proof-published'),
       del: $('social-proof-delete-btn'),
       errors: $('social-proof-errors'),
@@ -169,37 +219,123 @@
     return html;
   }
 
+  function projectsAll() {
+    return Array.isArray(global.portfolioProjectsAll) ? global.portfolioProjectsAll : [];
+  }
+
+  function findTestimonial(id) {
+    return testimonials.filter(function (t) { return t.id === id; })[0] || null;
+  }
+
+  function stars(n) {
+    return n > 0 ? '<span class="admin-social-proof-stars" aria-label="' + n + ' of 5 stars">' + '★'.repeat(n) + '</span> ' : '';
+  }
+
+  function homepageBlock(e) {
+    var line = e.stat
+      ? '<strong>' + esc(e.stat) + '</strong> ' + esc(e.label)
+      : (e.summary ? '“' + esc(e.summary) + '”' : '<span class="admin-social-proof-muted">No quote or number yet</span>');
+    return '<div class="admin-social-proof-block">' +
+      '<p class="admin-social-proof-kicker">Homepage</p>' +
+      '<p class="admin-social-proof-text">' + line + '</p>' +
+      '<p class="admin-social-proof-meta">' + esc(SP.metaLine(e, 'en')) + '</p>' +
+      '</div>';
+  }
+
+  function outcomeBlock(p) {
+    return '<div class="admin-social-proof-block">' +
+      '<p class="admin-social-proof-kicker">Outcome · ' + esc(p.title || 'Project') + '</p>' +
+      '<p class="admin-social-proof-text">' + esc(SP.quoteFromText(p.outcome)) + '</p>' +
+      '<p class="admin-social-proof-block-actions">' +
+        '<button type="button" class="btn btn-secondary" data-use-outcome>Use on homepage</button>' +
+        '<button type="button" class="admin-social-proof-link" data-edit-project="' + esc(p.id) + '">Edit project</button>' +
+      '</p></div>';
+  }
+
+  function testimonialBlock(t) {
+    return '<div class="admin-social-proof-block">' +
+      '<p class="admin-social-proof-kicker">Testimonial · ' + esc([t.name, t.title].filter(Boolean).join(', ')) + '</p>' +
+      '<p class="admin-social-proof-text">' + stars(t.rating) + '“' + esc(SP.quoteFromText(t.text)) + '”</p>' +
+      '<p class="admin-social-proof-block-actions">' +
+        '<button type="button" class="btn btn-secondary" data-use-testimonial="' + esc(t.id) + '">Use on homepage</button>' +
+        '<button type="button" class="admin-social-proof-link" data-open-testimonials>Open in Testimonials</button>' +
+      '</p></div>';
+  }
+
   function render() {
     if (!els.list) return;
+    var projects = projectsAll();
     els.list.innerHTML = rows.map(function (r, i) {
       var e = r.entry;
-      var result = e.stat
-        ? '<strong>' + esc(e.stat) + '</strong> ' + esc(e.label)
-        : '<span class="admin-social-proof-muted">No number yet</span>';
-      var meta = [SP.sourceLabel(e.source, 'en'), SP.monthLabel(e.asOf, 'en')].filter(Boolean).join(' · ');
+      var outcome = SP.outcomeFor(e, projects);
+      var fromClient = SP.testimonialsFor(e, testimonials);
       return '<li class="admin-social-proof-row" data-index="' + i + '">' +
-        (e.logoUrl
-          ? '<img class="admin-social-proof-logo" src="' + esc(e.logoUrl) + '" alt="">'
-          : '<span class="admin-social-proof-logo is-empty" aria-hidden="true"></span>') +
-        '<div class="admin-social-proof-main">' +
-          '<p class="admin-social-proof-name">' + esc(e.client) + '</p>' +
-          '<p class="admin-social-proof-result">' + result + '</p>' +
-          (meta ? '<p class="admin-social-proof-meta">' + esc(meta) + '</p>' : '') +
-          '<p class="admin-social-proof-chips">' + chipHtml(r) + '</p>' +
+        '<div class="admin-social-proof-head">' +
+          (e.logoUrl
+            ? '<img class="admin-social-proof-logo" src="' + esc(e.logoUrl) + '" alt="">'
+            : '<span class="admin-social-proof-logo is-empty" aria-hidden="true"></span>') +
+          '<div class="admin-social-proof-main">' +
+            '<p class="admin-social-proof-name">' + esc(e.client) + '</p>' +
+            '<p class="admin-social-proof-chips">' + chipHtml(r) + '</p>' +
+          '</div>' +
+          '<div class="admin-social-proof-actions">' +
+            '<button type="button" class="admin-social-proof-move" data-move="-1" aria-label="Move ' + esc(e.client) + ' up"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+            '<button type="button" class="admin-social-proof-move" data-move="1" aria-label="Move ' + esc(e.client) + ' down"' + (i === rows.length - 1 ? ' disabled' : '') + '>▼</button>' +
+            '<button type="button" class="btn btn-secondary admin-social-proof-checkin" data-checkin>Check-in</button>' +
+            '<button type="button" class="btn btn-secondary admin-social-proof-edit" data-edit>Edit</button>' +
+          '</div>' +
         '</div>' +
-        '<div class="admin-social-proof-actions">' +
-          '<button type="button" class="admin-social-proof-move" data-move="-1" aria-label="Move ' + esc(e.client) + ' up"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
-          '<button type="button" class="admin-social-proof-move" data-move="1" aria-label="Move ' + esc(e.client) + ' down"' + (i === rows.length - 1 ? ' disabled' : '') + '>▼</button>' +
-          '<button type="button" class="btn btn-secondary admin-social-proof-checkin" data-checkin>Check-in</button>' +
-          '<button type="button" class="btn btn-secondary admin-social-proof-edit" data-edit>Edit</button>' +
+        '<div class="admin-social-proof-proof">' +
+          homepageBlock(e) +
+          (outcome ? outcomeBlock(outcome) : '') +
+          fromClient.map(testimonialBlock).join('') +
         '</div></li>';
     }).join('');
+    renderUnused(projects);
+  }
+
+  function renderUnused(projects) {
+    if (!els.unusedList) return;
+    var u = SP.unusedProof(rows.map(function (r) { return r.entry; }), testimonials, projects);
+    var items = u.testimonials.map(function (t) {
+      return '<li class="admin-social-proof-unused-item">' +
+        '<p class="admin-social-proof-kicker">Testimonial · ' + esc([t.name, t.company].filter(Boolean).join(' · ')) + '</p>' +
+        '<p class="admin-social-proof-text">' + stars(t.rating) + '“' + esc(SP.quoteFromText(t.text)) + '”</p>' +
+        '<p class="admin-social-proof-block-actions"><button type="button" class="btn btn-secondary" data-add-testimonial="' + esc(t.id) + '">Add to homepage</button></p>' +
+        '</li>';
+    }).concat(u.outcomes.map(function (p) {
+      return '<li class="admin-social-proof-unused-item">' +
+        '<p class="admin-social-proof-kicker">Outcome · ' + esc(p.title || 'Project') + '</p>' +
+        '<p class="admin-social-proof-text">' + esc(SP.quoteFromText(p.outcome)) + '</p>' +
+        '<p class="admin-social-proof-block-actions"><button type="button" class="btn btn-secondary" data-add-outcome="' + esc(p.id) + '">Add to homepage</button></p>' +
+        '</li>';
+    }));
+    els.unused.hidden = !items.length;
+    els.unusedList.innerHTML = items.join('');
+  }
+
+  /** One read per load; a failure leaves the cards up without testimonials. */
+  async function loadTestimonials() {
+    if (!global.db || !global.getDocs || !global.collection) { testimonialsOk = false; return []; }
+    try {
+      var snap = await global.getDocs(global.collection(global.db, 'testimonials'));
+      var list = [];
+      snap.forEach(function (d) { list.push(testimonialFromDoc(d.id, d.data())); });
+      testimonialsOk = true;
+      return list;
+    } catch (err) {
+      console.warn('Testimonials load failed', err);
+      testimonialsOk = false;
+      return [];
+    }
   }
 
   async function load() {
     if (loading) return loading;
     loading = (async function () {
       status('Loading social proof…');
+      var testimonialsRead = loadTestimonials();
+      var note = '';
       try {
         var both = await Promise.all([
           global.rtdbGet(global.rtdbRef(global.rtdb, 'socialProof')),
@@ -207,13 +343,16 @@
         ]);
         rows = rowsFrom(both[0].val(), both[1].val());
         loadedOk = true;
-        status(rows[0] && rows[0].builtIn ? 'Showing the built-in clients. Your first save copies them into the database.' : '');
+        note = rows[0] && rows[0].builtIn ? 'Showing the built-in clients. Your first save copies them into the database.' : '';
       } catch (err) {
         console.warn('Social proof load failed', err);
         rows = rowsFrom(null, null);
         loadedOk = false;
-        status('Couldn’t read the social proof list (check your connection, or deploy the database rules). Saving is off until it loads, so reopen this tab.', true);
+        note = 'Couldn’t read the social proof list (check your connection, or deploy the database rules). Saving is off until it loads, so reopen this tab.';
       }
+      testimonials = await testimonialsRead;
+      if (!testimonialsOk) note = (note ? note + ' ' : '') + 'Couldn’t load testimonials, so the cards show without them.';
+      status(note, !loadedOk || !testimonialsOk);
       render();
     })();
     try { await loading; } finally { loading = null; }
@@ -270,6 +409,7 @@
       source: els.source.value,
       asOf: els.asOf.value,
       summary: els.summary.value,
+      tagline: els.tagline.value,
       published: els.published.checked
     };
   }
@@ -291,16 +431,24 @@
     els.errors.hidden = !list.length;
     els.errors.innerHTML = list.map(esc).join('<br>');
     // The box sits at the end of the scrolling body; bring it into view so Save doesn't look dead.
-    if (list.length && els.errors.scrollIntoView) els.errors.scrollIntoView({ block: 'nearest' });
+    // Focus moves to it too: Safari keeps a still-focused text field in view when the layout
+    // changes, which would scroll the drawer back up and hide the message again.
+    if (list.length) {
+      els.errors.setAttribute('tabindex', '-1');
+      if (els.errors.focus) els.errors.focus({ preventScroll: true });
+      if (els.errors.scrollIntoView) els.errors.scrollIntoView({ block: 'nearest' });
+    }
   }
 
-  function openDrawer(index) {
+  /** prefill (optional): fields from a testimonial or Outcome, applied over the entry. Nothing saves until Save. */
+  function openDrawer(index, prefill) {
     var r = index != null ? rows[index] : null;
+    var pre = prefill || {};
     els.form.reset();
     showErrors([]);
     els.id.value = r ? r.id : '';
     els.title.textContent = r ? 'Edit ' + r.entry.client : 'Add client';
-    fillProjects(r ? r.entry.projectId : '');
+    fillProjects(pre.projectId || (r ? r.entry.projectId : ''));
     if (r) {
       var e = r.entry;
       var d = r.details;
@@ -316,8 +464,14 @@
       els.launch.value = d.launchDate;
       els.note.value = d.note;
       els.summary.value = e.summary;
+      els.tagline.value = e.tagline;
       els.published.checked = e.published;
     }
+    if (pre.client != null && !r) els.client.value = pre.client;
+    if (pre.summary != null) els.summary.value = pre.summary;
+    if (pre.tagline != null) els.tagline.value = pre.tagline;
+    if (pre.published === false) els.published.checked = false;
+    if (els.numberNote) els.numberNote.hidden = !(r && r.entry.stat);
     els.del.hidden = !r || r.builtIn;
     els.checkin.hidden = !r;
     syncKind();
@@ -433,8 +587,45 @@
       var mv = ev.target.closest('[data-move]');
       if (mv && !mv.disabled) { move(i, Number(mv.getAttribute('data-move'))); return; }
       if (ev.target.closest('[data-checkin]')) { checkIn(rows[i]); return; }
+      var useT = ev.target.closest('[data-use-testimonial]');
+      if (useT) {
+        var t = findTestimonial(useT.getAttribute('data-use-testimonial'));
+        if (t) openDrawer(i, testimonialPrefillFor(rows[i].entry, t));
+        return;
+      }
+      if (ev.target.closest('[data-use-outcome]')) {
+        var p = SP.outcomeFor(rows[i].entry, projectsAll());
+        if (p) openDrawer(i, prefillFromOutcome(p));
+        return;
+      }
+      var ep = ev.target.closest('[data-edit-project]');
+      if (ep) {
+        if (typeof global.openPortfolioProjectEditor === 'function') global.openPortfolioProjectEditor(ep.getAttribute('data-edit-project'));
+        return;
+      }
+      if (ev.target.closest('[data-open-testimonials]')) {
+        var tab = doc.getElementById('admin-tab-testimonials');
+        if (tab) tab.click();
+        return;
+      }
       if (ev.target.closest('[data-edit]')) openDrawer(i);
     });
+    if (els.unusedList) {
+      els.unusedList.addEventListener('click', function (ev) {
+        var at = ev.target.closest('[data-add-testimonial]');
+        if (at) {
+          var t = findTestimonial(at.getAttribute('data-add-testimonial'));
+          if (t) openDrawer(null, newEntryFromTestimonial(t));
+          return;
+        }
+        var ao = ev.target.closest('[data-add-outcome]');
+        if (ao) {
+          var id = ao.getAttribute('data-add-outcome');
+          var p = projectsAll().filter(function (x) { return x.id === id; })[0];
+          if (p) openDrawer(null, newEntryFromOutcome(p));
+        }
+      });
+    }
     els.form.addEventListener('submit', save);
     els.form.addEventListener('input', function (ev) {
       if (ev.target === els.before || ev.target === els.after || ev.target === els.count) syncKind();
@@ -471,11 +662,17 @@
       reorder: reorder,
       checkInEmail: checkInEmail,
       confirmDeleteText: confirmDeleteText,
-      deletePaths: deletePaths
+      deletePaths: deletePaths,
+      testimonialFromDoc: testimonialFromDoc,
+      testimonialPrefillFor: testimonialPrefillFor,
+      prefillFromTestimonial: prefillFromTestimonial,
+      prefillFromOutcome: prefillFromOutcome,
+      newEntryFromTestimonial: newEntryFromTestimonial,
+      newEntryFromOutcome: newEntryFromOutcome
     }
   };
 
   // The admin can reopen straight onto this tab before this file loads.
-  var panel = doc && doc.getElementById('admin-panel-testimonials');
+  var panel = doc && doc.getElementById('admin-panel-social-proof');
   if (panel && !panel.hidden) open();
 })(typeof window !== 'undefined' ? window : globalThis);

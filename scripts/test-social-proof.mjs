@@ -47,6 +47,8 @@ ok(SP.monthLabel('2026-09', 'en') === 'Sep 2026' && SP.monthLabel('2026-09', 'es
 ok(SP.monthLabel('2026-13', 'en') === '' && SP.monthLabel('', 'en') === '', 'bad month → blank');
 ok(SP.metaLine({ client: "Rizo's Pizzeria", source: 'app', asOf: '2026-09' }, 'en') === "Rizo's Pizzeria · From the app · Sep 2026", 'meta line');
 ok(SP.metaLine({ client: 'Shop', source: '', asOf: '' }, 'en') === 'Shop', 'meta line skips blanks');
+ok(SP.metaLine({ client: "Rizo's Pizzeria", tagline: 'Restaurant · online ordering', source: 'app', asOf: '2026-09' }, 'en') === 'Restaurant · online ordering · From the app · Sep 2026', 'bottom line leads with the tagline (industry · what we built)');
+ok(SP.metaLine({ client: "Rizo's Pizzeria", tagline: '  ', source: '', asOf: '' }, 'en') === "Rizo's Pizzeria", 'blank tagline falls back to the client name');
 
 // Logo URLs (same rules the portfolio field had)
 ok(SP.cleanLogoUrl('/assets/images/logo/logo-3-color.png') === '/assets/images/logo/logo-3-color.png', 'asset path kept');
@@ -58,12 +60,12 @@ for (const bad of ['javascript:alert(1)', 'http://x.com/l.png', 'data:image/png;
 
 // sanitizeEntry: only display fields, all limits applied
 const e = SP.sanitizeEntry({
-  client: '  ' + 'C'.repeat(90), logoUrl: 'javascript:x', stat: '+38%-too-long-value', label: 'L'.repeat(90),
+  client: '  ' + 'C'.repeat(90), logoUrl: 'javascript:x', stat: '+38%-too-long-value', label: 'L'.repeat(90), tagline: 'T'.repeat(90),
   source: 'friend', asOf: '2026-9', summary: 'S'.repeat(250), projectId: 'bad/id', published: 'true',
   order: 'x', updatedAt: -1, before: 40, note: 'secret',
 });
-ok(Object.keys(e).sort().join() === 'asOf,client,label,logoUrl,order,projectId,published,source,stat,summary,updatedAt', 'entry keeps only display fields (no before/after/note)');
-ok(e.client.length === 80 && e.label.length === 80 && e.summary.length === 200 && e.stat.length === 12, 'lengths capped');
+ok(Object.keys(e).sort().join() === 'asOf,client,label,logoUrl,order,projectId,published,source,stat,summary,tagline,updatedAt', 'entry keeps only display fields (no before/after/note)');
+ok(e.client.length === 80 && e.label.length === 80 && e.summary.length === 200 && e.stat.length === 12 && e.tagline.length === 60, 'lengths capped');
 ok(e.logoUrl === '' && e.source === '' && e.asOf === '' && e.projectId === '', 'bad values dropped');
 ok(e.published === false && e.order === 0 && e.updatedAt === 0, 'published only when true; numbers default to 0');
 ok(SP.sanitizeEntry({ projectId: '-OaBc_12-x' }).projectId === '-OaBc_12-x', 'RTDB push ids allowed');
@@ -109,6 +111,7 @@ ok(SP.visibleEntries(Array.from({ length: 9 }, (_, i) => ({ id: 'x' + i, client:
 // Built-ins
 ok(SP.BUILT_IN.map((b) => b.id).join() === 'builtin-rizo,builtin-shelton,builtin-procleaning', 'three built-ins in order');
 ok(SP.BUILT_IN.every((b) => b.published === true && b.stat === '' && b.summary && b.logoUrl.startsWith('/assets/images/logo/')), 'built-ins: published, no invented numbers, logo + summary');
+ok(SP.BUILT_IN.map((b) => b.tagline).join(' | ') === 'Restaurant · online ordering | HOA · management portal | Cleaning · field service', 'built-ins keep their old bottom lines');
 ok(SP.BUILT_IN.every(({ id, ...rest }) => JSON.stringify(SP.sanitizeEntry(rest)) === JSON.stringify(rest)), 'built-ins are already in sanitized shape');
 
 // checkInDue (launch 2026-08-01; Aug 1 + 60 days = Sep 30)
@@ -119,6 +122,43 @@ ok(SP.checkInDue(det, { stat: '' }, new Date(2026, 9, 1)) === true, '61 days: du
 ok(SP.checkInDue(det, { stat: '+38%' }, new Date(2026, 9, 1)) === false, 'already has a number: not due');
 ok(SP.checkInDue({ launchDate: '' }, { stat: '' }, new Date(2026, 9, 1)) === false, 'no launch date: not due');
 
+// ── Social proof tab: matching (tab Task 1) ──
+ok(SP.nameKey("Rizo's Pizzeria") === 'rizos pizzeria' && SP.nameKey('Rizo’s  Pizzeria!') === 'rizos pizzeria', 'nameKey: apostrophes, punctuation, spaces');
+ok(SP.nameKey('The Acme Co.') === 'acme co' && SP.nameKey('Café Ñandú') === 'cafe nandu', 'nameKey: leading "the", accents');
+ok(SP.nameKey('') === '' && SP.nameKey(null) === '', 'nameKey: blank');
+
+const T = [
+  { id: 't1', name: 'Roberto Rizo', title: 'Owner', company: 'Rizo’s Pizzeria', text: 'Great.', rating: 5, createdMs: 100 },
+  { id: 't2', name: 'Ana Rizo', title: '', company: "rizos pizzeria", text: 'Fast.', rating: 5, createdMs: 200 },
+  { id: 't3', name: 'Jane Doe', title: 'CEO', company: 'Acme Co', text: 'Solid.', rating: 4, createdMs: 50 },
+  { id: 't4', name: 'No Company', title: '', company: '', text: 'Hi.', rating: 5, createdMs: 10 },
+];
+ok(SP.testimonialsFor({ client: "Rizo's Pizzeria" }, T).map((t) => t.id).join() === 't2,t1', 'testimonialsFor: matched by business name, newest first');
+ok(SP.testimonialsFor({ client: '' }, T).length === 0, 'testimonialsFor: blank client matches nothing (not the blank-company testimonial)');
+
+const P = [
+  { id: 'p1', title: "Rizo's Pizzeria", outcome: 'Orders now come in online.', visibility: 'private' },
+  { id: 'p2', title: 'Shelton Springs HOA', outcome: 'One portal for the board.' },
+  { id: 'p3', title: 'Lawn Care Platform', outcome: 'Template outcome.', isTemplate: true },
+  { id: 'p4', title: 'No Outcome', outcome: '   ' },
+];
+ok(SP.outcomeFor({ projectId: 'p1' }, P).id === 'p1', 'outcomeFor: linked project');
+ok(SP.outcomeFor({ projectId: 'p4' }, P) === null && SP.outcomeFor({ projectId: '' }, P) === null && SP.outcomeFor({ projectId: 'zz' }, P) === null, 'outcomeFor: blank outcome / no link / missing project → null');
+
+const u = SP.unusedProof([{ client: "Rizo's Pizzeria", projectId: 'p1' }], T, P);
+ok(u.testimonials.map((t) => t.id).join() === 't3,t4', 'unused testimonials: the ones no entry matches (newest first)');
+ok(u.outcomes.map((p) => p.id).join() === 'p2', 'unused outcomes: not linked, not templates, not blank');
+
+// Quote + credit
+ok(SP.quoteFromText('First paragraph\nwraps.\n\nSecond.') === 'First paragraph wraps.', 'quoteFromText: first paragraph, joined');
+const longQ = SP.quoteFromText('word '.repeat(80));
+ok(longQ.length <= 200 && longQ.endsWith('…') && !/\s…$/.test(longQ), `quoteFromText: long text cut at a word (${longQ.length})`);
+ok(SP.quoteFromText('') === '' && SP.quoteFromText(null) === '', 'quoteFromText: blank');
+ok(SP.creditFromTestimonial(T[0]) === 'Roberto Rizo · Owner, Rizo’s Pizzeria', 'credit: name · title, business');
+ok(SP.creditFromTestimonial(T[1]) === 'Ana Rizo · rizos pizzeria', 'credit: no title');
+ok(SP.creditFromTestimonial({ name: 'N'.repeat(40), title: 'T'.repeat(30), company: 'C' }).length <= 60, 'credit: capped at 60');
+ok(SP.creditFromTestimonial({}) === '', 'credit: blank');
+
 // ── Homepage wiring (Task 3) ──
 const read = (p) => fs.readFileSync(new URL('../' + p, import.meta.url), 'utf8');
 const script = read('assets/js/script.js');
@@ -127,7 +167,21 @@ ok(!/homeSpotlight|clientLogoUrl|resultStat|resultLabel|landingSpotlightProjects
 ok(!/portfolio-project-home-spotlight|portfolio-project-client-logo|portfolio-project-result-stat/.test(shell), 'index.html: portfolio-editor spotlight fields are gone');
 ok(/window\.SocialProof/.test(script) && /SP\.visibleEntries\(landingSocialProofDb, SP\.BUILT_IN\)/.test(script), 'homepage renders through SocialProof.visibleEntries');
 ok(/rtdbRef\(window\.rtdb, 'socialProof'\)/.test(script), 'homepage reads socialProof');
+ok(/<blockquote class="cwr-landing-spotlight-quote">/.test(script) && !/cwr-landing-spotlight-name/.test(script), 'slides use the old order: logo → quote → bottom line (no "Client project" + name)');
 const spTag = shell.indexOf('/assets/js/social-proof.js?v=');
 ok(spTag > 0 && spTag < shell.indexOf('/assets/js/script.js?v='), 'index.html loads social-proof.js before script.js');
 ok(/cwr:langchange/.test(read('assets/js/i18n.js')) && /'cwr:langchange'/.test(script), 'language switch redraws the spotlight');
 ok(!fs.existsSync(new URL('../scripts/test-landing-spotlight.mjs', import.meta.url)), 'old landing-spotlight test removed');
+
+// ── Social proof tab: wiring (tab Task 3) ──
+const tabBtnAt = shell.indexOf('id="admin-tab-social-proof"');
+ok(tabBtnAt > shell.indexOf('id="admin-tab-testimonials"') && /data-admin-tab="social-proof" data-admin-content-sub/.test(shell), 'Social proof tab button sits after Testimonials in Content');
+const panelAt = shell.indexOf('id="admin-panel-social-proof"');
+const sectionAt = shell.indexOf('id="social-proof-admin-section"');
+ok(panelAt > 0 && sectionAt > panelAt && sectionAt > shell.indexOf('<!-- /admin-panel-testimonials -->'), 'section moved out of Testimonials into its own panel');
+ok(/id="admin-social-proof-unused-list"/.test(shell) && /id="social-proof-number-note"/.test(shell), 'not-yet list + number note markup');
+ok((script.match(/CONTENT_SUB_TABS = \{[^}]*'social-proof': 1/g) || []).length === 2, "both CONTENT_SUB_TABS maps include 'social-proof'");
+ok(/CONTENT_SUB_TAB_IDS = \[[^\]]*'social-proof'/.test(script) && /'social-proof': \{ label: 'Proof', icon: 'ribbon-outline' \}/.test(script), 'mobile sub-tab bar lists Social proof');
+ok(/tabId === 'social-proof' && window\.CWR_SOCIAL_PROOF/.test(script) && !/tabId === 'testimonials' && window\.CWR_SOCIAL_PROOF/.test(script), 'opening the tab loads social proof (not the Testimonials tab)');
+ok(/getElementById\('admin-panel-social-proof'\)/.test(read('assets/js/social-proof-admin.js')), 'admin script auto-opens on the new panel');
+ok(/var VALID = \{[^}]*'social-proof': 1/.test(script), "activate() accepts 'social-proof' (otherwise the tab can't open)");

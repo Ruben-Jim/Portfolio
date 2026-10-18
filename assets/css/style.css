@@ -2850,20 +2850,23 @@ article.home .cwr-landing-nav-cta:focus-visible {
   color: var(--white-1);
 }
 
-.cwr-landing-spotlight-name {
-  margin: 0;
-  font-size: clamp(var(--fs-4), 1.2vw + 0.7rem, var(--fs-3));
-  font-weight: var(--fw-600);
-  line-height: 1.25;
-  color: var(--white-1);
-}
-
-.cwr-landing-spotlight-summary {
+.cwr-landing-spotlight-quote {
   margin: 0;
   max-width: 32em;
   font-size: clamp(var(--fs-7), 0.85vw + 0.55rem, var(--fs-6));
   line-height: 1.65;
   color: hsla(0, 0%, 100%, 0.72);
+  font-style: italic;
+}
+
+.cwr-landing-spotlight-quote::before {
+  content: "\201C";
+  color: hsla(45, 70%, 58%, 0.75);
+}
+
+.cwr-landing-spotlight-quote::after {
+  content: "\201D";
+  color: hsla(45, 70%, 58%, 0.75);
 }
 
 .cwr-landing-spotlight-cta {
@@ -32889,15 +32892,93 @@ html:has(body.home-page-active) {
   list-style: none;
 }
 
+/* One card per client: head row, then Homepage / Outcome / Testimonial blocks. */
 .admin-social-proof-row {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--jet);
   border-radius: 14px;
   background: var(--eerie-black-2);
+}
+
+.admin-social-proof-head {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-social-proof-proof {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.admin-social-proof-block,
+.admin-social-proof-unused-item {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  background: hsla(0, 0%, 100%, 0.02);
+}
+
+.admin-social-proof-kicker {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: var(--fw-600);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--light-gray-70);
+}
+
+.admin-social-proof-text {
+  margin: 0;
+  font-size: var(--fs-7);
+  line-height: 1.5;
+  color: var(--light-gray);
+  overflow-wrap: anywhere;
+}
+
+.admin-social-proof-text strong {
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-social-proof-stars {
+  display: inline;
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-social-proof-block-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 0;
+}
+
+.admin-social-proof-link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.admin-social-proof-unused {
+  margin-top: 24px;
+}
+
+.admin-social-proof-unused-list {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .admin-social-proof-logo {
@@ -32990,7 +33071,7 @@ html:has(body.home-page-active) {
 }
 
 @media (max-width: 580px) {
-  .admin-social-proof-row {
+  .admin-social-proof-head {
     grid-template-columns: 40px minmax(0, 1fr);
   }
 
@@ -33075,6 +33156,11 @@ html:has(body.home-page-active) {
 
 .social-proof-delete {
   margin-top: 8px;
+}
+
+/* Focused from script so it stays in view; it's a message, not a control. */
+.social-proof-errors:focus {
+  outline: none;
 }
 
 .social-proof-errors {

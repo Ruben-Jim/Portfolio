@@ -32,6 +32,7 @@ ok(item.$other && item.$other['.validate'] === false, 'no other fields allowed')
 ok(/<= 80/.test(item.client['.validate']) && /length > 0/.test(item.client['.validate']), 'client 1–80');
 ok(/<= 12/.test(item.stat['.validate']) && /<= 200/.test(item.summary['.validate']) && /<= 500/.test(item.logoUrl['.validate']), 'stat / summary / logo limits');
 ok(/app\|client/.test(item.source['.validate']), 'source is app | client | blank');
+ok(/<= 60/.test((item.tagline || {})['.validate'] || ''), 'tagline (bottom line) up to 60');
 ok(/isBoolean/.test(item.published['.validate']) && /isNumber/.test(item.order['.validate']), 'published boolean, order number');
 
 const det = rules.socialProofDetails;

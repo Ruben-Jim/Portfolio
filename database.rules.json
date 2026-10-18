@@ -256,6 +256,7 @@
         "source": { ".validate": "newData.isString() && newData.val().matches(/^(app|client)?$/)" },
         "asOf": { ".validate": "newData.isString() && newData.val().matches(/^([0-9]{4}-(0[1-9]|1[0-2]))?$/)" },
         "summary": { ".validate": "newData.isString() && newData.val().length <= 200" },
+        "tagline": { ".validate": "newData.isString() && newData.val().length <= 60" },
         "projectId": { ".validate": "newData.isString() && newData.val().length <= 64" },
         "published": { ".validate": "newData.isBoolean()" },
         "order": { ".validate": "newData.isNumber()" },

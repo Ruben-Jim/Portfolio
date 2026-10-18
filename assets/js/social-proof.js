@@ -10,7 +10,7 @@
   var MAX = 6;
   var CHECK_IN_DAYS = 60;
   var MINUS = '−';
-  var LIMITS = { client: 80, logoUrl: 500, stat: 12, label: 80, summary: 200, note: 500, count: 24 };
+  var LIMITS = { client: 80, logoUrl: 500, stat: 12, label: 80, summary: 200, tagline: 60, note: 500, count: 24 };
   var MONTH_RE = /^(\d{4})-(0[1-9]|1[0-2])$/;
   var DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -20,18 +20,21 @@
       id: 'builtin-rizo', client: "Rizo's Pizzeria", logoUrl: '/assets/images/logo/logo-2-color.png',
       stat: '', label: '', source: '', asOf: '',
       summary: 'Online ordering with real-time order tracking for customers and a kitchen dashboard that keeps every order moving.',
+      tagline: 'Restaurant · online ordering',
       projectId: '', published: true, order: 10, updatedAt: 0
     },
     {
       id: 'builtin-shelton', client: 'Shelton Springs HOA', logoUrl: '/assets/images/logo/logo-1-color.png',
       stat: '', label: '', source: '', asOf: '',
       summary: 'A resident portal and board tools built for how the neighborhood actually runs day to day.',
+      tagline: 'HOA · management portal',
       projectId: '', published: true, order: 20, updatedAt: 0
     },
     {
       id: 'builtin-procleaning', client: 'ProCleaning Seattle', logoUrl: '/assets/images/logo/logo-3-color.png',
       stat: '', label: '', source: '', asOf: '',
       summary: 'Field service workflows that keep crews, schedules, and customers in sync from the job site.',
+      tagline: 'Cleaning · field service',
       projectId: '', published: true, order: 30, updatedAt: 0
     }
   ];
@@ -91,10 +94,14 @@
     return (lang === 'es' ? MONTHS.es : MONTHS.en)[Number(m[2]) - 1] + ' ' + m[1];
   }
 
-  /** "Rizo's Pizzeria · From the app · Sep 2026" (blank parts skipped). */
+  /**
+   * The small bottom line: "Restaurant · online ordering · From the app · Sep 2026".
+   * Blank parts are skipped; no tagline falls back to the client's name.
+   */
   function metaLine(entry, lang) {
     var e = entry || {};
-    return [String(e.client || ''), sourceLabel(e.source, lang), monthLabel(e.asOf, lang)]
+    var lead = String(e.tagline || '').trim() || String(e.client || '');
+    return [lead, sourceLabel(e.source, lang), monthLabel(e.asOf, lang)]
       .filter(Boolean)
       .join(' · ');
   }
@@ -122,6 +129,7 @@
       source: r.source === 'app' || r.source === 'client' ? r.source : '',
       asOf: MONTH_RE.test(String(r.asOf || '')) ? String(r.asOf) : '',
       summary: str(r.summary, LIMITS.summary),
+      tagline: str(r.tagline, LIMITS.tagline),
       projectId: /^[A-Za-z0-9_-]{1,64}$/.test(String(r.projectId || '')) ? String(r.projectId) : '',
       published: r.published === true,
       order: isFinite(order) ? order : 0,
@@ -201,6 +209,77 @@
     return (now - launch) / 86400000 >= CHECK_IN_DAYS;
   }
 
+  /** "Rizo’s Pizzeria!" → "rizos pizzeria": matches a testimonial's business to an entry. */
+  function nameKey(s) {
+    return String(s == null ? '' : s)
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/['’`]/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim()
+      .replace(/^the /, '');
+  }
+
+  function newestFirst(a, b) {
+    return (Number(b.createdMs) || 0) - (Number(a.createdMs) || 0);
+  }
+
+  /** Testimonials from this entry's business, newest first. */
+  function testimonialsFor(entry, testimonials) {
+    var key = nameKey(entry && entry.client);
+    if (!key) return [];
+    return (testimonials || [])
+      .filter(function (t) { return t && nameKey(t.company) === key; })
+      .sort(newestFirst);
+  }
+
+  /** The linked portfolio project, when it has an Outcome. */
+  function outcomeFor(entry, projects) {
+    if (!entry || !entry.projectId) return null;
+    var p = (projects || []).filter(function (x) { return x && x.id === entry.projectId; })[0];
+    return p && String(p.outcome || '').trim() ? p : null;
+  }
+
+  /** Proof no entry uses yet: unmatched testimonials, unlinked client Outcomes. */
+  function unusedProof(entries, testimonials, projects) {
+    var names = {};
+    var linked = {};
+    (entries || []).forEach(function (e) {
+      var k = nameKey(e && e.client);
+      if (k) names[k] = true;
+      if (e && e.projectId) linked[e.projectId] = true;
+    });
+    return {
+      testimonials: (testimonials || [])
+        .filter(function (t) { return t && !names[nameKey(t.company)]; })
+        .sort(newestFirst),
+      outcomes: (projects || []).filter(function (p) {
+        return p && p.isTemplate !== true && String(p.outcome || '').trim() && !linked[p.id];
+      })
+    };
+  }
+
+  /** First paragraph, cut to the quote limit at a word. */
+  function quoteFromText(text) {
+    var first = String(text == null ? '' : text)
+      .split(/\n\s*\n/)
+      .map(function (p) { return p.replace(/\s+/g, ' ').trim(); })
+      .filter(Boolean)[0] || '';
+    if (first.length <= LIMITS.summary) return first;
+    var cut = first.slice(0, LIMITS.summary - 1);
+    var space = cut.lastIndexOf(' ');
+    return (space > 80 ? cut.slice(0, space) : cut).replace(/[\s,;:.–—-]+$/, '') + '…';
+  }
+
+  /** "Roberto Rizo · Owner, Rizo's Pizzeria" for the bottom line (≤ 60). */
+  function creditFromTestimonial(t) {
+    var x = t || {};
+    var where = [String(x.title || '').trim(), String(x.company || '').trim()].filter(Boolean).join(', ');
+    var s = [String(x.name || '').trim(), where].filter(Boolean).join(' · ');
+    if (s.length <= LIMITS.tagline) return s;
+    return s.slice(0, LIMITS.tagline - 1).replace(/[\s,·]+$/, '') + '…';
+  }
+
   var api = {
     BUILT_IN: BUILT_IN,
     MAX: MAX,
@@ -217,7 +296,13 @@
     sanitizeDetails: sanitizeDetails,
     validate: validate,
     visibleEntries: visibleEntries,
-    checkInDue: checkInDue
+    checkInDue: checkInDue,
+    nameKey: nameKey,
+    testimonialsFor: testimonialsFor,
+    outcomeFor: outcomeFor,
+    unusedProof: unusedProof,
+    quoteFromText: quoteFromText,
+    creditFromTestimonial: creditFromTestimonial
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.SocialProof = api;

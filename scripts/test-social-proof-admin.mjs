@@ -56,3 +56,21 @@ ok(!/built-in/i.test(T.confirmDeleteText({ id: 'a', entry: { client: 'A' } }, [{
 const m = T.checkInEmail({ client: "Rizo's Pizzeria" });
 ok(m.subject === "Quick check-in on Rizo's Pizzeria", 'subject names the client');
 ok(/rough number is perfect/i.test(m.message) && /only share it on my site with your OK/i.test(m.message), 'asks for one number and consent');
+
+// ── Social proof tab: prefill helpers ──
+const tdoc = T.testimonialFromDoc('t1', { name: ' Roberto Rizo ', title: 'Owner', company: "Rizo's Pizzeria", text: 'Ruben built it.\n\nMore.', rating: 5, createdAt: { toMillis: () => 1234 }, private: { privateNotes: 'secret' } });
+ok(tdoc.id === 't1' && tdoc.name === 'Roberto Rizo' && tdoc.createdMs === 1234 && !('private' in tdoc), 'testimonialFromDoc keeps public fields only (no private answers)');
+ok(T.testimonialFromDoc('t2', { createdAt: { seconds: 5 } }).createdMs === 5000 && T.testimonialFromDoc('t3', {}).createdMs === 0, 'createdMs from seconds / missing');
+const pt = T.prefillFromTestimonial(tdoc);
+ok(pt.summary === 'Ruben built it.' && pt.tagline === "Roberto Rizo · Owner, Rizo's Pizzeria", 'use testimonial: their words + who said it');
+ok(T.prefillFromOutcome({ outcome: 'Orders online.\n\nMore.' }).summary === 'Orders online.' && !('tagline' in T.prefillFromOutcome({ outcome: 'x' })), 'use outcome: quote only, bottom line untouched');
+const nt = T.newEntryFromTestimonial(tdoc);
+ok(nt.client === "Rizo's Pizzeria" && nt.published === false && nt.tagline === pt.tagline, 'add testimonial: new draft named after the business');
+ok(T.newEntryFromTestimonial({ name: 'Solo Person', text: 'Hi' }).client === 'Solo Person', 'add testimonial with no business: uses the person');
+const no = T.newEntryFromOutcome({ id: 'p2', title: 'Shelton Springs HOA', outcome: 'One portal.' });
+ok(no.client === 'Shelton Springs HOA' && no.projectId === 'p2' && no.summary === 'One portal.' && no.published === false, 'add outcome: new draft linked to the project');
+
+// Using a testimonial on an entry that shows a number: the quote is filled, but the bottom
+// line under the number stays (otherwise the number reads as reported by that person).
+ok(JSON.stringify(T.testimonialPrefillFor({ stat: '86' }, tdoc)) === JSON.stringify({ summary: 'Ruben built it.' }), 'number entry: Use testimonial fills the quote only');
+ok(T.testimonialPrefillFor({ stat: '' }, tdoc).tagline === "Roberto Rizo · Owner, Rizo's Pizzeria", 'no number: quote + credit');
