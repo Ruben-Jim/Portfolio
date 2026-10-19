@@ -6746,26 +6746,14 @@ body.package-examples-open {
 /* .modal-container defaults to z-index 20, which sits UNDER the admin
    dashboard chrome - a modal left off this list renders behind the page while
    its overlay still swallows clicks, so it reads as a frozen screen. */
-#delete-hub-confirm-modal.modal-container,
-#delete-referral-confirm-modal.modal-container,
-#delete-maint-confirm-modal.modal-container,
-#email-clear-day-confirm-modal.modal-container {
-  z-index: 10085;
-}
 
-#delete-hub-confirm-modal.modal-container.active,
-#delete-referral-confirm-modal.modal-container.active,
-#delete-maint-confirm-modal.modal-container.active,
-#email-clear-day-confirm-modal.modal-container.active,
+
 #graduate-client-confirm-modal.modal-container.active {
   visibility: visible;
   pointer-events: auto;
 }
 
-#delete-lead-confirm-modal.modal-container,
-#cancel-booking-confirm-modal.modal-container,
 #reschedule-booking-modal.modal-container {
-  z-index: 10080;
 }
 
 .overlay {
@@ -13534,7 +13522,6 @@ body.project-modal-open {
   align-items: center;
   overflow-y: auto;
   overscroll-behavior: contain;
-  z-index: 10050;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -13544,15 +13531,12 @@ body.project-modal-open {
 /* Above client workspace drawer (10060/10061) when opened from Create client showcase.
    Note: openPortfolioProjectModal also sets inline z-index (must stay >= 10100). */
 #portfolio-project-modal.add-blog-modal {
-  z-index: 10100;
 }
 
 body.portfolio-project-modal-open .cp-client-drawer-overlay {
-  z-index: 10040;
 }
 
 body.portfolio-project-modal-open .cp-client-drawer {
-  z-index: 10041;
 }
 
 .add-blog-modal.active {
@@ -13679,7 +13663,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
   align-items: center;
   overflow-y: auto;
   overscroll-behavior: contain;
-  z-index: 10050;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -15314,7 +15297,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
 .blog-tiptap-image-modal {
   position: fixed;
   inset: 0;
-  z-index: 10050;
   display: none;
   align-items: center;
   justify-content: center;
@@ -15903,13 +15885,8 @@ body.portfolio-project-modal-open .cp-client-drawer {
   }
 
   .business-doc-modal,
-.agency-modal,
-#delete-hub-confirm-modal.modal-container,
-#delete-referral-confirm-modal.modal-container,
-#delete-maint-confirm-modal.modal-container,
-#delete-lead-confirm-modal.modal-container,
-#cancel-booking-confirm-modal.modal-container,
-#graduate-client-confirm-modal.modal-container {
+  .agency-modal,
+  #graduate-client-confirm-modal.modal-container {
     align-items: flex-end;
     justify-content: flex-end;
     overflow: hidden;
@@ -15917,16 +15894,9 @@ body.portfolio-project-modal-open .cp-client-drawer {
   }
 
   .business-doc-modal.active .business-doc-modal-overlay,
-.agency-modal.active .agency-modal-overlay,
-#delete-hub-confirm-modal.active .overlay,
-#delete-referral-confirm-modal.active .overlay,
-#delete-maint-confirm-modal.active .overlay,
-#delete-lead-confirm-modal.active .overlay,
-#cancel-booking-confirm-modal.active .overlay,
-#graduate-client-confirm-modal.active .overlay,
-#tc-timer-drawer.active .overlay,
-#delete-time-entry-confirm-modal.active .overlay,
-#email-clear-day-confirm-modal.active .overlay {
+  .agency-modal.active .agency-modal-overlay,
+  #graduate-client-confirm-modal.active .overlay,
+  #tc-timer-drawer.active .overlay {
     background: rgba(0, 0, 0, 0.62);
     -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
@@ -15934,15 +15904,10 @@ body.portfolio-project-modal-open .cp-client-drawer {
   }
 
   .business-doc-modal-content,
-.agency-modal-content,
-.agency-modal-content--wide,
-.agency-modal-content--full,
-#delete-hub-confirm-modal .confirm-delete-modal,
-#delete-referral-confirm-modal .confirm-delete-modal,
-#delete-maint-confirm-modal .confirm-delete-modal,
-#delete-lead-confirm-modal .confirm-delete-modal,
-#cancel-booking-confirm-modal .confirm-delete-modal,
-#graduate-client-confirm-modal .confirm-delete-modal {
+  .agency-modal-content,
+  .agency-modal-content--wide,
+  .agency-modal-content--full,
+  #graduate-client-confirm-modal .confirm-delete-modal {
     display: flex;
     flex-direction: column;
     margin: 0;
@@ -15966,20 +15931,13 @@ body.portfolio-project-modal-open .cp-client-drawer {
   .agency-modal.active .agency-modal-content,
   .agency-modal.active .agency-modal-content--wide,
   .agency-modal.active .agency-modal-content--full,
-  #delete-hub-confirm-modal.active .confirm-delete-modal,
-  #delete-referral-confirm-modal.active .confirm-delete-modal,
-  #delete-maint-confirm-modal.active .confirm-delete-modal,
-  #delete-lead-confirm-modal.active .confirm-delete-modal,
-  #cancel-booking-confirm-modal.active .confirm-delete-modal,
   #graduate-client-confirm-modal.active .confirm-delete-modal {
     transform: translate3d(0, 0, 0);
     visibility: visible;
     pointer-events: auto;
   }
 
-  #tc-timer-drawer.active .confirm-delete-modal,
-  #delete-time-entry-confirm-modal.active .confirm-delete-modal,
-  #email-clear-day-confirm-modal.active .confirm-delete-modal {
+  #tc-timer-drawer.active .confirm-delete-modal {
     transform: translate3d(0, 0, 0);
     visibility: visible;
     pointer-events: auto;
@@ -15999,15 +15957,10 @@ body.portfolio-project-modal-open .cp-client-drawer {
   }
 
   .business-doc-modal-content::before,
-.agency-modal-content::before,
-.agency-modal-content--wide::before,
-.agency-modal-content--full::before,
-#delete-hub-confirm-modal .confirm-delete-modal::before,
-#delete-referral-confirm-modal .confirm-delete-modal::before,
-#delete-maint-confirm-modal .confirm-delete-modal::before,
-#delete-lead-confirm-modal .confirm-delete-modal::before,
-#cancel-booking-confirm-modal .confirm-delete-modal::before,
-#graduate-client-confirm-modal .confirm-delete-modal::before {
+  .agency-modal-content::before,
+  .agency-modal-content--wide::before,
+  .agency-modal-content--full::before,
+  #graduate-client-confirm-modal .confirm-delete-modal::before {
     content: '';
     display: block;
     flex-shrink: 0;
@@ -16207,7 +16160,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    z-index: 10001 !important;
     border-radius: 0 !important;
   }
 
@@ -16254,7 +16206,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
   align-items: center;
   overflow-y: auto;
   overscroll-behavior: contain;
-  z-index: 30;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -17962,7 +17913,6 @@ body.portfolio-project-modal-open .cp-client-drawer {
 .admin-email-reply-confirm-modal {
   position: fixed;
   inset: 0;
-  z-index: 10090;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -18046,7 +17996,6 @@ article.admin[data-page="admin"].active.admin-email-reply-modal-open {
 .admin-email-drawer {
   position: fixed;
   inset: 0;
-  z-index: 10040;
   opacity: 0;
   pointer-events: none;
   transition: opacity 160ms ease;
@@ -19956,7 +19905,6 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   align-items: center;
   overflow-y: auto;
   overscroll-behavior: contain;
-  z-index: 20;
   pointer-events: none;
   visibility: hidden;
 }
@@ -20044,17 +19992,6 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
 }
 
 /* Delete confirmations — contact / blog / business docs; stacks above drawers & editor modals */
-#delete-contact-confirm-modal,
-#delete-dm-conversation-confirm-modal,
-#delete-blog-confirm-modal,
-#delete-document-confirm-modal,
-#delete-portfolio-confirm-modal,
-#delete-testimonial-confirm-modal,
-#delete-hub-confirm-modal,
-#delete-maint-confirm-modal,
-#delete-referral-confirm-modal,
-#delete-lead-confirm-modal,
-#cancel-booking-confirm-modal,
 #graduate-client-confirm-modal {
   position: fixed;
   top: 0;
@@ -20070,33 +20007,20 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   visibility: hidden;
 }
 
-#delete-contact-confirm-modal {
-  z-index: 10030;
-}
 
-#delete-blog-confirm-modal {
-  z-index: 10040;
-}
 
-#delete-document-confirm-modal {
-  z-index: 10050;
-}
 
-#delete-portfolio-confirm-modal {
-  z-index: 10060;
-}
 
-#delete-testimonial-confirm-modal {
-  z-index: 10070;
-}
 
-#delete-dm-conversation-confirm-modal {
-  z-index: 10075;
-}
+
+
+
+
+
+
 
 /* Body-level confirm — must beat portfolio editor inline z-index (10100) */
 #portfolio-unsaved-confirm-modal {
-  z-index: 10150;
 }
 
 #portfolio-unsaved-confirm-modal.active {
@@ -20158,48 +20082,19 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   pointer-events: auto;
 }
 
-#delete-hub-confirm-modal,
-#delete-maint-confirm-modal,
-#delete-referral-confirm-modal,
 #graduate-client-confirm-modal {
-  z-index: 10085;
 }
 
-#delete-lead-confirm-modal,
-#cancel-booking-confirm-modal,
 #reschedule-booking-modal {
-  z-index: 10090;
 }
 
-#delete-contact-confirm-modal.active,
-#delete-dm-conversation-confirm-modal.active,
-#delete-blog-confirm-modal.active,
-#delete-document-confirm-modal.active,
-#delete-portfolio-confirm-modal.active,
-#delete-testimonial-confirm-modal.active,
-#delete-lead-confirm-modal.active,
-#cancel-booking-confirm-modal.active,
 #reschedule-booking-modal.active,
-#delete-hub-confirm-modal.active,
-#delete-maint-confirm-modal.active,
-#delete-referral-confirm-modal.active,
 #graduate-client-confirm-modal.active {
   pointer-events: all;
   visibility: visible;
 }
 
-#delete-contact-confirm-modal .overlay,
-#delete-dm-conversation-confirm-modal .overlay,
-#delete-blog-confirm-modal .overlay,
-#delete-document-confirm-modal .overlay,
-#delete-portfolio-confirm-modal .overlay,
-#delete-testimonial-confirm-modal .overlay,
-#delete-lead-confirm-modal .overlay,
-#cancel-booking-confirm-modal .overlay,
 #reschedule-booking-modal .overlay,
-#delete-hub-confirm-modal .overlay,
-#delete-maint-confirm-modal .overlay,
-#delete-referral-confirm-modal .overlay,
 #graduate-client-confirm-modal .overlay {
   position: fixed;
   top: 0;
@@ -20214,22 +20109,9 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   transition: var(--transition-1);
 }
 
-#delete-contact-confirm-modal.active .overlay,
-#delete-blog-confirm-modal.active .overlay,
-#delete-document-confirm-modal.active .overlay,
-#delete-portfolio-confirm-modal.active .overlay,
-#delete-hub-confirm-modal.active .overlay,
-#delete-referral-confirm-modal.active .overlay,
-#delete-maint-confirm-modal.active .overlay,
-#delete-testimonial-confirm-modal.active .overlay,
-#delete-dm-conversation-confirm-modal.active .overlay,
-#delete-lead-confirm-modal.active .overlay,
-#cancel-booking-confirm-modal.active .overlay,
 #reschedule-booking-modal.active .overlay,
 #graduate-client-confirm-modal.active .overlay,
-#tc-timer-drawer.active .overlay,
-#delete-time-entry-confirm-modal.active .overlay,
-#email-clear-day-confirm-modal.active .overlay {
+#tc-timer-drawer.active .overlay {
   opacity: 0.85;
   visibility: visible;
   pointer-events: all;
@@ -20252,17 +20134,6 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   overflow: hidden;
 }
 
-#delete-contact-confirm-modal.active .confirm-delete-modal,
-#delete-blog-confirm-modal.active .confirm-delete-modal,
-#delete-document-confirm-modal.active .confirm-delete-modal,
-#delete-portfolio-confirm-modal.active .confirm-delete-modal,
-#delete-hub-confirm-modal.active .confirm-delete-modal,
-#delete-referral-confirm-modal.active .confirm-delete-modal,
-#delete-maint-confirm-modal.active .confirm-delete-modal,
-#delete-testimonial-confirm-modal.active .confirm-delete-modal,
-#delete-dm-conversation-confirm-modal.active .confirm-delete-modal,
-#delete-lead-confirm-modal.active .confirm-delete-modal,
-#cancel-booking-confirm-modal.active .confirm-delete-modal,
 #reschedule-booking-modal.active .confirm-delete-modal,
 #graduate-client-confirm-modal.active .confirm-delete-modal {
   transform: scale(1);
@@ -20271,9 +20142,7 @@ body.admin-contact-detail-open #admin-dashboard-content .admin-tab-panels {
   pointer-events: auto;
 }
 
-#tc-timer-drawer.active .confirm-delete-modal,
-#delete-time-entry-confirm-modal.active .confirm-delete-modal,
-#email-clear-day-confirm-modal.active .confirm-delete-modal {
+#tc-timer-drawer.active .confirm-delete-modal {
   transform: scale(1);
   opacity: 1;
   visibility: visible;
@@ -24262,7 +24131,6 @@ body.modal-open {
 .ops-doc-sheet-root {
   position: fixed;
   inset: 0;
-  z-index: 10060;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -25489,7 +25357,6 @@ body.ops-doc-sheet-open {
 .admin-contact-detail {
   position: fixed;
   inset: 0;
-  z-index: 9998;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -25673,7 +25540,6 @@ body.admin-contact-detail-open {
 .admin-testimonial-detail {
   position: fixed;
   inset: 0;
-  z-index: 9998;
   pointer-events: none;
   visibility: hidden;
   opacity: 0;
@@ -27742,7 +27608,6 @@ body.admin-testimonial-detail-open {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
-  z-index: 9998;
 }
 
 .lead-drawer {
@@ -27752,7 +27617,6 @@ body.admin-testimonial-detail-open {
   width: min(420px, 100vw);
   height: 100vh;
   height: 100dvh;
-  z-index: 9999;
   display: flex;
   flex-direction: column;
   background: var(--eerie-black-1);
@@ -29170,7 +29034,6 @@ body.admin-tab-reorder-active::before {
 .admin-client-email-preview-modal {
   position: fixed;
   inset: 0;
-  z-index: 10060;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -33189,4 +33052,145 @@ html:has(body.home-page-active) {
   background: hsla(0, 43%, 51%, 0.1);
   font-size: var(--fs-7);
   color: var(--bittersweet-shimmer);
+}
+
+/* =============================================
+   CwrUI — shared dialog + notices (assets/js/admin-ui.js)
+   Use CwrUI.confirm / choose / prompt / toast, never the browser's popups.
+   ============================================= */
+#cwr-dialog {
+  z-index: var(--z-confirm, 100100);
+}
+
+/* .confirm-delete-modal starts faded out (opacity 0, scaled); the open dialog shows it. */
+#cwr-dialog.active .confirm-delete-modal {
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+#cwr-dialog .confirm-delete-modal__body p[hidden],
+#cwr-dialog [hidden] {
+  display: none !important;
+}
+
+.cwr-dialog-label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 13px;
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+}
+
+#cwr-dialog-input {
+  width: 100%;
+  margin-top: 4px;
+}
+
+/* Notices: the timer's slide-up toast, shared. */
+.cwr-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-toast, 100200);
+  max-width: min(420px, calc(100vw - 24px));
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid hsla(45, 100%, 72%, 0.28);
+  background: hsla(240, 12%, 8%, 0.94);
+  color: var(--white-2);
+  font-size: var(--fs-8);
+  line-height: 1.4;
+  box-shadow: 0 14px 40px hsla(0, 0%, 0%, 0.45);
+  transform: translateX(-50%) translateY(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cwr-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.cwr-toast-msg {
+  display: inline;
+  flex: 1 1 auto;
+}
+
+.cwr-toast-action {
+  flex-shrink: 0;
+  appearance: none;
+  border: 1px solid hsla(45, 100%, 72%, 0.4);
+  background: hsla(45, 100%, 72%, 0.12);
+  color: var(--orange-yellow-crayola);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font: inherit;
+  font-weight: var(--fw-600);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.cwr-toast-action:hover,
+.cwr-toast-action:focus-visible {
+  background: hsla(45, 100%, 72%, 0.22);
+  border-color: hsla(45, 100%, 72%, 0.6);
+}
+
+.cwr-toast.is-error {
+  border-color: hsla(6, 70%, 55%, 0.45);
+  color: hsl(6, 80%, 82%);
+}
+
+.cwr-toast.is-success {
+  border-color: hsla(140, 50%, 55%, 0.45);
+}
+
+@media (max-width: 767px) {
+  body.admin-page-active.tc-timer-bar-active .cwr-toast {
+    bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cwr-toast {
+    transition: none;
+  }
+}
+
+/* =============================================
+   LAYERS — one stacking order for the admin.
+   Every admin overlay root carries data-layer; never give one a z-index number.
+   A child overlay sits on a higher layer than the one it opens from.
+   ============================================= */
+:root {
+  --z-float: 100;          /* floating buttons (timer chip, timer bar) */
+  --z-drawer: 10000;       /* drawers, sheets */
+  --z-modal: 10100;        /* modals */
+  --z-modal-raised: 10150; /* a modal opened from inside a modal */
+  --z-fullscreen: 100010;  /* post builder editor (above the cookie banner at 99999) */
+  --z-confirm: 100100;     /* CwrUI dialog + confirm popups */
+  --z-toast: 100200;       /* CwrUI notices */
+}
+
+body [data-layer="drawer"] { z-index: var(--z-drawer); }
+body [data-layer="modal"] { z-index: var(--z-modal); }
+body [data-layer="modal-raised"] { z-index: var(--z-modal-raised); }
+body [data-layer="confirm"] { z-index: var(--z-confirm); }
+
+/* Page-level dimming behind a drawer: just under the drawer it belongs to. */
+body [data-layer-backdrop="drawer"] { z-index: calc(var(--z-drawer) - 1); }
+body [data-layer-backdrop="modal"] { z-index: calc(var(--z-modal) - 1); }
+
+/* Floating buttons step aside while any overlay is open (CwrUI.watchOverlays). */
+body.cwr-overlay-open [data-float] {
+  visibility: hidden !important;
+  pointer-events: none !important;
 }

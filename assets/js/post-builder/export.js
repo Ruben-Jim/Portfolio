@@ -3,8 +3,8 @@
  * Rasterizes each slide at native size in an off-screen host with html-to-image,
  * the same approach as rasterize() in assets/js/ig-posts.js.
  */
-import { FORMATS, TILE_NAMES, clone, slugify } from './model.js?v=pb2';
-import { renderSlide, layoutSlide, waitForImages, ensureFonts } from './render.js?v=pb2';
+import { FORMATS, TILE_NAMES, clone, slugify } from './model.js?v=pb3';
+import { renderSlide, layoutSlide, waitForImages, ensureFonts } from './render.js?v=pb3';
 
 var h2iPromise = null;
 var zipPromise = null;

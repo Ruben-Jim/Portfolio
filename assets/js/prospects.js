@@ -898,9 +898,13 @@
           .then(function () { status('Saved.'); }));
       } else if (act === 'delete') {
         var p = byId[id];
-        if (p && global.confirm('Delete “' + p.business + '” from Prospects? Its outreach log goes with it.')) {
-          delete expanded[id];
-          run(removeProspect(id));
+        if (p) {
+          global.CwrUI.confirm({ title: 'Delete prospect?', message: 'Delete “' + p.business + '” from Prospects? Its outreach log goes with it.', confirmLabel: 'Delete', tone: 'danger' })
+            .then(function (ok) {
+              if (!ok) return;
+              delete expanded[id];
+              run(removeProspect(id));
+            });
         }
       } else if (act === 'commit-import') run(commitImport());
       else if (act === 'cancel-import') { pendingImport = null; renderImportPreview(); }

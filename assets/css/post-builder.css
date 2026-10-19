@@ -134,7 +134,7 @@ html.pb-modal-open body { overflow: hidden; }
 .pb-editor {
   position: fixed;
   inset: 0;
-  z-index: 100010; /* above the site cookie banner (99999) and admin toasts */
+  z-index: var(--z-fullscreen); /* above the site cookie banner (99999); confirms and notices sit higher */
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--pb-bg);
@@ -745,7 +745,7 @@ html.pb-modal-open body { overflow: hidden; }
 .pb-modal {
   position: fixed;
   inset: 0;
-  z-index: 100005;
+  z-index: calc(var(--z-fullscreen) - 5);
   display: grid;
   place-items: center;
   padding: 16px;

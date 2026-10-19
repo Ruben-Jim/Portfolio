@@ -71,6 +71,7 @@
     var modal = document.createElement('div');
     modal.id = 'blog-tiptap-image-modal';
     modal.className = 'blog-tiptap-image-modal';
+    modal.setAttribute('data-layer', 'modal-raised');
     modal.setAttribute('aria-hidden', 'true');
     modal.innerHTML =
       '<div class="blog-tiptap-image-overlay" data-close="1"></div>' +
@@ -484,10 +485,10 @@
     this._syncToolbarActive();
   };
 
-  BlogTipTapEditor.prototype._promptLink = function () {
+  BlogTipTapEditor.prototype._promptLink = async function () {
     if (!this.editor) return;
     var prev = this.editor.getAttributes('link').href || '';
-    var url = window.prompt('Link URL', prev || 'https://');
+    var url = await window.CwrUI.prompt({ title: 'Link', label: 'Link URL', value: prev || 'https://', confirmLabel: 'Apply' });
     if (url === null) return;
     url = String(url).trim();
     if (!url) {

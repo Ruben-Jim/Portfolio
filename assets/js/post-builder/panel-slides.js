@@ -1,9 +1,9 @@
 /**
  * Post builder — "Slides" pane: live mini previews, switch, add, duplicate, reorder, delete.
  */
-import { FORMATS, MAX_SLIDES, clone } from './model.js?v=pb2';
-import { renderSlide, layoutSlide } from './render.js?v=pb2';
-import { uiIcon } from './icons.js?v=pb2';
+import { FORMATS, MAX_SLIDES, clone } from './model.js?v=pb3';
+import { renderSlide, layoutSlide } from './render.js?v=pb3';
+import { uiIcon } from './icons.js?v=pb3';
 
 var THUMB_W = 120;
 var THUMB_W_WIDE = 190;
@@ -58,7 +58,8 @@ export function renderSlidesPane(container, ctx) {
       case 'down': ctx.moveSlide(i, 1); break;
       case 'duplicate': ctx.duplicateSlide(i); break;
       case 'delete':
-        if (window.confirm('Delete slide ' + (i + 1) + '?')) ctx.removeSlide(i);
+        window.CwrUI.confirm({ title: 'Delete slide ' + (i + 1) + '?', confirmLabel: 'Delete', tone: 'danger' })
+          .then(function (ok) { if (ok) ctx.removeSlide(i); });
         break;
     }
   };

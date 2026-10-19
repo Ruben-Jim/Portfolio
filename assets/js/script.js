@@ -1163,7 +1163,7 @@ function initSnippetManagementUI() {
 
   const list = document.getElementById('admin-snippets-list');
   if (list) {
-    list.addEventListener('click', function (e) {
+    list.addEventListener('click', async function (e) {
       const editBtn = e.target.closest('[data-edit-snippet]');
       const delBtn = e.target.closest('[data-delete-snippet]');
       if (editBtn) {
@@ -1173,7 +1173,8 @@ function initSnippetManagementUI() {
       }
       if (delBtn) {
         const id = delBtn.getAttribute('data-delete-snippet');
-        if (!id || !confirm('Delete this snippet?')) return;
+        if (!id) return;
+        if (!(await window.CwrUI.confirm({ title: 'Delete this snippet?', confirmLabel: 'Delete', tone: 'danger' }))) return;
         const next = loadSnippetsArray().filter((s) => s.id !== id);
         saveSnippetsArray(next);
       }
@@ -1777,7 +1778,7 @@ class BlogEditor {
     });
   }
 
-  executeCommand(command) {
+  async executeCommand(command) {
     this.textarea.focus();
     const start = this.textarea.selectionStart;
     const end = this.textarea.selectionEnd;
@@ -1837,7 +1838,7 @@ class BlogEditor {
         cursorPos = start + newText.length;
         break;
       case 'insertLink':
-        const url = prompt('Enter URL:', 'https://');
+        const url = await window.CwrUI.prompt({ title: 'Insert link', label: 'URL', value: 'https://', confirmLabel: 'Insert' });
         if (url) {
           newText = `[${selectedText || 'link text'}](${url})`;
           cursorPos = start + (selectedText ? newText.length : 11);
@@ -1846,7 +1847,7 @@ class BlogEditor {
         }
         break;
       case 'insertImage':
-        const imageUrl = prompt('Enter image URL:', 'https://');
+        const imageUrl = await window.CwrUI.prompt({ title: 'Insert image', label: 'Image URL', value: 'https://', confirmLabel: 'Insert' });
         if (imageUrl) {
           newText = `![${selectedText || 'Alt text'}](${imageUrl})`;
           cursorPos = start + (selectedText ? newText.length : 13);
@@ -2547,38 +2548,24 @@ if (editBlogForm) {
   });
 }
 
-function closeDeleteBlogConfirmModal() {
-  const modal = document.getElementById('delete-blog-confirm-modal');
-  if (!modal) return;
-  modal.classList.remove('active');
-  modal.setAttribute('aria-hidden', 'true');
-  delete modal.dataset.pendingPostId;
+/** Ask first with the shared dialog (CwrUI), then delete the blog post. */
+async function confirmDeleteBlogPost(postId) {
+  if (!postId) return;
+  const ok = await window.CwrUI.confirm({
+    title: 'Delete blog post?',
+    message: 'This permanently removes the blog post. This cannot be undone.',
+    confirmLabel: 'Delete',
+    tone: 'danger'
+  });
+  if (ok) await deleteBlogPostConfirmed(postId);
 }
 
-function openDeleteBlogConfirmModal(postId) {
-  const modal = document.getElementById('delete-blog-confirm-modal');
-  if (!modal || !postId) return;
-  modal.dataset.pendingPostId = postId;
-  modal.classList.add('active');
-  modal.setAttribute('aria-hidden', 'false');
-  const cancelBtn = document.getElementById('delete-blog-confirm-cancel');
-  if (cancelBtn) {
-    setTimeout(function () {
-      cancelBtn.focus();
-    }, 40);
-  }
-}
-
-async function handleDeleteBlogConfirmClick() {
-  const modal = document.getElementById('delete-blog-confirm-modal');
-  const postId = modal && modal.dataset ? modal.dataset.pendingPostId : '';
+async function deleteBlogPostConfirmed(postId) {
   if (!postId) {
-    closeDeleteBlogConfirmModal();
     return;
   }
   if (!isAdmin()) {
     showErrorMessage('Access denied. Admin privileges required to delete blog posts.');
-    closeDeleteBlogConfirmModal();
     return;
   }
   try {
@@ -2590,7 +2577,6 @@ async function handleDeleteBlogConfirmClick() {
     if (isAdmin()) {
       renderAdminBlogPosts();
     }
-    closeDeleteBlogConfirmModal();
     var editIdEl = document.getElementById('edit-blog-id');
     if (
       editIdEl &&
@@ -2603,33 +2589,9 @@ async function handleDeleteBlogConfirmClick() {
     showSuccessMessage('Blog post deleted successfully!');
   } catch (error) {
     console.error('Error deleting blog post:', error);
-    closeDeleteBlogConfirmModal();
   }
 }
 
-function setupDeleteBlogConfirmModal() {
-  const modal = document.getElementById('delete-blog-confirm-modal');
-  const overlay = document.getElementById('delete-blog-confirm-overlay');
-  const btnClose = document.getElementById('delete-blog-confirm-close');
-  const btnCancel = document.getElementById('delete-blog-confirm-cancel');
-  const btnDelete = document.getElementById('delete-blog-confirm-delete');
-  if (!modal || modal.dataset.bound || !overlay || !btnCancel || !btnDelete) return;
-  modal.dataset.bound = '1';
-  overlay.addEventListener('click', closeDeleteBlogConfirmModal);
-  if (btnClose) {
-    btnClose.addEventListener('click', closeDeleteBlogConfirmModal);
-  }
-  btnCancel.addEventListener('click', closeDeleteBlogConfirmModal);
-  btnDelete.addEventListener('click', handleDeleteBlogConfirmClick);
-  document.addEventListener('keydown', function (ev) {
-    if (ev.key !== 'Escape') return;
-    if (!modal.classList.contains('active')) return;
-    ev.preventDefault();
-    closeDeleteBlogConfirmModal();
-  });
-}
-
-setupDeleteBlogConfirmModal();
 
 // Handle delete button (opens custom confirm modal)
 if (deleteBlogBtn) {
@@ -2644,7 +2606,7 @@ if (deleteBlogBtn) {
     const postId = document.getElementById('edit-blog-id').value;
     if (!postId) return;
 
-    openDeleteBlogConfirmModal(postId);
+    confirmDeleteBlogPost(postId);
   });
 }
 
@@ -2783,7 +2745,7 @@ function attachEditDeleteListeners() {
       }
 
       const postId = this.getAttribute('data-delete-blog');
-      openDeleteBlogConfirmModal(postId);
+      confirmDeleteBlogPost(postId);
     });
   });
 }
@@ -2791,12 +2753,12 @@ function attachEditDeleteListeners() {
 // Enhanced editor toolbar functionality for edit modal
 const editEditorBtns = document.querySelectorAll('.editor-btn[data-editor="edit"]');
 editEditorBtns.forEach(btn => {
-  btn.addEventListener('click', function(e) {
+  btn.addEventListener('click', async function(e) {
     e.preventDefault();
     const command = this.getAttribute('data-command');
     
     if (command === 'preview') {
-      alert('Preview feature coming soon!');
+      window.CwrUI.toast('Preview feature coming soon!', { tone: 'info' });
       return;
     }
     
@@ -2851,7 +2813,7 @@ editEditorBtns.forEach(btn => {
         cursorPos = start + (selectedText ? newText.length : 11);
         break;
       case 'insertLink':
-        const url = prompt('Enter URL:', 'https://');
+        const url = await window.CwrUI.prompt({ title: 'Insert link', label: 'URL', value: 'https://', confirmLabel: 'Insert' });
         if (url) {
           newText = `<a href="${url}" target="_blank">${selectedText || 'link text'}</a>`;
           cursorPos = start + (selectedText ? newText.length : 10);
@@ -2872,6 +2834,11 @@ editEditorBtns.forEach(btn => {
 });
 
 function showSuccessMessage(message) {
+  // Shared slide-in notice (assets/js/admin-ui.js); the block below is only a fallback.
+  if (window.CwrUI) {
+    window.CwrUI.toast(message, { tone: 'success' });
+    return;
+  }
   // Create a temporary success message
   const successDiv = document.createElement('div');
   successDiv.className = 'success-message';
@@ -2910,6 +2877,11 @@ function showSuccessMessage(message) {
 }
 
 function showErrorMessage(message) {
+  // Shared slide-in notice (assets/js/admin-ui.js); the block below is only a fallback.
+  if (window.CwrUI) {
+    window.CwrUI.toast(message, { tone: 'error' });
+    return;
+  }
   // Create a temporary error message
   const errorDiv = document.createElement('div');
   errorDiv.className = 'error-message';
@@ -5473,7 +5445,6 @@ function renderAdminPortfolioProjects() {
 }
 
 let portfolioModalHandlersBound = false;
-let pendingDeletePortfolioId = null;
 
 function getPortfolioFormImageUrlsFromDom() {
   const list = document.getElementById('portfolio-project-images-list');
@@ -6714,85 +6685,38 @@ function setupPortfolioAdminControls() {
       }
       if (delBtn) {
         const id = delBtn.getAttribute('data-delete-portfolio');
-        pendingDeletePortfolioId = id;
-        openDeletePortfolioConfirmModal();
+        confirmDeletePortfolioProject(id);
       }
     });
   }
 
-  setupDeletePortfolioConfirmModal();
 }
 
-function openDeletePortfolioConfirmModal() {
-  const modal = document.getElementById('delete-portfolio-confirm-modal');
-  if (!modal) return;
-  modal.classList.add('active');
-  modal.setAttribute('aria-hidden', 'false');
-  const cancelBtn = document.getElementById('delete-portfolio-confirm-cancel');
-  if (cancelBtn) {
-    setTimeout(function () {
-      cancelBtn.focus();
-    }, 40);
-  }
-}
-
-function closeDeletePortfolioConfirmModal() {
-  const modal = document.getElementById('delete-portfolio-confirm-modal');
-  if (!modal) return;
-  modal.classList.remove('active');
-  modal.setAttribute('aria-hidden', 'true');
-  pendingDeletePortfolioId = null;
-}
-
-function setupDeletePortfolioConfirmModal() {
-  const modal = document.getElementById('delete-portfolio-confirm-modal');
-  if (!modal || modal.dataset.portfolioDelBound) return;
-  modal.dataset.portfolioDelBound = '1';
-  const overlay = document.getElementById('delete-portfolio-confirm-overlay');
-  const btnClose = document.getElementById('delete-portfolio-confirm-close');
-  const btnCancel = document.getElementById('delete-portfolio-confirm-cancel');
-  const btnDelete = document.getElementById('delete-portfolio-confirm-delete');
-  function close() {
-    closeDeletePortfolioConfirmModal();
-  }
-  [overlay, btnClose, btnCancel].forEach(function (el) {
-    if (el) el.addEventListener('click', close);
+/** Ask first with the shared dialog (CwrUI), then delete the portfolio project. */
+async function confirmDeletePortfolioProject(id) {
+  if (!id) return;
+  const ok = await window.CwrUI.confirm({
+    title: 'Delete portfolio project?',
+    message: 'This permanently removes the project from Realtime Database and the public portfolio. This cannot be undone.',
+    confirmLabel: 'Delete',
+    tone: 'danger'
   });
-  if (btnDelete) {
-    btnDelete.addEventListener('click', async function () {
-      if (!pendingDeletePortfolioId || !window.rtdb) {
-        close();
-        return;
-      }
-      try {
-        await deletePortfolioProjectDoc(pendingDeletePortfolioId);
-        showSuccessMessage('Project deleted.');
-        close();
-        await loadPortfolioProjectsFromRtdb();
-        renderPublicPortfolioProjects();
-        applyCurrentPortfolioFilter();
-        renderAdminPortfolioProjects();
-        syncAdminPortfolioLocalBanner();
-        if (typeof window.__renderPortfolioBestForHook === 'function') {
-          window.__renderPortfolioBestForHook();
-        }
-      } catch (err) {
-        console.error(err);
-        showErrorMessage(err.message || 'Delete failed.');
-      }
-    });
+  if (!ok || !window.rtdb) return;
+  try {
+    await deletePortfolioProjectDoc(id);
+    showSuccessMessage('Project deleted.');
+    await loadPortfolioProjectsFromRtdb();
+    renderPublicPortfolioProjects();
+    applyCurrentPortfolioFilter();
+    renderAdminPortfolioProjects();
+    syncAdminPortfolioLocalBanner();
+    if (typeof window.__renderPortfolioBestForHook === 'function') {
+      window.__renderPortfolioBestForHook();
+    }
+  } catch (err) {
+    console.error(err);
+    showErrorMessage(err.message || 'Delete failed.');
   }
-  document.addEventListener(
-    'keydown',
-    function portfolioDelEsc(ev) {
-      if (ev.key !== 'Escape') return;
-      const m = document.getElementById('delete-portfolio-confirm-modal');
-      if (!m || !m.classList.contains('active')) return;
-      ev.stopImmediatePropagation();
-      close();
-    },
-    true
-  );
 }
 
 
@@ -11169,60 +11093,6 @@ window.addEventListener('load', function() {
       replyForm.addEventListener('submit', handleReplySubmit);
     }
 
-    const deleteContactConfirmModal = document.getElementById('delete-contact-confirm-modal');
-    const deleteContactConfirmOverlay = document.getElementById('delete-contact-confirm-overlay');
-    const deleteContactConfirmClose = document.getElementById('delete-contact-confirm-close');
-    const deleteContactConfirmCancel = document.getElementById('delete-contact-confirm-cancel');
-    const deleteContactConfirmDelete = document.getElementById('delete-contact-confirm-delete');
-    if (
-      deleteContactConfirmModal &&
-      !deleteContactConfirmModal.dataset.bound &&
-      deleteContactConfirmOverlay &&
-      deleteContactConfirmCancel &&
-      deleteContactConfirmDelete
-    ) {
-      deleteContactConfirmModal.dataset.bound = '1';
-      deleteContactConfirmOverlay.addEventListener('click', closeDeleteContactConfirmModal);
-      if (deleteContactConfirmClose) {
-        deleteContactConfirmClose.addEventListener('click', closeDeleteContactConfirmModal);
-      }
-      deleteContactConfirmCancel.addEventListener('click', closeDeleteContactConfirmModal);
-      deleteContactConfirmDelete.addEventListener('click', handleDeleteContactConfirmClick);
-      document.addEventListener('keydown', function (ev) {
-        if (ev.key !== 'Escape') return;
-        if (!deleteContactConfirmModal.classList.contains('active')) return;
-        ev.preventDefault();
-        closeDeleteContactConfirmModal();
-      });
-    }
-
-    var deleteTestimonialConfirmModal = document.getElementById('delete-testimonial-confirm-modal');
-    var deleteTestimonialConfirmOverlay = document.getElementById('delete-testimonial-confirm-overlay');
-    var deleteTestimonialConfirmClose = document.getElementById('delete-testimonial-confirm-close');
-    var deleteTestimonialConfirmCancel = document.getElementById('delete-testimonial-confirm-cancel');
-    var deleteTestimonialConfirmDelete = document.getElementById('delete-testimonial-confirm-delete');
-    if (
-      deleteTestimonialConfirmModal &&
-      !deleteTestimonialConfirmModal.dataset.bound &&
-      deleteTestimonialConfirmOverlay &&
-      deleteTestimonialConfirmCancel &&
-      deleteTestimonialConfirmDelete
-    ) {
-      deleteTestimonialConfirmModal.dataset.bound = '1';
-      deleteTestimonialConfirmOverlay.addEventListener('click', closeDeleteTestimonialConfirmModal);
-      if (deleteTestimonialConfirmClose) {
-        deleteTestimonialConfirmClose.addEventListener('click', closeDeleteTestimonialConfirmModal);
-      }
-      deleteTestimonialConfirmCancel.addEventListener('click', closeDeleteTestimonialConfirmModal);
-      deleteTestimonialConfirmDelete.addEventListener('click', handleDeleteTestimonialConfirmClick);
-      document.addEventListener('keydown', function (ev) {
-        if (ev.key !== 'Escape') return;
-        if (!deleteTestimonialConfirmModal.classList.contains('active')) return;
-        ev.preventDefault();
-        closeDeleteTestimonialConfirmModal();
-      });
-    }
-
     const contactDetailClose = document.getElementById('admin-contact-detail-close');
     const contactDetailBackdrop = document.getElementById('admin-contact-detail-backdrop');
     if (contactDetailClose && !contactDetailClose.dataset.contactDetailBound) {
@@ -11471,14 +11341,14 @@ window.addEventListener('load', function() {
         if (delBtn && combinedList.contains(delBtn) && !delBtn.disabled) {
           var tid = delBtn.getAttribute("data-delete-testimonial-token");
           if (!tid || !window.db || !window.deleteDoc || !window.doc) return;
-          openDeleteTestimonialConfirmModal("token", tid);
+          confirmDeleteTestimonialItem("token", tid);
           return;
         }
         var remBtn = e.target.closest("[data-delete-published-testimonial]");
         if (remBtn && combinedList.contains(remBtn) && !remBtn.disabled) {
           var pid = remBtn.getAttribute("data-delete-published-testimonial");
           if (!pid || !window.db || !window.deleteDoc || !window.doc) return;
-          openDeleteTestimonialConfirmModal("published", pid);
+          confirmDeleteTestimonialItem("published", pid);
         }
       });
     }
@@ -11506,7 +11376,7 @@ window.addEventListener('load', function() {
           var footTokenId = footDel.getAttribute("data-delete-testimonial-token");
           if (!footTokenId) return;
           closeTestimonialDetailDrawer();
-          openDeleteTestimonialConfirmModal("token", footTokenId);
+          confirmDeleteTestimonialItem("token", footTokenId);
           return;
         }
         var footRem = e.target.closest("[data-delete-published-testimonial]");
@@ -11514,7 +11384,7 @@ window.addEventListener('load', function() {
           var footPubId = footRem.getAttribute("data-delete-published-testimonial");
           if (!footPubId) return;
           closeTestimonialDetailDrawer();
-          openDeleteTestimonialConfirmModal("published", footPubId);
+          confirmDeleteTestimonialItem("published", footPubId);
         }
       });
     }
@@ -13309,13 +13179,18 @@ window.addEventListener('load', function() {
   }
 
   /** True when it is safe to replace what is in the compose form. */
-  function confirmAdminClientEmailOverwrite() {
+  async function confirmAdminClientEmailOverwrite() {
     if (!adminClientEmailState.dirty) return true;
-    return window.confirm(
-      'The compose form has edits that are not saved as a draft.\n\n' +
-        'OK — discard them and continue.\n' +
-        'Cancel — go back (use "Save draft" to keep them).'
-    );
+    // Closing the box keeps the edits, same as "Keep editing".
+    var choice = await window.CwrUI.choose({
+      title: 'Discard unsaved edits?',
+      message: 'The compose form has edits that are not saved as a draft. Discard them and continue, or keep editing (use "Save draft" to keep them).',
+      actions: [
+        { label: 'Keep editing', value: 'keep' },
+        { label: 'Discard edits', value: 'discard', tone: 'danger' }
+      ]
+    });
+    return choice === 'discard';
   }
 
   function renderAdminEmailDrafts() {
@@ -13427,12 +13302,12 @@ window.addEventListener('load', function() {
 
   /** Loads a saved draft into the form. Returns false if the admin kept their
    *  unsaved edits instead. */
-  function openAdminEmailDraft(draftId) {
+  async function openAdminEmailDraft(draftId) {
     var els = adminClientEmailEls();
     var draft = findAdminEmailDraft(draftId);
     if (!els.form || !draft) return false;
     if (!adminClientEmailState.initialized) initAdminClientEmailSender();
-    if (!confirmAdminClientEmailOverwrite()) return false;
+    if (!(await confirmAdminClientEmailOverwrite())) return false;
     fillAdminClientEmailForm(els, normalizeClientEmailDraftTemplate(draft));
     adminClientEmailState.activeDraftId = draft.id;
     adminClientEmailState.activeLeadId = draft.leadId;
@@ -13940,14 +13815,14 @@ window.addEventListener('load', function() {
     }
 
     if (els.draftsList) {
-      els.draftsList.addEventListener('click', function (e) {
+      els.draftsList.addEventListener('click', async function (e) {
         var openBtn = e.target.closest('[data-draft-open]');
         if (openBtn) {
           openAdminEmailDraft(openBtn.getAttribute('data-draft-open'));
           return;
         }
         var deleteBtn = e.target.closest('[data-draft-delete]');
-        if (deleteBtn && window.confirm('Delete this saved draft?')) {
+        if (deleteBtn && (await window.CwrUI.confirm({ title: 'Delete this saved draft?', confirmLabel: 'Delete', tone: 'danger' }))) {
           deleteAdminEmailDraft(deleteBtn.getAttribute('data-draft-delete')).catch(function (err) {
             console.error('deleteAdminEmailDraft', err);
             setAdminClientEmailFeedback(els, 'Could not delete draft.', true);
@@ -13971,8 +13846,8 @@ window.addEventListener('load', function() {
    * tab has run, the drawer owns the form and that tab is an empty panel.
    * If the admin chooses to keep an unsaved draft, the drawer opens on it.
    */
-  window.openAdminClientEmailCompose = function (prefill) {
-    var filled = window.prefillAdminClientEmail(prefill || {});
+  window.openAdminClientEmailCompose = async function (prefill) {
+    var filled = await window.prefillAdminClientEmail(prefill || {});
     openAdminClientEmailDrawer();
     return filled !== false;
   };
@@ -13981,11 +13856,11 @@ window.addEventListener('load', function() {
    * Outreach Scripts → Email: open the compose drawer with the script's subject and
    * message as written, sent as a branded email through Resend (not a mailto: link).
    */
-  window.openAdminClientEmailWithScript = function (data) {
+  window.openAdminClientEmailWithScript = async function (data) {
     data = data || {};
     var els = adminClientEmailEls();
     if (!els.form) return false;
-    var ok = window.prefillAdminClientEmail({
+    var ok = await window.prefillAdminClientEmail({
       name: data.name || '',
       email: data.email || '',
       templateId: 'outreach-script',
@@ -14006,7 +13881,7 @@ window.addEventListener('load', function() {
    * /admin?compose=reply&name=&email=&msg=&at= (the Hire Me notification's "Reply to [name]"):
    * open Compose email with a blank reply and their inquiry quoted underneath.
    */
-  function openAdminComposeFromLink() {
+  async function openAdminComposeFromLink() {
     var q;
     try { q = new URLSearchParams(location.search); } catch (e) { return; }
     if (q.get('compose') !== 'reply') return;
@@ -14020,7 +13895,7 @@ window.addEventListener('load', function() {
     // Drop the query so a refresh doesn't open the drawer again.
     try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
     var lead = typeof window.findPipelineLead === 'function' ? window.findPipelineLead({ email: email }) : null;
-    var ok = window.openAdminClientEmailWithScript({ name: name, email: email, subject: 'Re: your project inquiry', message: message });
+    var ok = await window.openAdminClientEmailWithScript({ name: name, email: email, subject: 'Re: your project inquiry', message: message });
     if (ok && lead) adminClientEmailState.activeLeadId = lead.id;
     var els = adminClientEmailEls();
     if (ok && els.message) {
@@ -14029,12 +13904,12 @@ window.addEventListener('load', function() {
   }
   window.openAdminComposeFromLink = openAdminComposeFromLink;
 
-  window.prefillAdminClientEmail = function (data) {
+  window.prefillAdminClientEmail = async function (data) {
     var els = adminClientEmailEls();
     if (!els.form) return;
     if (!adminClientEmailState.initialized) initAdminClientEmailSender();
     // Prefill starts a new email, so unsaved edits get a say first.
-    if (!confirmAdminClientEmailOverwrite()) return false;
+    if (!(await confirmAdminClientEmailOverwrite())) return false;
     adminClientEmailState.activeDraftId = '';
     adminClientEmailState.activeLeadId = data.leadId ? String(data.leadId) : '';
     setAdminClientEmailDirty(false);
@@ -16351,7 +16226,7 @@ window.addEventListener('load', function() {
         var dayBtn = e.target.closest('[data-clear-day]');
         if (dayBtn) {
           e.stopPropagation();
-          openEmailClearDayConfirm(dayBtn.getAttribute('data-clear-day'));
+          confirmEmailClearDay(dayBtn.getAttribute('data-clear-day'));
           return;
         }
 
@@ -16437,6 +16312,7 @@ window.addEventListener('load', function() {
     var drawer = document.createElement('div');
     drawer.id = 'admin-email-compose-drawer';
     drawer.className = 'admin-email-drawer';
+    drawer.setAttribute('data-layer', 'drawer');
     drawer.setAttribute('aria-hidden', 'true');
     drawer.innerHTML =
       '<div class="admin-email-drawer__backdrop" data-email-drawer-close></div>' +
@@ -16651,7 +16527,6 @@ window.addEventListener('load', function() {
      Uses the shared confirm-delete-modal shell that every other destructive
      action in admin uses. window.confirm() cannot be styled and reads as a
      browser alert dropped into the middle of the dashboard. */
-  var pendingEmailClearDayKey = null;
 
   function threadsForDay(dayKey) {
     return getFilteredThreads().filter(function (t) {
@@ -16659,46 +16534,24 @@ window.addEventListener('load', function() {
     });
   }
 
-  function openEmailClearDayConfirm(dayKey) {
+  /** Ask first with the shared dialog (CwrUI), then hide (or restore) that day's threads. */
+  async function confirmEmailClearDay(dayKey) {
     var affected = threadsForDay(dayKey);
     if (!affected.length) return;
-    var modal = document.getElementById('email-clear-day-confirm-modal');
-    if (!modal) return;
-
-    pendingEmailClearDayKey = dayKey;
     var restoring = agencyEmailShowArchived;
     var count = affected.length;
     var noun = count === 1 ? 'thread' : 'threads';
-
-    var titleEl = document.getElementById('email-clear-day-confirm-title');
-    var descEl = document.getElementById('email-clear-day-confirm-desc');
-    var okEl = document.getElementById('email-clear-day-confirm-ok');
-    if (titleEl) titleEl.textContent = restoring ? 'Restore these threads?' : 'Hide these threads?';
-    if (descEl) {
-      descEl.textContent =
-        (restoring ? 'Restore ' : 'Hide ') + count + ' ' + noun +
-        '. Nothing is deleted \u2014 this only changes what shows here.';
-    }
-    if (okEl) okEl.textContent = restoring ? 'Restore' : 'Hide';
-
-    setupEmailClearDayConfirm();
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var cancelBtn = document.getElementById('email-clear-day-confirm-cancel');
-    if (cancelBtn) setTimeout(function () { cancelBtn.focus(); }, 40);
+    var ok = await window.CwrUI.confirm({
+      title: restoring ? 'Restore these threads?' : 'Hide these threads?',
+      message: (restoring ? 'Restore ' : 'Hide ') + count + ' ' + noun +
+        '. Nothing is deleted \u2014 this only changes what shows here.',
+      confirmLabel: restoring ? 'Restore' : 'Hide'
+    });
+    if (ok) applyEmailClearDay(dayKey);
   }
 
-  function closeEmailClearDayConfirm() {
-    var modal = document.getElementById('email-clear-day-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    pendingEmailClearDayKey = null;
-  }
-
-  function applyEmailClearDay() {
-    var dayKey = pendingEmailClearDayKey;
-    if (!dayKey) { closeEmailClearDayConfirm(); return; }
+  function applyEmailClearDay(dayKey) {
+    if (!dayKey) return;
 
     // Read both BEFORE mutating: setThreadArchived() changes what
     // getFilteredThreads() returns, so counting afterwards reports zero.
@@ -16710,7 +16563,6 @@ window.addEventListener('load', function() {
       setThreadArchived(t.threadKey, !agencyEmailShowArchived);
       if (agencyEmailSelectedThread === t.threadKey) agencyEmailSelectedThread = null;
     });
-    closeEmailClearDayConfirm();
     renderAdminEmailThreadList();
     renderAdminEmailThreadDetail();
 
@@ -16721,28 +16573,6 @@ window.addEventListener('load', function() {
         (count === 1 ? 'thread' : 'threads') + '.'
       );
     }
-  }
-
-  function setupEmailClearDayConfirm() {
-    var modal = document.getElementById('email-clear-day-confirm-modal');
-    if (!modal || modal.dataset.emailClearBound) return;
-    modal.dataset.emailClearBound = '1';
-
-    ['email-clear-day-confirm-overlay',
-     'email-clear-day-confirm-close',
-     'email-clear-day-confirm-cancel'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.addEventListener('click', closeEmailClearDayConfirm);
-    });
-
-    var okBtn = document.getElementById('email-clear-day-confirm-ok');
-    if (okBtn) okBtn.addEventListener('click', applyEmailClearDay);
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal.classList.contains('active')) {
-        closeEmailClearDayConfirm();
-      }
-    });
   }
 
 
@@ -16922,7 +16752,6 @@ window.addEventListener('load', function() {
   window.initAdminInboundPanel = initAdminEmailPanel;
 
   var adminBookingsSendingId = null;
-  var pendingCancelBookingId = null;
   var pendingRescheduleBookingId = null;
   var adminBookingsCalMonth = null;
   var adminBookingsSelectedDay = null;
@@ -17523,6 +17352,7 @@ window.addEventListener('load', function() {
     var wrap = document.createElement('div');
     wrap.className = 'modal-container';
     wrap.id = 'reschedule-booking-modal';
+    wrap.setAttribute('data-layer', 'modal');
     wrap.setAttribute('aria-hidden', 'true');
     wrap.innerHTML =
       '<div class="overlay" id="reschedule-booking-overlay"></div>' +
@@ -17763,104 +17593,41 @@ window.addEventListener('load', function() {
     }
 
     if (action === 'cancel-booking') {
-      openCancelBookingConfirmModal(booking);
+      confirmCancelAgencyBooking(booking);
     }
   }
 
-  function closeCancelBookingConfirmModal() {
-    var modal = document.getElementById('cancel-booking-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    pendingCancelBookingId = null;
-  }
-
-  function openCancelBookingConfirmModal(booking) {
+  /** Ask first with the shared dialog (CwrUI), then cancel the booking. */
+  async function confirmCancelAgencyBooking(booking) {
     if (!booking || !booking.id) return;
     var label = (booking.name || 'Guest') + ' · ' + formatBookingWhen(booking.startISO);
-    var desc = document.getElementById('cancel-booking-confirm-desc');
-    if (desc) {
-      desc.textContent =
-        'Cancel “' + label + '”? This removes the booking and frees the time slot so someone else can book it.';
-    }
-    pendingCancelBookingId = booking.id;
-    var modal = document.getElementById('cancel-booking-confirm-modal');
-    if (!modal) return;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var keepBtn = document.getElementById('cancel-booking-confirm-keep');
-    if (keepBtn) {
-      setTimeout(function () {
-        keepBtn.focus();
-      }, 40);
-    }
+    var ok = await window.CwrUI.confirm({
+      title: 'Cancel this booking?',
+      message: 'Cancel “' + label + '”? This removes the booking and frees the time slot so someone else can book it.',
+      confirmLabel: 'Cancel booking',
+      cancelLabel: 'Keep booking',
+      tone: 'danger'
+    });
+    if (ok) await performCancelAgencyBooking(booking.id);
   }
 
   async function performCancelAgencyBooking(bookingId) {
     if (!bookingId) return;
     var booking = (agencyBookingsList || []).find(function (b) { return b.id === bookingId; });
     if (!booking) {
-      closeCancelBookingConfirmModal();
       setAdminBookingsFeedback('That booking is no longer available.', true);
       return;
     }
-    var confirmBtn = document.getElementById('cancel-booking-confirm-cancel');
-    if (confirmBtn) confirmBtn.disabled = true;
     setAdminBookingsFeedback('Canceling booking…', false);
     try {
       await cancelAgencyBooking(booking);
-      closeCancelBookingConfirmModal();
       setAdminBookingsFeedback('Canceled booking for ' + (booking.name || 'guest') + '.', false);
       adminBookingsPreserveScroll = true;
       renderAdminBookingsPanel();
     } catch (err) {
       console.error('cancelAgencyBooking failed', err);
       setAdminBookingsFeedback((err && err.message) || 'Could not cancel booking.', true);
-    } finally {
-      if (confirmBtn) confirmBtn.disabled = false;
     }
-  }
-
-  function setupCancelBookingConfirmModal() {
-    var modal = document.getElementById('cancel-booking-confirm-modal');
-    if (!modal || modal.dataset.bound) return;
-    modal.dataset.bound = '1';
-
-    var overlay = document.getElementById('cancel-booking-confirm-overlay');
-    var btnClose = document.getElementById('cancel-booking-confirm-close');
-    var btnKeep = document.getElementById('cancel-booking-confirm-keep');
-    var btnConfirm = document.getElementById('cancel-booking-confirm-cancel');
-
-    function close() {
-      closeCancelBookingConfirmModal();
-    }
-
-    [overlay, btnClose, btnKeep].forEach(function (el) {
-      if (el) el.addEventListener('click', close);
-    });
-
-    if (btnConfirm) {
-      btnConfirm.addEventListener('click', function () {
-        var id = pendingCancelBookingId;
-        if (!id) {
-          close();
-          return;
-        }
-        performCancelAgencyBooking(id);
-      });
-    }
-
-    document.addEventListener(
-      'keydown',
-      function bookingCancelEsc(ev) {
-        if (ev.key !== 'Escape') return;
-        var m = document.getElementById('cancel-booking-confirm-modal');
-        if (!m || !m.classList.contains('active')) return;
-        ev.stopImmediatePropagation();
-        close();
-      },
-      true
-    );
   }
 
   /**
@@ -17941,7 +17708,6 @@ window.addEventListener('load', function() {
     if (!section || section.dataset.boundBookings === '1') return;
     section.dataset.boundBookings = '1';
     ensureBookingsCalState();
-    setupCancelBookingConfirmModal();
     setupRescheduleBookingModal();
 
     var prevBtn = document.getElementById('admin-bookings-cal-prev');
@@ -18295,11 +18061,11 @@ window.addEventListener('load', function() {
     });
 
     if (!weeklyWindows.length) {
-      alert('Turn on at least one weekday with a start and end time before saving.');
+      window.CwrUI.toast('Turn on at least one weekday with a start and end time before saving.', { tone: 'error' });
       return;
     }
     if (!callTypes.length) {
-      alert('Add at least one call type before saving.');
+      window.CwrUI.toast('Add at least one call type before saving.', { tone: 'error' });
       return;
     }
 
@@ -18966,7 +18732,7 @@ window.addEventListener('load', function() {
         var amtEmpty = !amtEl || amtEl.value === '' || String(amtEl.value).trim() === '';
         if (amtEmpty) continue;
         if (isNaN(numVal) || numVal < 0) {
-          alert('Each price option needs a valid amount (0 or more).');
+          window.CwrUI.toast('Each price option needs a valid amount (0 or more).', { tone: 'error' });
           return null;
         }
         priceOptions.push({ label: '', amount: numVal });
@@ -18982,31 +18748,31 @@ window.addEventListener('load', function() {
           var limDetails = detailsEl ? detailsEl.value.trim() : '';
           if (!limLabel && !limDetails) continue;
           if (!limLabel || !limDetails) {
-            alert(
+            window.CwrUI.toast(
               'Upgrade option "' +
                 (nameVal || 'Untitled') +
                 '": each usage limit needs both a label and details.'
-            );
+            , { tone: 'error' });
             return null;
           }
           usageLimits.push({ label: limLabel, details: limDetails });
         }
         if (!usageLimits.length) {
-          alert(
+          window.CwrUI.toast(
             'Upgrade option "' +
               (nameVal || 'Untitled') +
               '": add at least one usage limit, or turn off “Price includes usage”.'
-          );
+          , { tone: 'error' });
           return null;
         }
       }
       if (nameVal === '' && descVal === '' && priceOptions.length === 0 && !includesUsage) continue;
       if (nameVal === '') {
-        alert('Upgrade option name is required when details or prices are provided.');
+        window.CwrUI.toast('Upgrade option name is required when details or prices are provided.', { tone: 'error' });
         return null;
       }
       if (priceOptions.length === 0) {
-        alert('Upgrade option "' + nameVal + '" needs at least one price amount.');
+        window.CwrUI.toast('Upgrade option "' + nameVal + '" needs at least one price amount.', { tone: 'error' });
         return null;
       }
       /** @type {BusinessDocAddOn} */
@@ -19995,7 +19761,7 @@ window.addEventListener('load', function() {
     deleteBtn.innerHTML = '<ion-icon name="trash-outline"></ion-icon>';
     deleteBtn.addEventListener('click', function (e) {
       e.stopPropagation();
-      openDeleteDocumentConfirmModal(doc.id);
+      confirmDeleteBusinessDocument(doc.id).catch(console.error);
     });
 
     actionsEl.appendChild(editBtn);
@@ -20331,33 +20097,20 @@ window.addEventListener('load', function() {
     if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
   }
 
-  function closeDeleteDocumentConfirmModal() {
-    var modal = document.getElementById('delete-document-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    delete modal.dataset.pendingDocumentId;
+  /** Ask first with the shared dialog (CwrUI), then delete the document. */
+  async function confirmDeleteBusinessDocument(documentId) {
+    if (!documentId) return;
+    var ok = await window.CwrUI.confirm({
+      title: 'Delete document?',
+      message: 'This permanently removes the proposal, estimate, or invoice from your saved documents. This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    });
+    if (ok) await deleteBusinessDocumentConfirmed(documentId);
   }
 
-  function openDeleteDocumentConfirmModal(documentId) {
-    var modal = document.getElementById('delete-document-confirm-modal');
-    if (!modal || !documentId) return;
-    modal.dataset.pendingDocumentId = documentId;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var cancelBtn = document.getElementById('delete-document-confirm-cancel');
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
-  }
-
-  async function handleDeleteDocumentConfirmClick() {
-    var modal = document.getElementById('delete-document-confirm-modal');
-    var docId = modal && modal.dataset ? modal.dataset.pendingDocumentId : '';
+  async function deleteBusinessDocumentConfirmed(docId) {
     if (!docId) {
-      closeDeleteDocumentConfirmModal();
       return;
     }
     suppressBusinessDocsSync();
@@ -20367,7 +20120,6 @@ window.addEventListener('load', function() {
     });
     saveBusinessDocs(businessDocs);
     renderBusinessDocs();
-    closeDeleteDocumentConfirmModal();
     var cloudRemoved = false;
     var authError = null;
     try {
@@ -20382,9 +20134,9 @@ window.addEventListener('load', function() {
       releaseBusinessDocsSync();
     }
     if (!cloudRemoved && authError && typeof window.alert === 'function') {
-      window.alert(
+      window.CwrUI.toast(
         'Removed from this browser. Cloud delete failed — stay signed in with Google (ruben.jim.co@gmail.com) and try again.'
-      );
+      , { tone: 'error' });
     }
     if (
       businessDocIdInput &&
@@ -20397,36 +20149,6 @@ window.addEventListener('load', function() {
     }
   }
 
-  function setupDeleteDocumentConfirmModal() {
-    var modal = document.getElementById('delete-document-confirm-modal');
-    var overlay = document.getElementById('delete-document-confirm-overlay');
-    var btnClose = document.getElementById('delete-document-confirm-close');
-    var btnCancel = document.getElementById('delete-document-confirm-cancel');
-    var btnDelete = document.getElementById('delete-document-confirm-delete');
-    if (!modal || modal.dataset.bound || !overlay || !btnCancel || !btnDelete) return;
-    modal.dataset.bound = '1';
-    overlay.addEventListener('click', closeDeleteDocumentConfirmModal);
-    if (btnClose) {
-      btnClose.addEventListener('click', closeDeleteDocumentConfirmModal);
-    }
-    btnCancel.addEventListener('click', closeDeleteDocumentConfirmModal);
-    btnDelete.addEventListener('click', function () {
-      handleDeleteDocumentConfirmClick().catch(console.error);
-    });
-    document.addEventListener(
-      'keydown',
-      function (ev) {
-        if (ev.key !== 'Escape') return;
-        if (!modal.classList.contains('active')) return;
-        ev.preventDefault();
-        ev.stopImmediatePropagation();
-        closeDeleteDocumentConfirmModal();
-      },
-      true
-    );
-  }
-
-  setupDeleteDocumentConfirmModal();
 
   if (businessDocForm) {
     businessDocForm.addEventListener('submit', function(e) {
@@ -20574,7 +20296,7 @@ window.addEventListener('load', function() {
       }
 
       if (!doc.clientName || isNaN(doc.total)) {
-        alert('Client name and total amount are required.');
+        window.CwrUI.toast('Client name and total amount are required.', { tone: 'error' });
         return;
       }
 
@@ -21956,7 +21678,6 @@ window.addEventListener('load', function() {
   var pipelineUnsubscribe = null;
   var pipelineDetailLeadId = null;
   var pipelineDragLeadId = null;
-  var pendingDeleteLeadId = null;
 
   var leadModal = document.getElementById('lead-modal');
   var leadModalOverlay = document.getElementById('lead-modal-overlay');
@@ -22833,17 +22554,22 @@ window.addEventListener('load', function() {
    * The proposal email is useless without a portal to point at, so that stage
    * offers to set the client project up first.
    */
-  function composeEmailForLead(lead) {
+  async function composeEmailForLead(lead) {
     var templateId = PIPELINE_STAGE_EMAIL_TEMPLATES[lead.stage] || 'cold-outreach';
     var portalLink = leadPortalLink(lead);
 
     if (templateId === 'send-proposal' && !portalLink) {
-      var setUpNow = window.confirm(
-        'This lead has no client portal yet, so there is nowhere to send the proposal and invoice.\n\n' +
-          'OK — set up the client project now.\n' +
-          'Cancel — write the email anyway and paste a link yourself.'
-      );
-      if (setUpNow) {
+      var setUp = await window.CwrUI.choose({
+        title: 'Set up the client project first?',
+        message: 'This lead has no client portal yet, so there is nowhere to send the proposal and invoice. ' +
+          'Set up the client project now, or write the email anyway and paste a link yourself.',
+        actions: [
+          { label: 'Write anyway', value: 'write' },
+          { label: 'Set up project', value: 'setup' }
+        ]
+      });
+      if (setUp === null) return;
+      if (setUp === 'setup') {
         if (leadDrawerHubBtn) leadDrawerHubBtn.click();
         return;
       }
@@ -22851,13 +22577,17 @@ window.addEventListener('load', function() {
 
     var savedDraft = findAdminEmailDraftForLead(lead.id);
     if (savedDraft) {
-      var resume = window.confirm(
-        'You have a saved draft for this lead.\n\n' +
-          'OK — pick up where you left off.\n' +
-          'Cancel — start a new email (the draft stays saved).'
-      );
-      if (resume) {
-        if (!openAdminEmailDraft(savedDraft.id)) return;
+      var pick = await window.CwrUI.choose({
+        title: 'Pick up your saved draft?',
+        message: 'You have a saved draft for this lead. Pick up where you left off, or start a new email (the draft stays saved).',
+        actions: [
+          { label: 'Start fresh', value: 'fresh' },
+          { label: 'Resume draft', value: 'resume' }
+        ]
+      });
+      if (pick === null) return;
+      if (pick === 'resume') {
+        if (!(await openAdminEmailDraft(savedDraft.id))) return;
         closeLeadDetail();
         openAdminClientEmailDrawer();
         return;
@@ -22886,7 +22616,7 @@ window.addEventListener('load', function() {
 
     if (typeof window.prefillAdminClientEmail === 'function') {
       // false: the admin chose to keep the unsaved edits already in the form.
-      if (window.prefillAdminClientEmail(prefill) === false) return;
+      if ((await window.prefillAdminClientEmail(prefill)) === false) return;
     }
     closeLeadDetail();
     openAdminClientEmailDrawer();
@@ -22940,11 +22670,11 @@ window.addEventListener('load', function() {
   async function saveLeadFromForm(e) {
     if (e) e.preventDefault();
     if (!window.rtdb || !window.rtdbRef || !window.rtdbSet || !window.rtdbPush) {
-      alert('Realtime Database is not available.');
+      window.CwrUI.toast('Realtime Database is not available.', { tone: 'error' });
       return;
     }
     if (!isAdmin()) {
-      alert('Sign in with an allowlisted Google account to save leads.');
+      window.CwrUI.toast('Sign in with an allowlisted Google account to save leads.', { tone: 'error' });
       return;
     }
 
@@ -22963,7 +22693,7 @@ window.addEventListener('load', function() {
     });
 
     if (!payload.name) {
-      alert('Lead name is required.');
+      window.CwrUI.toast('Lead name is required.', { tone: 'error' });
       return;
     }
 
@@ -22998,7 +22728,7 @@ window.addEventListener('load', function() {
       closeLeadDetail();
     } catch (err) {
       console.error('saveLeadFromForm', err);
-      alert('Could not save lead. Check console and RTDB rules.');
+      window.CwrUI.toast('Could not save lead. Check console and RTDB rules.', { tone: 'error' });
     }
   }
 
@@ -23071,38 +22801,22 @@ window.addEventListener('load', function() {
       }
     } catch (err) {
       console.error('moveLeadStage', err);
-      alert('Could not update stage.');
+      window.CwrUI.toast('Could not update stage.', { tone: 'error' });
     }
   }
 
-  function closeDeleteLeadConfirmModal() {
-    var modal = document.getElementById('delete-lead-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    pendingDeleteLeadId = null;
-  }
-
-  function openDeleteLeadConfirmModal(leadId) {
+  /** Ask first with the shared dialog (CwrUI), then delete the lead. */
+  async function confirmDeletePipelineLead(leadId) {
     if (!leadId) return;
     var lead = findPipelineLead(leadId);
     var label = lead && (lead.name || lead.company) ? (lead.name || lead.company).trim() : 'this lead';
-    var desc = document.getElementById('delete-lead-confirm-desc');
-    if (desc) {
-      desc.textContent =
-        'Permanently delete “' + label + '” from your pipeline? This cannot be undone.';
-    }
-    pendingDeleteLeadId = leadId;
-    var modal = document.getElementById('delete-lead-confirm-modal');
-    if (!modal) return;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var cancelBtn = document.getElementById('delete-lead-confirm-cancel');
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
+    var ok = await window.CwrUI.confirm({
+      title: 'Delete pipeline lead?',
+      message: 'Permanently delete “' + label + '” from your pipeline? This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    });
+    if (ok) await performDeletePipelineLead(leadId);
   }
 
   async function performDeletePipelineLead(leadId) {
@@ -23111,7 +22825,6 @@ window.addEventListener('load', function() {
     if (!isAdmin()) return;
     try {
       await window.rtdbRemove(window.rtdbRef(window.rtdb, PIPELINE_RTD_PATH + '/' + leadId));
-      closeDeleteLeadConfirmModal();
       closeLeadDetail();
       if (typeof showSuccessMessage === 'function') {
         showSuccessMessage('Lead deleted.');
@@ -23121,58 +22834,13 @@ window.addEventListener('load', function() {
       if (typeof showErrorMessage === 'function') {
         showErrorMessage((err && err.message) || 'Could not delete lead.');
       } else {
-        alert('Could not delete lead.');
+        window.CwrUI.toast('Could not delete lead.', { tone: 'error' });
       }
     }
   }
 
-  function setupDeleteLeadConfirmModal() {
-    var modal = document.getElementById('delete-lead-confirm-modal');
-    if (!modal || modal.dataset.bound) return;
-    modal.dataset.bound = '1';
-
-    var overlay = document.getElementById('delete-lead-confirm-overlay');
-    var btnClose = document.getElementById('delete-lead-confirm-close');
-    var btnCancel = document.getElementById('delete-lead-confirm-cancel');
-    var btnDelete = document.getElementById('delete-lead-confirm-delete');
-
-    function close() {
-      closeDeleteLeadConfirmModal();
-    }
-
-    [overlay, btnClose, btnCancel].forEach(function (el) {
-      if (el) el.addEventListener('click', close);
-    });
-
-    if (btnDelete) {
-      btnDelete.addEventListener('click', function () {
-        var id = pendingDeleteLeadId;
-        if (!id) {
-          close();
-          return;
-        }
-        btnDelete.disabled = true;
-        performDeletePipelineLead(id).finally(function () {
-          btnDelete.disabled = false;
-        });
-      });
-    }
-
-    document.addEventListener(
-      'keydown',
-      function leadDelEsc(ev) {
-        if (ev.key !== 'Escape') return;
-        var m = document.getElementById('delete-lead-confirm-modal');
-        if (!m || !m.classList.contains('active')) return;
-        ev.stopImmediatePropagation();
-        close();
-      },
-      true
-    );
-  }
-
   async function deletePipelineLead(leadId) {
-    openDeleteLeadConfirmModal(leadId);
+    return confirmDeletePipelineLead(leadId);
   }
 
   function initPipelineDragDrop() {
@@ -23270,7 +22938,6 @@ window.addEventListener('load', function() {
   }
 
   function initPipelineControls() {
-    setupDeleteLeadConfirmModal();
     bindLeadPhoneFormatter();
     if (adminAddLeadBtn) {
       adminAddLeadBtn.addEventListener('click', function () {
@@ -23328,8 +22995,6 @@ window.addEventListener('load', function() {
     }
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
-      var leadDelModal = document.getElementById('delete-lead-confirm-modal');
-      if (leadDelModal && leadDelModal.classList.contains('active')) return;
       if (leadModal && leadModal.classList.contains('active')) closeLeadModal();
       else if (leadDrawer && !leadDrawer.hidden) closeLeadDetail();
       else if (typeof window.AgencyTools !== 'undefined' && typeof window.AgencyTools.isClientDrawerOpen === 'function' && window.AgencyTools.isClientDrawerOpen()) {
@@ -24591,7 +24256,7 @@ window.addEventListener('load', function() {
       var html = buildBusinessDocHtml(doc);
       var win = window.open('', '_blank');
       if (!win) {
-        alert('Unable to open document window. Please allow popups.');
+        window.CwrUI.toast('Unable to open document window. Please allow popups.', { tone: 'error' });
         return;
       }
       win.document.open();
@@ -24607,7 +24272,7 @@ window.addEventListener('load', function() {
       }, 800);
     } catch (err) {
       console.error('generateBusinessDocPdf error:', err);
-      alert('There was a problem generating the PDF. Please try again.');
+      window.CwrUI.toast('There was a problem generating the PDF. Please try again.', { tone: 'error' });
     }
   }
 
@@ -25148,38 +24813,24 @@ window.addEventListener('load', function() {
     }
   }
 
-  function closeDeleteContactConfirmModal() {
-    const modal = document.getElementById('delete-contact-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    delete modal.dataset.pendingMessageId;
+  /** Ask first with the shared dialog (CwrUI), then delete the contact submission. */
+  async function confirmDeleteContactMessage(messageId) {
+    if (!messageId) return;
+    var ok = await window.CwrUI.confirm({
+      title: 'Delete submission?',
+      message: 'This permanently removes the contact form submission from your inbox. This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    });
+    if (ok) await deleteContactMessageConfirmed(messageId);
   }
 
-  function openDeleteContactConfirmModal(messageId) {
-    const modal = document.getElementById('delete-contact-confirm-modal');
-    if (!modal) return;
-    modal.dataset.pendingMessageId = messageId;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var cancelBtn = document.getElementById('delete-contact-confirm-cancel');
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
-  }
-
-  async function handleDeleteContactConfirmClick() {
-    var modal = document.getElementById('delete-contact-confirm-modal');
-    var messageId = modal && modal.dataset ? modal.dataset.pendingMessageId : '';
+  async function deleteContactMessageConfirmed(messageId) {
     if (!messageId || !window.db || !window.deleteDoc) {
-      closeDeleteContactConfirmModal();
       return;
     }
     try {
       await window.deleteDoc(window.doc(window.db, 'messages', messageId));
-      closeDeleteContactConfirmModal();
       if (contactDetailOpenId === messageId) {
         closeContactDetailDrawer();
       }
@@ -25189,9 +24840,8 @@ window.addEventListener('load', function() {
       if (typeof showErrorMessage === 'function') {
         showErrorMessage('Could not delete: ' + msg);
       } else {
-        alert('Could not delete: ' + msg);
+        window.CwrUI.toast('Could not delete: ' + msg, { tone: 'error' });
       }
-      closeDeleteContactConfirmModal();
     }
   }
 
@@ -25200,54 +24850,26 @@ window.addEventListener('load', function() {
     if (!btn || !window.db || !window.deleteDoc) return;
     const messageId = btn.dataset.id;
     if (!messageId) return;
-    openDeleteContactConfirmModal(messageId);
+    confirmDeleteContactMessage(messageId);
   }
 
-  function closeDeleteTestimonialConfirmModal() {
-    var modal = document.getElementById("delete-testimonial-confirm-modal");
-    if (!modal) return;
-    modal.classList.remove("active");
-    modal.setAttribute("aria-hidden", "true");
-    delete modal.dataset.pendingKind;
-    delete modal.dataset.pendingId;
-  }
-
-  function openDeleteTestimonialConfirmModal(kind, id) {
-    var modal = document.getElementById("delete-testimonial-confirm-modal");
-    var titleEl = document.getElementById("delete-testimonial-confirm-title");
-    var descEl = document.getElementById("delete-testimonial-confirm-desc");
-    var delBtn = document.getElementById("delete-testimonial-confirm-delete");
-    if (!modal || !titleEl || !descEl || !delBtn) return;
+  /** Ask first with the shared dialog (CwrUI), then delete an invite link or remove a published quote. */
+  async function confirmDeleteTestimonialItem(kind, id) {
     if (!id || (kind !== "token" && kind !== "published")) return;
-    modal.dataset.pendingKind = kind;
-    modal.dataset.pendingId = id;
-    if (kind === "token") {
-      titleEl.textContent = "Delete invite link?";
-      descEl.textContent =
-        "This removes the invite document from Firestore. If a testimonial was already published with this link, it will stay on the site until you remove it separately.";
-      delBtn.textContent = "Delete link";
-    } else {
-      titleEl.textContent = "Remove testimonial?";
-      descEl.textContent =
-        "This permanently removes this quote from your Home page. The invite cannot be reused; send a new invite if you need another submission.";
-      delBtn.textContent = "Remove";
-    }
-    modal.classList.add("active");
-    modal.setAttribute("aria-hidden", "false");
-    var cancelBtn = document.getElementById("delete-testimonial-confirm-cancel");
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
+    var isToken = kind === "token";
+    var ok = await window.CwrUI.confirm({
+      title: isToken ? "Delete invite link?" : "Remove testimonial?",
+      message: isToken
+        ? "This removes the invite document from Firestore. If a testimonial was already published with this link, it will stay on the site until you remove it separately."
+        : "This permanently removes this quote from your Home page. The invite cannot be reused; send a new invite if you need another submission.",
+      confirmLabel: isToken ? "Delete link" : "Remove",
+      tone: "danger"
+    });
+    if (ok) await deleteTestimonialItemConfirmed(kind, id);
   }
 
-  async function handleDeleteTestimonialConfirmClick() {
-    var modal = document.getElementById("delete-testimonial-confirm-modal");
-    var kind = modal && modal.dataset ? modal.dataset.pendingKind : "";
-    var id = modal && modal.dataset ? modal.dataset.pendingId : "";
-    if (!modal || !kind || !id || !window.db || !window.deleteDoc || !window.doc) {
-      closeDeleteTestimonialConfirmModal();
+  async function deleteTestimonialItemConfirmed(kind, id) {
+    if (!kind || !id || !window.db || !window.deleteDoc || !window.doc) {
       return;
     }
     try {
@@ -25259,7 +24881,6 @@ window.addEventListener('load', function() {
           window.loadDynamicTestimonials();
         }
       }
-      closeDeleteTestimonialConfirmModal();
       if (typeof window.loadTestimonialAdminPanel === "function") {
         window.loadTestimonialAdminPanel();
       }
@@ -25269,9 +24890,8 @@ window.addEventListener('load', function() {
       if (typeof showErrorMessage === "function") {
         showErrorMessage("Could not complete action: " + msg);
       } else {
-        alert("Could not complete action: " + msg);
+        window.CwrUI.toast("Could not complete action: " + msg, { tone: 'error' });
       }
-      closeDeleteTestimonialConfirmModal();
     }
   }
 
@@ -25327,7 +24947,7 @@ window.addEventListener('load', function() {
     const replyMessage = document.getElementById('reply-message-input').value;
 
     if (!messageData || !replySubject || !replyMessage) {
-      alert('Please fill in all fields');
+      window.CwrUI.toast('Please fill in all fields', { tone: 'error' });
       return;
     }
 
@@ -25342,11 +24962,11 @@ window.addEventListener('load', function() {
       hideReplyModal();
 
       // Show success message
-      alert('Reply sent successfully!');
+      window.CwrUI.toast('Reply sent successfully!', { tone: 'success' });
 
     } catch (error) {
       console.error('Reply error:', error);
-      alert('Failed to send reply. Please try again.');
+      window.CwrUI.toast('Failed to send reply. Please try again.', { tone: 'error' });
     }
   }
 
@@ -26155,57 +25775,30 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function closeDeleteDmConversationConfirmModal() {
-    const modal = document.getElementById('delete-dm-conversation-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    delete modal.dataset.pendingConversationId;
-    delete modal.dataset.pendingLabel;
-  }
-
-  function openDeleteDmConversationConfirmModal(conversationId, label) {
-    const modal = document.getElementById('delete-dm-conversation-confirm-modal');
-    const descEl = document.getElementById('delete-dm-conversation-confirm-desc');
-    if (!modal || !conversationId) return;
+  /** Ask first with the shared dialog (CwrUI), then delete the conversation. */
+  async function confirmDeleteDmConversation(conversationId, label) {
+    if (!conversationId) return;
     const safeLabel = String(label || 'this customer').trim() || 'this customer';
-    modal.dataset.pendingConversationId = String(conversationId);
-    modal.dataset.pendingLabel = safeLabel;
-    if (descEl) {
-      descEl.textContent =
-        'This permanently deletes the conversation with ' +
-        safeLabel +
-        ', including all messages. This cannot be undone.';
-    }
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    const cancelBtn = document.getElementById('delete-dm-conversation-confirm-cancel');
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
+    const ok = await window.CwrUI.confirm({
+      title: 'Delete conversation?',
+      message: 'This permanently deletes the conversation with ' + safeLabel + ', including all messages. This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    });
+    if (ok) await deleteDmConversationConfirmed(String(conversationId));
   }
 
-  async function handleDeleteDmConversationConfirmClick() {
-    const modal = document.getElementById('delete-dm-conversation-confirm-modal');
-    const conversationId = modal && modal.dataset ? modal.dataset.pendingConversationId : '';
+  async function deleteDmConversationConfirmed(conversationId) {
     if (!conversationId || !hasDMDeps()) {
-      closeDeleteDmConversationConfirmModal();
       return;
     }
-    const deleteBtn = document.getElementById('delete-dm-conversation-confirm-delete');
-    if (deleteBtn) deleteBtn.disabled = true;
     try {
       await deleteConversationFromRtdb(conversationId);
-      closeDeleteDmConversationConfirmModal();
       if (typeof window.closeAdminContactDetailDrawer === 'function') {
         window.closeAdminContactDetailDrawer();
       }
     } catch (err) {
-      alert(formatRtdbPortalError(err));
-    } finally {
-      if (deleteBtn) deleteBtn.disabled = false;
+      window.CwrUI.toast(formatRtdbPortalError(err), { tone: 'error' });
     }
   }
 
@@ -26354,7 +25947,7 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error('Convert to lead', err);
       btn.disabled = false;
       if (label) label.textContent = 'Convert to lead';
-      alert((err && err.message) || 'Could not convert this conversation.');
+      window.CwrUI.toast((err && err.message) || 'Could not convert this conversation.', { tone: 'error' });
     }
   }
 
@@ -26810,7 +26403,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   async function sendAdminThreadMessage(sendEmailCopy) {
     if (!DM.activeConversationId || !DM.activeConversationData) {
-      alert('Select a conversation first.');
+      window.CwrUI.toast('Select a conversation first.', { tone: 'error' });
       return;
     }
     const messageInput = document.getElementById('dm-admin-message');
@@ -26859,7 +26452,7 @@ document.addEventListener('DOMContentLoaded', function () {
           body
         );
       } catch (error) {
-        alert('Thread message saved, but email copy failed: ' + error.message);
+        window.CwrUI.toast('Thread message saved, but email copy failed: ' + error.message, { tone: 'error' });
       }
     }
 
@@ -26869,33 +26462,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function bindAdminInboxEvents() {
-    const deleteDmModal = document.getElementById('delete-dm-conversation-confirm-modal');
-    const deleteDmOverlay = document.getElementById('delete-dm-conversation-confirm-overlay');
-    const deleteDmClose = document.getElementById('delete-dm-conversation-confirm-close');
-    const deleteDmCancel = document.getElementById('delete-dm-conversation-confirm-cancel');
-    const deleteDmDelete = document.getElementById('delete-dm-conversation-confirm-delete');
-    if (
-      deleteDmModal &&
-      !deleteDmModal.dataset.bound &&
-      deleteDmOverlay &&
-      deleteDmCancel &&
-      deleteDmDelete
-    ) {
-      deleteDmModal.dataset.bound = '1';
-      deleteDmOverlay.addEventListener('click', closeDeleteDmConversationConfirmModal);
-      if (deleteDmClose) {
-        deleteDmClose.addEventListener('click', closeDeleteDmConversationConfirmModal);
-      }
-      deleteDmCancel.addEventListener('click', closeDeleteDmConversationConfirmModal);
-      deleteDmDelete.addEventListener('click', handleDeleteDmConversationConfirmClick);
-      document.addEventListener('keydown', function (ev) {
-        if (ev.key !== 'Escape') return;
-        if (!deleteDmModal.classList.contains('active')) return;
-        ev.preventDefault();
-        closeDeleteDmConversationConfirmModal();
-      });
-    }
-
     const detailFoot = document.getElementById('admin-contact-detail-foot');
     if (detailFoot && !detailFoot.dataset.dmConversationDeleteBound) {
       detailFoot.dataset.dmConversationDeleteBound = '1';
@@ -26912,7 +26478,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return c.id === id;
           }) || DM.activeConversationData;
         const label = (conv && conv.customerName) || id;
-        openDeleteDmConversationConfirmModal(id, label);
+        confirmDeleteDmConversation(id, label);
       });
     }
 
@@ -26952,7 +26518,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (saveMetaBtn) {
       saveMetaBtn.addEventListener('click', function () {
         saveConversationMeta().catch(function (error) {
-          alert('Failed to save conversation metadata: ' + error.message);
+          window.CwrUI.toast('Failed to save conversation metadata: ' + error.message, { tone: 'error' });
         });
       });
     }
@@ -26962,7 +26528,7 @@ document.addEventListener('DOMContentLoaded', function () {
       composer.addEventListener('submit', function (e) {
         e.preventDefault();
         sendAdminThreadMessage(false).catch(function (error) {
-          alert('Failed to send message: ' + error.message);
+          window.CwrUI.toast('Failed to send message: ' + error.message, { tone: 'error' });
         });
       });
     }
@@ -26971,7 +26537,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (sendEmailBtn) {
       sendEmailBtn.addEventListener('click', function () {
         sendAdminThreadMessage(true).catch(function (error) {
-          alert('Failed to send message: ' + error.message);
+          window.CwrUI.toast('Failed to send message: ' + error.message, { tone: 'error' });
         });
       });
     }
@@ -27960,7 +27526,7 @@ document.addEventListener('DOMContentLoaded', function () {
       composer.addEventListener('submit', function (e) {
         e.preventDefault();
         if (!DM.customerSession || !DM.customerSession.conversationId) {
-          alert('Enter your name and email above to open your conversation.');
+          window.CwrUI.toast('Enter your name and email above to open your conversation.', { tone: 'error' });
           return;
         }
         const text = input.value.trim();
@@ -27982,7 +27548,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (attachmentInput) attachmentInput.value = '';
           })
           .catch(function (error) {
-            alert('Failed to send: ' + error.message);
+            window.CwrUI.toast('Failed to send: ' + error.message, { tone: 'error' });
           });
       });
 
@@ -28400,3 +27966,6 @@ document.addEventListener('DOMContentLoaded', function () {
   };
   window.portfolioSyncAdminMessagesView = syncAdminMessagesView;
 })();
+
+// Floating admin buttons (the timer) step aside while any drawer, modal or confirm is open.
+if (window.CwrUI && typeof window.CwrUI.watchOverlays === 'function') window.CwrUI.watchOverlays();

@@ -536,7 +536,7 @@
     if (!row || row.builtIn) return;
     var report = function (msg) { if (fromDrawer) showErrors([msg]); else status(msg, true); };
     if (!loadedOk) { report(NOT_LOADED); return; }
-    if (!global.confirm(confirmDeleteText(row, rows))) return;
+    if (!(await global.CwrUI.confirm({ title: 'Delete from social proof?', message: confirmDeleteText(row, rows), confirmLabel: 'Delete', tone: 'danger' }))) return;
     try {
       await write(deletePaths(row.id));
       if (fromDrawer) closeDrawer();

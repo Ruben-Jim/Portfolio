@@ -875,7 +875,7 @@
     var s = current();
     var seed = s && seedById[s.id];
     if (!seed || !global.rtdbUpdate) return;
-    if (!global.confirm('Replace the saved "' + s.label + '" script with the latest template?')) return;
+    if (!(await global.CwrUI.confirm({ title: 'Reset to the latest template?', message: 'Replace the saved "' + s.label + '" script with the latest template?', confirmLabel: 'Replace', tone: 'danger' }))) return;
     var fields = seedFields(seed);
     els.btnReset.disabled = true;
     try {
@@ -890,7 +890,7 @@
       renderPreview(true);
     } catch (err) {
       console.warn('Outreach composer: reset failed', err);
-      global.alert('Could not reset this script — check your connection and try again.');
+      global.CwrUI.toast('Could not reset this script — check your connection and try again.', { tone: 'error' });
     } finally {
       els.btnReset.disabled = false;
     }
@@ -1000,7 +1000,7 @@
       showLeadStatus('Updated “' + s.label + '”.', false);
       return true;
     }
-    var name = global.prompt('Name for the new script', s.label + ' (my version)');
+    var name = await global.CwrUI.prompt({ title: 'Save as a new script', label: 'Name for the new script', value: s.label + ' (my version)', confirmLabel: 'Save', required: true });
     if (!name) return false;
     var id = slugify(name) + '-' + Date.now().toString(36);
     var fields = {

@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=one-card-20261018">
+  <link rel="stylesheet" href="/assets/css/style.css?v=dialogs-20261018">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -127,7 +127,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=outreach-box2-20261013">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=dialogs-20261018">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -138,7 +138,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/ig-mockup.css?v=ig-library-20260827">
   <link rel="stylesheet" href="/assets/css/post-builder-elements.css?v=pb2">
-  <link rel="stylesheet" href="/assets/css/post-builder.css?v=pb2">
+  <link rel="stylesheet" href="/assets/css/post-builder.css?v=pb3">
   <script>
     (function() {
       var saved = localStorage.getItem('portfolio-theme');
@@ -3458,7 +3458,7 @@
             <h2 class="h2 article-title">Admin Dashboard</h2>
           </header>
 
-          <div class="tc-timer-chip" id="tc-timer-chip">
+          <div class="tc-timer-chip" id="tc-timer-chip" data-float>
             <button type="button" class="tc-timer-chip-btn" id="tc-timer-chip-btn" aria-expanded="false" aria-controls="tc-timer-chip-panel">
               <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
               <span class="tc-timer-chip-label" id="tc-timer-chip-label">Timer</span>
@@ -3832,7 +3832,7 @@
               </div>
             </div>
 
-            <div id="admin-contact-detail" class="admin-contact-detail" aria-hidden="true">
+            <div id="admin-contact-detail" data-layer="drawer" class="admin-contact-detail" aria-hidden="true">
               <div class="admin-contact-detail__backdrop" id="admin-contact-detail-backdrop" tabindex="-1"></div>
               <div class="admin-contact-detail__panel" role="dialog" aria-modal="true" aria-labelledby="admin-contact-detail-title" data-lenis-prevent>
                 <header class="admin-contact-detail__head">
@@ -3913,7 +3913,7 @@
                 </div>
 
                 <!-- Reply confirm modal -->
-                <div class="admin-email-reply-confirm-modal" id="admin-email-reply-confirm-modal" hidden aria-modal="true" role="dialog" aria-labelledby="admin-email-reply-confirm-title">
+                <div class="admin-email-reply-confirm-modal" id="admin-email-reply-confirm-modal" data-layer="confirm" hidden aria-modal="true" role="dialog" aria-labelledby="admin-email-reply-confirm-title">
                   <div class="admin-email-reply-confirm-backdrop" id="admin-email-reply-confirm-backdrop"></div>
                   <div class="admin-email-reply-confirm-dialog">
                     <h4 class="admin-email-reply-confirm-title" id="admin-email-reply-confirm-title">Confirm send</h4>
@@ -4062,7 +4062,7 @@
                       <span id="admin-client-email-portal-btn-text">Add portal button <em>(“Open Portal →” at the end of the email)</em></span>
                     </label>
                   </div>
-                  <div class="admin-client-email-preview-modal" id="admin-client-email-preview-modal" hidden>
+                  <div class="admin-client-email-preview-modal" id="admin-client-email-preview-modal" data-layer="modal" hidden>
                     <div class="admin-client-email-preview-backdrop" data-preview-close></div>
                     <div class="admin-client-email-preview" role="dialog" aria-modal="true" aria-labelledby="admin-client-email-preview-title">
                       <div class="admin-client-email-preview-head">
@@ -4076,7 +4076,7 @@
                   </div>
                   <!-- After a successful send (same look as the inbox's Confirm send).
                        OK, Escape or the backdrop closes it and the compose drawer. -->
-                  <div class="admin-email-reply-confirm-modal" id="admin-client-email-sent-modal" hidden aria-modal="true" role="dialog" aria-labelledby="admin-client-email-sent-title" aria-describedby="admin-client-email-sent-body">
+                  <div class="admin-email-reply-confirm-modal" id="admin-client-email-sent-modal" data-layer="confirm" hidden aria-modal="true" role="dialog" aria-labelledby="admin-client-email-sent-title" aria-describedby="admin-client-email-sent-body">
                     <div class="admin-email-reply-confirm-backdrop" id="admin-client-email-sent-backdrop"></div>
                     <div class="admin-email-reply-confirm-dialog">
                       <h4 class="admin-email-reply-confirm-title" id="admin-client-email-sent-title">Email sent</h4>
@@ -4304,7 +4304,7 @@
                 </div>
 
                 <!-- Request popup: makes the one-time link (no automatic email). Same look as the inbox's Confirm send. -->
-                <div class="admin-email-reply-confirm-modal admin-testimonial-request-modal" id="admin-testimonial-request-modal" hidden role="dialog" aria-modal="true" aria-labelledby="admin-testimonial-request-title">
+                <div class="admin-email-reply-confirm-modal admin-testimonial-request-modal" id="admin-testimonial-request-modal" data-layer="modal" hidden role="dialog" aria-modal="true" aria-labelledby="admin-testimonial-request-title">
                   <div class="admin-email-reply-confirm-backdrop" data-testimonial-request-close></div>
                   <form class="admin-email-reply-confirm-dialog admin-testimonial-request-dialog" id="admin-testimonial-request-form" novalidate>
                     <h4 class="admin-email-reply-confirm-title" id="admin-testimonial-request-title">Request a testimonial</h4>
@@ -5475,7 +5475,7 @@
 
         </div> <!-- End admin-dashboard-content -->
 
-          <div class="tc-timer-bar" id="tc-timer-bar" hidden aria-live="polite">
+          <div class="tc-timer-bar" id="tc-timer-bar" data-float hidden aria-live="polite">
             <div class="tc-timer-bar-main">
               <span class="tc-timer-bar-pulse" aria-hidden="true"></span>
               <div class="tc-timer-bar-copy">
@@ -5511,7 +5511,7 @@
 
 
         <!-- Admin Login Modal -->
-        <div class="login-modal" id="admin-login-modal">
+        <div class="login-modal" id="admin-login-modal" data-layer="modal">
           <div class="login-overlay" id="admin-login-overlay"></div>
           <div class="login-content">
             <div class="login-header">
@@ -5533,7 +5533,7 @@
         </div>
 
         <!-- Reply Modal -->
-        <div class="modal-container" id="reply-modal">
+        <div class="modal-container" id="reply-modal" data-layer="modal">
           <div class="overlay" id="reply-modal-overlay"></div>
           <section class="reply-modal">
             <div class="reply-modal-header">
@@ -5573,128 +5573,8 @@
           </section>
         </div>
 
-        <!-- Delete contact submission confirmation (replaces native confirm()) -->
-        <div class="modal-container" id="delete-contact-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-contact-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-contact-confirm-title" aria-describedby="delete-contact-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-contact-confirm-title">Delete submission?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-contact-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-contact-confirm-desc">This permanently removes the contact form submission from your inbox. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-contact-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-contact-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Delete DM conversation confirmation (admin Conversations drawer) -->
-        <div class="modal-container" id="delete-dm-conversation-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-dm-conversation-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-dm-conversation-confirm-title" aria-describedby="delete-dm-conversation-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-dm-conversation-confirm-title">Delete conversation?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-dm-conversation-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-dm-conversation-confirm-desc">This permanently deletes the conversation and all messages. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-dm-conversation-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-dm-conversation-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Delete blog post confirmation (admin blog management) -->
-        <div class="modal-container" id="delete-blog-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-blog-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-blog-confirm-title" aria-describedby="delete-blog-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-blog-confirm-title">Delete blog post?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-blog-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-blog-confirm-desc">This permanently removes the blog post. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-blog-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-blog-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Delete portfolio project confirmation -->
-        <div class="modal-container" id="delete-portfolio-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-portfolio-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-portfolio-confirm-title" aria-describedby="delete-portfolio-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-portfolio-confirm-title">Delete portfolio project?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-portfolio-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-portfolio-confirm-desc">This permanently removes the project from Realtime Database and the public portfolio. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-portfolio-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-portfolio-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Delete business document confirmation -->
-        <div class="modal-container" id="delete-document-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-document-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-document-confirm-title" aria-describedby="delete-document-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-document-confirm-title">Delete document?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-document-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-document-confirm-desc">This permanently removes the proposal, estimate, or invoice from your saved documents. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-document-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-document-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Delete project hub confirmation -->
-        <div class="modal-container" id="delete-hub-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-hub-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-hub-confirm-title" aria-describedby="delete-hub-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-hub-confirm-title">Delete project hub?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-hub-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-hub-confirm-desc">This permanently removes the project hub and invalidates any client portal link. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-hub-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-hub-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
         <!-- Graduate to client handler -->
-        <div class="modal-container" id="graduate-client-confirm-modal" aria-hidden="true">
+        <div class="modal-container" id="graduate-client-confirm-modal" data-layer="confirm" aria-hidden="true">
           <div class="overlay" id="graduate-client-confirm-overlay"></div>
           <section class="confirm-delete-modal" role="dialog" aria-modal="true" aria-labelledby="graduate-client-confirm-title" aria-describedby="graduate-client-confirm-desc">
             <div class="confirm-delete-modal__header">
@@ -5722,128 +5602,8 @@
           </section>
         </div>
 
-        <!-- Delete maintenance client confirmation -->
-        <div class="modal-container" id="delete-maint-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-maint-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-maint-confirm-title" aria-describedby="delete-maint-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-maint-confirm-title">Delete maintenance client?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-maint-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-maint-confirm-desc">This permanently removes the maintenance record and any linked tickets. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-maint-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-maint-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Delete time entry confirmation -->
-        <div class="modal-container" id="delete-time-entry-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-time-entry-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-time-entry-confirm-title" aria-describedby="delete-time-entry-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-time-entry-confirm-title">Delete time entry?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-time-entry-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-time-entry-confirm-desc">This permanently removes this planned/logged time entry. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-time-entry-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-time-entry-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Hide/restore a day of email threads -->
-        <div class="modal-container" id="email-clear-day-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="email-clear-day-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="email-clear-day-confirm-title" aria-describedby="email-clear-day-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="email-clear-day-confirm-title">Hide these threads?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="email-clear-day-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="email-clear-day-confirm-desc"></p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="email-clear-day-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-primary" id="email-clear-day-confirm-ok">Hide</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Delete pipeline lead confirmation -->
-        <div class="modal-container" id="delete-lead-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-lead-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-lead-confirm-title" aria-describedby="delete-lead-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-lead-confirm-title">Delete pipeline lead?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-lead-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-lead-confirm-desc">This permanently removes the lead from your pipeline. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-lead-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-lead-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Cancel booking confirmation -->
-        <div class="modal-container" id="cancel-booking-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="cancel-booking-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="cancel-booking-confirm-title" aria-describedby="cancel-booking-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="cancel-booking-confirm-title">Cancel this booking?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="cancel-booking-confirm-close" aria-label="Keep booking">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="cancel-booking-confirm-desc">This removes the booking and frees the time slot so someone else can book it.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="cancel-booking-confirm-keep">Keep booking</button>
-              <button type="button" class="btn btn-danger" id="cancel-booking-confirm-cancel">Cancel booking</button>
-            </div>
-          </section>
-        </div>
-
-        <!-- Delete referral partner confirmation -->
-        <div class="modal-container" id="delete-referral-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-referral-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-referral-confirm-title" aria-describedby="delete-referral-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-referral-confirm-title">Delete referral partner?</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-referral-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-referral-confirm-desc">This permanently removes the referral partner record. This cannot be undone.</p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-referral-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-referral-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
         <!-- Testimonial questionnaire detail (admin Testimonials tab) -->
-        <div id="admin-testimonial-detail" class="admin-testimonial-detail" aria-hidden="true">
+        <div id="admin-testimonial-detail" data-layer="drawer" class="admin-testimonial-detail" aria-hidden="true">
           <div class="admin-testimonial-detail__backdrop" id="admin-testimonial-detail-backdrop" tabindex="-1"></div>
           <div class="admin-testimonial-detail__panel" role="dialog" aria-modal="true" aria-labelledby="admin-testimonial-detail-title" data-lenis-prevent>
             <header class="admin-testimonial-detail__head">
@@ -5857,28 +5617,8 @@
           </div>
         </div>
 
-        <!-- Delete testimonial invite / published quote (admin Testimonials tab) -->
-        <div class="modal-container" id="delete-testimonial-confirm-modal" aria-hidden="true">
-          <div class="overlay" id="delete-testimonial-confirm-overlay"></div>
-          <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-testimonial-confirm-title" aria-describedby="delete-testimonial-confirm-desc">
-            <div class="confirm-delete-modal__header">
-              <h3 id="delete-testimonial-confirm-title">Confirm</h3>
-              <button type="button" class="confirm-delete-modal__close" id="delete-testimonial-confirm-close" aria-label="Cancel">
-                <ion-icon name="close-outline"></ion-icon>
-              </button>
-            </div>
-            <div class="confirm-delete-modal__body">
-              <p id="delete-testimonial-confirm-desc"></p>
-            </div>
-            <div class="confirm-delete-modal__actions">
-              <button type="button" class="btn btn-secondary" id="delete-testimonial-confirm-cancel">Cancel</button>
-              <button type="button" class="btn btn-danger" id="delete-testimonial-confirm-delete">Delete</button>
-            </div>
-          </section>
-        </div>
-
         <!-- Lead add/edit modal (Leads Pipeline) -->
-        <div class="business-doc-modal lead-modal" id="lead-modal" style="display: none;" aria-hidden="true">
+        <div class="business-doc-modal lead-modal" id="lead-modal" data-layer="modal" style="display: none;" aria-hidden="true">
           <div class="business-doc-modal-overlay" id="lead-modal-overlay"></div>
           <div class="business-doc-modal-content">
             <div class="business-doc-modal-header">
@@ -5997,7 +5737,7 @@
 
 
         <!-- Time Capacity: focus timer drawer / bottom sheet -->
-        <div class="modal-container tc-timer-modal" id="tc-timer-drawer" aria-hidden="true">
+        <div class="modal-container tc-timer-modal" id="tc-timer-drawer" data-layer="drawer" aria-hidden="true">
           <div class="overlay" id="tc-timer-drawer-overlay"></div>
           <section class="confirm-delete-modal" role="dialog" aria-modal="true" aria-labelledby="tc-timer-drawer-title">
             <div class="confirm-delete-modal__header">
@@ -6044,8 +5784,8 @@
         </div>
 
         <!-- Time Capacity: add hours drawer (desktop) / bottom sheet (mobile) -->
-        <div class="tc-add-drawer-overlay" id="tc-add-drawer-overlay" hidden aria-hidden="true"></div>
-        <aside class="tc-add-drawer" id="tc-add-drawer" hidden aria-hidden="true" aria-labelledby="tc-add-drawer-title" data-lenis-prevent>
+        <div class="tc-add-drawer-overlay" id="tc-add-drawer-overlay" data-layer-backdrop="modal" hidden aria-hidden="true"></div>
+        <aside class="tc-add-drawer" id="tc-add-drawer" data-layer="modal" hidden aria-hidden="true" aria-labelledby="tc-add-drawer-title" data-lenis-prevent>
           <div class="tc-add-drawer-header">
             <div class="tc-add-drawer-heading">
               <h3 class="h3" id="tc-add-drawer-title">Add for this day</h3>
@@ -6088,8 +5828,8 @@
         </aside>
 
         <!-- Client project workspace (desktop: drawer / mobile: bottom sheet) -->
-        <div class="cp-client-drawer-overlay" id="cp-client-drawer-overlay" hidden aria-hidden="true"></div>
-        <aside class="cp-client-drawer" id="cp-client-drawer" hidden aria-hidden="true" aria-labelledby="cp-client-drawer-title" data-lenis-prevent>
+        <div class="cp-client-drawer-overlay" id="cp-client-drawer-overlay" data-layer-backdrop="drawer" hidden aria-hidden="true"></div>
+        <aside class="cp-client-drawer" id="cp-client-drawer" data-layer="drawer" hidden aria-hidden="true" aria-labelledby="cp-client-drawer-title" data-lenis-prevent>
           <button type="button" class="cp-client-drawer-grab" id="cp-client-drawer-grab" aria-label="Drag to resize the sheet"><span aria-hidden="true"></span></button>
           <div class="cp-client-drawer-header">
             <h3 class="h3" id="cp-client-drawer-title">Client workspace</h3>
@@ -6106,8 +5846,8 @@
         </aside>
 
         <!-- Lead detail drawer -->
-        <div class="lead-drawer-overlay" id="lead-drawer-overlay" hidden aria-hidden="true"></div>
-        <aside class="lead-drawer" id="lead-detail-drawer" hidden aria-hidden="true" aria-labelledby="lead-drawer-title">
+        <div class="lead-drawer-overlay" id="lead-drawer-overlay" data-layer-backdrop="drawer" hidden aria-hidden="true"></div>
+        <aside class="lead-drawer" id="lead-detail-drawer" data-layer="drawer" hidden aria-hidden="true" aria-labelledby="lead-drawer-title">
           <div class="lead-drawer-header">
             <h3 class="h3" id="lead-drawer-title">Lead details</h3>
             <button type="button" class="lead-drawer-close" id="lead-drawer-close" aria-label="Close">
@@ -6136,7 +5876,7 @@
         </aside>
 
         <!-- Create/Edit Document Modal -->
-        <div class="business-doc-modal" id="social-proof-modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="social-proof-modal-title">
+        <div class="business-doc-modal" id="social-proof-modal" data-layer="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="social-proof-modal-title">
           <div class="business-doc-modal-overlay" data-social-proof-close></div>
           <div class="business-doc-modal-content">
             <div class="business-doc-modal-header">
@@ -6282,7 +6022,7 @@
             </div>
           </div>
         </div>
-        <div class="business-doc-modal" id="business-doc-modal" style="display: none;">
+        <div class="business-doc-modal" id="business-doc-modal" data-layer="modal" style="display: none;">
           <div class="business-doc-modal-overlay" id="business-doc-modal-overlay"></div>
           <div class="business-doc-modal-content">
             <div class="business-doc-modal-header">
@@ -7105,7 +6845,7 @@
   <!-- Blog Management Modals (Global - accessible from any page) -->
   
   <!-- Add a Blog Post Modal -->
-  <div class="add-blog-modal" id="add-blog-modal">
+  <div class="add-blog-modal" id="add-blog-modal" data-layer="modal">
     <div class="add-blog-overlay" id="add-blog-overlay"></div>
     <div class="add-blog-content blog-post-modal-content">
       <div class="add-blog-header">
@@ -7403,7 +7143,7 @@
   </div>
 
   <!-- Edit Blog Post Modal -->
-  <div class="add-blog-modal" id="edit-blog-modal">
+  <div class="add-blog-modal" id="edit-blog-modal" data-layer="modal">
     <div class="add-blog-overlay" id="edit-blog-overlay"></div>
     <div class="add-blog-content blog-post-modal-content">
       <div class="add-blog-header">
@@ -7692,7 +7432,7 @@
   </div>
 
   <!-- Unsaved portfolio project changes (body-level so it stacks above the project editor) -->
-  <div class="modal-container" id="portfolio-unsaved-confirm-modal" aria-hidden="true">
+  <div class="modal-container" id="portfolio-unsaved-confirm-modal" data-layer="confirm" aria-hidden="true">
     <div class="overlay" id="portfolio-unsaved-confirm-overlay"></div>
     <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="portfolio-unsaved-confirm-title" aria-describedby="portfolio-unsaved-confirm-desc">
       <div class="confirm-delete-modal__header">
@@ -7713,7 +7453,7 @@
   </div>
 
   <!-- Unsaved blog post changes (body-level so it stacks above the blog editor) -->
-  <div class="modal-container" id="blog-unsaved-confirm-modal" aria-hidden="true">
+  <div class="modal-container" id="blog-unsaved-confirm-modal" data-layer="confirm" aria-hidden="true">
     <div class="overlay" id="blog-unsaved-confirm-overlay"></div>
     <section class="confirm-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="blog-unsaved-confirm-title" aria-describedby="blog-unsaved-confirm-desc">
       <div class="confirm-delete-modal__header">
@@ -7734,7 +7474,7 @@
   </div>
 
   <!-- Portfolio project create / edit (admin) -->
-  <div class="add-blog-modal" id="portfolio-project-modal" aria-hidden="true">
+  <div class="add-blog-modal" id="portfolio-project-modal" data-layer="modal" aria-hidden="true">
     <div class="add-blog-overlay" id="portfolio-project-modal-overlay"></div>
     <div class="add-blog-content portfolio-project-modal-content">
       <div class="add-blog-header">
@@ -8045,7 +7785,7 @@
   </div>
 
   <!-- Add / Edit Copy-Paste Snippet Modal -->
-  <div class="add-blog-modal" id="snippet-edit-modal" aria-hidden="true">
+  <div class="add-blog-modal" id="snippet-edit-modal" data-layer="modal" aria-hidden="true">
     <div class="add-blog-overlay" id="snippet-edit-overlay"></div>
     <div class="add-blog-content">
       <div class="add-blog-header">
@@ -8636,7 +8376,7 @@
 
 
   <!-- CodeWithRuben Agency Tools modals -->
-  <div class="agency-modal" id="template-matcher-modal" aria-hidden="true">
+  <div class="agency-modal" id="template-matcher-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content">
       <div class="agency-modal-header">
@@ -8698,7 +8438,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="new-client-modal" aria-hidden="true">
+  <div class="agency-modal" id="new-client-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content">
       <div class="agency-modal-header">
@@ -8725,7 +8465,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="project-hub-editor-modal" aria-hidden="true">
+  <div class="agency-modal" id="project-hub-editor-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content agency-modal-content--wide">
       <div class="agency-modal-header">
@@ -8789,7 +8529,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="case-study-modal" aria-hidden="true">
+  <div class="agency-modal" id="case-study-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content agency-modal-content--wide">
       <div class="agency-modal-header"><h3>Case study output</h3><button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button></div>
@@ -8808,7 +8548,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="maintenance-editor-modal" aria-hidden="true">
+  <div class="agency-modal" id="maintenance-editor-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content">
       <div class="agency-modal-header"><h3>Maintenance client</h3><button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button></div>
@@ -8833,7 +8573,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="content-repurpose-modal" aria-hidden="true">
+  <div class="agency-modal" id="content-repurpose-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content agency-modal-content--wide">
       <div class="agency-modal-header"><h3>Repurposed content</h3><button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button></div>
@@ -8848,7 +8588,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="referral-editor-modal" aria-hidden="true">
+  <div class="agency-modal" id="referral-editor-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content">
       <div class="agency-modal-header"><h3>Referral partner</h3><button type="button" class="agency-modal-close" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button></div>
@@ -8863,7 +8603,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="studio-cost-editor-modal" aria-hidden="true">
+  <div class="agency-modal" id="studio-cost-editor-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content">
       <div class="agency-modal-header">
@@ -8932,7 +8672,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="studio-cost-paid-modal" aria-hidden="true">
+  <div class="agency-modal" id="studio-cost-paid-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content">
       <div class="agency-modal-header">
@@ -8957,7 +8697,7 @@
     </div>
   </div>
 
-  <div class="agency-modal" id="ops-doc-editor-modal" aria-hidden="true">
+  <div class="agency-modal" id="ops-doc-editor-modal" data-layer="modal" aria-hidden="true">
     <div class="agency-modal-overlay"></div>
     <div class="agency-modal-content">
       <div class="agency-modal-header">
@@ -8983,7 +8723,7 @@
     </div>
   </div>
 
-  <div class="ops-doc-sheet-root" id="ops-doc-sheet-root" aria-hidden="true">
+  <div class="ops-doc-sheet-root" id="ops-doc-sheet-root" data-layer="drawer" aria-hidden="true">
     <div class="ops-doc-sheet-backdrop" id="ops-doc-sheet-backdrop"></div>
     <div class="ops-doc-sheet" role="dialog" aria-modal="true" aria-labelledby="ops-doc-sheet-title">
       <div class="ops-doc-sheet-head">
@@ -9034,15 +8774,15 @@
     (function () {
       var CLASSIC = [
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', integrity: 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==' },
-        { src: '/assets/js/blog-tiptap-editor.js?v=category-covers-20261015' },
-        { src: '/assets/js/agency-tools.js?v=chair-studio-20261015' },
+        { src: '/assets/js/blog-tiptap-editor.js?v=dialogs-20261018' },
+        { src: '/assets/js/agency-tools.js?v=dialogs-20261018' },
         { src: '/assets/js/ig-posts.js?v=ig-library-20260827' },
-        { src: '/assets/js/outreach-composer.js?v=package-names-20261016' },
-        { src: '/assets/js/prospects.js?v=deposit-text-20261010' },
-        { src: '/assets/js/social-proof-admin.js?v=one-card-20261018' },
+        { src: '/assets/js/outreach-composer.js?v=dialogs-20261018' },
+        { src: '/assets/js/prospects.js?v=dialogs-20261018' },
+        { src: '/assets/js/social-proof-admin.js?v=dialogs-20261018' },
         { src: '/assets/js/dm-migration.js' }
       ];
-      var MODULE = '/assets/js/post-builder/index.js?v=pb2';
+      var MODULE = '/assets/js/post-builder/index.js?v=pb3';
       var pending = null;
       window.loadAdminBundle = function () {
         if (pending) return pending;
@@ -9070,7 +8810,8 @@
       }
     })();
   </script>
-  <script src="/assets/js/script.js?v=proof-tab-20261017"></script>
+  <script src="/assets/js/admin-ui.js?v=dialogs-20261018"></script>
+  <script src="/assets/js/script.js?v=dialogs-20261018"></script>
   <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
 
   <!--

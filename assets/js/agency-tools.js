@@ -113,10 +113,6 @@
     }
     return out + '</div>';
   }
-  var pendingDeleteHubId = null;
-  var pendingDeleteRefId = null;
-  var pendingDeleteMaintId = null;
-  var pendingDeleteTimeEntryId = null;
 
   function esc(s) {
     if (s == null) return '';
@@ -773,42 +769,30 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        openDeleteHubConfirmModal(btn.getAttribute('data-hub-delete'));
+        confirmDeleteProjectHub(btn.getAttribute('data-hub-delete'));
       });
     });
   }
 
-  function openDeleteHubConfirmModal(id) {
+  /** Ask first with the shared dialog (CwrUI), then delete. */
+  async function confirmDeleteProjectHub(id) {
     if (!id) return;
-    pendingDeleteHubId = id;
     var p = agencyProjects.find(function (x) { return x.id === id; });
     var label = p ? (p.clientName || p.title || 'Untitled') : 'this project hub';
-    var desc = document.getElementById('delete-hub-confirm-desc');
-    if (desc) {
-      desc.textContent =
-        'Permanently delete the project hub for “' + label + '”? Any client portal link for this hub will stop working. This cannot be undone.';
+    var ok = await window.CwrUI.confirm({
+      title: 'Delete project hub?',
+      message: 'Permanently delete the project hub for “' + label + '”? Any client portal link for this hub will stop working. This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    });
+    if (!ok || !rtdbReady()) return;
+    try {
+      await performDeleteProjectHub(id);
+      window.CwrUI.toast('Project hub deleted.', { tone: 'success' });
+    } catch (err) {
+      console.error(err);
+      window.CwrUI.toast((err && err.message) || 'Could not delete project hub.', { tone: 'error' });
     }
-    var modal = document.getElementById('delete-hub-confirm-modal');
-    if (!modal) return;
-    if (modal.parentElement !== document.body) {
-      document.body.appendChild(modal);
-    }
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var cancelBtn = document.getElementById('delete-hub-confirm-cancel');
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
-  }
-
-  function closeDeleteHubConfirmModal() {
-    var modal = document.getElementById('delete-hub-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    pendingDeleteHubId = null;
   }
 
   async function performDeleteProjectHub(id) {
@@ -832,66 +816,6 @@
     }
 
     refreshClientProjectsPicker();
-  }
-
-  function setupDeleteHubConfirmModal() {
-    var modal = document.getElementById('delete-hub-confirm-modal');
-    if (!modal || modal.dataset.hubDelBound) return;
-    modal.dataset.hubDelBound = '1';
-
-    var overlay = document.getElementById('delete-hub-confirm-overlay');
-    var btnClose = document.getElementById('delete-hub-confirm-close');
-    var btnCancel = document.getElementById('delete-hub-confirm-cancel');
-    var btnDelete = document.getElementById('delete-hub-confirm-delete');
-
-    function close() {
-      closeDeleteHubConfirmModal();
-    }
-
-    [overlay, btnClose, btnCancel].forEach(function (el) {
-      if (el) el.addEventListener('click', close);
-    });
-
-    if (btnDelete) {
-      btnDelete.addEventListener('click', function () {
-        var id = pendingDeleteHubId;
-        if (!id || !rtdbReady()) {
-          close();
-          return;
-        }
-        btnDelete.disabled = true;
-        performDeleteProjectHub(id)
-          .then(function () {
-            close();
-            if (typeof showSuccessMessage === 'function') {
-              showSuccessMessage('Project hub deleted.');
-            }
-          })
-          .catch(function (err) {
-            console.error(err);
-            if (typeof showErrorMessage === 'function') {
-              showErrorMessage(err.message || 'Could not delete project hub.');
-            } else {
-              alert('Could not delete project hub. Try again.');
-            }
-          })
-          .finally(function () {
-            btnDelete.disabled = false;
-          });
-      });
-    }
-
-    document.addEventListener(
-      'keydown',
-      function hubDelEsc(ev) {
-        if (ev.key !== 'Escape') return;
-        var m = document.getElementById('delete-hub-confirm-modal');
-        if (!m || !m.classList.contains('active')) return;
-        ev.stopImmediatePropagation();
-        close();
-      },
-      true
-    );
   }
 
   function expandAllCpSectionsForHub(hubId) {
@@ -1426,7 +1350,6 @@
   }
 
   function initProjectHub() {
-    setupDeleteHubConfirmModal();
     var addBtn = document.getElementById('project-hub-add-btn');
     if (addBtn) addBtn.addEventListener('click', function () { openProjectHubEditor('new'); });
     bindModalClose('project-hub-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
@@ -1687,10 +1610,10 @@
         if (hub) {
           emailPortalLinkToClient(hub)
             .then(function () {
-              alert('Portal link emailed to ' + (hub.clientEmail || 'client') + '.');
+              window.CwrUI.toast('Portal link emailed to ' + (hub.clientEmail || 'client') + '.', { tone: 'success' });
             })
             .catch(function (err) {
-              alert((err && err.message) || 'Could not send portal email.');
+              window.CwrUI.toast((err && err.message) || 'Could not send portal email.', { tone: 'error' });
             });
         }
       };
@@ -1774,7 +1697,7 @@
 
   async function generateClientPortalLink(projectId) {
     if (!projectId || !rtdbReady()) {
-      alert('Save the project hub first.');
+      window.CwrUI.toast('Save the project hub first.', { tone: 'error' });
       return;
     }
     var existing = agencyProjects.find(function (x) { return x.id === projectId; });
@@ -1849,39 +1772,30 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        openDeleteMaintConfirmModal(btn.getAttribute('data-maint-delete'));
+        confirmDeleteMaintenance(btn.getAttribute('data-maint-delete'));
       });
     });
   }
 
-  function openDeleteMaintConfirmModal(id) {
+  /** Ask first with the shared dialog (CwrUI), then delete. */
+  async function confirmDeleteMaintenance(id) {
     if (!id) return;
-    pendingDeleteMaintId = id;
     var m = agencyMaintenance.find(function (x) { return x.id === id; });
     var label = m ? (m.clientName || 'this client') : 'this client';
-    var desc = document.getElementById('delete-maint-confirm-desc');
-    if (desc) {
-      desc.textContent =
-        'Permanently delete maintenance record for “' + label + '”? This cannot be undone.';
+    var ok = await window.CwrUI.confirm({
+      title: 'Delete maintenance client?',
+      message: 'Permanently delete maintenance record for “' + label + '”? This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    });
+    if (!ok || !rtdbReady()) return;
+    try {
+      await performDeleteMaintenance(id);
+      window.CwrUI.toast('Maintenance client deleted.', { tone: 'success' });
+    } catch (err) {
+      console.error(err);
+      window.CwrUI.toast((err && err.message) || 'Could not delete maintenance client.', { tone: 'error' });
     }
-    var modal = document.getElementById('delete-maint-confirm-modal');
-    if (!modal) return;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var cancelBtn = document.getElementById('delete-maint-confirm-cancel');
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
-  }
-
-  function closeDeleteMaintConfirmModal() {
-    var modal = document.getElementById('delete-maint-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    pendingDeleteMaintId = null;
   }
 
   async function performDeleteMaintenance(id) {
@@ -1895,66 +1809,6 @@
     }
 
     if (clientProjectsSelectedId) renderClientProjectsWorkspace();
-  }
-
-  function setupDeleteMaintConfirmModal() {
-    var modal = document.getElementById('delete-maint-confirm-modal');
-    if (!modal || modal.dataset.maintDelBound) return;
-    modal.dataset.maintDelBound = '1';
-
-    var overlay = document.getElementById('delete-maint-confirm-overlay');
-    var btnClose = document.getElementById('delete-maint-confirm-close');
-    var btnCancel = document.getElementById('delete-maint-confirm-cancel');
-    var btnDelete = document.getElementById('delete-maint-confirm-delete');
-
-    function close() {
-      closeDeleteMaintConfirmModal();
-    }
-
-    [overlay, btnClose, btnCancel].forEach(function (el) {
-      if (el) el.addEventListener('click', close);
-    });
-
-    if (btnDelete) {
-      btnDelete.addEventListener('click', function () {
-        var id = pendingDeleteMaintId;
-        if (!id || !rtdbReady()) {
-          close();
-          return;
-        }
-        btnDelete.disabled = true;
-        performDeleteMaintenance(id)
-          .then(function () {
-            close();
-            if (typeof showSuccessMessage === 'function') {
-              showSuccessMessage('Maintenance client deleted.');
-            }
-          })
-          .catch(function (err) {
-            console.error(err);
-            if (typeof showErrorMessage === 'function') {
-              showErrorMessage(err.message || 'Could not delete maintenance client.');
-            } else {
-              alert('Could not delete maintenance client. Try again.');
-            }
-          })
-          .finally(function () {
-            btnDelete.disabled = false;
-          });
-      });
-    }
-
-    document.addEventListener(
-      'keydown',
-      function maintDelEsc(ev) {
-        if (ev.key !== 'Escape') return;
-        var m = document.getElementById('delete-maint-confirm-modal');
-        if (!m || !m.classList.contains('active')) return;
-        ev.stopImmediatePropagation();
-        close();
-      },
-      true
-    );
   }
 
   function openMaintenanceEditor(id) {
@@ -2024,7 +1878,6 @@
   }
 
   function initMaintenance() {
-    setupDeleteMaintConfirmModal();
     var add = document.getElementById('maintenance-add-btn');
     if (add) add.addEventListener('click', function () { openMaintenanceEditor('new'); });
     bindModalClose('maintenance-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
@@ -2319,39 +2172,30 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        openDeleteReferralConfirmModal(btn.getAttribute('data-ref-delete'));
+        confirmDeleteReferral(btn.getAttribute('data-ref-delete'));
       });
     });
   }
 
-  function openDeleteReferralConfirmModal(id) {
+  /** Ask first with the shared dialog (CwrUI), then delete. */
+  async function confirmDeleteReferral(id) {
     if (!id) return;
-    pendingDeleteRefId = id;
     var r = agencyReferrals.find(function (x) { return x.id === id; });
     var label = r ? (r.name || r.email || 'this partner') : 'this partner';
-    var desc = document.getElementById('delete-referral-confirm-desc');
-    if (desc) {
-      desc.textContent =
-        'Permanently delete referral partner “' + label + '”? This cannot be undone.';
+    var ok = await window.CwrUI.confirm({
+      title: 'Delete referral partner?',
+      message: 'Permanently delete referral partner “' + label + '”? This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    });
+    if (!ok || !rtdbReady()) return;
+    try {
+      await performDeleteReferral(id);
+      window.CwrUI.toast('Referral partner deleted.', { tone: 'success' });
+    } catch (err) {
+      console.error(err);
+      window.CwrUI.toast((err && err.message) || 'Could not delete referral partner.', { tone: 'error' });
     }
-    var modal = document.getElementById('delete-referral-confirm-modal');
-    if (!modal) return;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var cancelBtn = document.getElementById('delete-referral-confirm-cancel');
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
-  }
-
-  function closeDeleteReferralConfirmModal() {
-    var modal = document.getElementById('delete-referral-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    pendingDeleteRefId = null;
   }
 
   async function performDeleteReferral(id) {
@@ -2363,66 +2207,6 @@
     if (editorModal && editorModal.classList.contains('active') && editId && editId.value === id) {
       closeModal('referral-editor-modal');
     }
-  }
-
-  function setupDeleteReferralConfirmModal() {
-    var modal = document.getElementById('delete-referral-confirm-modal');
-    if (!modal || modal.dataset.refDelBound) return;
-    modal.dataset.refDelBound = '1';
-
-    var overlay = document.getElementById('delete-referral-confirm-overlay');
-    var btnClose = document.getElementById('delete-referral-confirm-close');
-    var btnCancel = document.getElementById('delete-referral-confirm-cancel');
-    var btnDelete = document.getElementById('delete-referral-confirm-delete');
-
-    function close() {
-      closeDeleteReferralConfirmModal();
-    }
-
-    [overlay, btnClose, btnCancel].forEach(function (el) {
-      if (el) el.addEventListener('click', close);
-    });
-
-    if (btnDelete) {
-      btnDelete.addEventListener('click', function () {
-        var id = pendingDeleteRefId;
-        if (!id || !rtdbReady()) {
-          close();
-          return;
-        }
-        btnDelete.disabled = true;
-        performDeleteReferral(id)
-          .then(function () {
-            close();
-            if (typeof showSuccessMessage === 'function') {
-              showSuccessMessage('Referral partner deleted.');
-            }
-          })
-          .catch(function (err) {
-            console.error(err);
-            if (typeof showErrorMessage === 'function') {
-              showErrorMessage(err.message || 'Could not delete referral partner.');
-            } else {
-              alert('Could not delete referral partner. Try again.');
-            }
-          })
-          .finally(function () {
-            btnDelete.disabled = false;
-          });
-      });
-    }
-
-    document.addEventListener(
-      'keydown',
-      function refDelEsc(ev) {
-        if (ev.key !== 'Escape') return;
-        var m = document.getElementById('delete-referral-confirm-modal');
-        if (!m || !m.classList.contains('active')) return;
-        ev.stopImmediatePropagation();
-        close();
-      },
-      true
-    );
   }
 
   function openReferralEditor(id) {
@@ -2462,7 +2246,6 @@
   }
 
   function initReferrals() {
-    setupDeleteReferralConfirmModal();
     var add = document.getElementById('referral-add-btn');
     if (add) add.addEventListener('click', function () { openReferralEditor('new'); });
     bindModalClose('referral-editor-modal', '.agency-modal-overlay', '.agency-modal-close');
@@ -2914,7 +2697,7 @@
     var id = document.getElementById('studio-cost-edit-id').value.trim();
     var name = document.getElementById('studio-cost-name').value.trim();
     if (!name) {
-      alert('Name is required.');
+      window.CwrUI.toast('Name is required.', { tone: 'error' });
       return;
     }
     var existing = id
@@ -2980,7 +2763,7 @@
         '[studio costs] #studio-cost-paid-modal is missing from the page. ' +
           'Hard-refresh the admin page (Cmd+Shift+R) to pick up the current HTML.'
       );
-      alert('Mark paid needs a page refresh to load. Press Cmd+Shift+R and try again.');
+      window.CwrUI.toast('Mark paid needs a page refresh to load. Press Cmd+Shift+R and try again.', { tone: 'error' });
       return;
     }
 
@@ -3043,7 +2826,7 @@
     if (!row) return;
     var paidOn = dateEl.value;
     if (!studioCostParseDate(paidOn)) {
-      alert('Pick a valid payment date.');
+      window.CwrUI.toast('Pick a valid payment date.', { tone: 'error' });
       return;
     }
 
@@ -3061,7 +2844,7 @@
       return x.id === id;
     });
     var label = row ? row.name || 'this service' : 'this service';
-    if (!window.confirm('Delete studio cost “' + label + '”? This cannot be undone.')) return;
+    if (!(await window.CwrUI.confirm({ title: 'Delete studio cost?', message: 'Delete studio cost “' + label + '”? This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return;
     await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.studioCosts + '/' + id));
   }
 
@@ -3254,15 +3037,15 @@
     var pathInput = document.getElementById('ops-doc-path').value;
     var url = normalizeStudioDocPath(pathInput);
     if (!url) {
-      alert('Enter a filename in /assets/docs/ (for example cwr-agency-overview.md) or a full /assets/… path.');
+      window.CwrUI.toast('Enter a filename in /assets/docs/ (for example cwr-agency-overview.md) or a full /assets/… path.', { tone: 'error' });
       return;
     }
     if (!/\.(md|markdown|pdf)(\?|$)/i.test(url)) {
-      alert('Only Markdown (.md) and PDF files can be read here.');
+      window.CwrUI.toast('Only Markdown (.md) and PDF files can be read here.', { tone: 'error' });
       return;
     }
     if (!id && agencyStudioDocs.length >= MAX_STUDIO_DOCS) {
-      alert('That is the maximum of ' + MAX_STUDIO_DOCS + ' docs.');
+      window.CwrUI.toast('That is the maximum of ' + MAX_STUDIO_DOCS + ' docs.', { tone: 'error' });
       return;
     }
     var title =
@@ -3285,7 +3068,7 @@
       return x.id === id;
     });
     var label = row ? row.title || 'this doc' : 'this doc';
-    if (!window.confirm('Remove “' + label + '” from the docs list? The file itself is not deleted.')) return;
+    if (!(await window.CwrUI.confirm({ title: 'Remove from the docs list?', message: 'Remove “' + label + '” from the docs list? The file itself is not deleted.', confirmLabel: 'Remove', tone: 'danger' }))) return;
     await window.rtdbRemove(window.rtdbRef(window.rtdb, PATHS.studioDocs + '/' + id));
   }
 
@@ -5686,7 +5469,7 @@
     if (!hub) return;
     if (deliveryStageOf(hub) === stage) return;
     if (!rtdbReady()) {
-      alert('Unable to update stage right now.');
+      window.CwrUI.toast('Unable to update stage right now.', { tone: 'error' });
       return;
     }
     var prev = deliveryStageOf(hub);
@@ -5704,7 +5487,7 @@
       console.error('moveHubDeliveryStage', err);
       hub.deliveryStage = prev;
       renderClientProjectsPickerList();
-      alert('Could not update delivery stage.');
+      window.CwrUI.toast('Could not update delivery stage.', { tone: 'error' });
     }
   }
 
@@ -6100,7 +5883,7 @@
       await window.rtdbSet(ref, payload);
     } catch (err) {
       console.error(err);
-      alert('Could not create maintenance record.');
+      window.CwrUI.toast('Could not create maintenance record.', { tone: 'error' });
     }
   }
 
@@ -6190,9 +5973,12 @@
     var portfolio = findPortfolioForHub(existing);
     var label = (portfolio && portfolio.title) || existing.portfolioProjectId;
     if (
-      !window.confirm(
-        'Unlink “' + label + '” from this client portal?\n\nThe portfolio project is not deleted — only the client link is removed.'
-      )
+      !(await window.CwrUI.confirm({
+        title: 'Unlink from this client portal?',
+        message: 'Unlink “' + label + '” from this client portal? The portfolio project is not deleted — only the client link is removed.',
+        confirmLabel: 'Unlink',
+        tone: 'danger'
+      }))
     ) {
       return;
     }
@@ -6370,12 +6156,12 @@
       return;
     }
     if (action === 'delete-hub') {
-      if (clientProjectsSelectedId) openDeleteHubConfirmModal(clientProjectsSelectedId);
+      if (clientProjectsSelectedId) confirmDeleteProjectHub(clientProjectsSelectedId);
       return;
     }
     if (action === 'delete-maint') {
       var maintId = (document.getElementById('cp-maint-id') || {}).value.trim();
-      if (maintId) openDeleteMaintConfirmModal(maintId);
+      if (maintId) confirmDeleteMaintenance(maintId);
       return;
     }
     if (action === 'pick-logo') {
@@ -6600,7 +6386,7 @@
     if (deleteBtn && !deleteBtn.dataset.cpBound) {
       deleteBtn.dataset.cpBound = '1';
       deleteBtn.addEventListener('click', function () {
-        if (clientProjectsSelectedId) openDeleteHubConfirmModal(clientProjectsSelectedId);
+        if (clientProjectsSelectedId) confirmDeleteProjectHub(clientProjectsSelectedId);
       });
     }
     if (overlay && !overlay.dataset.cpBound) {
@@ -7085,7 +6871,7 @@
   async function updateMaintTicket(index, patch) {
     var maintId = (document.getElementById('cp-maint-id') || {}).value || '';
     if (!maintId || !rtdbReady() || isNaN(index) || index < 0) return;
-    if (patch === null && !window.confirm('Delete this ticket? This cannot be undone.')) return;
+    if (patch === null && !(await window.CwrUI.confirm({ title: 'Delete this ticket?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return;
 
     var ref = window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId);
     var snap = await window.rtdbGet(ref);
@@ -8246,7 +8032,7 @@
       var delCard = actionBtn.closest('[data-tc-entry-id]');
       var delId = delCard && delCard.getAttribute('data-tc-entry-id');
       if (!delId) return;
-      openDeleteTimeEntryConfirmModal(delId);
+      confirmDeleteTimeEntry(delId);
     }
   }
 
@@ -8323,7 +8109,6 @@
       document.getElementById('admin-panel-time-capacity');
     if (!panel) return;
     timeCapacityBound = true;
-    setupDeleteTimeEntryConfirmModal();
     ensureTcCalState();
     loadPersistedTcTimer();
     syncTcAddTargetSelect(false);
@@ -8466,6 +8251,11 @@
   }
 
   function showTcTimerToast(message, isError, action) {
+    // Shared slide-in notice (assets/js/admin-ui.js); the block below is only a fallback.
+    if (window.CwrUI) {
+      window.CwrUI.toast(message, { tone: isError ? 'error' : 'info', action: action });
+      return;
+    }
     var existing = document.getElementById('tc-timer-toast');
     if (existing) existing.remove();
     var toast = document.createElement('div');
@@ -9124,98 +8914,29 @@
     }
   }
 
-  function openDeleteTimeEntryConfirmModal(id) {
+  /** Ask first with the shared dialog (CwrUI), then delete. */
+  async function confirmDeleteTimeEntry(id) {
     if (!id) return;
-    pendingDeleteTimeEntryId = id;
     var entry = agencyTimeEntries.find(function (x) { return x.id === id; });
-    var desc = document.getElementById('delete-time-entry-confirm-desc');
-    if (desc) {
-      var label = entry ? (entry.clientName || 'this client') : 'this entry';
-      var hoursBit = entry
-        ? ' (' + formatHours(entry.plannedHours) + ' planned, ' + formatHours(entry.loggedHours) + ' logged)'
-        : '';
-      desc.textContent =
-        'Permanently delete the time entry for “' + label + '”' + hoursBit + '? This cannot be undone.';
-    }
-    var modal = document.getElementById('delete-time-entry-confirm-modal');
-    if (!modal) return;
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    var cancelBtn = document.getElementById('delete-time-entry-confirm-cancel');
-    if (cancelBtn) {
-      setTimeout(function () {
-        cancelBtn.focus();
-      }, 40);
-    }
-  }
-
-  function closeDeleteTimeEntryConfirmModal() {
-    var modal = document.getElementById('delete-time-entry-confirm-modal');
-    if (!modal) return;
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    pendingDeleteTimeEntryId = null;
-  }
-
-  function setupDeleteTimeEntryConfirmModal() {
-    var modal = document.getElementById('delete-time-entry-confirm-modal');
-    if (!modal || modal.dataset.tcDelBound) return;
-    modal.dataset.tcDelBound = '1';
-
-    var overlay = document.getElementById('delete-time-entry-confirm-overlay');
-    var btnClose = document.getElementById('delete-time-entry-confirm-close');
-    var btnCancel = document.getElementById('delete-time-entry-confirm-cancel');
-    var btnDelete = document.getElementById('delete-time-entry-confirm-delete');
-
-    function close() {
-      closeDeleteTimeEntryConfirmModal();
-    }
-
-    [overlay, btnClose, btnCancel].forEach(function (el) {
-      if (el) el.addEventListener('click', close);
+    var label = entry ? (entry.clientName || 'this client') : 'this entry';
+    var hoursBit = entry
+      ? ' (' + formatHours(entry.plannedHours) + ' planned, ' + formatHours(entry.loggedHours) + ' logged)'
+      : '';
+    var ok = await window.CwrUI.confirm({
+      title: 'Delete time entry?',
+      message: 'Permanently delete the time entry for “' + label + '”' + hoursBit + '? This cannot be undone.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
     });
-
-    if (btnDelete) {
-      btnDelete.addEventListener('click', function () {
-        var id = pendingDeleteTimeEntryId;
-        if (!id || !rtdbReady()) {
-          close();
-          return;
-        }
-        btnDelete.disabled = true;
-        deleteTimeEntry(id)
-          .then(function () {
-            close();
-            renderTimeCapacityPanel();
-            if (typeof showSuccessMessage === 'function') {
-              showSuccessMessage('Time entry deleted.');
-            }
-          })
-          .catch(function (err) {
-            console.error(err);
-            if (typeof showErrorMessage === 'function') {
-              showErrorMessage(err.message || 'Could not delete time entry.');
-            } else {
-              alert('Could not delete time entry. Try again.');
-            }
-          })
-          .finally(function () {
-            btnDelete.disabled = false;
-          });
-      });
+    if (!ok || !rtdbReady()) return;
+    try {
+      await deleteTimeEntry(id);
+      renderTimeCapacityPanel();
+      window.CwrUI.toast('Time entry deleted.', { tone: 'success' });
+    } catch (err) {
+      console.error(err);
+      window.CwrUI.toast((err && err.message) || 'Could not delete time entry.', { tone: 'error' });
     }
-
-    document.addEventListener(
-      'keydown',
-      function tcDelEsc(ev) {
-        if (ev.key !== 'Escape') return;
-        var m = document.getElementById('delete-time-entry-confirm-modal');
-        if (!m || !m.classList.contains('active')) return;
-        ev.stopImmediatePropagation();
-        close();
-      },
-      true
-    );
   }
 
   /**

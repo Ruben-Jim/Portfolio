@@ -10,11 +10,14 @@
  *    "edited index.html, forgot sync-spa-shells" mistake.
  * 3. Tests: every scripts/test-*.mjs passes.
  * 4. Secrets: no service-account keys or private keys tracked in git.
+ * 5. Popups: admin code uses the site's own dialogs (window.CwrUI), never the
+ *    browser's confirm() / alert() / prompt().
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { adminDialogFiles, findNativeDialogsInFile } from './lib/native-dialogs.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
@@ -76,10 +79,17 @@ const keyHits = spawnSync('git', ['grep', '-l', '-I', '-e', PEM_HEADER, '-e', JS
 if (keyHits) fail(`private key material tracked in git: ${keyHits.split('\n').join(', ')}`);
 
 // ---------------------------------------------------------------------------
+// 5. Popups: CwrUI.confirm / choose / prompt / toast instead of the browser's own.
+for (const rel of adminDialogFiles(ROOT)) {
+  for (const hit of findNativeDialogsInFile(ROOT, rel)) {
+    fail(`browser popup: ${rel}:${hit.line} ${hit.call}() — use CwrUI (assets/js/admin-ui.js)`);
+  }
+}
+
 if (failures.length) {
   console.error(`\n✗ preflight: ${failures.length} problem(s)\n`);
   for (const f of failures) console.error('  ✗ ' + f.replace(/\n/g, '\n    '));
   console.error('\nPush blocked. Fix the above, or push with --no-verify if you must.\n');
   process.exit(1);
 }
-console.log(`✓ preflight: JS syntax, ${shells.length} shells in sync, tests, no secrets`);
+console.log(`✓ preflight: JS syntax, ${shells.length} shells in sync, tests, no secrets, no browser popups`);

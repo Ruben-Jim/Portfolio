@@ -2,13 +2,13 @@
  * Post builder — library (lives in the admin tab): your designs, plus the
  * "New design" dialog: start from the services posts, a blank canvas, or a copy.
  */
-import { FORMATS, createDesign, duplicateDesign, normalizeDesign } from './model.js?v=pb2';
-import { esc } from './render.js?v=pb2';
-import { uiIcon } from './icons.js?v=pb2';
-import { openEditor } from './editor.js?v=pb2';
-import { renderThumb } from './export.js?v=pb2';
+import { FORMATS, createDesign, duplicateDesign, normalizeDesign } from './model.js?v=pb3';
+import { esc } from './render.js?v=pb3';
+import { uiIcon } from './icons.js?v=pb3';
+import { openEditor } from './editor.js?v=pb3';
+import { renderThumb } from './export.js?v=pb3';
 
-var STARTERS_URL = '/assets/js/post-builder/starters.json?v=pb2';
+var STARTERS_URL = '/assets/js/post-builder/starters.json?v=pb3';
 var startersPromise = null;
 
 function loadStarters() {
@@ -234,7 +234,7 @@ export function mountLibrary(root, store) {
 
   // ---------- library actions ----------
 
-  root.addEventListener('click', function (e) {
+  root.addEventListener('click', async function (e) {
     var btn = e.target.closest('[data-lib]');
     if (!btn || modal.contains(btn)) return;
     var what = btn.getAttribute('data-lib');
@@ -249,7 +249,7 @@ export function mountLibrary(root, store) {
       return run('Duplicating…', async function () { await store.save(duplicateDesign(await store.load(summary.id))); });
     }
     if (what === 'rename') {
-      var name = window.prompt('Rename design', summary.name);
+      var name = await window.CwrUI.prompt({ title: 'Rename design', label: 'Name', value: summary.name, confirmLabel: 'Rename', required: true });
       if (!name || !name.trim() || name.trim() === summary.name) return;
       return run('Renaming…', async function () {
         var full = await store.load(summary.id);
@@ -259,7 +259,7 @@ export function mountLibrary(root, store) {
       });
     }
     if (what === 'delete') {
-      if (!window.confirm('Delete “' + summary.name + '”? This can’t be undone.')) return;
+      if (!(await window.CwrUI.confirm({ title: 'Delete design?', message: 'Delete “' + summary.name + '”? This can’t be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return;
       return run('Deleting…', function () { return store.remove(summary); });
     }
   });
