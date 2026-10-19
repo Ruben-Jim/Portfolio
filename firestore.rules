@@ -5,6 +5,11 @@ service cloud.firestore {
       return field is string && field.size() > 0 && field.size() <= maxLen;
     }
 
+    // Blank allowed (e.g. a testimonial's job title and business name).
+    function isOptionalString(field, maxLen) {
+      return field is string && field.size() <= maxLen;
+    }
+
     // Admin = the `admin` custom claim (scripts/set-admin-claim.mjs). The
     // verified-email allowlist is the transition fallback — remove it once the
     // claim is confirmed (see the security notes (~/Dev/Apps/blueprints/portfolio-security.md, kept out of this public repo)).
@@ -59,6 +64,22 @@ service cloud.firestore {
         field.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$');
     }
 
+    // A testimonial the admin adds from a client's email: their name and words,
+    // optional title/business/product, stars only if they gave a rating.
+    function validEmailTestimonial() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['name', 'text', 'avatar', 'source']) &&
+        d.keys().hasOnly(['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'source', 'createdAt']) &&
+        d.source == 'email' &&
+        isValidString(d.name, 120) &&
+        isValidString(d.text, 5000) &&
+        (!d.keys().hasAny(['title']) || isOptionalString(d.title, 120)) &&
+        (!d.keys().hasAny(['company']) || isOptionalString(d.company, 160)) &&
+        (!d.keys().hasAny(['product']) || isOptionalString(d.product, 200)) &&
+        (!d.keys().hasAny(['rating']) || (d.rating is int && d.rating >= 1 && d.rating <= 5)) &&
+        isAvatarFile(d.avatar);
+    }
+
     function validTestimonialAvatarPair() {
       return (request.resource.data.avatar == 'custom' &&
           request.resource.data.keys().hasAll(['avatarImageDataUrl']) &&
@@ -97,13 +118,13 @@ service cloud.firestore {
     // Customer-submitted testimonials (create only when matching token exists and is unused).
     match /testimonials/{testimonialId} {
       allow read: if true;
-      allow create: if
+      allow create: if (
         request.resource.data.keys().hasAll(
           ['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'token']
         ) &&
         isValidString(request.resource.data.name, 120) &&
-        isValidString(request.resource.data.title, 120) &&
-        isValidString(request.resource.data.company, 160) &&
+        isOptionalString(request.resource.data.title, 120) &&
+        isOptionalString(request.resource.data.company, 160) &&
         isValidString(request.resource.data.product, 200) &&
         isValidString(request.resource.data.text, 5000) &&
         request.resource.data.rating is int &&
@@ -114,7 +135,8 @@ service cloud.firestore {
         request.resource.data.token is string &&
         request.resource.data.token.matches('^[A-Za-z0-9-]{8,48}$') &&
         exists(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)) &&
-        get(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)).data.used == false;
+        get(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)).data.used == false
+      ) || (isPortfolioAdmin() && validEmailTestimonial());
       // Admin-only: update avatar (profile image) or text (public quote).
       // Only those two fields may ever change in a single write.
       allow update: if isPortfolioAdmin() && (

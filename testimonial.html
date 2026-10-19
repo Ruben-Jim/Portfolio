@@ -66,26 +66,26 @@
           <!-- Step 0: About you -->
           <div class="t-step t-step--active" id="t-step-0">
             <p class="t-step-question">Let's start with you</p>
-            <p class="t-step-hint" id="t-intro-hint">You were invited to leave a testimonial. Fill in your details — all pre-filled fields can be edited.</p>
+            <p class="t-step-hint" id="t-intro-hint">You were invited to leave a testimonial. Fill in your details — all pre-filled fields can be edited. Your answers may be shared on rubenjimenez.dev with your testimonial.</p>
             <div class="form-field">
               <label class="form-label" for="t-name">Your name</label>
               <input class="form-input" type="text" id="t-name" name="name" required maxlength="120" autocomplete="name">
             </div>
             <div class="form-field">
-              <label class="form-label" for="t-title">Job title</label>
-              <input class="form-input" type="text" id="t-title" name="title" required maxlength="120" autocomplete="organization-title" placeholder="Owner, Manager, etc.">
+              <label class="form-label" for="t-title">Job title <span class="t-optional">(optional)</span></label>
+              <input class="form-input" type="text" id="t-title" name="title" maxlength="120" autocomplete="organization-title" placeholder="Owner, Manager, etc.">
             </div>
             <div class="form-field">
-              <label class="form-label" for="t-company">Business name</label>
-              <input class="form-input" type="text" id="t-company" name="company" required maxlength="160" autocomplete="organization">
+              <label class="form-label" for="t-company">Business name <span class="t-optional">(optional)</span></label>
+              <input class="form-input" type="text" id="t-company" name="company" maxlength="160" autocomplete="organization">
             </div>
             <input type="hidden" id="t-product" name="product">
           </div>
 
           <!-- Step 1: Communication -->
           <div class="t-step" id="t-step-1">
-            <span class="t-step-badge t-step-badge--private">
-              <ion-icon name="lock-closed-outline"></ion-icon> Private — only Ruben sees this
+            <span class="t-step-badge t-step-badge--public">
+              <ion-icon name="eye-outline"></ion-icon> May appear with your testimonial
             </span>
             <p class="t-step-question">How was communication throughout the project?</p>
             <p class="t-step-hint">Think about response times, how questions were handled, and how clearly scope and progress were explained.</p>
@@ -101,8 +101,8 @@
 
           <!-- Step 2: Timeline -->
           <div class="t-step" id="t-step-2">
-            <span class="t-step-badge t-step-badge--private">
-              <ion-icon name="lock-closed-outline"></ion-icon> Private — only Ruben sees this
+            <span class="t-step-badge t-step-badge--public">
+              <ion-icon name="eye-outline"></ion-icon> May appear with your testimonial
             </span>
             <p class="t-step-question">Did the project land on time?</p>
             <p class="t-step-hint">Was delivery close to when you expected it, based on the timeline agreed at the start?</p>
@@ -116,8 +116,8 @@
 
           <!-- Step 3: Value vs price -->
           <div class="t-step" id="t-step-3">
-            <span class="t-step-badge t-step-badge--private">
-              <ion-icon name="lock-closed-outline"></ion-icon> Private — only Ruben sees this
+            <span class="t-step-badge t-step-badge--public">
+              <ion-icon name="eye-outline"></ion-icon> May appear with your testimonial
             </span>
             <p class="t-step-question">How does the price match the value?</p>
             <p class="t-step-hint">Looking back at what was built and what you paid — does the investment feel right?</p>
@@ -137,11 +137,11 @@
 
           <!-- Step 4: Referral + source + private notes -->
           <div class="t-step" id="t-step-4">
-            <span class="t-step-badge t-step-badge--private">
-              <ion-icon name="lock-closed-outline"></ion-icon> Private — only Ruben sees this
+            <span class="t-step-badge t-step-badge--public">
+              <ion-icon name="eye-outline"></ion-icon> May appear with your testimonial
             </span>
-            <p class="t-step-question">A few last private questions</p>
-            <p class="t-step-hint">None of this leaves the admin panel — it helps Ruben understand the full picture of working with you.</p>
+            <p class="t-step-question">A few last questions</p>
+            <p class="t-step-hint">These help Ruben understand the full picture of working with you, and may appear with your testimonial.</p>
             <div class="form-field">
               <span class="form-label">Would you refer CodeWithRuben to another business?</span>
               <div class="t-choice-stack" id="t-referral-group" role="group" aria-label="Referral intent">
@@ -164,7 +164,7 @@
               </select>
             </div>
             <div class="form-field">
-              <label class="form-label" for="t-private-notes">Anything else for Ruben only? <span class="t-optional">(optional)</span></label>
+              <label class="form-label" for="t-private-notes">Anything else you’d like to add? <span class="t-optional">(optional)</span></label>
               <textarea class="form-input" id="t-private-notes" rows="3" maxlength="2000" placeholder="What you'd change, what surprised you, or anything about the experience…"></textarea>
             </div>
           </div>
@@ -419,11 +419,7 @@
       switch (idx) {
         case 0: {
           var name    = document.getElementById('t-name').value.trim();
-          var title   = document.getElementById('t-title').value.trim();
-          var company = document.getElementById('t-company').value.trim();
           if (!name)    return 'Please enter your name.';
-          if (!title)   return 'Please enter your job title.';
-          if (!company) return 'Please enter your business name.';
           return null;
         }
         case 1: {
@@ -594,7 +590,7 @@
       var hint = document.getElementById('t-intro-hint');
       if (hint && data.product) {
         hint.innerHTML = 'You were invited to leave a testimonial for <strong>' +
-          data.product.replace(/[<>]/g, '') + '</strong>. Fill in your details — pre-filled fields can be edited.';
+          data.product.replace(/[<>]/g, '') + '</strong>. Fill in your details — pre-filled fields can be edited. Your answers may be shared on rubenjimenez.dev with your testimonial.';
       }
 
       updateProgress();

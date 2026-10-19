@@ -32677,6 +32677,27 @@ html:has(body.home-page-active) {
 
 .admin-testimonial-request-dialog {
   width: min(440px, calc(100vw - 32px));
+  /* Taller than a phone screen (e.g. Add from an email): scroll inside, keep the top on screen. */
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Native selects otherwise render as a short white bar in Safari. */
+.admin-testimonial-request-fields select.form-input {
+  height: 47px;
+  min-height: 47px;
+  padding: 0 14px;
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  background: var(--onyx);
+  color: var(--white-1);
+}
+
+.admin-testimonial-request-fields select.form-input option {
+  background: var(--eerie-black-2);
+  color: var(--white-1);
 }
 
 .admin-testimonial-request-fields {
@@ -32710,6 +32731,7 @@ html:has(body.home-page-active) {
 
 .admin-testimonial-request-fields .form-label {
   display: block;
+  color: var(--light-gray); /* the shared label color is dark-on-dark in this panel */
 }
 
 .admin-testimonial-request-dialog .admin-email-reply-confirm-actions {
