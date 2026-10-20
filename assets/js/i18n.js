@@ -10,7 +10,7 @@
       /* ── Navbar ─────────────────────────────────────────── */
       'nav.home':             'Home',
       'nav.about':            'About',
-      'nav.testimonials':     'Testimonials',
+      'nav.testimonials':     'Reviews',
       'nav.portfolio':        'Portfolio',
       'nav.services_pricing': 'Services &amp; Pricing',
       'nav.contact':          'Contact',
@@ -53,7 +53,7 @@
       'home.proof_kicker':    'Social proof',
       'home.proof_title':     'Trusted by local businesses',
       'home.proof_view':      'View project',
-      'home.testimonials_kicker': 'Testimonials',
+      'home.testimonials_kicker': 'Reviews & Testimonials',
       'home.testimonials_title':  'What clients say',
       'home.testimonials_link':   'Read more',
       'home.cta_title':       'Ready to run your business from your phone?',
@@ -85,7 +85,7 @@
       'about.cta_btn':        'Start a project',
 
       /* ── Testimonials ───────────────────────────────────── */
-      'testimonials.title':       'Testimonials',
+      'testimonials.title':       'Reviews & Testimonials',
       'testimonials.lead':        'Real feedback from clients who run their businesses on software we built — booking, ordering, and day-to-day ops.',
       'testimonials.list_title':   'What clients say',
       'testimonials.cta_title':    'Want results like these?',
@@ -291,7 +291,7 @@
       /* ── Navbar ─────────────────────────────────────────── */
       'nav.home':             'Inicio',
       'nav.about':            'Nosotros',
-      'nav.testimonials':     'Testimonios',
+      'nav.testimonials':     'Reseñas',
       'nav.portfolio':        'Portafolio',
       'nav.services_pricing': 'Servicios y Precios',
       'nav.contact':          'Contacto',
@@ -334,7 +334,7 @@
       'home.proof_kicker':    'Clientes satisfechos',
       'home.proof_title':     'La confianza de negocios locales',
       'home.proof_view':      'Ver proyecto',
-      'home.testimonials_kicker': 'Testimonios',
+      'home.testimonials_kicker': 'Reseñas y testimonios',
       'home.testimonials_title':  'Lo que dicen los clientes',
       'home.testimonials_link':   'Leer m\u00e1s',
       'home.cta_title':       '\u00bfListo para administrar tu negocio desde tu tel\u00e9fono?',
@@ -366,7 +366,7 @@
       'about.cta_btn':        'Iniciar un proyecto',
 
       /* ── Testimonials ───────────────────────────────────── */
-      'testimonials.title':       'Testimonios',
+      'testimonials.title':       'Reseñas y testimonios',
       'testimonials.lead':        'Comentarios reales de clientes que administran su negocio con el software que construimos — reservas, pedidos y operaciones del d\u00eda a d\u00eda.',
       'testimonials.list_title':   'Lo que dicen los clientes',
       'testimonials.cta_title':    '\u00bfQuieres resultados como estos?',

@@ -197,6 +197,7 @@ if (testimonialsLists.length && modalContainer && modalCloseBtn && overlay && mo
     list.addEventListener("click", function (e) {
       const card = e.target.closest("[data-testimonials-item]");
       if (!card || !list.contains(card)) return;
+      if (e.target.closest("a")) return; // e.g. "Posted on Google ↗" opens Google, not the popup
       const av = card.querySelector("[data-testimonials-avatar]");
       const ti = card.querySelector("[data-testimonials-title]");
       const tx = card.querySelector("[data-testimonials-text]");
@@ -10097,6 +10098,14 @@ window.addEventListener('load', function() {
     { src: '/assets/images/logo/logo.svg',           label: 'CWR default' },
   ];
 
+  // A Google review links to the review itself, or else to Ruben's Google listing. https only.
+  function testimonialGoogleHref(d) {
+    var url = String((d && d.reviewUrl) || '').trim();
+    if (/^https:\/\//.test(url)) return url;
+    var listing = String(window.CWR_GOOGLE_PROFILE_URL || '').trim();
+    return /^https:\/\//.test(listing) ? listing : '';
+  }
+
   function testimonialsStarHtml(rating) {
     var n = Math.max(0, Math.min(5, parseInt(rating, 10) || 0));
     if (!n) return ''; // e.g. a testimonial added from an email without a rating
@@ -10178,6 +10187,10 @@ window.addEventListener('load', function() {
       snap.forEach(function (docSnap) {
         rows.push({ id: docSnap.id, data: docSnap.data() });
       });
+      // Admin → Reviews "On site" switch: hidden ones never reach the page.
+      rows = rows.filter(function (r) {
+        return !(r.data && r.data.hidden === true);
+      });
       rows.sort(function (a, b) {
         return testimonialCreatedMs(b.data) - testimonialCreatedMs(a.data);
       });
@@ -10244,6 +10257,12 @@ window.addEventListener('load', function() {
               '</ul>';
           }
 
+          var googleTagHtml = d.source === 'google' ? '<span class="testimonials-google-tag">Google</span>' : '';
+          var googleHref = d.source === 'google' ? testimonialGoogleHref(d) : '';
+          var googleLinkHtml = googleHref
+            ? '<a class="testimonials-google-link" href="' + escapeTestimonialHtml(googleHref) + '" target="_blank" rel="noopener">Posted on Google ↗</a>'
+            : '';
+
           var imgSrc = resolveTestimonialAvatarSrc(d.avatar);
           var li = document.createElement("li");
           li.className = "testimonials-item";
@@ -10261,6 +10280,7 @@ window.addEventListener('load', function() {
               '<div class="testimonials-card-header">' +
                 testimonialsStarHtml(rating) +
                 typeTagHtml +
+                googleTagHtml +
               '</div>' +
               // Row 2: role · company (compact meta)
               (title || company
@@ -10272,6 +10292,7 @@ window.addEventListener('load', function() {
                 : '') +
               // Main body: the quote text, clamped in card, full in modal
               '<p class="testimonials-quote">' + cardQuote + '</p>' +
+              googleLinkHtml +
               // Modal-only: if short quote was promoted, also show it in modal as context
               (isShortPublicQuote
                 ? ''  // type tag in header already surfaces it
@@ -10617,12 +10638,6 @@ window.addEventListener('load', function() {
 
   async function loadTestimonialAdminPanel() {
     var combined = document.getElementById("admin-testimonials-combined-list");
-    function esc(s) {
-      return String(s == null ? "" : s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    }
     if (!combined) return;
     // Async Firestore fetch — shimmer until the first load resolves.
     if (!window.AdminLoading.is('testimonials')) {
@@ -10636,7 +10651,7 @@ window.addEventListener('load', function() {
     }
     if (!isAdmin()) {
       combined.innerHTML =
-        '<div class="empty-item"><p>Open this tab while signed in to load invites and submissions.</p></div>';
+        '<div class="empty-item"><p>Open this tab while signed in to load reviews.</p></div>';
       return;
     }
     try {
@@ -10669,152 +10684,20 @@ window.addEventListener('load', function() {
         testimonialAdminCache.testimonials[r.id] = r;
       });
 
-      var tokenIdSet = {};
-      tRows.forEach(function (r) {
-        tokenIdSet[r.id] = true;
-      });
-
-      var testimonialByToken = {};
-      pRows.forEach(function (row) {
-        var tid = row.data && row.data.token;
-        if (!tid || typeof tid !== "string") return;
-        var prev = testimonialByToken[tid];
-        if (!prev || testimonialCreatedMs(row.data) > testimonialCreatedMs(prev.data)) {
-          testimonialByToken[tid] = { id: row.id, data: row.data };
-        }
-      });
-
-      combined.innerHTML = "";
-      var appended = 0;
-
-      function appendActions(container, tokenId, testimonialId, hasInvite) {
-        var actions = document.createElement("div");
-        actions.className = "admin-testimonial-combined-actions";
-        var btnView = document.createElement("button");
-        btnView.type = "button";
-        btnView.className = "btn btn-primary btn-sm";
-        btnView.setAttribute("data-action", "view-testimonial");
-        btnView.textContent = testimonialId
-          ? "View questionnaire"
-          : hasInvite
-            ? "View invite"
-            : "View questionnaire";
-        if (testimonialId) {
-          btnView.setAttribute("data-view-testimonial", testimonialId);
-        }
-        if (tokenId) {
-          btnView.setAttribute("data-view-testimonial-token", tokenId);
-        }
-        if (!testimonialId && tokenId && hasInvite) {
-          btnView.setAttribute("data-view-invite-only", "1");
-        }
-        if (!testimonialId && !tokenId) {
-          btnView.disabled = true;
-        }
-        var btnDel = document.createElement("button");
-        btnDel.type = "button";
-        btnDel.className = "btn btn-secondary btn-sm";
-        btnDel.textContent = "Delete link";
-        if (hasInvite && tokenId) {
-          btnDel.setAttribute("data-delete-testimonial-token", tokenId);
-        } else {
-          btnDel.disabled = true;
-          btnDel.title = "No invite document for this row";
-        }
-        var btnRem = document.createElement("button");
-        btnRem.type = "button";
-        btnRem.className = "btn btn-secondary btn-sm";
-        btnRem.textContent = "Remove testimonial";
-        if (testimonialId) {
-          btnRem.setAttribute("data-delete-published-testimonial", testimonialId);
-        } else {
-          btnRem.disabled = true;
-          btnRem.title = "No submission on the site for this invite yet";
-        }
-        actions.appendChild(btnView);
-        actions.appendChild(btnDel);
-        actions.appendChild(btnRem);
-        container.appendChild(actions);
-      }
-
-      tRows.forEach(function (row) {
-        var tokenId = row.id;
-        var dd = row.data;
-        var used = dd.used === true;
-        var sub = testimonialByToken[tokenId];
-        var wrap = document.createElement("div");
-        wrap.className = "admin-testimonial-combined-row admin-testimonial-combined-row--interactive";
-        wrap.setAttribute("data-testimonial-token", tokenId);
-        if (sub) {
-          wrap.setAttribute("data-testimonial-row", sub.id);
-        }
-        var main = document.createElement("div");
-        main.className = "admin-testimonial-combined-main";
-        var subText = sub ? String(sub.data.text || "") : "";
-        main.innerHTML =
-          "<strong>" +
-          esc(dd.name) +
-          "</strong> &lt;" +
-          esc(dd.email) +
-          "&gt;<br><span style=\"font-size:12px;opacity:.85;\">" +
-          esc(dd.product) +
-          '</span><br><span style="font-size:11px;">' +
-          (used ? "Invite used" : "Invite pending") +
-          "</span>" +
-          (sub
-            ? '<br><span style="font-size:12px;margin-top:8px;display:inline-block;line-height:1.45;opacity:.95;"><em>Submission:</em> ' +
-              esc(subText.slice(0, 220)) +
-              (subText.length > 220 ? "…" : "") +
-              "</span>"
-            : '<br><span style="font-size:11px;opacity:.65;margin-top:6px;display:inline-block;">No submission on the site yet.</span>');
-        wrap.appendChild(main);
-        appendActions(wrap, tokenId, sub ? sub.id : "", true);
-        combined.appendChild(wrap);
-        appended += 1;
-      });
-
-      pRows.forEach(function (row) {
-        var tid = row.data && row.data.token;
-        if (tid && tokenIdSet[tid]) return;
-        var snippet = String(row.data.text || "");
-        var wrap = document.createElement("div");
-        wrap.className = "admin-testimonial-combined-row admin-testimonial-combined-row--interactive";
-        wrap.setAttribute("data-testimonial-row", row.id);
-        if (tid) {
-          wrap.setAttribute("data-testimonial-token", tid);
-        }
-        var main = document.createElement("div");
-        main.className = "admin-testimonial-combined-main";
-        main.innerHTML =
-          "<strong>" +
-          esc(row.data.name) +
-          "</strong>" +
-          (row.data.product ? " — " + esc(row.data.product) : "") +
-          '<br><span style="font-size:11px;opacity:.75;">' +
-          (row.data.source === "email"
-            ? "Added from an email"
-            : "Submission without a matching invite in Firestore" + (tid ? " (token " + esc(tid.slice(0, 10)) + "…)" : "")) +
-          "</span>" +
-          '<br><span style="font-size:12px;margin-top:6px;display:inline-block;line-height:1.45;">' +
-          esc(snippet.slice(0, 220)) +
-          (snippet.length > 220 ? "…" : "") +
-          "</span>";
-        wrap.appendChild(main);
-        appendActions(wrap, "", row.id, false);
-        combined.appendChild(wrap);
-        appended += 1;
-      });
-
-      if (!appended) {
+      // Admin → Reviews draws the rows (assets/js/reviews-admin.js, admin bundle).
+      if (!window.CWR_REVIEWS && typeof window.loadAdminBundle === 'function') await window.loadAdminBundle();
+      if (window.CWR_REVIEWS) {
+        window.CWR_REVIEWS.renderList(combined, tRows, pRows);
+      } else {
         combined.innerHTML =
-          '<div class="empty-item"><p>No invites or submitted testimonials yet.</p></div>';
+          '<div class="empty-item"><p>Could not load the Reviews tools. Refresh the page.</p></div>';
       }
       window.AdminLoading.mark('testimonials');
     } catch (e) {
       console.error("loadTestimonialAdminPanel", e);
       window.AdminLoading.mark('testimonials');
       combined.innerHTML =
-        '<div class="empty-item"><p>Could not load invites or testimonials.</p></div>';
+        '<div class="empty-item"><p>Could not load reviews.</p></div>';
     }
   }
 
@@ -11313,79 +11196,6 @@ window.addEventListener('load', function() {
             'If you have a minute, would you share a few words about the experience? It helps others decide if working with me is a good fit. There’s no rush at all.\n\n' +
             'Thank you,\nRuben Jimenez\nCodeWithRuben'
         });
-      });
-    }
-
-    // Add a testimonial a client sent by email: their exact words, stars only if they gave a rating.
-    const emailBtn = document.getElementById('admin-testimonial-from-email-btn');
-    const emailModal = document.getElementById('admin-testimonial-email-modal');
-    const emailForm = document.getElementById('admin-testimonial-email-form');
-    const emailStatus = document.getElementById('admin-testimonial-email-status');
-    if (emailBtn && emailModal && emailForm && !emailForm.dataset.boundTestimonialEmail) {
-      emailForm.dataset.boundTestimonialEmail = '1';
-      const setEmailStatus = function (msg, isError) {
-        if (!emailStatus) return;
-        emailStatus.textContent = msg || '';
-        emailStatus.classList.toggle('is-error', !!isError);
-      };
-      const emailValue = function (id) {
-        return document.getElementById(id).value.trim();
-      };
-      const closeEmailModal = function () {
-        emailModal.hidden = true;
-      };
-      emailBtn.addEventListener('click', function () {
-        emailForm.reset();
-        setEmailStatus('', false);
-        emailModal.hidden = false;
-        document.getElementById('admin-testimonial-email-name').focus();
-      });
-      emailModal.querySelectorAll('[data-testimonial-email-close]').forEach(function (el) {
-        el.addEventListener('click', closeEmailModal);
-      });
-      emailModal.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeEmailModal();
-      });
-      emailForm.addEventListener('submit', async function (ev) {
-        ev.preventDefault();
-        if (!isAdmin()) return;
-        var name = emailValue('admin-testimonial-email-name');
-        var text = emailValue('admin-testimonial-email-text');
-        if (!name || !text) {
-          setEmailStatus('Add their name and their words.', true);
-          return;
-        }
-        if (!window.db || !window.addDoc || !window.collection || !window.serverTimestamp) {
-          setEmailStatus('Firestore is not ready.', true);
-          return;
-        }
-        var payload = {
-          name: name,
-          title: emailValue('admin-testimonial-email-title'),
-          company: emailValue('admin-testimonial-email-company'),
-          product: emailValue('admin-testimonial-email-product'),
-          text: text,
-          avatar: 'avatar-1.png',
-          source: 'email',
-          createdAt: window.serverTimestamp()
-        };
-        var rating = parseInt(emailValue('admin-testimonial-email-rating'), 10);
-        if (rating >= 1 && rating <= 5) payload.rating = rating;
-        var saveBtn = document.getElementById('admin-testimonial-email-save');
-        saveBtn.disabled = true;
-        setEmailStatus('Adding…', false);
-        try {
-          await window.addDoc(window.collection(window.db, 'testimonials'), payload);
-          closeEmailModal();
-          window.CwrUI.toast('Testimonial added.', { tone: 'success' });
-          if (typeof window.loadTestimonialAdminPanel === 'function') window.loadTestimonialAdminPanel();
-          if (typeof window.loadDynamicTestimonials === 'function') window.loadDynamicTestimonials();
-        } catch (err) {
-          console.error(err);
-          setEmailStatus('Couldn’t add it. If this is the first one, deploy the Firestore rules first.', true);
-        } finally {
-          saveBtn.disabled = false;
-        }
       });
     }
 
@@ -24934,10 +24744,10 @@ window.addEventListener('load', function() {
     if (!id || (kind !== "token" && kind !== "published")) return;
     var isToken = kind === "token";
     var ok = await window.CwrUI.confirm({
-      title: isToken ? "Delete invite link?" : "Remove testimonial?",
+      title: isToken ? "Delete invite link?" : "Remove review?",
       message: isToken
         ? "This removes the invite document from Firestore. If a testimonial was already published with this link, it will stay on the site until you remove it separately."
-        : "This permanently removes this quote from your Home page. The invite cannot be reused; send a new invite if you need another submission.",
+        : "This deletes it for good. To keep it but take it off the site, use the On site switch instead.",
       confirmLabel: isToken ? "Delete link" : "Remove",
       tone: "danger"
     });

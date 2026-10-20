@@ -64,6 +64,11 @@ const PORTFOLIO_SHOW_BUY_BUTTONS = true;
  */
 const TESTIMONIAL_BRAND_LOGO = "/assets/images/logo/logo.svg";
 
+/** Google "write a review" link for CodeWithRuben (testimonial form finish screen). */
+const GOOGLE_REVIEW_URL = "https://g.page/r/CRFHTStr6S2REBM/review";
+/** Ruben's Google listing: where "Posted on Google ↗" goes when a review has no link of its own. */
+const GOOGLE_PROFILE_URL = "https://www.google.com/maps/place/?q=place_id:ChIJK4OmDZEA9EUREUdNK2vpLZE";
+
 // Make it available globally
 window.FIREBASE_CONFIG = FIREBASE_CONFIG;
 /** Base for the public JSON endpoints: dmSession (customer inbox), portalApi (client portal). */
@@ -74,3 +79,5 @@ window.DM_FEATURE_FLAGS = DM_FEATURE_FLAGS;
 window.PORTFOLIO_PUBLIC_ORIGIN = PORTFOLIO_PUBLIC_ORIGIN;
 window.PORTFOLIO_SHOW_BUY_BUTTONS = PORTFOLIO_SHOW_BUY_BUTTONS;
 window.TESTIMONIAL_BRAND_LOGO = TESTIMONIAL_BRAND_LOGO;
+window.CWR_GOOGLE_REVIEW_URL = GOOGLE_REVIEW_URL;
+window.CWR_GOOGLE_PROFILE_URL = GOOGLE_PROFILE_URL;

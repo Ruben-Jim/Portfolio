@@ -64,20 +64,24 @@ service cloud.firestore {
         field.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$');
     }
 
-    // A testimonial the admin adds from a client's email: their name and words,
-    // optional title/business/product, stars only if they gave a rating.
-    function validEmailTestimonial() {
-      let d = request.resource.data;
+    // A review Ruben adds by hand (Admin → Reviews): a client's emailed words, or
+    // a Google review copied from his listing. Google ones always have stars and
+    // may keep a https link to the review. `hidden` = switched off the site.
+    function validAdminReview(d) {
       return d.keys().hasAll(['name', 'text', 'avatar', 'source']) &&
-        d.keys().hasOnly(['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'source', 'createdAt']) &&
-        d.source == 'email' &&
+        d.keys().hasOnly(['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'source', 'reviewUrl', 'hidden', 'createdAt']) &&
+        d.source in ['email', 'google'] &&
         isValidString(d.name, 120) &&
         isValidString(d.text, 5000) &&
         (!d.keys().hasAny(['title']) || isOptionalString(d.title, 120)) &&
         (!d.keys().hasAny(['company']) || isOptionalString(d.company, 160)) &&
         (!d.keys().hasAny(['product']) || isOptionalString(d.product, 200)) &&
         (!d.keys().hasAny(['rating']) || (d.rating is int && d.rating >= 1 && d.rating <= 5)) &&
-        isAvatarFile(d.avatar);
+        (d.source != 'google' || d.keys().hasAny(['rating'])) &&
+        (!d.keys().hasAny(['reviewUrl']) || (d.source == 'google' && d.reviewUrl is string && d.reviewUrl.size() <= 500 && d.reviewUrl.matches('^https://.+'))) &&
+        (!d.keys().hasAny(['hidden']) || d.hidden is bool) &&
+        (!d.keys().hasAny(['createdAt']) || d.createdAt is timestamp) &&
+        d.avatar is string && d.avatar.size() > 0 && d.avatar.size() <= 500;
     }
 
     function validTestimonialAvatarPair() {
@@ -122,6 +126,8 @@ service cloud.firestore {
         request.resource.data.keys().hasAll(
           ['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'token']
         ) &&
+        // Only Ruben labels a review as emailed/Google or switches it off the site.
+        !request.resource.data.keys().hasAny(['source', 'hidden', 'reviewUrl']) &&
         isValidString(request.resource.data.name, 120) &&
         isOptionalString(request.resource.data.title, 120) &&
         isOptionalString(request.resource.data.company, 160) &&
@@ -136,9 +142,9 @@ service cloud.firestore {
         request.resource.data.token.matches('^[A-Za-z0-9-]{8,48}$') &&
         exists(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)) &&
         get(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)).data.used == false
-      ) || (isPortfolioAdmin() && validEmailTestimonial());
-      // Admin-only: update avatar (profile image) or text (public quote).
-      // Only those two fields may ever change in a single write.
+      ) || (isPortfolioAdmin() && validAdminReview(request.resource.data));
+      // Admin-only: the avatar (profile image) or text (public quote) alone, the
+      // On site switch alone, or a full edit of a review Ruben added himself.
       allow update: if isPortfolioAdmin() && (
         (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['avatar']) &&
@@ -150,6 +156,15 @@ service cloud.firestore {
           request.resource.data.text is string &&
           request.resource.data.text.size() > 0 &&
           request.resource.data.text.size() <= 5000
+        ) || (
+          // The "On site" switch, on any review.
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden']) &&
+          request.resource.data.hidden is bool
+        ) || (
+          // Full edit of a review Ruben added; its source can't change.
+          resource.data.get('source', '') in ['email', 'google'] &&
+          request.resource.data.source == resource.data.source &&
+          validAdminReview(request.resource.data)
         )
       );
       allow delete: if isPortfolioAdmin();

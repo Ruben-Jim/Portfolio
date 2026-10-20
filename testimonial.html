@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/style.css?v=testimonial-sync-20261017">
+  <link rel="stylesheet" href="./assets/css/style.css?v=reviews-tab-20261020">
   <script>
     (function () {
       var saved = localStorage.getItem('portfolio-theme');
@@ -222,15 +222,28 @@
       </div><!-- end t-wizard-card -->
     </div><!-- end t-wizard -->
 
-    <!-- Thank you state -->
+    <!-- Sent: thank them, then ask everyone (any rating) to post it on Google too -->
     <div id="t-state-thanks" class="testimonial-standalone-card" hidden>
       <div class="testimonial-success-icon" aria-hidden="true">
         <ion-icon name="checkmark-outline"></ion-icon>
       </div>
-      <h2 class="h3" style="margin:0 0 10px;">Thank You!</h2>
+      <h2 class="h3" style="margin:0 0 10px;">Your testimonial has been sent</h2>
       <p class="testimonial-standalone-lead" style="margin-bottom:0;">
-        Your testimonial has been published. Ruben appreciates you taking the time — it makes a real difference.
+        Thank you! Ruben appreciates you taking the time. It makes a real difference.
       </p>
+      <div class="t-google" id="t-google-review" hidden>
+        <p class="t-google-title">Would you also post it on Google?</p>
+        <p class="t-google-hint">It helps other businesses find Ruben. The button copies your words, so on Google you just paste them and choose your stars.</p>
+        <figure class="t-google-preview">
+          <span class="t-google-stars" id="t-google-stars" role="img"></span>
+          <blockquote class="t-google-text" id="t-google-text"></blockquote>
+        </figure>
+        <a class="t-google-btn" id="t-google-review-link" href="#" target="_blank" rel="noopener">
+          <ion-icon name="logo-google" aria-hidden="true"></ion-icon>
+          Copy my words &amp; open Google
+        </a>
+        <p class="t-google-status" id="t-google-status" role="status" aria-live="polite"></p>
+      </div>
       <p style="margin-top:20px;margin-bottom:0;">
         <a href="./" class="testimonial-standalone-text-link">← Back to portfolio</a>
       </p>
@@ -238,7 +251,7 @@
 
   </div><!-- end shell -->
 
-  <script src="./assets/js/config.js"></script>
+  <script src="./assets/js/config.js?v=reviews-tab-20261020"></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
     import {
@@ -262,13 +275,61 @@
     const stepCounter  = document.getElementById('t-step-counter');
     const stepLabel    = document.getElementById('t-step-label');
 
+    /* ── after sending: ask everyone, whatever their rating, to post it on Google too ── */
+    function showGoogleAsk(text, rating) {
+      var url = String(window.CWR_GOOGLE_REVIEW_URL || '');
+      var box = document.getElementById('t-google-review');
+      if (!box || !/^https:\/\//.test(url)) return;
+      var n = Math.max(0, Math.min(5, rating || 0));
+      var stars = document.getElementById('t-google-stars');
+      stars.textContent = '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
+      stars.setAttribute('aria-label', n + ' out of 5 stars');
+      document.getElementById('t-google-text').textContent = text;
+      var link = document.getElementById('t-google-review-link');
+      var status = document.getElementById('t-google-status');
+      link.href = url;
+      // The link opens Google in a new tab; copying happens in the same tap.
+      link.addEventListener('click', function () {
+        copyText(text).then(function (copied) {
+          status.textContent = copied
+            ? 'Copied. On Google, paste your words and choose your stars.'
+            : 'Couldn’t copy automatically. Select your words above, copy them, then paste them on Google.';
+        });
+      });
+      box.hidden = false;
+    }
+
+    function copyText(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).then(
+          function () { return true; },
+          function () { return copyTextFallback(text); }
+        );
+      }
+      return Promise.resolve(copyTextFallback(text));
+    }
+
+    function copyTextFallback(text) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      var copied = false;
+      try { copied = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      return copied;
+    }
+
     /* ── step config ── */
     const STEP_LABELS = [
       'About you',
       'Communication',
       'Timeline',
       'Value',
-      'Private feedback',
+      'Last questions',
       'Your testimonial',
     ];
     const TOTAL = STEP_LABELS.length;
@@ -520,6 +581,7 @@
         });
         show(wizard, false);
         show(stateThanks, true);
+        showGoogleAsk(text, rating);
       } catch (e) {
         console.error(e);
         if (e && e.message === 'ALREADY_USED') {

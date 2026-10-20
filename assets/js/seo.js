@@ -28,7 +28,7 @@
     },
     testimonials: {
       path: '/testimonials/',
-      title: 'Client Testimonials | CodeWithRuben',
+      title: 'Reviews & Testimonials | CodeWithRuben',
       description:
         'What clients say about CodeWithRuben — real feedback on booking apps, ordering systems, and custom software for service businesses.',
       robots: INDEX

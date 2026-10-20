@@ -32,18 +32,25 @@ ok((html.match(/May appear with your testimonial/g) || []).length === 4, 'steps 
 ok(/id="t-intro-hint"[^>]*>[^<]*may be shared on rubenjimenez\.dev/i.test(html), 'step 1 says up front that answers may be shared');
 ok(/for="t-private-notes">Anything else you’d like to add\?/.test(html), 'the notes box is no longer "for Ruben only"');
 
-// ── Adding a testimonial from an email (admin only) ──
+// ── Reviews Ruben adds himself (form and list checks live in test-reviews.mjs) ──
 const shell = read('index.html');
 const script = read('assets/js/script.js');
-ok(/id="admin-testimonial-from-email-btn"/.test(shell) && /id="admin-testimonial-email-modal"[^>]*data-layer="modal"|data-layer="modal"[^>]*id="admin-testimonial-email-modal"/.test(shell), 'Admin → Testimonials has "Add from an email" and its form (on the modal layer)');
-ok(['admin-testimonial-email-name', 'admin-testimonial-email-title', 'admin-testimonial-email-company', 'admin-testimonial-email-text', 'admin-testimonial-email-rating'].every((id) => shell.includes('id="' + id + '"')), 'the form has name, job title, business, their words, and an optional rating');
-ok(/source:\s*'email'/.test(script) && /addDoc\(window\.collection\(window\.db, ['"]testimonials['"]\)/.test(script), 'it saves to testimonials with source "email"');
-ok(/Added from an email/.test(script), 'the admin list labels it "Added from an email"');
-const emailRule = (rules.match(/function validEmailTestimonial\(\)\s*\{[\s\S]*?\n    \}/) || [''])[0];
-ok(/source == 'email'/.test(emailRule) && /hasOnly\(/.test(emailRule) && /isValidString\(d\.name, 120\)/.test(emailRule) && /isValidString\(d\.text, 5000\)/.test(emailRule), 'rule: an email testimonial needs a name and their words, source "email", nothing extra');
-ok(/!d\.keys\(\)\.hasAny\(\['rating'\]\) \|\|/.test(emailRule), 'rule: the rating is optional for an email testimonial');
-ok(/allow create: if[\s\S]*\(isPortfolioAdmin\(\) && validEmailTestimonial\(\)\)/.test(create = rules.slice(rules.indexOf('match /testimonials/{testimonialId}'), rules.indexOf('allow update', rules.indexOf('match /testimonials/{testimonialId}')))), 'rule: only the admin can add one this way');
+const emailRule = (rules.match(/function validAdminReview\(d\)\s*\{[\s\S]*?\n    \}/) || [''])[0];
+ok(/d\.source in \['email', 'google'\]/.test(emailRule) && /hasOnly\(/.test(emailRule) && /isValidString\(d\.name, 120\)/.test(emailRule) && /isValidString\(d\.text, 5000\)/.test(emailRule), 'rule: an emailed review needs a name and their words, source "email" (or "google"), nothing extra');
+ok(/!d\.keys\(\)\.hasAny\(\['rating'\]\) \|\|/.test(emailRule), 'rule: the rating is optional for an emailed review');
+ok(/allow create: if[\s\S]*\(isPortfolioAdmin\(\) && validAdminReview\(request\.resource\.data\)\)/.test(create = rules.slice(rules.indexOf('match /testimonials/{testimonialId}'), rules.indexOf('allow update', rules.indexOf('match /testimonials/{testimonialId}')))), 'rule: only the admin can add one this way');
 ok(/function testimonialsStarHtml\(rating\) \{\s*var n = [^\n]*\n\s*if \(!n\) return '';/.test(script), 'no rating → no stars on the card');
-const emailForm = shell.slice(shell.indexOf('id="admin-testimonial-email-modal"'), shell.indexOf('</form>', shell.indexOf('id="admin-testimonial-email-modal"')));
-const formIds = (emailForm.match(/\sid="([^"]+)"/g) || []).map((m) => m.slice(5, -1));
-ok(formIds.length > 5 && formIds.every((id) => shell.split('id="' + id + '"').length === 2), 'every id in the email form is unique on the page (duplicates: ' + formIds.filter((id) => shell.split('id="' + id + '"').length !== 2).join(', ') + ')');
+
+// ── After sending: "sent" screen + ask everyone for a Google review ──
+const config = read('assets/js/config.js');
+ok(/GOOGLE_REVIEW_URL = "https:\/\/g\.page\/r\/CRFHTStr6S2REBM\/review"/.test(config) && /window\.CWR_GOOGLE_REVIEW_URL = GOOGLE_REVIEW_URL/.test(config), 'config.js holds the Google review link (window.CWR_GOOGLE_REVIEW_URL)');
+ok(!/'Private feedback'/.test(html) && /'Last questions'/.test(html), 'step 5 header says "Last questions", not "Private feedback"');
+const thanks = html.slice(html.indexOf('id="t-state-thanks"'), html.indexOf('end shell'));
+ok(/Your testimonial has been sent/.test(thanks) && !/has been published/.test(thanks), 'finish screen says the testimonial has been sent');
+ok(/id="t-google-review"[^>]*hidden/.test(thanks) && /Would you also post it on Google\?/.test(thanks), 'finish screen has the Google review ask (hidden until a link is set)');
+ok(/<a[^>]*id="t-google-review-link"[^>]*target="_blank"[^>]*rel="noopener"|<a[^>]*target="_blank"[^>]*rel="noopener"[^>]*id="t-google-review-link"/.test(thanks), 'the Google button opens the review page in a new tab');
+const googleJs = html.slice(html.indexOf('function showGoogleAsk'), html.indexOf('function showGoogleAsk') + 1800);
+ok(googleJs.length > 100 && !/rating\s*(>=|>|===|==|<)/.test(googleJs), 'the Google ask is shown to everyone, whatever the rating (Google forbids asking only happy clients)');
+ok(/textContent = /.test(googleJs) && !/innerHTML/.test(googleJs), 'their words are shown as text, never HTML');
+const styleVer = (s) => (s.match(/style\.css\?v=([^"]+)"/) || [])[1];
+ok(styleVer(html) && styleVer(html) === styleVer(shell), 'testimonial.html loads the same style.css version as the site (' + styleVer(html) + ' vs ' + styleVer(shell) + ')');

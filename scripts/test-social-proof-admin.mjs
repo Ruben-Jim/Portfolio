@@ -75,3 +75,6 @@ ok(no.client === 'Shelton Springs HOA' && no.projectId === 'p2' && no.summary ==
 ok(JSON.stringify(T.testimonialPrefillFor({ stat: '86' }, tdoc)) === JSON.stringify({ summary: 'Ruben built it.' }), 'number entry: Use testimonial fills the quote only');
 ok(T.testimonialPrefillFor({ stat: '' }, tdoc).tagline === "Roberto Rizo · Owner, Rizo's Pizzeria", 'no number: quote + credit');
 ok(T.prefillFromOutcome({ id: 'p9', outcome: 'x' }).projectId === 'p9', 'use outcome also links its project (saved on Save)');
+
+// Admin → Reviews "On site" switch: a hidden review still shows here, tagged.
+ok(T.testimonialFromDoc('h1', { name: 'A', text: 'x', hidden: true }).hidden === true && T.testimonialFromDoc('h2', { name: 'B', text: 'y' }).hidden === false, 'testimonialFromDoc carries hidden (missing = shown)');

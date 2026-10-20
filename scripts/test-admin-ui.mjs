@@ -58,7 +58,7 @@ const funcBody = (src, name) => {
 const MIGRATED = [
   [scriptJs, 'confirmDeleteBlogPost', 'Delete blog post?', 'deleteBlogPostConfirmed(postId)'],
   [scriptJs, 'confirmDeleteContactMessage', 'Delete submission?', 'deleteContactMessageConfirmed(messageId)'],
-  [scriptJs, 'confirmDeleteTestimonialItem', 'Remove testimonial?', 'deleteTestimonialItemConfirmed(kind, id)'],
+  [scriptJs, 'confirmDeleteTestimonialItem', 'Remove review?', 'deleteTestimonialItemConfirmed(kind, id)'],
   [scriptJs, 'confirmDeleteDmConversation', 'Delete conversation?', 'deleteDmConversationConfirmed('],
   [scriptJs, 'confirmDeleteBusinessDocument', 'Delete document?', 'deleteBusinessDocumentConfirmed(documentId)'],
   [scriptJs, 'confirmDeletePortfolioProject', 'Delete portfolio project?', 'deletePortfolioProjectDoc(id)'],

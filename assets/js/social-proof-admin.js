@@ -107,6 +107,7 @@
       company: String(x.company || '').trim(),
       text: String(x.text || ''),
       rating: Math.max(0, Math.min(5, parseInt(x.rating, 10) || 0)),
+      hidden: x.hidden === true,
       createdMs: ms
     };
   }
@@ -255,11 +256,11 @@
 
   function testimonialBlock(t) {
     return '<div class="admin-social-proof-block">' +
-      '<p class="admin-social-proof-kicker">Testimonial · ' + esc([t.name, t.title].filter(Boolean).join(', ')) + '</p>' +
+      '<p class="admin-social-proof-kicker">Testimonial · ' + esc([t.name, t.title].filter(Boolean).join(', ')) + (t.hidden ? ' · Hidden' : '') + '</p>' +
       '<p class="admin-social-proof-text">' + stars(t.rating) + '“' + esc(SP.quoteFromText(t.text)) + '”</p>' +
       '<p class="admin-social-proof-block-actions">' +
         '<button type="button" class="btn btn-secondary" data-use-testimonial="' + esc(t.id) + '">Use on homepage</button>' +
-        '<button type="button" class="admin-social-proof-link" data-open-testimonials>Open in Testimonials</button>' +
+        '<button type="button" class="admin-social-proof-link" data-open-testimonials>Open in Reviews</button>' +
       '</p></div>';
   }
 
