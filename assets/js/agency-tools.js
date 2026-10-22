@@ -14,7 +14,8 @@
     studioDocs: 'agencyStudioDocs',
     clientPortals: 'agencyClientPortals',
     firebaseHealth: 'agencyFirebaseHealth',
-    timeEntries: 'agencyTimeEntries'
+    timeEntries: 'agencyTimeEntries',
+    ticketNotes: 'agencyTicketNotes'
   };
 
   var MICRO_SAAS_MODULES = [
@@ -6251,18 +6252,17 @@
       }
       return;
     }
-    if (action === 'ticket-open') {
-      openTicketViewer(Number(el.getAttribute('data-ticket-index')));
-      return;
-    }
-    if (action === 'ticket-status') {
-      updateMaintTicket(Number(el.getAttribute('data-ticket-index')), {
-        status: el.getAttribute('data-ticket-next') || 'open'
-      }).catch(console.error);
-      return;
-    }
-    if (action === 'ticket-delete') {
-      updateMaintTicket(Number(el.getAttribute('data-ticket-index')), null).catch(console.error);
+    if (action === 'ticket-new' || action === 'ticket-open' || action === 'ticket-status' || action === 'ticket-delete') {
+      var ticketMaintId = ((document.getElementById('cp-maint-id') || {}).value || '').trim();
+      var ticketRef = el.getAttribute('data-ticket-ref') || '';
+      var ticketFail = function (err) {
+        console.error(err);
+        window.CwrUI.toast((err && err.message) || 'Could not update that ticket.', { tone: 'error' });
+      };
+      if (action === 'ticket-new') openTicketWizard(ticketMaintId);
+      if (action === 'ticket-open') openTicketDetail(ticketMaintId, ticketRef).catch(ticketFail);
+      if (action === 'ticket-status') setTicketStatus(ticketMaintId, ticketRef, el.getAttribute('data-ticket-next') || 'open').catch(ticketFail);
+      if (action === 'ticket-delete') deleteTicket(ticketMaintId, ticketRef, Number(el.getAttribute('data-ticket-index'))).catch(ticketFail);
       return;
     }
     if (action === 'save-maint-portal') {
@@ -6488,9 +6488,14 @@
         });
         document.addEventListener('keydown', function (e) {
           if (e.key !== 'Escape') return;
+          var wizard = document.getElementById('cp-ticket-wizard');
+          if (wizard && wizard.classList.contains('is-open')) {
+            closeTicketWizard(false).catch(console.error);
+            return;
+          }
           var viewer = document.getElementById('cp-ticket-viewer');
           if (viewer && viewer.classList.contains('is-open')) {
-            closeTicketViewer();
+            closeTicketDetail(false).catch(console.error);
             return;
           }
           closeCpMobileTabMenu();
@@ -6758,220 +6763,267 @@
     );
   }
 
-  var TICKET_STATUS_ORDER = ['open', 'in-progress', 'resolved'];
+  /* ---------------------------------------------------------------------------
+     Client tickets
+     Tickets live in agencyMaintenance/{id}/tickets[], shared with the portal:
+     it reads them through portalApi's allow-list and numbers its own in a
+     server transaction. Debug notes and screenshots live in admin-only
+     agencyTicketNotes/{id}/{ref} and Storage ticketFiles/, which portalApi
+     never reads. Status, labels, refs and order come from window.CwrTickets
+     (ticket-shared.js), so the drawer and the portal can't drift apart.
 
-  function ticketStatusLabel(v) {
-    var t = String(v || 'open').toLowerCase();
-    if (t === 'resolved' || t === 'closed' || t === 'done') return 'Resolved';
-    if (t === 'in-progress' || t === 'progress') return 'In progress';
-    return 'Open';
+     Writes address a ticket by ref, re-read the array first, and set only that
+     ticket's slot: slots shift when one is deleted, and a whole-array write
+     would drop a ticket the client raised since this drawer rendered.
+  --------------------------------------------------------------------------- */
+
+  function ticketMaint(maintId) {
+    return agencyMaintenance.find(function (x) { return x.id === maintId; }) || null;
   }
 
-  function ticketStatusKey(v) {
-    var t = String(v || 'open').toLowerCase();
-    if (t === 'resolved' || t === 'closed' || t === 'done') return 'resolved';
-    if (t === 'in-progress' || t === 'progress') return 'in-progress';
-    return 'open';
+  function ticketsPath(maintId) {
+    return PATHS.maintenance + '/' + maintId + '/tickets';
   }
 
-  /**
-   * Tickets raised from the client portal. Newest first, open ones first,
-   * because this is a triage list - what still needs doing has to read before
-   * what is already handled.
-   *
-   * Index is carried on the button as data-ticket-index: tickets are array
-   * items with no stable id of their own, and the array order is the identity.
-   */
-  /**
-   * Full-screen view of one ticket stub.
-   *
-   * Rebuilt from the record rather than cloning the DOM node, so the enlarged
-   * copy cannot inherit the grid sizing or the truncation of the card it was
-   * opened from.
-   */
-  function openTicketViewer(index) {
-    var maintId = (document.getElementById('cp-maint-id') || {}).value || '';
-    var maint = agencyMaintenance.find(function (x) { return x.id === maintId; });
-    var list = maint && Array.isArray(maint.tickets) ? maint.tickets : [];
-    if (isNaN(index) || index < 0 || index >= list.length) return;
-
-    var t = typeof list[index] === 'string' ? { title: list[index] } : list[index] || {};
-    var status = ticketStatusKey(t.status);
-    var when = String(t.createdAt || t.date || '');
-
-    var root = document.getElementById('cp-ticket-viewer');
-    if (!root) {
-      root = document.createElement('div');
-      root.id = 'cp-ticket-viewer';
-      root.className = 'cp-ticket-viewer';
-      root.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(root);
-      root.addEventListener('click', function (e) {
-        if (e.target.closest('[data-ticket-viewer-close]') || e.target === root) {
-          closeTicketViewer();
-        }
-      });
-    }
-
-    root.innerHTML =
-      // Close button is a SIBLING of the animated inner, not a child: the
-      // entrance animation transforms .cp-ticket-viewer-inner, and a
-      // transformed ancestor becomes the containing block for position:fixed
-      // descendants - so nesting it made the button anchor to the receipt
-      // mid-animation, then jump to the overlay when the transform cleared.
-      '<button type="button" class="cp-ticket-viewer-close" data-ticket-viewer-close ' +
-      'aria-label="Close">&times;</button>' +
-      '<div class="cp-ticket-viewer-inner" role="dialog" aria-modal="true" aria-label="Ticket ' +
-      esc(String(t.ref || '')) + '">' +
-      '<div class="cp-ticket-receipt cp-ticket-receipt--full">' +
-      '<p class="cp-ticket-brand">CodeWithRuben</p>' +
-      '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
-      '<p class="cp-ticket-ref">' + esc(String(t.ref || '—')) + '</p>' +
-      '<p class="cp-ticket-subject">' + esc(String(t.title || t.subject || 'Ticket')) + '</p>' +
-      '<dl class="cp-ticket-meta">' +
-      '<div><dt>Area</dt><dd>' + esc(String(t.area || '—')) + '</dd></div>' +
-      '<div><dt>Opened</dt><dd>' + esc(when.slice(0, 10) || '—') + '</dd></div>' +
-      '<div><dt>Response</dt><dd>' + esc(maintSlaWords(maint.slaHours)) + '</dd></div>' +
-      '<div><dt>Status</dt><dd class="cp-ticket-status cp-ticket-status--' + status + '">' +
-      esc(ticketStatusLabel(status)) + '</dd></div>' +
-      '</dl>' +
-      (t.details
-        ? '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
-          '<p class="cp-ticket-details">' + esc(String(t.details)) + '</p>'
-        : '') +
-      '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
-      '<p class="cp-ticket-foot">Keep this reference for your records</p>' +
-      '</div>' +
-      '<div class="cp-ticket-tear" aria-hidden="true"></div>' +
-      '</div>';
-
-    root.classList.add('is-open');
-    root.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('cp-ticket-viewer-open');
-    var closeBtn = root.querySelector('.cp-ticket-viewer-close');
-    if (closeBtn) closeBtn.focus();
+  function ticketNotesPath(maintId, ticketRef) {
+    return PATHS.ticketNotes + '/' + maintId + '/' + ticketRef;
   }
 
-  function closeTicketViewer() {
-    var root = document.getElementById('cp-ticket-viewer');
-    if (!root) return;
-    root.classList.remove('is-open');
-    root.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('cp-ticket-viewer-open');
+  async function readTickets(maintId) {
+    var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, ticketsPath(maintId)));
+    var val = snap.val();
+    return Array.isArray(val) ? val : [];
   }
 
-  /**
-   * Mutates one ticket on the maintenance record. patch === null deletes it.
-   *
-   * Re-reads before writing: tickets is an array shared with the client
-   * portal, so a blind write would drop anything raised since this drawer
-   * rendered. The index addresses the ORIGINAL array order, which is why the
-   * display sort carries the original index rather than reordering the data.
-   */
-  async function updateMaintTicket(index, patch) {
-    var maintId = (document.getElementById('cp-maint-id') || {}).value || '';
-    if (!maintId || !rtdbReady() || isNaN(index) || index < 0) return;
-    if (patch === null && !(await window.CwrUI.confirm({ title: 'Delete this ticket?', message: 'This cannot be undone.', confirmLabel: 'Delete', tone: 'danger' }))) return;
+  function isPermissionError(err) {
+    return /permission/i.test(String((err && (err.code || err.message)) || ''));
+  }
 
-    var ref = window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId);
-    var snap = await window.rtdbGet(ref);
-    var row = snap.val() || {};
-    var list = Array.isArray(row.tickets) ? row.tickets.slice() : [];
-    if (index >= list.length) return;
+  async function touchMaint(maintId) {
+    await window.rtdbSet(window.rtdbRef(window.rtdb, PATHS.maintenance + '/' + maintId + '/updatedAt'), ts());
+  }
 
-    if (patch === null) {
-      list.splice(index, 1);
-    } else {
-      var current = typeof list[index] === 'string' ? { title: list[index] } : list[index] || {};
-      list[index] = Object.assign({}, current, patch, { updatedAt: ts() });
-    }
+  /** Merges patch into one ticket, found by ref. Returns the stored ticket. */
+  async function writeTicketSlot(maintId, ticketRef, patch) {
+    var list = await readTickets(maintId);
+    var i = window.CwrTickets.findTicketIndex(list, ticketRef);
+    if (i < 0) throw new Error('That ticket was deleted.');
+    var next = Object.assign({}, list[i], patch, { updatedAt: ts() });
+    await window.rtdbSet(window.rtdbRef(window.rtdb, ticketsPath(maintId) + '/' + i), next);
+    await touchMaint(maintId);
+    return next;
+  }
 
-    await window.rtdbSet(ref, Object.assign({}, row, { tickets: list, updatedAt: ts() }));
+  /** A ticket CWR opens: next number in the client's own sequence, appended after a fresh read. */
+  async function createTicket(maintId, fields) {
+    var T = window.CwrTickets;
+    var list = await readTickets(maintId);
+    var now = new Date().toISOString();
+    var ticket = {
+      ref: T.makeRef(ticketMaint(maintId) || { id: maintId }, list),
+      title: String(fields.title || '').trim().slice(0, T.LIMITS.title),
+      area: String(fields.area || '').slice(0, T.LIMITS.area),
+      details: String(fields.details || '').trim().slice(0, T.LIMITS.details),
+      status: 'open',
+      source: T.sourceKey(fields.source),
+      kind: T.kindKey(fields.kind),
+      down: fields.down === true,
+      createdAt: fields.createdAt || now,
+      loggedAt: now,
+      shareWriteup: true
+    };
+    await window.rtdbSet(window.rtdbRef(window.rtdb, ticketsPath(maintId) + '/' + list.length), ticket);
+    await touchMaint(maintId);
+    return ticket;
+  }
+
+  async function setTicketStatus(maintId, ticketRef, status) {
+    await writeTicketSlot(maintId, ticketRef, {
+      status: status,
+      resolvedAt: status === 'resolved' ? new Date().toISOString() : null
+    });
     renderClientProjectsWorkspace();
   }
 
+  /**
+   * Removes the ticket, then its private notes, screenshots and time links.
+   * The leftovers are admin-only, so a failure there is logged, not shown.
+   * A ticket from before refs existed is addressed by its slot instead.
+   */
+  async function deleteTicket(maintId, ticketRef, index) {
+    if (!(await window.CwrUI.confirm({
+      title: 'Delete this ticket?',
+      message: 'Its write-up, debug notes and screenshots go too. Linked planner hours stay in the planner.',
+      confirmLabel: 'Delete',
+      tone: 'danger'
+    }))) return;
+    var list = (await readTickets(maintId)).slice();
+    var i = ticketRef ? window.CwrTickets.findTicketIndex(list, ticketRef) : index;
+    if (isNaN(i) || i < 0 || i >= list.length) return;
+    if (!ticketRef && list[i] && list[i].ref) return; // the list moved since this rendered
+    list.splice(i, 1);
+    await window.rtdbSet(window.rtdbRef(window.rtdb, ticketsPath(maintId)), list);
+    await touchMaint(maintId);
+    renderClientProjectsWorkspace();
+    if (!ticketRef) return;
+
+    try {
+      var notesRef = window.rtdbRef(window.rtdb, ticketNotesPath(maintId, ticketRef));
+      var files = ((await window.rtdbGet(notesRef)).val() || {}).files || {};
+      await Promise.all(Object.keys(files).map(function (k) {
+        return window.deleteObject(window.storageRef(window.firebaseStorage, files[k].path)).catch(function () {});
+      }));
+      await window.rtdbRemove(notesRef);
+    } catch (err) {
+      console.warn('Ticket notes not removed', err);
+    }
+    await Promise.all(agencyTimeEntries
+      .filter(function (e) { return e.maintenanceId === maintId && e.ticketRef === ticketRef; })
+      .map(function (e) {
+        return window.rtdbUpdate(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + e.id), { ticketRef: null })
+          .catch(function (err) { console.warn('Time link not cleared', err); });
+      }));
+  }
+
+  function safeFileName(name) {
+    return String(name || '').replace(/[^A-Za-z0-9._-]+/g, '-').slice(-80) || 'screenshot';
+  }
+
+  var TICKET_FILE_MAX = 12 * 1024 * 1024;
+
+  /** Images under 12 MB, the same limit storage.rules enforces. */
+  function ticketImageFiles(fileList) {
+    var ok = [];
+    var skipped = 0;
+    Array.prototype.forEach.call(fileList || [], function (f) {
+      if (/^image\//.test(f.type || '') && f.size < TICKET_FILE_MAX) ok.push(f);
+      else skipped++;
+    });
+    if (skipped) {
+      window.CwrUI.toast(skipped + (skipped === 1 ? ' file was' : ' files were') + ' skipped: screenshots must be images under 12 MB.', { tone: 'error' });
+    }
+    return ok;
+  }
+
+  /** Uploads screenshots and lists them on the ticket's private notes. Returns how many failed. */
+  async function uploadTicketFiles(maintId, ticketRef, files) {
+    var failed = 0;
+    for (var k = 0; k < files.length; k++) {
+      var f = files[k];
+      try {
+        var path = 'ticketFiles/' + maintId + '/' + ticketRef + '/' + Date.now() + '-' + safeFileName(f.name);
+        var fileRef = window.storageRef(window.firebaseStorage, path);
+        await window.uploadBytes(fileRef, f, { contentType: f.type || 'image/png' });
+        var url = await window.getDownloadURL(fileRef);
+        await window.rtdbPush(window.rtdbRef(window.rtdb, ticketNotesPath(maintId, ticketRef) + '/files'), {
+          path: path,
+          url: url,
+          name: String(f.name || '').slice(0, 120),
+          contentType: f.type || '',
+          size: f.size || 0,
+          addedAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error(err);
+        failed++;
+      }
+    }
+    return failed;
+  }
+
+  var TICKET_RULES_HINT = 'deploy the rules first (firebase deploy --only database,storage)';
+
+  /**
+   * The paper stub, the same one the client prints in the portal, so a
+   * reference they quote matches what is on screen here line for line.
+   * opts.full adds kind, time and the printed write-up (never the debug
+   * notes); opts.print leaves out status, like the portal's printed copy.
+   */
+  function ticketStubHtml(t, m, opts) {
+    var T = window.CwrTickets;
+    opts = opts || {};
+    var meta = [['Area', t.area || '—']];
+    if (opts.full && t.kind) meta.push(['Kind', T.kindLabel(t.kind)]);
+    meta.push(['Opened', String(t.createdAt || '').slice(0, 10) || '—']);
+    if (t.source !== 'portal') meta.push(['Via', T.sourceLabel(t.source)]);
+    meta.push(['Response', T.responseWords(t, m, 'No response time set')]);
+    if (opts.full) meta.push(['Time', roundHours(opts.hours) + ' hrs']);
+
+    var body = '';
+    if (opts.full) {
+      T.writeupSections(t, { includeReport: true }).forEach(function (s) {
+        body += '<p class="cp-ticket-sec-h">' + esc(s.label) + '</p><p class="cp-ticket-sec">' + esc(s.text) + '</p>';
+      });
+    } else if (t.details && !opts.print) {
+      body = '<p class="cp-ticket-details">' + esc(t.details) + '</p>';
+    }
+
+    return (
+      '<div class="cp-ticket-receipt' + (opts.full ? ' cp-ticket-receipt--full' : '') + '"' + (opts.attrs || '') + '>' +
+      '<p class="cp-ticket-brand">CodeWithRuben</p>' +
+      '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
+      '<p class="cp-ticket-ref">' + esc(t.ref || '—') + '</p>' +
+      '<p class="cp-ticket-subject">' + esc(t.title) + '</p>' +
+      '<dl class="cp-ticket-meta">' +
+      meta.map(function (r) { return '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('') +
+      (opts.print
+        ? ''
+        : '<div><dt>Status</dt><dd class="cp-ticket-status cp-ticket-status--' + t.status + '">' +
+          esc(T.statusLabel(t.status)) + '</dd></div>') +
+      '</dl>' +
+      (body ? '<p class="cp-ticket-rule" aria-hidden="true"></p>' + body : '') +
+      '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
+      '<p class="cp-ticket-foot">Keep this reference for your records</p>' +
+      '</div>' +
+      '<div class="cp-ticket-tear" aria-hidden="true"></div>'
+    );
+  }
+
+  /** Tickets in the client drawer: still-to-do first, newest first. */
   function maintTicketsHtml(m) {
-    var raw = Array.isArray(m.tickets) ? m.tickets : [];
-    if (!raw.length) {
+    var T = window.CwrTickets;
+    if (!T) return '';
+    var newBtn =
+      '<button type="button" class="btn btn-secondary btn-sm cp-maint-ticket-new" data-cp-action="ticket-new">+ New ticket</button>';
+    var rows = T.listRows(m.tickets);
+    if (!rows.length) {
       return (
         '<div class="cp-maint-tickets">' +
-        '<p class="cp-maint-tickets-head">Tickets</p>' +
-        '<p class="cp-maint-tickets-empty">No tickets raised from the client portal yet.</p>' +
+        '<p class="cp-maint-tickets-head">Tickets' + newBtn + '</p>' +
+        '<p class="cp-maint-tickets-empty">No tickets yet.</p>' +
         '</div>'
       );
     }
-
-    // Keep the original index so actions still address the right array slot
-    // after sorting for display.
-    var rows = raw.map(function (t, i) {
-      var obj = typeof t === 'string' ? { title: t } : t || {};
-      return {
-        i: i,
-        ref: String(obj.ref || ''),
-        title: String(obj.title || obj.subject || 'Ticket'),
-        area: String(obj.area || ''),
-        details: String(obj.details || ''),
-        status: ticketStatusKey(obj.status),
-        when: String(obj.createdAt || obj.date || '')
-      };
-    });
-
     var openCount = rows.filter(function (r) { return r.status !== 'resolved'; }).length;
-
-    rows.sort(function (a, b) {
-      var ar = a.status === 'resolved' ? 1 : 0;
-      var br = b.status === 'resolved' ? 1 : 0;
-      if (ar !== br) return ar - br;
-      return String(b.when).localeCompare(String(a.when));
-    });
 
     return (
       '<div class="cp-maint-tickets">' +
       '<p class="cp-maint-tickets-head">Tickets' +
       '<span>' + openCount + ' open</span>' +
       '<span class="cp-maint-tickets-total">' + rows.length + ' total</span>' +
+      newBtn +
       '</p>' +
       '<ul class="cp-maint-ticket-list">' +
       rows
         .map(function (r) {
-          var next = r.status === 'open' ? 'in-progress' : r.status === 'in-progress' ? 'resolved' : 'open';
-          var nextLabel =
-            r.status === 'open' ? 'Start' : r.status === 'in-progress' ? 'Resolve' : 'Reopen';
+          var next = T.nextStatus(r.status);
+          // role=button rather than a real <button>: the stub contains a
+          // <dl>, which is flow content and invalid inside a button.
+          var attrs = r.ref
+            ? ' data-cp-action="ticket-open" data-ticket-ref="' + esc(r.ref) + '" role="button" tabindex="0"' +
+              ' aria-label="Open ticket ' + esc(r.ref) + '"'
+            : '';
           return (
             '<li class="cp-maint-ticket is-' + r.status + '">' +
-            // Same stub the client printed in the portal, rendered from the
-            // same fields - so a reference they quote matches what is on
-            // screen here line for line.
-            // role=button rather than a real <button>: the stub contains a
-            // <dl>, which is flow content and invalid inside a button.
-            '<div class="cp-ticket-receipt" data-cp-action="ticket-open" ' +
-            'data-ticket-index="' + r.i + '" role="button" tabindex="0" ' +
-            'aria-label="View ticket ' + esc(r.ref || r.title) + ' full screen">' +
-            '<p class="cp-ticket-brand">CodeWithRuben</p>' +
-            '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
-            '<p class="cp-ticket-ref">' + esc(r.ref || '—') + '</p>' +
-            '<p class="cp-ticket-subject">' + esc(r.title) + '</p>' +
-            '<dl class="cp-ticket-meta">' +
-            '<div><dt>Area</dt><dd>' + esc(r.area || '—') + '</dd></div>' +
-            '<div><dt>Opened</dt><dd>' + esc(String(r.when).slice(0, 10) || '—') + '</dd></div>' +
-            '<div><dt>Response</dt><dd>' + esc(maintSlaWords(m.slaHours)) + '</dd></div>' +
-            '<div><dt>Status</dt><dd class="cp-ticket-status cp-ticket-status--' + r.status + '">' +
-            esc(ticketStatusLabel(r.status)) + '</dd></div>' +
-            '</dl>' +
-            (r.details
-              ? '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
-                '<p class="cp-ticket-details">' + esc(r.details) + '</p>'
-              : '') +
-            '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
-            '<p class="cp-ticket-foot">Keep this reference for your records</p>' +
-            '</div>' +
-            '<div class="cp-ticket-tear" aria-hidden="true"></div>' +
+            ticketStubHtml(r, m, { attrs: attrs }) +
             '<div class="cp-maint-ticket-actions">' +
-            '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="ticket-status" ' +
-            'data-ticket-index="' + r.i + '" data-ticket-next="' + next + '">' +
-            esc(nextLabel) + '</button>' +
+            (r.ref
+              ? '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="ticket-status" ' +
+                'data-ticket-ref="' + esc(r.ref) + '" data-ticket-next="' + next.key + '">' + esc(next.label) + '</button>'
+              : '') +
             '<button type="button" class="cp-maint-ticket-remove" data-cp-action="ticket-delete" ' +
-            'data-ticket-index="' + r.i + '" aria-label="Delete ticket">Delete</button>' +
+            (r.ref ? 'data-ticket-ref="' + esc(r.ref) + '"' : 'data-ticket-index="' + r.i + '"') +
+            ' aria-label="Delete ticket">Delete</button>' +
             '</div>' +
             '</li>'
           );
@@ -6979,6 +7031,751 @@
         .join('') +
       '</ul></div>'
     );
+  }
+
+  /* ---- the full ticket: enlarged stub + work panel ---- */
+
+  var ticketDetail = null;
+
+  function ticketViewerRoot() {
+    var root = document.getElementById('cp-ticket-viewer');
+    if (root) return root;
+    root = document.createElement('div');
+    root.id = 'cp-ticket-viewer';
+    root.className = 'cp-ticket-viewer';
+    root.setAttribute('data-layer', 'modal');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(root);
+
+    root.addEventListener('click', function (e) {
+      if (e.target.closest('[data-ticket-viewer-close]') || e.target === root) {
+        closeTicketDetail(false);
+        return;
+      }
+      var chip = e.target.closest('[data-tk-status]');
+      if (chip && ticketDetail) {
+        ticketDetail.status = chip.getAttribute('data-tk-status');
+        ticketDetail.dirty = true;
+        root.querySelectorAll('[data-tk-status]').forEach(function (b) {
+          var on = b === chip;
+          b.classList.toggle('is-on', on);
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        refreshTicketStub();
+        return;
+      }
+      if (e.target.closest('[data-tk-time-toggle]') && ticketDetail) {
+        ticketDetail.showTime = !ticketDetail.showTime;
+        var list = root.querySelector('[data-tk-time-list]');
+        if (list) list.hidden = !ticketDetail.showTime;
+        e.target.closest('[data-tk-time-toggle]').setAttribute('aria-expanded', ticketDetail.showTime ? 'true' : 'false');
+        return;
+      }
+      var rm = e.target.closest('[data-tk-file-remove]');
+      if (rm) {
+        removeTicketFile(rm.getAttribute('data-tk-file-remove')).catch(console.error);
+        return;
+      }
+      if (e.target.closest('[data-tk-save]')) saveTicketDetail().catch(console.error);
+    });
+
+    root.addEventListener('input', function (e) {
+      if (!ticketDetail || !e.target.closest('.cp-ticket-work')) return;
+      ticketDetail.dirty = true;
+      refreshTicketStub();
+    });
+
+    root.addEventListener('change', function (e) {
+      if (!ticketDetail) return;
+      var entry = e.target.closest('[data-tk-entry]');
+      if (entry) {
+        var id = entry.getAttribute('data-tk-entry');
+        if (entry.checked) ticketDetail.linked[id] = true;
+        else delete ticketDetail.linked[id];
+        ticketDetail.dirty = true;
+        refreshTicketStub();
+        return;
+      }
+      if (e.target.id === 'cp-tk-share') {
+        ticketDetail.dirty = true;
+        return;
+      }
+      if (e.target.id === 'cp-tk-files') {
+        var files = ticketImageFiles(e.target.files);
+        e.target.value = '';
+        if (files.length) addTicketFiles(files).catch(console.error);
+      }
+    });
+    return root;
+  }
+
+  function ticketDetailField(id) {
+    var el = document.getElementById(id);
+    return el ? String(el.value || '') : '';
+  }
+
+  /** The ticket as it reads with the panel's unsaved edits, for the live stub. */
+  function ticketDetailDraft() {
+    var st = ticketDetail;
+    var share = document.getElementById('cp-tk-share');
+    return Object.assign({}, st.ticket, {
+      found: ticketDetailField('cp-tk-found'),
+      fixed: ticketDetailField('cp-tk-fixed'),
+      howToCheck: ticketDetailField('cp-tk-check'),
+      status: st.status,
+      shareWriteup: share ? share.checked : st.ticket.shareWriteup
+    });
+  }
+
+  function ticketLinkedEntries() {
+    var st = ticketDetail;
+    return agencyTimeEntries.filter(function (e) { return !!st.linked[e.id]; });
+  }
+
+  function refreshTicketStub() {
+    var st = ticketDetail;
+    var root = document.getElementById('cp-ticket-viewer');
+    if (!st || !root) return;
+    var linked = ticketLinkedEntries();
+    var hours = window.CwrTickets.ticketHours(
+      linked.map(function (e) { return Object.assign({}, e, { ticketRef: st.ref }); }),
+      st.maintId,
+      st.ref
+    );
+    var stub = root.querySelector('[data-tk-stub]');
+    if (stub) stub.innerHTML = ticketStubHtml(ticketDetailDraft(), ticketMaint(st.maintId), { full: true, hours: hours });
+    var readout = root.querySelector('[data-tk-hours]');
+    if (readout) {
+      readout.textContent = hours + ' hrs' + (linked.length ? ' from ' + linked.length + (linked.length === 1 ? ' planner log' : ' planner logs') : '');
+    }
+  }
+
+  function tcDayKeyDaysAgo(days) {
+    var d = new Date();
+    d.setDate(d.getDate() - days);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /** This plan's planner days from the last 90 days, plus anything older already linked here. */
+  function ticketTimeListHtml() {
+    var st = ticketDetail;
+    var cutoff = tcDayKeyDaysAgo(90);
+    var rows = agencyTimeEntries.filter(function (e) {
+      return e.kind === 'maint' && e.maintenanceId === st.maintId && (e.date >= cutoff || st.linked[e.id]);
+    });
+    if (!rows.length) {
+      return '<p class="cp-ticket-work-hint">No planner time logged on this plan in the last 90 days.</p>';
+    }
+    return rows
+      .map(function (e) {
+        var elsewhere = e.ticketRef && e.ticketRef !== st.ref;
+        return (
+          '<label class="cp-ticket-time-row">' +
+          '<input type="checkbox" data-tk-entry="' + esc(e.id) + '"' + (st.linked[e.id] ? ' checked' : '') + '>' +
+          '<span class="cp-ticket-time-date">' + esc(e.date) + '</span>' +
+          '<span class="cp-ticket-time-hrs">' + roundHours(e.loggedHours) + ' hrs</span>' +
+          '<span class="cp-ticket-time-note">' + esc(e.notes) + '</span>' +
+          (elsewhere ? '<span class="cp-ticket-time-other">on ' + esc(e.ticketRef) + '</span>' : '') +
+          '</label>'
+        );
+      })
+      .join('');
+  }
+
+  function ticketFilesHtml() {
+    var st = ticketDetail;
+    var files = (st.notes && st.notes.files) || {};
+    var keys = Object.keys(files);
+    return keys.length
+      ? '<ul class="cp-ticket-files">' +
+          keys
+            .map(function (k) {
+              var f = files[k] || {};
+              return (
+                '<li><a href="' + esc(f.url) + '" target="_blank" rel="noopener">' +
+                '<img src="' + esc(f.url) + '" alt="' + esc(f.name || 'Screenshot') + '" loading="lazy"></a>' +
+                '<button type="button" class="cp-ticket-file-remove" data-tk-file-remove="' + esc(k) + '" aria-label="Remove ' +
+                esc(f.name || 'screenshot') + '">&times;</button></li>'
+              );
+            })
+            .join('') +
+          '</ul>'
+      : '';
+  }
+
+  function ticketWorkFieldHtml(id, label, hint, value, opts) {
+    opts = opts || {};
+    return (
+      '<div class="cp-ticket-work-field">' +
+      '<label for="' + id + '">' + esc(label) + (hint ? ' <em>· ' + esc(hint) + '</em>' : '') + '</label>' +
+      '<textarea id="' + id + '" class="cp-ticket-work-input' + (opts.private ? ' cp-ticket-work-input--private' : '') + '" rows="' +
+      (opts.rows || 3) + '" maxlength="' + (opts.max || 2000) + '"' + (opts.disabled ? ' disabled' : '') +
+      (opts.placeholder ? ' placeholder="' + esc(opts.placeholder) + '"' : '') + '>' + esc(value) + '</textarea>' +
+      (opts.note ? '<p class="cp-ticket-work-hint">' + esc(opts.note) + '</p>' : '') +
+      '</div>'
+    );
+  }
+
+  function ticketDetailHtml() {
+    var T = window.CwrTickets;
+    var st = ticketDetail;
+    var t = st.ticket;
+    var m = ticketMaint(st.maintId) || {};
+    var reply = t.clientReply;
+    var notesBlocked = st.notesError === 'rules';
+
+    return (
+      // Close is a SIBLING of the animated inner, not a child: the entrance
+      // animation transforms .cp-ticket-viewer-inner, and a transformed
+      // ancestor becomes the containing block for position:fixed children.
+      '<button type="button" class="cp-ticket-viewer-close" data-ticket-viewer-close aria-label="Close">&times;</button>' +
+      '<div class="cp-ticket-viewer-inner cp-ticket-detail" role="dialog" aria-modal="true" aria-label="Ticket ' + esc(t.ref) + '">' +
+      '<div class="cp-ticket-detail-stub" data-tk-stub></div>' +
+      '<div class="cp-ticket-work">' +
+      '<p class="cp-ticket-work-head">' + esc(t.ref) + '<span>' + esc(m.clientName || 'Client') + '</span></p>' +
+      (reply
+        ? '<div class="cp-ticket-reply cp-ticket-reply--' + (reply.verdict === 'ok' ? 'ok' : 'not') + '">' +
+          '<p class="cp-ticket-reply-head">' + (reply.verdict === 'ok' ? 'They said: Looks good' : 'They said: Still not working') +
+          '<span>' + esc(String(reply.at || '').slice(0, 10)) + '</span></p>' +
+          (reply.note ? '<p class="cp-ticket-reply-note">' + esc(reply.note) + '</p>' : '') +
+          '</div>'
+        : '') +
+      ticketWorkFieldHtml('cp-tk-found', 'What we found', 'the cause', t.found) +
+      ticketWorkFieldHtml('cp-tk-fixed', 'What we fixed', '', t.fixed) +
+      ticketWorkFieldHtml('cp-tk-check', 'How to check it', 'where they should look', t.howToCheck, { rows: 2 }) +
+      ticketWorkFieldHtml('cp-tk-debug', 'Debug notes', 'only you see these', (st.notes && st.notes.debugNotes) || '', {
+        private: true,
+        rows: 4,
+        max: 4000,
+        disabled: notesBlocked,
+        placeholder: 'Stack trace, commands you ran, commit and deploy links, what you tried.',
+        note: notesBlocked ? 'Debug notes and screenshots need the rules deployed: firebase deploy --only database,storage' : ''
+      }) +
+      '<div class="cp-ticket-work-field">' +
+      '<span class="cp-ticket-work-label">Screenshots</span>' +
+      '<div data-tk-files>' + ticketFilesHtml() + '</div>' +
+      (notesBlocked
+        ? ''
+        : '<label class="btn btn-secondary btn-sm cp-ticket-file-add">+ Add screenshots' +
+          '<input type="file" id="cp-tk-files" accept="image/*" multiple hidden></label>') +
+      '</div>' +
+      '<div class="cp-ticket-work-field">' +
+      '<span class="cp-ticket-work-label">Status</span>' +
+      '<div class="cp-ticket-chips" role="group" aria-label="Status">' +
+      T.STATUSES.map(function (s) {
+        var on = s === st.status;
+        return '<button type="button" class="cp-ticket-chip' + (on ? ' is-on' : '') + '" data-tk-status="' + s + '" aria-pressed="' +
+          (on ? 'true' : 'false') + '">' + esc(T.statusLabel(s)) + '</button>';
+      }).join('') +
+      '</div>' +
+      '</div>' +
+      '<div class="cp-ticket-work-field">' +
+      '<div class="cp-ticket-time-head"><span>Time spent: <b data-tk-hours></b></span>' +
+      '<button type="button" class="cp-ticket-time-toggle" data-tk-time-toggle aria-expanded="false">Link planner time</button></div>' +
+      '<div class="cp-ticket-time-list" data-tk-time-list hidden>' + ticketTimeListHtml() + '</div>' +
+      '</div>' +
+      '<label class="cp-ticket-share">' +
+      '<span><span class="cp-ticket-share-title">Print the write-up on their copy</span>' +
+      '<span class="cp-ticket-work-hint">Off: they still see the ticket and their own words, not what you found, fixed or how to check.</span></span>' +
+      '<input type="checkbox" id="cp-tk-share"' + (t.shareWriteup ? ' checked' : '') + '>' +
+      '<span class="cp-ticket-switch" aria-hidden="true"></span>' +
+      '</label>' +
+      '<div class="cp-ticket-work-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-tk-save>Save</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-ticket-viewer-close>Close</button>' +
+      '<p class="cp-ticket-work-feedback" data-tk-feedback role="status"></p>' +
+      '</div>' +
+      '</div>' +
+      '</div>'
+    );
+  }
+
+  async function openTicketDetail(maintId, ticketRef) {
+    var T = window.CwrTickets;
+    if (!T || !maintId || !ticketRef || !rtdbReady()) return;
+    var list = await readTickets(maintId);
+    var i = T.findTicketIndex(list, ticketRef);
+    if (i < 0) {
+      window.CwrUI.toast('That ticket was deleted.', { tone: 'error' });
+      return;
+    }
+    var notes = {};
+    var notesError = '';
+    try {
+      notes = (await window.rtdbGet(window.rtdbRef(window.rtdb, ticketNotesPath(maintId, ticketRef)))).val() || {};
+    } catch (err) {
+      notesError = isPermissionError(err) ? 'rules' : 'other';
+      console.warn('Ticket notes not loaded', err);
+    }
+    var linked = {};
+    agencyTimeEntries.forEach(function (e) {
+      if (e.kind === 'maint' && e.maintenanceId === maintId && e.ticketRef === ticketRef) linked[e.id] = true;
+    });
+    var ticket = T.normalizeTicket(list[i]);
+    ticketDetail = {
+      maintId: maintId,
+      ref: ticketRef,
+      ticket: ticket,
+      notes: notes,
+      notesError: notesError,
+      status: ticket.status,
+      linked: linked,
+      showTime: false,
+      dirty: false
+    };
+
+    var root = ticketViewerRoot();
+    root.innerHTML = ticketDetailHtml();
+    refreshTicketStub();
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('cp-ticket-viewer-open');
+    var first = document.getElementById('cp-tk-found');
+    if (first) first.focus();
+  }
+
+  async function closeTicketDetail(force) {
+    var root = document.getElementById('cp-ticket-viewer');
+    if (!root || !root.classList.contains('is-open')) return;
+    if (!force && ticketDetail && ticketDetail.dirty) {
+      var discard = await window.CwrUI.confirm({
+        title: 'Discard your changes?',
+        message: 'This ticket has edits you haven\'t saved.',
+        confirmLabel: 'Discard',
+        tone: 'danger'
+      });
+      if (!discard) return;
+    }
+    ticketDetail = null;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('cp-ticket-viewer-open');
+  }
+
+  async function saveTicketDetail() {
+    var st = ticketDetail;
+    var root = document.getElementById('cp-ticket-viewer');
+    if (!st || !root) return;
+    var btn = root.querySelector('[data-tk-save]');
+    var feedback = root.querySelector('[data-tk-feedback]');
+    var d = ticketDetailDraft();
+    var problems = [];
+    if (btn) btn.disabled = true;
+    if (feedback) feedback.textContent = 'Saving…';
+    try {
+      var patch = {
+        found: d.found.trim(),
+        fixed: d.fixed.trim(),
+        howToCheck: d.howToCheck.trim(),
+        shareWriteup: d.shareWriteup,
+        status: d.status,
+        resolvedAt: d.status === 'resolved' ? st.ticket.resolvedAt || new Date().toISOString() : null
+      };
+      st.ticket = window.CwrTickets.normalizeTicket(await writeTicketSlot(st.maintId, st.ref, patch));
+
+      if (!st.notesError) {
+        var debug = ticketDetailField('cp-tk-debug').slice(0, 4000);
+        if (debug !== String(st.notes.debugNotes || '')) {
+          try {
+            await window.rtdbUpdate(window.rtdbRef(window.rtdb, ticketNotesPath(st.maintId, st.ref)), {
+              debugNotes: debug,
+              updatedAt: ts()
+            });
+            st.notes.debugNotes = debug;
+          } catch (err) {
+            console.error(err);
+            problems.push(isPermissionError(err) ? 'rules' : 'notes');
+          }
+        }
+      }
+
+      // Link or unlink planner days. Checking a day linked to another ticket moves it here.
+      var writes = [];
+      agencyTimeEntries.forEach(function (e) {
+        if (e.kind !== 'maint' || e.maintenanceId !== st.maintId) return;
+        var want = !!st.linked[e.id];
+        if (want === (e.ticketRef === st.ref)) return;
+        writes.push(window.rtdbUpdate(window.rtdbRef(window.rtdb, PATHS.timeEntries + '/' + e.id), {
+          ticketRef: want ? st.ref : null,
+          updatedAt: ts()
+        }));
+      });
+      try {
+        await Promise.all(writes);
+      } catch (err) {
+        console.error(err);
+        problems.push('time');
+      }
+
+      st.dirty = false;
+      if (feedback) feedback.textContent = '';
+      renderClientProjectsWorkspace();
+      if (problems.indexOf('rules') >= 0) {
+        window.CwrUI.toast('Ticket saved. Debug notes need the database rules deployed (firebase deploy --only database).', { tone: 'error' });
+      } else if (problems.length) {
+        window.CwrUI.toast('Ticket saved, but ' + (problems.indexOf('time') >= 0 ? 'the planner links' : 'the debug notes') + ' didn\'t. Try Save again.', { tone: 'error' });
+      } else {
+        window.CwrUI.toast('Ticket ' + st.ref + ' saved.', { tone: 'success' });
+      }
+    } catch (err) {
+      console.error(err);
+      if (feedback) feedback.textContent = (err && err.message) || 'Could not save this ticket.';
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function refreshTicketFiles() {
+    var st = ticketDetail;
+    if (!st) return;
+    st.notes = (await window.rtdbGet(window.rtdbRef(window.rtdb, ticketNotesPath(st.maintId, st.ref)))).val() || {};
+    var box = document.querySelector('#cp-ticket-viewer [data-tk-files]');
+    if (box) box.innerHTML = ticketFilesHtml();
+  }
+
+  async function addTicketFiles(files) {
+    var st = ticketDetail;
+    if (!st) return;
+    var feedback = document.querySelector('#cp-ticket-viewer [data-tk-feedback]');
+    if (feedback) feedback.textContent = 'Uploading ' + files.length + (files.length === 1 ? ' screenshot…' : ' screenshots…');
+    var failed = await uploadTicketFiles(st.maintId, st.ref, files);
+    if (feedback) feedback.textContent = '';
+    if (failed) window.CwrUI.toast(failed + ' screenshot' + (failed === 1 ? '' : 's') + ' didn\'t upload: ' + TICKET_RULES_HINT + '.', { tone: 'error' });
+    await refreshTicketFiles().catch(console.error);
+  }
+
+  async function removeTicketFile(key) {
+    var st = ticketDetail;
+    var f = st && st.notes && st.notes.files && st.notes.files[key];
+    if (!f) return;
+    if (!(await window.CwrUI.confirm({ title: 'Remove this screenshot?', confirmLabel: 'Remove', tone: 'danger' }))) return;
+    await window.deleteObject(window.storageRef(window.firebaseStorage, f.path)).catch(function (err) {
+      console.warn('Screenshot file not removed', err);
+    });
+    await window.rtdbRemove(window.rtdbRef(window.rtdb, ticketNotesPath(st.maintId, st.ref) + '/files/' + key));
+    await refreshTicketFiles();
+  }
+
+  /* ---- new ticket: one question per screen, then the printer ---- */
+
+  var TICKET_WIZARD_STEPS = 6;
+  var ticketWizard = null;
+
+  function localDateTimeValue(d) {
+    var p = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+
+  function ticketWizardDirty() {
+    var w = ticketWizard;
+    return !!(w && w.step < TICKET_WIZARD_STEPS && (w.details.trim() || w.title.trim() || w.files.length));
+  }
+
+  function ticketWizardChips(field, items, current) {
+    return (
+      '<div class="cp-ticket-chips" role="radiogroup">' +
+      items
+        .map(function (it) {
+          var on = it.key === current;
+          return '<button type="button" class="cp-ticket-chip' + (on ? ' is-on' : '') + '" role="radio" aria-checked="' + (on ? 'true' : 'false') +
+            '" data-tw-pick="' + field + '" data-value="' + esc(it.key) + '">' + esc(it.label) + '</button>';
+        })
+        .join('') +
+      '</div>'
+    );
+  }
+
+  function ticketWizardStepHtml() {
+    var T = window.CwrTickets;
+    var w = ticketWizard;
+    var m = ticketMaint(w.maintId) || {};
+    var q = function (text) { return '<p class="cp-tw-q" id="cp-tw-q">' + esc(text) + '</p>'; };
+    var hint = function (text) { return '<p class="cp-tw-hint">' + esc(text) + '</p>'; };
+
+    if (w.step === 0) {
+      return q('How did it come in?') + ticketWizardChips('source', T.SOURCES, w.source);
+    }
+    if (w.step === 1) {
+      return q('When did they send it?') +
+        '<input type="datetime-local" id="cp-tw-when" class="cp-ticket-work-input" value="' + esc(w.when) + '" aria-labelledby="cp-tw-q">' +
+        hint('Defaults to now. Change it when you log something late.');
+    }
+    if (w.step === 2) {
+      return q('What did they say?') +
+        '<textarea id="cp-tw-details" class="cp-ticket-work-input" rows="5" maxlength="' + T.LIMITS.details + '" aria-labelledby="cp-tw-q" ' +
+        'placeholder="Paste their text or email here, word for word">' + esc(w.details) + '</textarea>' +
+        (w.files.length
+          ? '<ul class="cp-tw-files">' +
+            w.files.map(function (f, i) {
+              return '<li><span>' + esc(f.name) + '</span><button type="button" data-tw-file-remove="' + i + '" aria-label="Remove ' +
+                esc(f.name) + '">&times;</button></li>';
+            }).join('') +
+            '</ul>'
+          : '') +
+        '<label class="btn btn-secondary btn-sm cp-ticket-file-add">+ Add their screenshots' +
+        '<input type="file" id="cp-tw-files" accept="image/*" multiple hidden></label>';
+    }
+    if (w.step === 3) {
+      return q('Give it a short title') +
+        '<input type="text" id="cp-tw-title" class="cp-ticket-work-input" maxlength="' + T.LIMITS.title + '" aria-labelledby="cp-tw-q" ' +
+        'placeholder="Booking confirmation not arriving" value="' + esc(w.title) + '">' +
+        hint('Prints on the stub and shows in their portal list.');
+    }
+    if (w.step === 4) {
+      return q('What kind, and where?') +
+        ticketWizardChips('kind', T.KINDS, w.kind) +
+        ticketWizardChips('area', T.AREAS.map(function (a) { return { key: a, label: a }; }), w.area);
+    }
+    return q('Is something down right now?') +
+      ticketWizardChips('down', [
+        { key: 'yes', label: 'Yes, it\'s broken for customers' },
+        { key: 'no', label: 'No, regular issue' }
+      ], w.down ? 'yes' : 'no') +
+      hint('Their stub will say: ' + T.responseWords({ down: w.down }, m, 'No response time set') + '.');
+  }
+
+  function ticketPrinterHtml() {
+    var w = ticketWizard;
+    var t = window.CwrTickets.normalizeTicket(w.ticket);
+    return (
+      '<div class="cp-printer" data-tw-printer>' +
+      '<div class="cp-printer-body" aria-hidden="true">' +
+      '<div class="cp-printer-lights"><span class="cp-printer-led"></span>' +
+      '<span class="cp-printer-vent"></span><span class="cp-printer-vent"></span><span class="cp-printer-vent"></span></div>' +
+      '<div class="cp-printer-slot"></div>' +
+      '</div>' +
+      '<div class="cp-printer-paper" role="status" aria-live="polite">' +
+      ticketStubHtml(t, ticketMaint(w.maintId), { print: true }) +
+      '</div>' +
+      '<div class="cp-printer-done">' +
+      '<p class="cp-printer-done-note">Saved to their tickets.</p>' +
+      '<div class="cp-tw-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-tw-open>Open ticket</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-tw-close>Done</button>' +
+      '</div></div>' +
+      '</div>'
+    );
+  }
+
+  function renderTicketWizard() {
+    var w = ticketWizard;
+    var root = document.getElementById('cp-ticket-wizard');
+    if (!w || !root) return;
+    var m = ticketMaint(w.maintId) || {};
+    var printed = w.step >= TICKET_WIZARD_STEPS;
+    var dots = '';
+    for (var i = 0; i < TICKET_WIZARD_STEPS; i++) dots += '<i' + (i <= w.step ? ' class="is-on"' : '') + '></i>';
+    var last = w.step === TICKET_WIZARD_STEPS - 1;
+    var canNext = !w.busy && (w.step !== 3 || !!w.title.trim());
+
+    root.innerHTML =
+      '<div class="cp-tw-backdrop" data-tw-close></div>' +
+      '<div class="cp-tw-sheet" role="dialog" aria-modal="true" aria-labelledby="' + (printed ? 'cp-tw-title-done' : 'cp-tw-q') + '">' +
+      '<div class="cp-tw-head">' +
+      (printed ? '<span id="cp-tw-title-done">Ticket printed</span>' : '<span>New ticket</span>') +
+      '<span class="cp-tw-pill">' + esc(m.clientName || 'Client') + '</span>' +
+      (printed ? '' : '<span class="cp-tw-dots" aria-label="Step ' + (w.step + 1) + ' of ' + TICKET_WIZARD_STEPS + '">' + dots + '</span>') +
+      '<button type="button" class="cp-tw-x" data-tw-close aria-label="Close">&times;</button>' +
+      '</div>' +
+      (printed
+        ? ticketPrinterHtml()
+        : '<div class="cp-tw-body">' + ticketWizardStepHtml() + '</div>' +
+          '<div class="cp-tw-actions">' +
+          (w.step > 0 ? '<button type="button" class="cp-tw-back" data-tw-back>← Back</button>' : '') +
+          '<button type="button" class="btn btn-primary btn-sm" data-tw-next' + (canNext ? '' : ' disabled') + '>' +
+          (w.busy ? 'Printing…' : last ? 'Print ticket' : 'Next') + '</button>' +
+          (w.step !== 2 && !last ? '<span class="cp-tw-enter" aria-hidden="true">Enter ↵</span>' : '') +
+          '<p class="cp-tw-feedback" data-tw-feedback role="status">' + esc(w.error || '') + '</p>' +
+          '</div>') +
+      '</div>';
+
+    // Choice steps focus Next, so Enter moves on with the highlighted choice.
+    var focusEl = root.querySelector('#cp-tw-when, #cp-tw-details, #cp-tw-title') ||
+      root.querySelector('[data-tw-open], [data-tw-next]');
+    if (focusEl) focusEl.focus();
+  }
+
+  /** Same phases and timings as the portal's printTicketReceipt (client-portal.js). */
+  function runTicketPrinter(printer) {
+    if (!printer) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      printer.classList.add('is-armed', 'is-fed', 'is-torn', 'is-done');
+      return;
+    }
+    [[0, 'is-armed'], [420, 'is-warming'], [1200, 'is-fed'], [3050, 'is-torn'], [3350, 'is-done']].forEach(function (p) {
+      window.setTimeout(function () { printer.classList.add(p[1]); }, p[0]);
+    });
+  }
+
+  async function printTicketFromWizard() {
+    var w = ticketWizard;
+    if (!w || w.busy) return;
+    w.busy = true;
+    w.error = '';
+    renderTicketWizard();
+    try {
+      var when = new Date(w.when);
+      w.ticket = await createTicket(w.maintId, {
+        title: w.title,
+        area: w.area,
+        details: w.details,
+        source: w.source,
+        kind: w.kind,
+        down: w.down,
+        createdAt: isNaN(when.getTime()) ? '' : when.toISOString()
+      });
+    } catch (err) {
+      console.error(err);
+      w.busy = false;
+      w.error = (err && err.message) || 'Could not save this ticket.';
+      renderTicketWizard();
+      return;
+    }
+    var files = w.files;
+    w.busy = false;
+    w.step = TICKET_WIZARD_STEPS;
+    renderTicketWizard();
+    runTicketPrinter(document.querySelector('#cp-ticket-wizard [data-tw-printer]'));
+    renderClientProjectsWorkspace();
+    if (files.length) {
+      var failed = await uploadTicketFiles(w.maintId, w.ticket.ref, files);
+      if (failed) {
+        window.CwrUI.toast('Ticket saved, but ' + failed + ' screenshot' + (failed === 1 ? '' : 's') + ' didn\'t upload: ' + TICKET_RULES_HINT + ', then add them from the ticket.', { tone: 'error' });
+      }
+    }
+  }
+
+  function ticketWizardNext() {
+    var w = ticketWizard;
+    if (!w || w.busy) return;
+    if (w.step === 3 && !w.title.trim()) return;
+    if (w.step === TICKET_WIZARD_STEPS - 1) {
+      printTicketFromWizard().catch(console.error);
+      return;
+    }
+    w.step++;
+    renderTicketWizard();
+  }
+
+  function ticketWizardRoot() {
+    var root = document.getElementById('cp-ticket-wizard');
+    if (root) return root;
+    root = document.createElement('div');
+    root.id = 'cp-ticket-wizard';
+    root.className = 'cp-ticket-wizard';
+    root.setAttribute('data-layer', 'modal');
+    root.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(root);
+
+    root.addEventListener('click', function (e) {
+      var w = ticketWizard;
+      if (!w) return;
+      if (e.target.closest('[data-tw-close]')) {
+        closeTicketWizard(false).catch(console.error);
+        return;
+      }
+      if (e.target.closest('[data-tw-open]')) {
+        var maintId = w.maintId;
+        var ref = w.ticket && w.ticket.ref;
+        closeTicketWizard(true).catch(console.error);
+        if (ref) openTicketDetail(maintId, ref).catch(console.error);
+        return;
+      }
+      if (e.target.closest('[data-tw-back]')) {
+        w.step = Math.max(0, w.step - 1);
+        renderTicketWizard();
+        return;
+      }
+      if (e.target.closest('[data-tw-next]')) {
+        ticketWizardNext();
+        return;
+      }
+      var pick = e.target.closest('[data-tw-pick]');
+      if (pick) {
+        var field = pick.getAttribute('data-tw-pick');
+        var value = pick.getAttribute('data-value');
+        if (field === 'down') w.down = value === 'yes';
+        else w[field] = value;
+        renderTicketWizard();
+        return;
+      }
+      var rm = e.target.closest('[data-tw-file-remove]');
+      if (rm) {
+        w.files.splice(Number(rm.getAttribute('data-tw-file-remove')), 1);
+        renderTicketWizard();
+      }
+    });
+
+    root.addEventListener('input', function (e) {
+      var w = ticketWizard;
+      if (!w) return;
+      if (e.target.id === 'cp-tw-when') w.when = e.target.value;
+      if (e.target.id === 'cp-tw-details') w.details = e.target.value;
+      if (e.target.id === 'cp-tw-title') {
+        w.title = e.target.value;
+        // Toggle in place: re-rendering would drop the caret mid-word.
+        var next = root.querySelector('[data-tw-next]');
+        if (next) next.disabled = !w.title.trim();
+      }
+    });
+
+    root.addEventListener('change', function (e) {
+      if (!ticketWizard || e.target.id !== 'cp-tw-files') return;
+      ticketWizard.files = ticketWizard.files.concat(ticketImageFiles(e.target.files));
+      renderTicketWizard();
+    });
+
+    // Enter moves forward, except in the message box, where it starts a new line.
+    root.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || !ticketWizard || ticketWizard.step >= TICKET_WIZARD_STEPS) return;
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.closest('label')) return;
+      e.preventDefault();
+      ticketWizardNext();
+    });
+    return root;
+  }
+
+  function openTicketWizard(maintId) {
+    if (!maintId || !window.CwrTickets || !ticketMaint(maintId)) return;
+    ticketWizard = {
+      maintId: maintId,
+      step: 0,
+      source: 'text',
+      when: localDateTimeValue(new Date()),
+      details: '',
+      files: [],
+      title: '',
+      kind: 'bug',
+      area: '',
+      down: false,
+      busy: false,
+      error: '',
+      ticket: null
+    };
+    var root = ticketWizardRoot();
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('cp-ticket-viewer-open');
+    renderTicketWizard();
+  }
+
+  async function closeTicketWizard(force) {
+    var root = document.getElementById('cp-ticket-wizard');
+    if (!root || !root.classList.contains('is-open') || (ticketWizard && ticketWizard.busy)) return;
+    if (!force && ticketWizardDirty()) {
+      var discard = await window.CwrUI.confirm({
+        title: 'Discard this ticket?',
+        message: 'Nothing has been saved yet.',
+        confirmLabel: 'Discard',
+        tone: 'danger'
+      });
+      if (!discard) return;
+    }
+    ticketWizard = null;
+    root.classList.remove('is-open');
+    root.setAttribute('aria-hidden', 'true');
+    root.innerHTML = '';
+    document.body.classList.remove('cp-ticket-viewer-open');
   }
 
   function normalizeTimeEntry(id, row) {
@@ -6996,6 +7793,8 @@
       plannedHours: Math.max(0, Number(row.plannedHours) || 0),
       loggedHours: Math.max(0, Number(row.loggedHours) || 0),
       notes: String(row.notes || '').slice(0, 500),
+      // Maint days only: the ticket this day's hours went to (CWR-PRC-004).
+      ticketRef: String(row.ticketRef || '').slice(0, 40),
       updatedAt: row.updatedAt || null,
       createdAt: row.createdAt || null
     };

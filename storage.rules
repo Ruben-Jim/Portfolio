@@ -26,6 +26,15 @@ service firebase.storage {
       allow delete: if isPortfolioAdmin();
     }
 
+    // Ticket screenshots: CWR's records only. Clients never read them.
+    match /ticketFiles/{maintId}/{ref}/{fileName} {
+      allow read: if isPortfolioAdmin();
+      allow write: if isPortfolioAdmin()
+        && request.resource.size < 12 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if isPortfolioAdmin();
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

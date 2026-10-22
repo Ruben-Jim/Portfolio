@@ -220,7 +220,10 @@
       slaHours: Number(row.slaHours) || defs.slaHours,
       promoPct: Number(row.promoPct) || 0,
       promoMonthsLeft: Math.max(0, Number(row.promoMonthsLeft) || 0),
-      pendingInvoiceId: String(row.pendingInvoiceId || '').slice(0, 200)
+      pendingInvoiceId: String(row.pendingInvoiceId || '').slice(0, 200),
+      // Already filtered by portalApi (publicTicket): no debug notes, and the
+      // write-up only when CWR shared it.
+      tickets: Array.isArray(row.tickets) ? row.tickets : []
     };
     m.effectivePlanStatus = inferMaintenancePlanStatus(m);
     return m;
@@ -343,136 +346,64 @@
      Hours are never deducted on submit - they come from planner logs.
      -------------------------------------------------------------------- */
 
-  var TICKET_AREAS = [
-    'Booking / scheduling',
-    'Payments',
-    'Customer accounts',
-    'Admin dashboard',
-    'Website / pages',
-    'Mobile app',
-    'Something else'
-  ];
-
-  /**
-   * Three-letter tag from the client name, e.g. "Pro Cleaning" -> PRO.
-   * Falls back to the maintenance id so a ref is always namespaced to one
-   * client and cannot collide with another client's sequence.
-   */
-  function ticketClientTag(maint) {
-    var name = String((maint && maint.clientName) || '').toUpperCase();
-    var words = name.replace(/[^A-Z ]/g, ' ').split(/\s+/).filter(Boolean);
-    if (words.length >= 3) return words[0][0] + words[1][0] + words[2][0];
-    if (words.length === 2) return (words[0].slice(0, 2) + words[1][0]).slice(0, 3);
-    if (words.length === 1 && words[0].length >= 3) return words[0].slice(0, 3);
-    var id = String((maint && maint.id) || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    return (id.slice(-3) || 'CLI').padStart(3, 'X');
-  }
-
-  /**
-   * Sequential per client, e.g. CWR-PRO-004.
-   *
-   * Derived from the highest number already on the record rather than
-   * tickets.length, so deleting an old ticket never reissues a live
-   * reference. The submit already re-reads the record, so the list passed in
-   * is current at write time.
-   */
-  function makeTicketRef(maint, existing) {
-    var tag = ticketClientTag(maint);
-    var highest = 0;
-    (Array.isArray(existing) ? existing : []).forEach(function (t) {
-      var ref = String((t && t.ref) || '');
-      var m = ref.match(/(\d+)\s*$/);
-      if (m) {
-        var n = parseInt(m[1], 10);
-        if (n > highest) highest = n;
-      }
-    });
-    var next = String(highest + 1);
-    while (next.length < 3) next = '0' + next;
-    return 'CWR-' + tag + '-' + next;
-  }
-
+  // Status, areas, reply times and order come from window.CwrTickets
+  // (ticket-shared.js), shared with the admin drawer.
   function ticketSlaWords(hours) {
-    var h = Number(hours) || 0;
-    if (!h) return 'We’ll reply as soon as we can';
-    if (h < 24) return 'Reply within ' + h + (h === 1 ? ' business hour' : ' business hours');
-    if (h === 24) return 'Reply within 24 hours';
-    if (h % 24 === 0) return 'Reply within ' + h / 24 + ' business days';
-    return 'Reply within ' + h + ' hours';
-  }
-
-  function portalTicketStatusKey(v) {
-    var t = String(v || 'open').toLowerCase();
-    if (t === 'resolved' || t === 'closed' || t === 'done') return 'resolved';
-    if (t === 'in-progress' || t === 'progress') return 'in-progress';
-    return 'open';
-  }
-
-  function portalTicketStatusLabel(v) {
-    var k = portalTicketStatusKey(v);
-    if (k === 'resolved') return 'Resolved';
-    if (k === 'in-progress') return 'In progress';
-    return 'Open';
+    return window.CwrTickets.slaWords(hours, 'We’ll reply as soon as we can');
   }
 
   /**
-   * The client's own ticket history. Read-only: status is set by CWR in admin,
-   * so this is a record of what they raised and where each one stands.
-   * Newest first, and unresolved above resolved.
+   * The client's own ticket history. Status is set by CWR in admin; tapping a
+   * ticket opens its full stub, with Looks good / Still not working while it
+   * is ready to check. The wrapper always renders so a reply or a new ticket
+   * can refresh the list in place.
    */
   function renderTicketHistoryHtml(maint) {
-    var raw = Array.isArray(maint.tickets) ? maint.tickets : [];
-    if (!raw.length) return '';
-
-    var rows = raw
-      .map(function (t) {
-        var o = typeof t === 'string' ? { title: t } : t || {};
-        return {
-          ref: String(o.ref || ''),
-          title: String(o.title || o.subject || 'Ticket'),
-          area: String(o.area || ''),
-          status: portalTicketStatusKey(o.status),
-          when: String(o.createdAt || o.date || '')
-        };
-      })
-      .sort(function (a, b) {
-        var ar = a.status === 'resolved' ? 1 : 0;
-        var br = b.status === 'resolved' ? 1 : 0;
-        if (ar !== br) return ar - br;
-        return String(b.when).localeCompare(String(a.when));
-      });
+    var T = window.CwrTickets;
+    var rows = T.listRows(maint.tickets);
+    if (!rows.length) return '<div data-portal-ticket-history></div>';
 
     var openCount = rows.filter(function (r) { return r.status !== 'resolved'; }).length;
+    var checkCount = rows.filter(function (r) { return r.status === 'check'; }).length;
 
     return (
-      '<div class="portal-ticket-history">' +
+      '<div class="portal-ticket-history" data-portal-ticket-history>' +
       '<p class="portal-ticket-history-head">Your tickets' +
       '<span>' + rows.length + '</span>' +
       (openCount ? '<span class="portal-ticket-history-open">' + openCount + ' open</span>' : '') +
+      (checkCount ? '<span class="portal-ticket-history-check">' + checkCount + ' to check</span>' : '') +
       '</p>' +
       '<ul class="portal-ticket-history-list">' +
       rows
         .map(function (r) {
           return (
-            '<li class="portal-ticket-history-item is-' + r.status + '">' +
-            '<div class="portal-ticket-history-top">' +
+            '<li>' +
+            '<button type="button" class="portal-ticket-history-item is-' + r.status + '"' +
+            (r.ref ? ' data-portal-ticket-view="' + esc(r.ref) + '"' : ' disabled') + '>' +
+            '<span class="portal-ticket-history-top">' +
             (r.ref ? '<span class="portal-ticket-history-ref">' + esc(r.ref) + '</span>' : '') +
             '<span class="portal-ticket-history-badge portal-ticket-history-badge--' + r.status + '">' +
-            esc(portalTicketStatusLabel(r.status)) + '</span>' +
-            (r.when
+            esc(T.statusLabel(r.status)) + '</span>' +
+            (r.createdAt
               ? '<span class="portal-ticket-history-when">' +
-                esc(formatDocDate(String(r.when).slice(0, 10))) +
+                esc(formatDocDate(String(r.createdAt).slice(0, 10))) +
                 '</span>'
               : '') +
-            '</div>' +
-            '<p class="portal-ticket-history-title">' + esc(r.title) + '</p>' +
-            (r.area ? '<p class="portal-ticket-history-area">' + esc(r.area) + '</p>' : '') +
+            '</span>' +
+            '<span class="portal-ticket-history-title">' + esc(r.title) + '</span>' +
+            (r.area ? '<span class="portal-ticket-history-area">' + esc(r.area) + '</span>' : '') +
+            '</button>' +
             '</li>'
           );
         })
         .join('') +
       '</ul></div>'
     );
+  }
+
+  function refreshTicketHistory(maint) {
+    var el = document.querySelector('[data-portal-ticket-history]');
+    if (el) el.outerHTML = renderTicketHistoryHtml(maint);
   }
 
   /** Row in the maintenance block: opens the ticket sheet, or books a call. */
@@ -507,7 +438,7 @@
       '<div class="portal-ticket-field">' +
       '<label for="portal-ticket-area">Where in the app?</label>' +
       '<select id="portal-ticket-area" class="portal-ticket-input">' +
-      TICKET_AREAS.map(function (a) {
+      window.CwrTickets.AREAS.map(function (a) {
         return '<option value="' + esc(a) + '">' + esc(a) + '</option>';
       }).join('') +
       '</select>' +
@@ -2708,6 +2639,15 @@
     return document.getElementById('portal-ticket-sheet-root');
   }
 
+  function showTicketSheet(title) {
+    var root = ticketSheetRoot();
+    var heading = document.getElementById('portal-ticket-sheet-title');
+    if (heading) heading.textContent = title;
+    root.classList.add('is-open');
+    root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('portal-doc-sheet-open');
+  }
+
   function openTicketSheet(maint, opener) {
     var root = ticketSheetRoot();
     var body = document.getElementById('portal-ticket-sheet-body');
@@ -2718,11 +2658,121 @@
     // than the previous receipt.
     body.innerHTML = renderTicketFormHtml(maint);
     bindTicketForm(body, maint);
-    root.classList.add('is-open');
-    root.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('portal-doc-sheet-open');
+    showTicketSheet('Need something fixed?');
     var first = body.querySelector('#portal-ticket-subject');
     if (first) first.focus();
+  }
+
+  /**
+   * One ticket as a full stub: what they reported and, when CWR shared it,
+   * what was found, what was fixed and how to check. The same stub CWR sees,
+   * minus the debug notes (portalApi never sends them).
+   */
+  function renderTicketViewHtml(maint, t, done) {
+    var T = window.CwrTickets;
+    var meta = [
+      ['Area', t.area || '—'],
+      ['Opened', t.createdAt ? formatDocDate(t.createdAt.slice(0, 10)) : '—']
+    ];
+    if (t.source !== 'portal') meta.push(['Via', T.sourceLabel(t.source)]);
+    meta.push(['Response', T.responseWords(t, maint, 'We’ll reply as soon as we can')]);
+    var sections = T.writeupSections(t, { includeReport: true });
+    var reply = t.clientReply;
+
+    return (
+      '<div class="portal-ticket-view" data-portal-ticket-view-root data-ref="' + esc(t.ref) + '">' +
+      '<div class="portal-receipt portal-receipt--full">' +
+      '<p class="portal-receipt-brand">CodeWithRuben</p>' +
+      '<p class="portal-receipt-rule" aria-hidden="true"></p>' +
+      '<p class="portal-receipt-ref">' + esc(t.ref) + '</p>' +
+      '<p class="portal-receipt-subject">' + esc(t.title) + '</p>' +
+      '<dl class="portal-receipt-meta">' +
+      meta.map(function (r) { return '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>'; }).join('') +
+      '<div><dt>Status</dt><dd class="portal-receipt-status portal-receipt-status--' + t.status + '">' +
+      esc(T.statusLabel(t.status)) + '</dd></div>' +
+      '</dl>' +
+      (sections.length
+        ? '<p class="portal-receipt-rule" aria-hidden="true"></p>' +
+          sections.map(function (x) {
+            return '<p class="portal-receipt-sec-h">' + esc(x.label) + '</p><p class="portal-receipt-sec">' + esc(x.text) + '</p>';
+          }).join('')
+        : '') +
+      '<p class="portal-receipt-rule" aria-hidden="true"></p>' +
+      '<p class="portal-receipt-foot">Keep this reference for your records</p>' +
+      '</div>' +
+      '<div class="portal-receipt-tear" aria-hidden="true"></div>' +
+      (done ? '<p class="portal-ticket-view-done" role="status">' + esc(done) + '</p>' : '') +
+      (t.status === 'check'
+        ? '<div class="portal-ticket-reply">' +
+          '<p class="portal-ticket-reply-q">We fixed this. Is it working for you now?</p>' +
+          '<div class="portal-ticket-actions">' +
+          '<button type="button" class="btn btn-primary btn-sm" data-portal-ticket-ok>Looks good</button>' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-portal-ticket-notworking>Still not working</button>' +
+          '</div>' +
+          '<div class="portal-ticket-field" data-portal-ticket-more hidden>' +
+          '<label for="portal-ticket-reply-note">What’s still happening? (optional)</label>' +
+          '<textarea id="portal-ticket-reply-note" class="portal-ticket-input" rows="3" maxlength="1200" ' +
+          'placeholder="What you tried, and what you saw instead."></textarea>' +
+          '<div class="portal-ticket-actions">' +
+          '<button type="button" class="btn btn-primary btn-sm" data-portal-ticket-send>Send</button>' +
+          '</div>' +
+          '</div>' +
+          '<p class="portal-ticket-feedback" data-portal-ticket-reply-feedback role="status" aria-live="polite"></p>' +
+          '</div>'
+        : reply && !done
+          ? '<p class="portal-ticket-view-note">You told us: ' + (reply.verdict === 'ok' ? 'Looks good' : 'Still not working') +
+            (reply.at ? ' · ' + esc(formatDocDate(String(reply.at).slice(0, 10))) : '') + '</p>'
+          : '') +
+      '</div>'
+    );
+  }
+
+  function openTicketView(maint, ticketRef, opener) {
+    var T = window.CwrTickets;
+    var root = ticketSheetRoot();
+    var body = document.getElementById('portal-ticket-sheet-body');
+    var i = maint ? T.findTicketIndex(maint.tickets, ticketRef) : -1;
+    if (!root || !body || i < 0) return;
+    ticketSheetState.maint = maint;
+    ticketSheetState.opener = opener || null;
+    body.innerHTML = renderTicketViewHtml(maint, T.normalizeTicket(maint.tickets[i]));
+    showTicketSheet('Ticket ' + ticketRef);
+    var first = body.querySelector('[data-portal-ticket-ok]') || root.querySelector('.portal-guide-sheet-close');
+    if (first) first.focus();
+  }
+
+  /** Looks good / Still not working, answered once (the server refuses a second answer). */
+  async function sendTicketReply(verdict) {
+    var T = window.CwrTickets;
+    var maint = ticketSheetState.maint;
+    var body = document.getElementById('portal-ticket-sheet-body');
+    var wrap = body && body.querySelector('[data-portal-ticket-view-root]');
+    if (!maint || !wrap) return;
+    var ticketRef = wrap.getAttribute('data-ref');
+    var feedback = wrap.querySelector('[data-portal-ticket-reply-feedback]');
+    var noteEl = wrap.querySelector('#portal-ticket-reply-note');
+    var buttons = wrap.querySelectorAll('.portal-ticket-reply button');
+    buttons.forEach(function (b) { b.disabled = true; });
+    if (feedback) feedback.textContent = 'Sending…';
+    try {
+      var res = await portalApi('replyTicket', {
+        ref: ticketRef,
+        verdict: verdict,
+        note: verdict === 'not-working' && noteEl ? noteEl.value.trim().slice(0, 1200) : ''
+      });
+      var i = T.findTicketIndex(maint.tickets, ticketRef);
+      if (i >= 0) maint.tickets[i] = res.ticket;
+      refreshTicketHistory(maint);
+      body.innerHTML = renderTicketViewHtml(
+        maint,
+        T.normalizeTicket(res.ticket),
+        verdict === 'ok' ? 'Thanks — we’ve marked it done.' : 'Got it — we’re back on it.'
+      );
+    } catch (err) {
+      console.error(err);
+      buttons.forEach(function (b) { b.disabled = false; });
+      if (feedback) feedback.textContent = (err && err.message) || 'Could not send that. Try again in a moment.';
+    }
   }
 
   function closeTicketSheet(returnFocus) {
@@ -2754,6 +2804,29 @@
       if (e.target.closest('[data-portal-ticket-close]')) {
         e.preventDefault();
         closeTicketSheet(true);
+        return;
+      }
+      var viewOpener = e.target.closest('[data-portal-ticket-view]');
+      if (viewOpener) {
+        e.preventDefault();
+        openTicketView(ticketSheetState.pendingMaint, viewOpener.getAttribute('data-portal-ticket-view'), viewOpener);
+        return;
+      }
+      if (e.target.closest('[data-portal-ticket-ok]')) {
+        sendTicketReply('ok');
+        return;
+      }
+      if (e.target.closest('[data-portal-ticket-notworking]')) {
+        var more = document.querySelector('[data-portal-ticket-more]');
+        if (more) {
+          more.hidden = false;
+          var noteEl = more.querySelector('textarea');
+          if (noteEl) noteEl.focus();
+        }
+        return;
+      }
+      if (e.target.closest('[data-portal-ticket-send]')) {
+        sendTicketReply('not-working');
         return;
       }
       var bookOpener = e.target.closest('[data-portal-booking-open]');
@@ -2827,6 +2900,8 @@
           details: ticket.details
         });
         ticket = ticketRes.ticket;
+        maint.tickets = (Array.isArray(maint.tickets) ? maint.tickets : []).concat([ticket]);
+        refreshTicketHistory(maint);
 
         if (feedback) feedback.textContent = '';
         if (subjEl) subjEl.value = '';

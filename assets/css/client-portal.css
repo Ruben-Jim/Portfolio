@@ -3313,6 +3313,52 @@ textarea.portal-ticket-input { resize: vertical; min-height: 80px; }
   opacity: 0.68;
 }
 
+/* ---- one ticket, full size: the write-up printed on the stub ---- */
+.portal-ticket-view { max-width: 420px; margin: 0 auto; }
+
+.portal-receipt--full { font-size: 13px; line-height: 1.6; padding: 22px 22px 16px; }
+.portal-receipt--full .portal-receipt-ref { font-size: 20px; }
+.portal-receipt--full .portal-receipt-subject { font-size: 14px; }
+
+.portal-receipt-status { font-weight: 700; }
+.portal-receipt-status--open { color: hsl(28, 85%, 38%); }
+.portal-receipt-status--in-progress { color: hsl(205, 80%, 38%); }
+.portal-receipt-status--check { color: hsl(265, 55%, 42%); }
+.portal-receipt-status--resolved { color: hsl(145, 60%, 28%); }
+
+.portal-receipt-sec-h {
+  margin: 0 0 2px;
+  text-transform: uppercase;
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  opacity: 0.7;
+}
+
+.portal-receipt-sec { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.portal-receipt-sec + .portal-receipt-sec-h { margin-top: 10px; }
+
+.portal-ticket-reply {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.portal-ticket-reply-q { margin: 0; color: hsl(0, 0%, 92%); font-weight: 500; }
+/* .portal-ticket-field sets display:flex, which beats [hidden]. */
+.portal-ticket-reply [hidden] { display: none; }
+.portal-ticket-reply .portal-ticket-actions { margin-top: 0; }
+
+.portal-ticket-view-done,
+.portal-ticket-view-note {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: var(--fs-8);
+  color: hsl(0, 0%, 70%);
+}
+
+.portal-ticket-view-done { color: hsl(145, 55%, 66%); }
+
 .portal-receipt-tear {
   height: 11px;
   background: hsl(42, 30%, 96%);
@@ -3751,12 +3797,36 @@ textarea.portal-ticket-input { resize: vertical; min-height: 80px; }
   gap: 8px;
 }
 
+.portal-ticket-history-check {
+  background: hsla(265, 70%, 70%, 0.18) !important;
+  color: hsl(265, 80%, 82%) !important;
+}
+
+/* Each ticket is a button: it opens the full stub in the ticket sheet. */
 .portal-ticket-history-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
   padding: 10px 12px;
   border-radius: 9px;
   background: hsla(0, 0%, 100%, 0.035);
   border: 1px solid hsla(0, 0%, 100%, 0.09);
+  transition: border-color 0.16s ease, background 0.16s ease;
 }
+
+.portal-ticket-history-item:hover { border-color: hsla(45, 100%, 72%, 0.35); }
+.portal-ticket-history-item:disabled { cursor: default; }
+.portal-ticket-history-item:disabled:hover { border-color: hsla(0, 0%, 100%, 0.09); }
+
+.portal-ticket-history-item:focus-visible {
+  outline: 2px solid hsl(45, 100%, 72%);
+  outline-offset: 2px;
+}
+
+.portal-ticket-history-item.is-check { border-color: hsla(265, 70%, 70%, 0.4); }
 
 .portal-ticket-history-item.is-resolved { opacity: 0.62; }
 
@@ -3802,6 +3872,11 @@ textarea.portal-ticket-input { resize: vertical; min-height: 80px; }
   color: hsl(145, 55%, 62%);
 }
 
+.portal-ticket-history-badge--check {
+  background: hsla(265, 70%, 70%, 0.18);
+  color: hsl(265, 80%, 82%);
+}
+
 .portal-ticket-history-when {
   margin-left: auto;
   font-size: 10.5px;
@@ -3809,6 +3884,7 @@ textarea.portal-ticket-input { resize: vertical; min-height: 80px; }
 }
 
 .portal-ticket-history-title {
+  display: block;
   margin: 0;
   font-size: 12.5px;
   color: hsl(0, 0%, 90%);
@@ -3817,6 +3893,7 @@ textarea.portal-ticket-input { resize: vertical; min-height: 80px; }
 }
 
 .portal-ticket-history-area {
+  display: block;
   margin: 3px 0 0;
   font-size: 11px;
   color: hsl(0, 0%, 60%);

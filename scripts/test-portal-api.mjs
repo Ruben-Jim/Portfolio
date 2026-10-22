@@ -30,7 +30,17 @@ const db = {
       update: async (patch) => { for (const k of Object.keys(patch)) setAt(p + '/' + k, patch[k]); },
       set: async (v) => setAt(p, v),
       push() { return db.ref(p + '/M' + (++n)); },
-      async transaction(fn) { const next = fn(JSON.parse(JSON.stringify(getAt(p) ?? null))); setAt(p, next); return { committed: true }; }
+      // Like RTDB: the update function first runs on the local cache, which is
+      // empty inside a function, then again on the server's value. Returning
+      // undefined aborts and writes nothing.
+      async transaction(fn) {
+        const real = JSON.parse(JSON.stringify(getAt(p) ?? null));
+        if (real !== null && fn(null) === undefined) return { committed: false };
+        const next = fn(real);
+        if (next === undefined) return { committed: false };
+        setAt(p, next);
+        return { committed: true };
+      }
     };
   }
 };
@@ -162,3 +172,41 @@ for (const raw of [null, { yearlyDiscountPct: 40, promo: { enabled: true, months
   }
 }
 ok(mismatches.length === 0, 'server prices match care-pricing.js' + (mismatches.length ? ': ' + mismatches.join('; ') : ''));
+
+// Tickets: the portal sees the write-up only when CWR shares it, never the
+// admin's notes, and can answer a ticket that is ready to check — once.
+reset();
+data.agencyMaintenance.MA.notes = 'admin only';
+data.agencyMaintenance.MA.tickets = [
+  { ref: 'CWR-SHS-004', title: 'Gate', status: 'check', found: 'f', fixed: 'x', howToCheck: 'h', shareWriteup: true, source: 'text', kind: 'bug', down: true },
+  { ref: 'CWR-SHS-003', title: 'Pool', status: 'check', found: 'secret-f', fixed: 'secret-x', howToCheck: 'secret-h', shareWriteup: false, debugNotes: 'leak?' },
+  'Legacy plain ticket'
+];
+const L = await handle(db, { action: 'load', token: TA }, NOW);
+const raw = JSON.stringify(L);
+ok(!raw.includes('secret-f') && !raw.includes('secret-x') && !raw.includes('secret-h'), 'write-up never sent when sharing is off');
+ok(!raw.includes('leak?'), 'fields outside the allow-list never sent');
+ok(!raw.includes('admin only'), 'care plan notes never sent');
+const lt = L.maintenance[0].tickets;
+ok(lt[0].found === 'f' && lt[0].fixed === 'x' && lt[0].howToCheck === 'h' && lt[0].source === 'text' && lt[0].kind === 'bug' && lt[0].down === true, 'shared write-up and ticket facts sent');
+ok(lt[2].title === 'Legacy plain ticket', 'old plain-string tickets still sent');
+
+const sub = await handle(db, { action: 'submitTicket', token: TA, title: 'New one', area: 'Payments' }, NOW);
+ok(sub.ticket.source === 'portal' && typeof sub.ticket.loggedAt === 'string', 'portal tickets record their source and when they were logged');
+
+const okReply = await handle(db, { action: 'replyTicket', token: TA, ref: 'CWR-SHS-004', verdict: 'ok' }, NOW);
+const t4 = getAt('agencyMaintenance/MA/tickets')[0];
+ok(t4.status === 'resolved' && typeof t4.resolvedAt === 'string' && t4.clientReply.verdict === 'ok', '"Looks good" resolves the ticket');
+ok(okReply.ticket.status === 'resolved' && !('debugNotes' in okReply.ticket), 'reply returns the public ticket');
+ok(await fails(handle(db, { action: 'replyTicket', token: TA, ref: 'CWR-SHS-004', verdict: 'ok' }, NOW), 409), 'a second answer is refused once it is no longer ready to check');
+
+const nw = await handle(db, { action: 'replyTicket', token: TA, ref: 'CWR-SHS-003', verdict: 'not-working', note: 'Still shows the old hours' }, NOW);
+const t3 = getAt('agencyMaintenance/MA/tickets')[1];
+ok(t3.status === 'in-progress' && t3.clientReply.note === 'Still shows the old hours' && !t3.resolvedAt, '"Still not working" puts it back in progress with their note');
+ok(!JSON.stringify(nw).includes('secret-f'), 'reply never leaks an unshared write-up');
+
+ok(await fails(handle(db, { action: 'replyTicket', token: TA, ref: 'CWR-SHS-999', verdict: 'ok' }, NOW), 404), 'unknown ticket refused');
+ok(await fails(handle(db, { action: 'replyTicket', token: TA, ref: 'CWR-SHS-003', verdict: 'maybe' }, NOW), 400), 'unknown answer refused');
+const beforeOther = JSON.stringify(getAt('agencyMaintenance/MA'));
+ok(await fails(handle(db, { action: 'replyTicket', token: TB, ref: 'CWR-SHS-004', verdict: 'ok' }, NOW), 404), "another client's ticket can't be answered");
+ok(JSON.stringify(getAt('agencyMaintenance/MA')) === beforeOther, "another client's plan untouched");

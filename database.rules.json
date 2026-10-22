@@ -101,6 +101,10 @@
       ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
       ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
     },
+    "agencyTicketNotes": {
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"
+    },
     "agencyReferrals": {
       ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
       ".write": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))"

@@ -12,6 +12,7 @@
  *   load          { token }                                  → project + that client's docs, signatures, plan
  *   requestPlan   { token, planTier, billingPreference, hoursIncluded, slaHours } → { maintId, invoice }
  *   submitTicket  { token, title, area, details }            → { ticket }
+ *   replyTicket   { token, ref, verdict: 'ok'|'not-working', note } → { ticket }
  *   signContract  { token, docId, signedByName, agreedToTerms, userAgent }
  */
 
@@ -79,6 +80,29 @@ function maintenanceForHub(all, projectId, hub) {
   if (byProject) return byProject;
   const cn = str(hub.clientName, 200).toLowerCase();
   return cn ? rows.find((m) => String(m.clientName || "").toLowerCase().trim() === cn) || null : null;
+}
+
+// What the portal may see of a ticket. An allow-list, so anything CWR adds
+// to a ticket later stays private until it is named here.
+const PUBLIC_TICKET_FIELDS = ["ref", "title", "area", "details", "status", "createdAt", "source", "kind", "down", "resolvedAt", "clientReply"];
+const WRITEUP_FIELDS = ["found", "fixed", "howToCheck"];
+
+/** The client's copy of a ticket: the write-up only when CWR switched sharing on (the default). */
+function publicTicket(t) {
+  const src = typeof t === "string" ? { title: t } : t || {};
+  const out = {};
+  PUBLIC_TICKET_FIELDS.concat(src.shareWriteup === false ? [] : WRITEUP_FIELDS).forEach((k) => {
+    if (src[k] !== undefined) out[k] = src[k];
+  });
+  return out;
+}
+
+/** The care plan as the portal gets it: no admin notes, tickets through publicTicket. */
+function publicMaintenance(m) {
+  const out = Object.assign({}, m);
+  delete out.notes;
+  out.tickets = Array.isArray(m.tickets) ? m.tickets.map(publicTicket) : [];
+  return out;
 }
 
 function ticketClientTag(maint) {
@@ -243,7 +267,7 @@ async function handle(db, body, now) {
       hub: publicHub(ctx.hub),
       businessDocs: docs,
       contractSignatures: signatures,
-      maintenance: maint ? [maint] : [],
+      maintenance: maint ? [publicMaintenance(maint)] : [],
     };
   }
 
@@ -318,13 +342,53 @@ async function handle(db, body, now) {
         area: str(body.area, 60),
         details: str(body.details, 1200),
         status: "open",
+        source: "portal",
         createdAt: new Date(now).toISOString(),
+        loggedAt: new Date(now).toISOString(),
       };
       list.push(ticket);
       return list;
     });
     await db.ref("agencyMaintenance/" + maint.id + "/updatedAt").set(now);
     return { ticket };
+  }
+
+  if (action === "replyTicket") {
+    const ticketRef = str(body.ref, 40);
+    const verdict = str(body.verdict, 20);
+    if (verdict !== "ok" && verdict !== "not-working") throw new PortalError(400, "Pick Looks good or Still not working.");
+    const maint = maintenanceForHub((await db.ref("agencyMaintenance").once("value")).val(), ctx.projectId, ctx.hub);
+    if (!maint) throw new PortalError(404, "We couldn't find that ticket.");
+    let failure = null;
+    let ticket = null;
+    // Transaction so a double tap can't answer twice, and a ticket CWR is
+    // editing at the same moment isn't overwritten with a stale copy.
+    await db.ref("agencyMaintenance/" + maint.id + "/tickets").transaction((cur) => {
+      ticket = null;
+      failure = new PortalError(404, "We couldn't find that ticket.");
+      // The first pass runs on the function's empty cache: hand null back so
+      // the server answers with the real list and this runs again. Aborting
+      // here would refuse every reply.
+      if (!Array.isArray(cur)) return cur;
+      const list = cur.slice();
+      const i = list.findIndex((t) => t && typeof t === "object" && t.ref === ticketRef);
+      if (i < 0) return undefined;
+      if (list[i].status !== "check") { failure = new PortalError(409, "This ticket has already been answered."); return undefined; }
+      const at = new Date(now).toISOString();
+      const next = Object.assign({}, list[i], {
+        status: verdict === "ok" ? "resolved" : "in-progress",
+        clientReply: { verdict, note: str(body.note, 1200), at },
+        updatedAt: at,
+      });
+      if (verdict === "ok") next.resolvedAt = at; else delete next.resolvedAt;
+      list[i] = next;
+      ticket = next;
+      failure = null;
+      return list;
+    });
+    if (failure || !ticket) throw failure || new PortalError(404, "We couldn't find that ticket.");
+    await db.ref("agencyMaintenance/" + maint.id + "/updatedAt").set(now);
+    return { ticket: publicTicket(ticket) };
   }
 
   if (action === "signContract") {
@@ -354,4 +418,4 @@ async function handle(db, body, now) {
   throw new PortalError(400, "Unknown action.");
 }
 
-module.exports = { handle, PortalError, docsForHub, maintenanceForHub, makeTicketRef, publicHub, PRIVATE_PROJECT_FIELDS, carePlanPrice };
+module.exports = { handle, PortalError, docsForHub, maintenanceForHub, makeTicketRef, publicHub, publicTicket, publicMaintenance, PRIVATE_PROJECT_FIELDS, carePlanPrice };
