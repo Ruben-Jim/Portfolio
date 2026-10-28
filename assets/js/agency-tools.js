@@ -4150,6 +4150,21 @@
 
   var CP_DRAWER_TRANSITION_MS = 380;
 
+  /*
+   * Live clients (deliveryStage 'client') open as a full page inside the
+   * Clients panel instead of the drawer. It is the same element and the same
+   * renderer, so every id, action and save function is shared; page mode only
+   * moves the drawer into #cp-client-page-host and changes its chrome.
+   * Decided when a client is opened, not on every render.
+   */
+  var cpPageMode = false;
+  var CP_OPEN_CLIENT_KEY = 'cpOpenClient';
+  var cpPageRestoreDone = false;
+
+  function isCpPageModeHub(hub) {
+    return !!hub && deliveryStageOf(hub) === 'client';
+  }
+
   function mountCpClientDrawerToBody() {
     var drawer = document.getElementById('cp-client-drawer');
     var overlay = document.getElementById('cp-client-drawer-overlay');
@@ -4159,6 +4174,13 @@
     if (drawer && drawer.parentElement !== document.body) {
       document.body.appendChild(drawer);
     }
+    if (drawer) {
+      drawer.classList.remove('cp-client-drawer--page');
+      drawer.setAttribute('data-layer', 'drawer');
+    }
+    var host = document.getElementById('cp-client-page-host');
+    if (host) host.hidden = true;
+    document.body.classList.remove('cp-client-page-open');
   }
 
   function isCpClientDrawerOpen() {
@@ -4166,7 +4188,117 @@
     return !!(drawer && !drawer.hidden);
   }
 
+  /** The sticky tab strip sits under the sticky header, whatever height it wraps to. */
+  function syncCpPageHeadHeight() {
+    var drawer = document.getElementById('cp-client-drawer');
+    var head = drawer && drawer.querySelector('.cp-client-drawer-header');
+    if (!head) return;
+    drawer.style.setProperty('--cp-page-head-h', Math.round(head.getBoundingClientRect().height) + 'px');
+  }
+
+  var cpPageHeadObserved = false;
+
+  function openCpClientPage() {
+    var drawer = document.getElementById('cp-client-drawer');
+    var overlay = document.getElementById('cp-client-drawer-overlay');
+    var host = document.getElementById('cp-client-page-host');
+    if (!drawer || !host) return;
+    if (drawer.parentElement !== host) host.appendChild(drawer);
+    drawer.classList.add('cp-client-drawer--page', 'is-open');
+    // Not an overlay here: on a layer it would hide the floating timer and sit
+    // on the drawer z-index above the admin nav.
+    drawer.removeAttribute('data-layer');
+    drawer.hidden = false;
+    drawer.setAttribute('aria-hidden', 'false');
+    if (overlay) {
+      overlay.classList.remove('is-open');
+      overlay.hidden = true;
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+    resetCpSheetHeight();
+    host.hidden = false;
+    document.body.classList.remove('cp-client-drawer-open');
+    document.body.classList.add('cp-client-page-open');
+
+    syncCpPageHeadHeight();
+    if (!cpPageHeadObserved && typeof ResizeObserver === 'function') {
+      cpPageHeadObserved = true;
+      new ResizeObserver(syncCpPageHeadHeight).observe(drawer.querySelector('.cp-client-drawer-header'));
+    }
+
+    try {
+      sessionStorage.setItem(CP_OPEN_CLIENT_KEY, clientProjectsSelectedId);
+    } catch (e) {}
+    // Browser Back returns to the list. The SPA's own page key is kept so its
+    // popstate handler stays on admin.
+    var st = history.state || {};
+    if (st.cpClient !== clientProjectsSelectedId) {
+      history.pushState(Object.assign({}, st, { cpClient: clientProjectsSelectedId }), '');
+    }
+    if (drawer.getBoundingClientRect().top < 0) drawer.scrollIntoView({ block: 'start' });
+  }
+
+  /** Leaves the page at once (no slide-out) and, unless Back did it, drops its history entry. */
+  function closeCpClientPage(fromPopstate) {
+    var drawer = document.getElementById('cp-client-drawer');
+    cpPageMode = false;
+    mountCpClientDrawerToBody();
+    if (drawer) {
+      drawer.classList.remove('is-open');
+      drawer.hidden = true;
+      drawer.setAttribute('aria-hidden', 'true');
+    }
+    try {
+      sessionStorage.removeItem(CP_OPEN_CLIENT_KEY);
+    } catch (e) {}
+    clearCpClientSelection();
+    // cpPageMode is already off, so the popstate this fires is ignored.
+    if (!fromPopstate && history.state && history.state.cpClient) history.back();
+  }
+
+  function clearCpClientSelection() {
+    clientProjectsSelectedId = '';
+    var workspace = document.getElementById('client-projects-workspace');
+    if (workspace) workspace.innerHTML = '';
+    var headbar = document.getElementById('cp-client-page-headbar');
+    if (headbar) headbar.innerHTML = '';
+    var shell = document.querySelector('.client-projects-shell');
+    if (shell) shell.classList.remove('has-client-selected');
+    renderClientProjectsPickerList();
+  }
+
+  function onCpClientPagePopstate(e) {
+    if (!cpPageMode || !isCpClientDrawerOpen()) return;
+    var st = e.state || {};
+    if (st.cpClient && st.cpClient === clientProjectsSelectedId) return;
+    closeCpClientPage(true);
+  }
+
+  /** After a reload, reopen the live client that was open. */
+  function maybeRestoreCpClientPage() {
+    if (cpPageRestoreDone || !agencyLoaded.projects) return;
+    var panel = document.getElementById('admin-panel-client-projects');
+    if (!panel || panel.hidden) return;
+    cpPageRestoreDone = true;
+    var id = '';
+    try {
+      id = sessionStorage.getItem(CP_OPEN_CLIENT_KEY) || '';
+    } catch (e) {}
+    if (!id || clientProjectsSelectedId) return;
+    if (!isCpPageModeHub(getHubById(id))) {
+      try {
+        sessionStorage.removeItem(CP_OPEN_CLIENT_KEY);
+      } catch (e) {}
+      return;
+    }
+    selectClientProject(id);
+  }
+
   function openCpClientDrawer() {
+    if (cpPageMode) {
+      openCpClientPage();
+      return;
+    }
     mountCpClientDrawerToBody();
     var drawer = document.getElementById('cp-client-drawer');
     var overlay = document.getElementById('cp-client-drawer-overlay');
@@ -4201,6 +4333,10 @@
     if (unsavedModal && unsavedModal.classList.contains('active')) {
       return;
     }
+    if (cpPageMode) {
+      closeCpClientPage(false);
+      return;
+    }
     var drawer = document.getElementById('cp-client-drawer');
     var overlay = document.getElementById('cp-client-drawer-overlay');
     if (drawer) drawer.classList.remove('is-open');
@@ -4219,12 +4355,7 @@
         overlay.hidden = true;
         overlay.setAttribute('aria-hidden', 'true');
       }
-      clientProjectsSelectedId = '';
-      var workspace = document.getElementById('client-projects-workspace');
-      if (workspace) workspace.innerHTML = '';
-      var shell = document.querySelector('.client-projects-shell');
-      if (shell) shell.classList.remove('has-client-selected');
-      renderClientProjectsPickerList();
+      clearCpClientSelection();
     }
 
     if (!drawer || drawer.hidden) {
@@ -4239,20 +4370,26 @@
       closeCpClientDrawer();
       return;
     }
+    var page = isCpPageModeHub(getHubById(hubId));
     if (clientProjectsSelectedId === hubId && isCpClientDrawerOpen()) {
+      // The page has no list behind it to toggle from; asking again keeps it open.
+      if (page && cpPageMode) return;
       closeCpClientDrawer();
       return;
     }
+    if (cpPageMode && !page && isCpClientDrawerOpen()) closeCpClientPage(false);
+    cpPageMode = page;
     clientProjectsSelectedId = hubId;
     // Opening a different client starts on the first tab: carrying the previous
     // client's tab over lands you on a panel you did not ask for.
-    cpActiveMobileTab = (CP_PRIMARY_TABS && CP_PRIMARY_TABS[0]) || 'hub';
+    cpActiveMobileTab = page ? CP_PAGE_TAB_ORDER[0] : (CP_PRIMARY_TABS && CP_PRIMARY_TABS[0]) || 'hub';
     delete cpSectionCollapseByHub[hubId];
     var shell = document.querySelector('.client-projects-shell');
     if (shell) shell.classList.add('has-client-selected');
     renderClientProjectsPickerList();
     renderClientProjectsWorkspace();
     openCpClientDrawer();
+    if (page) return;
     var card = document.querySelector('.cp-delivery-card.is-selected, .cp-client-picker-card.is-selected');
     if (card && typeof card.scrollIntoView === 'function') {
       card.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -4598,6 +4735,15 @@
     'health', 'pipeline', 'docs', 'portfolio', 'email'
   ];
 
+  // The live-client page leads with Tickets, then the sections a care-plan
+  // client needs most. Every one is a tab; phones fold the rest into More.
+  var CP_PAGE_TAB_ORDER = [
+    'tickets', 'maintenance', 'milestones', 'portal', 'hub',
+    'guide', 'docs', 'health', 'pipeline', 'portfolio', 'email'
+  ];
+  var CP_PAGE_PRIMARY_TABS = ['tickets', 'maintenance', 'milestones', 'portal'];
+  CP_SECTION_LABELS.tickets = 'Tickets';
+
 
   /* --------------------------------------------------------------------
      Bottom sheet drag
@@ -4711,15 +4857,24 @@
 
   var cpActiveMobileTab = 'hub';
 
-  function buildCpMobileTabsHtml() {
-    var overflow = CP_SECTION_ORDER.filter(function (id) {
-      return CP_PRIMARY_TABS.indexOf(id) === -1;
+  function buildCpMobileTabsHtml(openTickets) {
+    var order = cpPageMode ? CP_PAGE_TAB_ORDER : CP_SECTION_ORDER;
+    var primary = cpPageMode ? CP_PAGE_PRIMARY_TABS : CP_PRIMARY_TABS;
+    var overflow = order.filter(function (id) {
+      return primary.indexOf(id) === -1;
     });
-    // An overflow section that is currently active is promoted into the strip,
-    // so the active tab is never hidden behind More.
-    var strip = CP_PRIMARY_TABS.slice();
-    if (strip.indexOf(cpActiveMobileTab) === -1 && CP_SECTION_ORDER.indexOf(cpActiveMobileTab) !== -1) {
-      strip.push(cpActiveMobileTab);
+    var strip;
+    if (cpPageMode) {
+      // Every tab is rendered; CSS hides the --overflow ones behind More on
+      // phones, except whichever is active.
+      strip = order.slice();
+    } else {
+      // An overflow section that is currently active is promoted into the strip,
+      // so the active tab is never hidden behind More.
+      strip = primary.slice();
+      if (strip.indexOf(cpActiveMobileTab) === -1 && order.indexOf(cpActiveMobileTab) !== -1) {
+        strip.push(cpActiveMobileTab);
+      }
     }
     return (
       // Menu is a SIBLING of the scrolling strip: .cp-mobile-tabs has
@@ -4730,11 +4885,14 @@
       strip
         .map(function (id) {
           var active = id === cpActiveMobileTab;
+          var folded = cpPageMode && primary.indexOf(id) === -1;
           return (
-            '<button type="button" class="cp-mobile-tab' + (active ? ' is-active' : '') + '" ' +
+            '<button type="button" class="cp-mobile-tab' + (active ? ' is-active' : '') +
+            (folded ? ' cp-mobile-tab--overflow' : '') + '" ' +
             'role="tab" aria-selected="' + (active ? 'true' : 'false') + '" ' +
             'data-cp-action="mobile-tab" data-cp-tab="' + esc(id) + '">' +
             esc(CP_SECTION_LABELS[id] || id) +
+            (id === 'tickets' && openTickets ? '<span class="cp-mobile-tab-count">' + openTickets + '</span>' : '') +
             '</button>'
           );
         })
@@ -4761,11 +4919,15 @@
     );
   }
 
-  /** Shows one panel on mobile; visually a no-op on desktop. */
-  function applyCpMobileTab(id) {
+  /**
+   * Shows one panel on mobile and on the live-client page; visually a no-op
+   * in the desktop drawer. fromRender: a data refresh re-applying the tab,
+   * which must not move the page under the user.
+   */
+  function applyCpMobileTab(id, fromRender) {
     var workspace = document.getElementById('client-projects-workspace');
     if (!workspace) return;
-    if (CP_SECTION_ORDER.indexOf(id) !== -1) cpActiveMobileTab = id;
+    if ((cpPageMode ? CP_PAGE_TAB_ORDER : CP_SECTION_ORDER).indexOf(id) !== -1) cpActiveMobileTab = id;
     workspace.querySelectorAll('.cp-section--collapsible').forEach(function (sec) {
       sec.classList.toggle(
         'is-mobile-active',
@@ -4783,6 +4945,14 @@
       btn.classList.toggle('is-active', btn.getAttribute('data-cp-tab') === cpActiveMobileTab);
     });
     closeCpMobileTabMenu();
+    if (cpPageMode) {
+      // The window scrolls the page; a new tab starts at the top of it.
+      var drawer = document.getElementById('cp-client-drawer');
+      if (!fromRender && drawer && drawer.getBoundingClientRect().top < 0) {
+        drawer.scrollIntoView({ block: 'start' });
+      }
+      return;
+    }
     var scroller = workspace.closest('.cp-client-drawer-body') || workspace.parentNode;
     if (scroller && typeof scroller.scrollTo === 'function') scroller.scrollTo({ top: 0 });
   }
@@ -4850,6 +5020,107 @@
     return base + '/get.html?id=' + encodeURIComponent(hubId);
   }
 
+  function cpOpenTicketCounts(maint) {
+    var rows = maint && window.CwrTickets ? window.CwrTickets.listRows(maint.tickets) : [];
+    return {
+      open: rows.filter(function (r) { return r.status !== 'resolved'; }).length,
+      check: rows.filter(function (r) { return r.status === 'check'; }).length
+    };
+  }
+
+  function cpPortalLinkActive(hub) {
+    return !!(hub.portalToken && !(hub.portalExpiresAt && hub.portalExpiresAt < Date.now()));
+  }
+
+  /** Five always-visible numbers at the top of the live-client page. Each opens its tab. */
+  function buildCpSummaryStripHtml(ctx) {
+    var hub = ctx.hub;
+    var maint = ctx.maint;
+    function card(tab, label, bodyHtml, tone) {
+      return (
+        '<button type="button" class="cp-summary-card' + (tone ? ' is-' + tone : '') + '" ' +
+        'data-cp-action="mobile-tab" data-cp-tab="' + tab + '">' +
+        '<span class="cp-summary-card-label">' + esc(label) + '</span>' +
+        bodyHtml +
+        '</button>'
+      );
+    }
+    function sub(text) {
+      return '<span class="cp-summary-card-sub">' + esc(text) + '</span>';
+    }
+
+    var hoursBody = sub('No care plan');
+    var hoursTone = '';
+    if (maint) {
+      var hrs = maintHoursState(maint);
+      hoursTone = hrs.tone === 'ok' ? '' : hrs.tone;
+      hoursBody =
+        '<span class="cp-summary-meter"><span style="width:' + hrs.pct.toFixed(1) + '%"></span></span>' +
+        sub(hrs.used + ' / ' + hrs.inc + ' hrs');
+    }
+
+    var counts = cpOpenTicketCounts(maint);
+    var ticketsBody = maint
+      ? '<span class="cp-summary-card-big">' + counts.open + '</span>' +
+        sub('open' + (counts.check ? ' · ' + counts.check + ' to check' : ''))
+      : sub('No care plan');
+
+    var milestones = hub.milestones || [];
+    var nextMilestone = milestones.filter(function (m) { return !m.done; })[0];
+    var doneCount = milestones.length - milestones.filter(function (m) { return !m.done; }).length;
+    var milestonesBody = !milestones.length
+      ? sub('No milestones')
+      : '<span class="cp-summary-card-main">' + esc(nextMilestone ? nextMilestone.label : 'All done') + '</span>' +
+        sub(doneCount + '/' + milestones.length + ' complete');
+
+    var renewBody = sub('—');
+    var renewTone = '';
+    if (maint && maint.renewalDate) {
+      var renewDate = new Date(maint.renewalDate + 'T00:00:00');
+      var renewal = maintRenewalLabel(maint.renewalDate);
+      renewTone = renewal.tone === 'bad' ? 'bad' : '';
+      renewBody =
+        '<span class="cp-summary-card-big">' +
+        esc(isNaN(renewDate.getTime()) ? maint.renewalDate : renewDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })) +
+        '</span>' +
+        sub(maint.paymentStatus === 'awaiting' ? 'Awaiting payment' : renewal.tone === 'bad' ? renewal.text : 'Paid');
+    }
+
+    return (
+      '<div class="cp-summary-strip">' +
+      card('maintenance', 'Hours', hoursBody, hoursTone) +
+      card('tickets', 'Tickets', ticketsBody) +
+      card('milestones', 'Next milestone', milestonesBody) +
+      card('portal', 'Portal', sub(cpSectionSummary('portal', ctx)), cpPortalLinkActive(hub) ? '' : 'muted') +
+      card('maintenance', 'Renews', renewBody, renewTone) +
+      '</div>'
+    );
+  }
+
+  /** Plan and stage pills, Open portal and + New ticket, beside the name in the page header. */
+  function renderCpClientPageHeadbar(hub, maint) {
+    var bar = document.getElementById('cp-client-page-headbar');
+    if (!bar) return;
+    if (!cpPageMode || !hub) {
+      bar.innerHTML = '';
+      return;
+    }
+    bar.innerHTML =
+      '<span class="cp-client-page-pills">' +
+      '<span class="cp-client-page-pill' + (maint ? '' : ' is-muted') + '">' +
+      esc(maint ? planTierLabel(maint.planTier) : 'No care plan') +
+      '</span>' +
+      '<span class="cp-client-page-pill is-muted">' + esc(deliveryStageLabel(deliveryStageOf(hub))) + '</span>' +
+      '</span>' +
+      '<span class="cp-client-page-actions">' +
+      (cpPortalLinkActive(hub)
+        ? '<a class="btn btn-secondary btn-sm cp-client-page-portal" href="' + esc(clientPortalUrl(hub.portalToken)) +
+          '" target="_blank" rel="noopener">Open portal</a>'
+        : '') +
+      (maint ? '<button type="button" class="btn btn-primary btn-sm" data-cp-action="ticket-new">+ New ticket</button>' : '') +
+      '</span>';
+  }
+
   function renderClientProjectsWorkspace() {
     var workspace = document.getElementById('client-projects-workspace');
     var titleEl = document.getElementById('cp-client-drawer-title');
@@ -4858,6 +5129,7 @@
     if (!clientProjectsSelectedId) {
       if (titleEl) titleEl.textContent = 'Client workspace';
       workspace.innerHTML = '';
+      renderCpClientPageHeadbar(null, null);
       return;
     }
 
@@ -5253,7 +5525,8 @@
         '<span class="cp-maint-field-hint" id="cp-maint-sla-hint">' + esc(maintSlaWords(maint.slaHours)) + '</span></div>' +
         '<div class="form-group form-group--full"><label for="cp-maint-notes">Notes</label><textarea id="cp-maint-notes" class="form-input has-scrollbar" rows="2">' + esc(maint.notes) + '</textarea></div>' +
         '</div>' +
-        maintTicketsHtml(maint) +
+        // The page gives tickets their own tab.
+        (cpPageMode ? '' : maintTicketsHtml(maint)) +
         '<div class="cp-section-actions">' +
         '<button type="button" class="btn btn-primary btn-sm" data-cp-action="save-maint">Save maintenance</button>' +
         '<button type="button" class="btn btn-danger btn-sm" data-cp-action="delete-maint">Delete maintenance</button>' +
@@ -5354,8 +5627,20 @@
       '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="email-maint-invoice">Email: invoice ready →</button>' +
       '</div>';
 
+    var ticketsSection = '';
+    if (cpPageMode) {
+      var ticketsBody = maint
+        ? maintTicketsHtml(maint)
+        : '<div class="cp-section-empty"><p>No care plan for this client, so there are no tickets yet.</p>' +
+          '<button type="button" class="btn btn-secondary btn-sm" data-cp-action="mobile-tab" data-cp-tab="maintenance">Set up a plan in Maintenance →</button></div>';
+      ticketsSection = buildCpCollapsibleSection('tickets', 'Tickets', null, ticketsBody, '', true);
+    }
+
+    renderCpClientPageHeadbar(hub, maint);
     workspace.innerHTML =
-      buildCpMobileTabsHtml() +
+      (cpPageMode ? buildCpSummaryStripHtml(sectionCtx) : '') +
+      buildCpMobileTabsHtml(cpPageMode ? cpOpenTicketCounts(maint).open : 0) +
+      ticketsSection +
       buildCpCollapsibleSection('hub', 'Project Hub', null, hubBody, cpSectionSummary('hub', sectionCtx), isCpSectionExpanded(hub.id, 'hub'), deliveryTitleBadge) +
       buildCpCollapsibleSection('milestones', 'Milestones', null, milestonesBody, cpSectionSummary('milestones', sectionCtx), isCpSectionExpanded(hub.id, 'milestones'), milestonesTitleBadge) +
       buildCpCollapsibleSection('portal', 'Client portal', null, portalBody, cpSectionSummary('portal', sectionCtx), isCpSectionExpanded(hub.id, 'portal')) +
@@ -5372,7 +5657,7 @@
     if (typeof window.initBusinessDocCustomSelects === 'function') {
       window.initBusinessDocCustomSelects();
     }
-    applyCpMobileTab(cpActiveMobileTab);
+    applyCpMobileTab(cpActiveMobileTab, true);
   }
 
   function renderClientProjectsPickerList() {
@@ -5565,6 +5850,7 @@
     refreshClientProjectsPicker();
     renderClientProjectsWorkspace();
     renderClientProjectsPickerList();
+    maybeRestoreCpClientPage();
   }
 
   async function saveHubFromClientWorkspace(feedbackSection) {
@@ -6393,6 +6679,23 @@
       overlay.dataset.cpBound = '1';
       overlay.addEventListener('click', closeCpClientDrawer);
     }
+    var backBtn = document.getElementById('cp-client-page-back');
+    if (backBtn && !backBtn.dataset.cpBound) {
+      backBtn.dataset.cpBound = '1';
+      backBtn.addEventListener('click', closeCpClientDrawer);
+      window.addEventListener('popstate', onCpClientPagePopstate);
+    }
+    // The page header carries + New ticket, outside the workspace's delegation.
+    var headbar = document.getElementById('cp-client-page-headbar');
+    if (headbar && !headbar.dataset.cpBound) {
+      headbar.dataset.cpBound = '1';
+      headbar.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-cp-action]');
+        if (!btn) return;
+        e.preventDefault();
+        handleClientProjectsAction(btn.getAttribute('data-cp-action'), btn);
+      });
+    }
   }
 
   function initClientProjects() {
@@ -6716,13 +7019,28 @@
    * hoursUsed is computed by syncLoggedTotalsFromEntries() from planner entries,
    * so this is a read-out of logged time, never a hand-typed figure.
    */
-  function maintStatusStripHtml(m) {
+  /** Hours used against the plan cap, for the meter here and the page's summary strip. */
+  function maintHoursState(m) {
     var used = roundHours(Number(m.hoursUsed) || 0);
     var inc = Number(m.hoursIncluded) || 0;
-    var pct = inc > 0 ? Math.min(100, (used / inc) * 100) : 0;
     var over = inc > 0 && used > inc;
     var near = !over && inc > 0 && used >= inc * 0.8;
-    var tone = over ? 'bad' : near ? 'warn' : 'ok';
+    return {
+      used: used,
+      inc: inc,
+      pct: inc > 0 ? Math.min(100, (used / inc) * 100) : 0,
+      over: over,
+      tone: over ? 'bad' : near ? 'warn' : 'ok'
+    };
+  }
+
+  function maintStatusStripHtml(m) {
+    var hrs = maintHoursState(m);
+    var used = hrs.used;
+    var inc = hrs.inc;
+    var pct = hrs.pct;
+    var over = hrs.over;
+    var tone = hrs.tone;
     var renew = maintRenewalLabel(m.renewalDate);
     var remaining = roundHours(Math.max(0, inc - used));
 

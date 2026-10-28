@@ -127,7 +127,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=tickets-20261021">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=clientpage-20261028">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -4773,6 +4773,8 @@
 
           <!-- Clients Projects -->
           <div id="admin-panel-client-projects" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-client-projects" data-admin-tab="client-projects" hidden>
+          <!-- Live clients open here as a full page: #cp-client-drawer moves in (agency-tools.js openCpClientPage). -->
+          <div id="cp-client-page-host" class="cp-client-page-host" hidden></div>
           <section class="service admin-collapsible-section admin-collapsible-open">
             <div class="admin-panel-heading">
               <h3 class="h3 admin-panel-title">Clients Projects</h3>
@@ -5882,7 +5884,12 @@
         <aside class="cp-client-drawer" id="cp-client-drawer" data-layer="drawer" hidden aria-hidden="true" aria-labelledby="cp-client-drawer-title" data-lenis-prevent>
           <button type="button" class="cp-client-drawer-grab" id="cp-client-drawer-grab" aria-label="Drag to resize the sheet"><span aria-hidden="true"></span></button>
           <div class="cp-client-drawer-header">
+            <button type="button" class="cp-client-page-back" id="cp-client-page-back" aria-label="Back to clients">
+              <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+              <span>Clients</span>
+            </button>
             <h3 class="h3" id="cp-client-drawer-title">Client workspace</h3>
+            <div class="cp-client-page-headbar" id="cp-client-page-headbar"></div>
             <div class="cp-client-drawer-header-actions">
               <button type="button" class="cp-client-drawer-delete" id="cp-client-drawer-delete" aria-label="Delete client">
                 <ion-icon name="trash-outline"></ion-icon>
@@ -8826,7 +8833,7 @@
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', integrity: 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==' },
         { src: '/assets/js/blog-tiptap-editor.js?v=dialogs-20261018' },
         { src: '/assets/js/ticket-shared.js?v=tickets-20261021' },
-        { src: '/assets/js/agency-tools.js?v=tickets-20261021' },
+        { src: '/assets/js/agency-tools.js?v=clientpage-20261028' },
         { src: '/assets/js/ig-posts.js?v=ig-library-20260827' },
         { src: '/assets/js/outreach-composer.js?v=dialogs-20261018' },
         { src: '/assets/js/prospects.js?v=dialogs-20261018' },

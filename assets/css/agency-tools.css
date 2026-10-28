@@ -5907,6 +5907,429 @@ textarea.cp-ticket-work-input { resize: vertical; min-height: 64px; }
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Live client full page (deliveryStage client)
+   The drawer element moves into #cp-client-page-host and takes over the
+   Clients panel: a sticky header, a summary strip, and one section per tab at
+   every width. The window scrolls it. Demo and converting clients never get
+   .cp-client-drawer--page and keep the drawer above unchanged.
+   Selectors lead with .cp-client-drawer.cp-client-drawer--page so they beat
+   the drawer and bottom-sheet rules regardless of order.
+--------------------------------------------------------------------------- */
+.cp-client-page-back,
+.cp-client-page-headbar { display: none; }
+
+.cp-client-page-host[hidden] { display: none; }
+
+body.cp-client-page-open #admin-panel-client-projects > :not(#cp-client-page-host) {
+  display: none;
+}
+
+/* The admin card computes as a scroll container (overflow-x: hidden) but never
+   scrolls, which would pin the sticky header to nothing. clip keeps the
+   horizontal crop without making one. Overlays that set overflow: hidden
+   !important still win while they are open. */
+body.cp-client-page-open article.admin[data-page="admin"].active {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.cp-client-drawer.cp-client-drawer--page {
+  /* Where the header pins. Tablets and up leave the corner row to the fixed
+     Timer chip (.tc-timer-chip, 40px), which would otherwise cover the
+     header's right-hand buttons once scrolled. */
+  --cp-page-stick-top: 0px;
+  position: relative;
+  inset: auto;
+  width: auto;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  transition: none;
+  will-change: auto;
+  isolation: auto;
+}
+
+.cp-client-drawer.cp-client-drawer--page::before,
+.cp-client-drawer.cp-client-drawer--page .cp-client-drawer-grab,
+.cp-client-drawer.cp-client-drawer--page .cp-client-drawer-close {
+  display: none;
+}
+
+/* Header: ← Clients, name, pills, then actions pushed right. */
+.cp-client-drawer.cp-client-drawer--page .cp-client-drawer-header {
+  position: sticky;
+  top: var(--cp-page-stick-top);
+  z-index: 4;
+  /* Paints the gap above a header pinned below the corner, so content does not
+     show through it. */
+  box-shadow: 0 calc(-1 * var(--cp-page-stick-top)) 0 0 var(--eerie-black-2);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px 12px;
+  padding: 4px 0 14px;
+  background: var(--eerie-black-2);
+  border-bottom: 1px solid var(--jet);
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-client-drawer-header .h3 {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin: 0;
+  color: var(--white-1);
+  font-size: var(--fs-2);
+  font-weight: var(--fw-600);
+  letter-spacing: 0;
+  padding: 0;
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-client-page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid var(--jet);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--light-gray);
+  font-size: var(--fs-7);
+  cursor: pointer;
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-client-page-back:hover {
+  border-color: hsla(45, 100%, 72%, 0.5);
+  color: var(--orange-yellow-crayola);
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-client-page-back:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-client-page-headbar:not(:empty) {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.cp-client-page-pills {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cp-client-page-pill {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: hsla(45, 100%, 72%, 0.16);
+  color: var(--orange-yellow-crayola);
+  font-size: var(--fs-8);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cp-client-page-pill.is-muted {
+  background: hsla(0, 0%, 50%, 0.14);
+  color: var(--light-gray);
+}
+
+.cp-client-page-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Beats the site-wide full-width .btn under 768px. */
+.cp-client-page-actions .btn {
+  width: auto;
+  margin: 0;
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-client-drawer-header-actions { flex: none; }
+
+/* Body: no inner scroll; the window scrolls the page. */
+.cp-client-drawer.cp-client-drawer--page .cp-client-drawer-body {
+  flex: none;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+  padding: 14px 0 24px;
+  background: transparent;
+  overscroll-behavior: auto;
+}
+
+/* Summary strip */
+.cp-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 14px;
+}
+
+.cp-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--jet);
+  border-radius: 10px;
+  background: var(--eerie-black-1);
+  color: var(--light-gray);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.cp-summary-card:hover { border-color: hsla(45, 100%, 72%, 0.45); }
+
+.cp-summary-card:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.cp-summary-card-label {
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--light-gray-70, hsl(0, 0%, 70%));
+}
+
+.cp-summary-card-big {
+  color: var(--white-1);
+  font-size: var(--fs-2);
+  font-weight: var(--fw-600);
+  line-height: 1.1;
+}
+
+.cp-summary-card-main {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--white-1);
+  font-size: var(--fs-6);
+  font-weight: 500;
+}
+
+.cp-summary-card-sub {
+  font-size: var(--fs-8);
+  color: var(--light-gray);
+}
+
+.cp-summary-meter {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: hsla(0, 0%, 50%, 0.18);
+  overflow: hidden;
+}
+
+.cp-summary-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--orange-yellow-crayola);
+}
+
+.cp-summary-card.is-warn .cp-summary-meter > span { background: hsl(32, 95%, 58%); }
+.cp-summary-card.is-bad .cp-summary-meter > span { background: hsl(6, 78%, 60%); }
+.cp-summary-card.is-bad .cp-summary-card-sub { color: hsl(6, 78%, 68%); }
+.cp-summary-card.is-muted .cp-summary-card-sub { color: var(--light-gray-70, hsl(0, 0%, 60%)); }
+
+/* Tabs: always shown, pinned under the header. */
+.cp-client-drawer.cp-client-drawer--page .cp-mobile-tabs-wrap {
+  display: block;
+  position: sticky;
+  top: calc(var(--cp-page-stick-top) + var(--cp-page-head-h, 60px));
+  z-index: 3;
+  margin: 0 0 16px;
+  background: var(--eerie-black-2);
+  border-bottom: 1px solid var(--jet);
+}
+
+.cp-client-drawer .cp-mobile-tab-count {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: hsla(45, 100%, 72%, 0.18);
+  color: var(--orange-yellow-crayola);
+  font-size: 10.5px;
+}
+
+/* One section at a time, always expanded, no accordion chrome. */
+.cp-client-drawer.cp-client-drawer--page .cp-section--collapsible { display: none; }
+
+.cp-client-drawer.cp-client-drawer--page .cp-section--collapsible.is-mobile-active {
+  display: block;
+  margin: 0;
+  border: 0;
+  background: none;
+  overflow: visible;
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-section--collapsible.is-mobile-active .cp-section-header {
+  display: none;
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-section--collapsible.is-mobile-active .cp-section-collapse-wrap {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-section--collapsible.is-mobile-active .cp-section-collapse-inner {
+  overflow: visible;
+}
+
+.cp-client-drawer.cp-client-drawer--page .cp-section--collapsible.is-mobile-active .cp-section-body {
+  padding: 0;
+}
+
+.cp-client-drawer.cp-client-drawer--page [data-cp-section="tickets"] .cp-maint-tickets {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* The header's + New ticket is always in reach; the list's own copy repeats it. */
+.cp-client-drawer.cp-client-drawer--page [data-cp-section="tickets"] .cp-maint-ticket-new {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .cp-client-drawer.cp-client-drawer--page { --cp-page-stick-top: 40px; }
+
+  /* Underlined tabs, every section in one row that scrolls sideways if it must. */
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tabs {
+    display: flex;
+    gap: 2px;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tabs::-webkit-scrollbar { display: none; }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tab {
+    flex: none;
+    padding: 10px 12px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: none;
+    color: var(--light-gray-70, hsl(0, 0%, 70%));
+    font-size: var(--fs-7);
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tab:hover { color: var(--white-1); }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tab.is-active {
+    color: var(--orange-yellow-crayola);
+    border-bottom-color: var(--orange-yellow-crayola);
+  }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tab:focus-visible {
+    outline: 2px solid var(--orange-yellow-crayola);
+    outline-offset: -2px;
+  }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tab--more,
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tab-menu {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1199px) {
+  /* Two header rows: back, name and delete; then pills with the actions. */
+  .cp-client-drawer.cp-client-drawer--page .cp-client-drawer-header .h3 { flex: 1 1 0; }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-client-page-headbar:not(:empty) {
+    order: 3;
+    flex-basis: 100%;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .cp-summary-strip { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  /* 3 + 2: the first row takes three cards, the second two wider ones. */
+  .cp-summary-strip > .cp-summary-card { grid-column: span 2; }
+  .cp-summary-strip > .cp-summary-card:nth-child(n + 4) { grid-column: span 3; }
+}
+
+@media (min-width: 900px) {
+  .cp-client-drawer.cp-client-drawer--page .cp-form-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .cp-client-drawer.cp-client-drawer--page .cp-client-drawer-header {
+    padding: 2px 0 12px;
+    border-bottom: 1px solid var(--jet);
+    background: var(--eerie-black-2);
+  }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-client-drawer-header .h3 {
+    font-size: var(--fs-3);
+  }
+
+  .cp-client-page-actions .btn {
+    min-height: 36px;
+    padding: 7px 12px;
+    font-size: var(--fs-7);
+  }
+
+  /* A row of compact cards that scrolls sideways. */
+  .cp-summary-strip {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+
+  .cp-summary-strip::-webkit-scrollbar { display: none; }
+
+  .cp-summary-card {
+    flex: 0 0 160px;
+    scroll-snap-align: start;
+  }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tabs-wrap {
+    margin: 0 0 12px;
+  }
+
+  /* Phones keep today's strip: the first four tabs plus More. */
+  .cp-client-drawer.cp-client-drawer--page .cp-mobile-tab--overflow:not(.is-active) {
+    display: none;
+  }
+
+  .cp-client-drawer.cp-client-drawer--page .cp-section--collapsible.is-mobile-active .cp-section-body {
+    padding: 0 0 16px;
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────
    Template Outreach Scripts — composer
    Lives in its own admin tab (#admin-panel-outreach). Tuned for phone / tablet / desktop.
