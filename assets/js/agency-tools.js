@@ -8794,34 +8794,68 @@
       list.innerHTML = '<li class="tc-timer-chip-review-empty">No segments to log.</li>';
       return;
     }
+    // Every loggable row gets a picker: "No client" time is assigned here, at
+    // stop, and a row started on the wrong client can be corrected.
+    var options = [{ value: '', label: 'Choose client or bucket…' }].concat(getTcAddTargetOptions());
+    var scrollTop = list.scrollTop;
     list.innerHTML = segs
       .map(function (seg, idx) {
-        var hours = msToLoggedHours(seg.ms);
-        var skip = hours <= 0;
-        var noClient = !seg.target;
+        var row = tcReviewRowState(seg);
         return (
-          '<li class="tc-timer-chip-review-item' +
-          (skip || noClient ? ' is-skip' : '') +
-          '" data-review-idx="' +
-          idx +
-          '">' +
+          '<li class="tc-timer-chip-review-item' + row.cls + '" data-review-idx="' + idx + '">' +
           '<div class="tc-timer-chip-review-main">' +
-          '<span class="tc-timer-chip-review-name">' +
-          esc(seg.clientName || 'No client') +
-          '</span>' +
-          '<span class="tc-timer-chip-review-time">' +
-          esc(formatTcDurationHm(seg.ms)) +
-          '</span></div>' +
-          '<p class="tc-timer-chip-review-meta">' +
-          (skip
-            ? 'Under 1 minute — will not log'
-            : noClient
-              ? 'Needs a client — will not log'
-              : 'Logs ' + formatHours(hours) + ' today') +
-          '</p></li>'
+          '<span class="tc-timer-chip-review-name">' + esc(row.name) + '</span>' +
+          '<span class="tc-timer-chip-review-time">' + esc(formatTcDurationHm(seg.ms)) + '</span></div>' +
+          (row.skip
+            ? ''
+            : '<div class="tc-timer-chip-review-pick">' +
+              cpSelectHtml('tc-review-target-' + idx, options, row.resolved ? seg.target : '', 'Client or bucket for this segment') +
+              '</div>') +
+          '<p class="tc-timer-chip-review-meta">' + esc(row.meta) + '</p></li>'
         );
       })
       .join('');
+    list.scrollTop = scrollTop;
+    if (typeof window.initBusinessDocCustomSelects === 'function') window.initBusinessDocCustomSelects();
+  }
+
+  /** Name, status line and row class for one review segment. */
+  function tcReviewRowState(seg) {
+    var hours = msToLoggedHours(seg.ms);
+    var skip = hours <= 0;
+    // A target whose client has since been removed counts as unassigned.
+    var resolved = !skip && seg.target ? resolveTcTimerTarget(seg.target) : null;
+    var needsPick = !skip && !resolved;
+    return {
+      skip: skip,
+      resolved: resolved,
+      name: (resolved && resolved.clientName) || seg.clientName || 'No client',
+      cls: skip ? ' is-skip' : needsPick ? ' is-needs-pick' : '',
+      meta: skip
+        ? 'Under 1 minute — will not log'
+        : needsPick
+          ? 'Pick a client or bucket to log this'
+          : 'Logs ' + formatHours(hours) + ' today'
+    };
+  }
+
+  /** A review row's picker changed: retarget that segment and refresh the row in place. */
+  function onTcReviewTargetChange(e) {
+    var input = e.target;
+    var li = input && input.closest ? input.closest('[data-review-idx]') : null;
+    if (!li || !isTcTimerReviewOpen()) return;
+    var seg = tcTimerReviewSegments[Number(li.getAttribute('data-review-idx'))];
+    if (!seg) return;
+    var resolved = input.value ? resolveTcTimerTarget(input.value) : null;
+    seg.target = resolved ? input.value : '';
+    seg.clientName = resolved ? resolved.clientName : '';
+    // In place, not a re-render: the open picker keeps its wiring and focus.
+    var row = tcReviewRowState(seg);
+    li.className = 'tc-timer-chip-review-item' + row.cls;
+    var nameEl = li.querySelector('.tc-timer-chip-review-name');
+    var metaEl = li.querySelector('.tc-timer-chip-review-meta');
+    if (nameEl) nameEl.textContent = row.name;
+    if (metaEl) metaEl.textContent = row.meta;
   }
 
   function updateTcTimerUi() {
@@ -9217,6 +9251,12 @@
         logTcTimerReviewSegments();
       });
     }
+    var reviewList = document.getElementById('tc-timer-chip-review-list');
+    if (reviewList && !reviewList.dataset.tcBound) {
+      reviewList.dataset.tcBound = '1';
+      // The row pickers write a hidden input and fire a bubbling change.
+      reviewList.addEventListener('change', onTcReviewTargetChange);
+    }
   }
 
   function initTimeCapacity() {
@@ -9499,6 +9539,8 @@
       kind: resolved.kind,
       projectId: resolved.projectId,
       maintenanceId: resolved.maintenanceId,
+      // Without it every bucket shares customKey '' and same-day logs merge.
+      customKey: resolved.customKey,
       clientName: resolved.clientName,
       hours: hours,
       notes: notes
@@ -9648,55 +9690,86 @@
     if (tcTimerStopping || !isTcTimerReviewOpen()) return;
     var segs = tcTimerReviewSegments || [];
     var toLog = [];
+    var unassigned = 0;
     segs.forEach(function (seg) {
       var hours = msToLoggedHours(seg.ms);
       if (hours <= 0) return;
       var resolved = seg.target ? resolveTcTimerTarget(seg.target) : null;
-      if (!resolved) return;
-      toLog.push({ resolved: resolved, hours: hours, ms: seg.ms });
+      if (!resolved) {
+        unassigned++;
+        return;
+      }
+      toLog.push({ seg: seg, resolved: resolved, hours: hours });
     });
     if (!toLog.length) {
-      showTcTimerToast('Nothing to log — need a client and at least 1 minute.', true);
+      showTcTimerToast(
+        unassigned ? 'Pick a client or bucket for each segment first.' : 'Nothing to log — every segment is under 1 minute.',
+        true
+      );
       return;
     }
     tcTimerStopping = true;
     var logBtn = document.getElementById('tc-chip-review-log');
     if (logBtn) logBtn.disabled = true;
+    var logged = 0;
+    var saved = [];
+    var failure = null;
     try {
-      var logged = 0;
       for (var i = 0; i < toLog.length; i++) {
         var item = toLog[i];
         await addLoggedHoursForToday({
           kind: item.resolved.kind,
           projectId: item.resolved.projectId,
           maintenanceId: item.resolved.maintenanceId,
+          customKey: item.resolved.customKey,
           clientName: item.resolved.clientName,
           hours: item.hours,
-          notes: 'Focus · ' + formatTcDurationHm(item.ms)
+          notes: 'Focus · ' + formatTcDurationHm(item.seg.ms)
         });
         logged += item.hours;
+        saved.push(item.seg);
       }
-      tcTimerReviewSegments = null;
-      resetTcTimerState();
-      jumpTcCalendarToToday();
-      renderTimeCapacityPanel();
-      showTcTimerToast(
-        'Logged ' + formatHours(logged) + ' across ' + toLog.length + ' segment' + (toLog.length === 1 ? '' : 's') + '.',
-        false,
-        {
-          label: 'Start another',
-          onClick: function () {
-            quickStartTcTimer('', '');
-          }
-        }
-      );
     } catch (err) {
       console.error(err);
-      showTcTimerToast((err && err.message) || 'Could not log segments.', true);
+      failure = err;
     } finally {
       tcTimerStopping = false;
       if (logBtn) logBtn.disabled = false;
     }
+
+    // What was saved leaves the review, so pressing Log again can't count it
+    // twice. Unassigned rows (and any that failed) stay for another go.
+    var remaining = segs.filter(function (seg) {
+      return msToLoggedHours(seg.ms) > 0 && saved.indexOf(seg) === -1;
+    });
+    if (remaining.length) {
+      tcTimerReviewSegments = remaining;
+      updateTcTimerUi();
+    } else {
+      tcTimerReviewSegments = null;
+      resetTcTimerState();
+    }
+    if (saved.length) {
+      jumpTcCalendarToToday();
+      renderTimeCapacityPanel();
+    }
+    if (failure) {
+      showTcTimerToast((failure && failure.message) || 'Could not log segments.', true);
+      return;
+    }
+    var loggedMsg = 'Logged ' + formatHours(logged) + ' across ' + saved.length + ' segment' + (saved.length === 1 ? '' : 's');
+    if (remaining.length) {
+      showTcTimerToast(
+        loggedMsg + '. ' + remaining.length + ' still need' + (remaining.length === 1 ? 's' : '') + ' a client or bucket.'
+      );
+      return;
+    }
+    showTcTimerToast(loggedMsg + '.', false, {
+      label: 'Start another',
+      onClick: function () {
+        quickStartTcTimer('', '');
+      }
+    });
   }
 
   function stopTcFocusSession() {

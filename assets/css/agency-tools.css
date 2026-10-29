@@ -3945,8 +3945,21 @@ body:not(.admin-page-active) > .tc-timer-chip {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 220px;
+  max-height: 340px;
   overflow: auto;
+}
+
+/* Each row carries a picker, and the list's scroll box would cut its menu off.
+   While one is open the list stops scrolling so the menu can hang outside it. */
+.tc-timer-chip-review-list:has(.business-doc-select.is-open) {
+  max-height: none;
+  overflow: visible;
+}
+
+/* On phones the docked panel scrolls too and would clip the menu's top
+   options the same way; it lets go while a review picker is open. */
+.tc-timer-chip .tc-timer-chip-panel:has(.tc-timer-chip-review-list .business-doc-select.is-open) {
+  overflow: visible;
 }
 
 .tc-timer-chip-review-item {
@@ -3962,6 +3975,19 @@ body:not(.admin-page-active) > .tc-timer-chip {
 .tc-timer-chip-review-item.is-skip {
   border-left-color: rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.015);
+}
+
+/* Not skipped, just waiting on a pick: an action, so a warm rail, not a dim one. */
+.tc-timer-chip-review-item.is-needs-pick {
+  border-left-color: hsl(32, 95%, 58%);
+}
+
+.tc-timer-chip-review-item.is-needs-pick .tc-timer-chip-review-meta {
+  color: hsl(32, 95%, 68%);
+}
+
+.tc-timer-chip-review-pick {
+  margin-top: 8px;
 }
 
 .tc-timer-chip-review-main {
