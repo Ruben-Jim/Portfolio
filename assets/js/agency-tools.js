@@ -7270,7 +7270,8 @@
     var body = '';
     if (opts.full) {
       T.writeupSections(t, { includeReport: true }).forEach(function (s) {
-        body += '<p class="cp-ticket-sec-h">' + esc(s.label) + '</p><p class="cp-ticket-sec">' + esc(s.text) + '</p>';
+        body += '<p class="cp-ticket-sec-h" data-tk-sec="' + (TICKET_SECTION_KEYS[s.label] || '') + '">' + esc(s.label) +
+          '</p><p class="cp-ticket-sec">' + esc(s.text) + '</p>';
       });
     } else if (t.details && !opts.print) {
       body = '<p class="cp-ticket-details">' + esc(t.details) + '</p>';
@@ -7278,6 +7279,9 @@
 
     return (
       '<div class="cp-ticket-receipt' + (opts.full ? ' cp-ticket-receipt--full' : '') + '"' + (opts.attrs || '') + '>' +
+      // The full stub's content sits in a page frame; layoutTicketPages() turns
+      // it into pages when the write-up is taller than the window.
+      (opts.full ? '<div class="cp-ticket-page-clip"><div class="cp-ticket-flow">' : '') +
       '<p class="cp-ticket-brand">CodeWithRuben</p>' +
       '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
       '<p class="cp-ticket-ref">' + esc(t.ref || '—') + '</p>' +
@@ -7292,10 +7296,26 @@
       (body ? '<p class="cp-ticket-rule" aria-hidden="true"></p>' + body : '') +
       '<p class="cp-ticket-rule" aria-hidden="true"></p>' +
       '<p class="cp-ticket-foot">Keep this reference for your records</p>' +
+      (opts.full ? '</div></div>' : '') +
       '</div>' +
       '<div class="cp-ticket-tear" aria-hidden="true"></div>'
     );
   }
+
+  // Write-up headings as page keys. "You told us" stays on the Ticket page;
+  // the other three each start a page and get a tab.
+  var TICKET_SECTION_KEYS = {
+    'You told us': 'report',
+    'What we found': 'found',
+    'What we fixed': 'fixed',
+    'How to check it': 'check'
+  };
+  var TICKET_PAGE_TABS = [
+    { key: 'found', label: 'Found' },
+    { key: 'fixed', label: 'Fixed' },
+    { key: 'check', label: 'Check' }
+  ];
+  var TICKET_PAGE_GAP = 48;
 
   /** Tickets in the client drawer: still-to-do first, newest first. */
   function maintTicketsHtml(m) {
@@ -7370,6 +7390,16 @@
         closeTicketDetail(false);
         return;
       }
+      var flip = e.target.closest('[data-tk-page]');
+      if (flip && ticketDetail) {
+        goTicketPage((ticketDetail.page || 0) + (flip.getAttribute('data-tk-page') === 'next' ? 1 : -1));
+        return;
+      }
+      var pageTab = e.target.closest('[data-tk-page-tab]');
+      if (pageTab) {
+        goTicketPage(pageTab.getAttribute('data-tk-page-tab'));
+        return;
+      }
       var chip = e.target.closest('[data-tk-status]');
       if (chip && ticketDetail) {
         ticketDetail.status = chip.getAttribute('data-tk-status');
@@ -7424,6 +7454,41 @@
         if (files.length) addTicketFiles(files).catch(console.error);
       }
     });
+
+    // Swipe the page sideways on touch screens.
+    var swipe = null;
+    root.addEventListener('pointerdown', function (e) {
+      swipe = e.pointerType === 'touch' && e.target.closest('.cp-ticket-receipt.is-paged') ? { x: e.clientX, y: e.clientY } : null;
+    });
+    root.addEventListener('pointerup', function (e) {
+      if (!swipe || !ticketDetail) return;
+      var dx = e.clientX - swipe.x;
+      var dy = e.clientY - swipe.y;
+      swipe = null;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+      goTicketPage((ticketDetail.page || 0) + (dx < 0 ? 1 : -1));
+    });
+
+    // ← → flip pages, but never while typing, and never under a dialog on top.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      if (!ticketDetail || !ticketDetail.pages || !root.classList.contains('is-open')) return;
+      var t = e.target;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      if (t && t !== document.body && !root.contains(t)) return;
+      e.preventDefault();
+      goTicketPage(ticketDetail.page + (e.key === 'ArrowRight' ? 1 : -1));
+    });
+
+    var resizeQueued = false;
+    window.addEventListener('resize', function () {
+      if (resizeQueued || !ticketDetail) return;
+      resizeQueued = true;
+      window.requestAnimationFrame(function () {
+        resizeQueued = false;
+        layoutTicketPages();
+      });
+    });
     return root;
   }
 
@@ -7461,11 +7526,127 @@
       st.ref
     );
     var stub = root.querySelector('[data-tk-stub]');
-    if (stub) stub.innerHTML = ticketStubHtml(ticketDetailDraft(), ticketMaint(st.maintId), { full: true, hours: hours });
+    if (stub) {
+      stub.innerHTML =
+        '<nav class="cp-ticket-pager" aria-label="Ticket pages" hidden></nav>' +
+        ticketStubHtml(ticketDetailDraft(), ticketMaint(st.maintId), { full: true, hours: hours });
+      layoutTicketPages();
+    }
     var readout = root.querySelector('[data-tk-hours]');
     if (readout) {
       readout.textContent = hours + ' hrs' + (linked.length ? ' from ' + linked.length + (linked.length === 1 ? ' planner log' : ' planner logs') : '');
     }
+  }
+
+  /*
+   * A write-up taller than the window reads as pages instead of a scroll. The
+   * receipt keeps one page's height and its text flows into CSS columns, one
+   * column per page, which goTicketPage() slides sideways. Found, Fixed and
+   * Check each start a page (break-before in CSS). Runs again on every redraw
+   * of the stub and on resize; a ticket that fits stays a single receipt.
+   */
+  function layoutTicketPages() {
+    var st = ticketDetail;
+    var root = document.getElementById('cp-ticket-viewer');
+    var stub = root && root.querySelector('[data-tk-stub]');
+    if (!st || !stub || !root.classList.contains('is-open')) return;
+    var receipt = stub.querySelector('.cp-ticket-receipt');
+    var clip = stub.querySelector('.cp-ticket-page-clip');
+    var flow = stub.querySelector('.cp-ticket-flow');
+    var nav = stub.querySelector('.cp-ticket-pager');
+    var tear = stub.querySelector('.cp-ticket-tear');
+    if (!receipt || !clip || !flow || !nav) return;
+
+    // Measure it as one long receipt first, with no slide animating the reset.
+    receipt.classList.add('is-laying-out');
+    receipt.classList.remove('is-paged');
+    clip.style.height = '';
+    flow.style.columnWidth = '';
+    flow.style.columnGap = '';
+    flow.style.transform = '';
+    // The bar is built before it is measured: empty, it has no height, and the
+    // page would come out one bar too tall. Tab targets are filled in below.
+    var tabs = [{ label: 'Ticket', head: null }];
+    TICKET_PAGE_TABS.forEach(function (tab) {
+      var head = flow.querySelector('[data-tk-sec="' + tab.key + '"]');
+      if (head) tabs.push({ label: tab.label, head: head });
+    });
+    nav.innerHTML =
+      '<button type="button" class="cp-ticket-pager-arrow" data-tk-page="prev" aria-label="Previous page">&lsaquo;</button>' +
+      '<div class="cp-ticket-pager-tabs" role="tablist">' +
+      tabs
+        .map(function (tab) {
+          return '<button type="button" class="cp-ticket-pager-tab" role="tab" data-tk-page-tab="0">' + esc(tab.label) + '</button>';
+        })
+        .join('') +
+      '</div>' +
+      '<button type="button" class="cp-ticket-pager-arrow" data-tk-page="next" aria-label="Next page">&rsaquo;</button>' +
+      '<span class="cp-ticket-pager-count" aria-live="polite"></span>';
+    nav.hidden = false;
+    var rootCs = window.getComputedStyle(root);
+    var paperCs = window.getComputedStyle(receipt);
+    var navCs = window.getComputedStyle(nav);
+    var avail = root.clientHeight - parseFloat(rootCs.paddingTop) - parseFloat(rootCs.paddingBottom);
+    var chrome =
+      parseFloat(paperCs.paddingTop) + parseFloat(paperCs.paddingBottom) +
+      nav.offsetHeight + parseFloat(navCs.marginBottom) + (tear ? tear.offsetHeight : 0);
+    var pageH = Math.max(280, Math.floor(avail - chrome));
+
+    if (flow.scrollHeight <= pageH) {
+      nav.hidden = true;
+      nav.innerHTML = '';
+      st.pages = null;
+      st.page = 0;
+      receipt.classList.remove('is-laying-out');
+      return;
+    }
+
+    var width = clip.clientWidth;
+    var step = width + TICKET_PAGE_GAP;
+    receipt.classList.add('is-paged');
+    clip.style.height = pageH + 'px';
+    flow.style.columnWidth = width + 'px';
+    flow.style.columnGap = TICKET_PAGE_GAP + 'px';
+    // offsetLeft, not getBoundingClientRect: the viewer's entrance animation
+    // scales the panel, and layout offsets ignore transforms.
+    function pageOf(el) {
+      return el ? Math.max(0, Math.round(el.offsetLeft / step)) : 0;
+    }
+    var tabButtons = nav.querySelectorAll('[data-tk-page-tab]');
+    tabs.forEach(function (tab, i) {
+      tab.page = pageOf(tab.head);
+      if (tabButtons[i]) tabButtons[i].setAttribute('data-tk-page-tab', String(tab.page));
+    });
+    var count = pageOf(flow.querySelector('.cp-ticket-foot')) + 1;
+    st.pages = { count: count, step: step, tabs: tabs };
+    goTicketPage(st.page || 0);
+    void flow.offsetWidth;
+    receipt.classList.remove('is-laying-out');
+  }
+
+  function goTicketPage(n) {
+    var st = ticketDetail;
+    var root = document.getElementById('cp-ticket-viewer');
+    if (!st || !st.pages || !root) return;
+    var p = st.pages;
+    st.page = Math.max(0, Math.min(p.count - 1, Number(n) || 0));
+    var flow = root.querySelector('[data-tk-stub] .cp-ticket-flow');
+    if (flow) flow.style.transform = 'translateX(' + -st.page * p.step + 'px)';
+    // The current tab is the last section that starts on or before this page.
+    var current = 0;
+    p.tabs.forEach(function (tab, i) {
+      if (tab.page <= st.page) current = i;
+    });
+    root.querySelectorAll('[data-tk-page-tab]').forEach(function (btn, i) {
+      btn.setAttribute('aria-selected', i === current ? 'true' : 'false');
+      btn.classList.toggle('is-on', i === current);
+    });
+    var prev = root.querySelector('[data-tk-page="prev"]');
+    var next = root.querySelector('[data-tk-page="next"]');
+    if (prev) prev.disabled = st.page === 0;
+    if (next) next.disabled = st.page === p.count - 1;
+    var count = root.querySelector('.cp-ticket-pager-count');
+    if (count) count.textContent = st.page + 1 + ' / ' + p.count;
   }
 
   function tcDayKeyDaysAgo(days) {
@@ -7639,7 +7820,9 @@
       status: ticket.status,
       linked: linked,
       showTime: false,
-      dirty: false
+      dirty: false,
+      page: 0,
+      pages: null
     };
 
     var root = ticketViewerRoot();
@@ -7648,8 +7831,17 @@
     root.classList.add('is-open');
     root.setAttribute('aria-hidden', 'false');
     document.body.classList.add('cp-ticket-viewer-open');
-    var first = document.getElementById('cp-tk-found');
-    if (first) first.focus();
+    // The overlay element is reused, and a display:none element keeps its old
+    // offset: without this a ticket opens wherever the last one was scrolled to.
+    root.scrollTop = 0;
+    // Paging needs the viewer laid out; it was hidden when the stub was drawn.
+    layoutTicketPages();
+    // An empty write-up is opened to be written, so the cursor goes there. A
+    // filled one is opened to be read: focusing a field would scroll a phone
+    // past the ticket (and raise the keyboard), so focus stays on the dialog.
+    var writing = !T.writeupSections(ticket).length;
+    var first = writing ? document.getElementById('cp-tk-found') : root.querySelector('[data-ticket-viewer-close]');
+    if (first) first.focus({ preventScroll: !writing });
   }
 
   async function closeTicketDetail(force) {

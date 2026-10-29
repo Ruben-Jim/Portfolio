@@ -5172,6 +5172,143 @@ body.cp-ticket-viewer-open { overflow: hidden; }
 .cp-ticket-receipt--full .cp-ticket-foot { font-size: 11px; }
 .cp-ticket-viewer .cp-ticket-tear { height: 14px; }
 
+/* Long write-ups read as pages (layoutTicketPages in agency-tools.js): the
+   receipt holds one page's height, the text flows into one column per page,
+   and the strip of columns slides sideways. Found / Fixed / Check each start
+   a page. Short tickets never get .is-paged and print as one receipt. */
+.cp-ticket-receipt.is-paged .cp-ticket-page-clip {
+  overflow: hidden;
+  touch-action: pan-y;
+}
+
+.cp-ticket-receipt.is-paged .cp-ticket-flow {
+  position: relative;
+  height: 100%;
+  column-fill: auto;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.cp-ticket-receipt.is-laying-out .cp-ticket-flow { transition: none; }
+
+/* offsetLeft is read against the flow, so it must be the offset parent even
+   while it is being measured unpaged. */
+.cp-ticket-receipt--full .cp-ticket-flow { position: relative; }
+
+.cp-ticket-receipt.is-paged .cp-ticket-sec-h[data-tk-sec="found"],
+.cp-ticket-receipt.is-paged .cp-ticket-sec-h[data-tk-sec="fixed"],
+.cp-ticket-receipt.is-paged .cp-ticket-sec-h[data-tk-sec="check"] {
+  -webkit-column-break-before: always;
+  break-before: column;
+  margin-top: 0;
+}
+
+.cp-ticket-receipt.is-paged .cp-ticket-meta { break-inside: avoid; }
+
+.cp-ticket-pager[hidden] { display: none; }
+
+.cp-ticket-pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.cp-ticket-pager-tabs {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cp-ticket-pager-tab {
+  padding: 6px 11px;
+  border: 1px solid hsla(0, 0%, 100%, 0.14);
+  border-radius: 999px;
+  background: hsla(0, 0%, 8%, 0.6);
+  color: hsl(0, 0%, 78%);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cp-ticket-pager-tab:hover { color: hsl(0, 0%, 96%); }
+
+.cp-ticket-pager-tab.is-on {
+  border-color: hsla(45, 100%, 72%, 0.55);
+  background: hsla(45, 100%, 72%, 0.16);
+  color: hsl(45, 100%, 72%);
+}
+
+.cp-ticket-pager-arrow {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid hsla(0, 0%, 100%, 0.22);
+  border-radius: 50%;
+  background: hsla(0, 0%, 8%, 0.72);
+  color: hsl(0, 0%, 96%);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.cp-ticket-pager-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.cp-ticket-pager-tab:focus-visible,
+.cp-ticket-pager-arrow:focus-visible {
+  outline: 2px solid hsl(45, 100%, 72%);
+  outline-offset: 2px;
+}
+
+.cp-ticket-pager-count {
+  flex: none;
+  min-width: 42px;
+  text-align: right;
+  font-size: 12px;
+  color: hsl(0, 0%, 70%);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Phones: four tabs, two arrows and the count share ~350px. Tighter pills, and
+   the tab row scrolls rather than sliding under the arrows if it still won't fit. */
+@media (max-width: 480px) {
+  .cp-ticket-pager { gap: 6px; }
+
+  .cp-ticket-pager-tabs {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .cp-ticket-pager-tabs::-webkit-scrollbar { display: none; }
+
+  .cp-ticket-pager-tab {
+    flex: none;
+    padding: 5px 9px;
+    font-size: 12px;
+  }
+
+  .cp-ticket-pager-arrow {
+    width: 30px;
+    height: 30px;
+    font-size: 20px;
+  }
+
+  .cp-ticket-pager-count { min-width: 30px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-ticket-receipt.is-paged .cp-ticket-flow { transition: none; }
+}
+
 /* The card stub reads as pressable. */
 .cp-client-drawer .cp-ticket-receipt[role="button"] {
   cursor: zoom-in;
