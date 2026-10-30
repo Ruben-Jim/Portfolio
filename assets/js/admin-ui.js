@@ -241,6 +241,29 @@
     toastTimer = global.setTimeout(dismiss, o.duration || (action ? 6000 : 3200));
   }
 
+  // ── empty states ──
+
+  function escText(v) {
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /**
+   * The one empty state for admin lists, as HTML: an icon, a line, an optional
+   * hint and an optional button. `textHtml` is trusted markup (e.g. <code>);
+   * `action` is a button's HTML. Styled by .admin-empty (agency-tools.css).
+   */
+  function emptyHtml(o) {
+    o = o || {};
+    return (
+      '<div class="admin-empty' + (o.compact ? ' admin-empty--compact' : '') + '" role="status">' +
+      (o.icon ? '<ion-icon class="admin-empty-icon" name="' + escText(o.icon) + '" aria-hidden="true"></ion-icon>' : '') +
+      '<p class="admin-empty-title">' + escText(o.title || 'Nothing here yet') + '</p>' +
+      (o.textHtml ? '<p class="admin-empty-text">' + o.textHtml + '</p>' : o.text ? '<p class="admin-empty-text">' + escText(o.text) + '</p>' : '') +
+      (o.action || '') +
+      '</div>'
+    );
+  }
+
   // ── floating buttons step aside ──
 
   var watching = false;
@@ -301,6 +324,7 @@
     choose: choose,
     prompt: prompt,
     toast: toast,
+    emptyHtml: emptyHtml,
     watchOverlays: watchOverlays
   };
 })(window);

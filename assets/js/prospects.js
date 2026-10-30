@@ -795,7 +795,7 @@
     var today = dateKey();
     var rows = filtered();
     if (!prospects.length) {
-      els.list.innerHTML = '<p class="prospects-empty">No prospects yet. Tap “+ Add” above to upload your list.</p>';
+      els.list.innerHTML = window.CwrUI.emptyHtml({ icon: 'list-outline', title: 'No prospects yet', text: 'Tap “+ Add” above to upload your list.' });
       return;
     }
     if (!rows.length) {

@@ -318,9 +318,9 @@
     var list = filterRows(state.rows, state.filter);
     c.innerHTML = list.length
       ? list.map(rowHtml).join('')
-      : '<div class="empty-item"><p>' + (state.rows.length
-        ? 'Nothing here.'
-        : 'No reviews or invites yet. Request a testimonial, or add a review.') + '</p></div>';
+      : window.CwrUI.emptyHtml(state.rows.length
+        ? { icon: 'filter-outline', title: 'Nothing in this filter', compact: true }
+        : { icon: 'chatbox-ellipses-outline', title: 'No reviews or invites yet', text: 'Request a testimonial, or add a review.' });
   }
 
   function toggle(row) {

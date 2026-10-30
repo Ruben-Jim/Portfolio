@@ -2361,7 +2361,9 @@
       return;
     }
     if (!agencyReferrals.length) {
-      tbody.innerHTML = '<tr><td colspan="5">No referral partners yet.</td></tr>';
+      tbody.innerHTML = '<tr class="admin-empty-row"><td colspan="5">' +
+        window.CwrUI.emptyHtml({ icon: 'people-outline', title: 'No referral partners yet', text: 'Add a partner to track the leads they send and their commission.' }) +
+        '</td></tr>';
       return;
     }
     tbody.innerHTML = agencyReferrals
@@ -3175,9 +3177,12 @@
       return;
     }
     if (!agencyStudioDocs.length) {
-      list.innerHTML =
-        '<p class="ops-docs-empty">No docs yet. Add one with the filename of a Markdown file in ' +
-        '<code>/assets/docs/</code> — for example <code>cwr-agency-overview.md</code>.</p>';
+      list.innerHTML = window.CwrUI.emptyHtml({
+        icon: 'book-outline',
+        title: 'No docs yet',
+        textHtml: 'Add one with the filename of a Markdown file in <code>/assets/docs/</code>, for example <code>cwr-agency-overview.md</code>.',
+        compact: true
+      });
       return;
     }
 

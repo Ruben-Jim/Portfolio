@@ -900,6 +900,13 @@
     var ig = $('ig-open-instagram-btn');
     if (ig) ig.addEventListener('click', openInstagram);
 
+    // The Share & download menu closes after a pick, or on a click outside it.
+    document.addEventListener('click', function (e) {
+      document.querySelectorAll('.ig-admin-more[open]').forEach(function (menu) {
+        if (!menu.contains(e.target) || e.target.closest('.ig-admin-more-item')) menu.open = false;
+      });
+    });
+
     var ueL = $('ig-use-existing-laptop');
     if (ueL) ueL.addEventListener('click', function () {
       useExisting('laptop');

@@ -2,13 +2,13 @@
  * Post builder — library (lives in the admin tab): your designs, plus the
  * "New design" dialog: start from the services posts, a blank canvas, or a copy.
  */
-import { FORMATS, createDesign, duplicateDesign, normalizeDesign } from './model.js?v=pb4';
-import { esc } from './render.js?v=pb4';
-import { uiIcon } from './icons.js?v=pb4';
-import { openEditor } from './editor.js?v=pb4';
-import { renderThumb } from './export.js?v=pb4';
+import { FORMATS, createDesign, duplicateDesign, normalizeDesign } from './model.js?v=pb5';
+import { esc } from './render.js?v=pb5';
+import { uiIcon } from './icons.js?v=pb5';
+import { openEditor } from './editor.js?v=pb5';
+import { renderThumb } from './export.js?v=pb5';
 
-var STARTERS_URL = '/assets/js/post-builder/starters.json?v=pb4';
+var STARTERS_URL = '/assets/js/post-builder/starters.json?v=pb5';
 var startersPromise = null;
 
 function loadStarters() {
@@ -112,10 +112,10 @@ export function mountLibrary(root, store) {
 
   root.innerHTML =
     '<div class="pb-lib">' +
+      // The tab header already describes the builder; only local mode is news.
       '<div class="pb-lib-head">' +
-        '<p class="pb-lib-lead">Drag-and-drop posts and stories in the CWR style. ' +
-          (store.mode === 'firebase' ? 'Designs save to Firebase automatically.' : 'Local mode: designs save in this browser only.') + '</p>' +
-        '<button type="button" class="pb-btn pb-btn--primary" data-lib="new">' + uiIcon('plus') + 'New design</button>' +
+        (store.mode === 'firebase' ? '' : '<p class="pb-lib-lead">Local mode: designs save in this browser only.</p>') +
+        '<button type="button" class="btn btn-primary" data-lib="new">' + uiIcon('plus') + 'New design</button>' +
       '</div>' +
       '<p class="pb-lib-status" role="status" aria-live="polite"></p>' +
       '<div class="pb-lib-grid"></div>' +
@@ -131,7 +131,9 @@ export function mountLibrary(root, store) {
   function renderGrid() {
     grid.innerHTML = designs.length
       ? designs.map(cardHtml).join('')
-      : '<div class="pb-lib-empty"><b>No designs yet.</b><span>Start from one of the new services posts or a blank canvas.</span></div>';
+      : window.CwrUI && window.CwrUI.emptyHtml
+        ? window.CwrUI.emptyHtml({ icon: 'color-palette-outline', title: 'No designs yet', text: 'Start from one of the services posts or a blank canvas.' })
+        : '<div class="pb-lib-empty"><b>No designs yet.</b><span>Start from one of the services posts or a blank canvas.</span></div>';
   }
 
   store.subscribe(function (list) {

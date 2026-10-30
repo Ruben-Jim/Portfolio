@@ -120,7 +120,7 @@ const script = read('assets/js/script.js');
 const admin = read('assets/js/reviews-admin.js');
 const tabBtn = (shell.match(/<button[^>]*id="admin-tab-testimonials"[\s\S]*?<\/button>/) || [''])[0];
 ok(/aria-label="Reviews"/.test(tabBtn) && /admin-tab-label-desktop">Reviews</.test(tabBtn), 'admin tab says Reviews');
-ok(/<h3 class="h3 admin-panel-title">Reviews<\/h3>/.test(shell) && shell.includes('Testimonials, Google reviews, and emailed ones. Switch on what shows on the site.'), 'Reviews heading and lead');
+ok(/<h3 class="h3 admin-panel-title">Reviews<\/h3>/.test(shell) && shell.includes('Testimonials, Google reviews and emailed ones; choose what shows on the site.'), 'Reviews heading and lead');
 ok(/id="admin-review-add-btn"[^>]*>[\s\S]{0,120}Add review/.test(shell) && !shell.includes('admin-testimonial-from-email-btn') && !script.includes('admin-testimonial-from-email-btn'), 'Add review button replaces Add from an email');
 ok(/id="admin-review-filters"[^>]*role="toolbar"/.test(shell) && !shell.includes('Invites & submissions'), 'filter chips replace the "Invites & submissions" heading');
 const modal = shell.slice(shell.indexOf('id="admin-review-modal"'), shell.indexOf('</form>', shell.indexOf('id="admin-review-modal"')));
@@ -129,7 +129,7 @@ const fieldIds = ['admin-review-form', 'admin-review-heading', 'admin-review-sou
 ok(fieldIds.every((id) => modal.includes('id="' + id + '"')) && /data-review-source="google"/.test(modal) && /data-review-source="email"/.test(modal), 'review modal has every field (' + fieldIds.filter((id) => !modal.includes('id="' + id + '"')).join(', ') + ')');
 const modalIds = (modal.match(/\sid="([^"]+)"/g) || []).map((m) => m.slice(5, -1));
 ok(modalIds.length > 10 && modalIds.every((id) => shell.split('id="' + id + '"').length === 2), 'every id in the review modal is unique on the page (duplicates: ' + modalIds.filter((id) => shell.split('id="' + id + '"').length !== 2).join(', ') + ')');
-ok(/\{ src: '\/assets\/js\/reviews-admin\.js\?v=reviews-tab-20261020' \}/.test(shell) && !/<script[^>]*reviews-admin\.js/.test(shell), 'reviews-admin.js is in the admin bundle, not a public script tag');
+ok(/\{ src: '\/assets\/js\/reviews-admin\.js\?v=[\w-]+' \}/.test(shell) && !/<script[^>]*reviews-admin\.js/.test(shell), 'reviews-admin.js is in the admin bundle, not a public script tag');
 const loader = script.slice(script.indexOf('async function loadTestimonialAdminPanel'), script.indexOf('window.loadTestimonialAdminPanel = loadTestimonialAdminPanel'));
 ok(loader.includes('window.CWR_REVIEWS.renderList(combined, tRows, pRows)') && loader.includes('window.loadAdminBundle()') && !loader.includes('function appendActions'), 'loadTestimonialAdminPanel hands rendering to CWR_REVIEWS');
 ok(!script.includes('Add a testimonial a client sent by email') && !script.includes('admin-testimonial-email-'), 'the old email form code is gone from script.js');

@@ -197,6 +197,13 @@ input, textarea {
   font: inherit;
 }
 
+/* The rule above outranks the browser's own [hidden], which left hidden file
+   pickers showing as raw "Choose File" inputs. */
+input[hidden],
+textarea[hidden] {
+  display: none;
+}
+
 ::selection {
   background: var(--orange-yellow-crayola);
   color: var(--smoky-black);
@@ -22497,7 +22504,9 @@ article.admin[data-page="admin"] {
   padding: 15px;
   box-shadow: var(--shadow-1);
   max-width: 100%;
-  overflow-x: hidden;
+  /* clip, not hidden: hidden makes the card a scroll container that never scrolls,
+     so the sidebar and the phone section strip could not stay pinned. */
+  overflow-x: clip;
   box-sizing: border-box;
 }
 

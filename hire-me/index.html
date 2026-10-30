@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=reviews-tab-20261020">
+  <link rel="stylesheet" href="/assets/css/style.css?v=uxpass-20261030">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -127,7 +127,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=pricing-20261029">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=uxpass-20261030">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3454,8 +3454,8 @@
 
         <!-- Dashboard Content (hidden until authenticated) -->
         <div id="admin-dashboard-content" style="display: none;">
-          <header class="admin-dashboard-header">
-            <h2 class="h2 article-title">Admin Dashboard</h2>
+          <header class="admin-dashboard-header admin-dashboard-header--slim">
+            <h2 class="admin-dashboard-title">Admin</h2>
           </header>
 
           <div class="tc-timer-chip" id="tc-timer-chip" data-float>
@@ -3546,9 +3546,9 @@
                   <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Planner</span><span class="admin-tab-label-mobile">Planner</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Contact Messages">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-messages" data-admin-tab="messages" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-messages" tabindex="-1" aria-label="Messages">
                   <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Contact Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Messages</span><span class="admin-tab-label-mobile">Messages</span></span>
                 </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-email" data-admin-tab="email" data-admin-crm-sub aria-selected="false" aria-controls="admin-panel-email" tabindex="-1" aria-label="Email Inbox">
                   <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
@@ -3595,25 +3595,25 @@
                   <ion-icon name="newspaper-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Blog Management</span><span class="admin-tab-label-mobile">Blog</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-instagram" data-admin-tab="instagram" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-instagram" tabindex="-1" aria-label="Instagram posts">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-instagram" data-admin-tab="instagram" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-instagram" tabindex="-1" aria-label="Instagram Posts">
                   <ion-icon name="logo-instagram" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Instagram posts</span><span class="admin-tab-label-mobile">IG posts</span></span>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Instagram Posts</span><span class="admin-tab-label-mobile">IG posts</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-post-builder" data-admin-tab="post-builder" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-post-builder" tabindex="-1" aria-label="Post builder">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-post-builder" data-admin-tab="post-builder" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-post-builder" tabindex="-1" aria-label="Post Builder">
                   <ion-icon name="color-palette-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Post builder</span><span class="admin-tab-label-mobile">Builder</span></span>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Post Builder</span><span class="admin-tab-label-mobile">Builder</span></span>
                 </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-testimonials" data-admin-tab="testimonials" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-testimonials" tabindex="-1" aria-label="Reviews">
                   <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Reviews</span><span class="admin-tab-label-mobile">Reviews</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-social-proof" data-admin-tab="social-proof" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-social-proof" tabindex="-1" aria-label="Social proof">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-social-proof" data-admin-tab="social-proof" data-admin-content-sub aria-selected="false" aria-controls="admin-panel-social-proof" tabindex="-1" aria-label="Social Proof">
                   <ion-icon name="ribbon-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Social proof</span><span class="admin-tab-label-mobile">Proof</span></span>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Social Proof</span><span class="admin-tab-label-mobile">Proof</span></span>
                 </button>
-                <button type="button" class="admin-tab" role="tab" id="admin-tab-referrals" data-admin-tab="referrals" aria-selected="false" aria-controls="admin-panel-referrals" tabindex="-1" aria-label="Referral partners">
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-referrals" data-admin-tab="referrals" aria-selected="false" aria-controls="admin-panel-referrals" tabindex="-1" aria-label="Referral Partners">
                   <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
-                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Referrals</span><span class="admin-tab-label-mobile">Referrals</span></span>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Referral Partners</span><span class="admin-tab-label-mobile">Referrals</span></span>
                 </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-studio-costs" data-admin-tab="studio-costs" aria-selected="false" aria-controls="admin-panel-studio-costs" tabindex="-1" aria-label="Studio Costs">
                   <ion-icon name="wallet-outline" aria-hidden="true"></ion-icon>
@@ -3644,6 +3644,8 @@
           </nav>
 
           <div class="admin-tabs-body">
+          <!-- Phone: the active section's strip (Pipeline · Clients · …) docks here, pinned (script.js). -->
+          <div class="admin-mobile-subtab-slot" id="admin-mobile-subtab-slot"></div>
           <div class="admin-tab-panels">
           <!-- Overview (KPI stats + quick actions) -->
           <div id="admin-panel-overview" class="admin-tab-panel is-active" role="tabpanel" aria-labelledby="admin-tab-overview" data-admin-tab="overview">
@@ -3727,11 +3729,22 @@
           <!-- —— Business Documents —— -->
           <div id="admin-panel-docs" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-docs" data-admin-tab="docs" hidden>
           <section class="service business-docs-section business-docs-open" id="business-docs-section">
+          <div class="admin-panel-heading admin-panel-heading--with-action">
+            <div class="admin-panel-heading-main">
+              <h3 class="h3 admin-panel-title">Business Documents</h3>
+              <p class="admin-panel-lead">Proposals, estimates, invoices and contracts.</p>
+            </div>
+            <div class="admin-panel-heading-action">
+              <button type="button" class="btn btn-primary" id="business-doc-create-btn">
+                    <ion-icon name="add-outline"></ion-icon>
+                    Create Document
+                  </button>
+            </div>
+          </div>
           <div class="business-docs-content" id="business-docs-content">
           <div class="business-docs-layout">
             <div class="business-docs-list-card">
               <div class="business-docs-list-header">
-                <h4 class="h4 service-item-title">Documents</h4>
                 <div class="business-docs-header-actions">
                   <div class="business-docs-filters">
                   <div class="business-doc-select business-doc-select--compact" data-select-name="filter-type">
@@ -3763,10 +3776,6 @@
                     <input type="hidden" id="business-doc-filter-status" value="all">
                   </div>
                   </div>
-                  <button type="button" class="btn btn-primary" id="business-doc-create-btn">
-                    <ion-icon name="add-outline"></ion-icon>
-                    Create Document
-                  </button>
                 </div>
               </div>
               <div class="business-docs-summary" id="business-docs-summary" aria-live="polite"></div>
@@ -3785,8 +3794,8 @@
           <section class="service admin-collapsible-section admin-messages-section admin-collapsible-open" id="messages-section">
           <div class="admin-panel-heading admin-panel-heading--with-action">
             <div class="admin-panel-heading-main">
-              <h3 class="h3 admin-panel-title">Conversations</h3>
-              <p class="admin-panel-lead">Realtime threads from contact form and direct messages. Select a row to reply.</p>
+              <h3 class="h3 admin-panel-title">Messages</h3>
+              <p class="admin-panel-lead">Contact form and direct-message threads. Select one to reply.</p>
             </div>
             <div class="admin-panel-heading-action">
               <span class="admin-dm-unread-badge admin-dm-unread-badge--inline" id="admin-dm-unread-badge" hidden aria-live="polite">0 unread</span>
@@ -3863,7 +3872,7 @@
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Email</h3>
-                <p class="admin-panel-lead">View inbound email and outbound delivery statuses.</p>
+                <p class="admin-panel-lead">Inbound email and outbound delivery statuses.</p>
               </div>
               <div class="admin-panel-heading-action admin-email-heading-actions">
                 <button type="button" class="btn btn-primary btn-sm" id="admin-email-compose-btn">Compose Email</button>
@@ -3878,10 +3887,7 @@
                       <input type="search" id="admin-email-thread-search" class="form-input" placeholder="Search threads…" aria-label="Search email threads">
                     </div>
                     <div class="admin-email-thread-list has-scrollbar" id="admin-email-thread-list" aria-live="polite" role="listbox" aria-label="Email threads">
-                      <div class="no-messages">
-                        <ion-icon name="mail-unread-outline"></ion-icon>
-                        <p>No threads yet</p>
-                      </div>
+                      <div class="admin-empty admin-empty--compact" role="status"><ion-icon class="admin-empty-icon" name="mail-unread-outline" aria-hidden="true"></ion-icon><p class="admin-empty-title">No threads yet</p></div>
                     </div>
                   </div>
                   <!-- Thread detail (right panel) -->
@@ -3913,6 +3919,10 @@
                         </button>
                       </div>
                     </div>
+                  </div>
+                  <!-- Reading pane while no thread is open (desktop). -->
+                  <div class="admin-email-thread-placeholder" aria-hidden="true">
+                    <div class="admin-empty" role="status"><ion-icon class="admin-empty-icon" name="mail-open-outline" aria-hidden="true"></ion-icon><p class="admin-empty-title">Pick a thread to read it</p><p class="admin-empty-text">Replies and delivery statuses show here.</p></div>
                   </div>
                 </div>
 
@@ -4114,11 +4124,13 @@
 
           <div id="admin-panel-planner" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-planner" data-admin-tab="planner" hidden>
           <section class="service" id="admin-bookings-section">
-            <div class="admin-panel-heading">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Planner</h3>
-                <p class="admin-panel-lead">Calls, planned hours, and logged time on one calendar. Scheduling settings stay below.</p>
+                <p class="admin-panel-lead">Calls, planned hours and logged time on one calendar.</p>
+                <details class="admin-panel-help"><summary>How this works</summary><p>Scheduling settings stay below the calendar.</p></details>
               </div>
+              <div class="admin-panel-heading-action"></div>
             </div>
 
             <div class="admin-bookings-status-row">
@@ -4292,24 +4304,24 @@
           <!-- Testimonial invites (Firestore + Resend) -->
           <div id="admin-panel-testimonials" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-testimonials" data-admin-tab="testimonials" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open" id="testimonials-admin-section">
-            <div class="admin-panel-heading">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Reviews</h3>
-                <p class="admin-panel-lead">Testimonials, Google reviews, and emailed ones. Switch on what shows on the site.</p>
+                <p class="admin-panel-lead">Testimonials, Google reviews and emailed ones; choose what shows on the site.</p>
+              </div>
+              <div class="admin-panel-heading-action">
+                <button type="button" class="btn btn-primary" id="admin-testimonial-request-btn">
+                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                    Request a testimonial
+                  </button>
+                <button type="button" class="btn btn-secondary" id="admin-review-add-btn">
+                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                    Add review
+                  </button>
               </div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
-                <div class="admin-testimonial-request-bar">
-                  <button type="button" class="btn btn-primary" id="admin-testimonial-request-btn">
-                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-                    Request a testimonial
-                  </button>
-                  <button type="button" class="btn btn-secondary" id="admin-review-add-btn">
-                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-                    Add review
-                  </button>
-                </div>
 
                 <!-- Request popup: makes the one-time link (no automatic email). Same look as the inbox's Confirm send. -->
                 <div class="admin-email-reply-confirm-modal admin-testimonial-request-modal" id="admin-testimonial-request-modal" data-layer="modal" hidden role="dialog" aria-modal="true" aria-labelledby="admin-testimonial-request-title">
@@ -4395,20 +4407,21 @@
           <!-- Social proof -->
           <div id="admin-panel-social-proof" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-social-proof" data-admin-tab="social-proof" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open" id="social-proof-admin-section">
-            <div class="admin-panel-heading">
+            <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
-                <h3 class="h3 admin-panel-title">Social proof</h3>
-                <p class="admin-panel-lead">Every client’s homepage line, their portfolio Outcome, and what they wrote in testimonials, in one place. Use a testimonial or Outcome to fill the homepage quote. Start a draft at kickoff with the before number. When <strong>Check-in due</strong> shows (60 days after launch), add the result from the app or the client’s reply, then publish.</p>
+                <h3 class="h3 admin-panel-title">Social Proof</h3>
+                <p class="admin-panel-lead">Each client’s homepage line, Outcome and testimonial in one place.</p>
+                <details class="admin-panel-help"><summary>How this works</summary><p>Use a testimonial or Outcome to fill the homepage quote. Start a draft at kickoff with the before number. When <strong>Check-in due</strong> shows (60 days after launch), add the result from the app or the client’s reply, then publish.</p></details>
+              </div>
+              <div class="admin-panel-heading-action">
+                <button type="button" class="btn btn-primary" id="admin-social-proof-add-btn">
+                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                    Add client
+                  </button>
               </div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
-                <div class="admin-social-proof-bar">
-                  <button type="button" class="btn btn-primary" id="admin-social-proof-add-btn">
-                    <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-                    Add client
-                  </button>
-                </div>
                 <p class="admin-social-proof-status" id="admin-social-proof-status" hidden></p>
                 <ul class="admin-social-proof-list" id="admin-social-proof-list" aria-label="Social proof entries"></ul>
                 <div class="admin-social-proof-unused" id="admin-social-proof-unused" hidden>
@@ -4423,9 +4436,12 @@
           <!-- Blog Management -->
           <div id="admin-panel-blog" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-blog" data-admin-tab="blog" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open" id="blog-section">
-          <div class="admin-panel-heading">
-            <h3 class="h3 admin-panel-title">Blog Management</h3>
-            <p class="admin-panel-lead">Create and manage blog posts</p>
+          <div class="admin-panel-heading admin-panel-heading--with-action">
+            <div class="admin-panel-heading-main">
+              <h3 class="h3 admin-panel-title">Blog Management</h3>
+              <p class="admin-panel-lead">Create and manage blog posts.</p>
+            </div>
+            <div class="admin-panel-heading-action"></div>
           </div>
 
             <div class="admin-collapsible-content" id="admin-blog-collapsible-content">
@@ -4485,9 +4501,13 @@
           <!-- Instagram posts generator -->
           <div id="admin-panel-instagram" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-instagram" data-admin-tab="instagram" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open" id="instagram-posts-section">
-          <div class="admin-panel-heading">
-            <h3 class="h3 admin-panel-title">Instagram posts</h3>
-            <p class="admin-panel-lead">Build feed (4:5) and story (9:16) mockups from laptop + phone screenshots, then share or save.</p>
+          <div class="admin-panel-heading admin-panel-heading--with-action">
+            <div class="admin-panel-heading-main">
+              <h3 class="h3 admin-panel-title">Instagram Posts</h3>
+              <p class="admin-panel-lead">Feed and story mockups from laptop and phone screenshots.</p>
+              <details class="admin-panel-help"><summary>How this works</summary><p>Build a feed (4:5) and a story (9:16) mockup from a laptop and a phone screenshot, then share or save them.</p></details>
+            </div>
+            <div class="admin-panel-heading-action"></div>
           </div>
             <div class="admin-collapsible-content">
             <div class="admin-collapsible-inner-content">
@@ -4534,6 +4554,7 @@
                   <button type="button" class="btn btn-secondary btn-sm" id="ig-use-existing-phone" style="margin-top:8px;">Use existing capture</button>
                 </div>
               </div>
+              <!-- One primary action; sharing and downloads share one menu. -->
               <div class="ig-admin-actions" style="margin: 12px 0 16px;">
                 <button type="button" class="btn btn-primary" id="ig-generate-btn">
                   <ion-icon name="image-outline"></ion-icon>
@@ -4543,26 +4564,31 @@
                   <ion-icon name="cloud-upload-outline"></ion-icon>
                   Save to Firebase
                 </button>
-                <button type="button" class="btn btn-secondary" id="ig-share-feed-btn" disabled>
+                <details class="ig-admin-more">
+                  <summary class="btn btn-secondary"><ion-icon name="share-social-outline"></ion-icon>Share &amp; download</summary>
+                  <div class="ig-admin-more-menu" role="menu">
+                    <button type="button" class="ig-admin-more-item" role="menuitem" id="ig-share-feed-btn" disabled>
                   <ion-icon name="share-outline"></ion-icon>
                   Share feed
                 </button>
-                <button type="button" class="btn btn-secondary" id="ig-share-story-btn" disabled>
+                    <button type="button" class="ig-admin-more-item" role="menuitem" id="ig-share-story-btn" disabled>
                   <ion-icon name="share-outline"></ion-icon>
                   Share story
                 </button>
-                <button type="button" class="btn btn-secondary" id="ig-download-feed-btn" disabled>
+                    <button type="button" class="ig-admin-more-item" role="menuitem" id="ig-download-feed-btn" disabled>
                   <ion-icon name="download-outline"></ion-icon>
                   Download feed
                 </button>
-                <button type="button" class="btn btn-secondary" id="ig-download-story-btn" disabled>
+                    <button type="button" class="ig-admin-more-item" role="menuitem" id="ig-download-story-btn" disabled>
                   <ion-icon name="download-outline"></ion-icon>
                   Download story
                 </button>
-                <button type="button" class="btn btn-secondary" id="ig-open-instagram-btn">
+                    <button type="button" class="ig-admin-more-item" role="menuitem" id="ig-open-instagram-btn">
                   <ion-icon name="logo-instagram"></ion-icon>
                   Open Instagram
                 </button>
+                  </div>
+                </details>
               </div>
               <p class="ig-admin-status" id="ig-status" role="status" aria-live="polite"></p>
 
@@ -4616,9 +4642,13 @@
 
           <div id="admin-panel-post-builder" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-post-builder" data-admin-tab="post-builder" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open" id="post-builder-section">
-          <div class="admin-panel-heading">
-            <h3 class="h3 admin-panel-title">Post builder</h3>
-            <p class="admin-panel-lead">Build Instagram posts and stories by dragging elements around. Start blank, from the services posts, or from a copy.</p>
+          <div class="admin-panel-heading admin-panel-heading--with-action">
+            <div class="admin-panel-heading-main">
+              <h3 class="h3 admin-panel-title">Post Builder</h3>
+              <p class="admin-panel-lead">Drag-and-drop Instagram posts and stories in the CWR style.</p>
+              <details class="admin-panel-help"><summary>How this works</summary><p>Start blank, from the services posts, or from a copy. Designs save to Firebase automatically.</p></details>
+            </div>
+            <div class="admin-panel-heading-action"></div>
           </div>
             <div class="admin-collapsible-content">
             <div class="admin-collapsible-inner-content">
@@ -4633,8 +4663,15 @@
           <section class="service admin-collapsible-section admin-collapsible-open" id="portfolio-admin-section">
           <div class="admin-panel-heading admin-panel-heading--with-action">
             <div class="admin-panel-heading-main">
-              <h3 class="h3 admin-panel-title">Portfolio projects</h3>
-              <p class="admin-panel-lead">Create and edit portfolio projects. Public ones appear on the Portfolio page; private ones stay client-only (Realtime Database path <code>portfolioProjects</code>).</p>
+              <h3 class="h3 admin-panel-title">Portfolio Projects</h3>
+              <p class="admin-panel-lead">Public projects show on the Portfolio page; private ones stay client-only.</p>
+              <details class="admin-panel-help"><summary>How this works</summary><p>Projects are stored in the Realtime Database at <code>portfolioProjects</code>.</p></details>
+            </div>
+            <div class="admin-panel-heading-action">
+              <button type="button" class="btn btn-primary" id="admin-add-portfolio-btn">
+                    <ion-icon name="add-outline"></ion-icon>
+                    Add project
+                  </button>
             </div>
           </div>
             <div class="admin-collapsible-content">
@@ -4644,10 +4681,6 @@
               </p>
               <div class="blog-management-controls admin-portfolio-toolbar">
                 <div class="blog-management-actions">
-                  <button type="button" class="btn btn-primary" id="admin-add-portfolio-btn">
-                    <ion-icon name="add-outline"></ion-icon>
-                    Add project
-                  </button>
                   <button type="button" class="btn btn-secondary" id="case-study-generate-btn">
                     <ion-icon name="document-text-outline"></ion-icon>
                     Case study
@@ -4678,40 +4711,21 @@
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Leads Pipeline</h3>
-                <p class="admin-panel-lead">Real conversations only: new lead → discovery call → proposal sent → deposit paid (won). Cold outreach lives in Prospects until they reply; Hire Me, Contact, and booked calls land here on their own. Discovery call is optional.</p>
+                <p class="admin-panel-lead">Real conversations, from first message to deposit paid.</p>
+                <details class="admin-panel-help"><summary>How this works</summary><p>Real conversations only: new lead → discovery call → proposal sent → deposit paid (won). Cold outreach lives in Prospects until they reply; Hire Me, Contact, and booked calls land here on their own. Discovery call is optional.</p></details>
               </div>
-              <button type="button" class="btn btn-primary" id="admin-add-lead-btn">
+              <div class="admin-panel-heading-action">
+                <button type="button" class="btn btn-primary" id="admin-add-lead-btn">
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
                 Add Lead
               </button>
+              </div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
 
-                <!-- Pipeline summary (matches 4 stages) -->
-                <div class="pipeline-summary-row pipeline-summary-row--four">
-                  <div class="pipeline-summary-stat pipeline-summary-stat--lead">
-                    <span class="pipeline-stage-dot pipeline-dot--lead" aria-hidden="true"></span>
-                    <span class="pipeline-summary-value" id="pipeline-summary-lead">0</span>
-                    <span class="pipeline-summary-label">Lead</span>
-                  </div>
-                  <div class="pipeline-summary-stat pipeline-summary-stat--discovery-call">
-                    <span class="pipeline-stage-dot pipeline-dot--discovery-call" aria-hidden="true"></span>
-                    <span class="pipeline-summary-value" id="pipeline-summary-discovery-call">0</span>
-                    <span class="pipeline-summary-label">Discovery call</span>
-                  </div>
-                  <div class="pipeline-summary-stat pipeline-summary-stat--proposal">
-                    <span class="pipeline-stage-dot pipeline-dot--proposal" aria-hidden="true"></span>
-                    <span class="pipeline-summary-value" id="pipeline-summary-proposal">0</span>
-                    <span class="pipeline-summary-label">Proposal sent</span>
-                  </div>
-                  <div class="pipeline-summary-stat pipeline-summary-stat--deposit">
-                    <span class="pipeline-stage-dot pipeline-dot--deposit" aria-hidden="true"></span>
-                    <span class="pipeline-summary-value" id="pipeline-summary-deposit">0</span>
-                    <span class="pipeline-summary-label">Deposit paid</span>
-                    <span class="pipeline-summary-sub" id="pipeline-summary-deposit-value">$0 won</span>
-                  </div>
-                </div>
+                <!-- Pipeline summary: one line; the columns carry the per-stage counts. -->
+                <p class="pipeline-summary-line" id="pipeline-summary-line" aria-live="polite"></p>
 
                 <!-- Won leads are clients now (Clients tab); the column is an archive you can show. -->
                 <div class="pipeline-won-bar">
@@ -4780,19 +4794,24 @@
           <!-- Live clients open here as a full page: #cp-client-drawer moves in (agency-tools.js openCpClientPage). -->
           <div id="cp-client-page-host" class="cp-client-page-host" hidden></div>
           <section class="service admin-collapsible-section admin-collapsible-open">
-            <div class="admin-panel-heading">
-              <h3 class="h3 admin-panel-title">Clients Projects</h3>
-              <p class="admin-panel-lead">One workspace per client — hub, maintenance, health, pipeline, docs, and portfolio. Deposit-paid leads appear here until you create their client project.</p>
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Clients</h3>
+                <p class="admin-panel-lead">One workspace per client: hub, tickets, maintenance, docs and portal.</p>
+                <details class="admin-panel-help"><summary>How this works</summary><p>Deposit-paid leads appear here until you create their client project. Live clients open as a full page; demo and converting clients open in a drawer.</p></details>
+              </div>
+              <div class="admin-panel-heading-action">
+                <button type="button" class="btn btn-primary btn-sm" id="client-projects-add-btn">
+                      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+                      New client
+                    </button>
+              </div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content client-projects-shell">
                 <div class="cp-client-picker" id="cp-client-picker">
                   <div class="cp-client-picker-head">
                     <label class="cp-client-picker-label" for="client-projects-search">Choose a client</label>
-                    <button type="button" class="btn btn-primary btn-sm" id="client-projects-add-btn">
-                      <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
-                      New client
-                    </button>
                   </div>
                   <div class="cp-client-picker-search">
                     <ion-icon name="search-outline" class="cp-client-picker-search-icon" aria-hidden="true"></ion-icon>
@@ -4843,9 +4862,12 @@
           <!-- Pricing: what clients pay. Package prices + offers, care-plan discount + promo. -->
           <div id="admin-panel-pricing" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-pricing" data-admin-tab="pricing" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
-            <div class="admin-panel-heading">
-              <h3 class="h3 admin-panel-title">Pricing</h3>
-              <p class="admin-panel-lead">What clients pay: package prices and limited-time offers, the care plan yearly discount and the new-client promo.</p>
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Pricing</h3>
+                <p class="admin-panel-lead">What clients pay: package prices, offers and care-plan pricing.</p>
+              </div>
+              <div class="admin-panel-heading-action"></div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
@@ -4882,9 +4904,12 @@
 
           <div id="admin-panel-outreach" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-outreach" data-admin-tab="outreach" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
-            <div class="admin-panel-heading">
-              <h3 class="h3 admin-panel-title">Outreach Scripts</h3>
-              <p class="admin-panel-lead">Pick a script, fill in the lead, then copy, text, email or call. Edit → copy → send.</p>
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Outreach Scripts</h3>
+                <p class="admin-panel-lead">Pick a script, fill in the lead, then copy, text, email or call.</p>
+              </div>
+              <div class="admin-panel-heading-action"></div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
@@ -5042,9 +5067,13 @@
           <!-- Prospects (researched businesses not yet in the pipeline) -->
           <div id="admin-panel-prospects" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-prospects" data-admin-tab="prospects" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
-            <div class="admin-panel-heading">
-              <h3 class="h3 admin-panel-title">Prospects</h3>
-              <p class="admin-panel-lead">Work the due list, log each outcome — follow-ups schedule themselves and replies move to Leads Pipeline.</p>
+            <div class="admin-panel-heading admin-panel-heading--with-action">
+              <div class="admin-panel-heading-main">
+                <h3 class="h3 admin-panel-title">Prospects</h3>
+                <p class="admin-panel-lead">Work the due list and log each outcome.</p>
+                <details class="admin-panel-help"><summary>How this works</summary><p>Follow-ups schedule themselves, and replies move to Leads Pipeline.</p></details>
+              </div>
+              <div class="admin-panel-heading-action"></div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
@@ -5240,13 +5269,15 @@
           <section class="service admin-collapsible-section admin-collapsible-open">
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
-                <h3 class="h3 admin-panel-title">Referral partners</h3>
-                <p class="admin-panel-lead">Track partners and commission rates.</p>
+                <h3 class="h3 admin-panel-title">Referral Partners</h3>
+                <p class="admin-panel-lead">Partners and their commission rates.</p>
               </div>
-              <button type="button" class="btn btn-primary" id="referral-add-btn">
+              <div class="admin-panel-heading-action">
+                <button type="button" class="btn btn-primary" id="referral-add-btn">
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
                 Add partner
               </button>
+              </div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
@@ -5267,12 +5298,14 @@
             <div class="admin-panel-heading admin-panel-heading--with-action">
               <div class="admin-panel-heading-main">
                 <h3 class="h3 admin-panel-title">Studio Costs</h3>
-                <p class="admin-panel-lead">What CWR pays — EAS, domains, App Store, Play. Links only; no passwords.</p>
+                <p class="admin-panel-lead">What CWR pays: EAS, domains, App Store, Play. Links only, no passwords.</p>
               </div>
-              <button type="button" class="btn btn-primary" id="studio-cost-add-btn">
+              <div class="admin-panel-heading-action">
+                <button type="button" class="btn btn-primary" id="studio-cost-add-btn">
                 <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
                 Add service
               </button>
+              </div>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
@@ -5394,9 +5427,12 @@
           <!-- Business Ops Manual -->
           <div id="admin-panel-ops" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-ops" data-admin-tab="ops" hidden>
           <section class="service admin-ops-panel" id="admin-ops-panel">
-          <div class="admin-panel-heading">
-            <h3 class="h3 admin-panel-title">Business Ops Manual</h3>
-            <p class="admin-panel-lead">Internal playbooks, templates, and product/policy reference.</p>
+          <div class="admin-panel-heading admin-panel-heading--with-action">
+            <div class="admin-panel-heading-main">
+              <h3 class="h3 admin-panel-title">Business Ops Manual</h3>
+              <p class="admin-panel-lead">Internal playbooks, templates and policy reference.</p>
+            </div>
+            <div class="admin-panel-heading-action"></div>
           </div>
           <div class="ops-body has-scrollbar" id="ops-body">
             <div class="ops-wrapper">
@@ -8844,15 +8880,15 @@
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', integrity: 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==' },
         { src: '/assets/js/blog-tiptap-editor.js?v=dialogs-20261018' },
         { src: '/assets/js/ticket-shared.js?v=tickets-20261021' },
-        { src: '/assets/js/agency-tools.js?v=pricing-20261029' },
-        { src: '/assets/js/ig-posts.js?v=pricing-20261029' },
+        { src: '/assets/js/agency-tools.js?v=uxpass-20261030' },
+        { src: '/assets/js/ig-posts.js?v=uxpass-20261030' },
         { src: '/assets/js/outreach-composer.js?v=pricing-20261029' },
-        { src: '/assets/js/prospects.js?v=dialogs-20261018' },
+        { src: '/assets/js/prospects.js?v=uxpass-20261030' },
         { src: '/assets/js/social-proof-admin.js?v=reviews-tab-20261020' },
-        { src: '/assets/js/reviews-admin.js?v=reviews-tab-20261020' },
+        { src: '/assets/js/reviews-admin.js?v=uxpass-20261030' },
         { src: '/assets/js/dm-migration.js' }
       ];
-      var MODULE = '/assets/js/post-builder/index.js?v=pb4';
+      var MODULE = '/assets/js/post-builder/index.js?v=pb5';
       var pending = null;
       window.loadAdminBundle = function () {
         if (pending) return pending;
@@ -8880,8 +8916,8 @@
       }
     })();
   </script>
-  <script src="/assets/js/admin-ui.js?v=dialogs-20261018"></script>
-  <script src="/assets/js/script.js?v=pricing-20261029"></script>
+  <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
+  <script src="/assets/js/script.js?v=uxpass-20261030"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--

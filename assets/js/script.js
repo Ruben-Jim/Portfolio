@@ -5234,8 +5234,8 @@ function applyCurrentPortfolioFilter() {
 function syncAdminPortfolioLocalBanner() {
   const banner = document.getElementById('admin-portfolio-local-banner');
   if (!banner) return;
-  const empty = !portfolioProjectsRtdb.length;
-  banner.hidden = !empty || !window.rtdb;
+  // The list's empty state says the same thing; showing both repeated it.
+  banner.hidden = true;
 }
 
 function getAdminPortfolioVisibilityGroups() {
@@ -5425,8 +5425,11 @@ function renderAdminPortfolioProjects() {
     return;
   }
   if (!portfolioProjectsRtdb.length) {
-    listEl.innerHTML =
-      '<div class="empty-item"><p>No projects in Realtime Database yet. The public portfolio still shows the built-in list until you add one below.</p></div>';
+    listEl.innerHTML = window.CwrUI.emptyHtml({
+      icon: 'albums-outline',
+      title: 'No projects in Realtime Database yet',
+      text: 'Visitors still see the built-in list until you add one.'
+    });
     return;
   }
   const groups = getAdminPortfolioVisibilityGroups();
@@ -15634,18 +15637,17 @@ window.addEventListener('load', function() {
     if (!threads.length) {
       var hiddenCount = archivedThreadCount();
       listEl.innerHTML =
-        '<div class="no-messages">' +
-        '<ion-icon name="mail-unread-outline"></ion-icon>' +
-        '<p>' +
-        (agencyEmailThreadSearch
-          ? 'No threads match your search.'
-          : agencyEmailShowArchived
-            ? 'Nothing hidden.'
-            : hiddenCount
-              ? 'All threads are hidden.'
-              : 'No threads yet') +
-        '</p>' +
-        '</div>' +
+        window.CwrUI.emptyHtml({
+          icon: 'mail-unread-outline',
+          compact: true,
+          title: agencyEmailThreadSearch
+            ? 'No threads match your search'
+            : agencyEmailShowArchived
+              ? 'Nothing hidden'
+              : hiddenCount
+                ? 'All threads are hidden'
+                : 'No threads yet'
+        }) +
         // Must still render, or hiding everything leaves no way back.
         archivedToggleHtml(hiddenCount);
       return;
@@ -19582,29 +19584,51 @@ window.addEventListener('load', function() {
     });
   }
 
+  // One row of counts that double as filters: a type chip sets the type
+  // filter, a status chip the status filter, All clears both. Pressing an
+  // active chip clears it. Replaces nine stat tiles that filled a phone screen.
+  var BUSINESS_DOC_CHIPS = [
+    { label: 'Proposals', field: 'type', value: 'proposal' },
+    { label: 'Estimates', field: 'type', value: 'estimate' },
+    { label: 'Invoices', field: 'type', value: 'invoice' },
+    { label: 'Contracts', field: 'type', value: 'contract' },
+    { label: 'Draft', field: 'status', value: 'draft' },
+    { label: 'Sent', field: 'status', value: 'sent' },
+    { label: 'Accepted', field: 'status', value: 'accepted' },
+    { label: 'Paid', field: 'status', value: 'paid' }
+  ];
+
   function renderBusinessDocsSummary(allDocs, filteredDocs) {
     if (!businessDocsSummary) return;
-    var draftCount = allDocs.filter(function (d) { return d.status === 'draft'; }).length;
-    var openCount = allDocs.filter(function (d) {
-      return d.status === 'sent' || d.status === 'accepted';
-    }).length;
-    var proposalCount = allDocs.filter(function (d) { return d.type === 'proposal'; }).length;
-    var estimateCount = allDocs.filter(function (d) { return d.type === 'estimate'; }).length;
-    var invoiceCount = allDocs.filter(function (d) { return d.type === 'invoice'; }).length;
-    var contractCount = allDocs.filter(function (d) { return d.type === 'contract'; }).length;
-    var paidCount = allDocs.filter(function (d) { return d.status === 'paid'; }).length;
-
-    businessDocsSummary.innerHTML = [
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Total docs</span><span class="business-docs-summary-value">' + allDocs.length + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Showing</span><span class="business-docs-summary-value">' + filteredDocs.length + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Proposals</span><span class="business-docs-summary-value">' + proposalCount + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Estimates</span><span class="business-docs-summary-value">' + estimateCount + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Invoices</span><span class="business-docs-summary-value">' + invoiceCount + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Contracts</span><span class="business-docs-summary-value">' + contractCount + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Draft</span><span class="business-docs-summary-value">' + draftCount + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Open</span><span class="business-docs-summary-value">' + openCount + '</span></div>',
-      '<div class="business-docs-summary-item"><span class="business-docs-summary-label">Paid</span><span class="business-docs-summary-value">' + paidCount + '</span></div>'
-    ].join('');
+    var type = (businessDocFilterType && businessDocFilterType.value) || 'all';
+    var status = (businessDocFilterStatus && businessDocFilterStatus.value) || 'all';
+    function chip(label, count, field, value, on) {
+      return '<button type="button" class="business-docs-chip' + (on ? ' is-active' : '') + '" aria-pressed="' + (on ? 'true' : 'false') + '"' +
+        ' data-doc-filter="' + field + '" data-doc-value="' + value + '">' + label + '<span>' + count + '</span></button>';
+    }
+    businessDocsSummary.innerHTML =
+      chip('All', allDocs.length, 'all', 'all', type === 'all' && status === 'all') +
+      BUSINESS_DOC_CHIPS.map(function (c) {
+        var count = allDocs.filter(function (d) { return d[c.field] === c.value; }).length;
+        return chip(c.label, count, c.field, c.value, (c.field === 'type' ? type : status) === c.value);
+      }).join('');
+    if (!businessDocsSummary.dataset.bound) {
+      businessDocsSummary.dataset.bound = '1';
+      businessDocsSummary.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-doc-filter]');
+        if (!btn || typeof window.setBusinessDocSelectValue !== 'function') return;
+        var field = btn.getAttribute('data-doc-filter');
+        if (field === 'all') {
+          window.setBusinessDocSelectValue('business-doc-filter-type', 'all', true);
+          window.setBusinessDocSelectValue('business-doc-filter-status', 'all');
+          return;
+        }
+        var id = field === 'type' ? 'business-doc-filter-type' : 'business-doc-filter-status';
+        var current = (document.getElementById(id) || {}).value;
+        var value = btn.getAttribute('data-doc-value');
+        window.setBusinessDocSelectValue(id, current === value ? 'all' : value);
+      });
+    }
   }
 
   function appendBusinessDocActionButtons(actionsEl, doc) {
@@ -19963,12 +19987,14 @@ window.addEventListener('load', function() {
 
     try {
       if (filtered.length === 0) {
-        listRoot.innerHTML =
-          '<div class="business-docs-empty-state">' +
-          '<ion-icon name="document-outline" aria-hidden="true"></ion-icon>' +
-          '<p class="business-docs-empty-message">No proposals, estimates, invoices, or contracts yet.</p>' +
-          '<button type="button" class="btn btn-secondary" id="business-docs-empty-cta">Create Document</button>' +
-          '</div>';
+        listRoot.innerHTML = businessDocs.length
+          ? window.CwrUI.emptyHtml({ icon: 'filter-outline', title: 'Nothing matches these filters', compact: true })
+          : window.CwrUI.emptyHtml({
+            icon: 'document-text-outline',
+            title: 'No documents yet',
+            text: 'Proposals, estimates, invoices and contracts you create show up here.',
+            action: '<button type="button" class="btn btn-secondary btn-sm" id="business-docs-empty-cta">Create Document</button>'
+          });
         var cta = document.getElementById('business-docs-empty-cta');
         if (cta) {
           cta.addEventListener('click', function () {
@@ -21154,12 +21180,12 @@ window.addEventListener('load', function() {
         isSignedInAdmin() &&
         CONTENT_SUB_TAB_IDS.indexOf(activeTabId) >= 0;
 
-      // Physically dock subtab into / out of the primary bar container so
-      // they render as one unified two-row dock at the bottom of the screen.
-      var dockRoot = document.getElementById('admin-mobile-tab-bar-root');
-      if (show && dockRoot && subtabRoot.parentNode !== dockRoot) {
-        dockRoot.insertBefore(subtabRoot, dockRoot.firstChild);
-      } else if (!show && dockRoot && subtabRoot.parentNode === dockRoot) {
+      // The strip pins to the top of the content (#admin-mobile-subtab-slot)
+      // rather than stacking on the bottom bar, so a phone keeps one bottom bar.
+      var slot = document.getElementById('admin-mobile-subtab-slot');
+      if (show && slot && subtabRoot.parentNode !== slot) {
+        slot.appendChild(subtabRoot);
+      } else if (!show && subtabRoot.parentNode !== document.body) {
         document.body.appendChild(subtabRoot);
       }
 
@@ -21193,6 +21219,26 @@ window.addEventListener('load', function() {
     }
 
     window.syncAdminMobileContentSubtabBar = syncSubtabBar;
+
+    // The pinned section strip tucks away while scrolling down (more room to
+    // read) and comes back on any scroll up.
+    (function initSubtabTuck() {
+      var slot = document.getElementById('admin-mobile-subtab-slot');
+      if (!slot) return;
+      var lastY = window.scrollY;
+      var queued = false;
+      window.addEventListener('scroll', function () {
+        if (queued) return;
+        queued = true;
+        window.requestAnimationFrame(function () {
+          queued = false;
+          var y = window.scrollY;
+          if (y > lastY + 4 && y > 120) slot.classList.add('is-tucked');
+          else if (y < lastY - 4 || y <= 120) slot.classList.remove('is-tucked');
+          lastY = y;
+        });
+      }, { passive: true });
+    })();
     window.saveAdminLastContentTab = function (tabId) {
       if (CONTENT_SUB_TAB_IDS.indexOf(tabId) < 0) return;
       try {
@@ -21284,11 +21330,12 @@ window.addEventListener('load', function() {
         isSignedInAdmin() &&
         CRM_SUB_TAB_IDS.indexOf(activeTabId) >= 0;
 
-      // Dock into / out of the unified primary bar container
-      var dockRoot = document.getElementById('admin-mobile-tab-bar-root');
-      if (show && dockRoot && crmSubtabRoot.parentNode !== dockRoot) {
-        dockRoot.insertBefore(crmSubtabRoot, dockRoot.firstChild);
-      } else if (!show && dockRoot && crmSubtabRoot.parentNode === dockRoot) {
+      // The strip pins to the top of the content (#admin-mobile-subtab-slot)
+      // rather than stacking on the bottom bar, so a phone keeps one bottom bar.
+      var slot = document.getElementById('admin-mobile-subtab-slot');
+      if (show && slot && crmSubtabRoot.parentNode !== slot) {
+        slot.appendChild(crmSubtabRoot);
+      } else if (!show && crmSubtabRoot.parentNode !== document.body) {
         document.body.appendChild(crmSubtabRoot);
       }
 
@@ -21897,16 +21944,18 @@ window.addEventListener('load', function() {
       if (PIPELINE_WON_STAGES.indexOf(lead.stage) >= 0) wonValue += lead.value;
     });
 
-    PIPELINE_STAGES.forEach(function (st) {
-      var el = document.getElementById('pipeline-summary-' + st);
-      if (el) el.textContent = String(counts[st]);
-    });
+    var openCount = leads.filter(function (lead) { return PIPELINE_OPEN_STAGES.indexOf(lead.stage) >= 0; }).length;
+    var wonCount = leads.filter(function (lead) { return PIPELINE_WON_STAGES.indexOf(lead.stage) >= 0; }).length;
+    var line = document.getElementById('pipeline-summary-line');
+    if (line) {
+      line.innerHTML =
+        '<strong>' + openCount + '</strong> open · <strong>' + formatPipelineMoney(openValue) + '</strong> in play · ' +
+        '<strong>' + wonCount + '</strong> won (' + formatPipelineMoney(wonValue) + ')';
+    }
 
-    var elDepositValue = document.getElementById('pipeline-summary-deposit-value');
     var kpiValue = document.getElementById('kpi-pipeline-value');
     var kpiActive = document.getElementById('kpi-active-projects');
 
-    if (elDepositValue) elDepositValue.textContent = formatPipelineMoney(wonValue) + ' won';
     if (kpiValue) kpiValue.textContent = formatPipelineMoney(openValue);
     if (kpiActive) kpiActive.textContent = String(leads.length);
   }
@@ -25934,12 +25983,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (!dmList.length) {
-      messagesListEl.innerHTML = [
-        '<div class="no-messages">',
-        '<ion-icon name="chatbubbles-outline"></ion-icon>',
-        '<p>No conversations yet</p>',
-        '</div>'
-      ].join('');
+      messagesListEl.innerHTML = window.CwrUI.emptyHtml({
+        icon: 'chatbubbles-outline',
+        title: 'No conversations yet',
+        text: 'Contact form messages and DMs show up here.'
+      });
       return;
     }
 

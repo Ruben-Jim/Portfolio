@@ -6088,15 +6088,6 @@ body.cp-client-page-open #admin-panel-client-projects > :not(#cp-client-page-hos
   display: none;
 }
 
-/* The admin card computes as a scroll container (overflow-x: hidden) but never
-   scrolls, which would pin the sticky header to nothing. clip keeps the
-   horizontal crop without making one. Overlays that set overflow: hidden
-   !important still win while they are open. */
-body.cp-client-page-open article.admin[data-page="admin"].active {
-  overflow-x: clip;
-  overflow-y: visible;
-}
-
 .cp-client-drawer.cp-client-drawer--page {
   /* Where the header pins. Tablets and up leave the corner row to the fixed
      Timer chip (.tc-timer-chip, 40px), which would otherwise cover the
@@ -7377,3 +7368,391 @@ body.cp-client-page-open article.admin[data-page="admin"].active {
   font-weight: 600;
   text-decoration: none;
 }
+
+/* ---------------------------------------------------------------------------
+   Admin frame (2026-10-30 UX pass)
+   One slim row replaces the big "Admin Dashboard" title so each tab's own
+   header leads the page; the ≡ menu keeps its corner on the right. On phones
+   the section strip (Pipeline · Clients · …) pins to the top of the content
+   (#admin-mobile-subtab-slot, script.js) instead of stacking on the bottom
+   bar, which leaves one bottom bar.
+--------------------------------------------------------------------------- */
+#admin-dashboard-content > .admin-dashboard-header--slim {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  margin: -12px 64px 6px 0;
+  padding: 0;
+}
+
+.admin-dashboard-header--slim .admin-dashboard-title {
+  margin: 0;
+  font-size: var(--fs-8);
+  font-weight: var(--fw-600);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--light-gray-70, hsl(0, 0%, 60%));
+}
+
+.admin-mobile-subtab-slot { display: none; }
+
+@media (max-width: 767px) {
+  #admin-dashboard-content > .admin-dashboard-header--slim {
+    min-height: 28px;
+    margin: -6px 40px 6px 0;
+  }
+
+  .admin-mobile-subtab-slot:not(:empty) {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: 0 -12px 12px;
+    background: var(--eerie-black-2);
+    border-bottom: 1px solid var(--jet);
+  }
+
+  .admin-mobile-subtab-slot .admin-mobile-subtab-bar-root {
+    position: static;
+    padding: 0;
+    pointer-events: auto;
+  }
+
+  .admin-mobile-subtab-slot .admin-mobile-subtab-bar {
+    gap: 6px;
+    padding: 8px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .admin-mobile-subtab-slot .admin-mobile-subtab-bar::-webkit-scrollbar { display: none; }
+
+  .admin-mobile-subtab-slot .admin-mobile-subtab {
+    flex: none;
+    flex-direction: row;
+    gap: 6px;
+    min-height: 36px;
+    padding: 6px 12px;
+    border: 1px solid hsla(0, 0%, 100%, 0.1);
+    font-size: 12.5px;
+  }
+
+  .admin-mobile-subtab-slot .admin-mobile-subtab ion-icon { font-size: 16px; }
+
+  .admin-mobile-subtab-slot .admin-mobile-subtab.is-active {
+    border-color: hsla(45, 100%, 72%, 0.45);
+  }
+
+  /* One bottom bar now, so the panels only clear that. */
+  body.admin-page-active.admin-mobile-content-active .admin-tab-panels,
+  body.admin-page-active.admin-mobile-crm-active .admin-tab-panels {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 767px) {
+  .admin-mobile-subtab-slot:not(:empty) {
+    transition: transform 0.2s ease;
+  }
+
+  .admin-mobile-subtab-slot.is-tucked {
+    transform: translateY(-100%);
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .admin-mobile-subtab-slot:not(:empty) { transition: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   One tab header (2026-10-30 UX pass): title, a one-line description, an
+   optional "How this works" for the longer explanation, and the tab's main
+   button(s) on the right (under the title on phones).
+--------------------------------------------------------------------------- */
+.admin-panel-heading--with-action .admin-panel-heading-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-panel-heading-action:empty { display: none; }
+
+.admin-panel-help {
+  margin-top: 6px;
+  font-size: var(--fs-8);
+  color: var(--light-gray-70, hsl(0, 0%, 62%));
+}
+
+.admin-panel-help > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--light-gray-70, hsl(0, 0%, 62%));
+}
+
+.admin-panel-help > summary::-webkit-details-marker { display: none; }
+
+.admin-panel-help > summary::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.15s ease;
+}
+
+.admin-panel-help[open] > summary { color: var(--orange-yellow-crayola); }
+.admin-panel-help[open] > summary::after { transform: rotate(225deg) translateY(-1px); }
+
+.admin-panel-help > summary:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.admin-panel-help p {
+  max-width: 76ch;
+  margin: 6px 0 0;
+  font-size: var(--fs-7);
+  line-height: 1.55;
+  color: var(--light-gray);
+}
+
+@media (max-width: 639px) {
+  /* Title first; the action follows it rather than sitting above it. */
+  .admin-tabs .admin-panel-heading--with-action .admin-panel-heading-action,
+  .admin-panel-heading--with-action .admin-panel-heading-action {
+    order: 0;
+    align-self: stretch;
+  }
+
+  .admin-panel-heading--with-action .admin-panel-heading-action .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   One empty state (CwrUI.emptyHtml in admin-ui.js), used by every admin list.
+--------------------------------------------------------------------------- */
+.admin-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0;
+  padding: 32px 20px;
+  border: 1px dashed var(--jet);
+  border-radius: 14px;
+  background: hsla(0, 0%, 100%, 0.015);
+  text-align: center;
+}
+
+.admin-empty--compact { padding: 20px 16px; }
+
+.admin-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+  padding: 10px;
+  border-radius: 50%;
+  background: hsla(45, 100%, 72%, 0.1);
+  color: var(--orange-yellow-crayola);
+  font-size: 22px;
+  box-sizing: border-box;
+}
+
+.admin-empty-title {
+  margin: 0;
+  font-size: var(--fs-6);
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+}
+
+.admin-empty-text {
+  max-width: 46ch;
+  margin: 0;
+  font-size: var(--fs-7);
+  line-height: 1.5;
+  color: var(--light-gray-70, hsl(0, 0%, 62%));
+}
+
+.admin-empty .btn { margin-top: 8px; }
+
+tr.admin-empty-row > td { padding: 0; border: 0; }
+
+.admin-email-thread-placeholder { display: none; }
+
+@media (min-width: 768px) {
+  .admin-email-thread-detail[hidden] + .admin-email-thread-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Stat tiles → compact rows (2026-10-30 UX pass)
+--------------------------------------------------------------------------- */
+/* Business Documents: counts that filter, one row that scrolls sideways. */
+#admin-dashboard-content .business-docs-summary,
+.business-docs-summary {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.business-docs-summary::-webkit-scrollbar { display: none; }
+
+.business-docs-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 12px;
+  border: 1px solid hsla(0, 0%, 100%, 0.12);
+  border-radius: 999px;
+  background: hsla(0, 0%, 100%, 0.03);
+  color: var(--light-gray);
+  font: inherit;
+  font-size: var(--fs-7);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.business-docs-chip span {
+  font-weight: var(--fw-600);
+  color: var(--white-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.business-docs-chip:hover { border-color: hsla(45, 100%, 72%, 0.35); }
+
+.business-docs-chip.is-active {
+  border-color: hsla(45, 100%, 72%, 0.55);
+  background: hsla(45, 100%, 72%, 0.14);
+  color: var(--orange-yellow-crayola);
+}
+
+.business-docs-chip.is-active span { color: var(--orange-yellow-crayola); }
+
+.business-docs-chip:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+/* Leads Pipeline: one line instead of four stage tiles. */
+.pipeline-summary-line {
+  margin: 0 0 12px;
+  font-size: var(--fs-7);
+  color: var(--light-gray);
+}
+
+.pipeline-summary-line strong {
+  color: var(--white-2);
+  font-weight: var(--fw-600);
+}
+
+/* Post Builder: "New design" on the right once the duplicate intro is gone. */
+#admin-panel-post-builder .pb-lib-head { justify-content: flex-end; }
+#admin-panel-post-builder .pb-lib-head:has(.pb-lib-lead) { justify-content: space-between; }
+
+@media (max-width: 640px) {
+  /* Studio Costs: the three totals side by side, not three full-width rows. */
+  .studio-costs-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .studio-costs-summary-card { padding: 10px; }
+  .studio-costs-summary-value { font-size: var(--fs-5); }
+}
+
+/* ---------------------------------------------------------------------------
+   Instagram Posts (2026-10-30 UX pass): one primary, a Share & download menu,
+   previews that fit the column.
+--------------------------------------------------------------------------- */
+.ig-admin-more { position: relative; }
+
+.ig-admin-more > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.ig-admin-more > summary::-webkit-details-marker { display: none; }
+
+.ig-admin-more > summary::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-left: 4px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-2px);
+}
+
+.ig-admin-more-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid var(--jet);
+  border-radius: 12px;
+  background: var(--eerie-black-1);
+  box-shadow: 0 14px 34px hsla(0, 0%, 0%, 0.5);
+}
+
+.ig-admin-more-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--light-gray);
+  font: inherit;
+  font-size: var(--fs-7);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ig-admin-more-item:hover:not(:disabled) { background: hsla(0, 0%, 100%, 0.06); color: var(--white-2); }
+.ig-admin-more-item:disabled { opacity: 0.45; cursor: default; }
+.ig-admin-more-item:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: -2px; }
+
+/* A 1080px design inside each preview made its grid cell 1080px wide. */
+.ig-admin-preview-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.ig-admin-preview-row > * { min-width: 0; }
+
+@media (max-width: 900px) {
+  .ig-admin-preview-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Empty states inside a card grid take the whole row. */
+.pb-lib-grid > .admin-empty,
+.ops-docs-grid > .admin-empty {
+  grid-column: 1 / -1;
+}
+
+/* Business Documents: the count chips are the filters now (they set the same
+   hidden inputs), so the dropdown row would repeat them. */
+#admin-panel-docs .business-docs-list-header { display: none; }
