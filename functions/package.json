@@ -3,7 +3,7 @@
   "description": "HTTPS email relay for portfolio (Resend)",
   "private": true,
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "dependencies": {

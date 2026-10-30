@@ -210,3 +210,23 @@ ok(await fails(handle(db, { action: 'replyTicket', token: TA, ref: 'CWR-SHS-003'
 const beforeOther = JSON.stringify(getAt('agencyMaintenance/MA'));
 ok(await fails(handle(db, { action: 'replyTicket', token: TB, ref: 'CWR-SHS-004', verdict: 'ok' }, NOW), 404), "another client's ticket can't be answered");
 ok(JSON.stringify(getAt('agencyMaintenance/MA')) === beforeOther, "another client's plan untouched");
+
+// Admin push: each client action tells admin once; just opening the portal doesn't.
+reset();
+const told = [];
+const notify = async (ev) => { told.push(ev); };
+await handle(db, { action: 'load', token: TA }, NOW, notify);
+ok(told.length === 0, 'opening the portal sends no alert');
+await handle(db, { action: 'submitTicket', token: TA, title: 'Gate code broken' }, NOW, notify);
+ok(told.length === 1 && told[0].action === 'submitTicket' && told[0].clientName === 'Shelton Springs' && told[0].projectId === 'PA' && told[0].ref === 'CWR-SHS-005' && told[0].title === 'Gate code broken', 'a new ticket tells admin who, which ref and what');
+setAt('agencyMaintenance/MA/tickets/0/status', 'check');
+await handle(db, { action: 'replyTicket', token: TA, ref: 'CWR-SHS-004', verdict: 'not-working', note: 'Nope' }, NOW, notify);
+ok(told[1] && told[1].action === 'replyTicket' && told[1].ref === 'CWR-SHS-004' && told[1].verdict === 'not-working' && told[1].note === 'Nope', 'a ticket reply tells admin the answer');
+await handle(db, { action: 'signContract', token: TA, docId: 'D2', signedByName: 'Jane HOA', agreedToTerms: true }, NOW, notify);
+ok(told[2] && told[2].action === 'signContract' && told[2].signedByName === 'Jane HOA' && told[2].projectId === 'PA', 'a signature tells admin who signed');
+await handle(db, { action: 'requestPlan', token: TA, planTier: 'standard', billingPreference: 'annual' }, NOW, notify);
+ok(told[3] && told[3].action === 'requestPlan' && told[3].tier === 'standard' && told[3].billing === 'annual', 'a care plan request tells admin the plan');
+ok(await fails(handle(db, { action: 'submitTicket', token: TA, title: '' }, NOW, notify), 400) && told.length === 4, 'a refused request sends no alert');
+reset();
+const still = await handle(db, { action: 'submitTicket', token: TA, title: 'Works anyway' }, NOW, async () => { throw new Error('push down'); });
+ok(still.ticket && still.ticket.title === 'Works anyway', "a failing alert never breaks the client's request");

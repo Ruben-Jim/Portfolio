@@ -127,7 +127,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=uxpass-20261030">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=push-20261030">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3721,6 +3721,13 @@
                     Deposit → onboard
                   </h4>
                   <ul class="admin-overview-list" id="admin-cc-deposit-list" aria-live="polite"></ul>
+                </section>
+                <section class="admin-cc-card admin-cc-card--span-full admin-push-card" id="admin-push-card" aria-labelledby="admin-push-heading" hidden>
+                  <h4 class="admin-cc-card-title" id="admin-push-heading">
+                    <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+                    Phone notifications
+                  </h4>
+                  <div id="admin-push-body"></div>
                 </section>
               </div>
             </div>
@@ -8886,6 +8893,7 @@
         { src: '/assets/js/prospects.js?v=uxpass-20261030' },
         { src: '/assets/js/social-proof-admin.js?v=reviews-tab-20261020' },
         { src: '/assets/js/reviews-admin.js?v=uxpass-20261030' },
+        { src: '/assets/js/admin-push.js?v=push-20261030' },
         { src: '/assets/js/dm-migration.js' }
       ];
       var MODULE = '/assets/js/post-builder/index.js?v=pb5';
@@ -8912,12 +8920,15 @@
         return pending;
       };
       if (/^\/admin(\/|$)/.test(location.pathname)) {
+        // A notification link (/admin?open=…): kept here because the router
+        // rewrites the URL before admin-push.js loads.
+        if (/[?&]open=/.test(location.search)) window.__adminPushLink = location.pathname + location.search;
         document.addEventListener('DOMContentLoaded', function () { window.loadAdminBundle(); });
       }
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=uxpass-20261030"></script>
+  <script src="/assets/js/script.js?v=push-20261030"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--

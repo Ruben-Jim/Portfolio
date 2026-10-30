@@ -16654,6 +16654,7 @@ window.addEventListener('load', function() {
     rebuildAndRender();
   }
 
+  window.selectAdminEmailThread = selectEmailThread; // push notification links (admin-push.js)
   window.subscribeAgencyInboundFromRtdb = subscribeAgencyInboundFromRtdb;
   window.unsubscribeAgencyInboundFromRtdb = unsubscribeAgencyInboundFromRtdb;
   window.subscribeAgencyOutboundFromRtdb = subscribeAgencyOutboundFromRtdb;

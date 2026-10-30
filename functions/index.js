@@ -42,6 +42,8 @@ const {
   buildBookingMeetLinkHtml,
   buildBookingAdminNotificationHtml,
 } = require("./emailTemplates");
+const { hasInboundRecipient } = require("./inbound-address");
+const adminPush = require("./admin-push");
 
 function icsEscapeText(s) {
   return String(s || "")
@@ -188,15 +190,6 @@ function getHeaderValue(headers, name) {
   return "";
 }
 
-function isResendInboundAddress(addr) {
-  const email = String(addr || "").trim().toLowerCase();
-  return email.endsWith("@" + RESEND_INBOUND_DOMAIN);
-}
-
-function hasResendInboundRecipient(list) {
-  if (!Array.isArray(list)) return false;
-  return list.some(isResendInboundAddress);
-}
 
 async function fetchReceivedEmailBody(emailId, apiKey) {
   const res = await fetch("https://api.resend.com/emails/receiving/" + encodeURIComponent(emailId), {
@@ -853,7 +846,7 @@ exports.resendInboundWebhook = onRequest(
     const emailId = String(data.email_id || "").trim();
     const toList = Array.isArray(data.to) ? data.to.map(String) : [];
 
-    if (!emailId || !hasResendInboundRecipient(toList)) {
+    if (!emailId || !hasInboundRecipient(toList)) {
       res.status(200).json({ ok: true, skipped: true });
       return;
     }
@@ -1059,6 +1052,75 @@ exports.leadFromBooking = onValueCreated(
   }
 );
 
+/* ── Admin push notifications (functions/admin-push.js) ──────────────────────
+   Each trigger turns a new record into one short notification on every device
+   Ruben turned on in admin. A push failure is logged and never retried, so it
+   can't hold up or repeat the thing that caused it. */
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+
+async function pushToAdmin(notice, opts) {
+  if (!notice) return;
+  try {
+    const res = await adminPush.sendAdminPush(admin.database(), admin.messaging(), notice, opts);
+    console.log("admin push", notice.type, res);
+  } catch (err) {
+    console.error("admin push failed", notice.type, err && err.message);
+  }
+}
+
+exports.pushOnDmMessage = onValueCreated(
+  Object.assign({ ref: "/dm/threadMessages/{convId}/{msgId}" }, RTDB_TRIGGER),
+  async (event) => {
+    const msg = event.data.val();
+    if (!msg || msg.senderRole !== "customer") return;
+    const meta = msg.senderName ? {} : (await admin.database().ref("dm/meta/" + event.params.convId).once("value")).val() || {};
+    await pushToAdmin(adminPush.forDmMessage(event.params.convId, msg, meta, Date.now()));
+  }
+);
+
+exports.pushOnInboundEmail = onValueCreated(
+  Object.assign({ ref: "/agencyInboundEmails/{id}" }, RTDB_TRIGGER),
+  (event) => pushToAdmin(adminPush.forInboundEmail(event.params.id, event.data.val()))
+);
+
+exports.pushOnOutboundEvent = onValueCreated(
+  Object.assign({ ref: "/agencyOutboundEvents/{id}" }, RTDB_TRIGGER),
+  (event) => pushToAdmin(adminPush.forOutboundEvent(event.data.val()))
+);
+
+exports.pushOnBooking = onValueCreated(
+  Object.assign({ ref: "/agencyBookings/{bookingId}" }, RTDB_TRIGGER),
+  (event) => pushToAdmin(adminPush.forBooking(event.params.bookingId, event.data.val()))
+);
+
+exports.pushOnReview = onDocumentCreated(
+  { document: "testimonials/{id}", region: "us-central1" },
+  (event) => pushToAdmin(adminPush.forReview(event.params.id, event.data && event.data.data()))
+);
+
+// Admin → Overview → Phone notifications → Send test. Ignores the switches.
+exports.pushTest = onValueCreated(
+  Object.assign({ ref: "/adminPushTest/{id}" }, RTDB_TRIGGER),
+  async (event) => {
+    await pushToAdmin(adminPush.testNotice(), { ignorePrefs: true });
+    await event.data.ref.remove();
+  }
+);
+
+exports.pushDailyDigest = onSchedule(
+  { schedule: "0 8 * * *", timeZone: "America/Los_Angeles", region: "us-central1" },
+  async () => {
+    const db = admin.database();
+    const [leads, costs] = await Promise.all([
+      db.ref("pipelineLeads").once("value"),
+      db.ref("agencyStudioCosts").once("value"),
+    ]);
+    const today = adminPush.pacificTodayKey(Date.now());
+    await pushToAdmin(adminPush.dailyDigest({ leads: leads.val() || {}, studioCosts: costs.val() || {} }, today));
+  }
+);
+
 /* ── Client portal + customer inbox (see the security notes (~/Dev/Apps/blueprints/portfolio-security.md, kept out of this public repo)) ───────────────────
    The browser never reads client records or other people's conversations
    directly; these endpoints check the portal token / scope the session. */
@@ -1087,7 +1149,7 @@ function jsonEndpoint(handler) {
 const PUBLIC_JSON = { region: "us-central1", cors: true, invoker: "public", memory: "256MiB", timeoutSeconds: 30 };
 
 exports.portalApi = onRequest(PUBLIC_JSON, jsonEndpoint((body) =>
-  portalApi.handle(admin.database(), body, Date.now())));
+  portalApi.handle(admin.database(), body, Date.now(), (ev) => pushToAdmin(adminPush.forPortal(ev)))));
 
 exports.dmSession = onRequest(PUBLIC_JSON, jsonEndpoint((body, req) =>
   dmSession.handle({ db: admin.database(), auth: admin.auth() }, body, clientIp(req), Date.now())));

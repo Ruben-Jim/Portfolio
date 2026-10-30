@@ -245,7 +245,18 @@ function carePlanInvoice({ tier, billing, total, maintId, hub, now }) {
   };
 }
 
-async function handle(db, body, now) {
+// A push to admin's phone (functions/admin-push.js). It never fails the
+// client's request: the ticket / signature is already saved by now.
+async function tellAdmin(notify, ctx, ev) {
+  if (typeof notify !== "function") return;
+  try {
+    await notify(Object.assign({ clientName: str(ctx.hub.clientName, 120), projectId: ctx.projectId }, ev));
+  } catch (err) {
+    console.error("portal admin alert failed", err && err.message);
+  }
+}
+
+async function handle(db, body, now, notify) {
   now = now || Date.now();
   const action = str(body && body.action, 40);
   const ctx = await resolveToken(db, body && body.token, now);
@@ -323,6 +334,7 @@ async function handle(db, body, now) {
       await maintRef.set(Object.assign(payload, { hoursUsed: 0, renewalDate: "", notes: "", createdAt: now }));
     }
     await db.ref("agencyBusinessDocuments/" + invoiceId).set(invoice);
+    await tellAdmin(notify, ctx, { action, tier, billing });
     return { maintId, invoice };
   }
 
@@ -350,6 +362,7 @@ async function handle(db, body, now) {
       return list;
     });
     await db.ref("agencyMaintenance/" + maint.id + "/updatedAt").set(now);
+    await tellAdmin(notify, ctx, { action, ref: ticket.ref, title });
     return { ticket };
   }
 
@@ -388,6 +401,7 @@ async function handle(db, body, now) {
     });
     if (failure || !ticket) throw failure || new PortalError(404, "We couldn't find that ticket.");
     await db.ref("agencyMaintenance/" + maint.id + "/updatedAt").set(now);
+    await tellAdmin(notify, ctx, { action, ref: ticketRef, verdict, note: ticket.clientReply.note });
     return { ticket: publicTicket(ticket) };
   }
 
@@ -412,6 +426,7 @@ async function handle(db, body, now) {
       projectId: ctx.projectId,
     };
     await sigRef.set(signature);
+    await tellAdmin(notify, ctx, { action, signedByName: name, docId });
     return { signature };
   }
 

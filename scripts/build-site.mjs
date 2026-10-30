@@ -28,6 +28,8 @@ const PUBLIC = [
   'linktree.html',
   'link-in-bio.html',
   'testimonial.html',
+  'admin.webmanifest',   // home-screen admin app (added on /admin only)
+  'admin-sw.js',         // admin push notifications; must sit at the root
   'robots.txt',
   'sitemap.xml',
   'llms.txt'

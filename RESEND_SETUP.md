@@ -125,7 +125,7 @@ You must provide `RESEND_API_KEY` (and params) to the emulator environment per F
 
 ## Inbound email (receiving)
 
-Resend can forward mail to `*@ouuldeaulk.resend.app`. The portfolio stores inbound messages in Realtime Database at `agencyInboundEmails` (admin read-only). Attachments are skipped in v1.
+Resend can forward mail to `*@ouuldeaulk.resend.app` and, with receiving turned on for the domain, to any `@rubenjimenez.dev` address (MX record on the bare domain in **Porkbun**, the DNS host; copy the value from Resend → Domains → Receiving). The kept domains are in `functions/inbound-address.js`. The portfolio stores inbound messages in Realtime Database at `agencyInboundEmails` (admin read-only). Attachments are skipped in v1.
 
 ### Deploy the inbound webhook
 
