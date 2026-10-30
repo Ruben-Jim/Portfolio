@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generatedAt": "2026-09-19T07:11:40.051Z",
+ "generatedAt": "2026-10-30T01:31:31.989Z",
  "sets": [
   {
    "id": "services-carousel-en",
@@ -83,7 +83,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "What *$499*, *$1,500* + *$3,500* actually get you",
+        "text": "What *{pkg_starter_page}*, *{pkg_starter}* + *{pkg_growth}* actually get you",
         "preset": "headline",
         "size": 76,
         "weight": 800,
@@ -127,7 +127,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -189,7 +189,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -251,7 +251,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -391,7 +391,7 @@
        "type": "text",
        "x": 60,
        "y": 160,
-       "w": 299.5,
+       "w": 350.6,
        "h": 30,
        "rotate": 0,
        "locked": false,
@@ -419,7 +419,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "price",
         "size": 150,
         "weight": 800,
@@ -614,7 +614,7 @@
        "type": "text",
        "x": 60,
        "y": 160,
-       "w": 405.8,
+       "w": 473.4,
        "h": 30,
        "rotate": 0,
        "locked": false,
@@ -642,7 +642,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "price",
         "size": 150,
         "weight": 800,
@@ -721,7 +721,7 @@
        "hidden": false,
        "props": {
         "items": [
-         "Everything in $499",
+         "Everything in {pkg_starter_page}",
          "1–3 pages + SEO",
          "iOS + Android app",
          "Alerts on every inquiry"
@@ -814,7 +814,7 @@
        "type": "text",
        "x": 60,
        "y": 160,
-       "w": 400.3,
+       "w": 388.5,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -834,7 +834,7 @@
       {
        "id": "x39",
        "type": "button",
-       "x": 468.3,
+       "x": 456.5,
        "y": 160,
        "w": 154.3,
        "h": 33,
@@ -858,7 +858,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "price",
         "size": 150,
         "weight": 800,
@@ -969,7 +969,7 @@
        "hidden": false,
        "props": {
         "items": [
-         "Everything in $1,500",
+         "Everything in {pkg_starter}",
          "Booking calendar + jobs",
          "Stripe + Tap to Pay",
          "Crew hours + photos"
@@ -1153,7 +1153,7 @@
        "type": "text",
        "x": 226,
        "y": 500.4,
-       "w": 141.9,
+       "w": 181.4,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -1181,7 +1181,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "body",
         "size": 60,
         "weight": 800,
@@ -1237,7 +1237,7 @@
        "type": "text",
        "x": 226,
        "y": 813.7,
-       "w": 186.5,
+       "w": 267.4,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -1265,7 +1265,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "body",
         "size": 60,
         "weight": 800,
@@ -1321,7 +1321,7 @@
        "type": "text",
        "x": 226,
        "y": 1154.2,
-       "w": 182.6,
+       "w": 185.1,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -1341,7 +1341,7 @@
       {
        "id": "x64",
        "type": "button",
-       "x": 416.6,
+       "x": 419.1,
        "y": 1154.2,
        "w": 154.3,
        "h": 33,
@@ -1365,7 +1365,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "body",
         "size": 60,
         "weight": 800,
@@ -1387,7 +1387,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Bigger team or fully custom? Builds from $6k.",
+        "text": "Bigger team or fully custom? Builds from {pkg_agency_k}.",
         "preset": "body",
         "size": 22,
         "weight": 400,
@@ -1716,7 +1716,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "What *$499*, *$1,500* + *$3,500* actually get you",
+        "text": "What *{pkg_starter_page}*, *{pkg_starter}* + *{pkg_growth}* actually get you",
         "preset": "headline",
         "size": 84,
         "weight": 800,
@@ -1760,7 +1760,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -1822,7 +1822,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -1884,7 +1884,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -1980,7 +1980,7 @@
        "type": "text",
        "x": 60,
        "y": 350,
-       "w": 299.5,
+       "w": 350.6,
        "h": 30,
        "rotate": 0,
        "locked": false,
@@ -2008,7 +2008,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "price",
         "size": 168,
         "weight": 800,
@@ -2196,7 +2196,7 @@
        "type": "text",
        "x": 60,
        "y": 350,
-       "w": 405.8,
+       "w": 473.4,
        "h": 30,
        "rotate": 0,
        "locked": false,
@@ -2224,7 +2224,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "price",
         "size": 168,
         "weight": 800,
@@ -2303,7 +2303,7 @@
        "hidden": false,
        "props": {
         "items": [
-         "Everything in $499",
+         "Everything in {pkg_starter_page}",
          "1–3 pages + SEO",
          "iOS + Android app",
          "Alerts on every inquiry"
@@ -2396,7 +2396,7 @@
        "type": "text",
        "x": 60,
        "y": 350,
-       "w": 400.3,
+       "w": 388.5,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -2416,7 +2416,7 @@
       {
        "id": "x116",
        "type": "button",
-       "x": 468.3,
+       "x": 456.5,
        "y": 350,
        "w": 154.3,
        "h": 33,
@@ -2440,7 +2440,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "price",
         "size": 168,
         "weight": 800,
@@ -2551,7 +2551,7 @@
        "hidden": false,
        "props": {
         "items": [
-         "Everything in $1,500",
+         "Everything in {pkg_starter}",
          "Booking calendar + jobs",
          "Stripe + Tap to Pay",
          "Crew hours + photos"
@@ -2684,7 +2684,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Lo que realmente recibes por *$499*, *$1,500* y *$3,500*",
+        "text": "Lo que realmente recibes por *{pkg_starter_page}*, *{pkg_starter}* y *{pkg_growth}*",
         "preset": "headline",
         "size": 76,
         "weight": 800,
@@ -2728,7 +2728,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -2790,7 +2790,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -2852,7 +2852,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -2992,7 +2992,7 @@
        "type": "text",
        "x": 60,
        "y": 160,
-       "w": 363.3,
+       "w": 362.8,
        "h": 30,
        "rotate": 0,
        "locked": false,
@@ -3020,7 +3020,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "price",
         "size": 150,
         "weight": 800,
@@ -3215,7 +3215,7 @@
        "type": "text",
        "x": 60,
        "y": 160,
-       "w": 436.8,
+       "w": 461.9,
        "h": 30,
        "rotate": 0,
        "locked": false,
@@ -3243,7 +3243,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "price",
         "size": 150,
         "weight": 800,
@@ -3322,7 +3322,7 @@
        "hidden": false,
        "props": {
         "items": [
-         "Todo lo de $499",
+         "Todo lo de {pkg_starter_page}",
          "1–3 páginas + SEO",
          "App iOS + Android",
          "Alertas de cada consulta"
@@ -3415,7 +3415,7 @@
        "type": "text",
        "x": 60,
        "y": 160,
-       "w": 564,
+       "w": 474.4,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -3435,7 +3435,7 @@
       {
        "id": "x39",
        "type": "button",
-       "x": 632,
+       "x": 542.4,
        "y": 160,
        "w": 143.5,
        "h": 33,
@@ -3459,7 +3459,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "price",
         "size": 150,
         "weight": 800,
@@ -3570,7 +3570,7 @@
        "hidden": false,
        "props": {
         "items": [
-         "Todo lo de $1,500",
+         "Todo lo de {pkg_starter}",
          "Agenda + trabajos",
          "Stripe + Tap to Pay",
          "Horas + fotos del equipo"
@@ -3754,7 +3754,7 @@
        "type": "text",
        "x": 226,
        "y": 500.4,
-       "w": 162.6,
+       "w": 167.7,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -3782,7 +3782,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "body",
         "size": 60,
         "weight": 800,
@@ -3838,7 +3838,7 @@
        "type": "text",
        "x": 226,
        "y": 813.7,
-       "w": 183.3,
+       "w": 220.9,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -3866,7 +3866,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "body",
         "size": 60,
         "weight": 800,
@@ -3922,7 +3922,7 @@
        "type": "text",
        "x": 226,
        "y": 1154.2,
-       "w": 302.7,
+       "w": 237.2,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -3942,7 +3942,7 @@
       {
        "id": "x64",
        "type": "button",
-       "x": 536.7,
+       "x": 471.2,
        "y": 1154.2,
        "w": 143.5,
        "h": 33,
@@ -3966,7 +3966,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "body",
         "size": 60,
         "weight": 800,
@@ -3988,7 +3988,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "¿Equipo grande o algo a la medida? Desde $6k.",
+        "text": "¿Equipo grande o algo a la medida? Desde {pkg_agency_k}.",
         "preset": "body",
         "size": 22,
         "weight": 400,
@@ -4317,7 +4317,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "Lo que realmente recibes por *$499*, *$1,500* y *$3,500*",
+        "text": "Lo que realmente recibes por *{pkg_starter_page}*, *{pkg_starter}* y *{pkg_growth}*",
         "preset": "headline",
         "size": 84,
         "weight": 800,
@@ -4361,7 +4361,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -4423,7 +4423,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -4485,7 +4485,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "body",
         "size": 50,
         "weight": 800,
@@ -4581,7 +4581,7 @@
        "type": "text",
        "x": 60,
        "y": 350,
-       "w": 363.3,
+       "w": 362.8,
        "h": 30,
        "rotate": 0,
        "locked": false,
@@ -4609,7 +4609,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$499",
+        "text": "{pkg_starter_page}",
         "preset": "price",
         "size": 168,
         "weight": 800,
@@ -4797,7 +4797,7 @@
        "type": "text",
        "x": 60,
        "y": 350,
-       "w": 436.8,
+       "w": 461.9,
        "h": 30,
        "rotate": 0,
        "locked": false,
@@ -4825,7 +4825,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$1,500",
+        "text": "{pkg_starter}",
         "preset": "price",
         "size": 168,
         "weight": 800,
@@ -4904,7 +4904,7 @@
        "hidden": false,
        "props": {
         "items": [
-         "Todo lo de $499",
+         "Todo lo de {pkg_starter_page}",
          "1–3 páginas + SEO",
          "App iOS + Android",
          "Alertas de cada consulta"
@@ -4997,7 +4997,7 @@
        "type": "text",
        "x": 60,
        "y": 350,
-       "w": 564,
+       "w": 474.4,
        "h": 33,
        "rotate": 0,
        "locked": false,
@@ -5017,7 +5017,7 @@
       {
        "id": "x116",
        "type": "button",
-       "x": 632,
+       "x": 542.4,
        "y": 350,
        "w": 143.5,
        "h": 33,
@@ -5041,7 +5041,7 @@
        "locked": false,
        "hidden": false,
        "props": {
-        "text": "$3,500",
+        "text": "{pkg_growth}",
         "preset": "price",
         "size": 168,
         "weight": 800,
@@ -5152,7 +5152,7 @@
        "hidden": false,
        "props": {
         "items": [
-         "Todo lo de $1,500",
+         "Todo lo de {pkg_starter}",
          "Agenda + trabajos",
          "Stripe + Tap to Pay",
          "Horas + fotos del equipo"

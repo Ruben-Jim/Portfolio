@@ -22,6 +22,12 @@ export const FORMATS = {
 /** Tile names, left → right. */
 export const TILE_NAMES = ['left', 'middle', 'right'];
 
+/** A new price text starts at the live Starter Package price (care-pricing.js). */
+function defaultPriceText() {
+  var PP = typeof globalThis !== 'undefined' ? globalThis.PackagePricing : null;
+  return PP ? PP.fill('{pkg_starter_page}') : 'Price';
+}
+
 export function tileCount(format) {
   var f = FORMATS[format];
   return (f && f.tiles) || 1;
@@ -111,7 +117,7 @@ function defaultProps(type, opts) {
       var preset = TEXT_PRESETS[o.preset] ? o.preset : 'headline';
       var p = TEXT_PRESETS[preset];
       return {
-        text: o.text || (preset === 'price' ? '$499' : preset === 'headline' ? 'Run your business *from your phone*' : 'Your text'),
+        text: o.text || (preset === 'price' ? defaultPriceText() : preset === 'headline' ? 'Run your business *from your phone*' : 'Your text'),
         preset: preset, size: p.size, weight: p.weight, color: p.color, align: 'left',
         lineHeight: p.lineHeight, letterSpacing: p.letterSpacing, uppercase: p.uppercase
       };

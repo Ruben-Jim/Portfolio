@@ -5,8 +5,8 @@
  * Slide root carries `ig-mockup-root` + `artboard` so the project-post styles in
  * /assets/css/ig-mockup.css (brand, laptop, stores, cta) apply unchanged.
  */
-import { FORMATS, COLORS, sizingOf } from './model.js?v=pb3';
-import { iconSvg } from './icons.js?v=pb3';
+import { FORMATS, COLORS, sizingOf } from './model.js?v=pb4';
+import { iconSvg } from './icons.js?v=pb4';
 
 var LOGO = '/assets/images/logo/logo.jpg';
 var BADGE_APP = '/examples/instagram/badges/app-store.svg';

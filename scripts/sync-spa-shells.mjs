@@ -21,6 +21,7 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
+import { loadPricing, fillTokens } from './lib/prices.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SRC = join(ROOT, 'index.html');
@@ -69,6 +70,23 @@ function loadSeo() {
   return seo;
 }
 
+// Titles and descriptions quote package prices as {pkg_*} tokens; the shells
+// carry them filled with the prices the files carry (care-pricing.js defaults,
+// kept equal to the live prices by scripts/sync-prices.mjs).
+async function fillSeoPrices(seo) {
+  const { vars } = await loadPricing();
+  for (const key of Object.keys(seo.PAGES)) {
+    const entry = seo.PAGES[key];
+    // Kept for stamping: the tags carry the template so the sync can redo them.
+    entry.titleTemplate = /\{pkg_[a-z_]+\}/.test(entry.title || '') ? entry.title : '';
+    entry.descriptionTemplate = /\{pkg_[a-z_]+\}/.test(entry.description || '') ? entry.description : '';
+    for (const field of ['title', 'description']) {
+      if (typeof entry[field] === 'string') entry[field] = fillTokens(entry[field], vars);
+    }
+  }
+  return seo;
+}
+
 // --- html helpers ----------------------------------------------------------
 
 const escAttr = (s) =>
@@ -77,23 +95,32 @@ const escAttr = (s) =>
 const escText = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** Replace a <meta {attr}="{key}" content="..."> value, or report a miss. */
-function setMeta(html, attr, key, value, misses) {
-  const re = new RegExp(`(<meta\\s+${attr}="${key}"\\s+content=")[^"]*(")`, 'i');
+/** Price markers for a stamped tag whose seo.js text quotes a package price. */
+const priceMarker = (template, attr) =>
+  template ? ` data-price-template="${escAttr(template)}"` + (attr ? ` data-price-attr="${attr}"` : '') : '';
+
+/**
+ * Replace a <meta {attr}="{key}" content="..."> value, or report a miss. With a
+ * {pkg_*} template it also carries data-price-template, so the price sync and
+ * the pre-push check (scripts/lib/prices.mjs) treat it as a generated copy.
+ */
+function setMeta(html, attr, key, value, misses, template) {
+  const re = new RegExp(`(<meta\\s+${attr}="${key}"\\s+content=")[^"]*(")([^>]*>)`, 'i');
   if (!re.test(html)) {
     misses.push(`meta[${attr}="${key}"]`);
     return html;
   }
-  return html.replace(re, `$1${escAttr(value)}$2`);
+  return html.replace(re, (m, a, b, rest) =>
+    a + escAttr(value) + b + priceMarker(template, 'content') + rest.replace(/\s+data-price-(?:template|attr)="[^"]*"/g, ''));
 }
 
-function setTitle(html, value, misses) {
-  const re = /(<title>)[\s\S]*?(<\/title>)/i;
+function setTitle(html, value, misses, template) {
+  const re = /<title\b[^>]*>[\s\S]*?<\/title>/i;
   if (!re.test(html)) {
     misses.push('<title>');
     return html;
   }
-  return html.replace(re, `$1${escText(value)}$2`);
+  return html.replace(re, () => `<title${priceMarker(template)}>${escText(value)}</title>`);
 }
 
 function setCanonical(html, href, misses) {
@@ -148,18 +175,20 @@ function stamp(html, seoEntry, origin, articleSlug) {
   const misses = [];
   const url = origin + seoEntry.path;
 
-  html = setTitle(html, seoEntry.title, misses);
-  html = setMeta(html, 'name', 'title', seoEntry.title, misses);
-  html = setMeta(html, 'name', 'description', seoEntry.description, misses);
+  const tTitle = seoEntry.titleTemplate;
+  const tDesc = seoEntry.descriptionTemplate;
+  html = setTitle(html, seoEntry.title, misses, tTitle);
+  html = setMeta(html, 'name', 'title', seoEntry.title, misses, tTitle);
+  html = setMeta(html, 'name', 'description', seoEntry.description, misses, tDesc);
   html = setMeta(html, 'name', 'robots', seoEntry.robots, misses);
 
   html = setMeta(html, 'property', 'og:url', url, misses);
-  html = setMeta(html, 'property', 'og:title', seoEntry.title, misses);
-  html = setMeta(html, 'property', 'og:description', seoEntry.description, misses);
+  html = setMeta(html, 'property', 'og:title', seoEntry.title, misses, tTitle);
+  html = setMeta(html, 'property', 'og:description', seoEntry.description, misses, tDesc);
 
   html = setMeta(html, 'property', 'twitter:url', url, misses);
-  html = setMeta(html, 'property', 'twitter:title', seoEntry.title, misses);
-  html = setMeta(html, 'property', 'twitter:description', seoEntry.description, misses);
+  html = setMeta(html, 'property', 'twitter:title', seoEntry.title, misses, tTitle);
+  html = setMeta(html, 'property', 'twitter:description', seoEntry.description, misses, tDesc);
 
   const image = origin + '/assets/images/og/' + (seoEntry.image || 'home.jpg');
   html = setMeta(html, 'property', 'og:image', image, misses);
@@ -197,7 +226,7 @@ function stampLandingMarquee() {
 }
 stampLandingMarquee();
 
-const seo = loadSeo();
+const seo = await fillSeoPrices(loadSeo());
 const source = readFileSync(SRC, 'utf8');
 let failed = false;
 

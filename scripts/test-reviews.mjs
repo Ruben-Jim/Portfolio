@@ -157,7 +157,9 @@ ok(/title: 'Reviews & Testimonials \| CodeWithRuben'/.test(read('assets/js/seo.j
 ok(!/data-i18n="nav\.testimonials">Testimonials</.test(shell) && /data-i18n="nav\.testimonials">Reviews</.test(shell) && shell.includes('data-i18n="home.testimonials_kicker">Reviews &amp; Testimonials<') && shell.includes('data-i18n="testimonials.title">Reviews &amp; Testimonials<'), 'index.html default texts renamed');
 ok(/<title>Reviews (&amp;|&) Testimonials \| CodeWithRuben<\/title>/.test(read('testimonials/index.html')), 'the /testimonials page shell title updated');
 const v = (file, src) => (file.match(new RegExp(src.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') + '\\?v=([^"\']+)')) || [])[1];
-ok(['/assets/js/config.js', '/assets/js/i18n.js', '/assets/js/seo.js', '/assets/js/script.js', '/assets/css/style.css', '/assets/js/social-proof-admin.js', '/assets/js/reviews-admin.js'].every((f) => v(shell, f) === 'reviews-tab-20261020'), 'index.html loads every changed file at ?v=reviews-tab-20261020 (' + ['config.js', 'i18n.js', 'seo.js', 'script.js', 'style.css', 'social-proof-admin.js'].map((f) => f + '=' + v(shell, '/assets/' + (f.endsWith('.css') ? 'css/' : 'js/') + f)).join(' ') + ')');
+// At least the Reviews release's buster: a later feature bumping one of these is fine.
+const sinceReviews = (ver) => /(\d{8})$/.test(ver || '') && ver.match(/(\d{8})$/)[1] >= '20261020';
+ok(['/assets/js/config.js', '/assets/js/i18n.js', '/assets/js/seo.js', '/assets/js/script.js', '/assets/css/style.css', '/assets/js/social-proof-admin.js', '/assets/js/reviews-admin.js'].every((f) => sinceReviews(v(shell, f))), 'index.html loads every changed file at ?v=reviews-tab-20261020 or newer (' + ['config.js', 'i18n.js', 'seo.js', 'script.js', 'style.css', 'social-proof-admin.js'].map((f) => f + '=' + v(shell, '/assets/' + (f.endsWith('.css') ? 'css/' : 'js/') + f)).join(' ') + ')');
 const tHtml = read('testimonial.html');
 ok(v(tHtml, './assets/js/config.js') === 'reviews-tab-20261020', 'testimonial.html loads the new config.js');
 const spa = read('assets/js/social-proof-admin.js');

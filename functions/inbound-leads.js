@@ -18,7 +18,10 @@
 const M = require("./lead-match");
 
 // Regular package prices + project types. Mirrors PACKAGES in
-// assets/js/care-pricing.js — scripts/test-inbound-leads.mjs fails if they drift.
+// assets/js/care-pricing.js — scripts/test-inbound-leads.mjs fails if they drift,
+// and scripts/sync-prices.mjs rewrites the prices. These are the fallback: the
+// live price, edited in the admin Pricing tab, is read from
+// /agencyPricing/packagePrices for each inquiry.
 const PACKAGES = {
   linktree: { name: "Link Tree", price: 99, projectType: "web" },
   "starter-page": { name: "Starter Package", price: 499, projectType: "web" },
@@ -40,13 +43,19 @@ function pacificDateKey(ms) {
   return dateKey(new Date(s));
 }
 
+/** The live regular price from the Pricing tab, or the table above. */
+function regularPrice(pkgId, raw) {
+  const n = Math.round(Number(raw && raw.price));
+  return n >= 1 ? n : PACKAGES[pkgId].price;
+}
+
 /** Same rules as PackagePricing.activeOffer(), on the raw RTDB row. */
-function activeOffer(pkgId, raw, now) {
+function activeOffer(pkgId, raw, now, regular) {
   const p = PACKAGES[pkgId];
   const o = raw || {};
   if (!p || o.enabled !== true) return null;
   const price = Math.round(Number(o.price) || 0);
-  if (!(price > 0 && price < p.price)) return null;
+  if (!(price > 0 && price < (regular || p.price))) return null;
   if (o.endsAt && pacificDateKey(now) > o.endsAt) return null;
   const spots = Math.round(Number(o.spots) || 0);
   if (spots && Math.round(Number(o.claimed) || 0) >= spots) return null;
@@ -85,9 +94,14 @@ async function upsertInboundLead(db, ev, now) {
 
   const pkg = PACKAGES[ev.packageId] ? ev.packageId : "";
   let offer = null;
+  let regular = 0;
   if (pkg) {
-    const offerSnap = await db.ref("agencyPricing/packageOffers/" + pkg).once("value");
-    offer = activeOffer(pkg, offerSnap.val(), now);
+    const [offerSnap, priceSnap] = await Promise.all([
+      db.ref("agencyPricing/packageOffers/" + pkg).once("value"),
+      db.ref("agencyPricing/packagePrices/" + pkg).once("value"),
+    ]);
+    regular = regularPrice(pkg, priceSnap.val());
+    offer = activeOffer(pkg, offerSnap.val(), now, regular);
   }
   const stage = ev.kind === "booking" ? "discovery-call" : "lead";
   const callDay = ev.startISO ? pacificDateKey(Date.parse(ev.startISO)) : "";
@@ -114,7 +128,7 @@ async function upsertInboundLead(db, ev, now) {
       phone: ev.phone,
       packageId: pkg,
       packageOfferPrice: offer ? offer.price : null,
-      value: pkg ? (offer ? offer.price : PACKAGES[pkg].price) : 0,
+      value: pkg ? (offer ? offer.price : regular) : 0,
       projectType: pkg ? PACKAGES[pkg].projectType : "",
       dmConversationId: ev.conversationId,
       bookingId: ev.bookingId,
@@ -137,7 +151,7 @@ async function upsertInboundLead(db, ev, now) {
       phone: ev.phone || (prospect && prospect.phone) || "",
       company: (prospect && prospect.business) || "",
       projectType: pkg ? PACKAGES[pkg].projectType : "web",
-      value: pkg ? (offer ? offer.price : PACKAGES[pkg].price) : 0,
+      value: pkg ? (offer ? offer.price : regular) : 0,
       packageId: pkg || null,
       packageOfferPrice: offer ? offer.price : null,
       stage,

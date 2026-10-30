@@ -58,7 +58,7 @@
               id: 'link-tree',
               title: 'Link Tree for Instagram & TikTok',
               summary:
-                'One branded bio link — avatar, short bio, stacked buttons for book/call/website, and social icons. Included with builds, or standalone from $99.',
+                'One branded bio link — avatar, short bio, stacked buttons for book/call/website, and social icons. Included with builds, or standalone from {pkg_linktree}.',
               tags: ['Bio link', 'Social', 'Fast launch'],
               demoUrl: ''
             },

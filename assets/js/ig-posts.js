@@ -77,10 +77,13 @@
   }
 
   function artboardHtml(kind, niche, laptopSrc, phoneSrc) {
+    // "from" is the cheapest website package, live from the Pricing tab.
+    var from = window.PackagePricing ? window.PackagePricing.fill('{pkg_from}') : '';
+    var lead = from ? '<strong>Packages from ' + from + '</strong><br>' : '';
     var proof =
       kind === 'story'
-        ? '<strong>Packages from $499</strong><br>Maintenance from $44/mo · Web + iOS + Android<br>Fresno-based studio · Live admin dashboards'
-        : '<strong>Packages from $499</strong><br>Maintenance from $44/mo · Web + iOS + Android';
+        ? lead + 'Maintenance from $44/mo · Web + iOS + Android<br>Fresno-based studio · Live admin dashboards'
+        : lead + 'Maintenance from $44/mo · Web + iOS + Android';
     var lap = laptopSrc || '';
     var pho = phoneSrc || '';
     return (

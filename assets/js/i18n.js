@@ -25,7 +25,7 @@
       /* ── Home ───────────────────────────────────────────── */
       'home.brand_sub':       'Web &amp; Mobile Dev Studio',
       'home.hero_title':      'Run your business<br>from your phone',
-      'home.price_line':      'Packages from <strong>$499</strong> · Maintenance starting as low as <strong>$44/mo</strong>',
+      'home.price_line':      'Packages from <strong>{pkg_from}</strong> · Maintenance starting as low as <strong>$44/mo</strong>',
       'home.proof_line':      '<span class="cwr-landing-proof-accent">Fresno-based studio</span> · Web + iOS + Android · Real-time admin dashboards',
       'home.cta_start':       'Start a project',
       'home.cta_pricing':     'See pricing',
@@ -57,7 +57,7 @@
       'home.testimonials_title':  'What clients say',
       'home.testimonials_link':   'Read more',
       'home.cta_title':       'Ready to run your business from your phone?',
-      'home.cta_lead':        'Packages from <strong>$499</strong> · Maintenance starting as low as <strong>$44/mo</strong> · Fresno-based studio',
+      'home.cta_lead':        'Packages from <strong>{pkg_from}</strong> · Maintenance starting as low as <strong>$44/mo</strong> · Fresno-based studio',
 
       /* ── About ──────────────────────────────────────────── */
       'about.title':          'About',
@@ -81,7 +81,7 @@
       'about.testimonials_title': 'What Clients Say',
       'about.testimonial_roberto': 'Ruben was hired to create an ordering ecosystem featuring dual interfaces for customers and kitchen staff. Customers enjoy a seamless experience with real-time order tracking and menu browsing, while the Cook Dashboard empowers staff to manage orders from Pending to Completed in real time.',
       'about.cta_title':      'Ready to build something real?',
-      'about.cta_lead':       'Packages from <strong>$499</strong> · Web + iOS + Android · Fresno-based studio',
+      'about.cta_lead':       'Packages from <strong>{pkg_from}</strong> · Web + iOS + Android · Fresno-based studio',
       'about.cta_btn':        'Start a project',
 
       /* ── Testimonials ───────────────────────────────────── */
@@ -89,7 +89,7 @@
       'testimonials.lead':        'Real feedback from clients who run their businesses on software we built — booking, ordering, and day-to-day ops.',
       'testimonials.list_title':   'What clients say',
       'testimonials.cta_title':    'Want results like these?',
-      'testimonials.cta_lead':     'Packages from <strong>$499</strong> · Web + iOS + Android · Fresno-based studio',
+      'testimonials.cta_lead':     'Packages from <strong>{pkg_from}</strong> · Web + iOS + Android · Fresno-based studio',
       'testimonials.cta_btn':      'Start a project',
 
       /* ── Portfolio ──────────────────────────────────────── */
@@ -117,7 +117,7 @@
       'services.page_f3':      'Quotes, inbox, and a simple job list',
       'services.page_f4':      'Change services, photos, and hours yourself',
       'services.page_f5':      'Reviews + English and Spanish',
-      'services.page_cta':     'Choose $499 Package',
+      'services.page_cta':     'Choose {pkg_starter_page} Package',
 
       'services.examples_btn':          'See examples',
       'services.examples_live_demo':    'Live demo',
@@ -136,7 +136,7 @@
       'services.web_f2':       '1\u20133 pages instead of one',
       'services.web_f3':       'Live chat, gallery, and extra forms',
       'services.web_f4':       'SEO, hosting, and a branded Link Tree',
-      'services.web_cta':      'Choose $999 Package',
+      'services.web_cta':      'Choose {pkg_website} Package',
 
       'services.starter_title': 'Website + App Package',
       'services.starter_sub':   'The same branded site, plus iOS &amp; Android for you and the team. Customers stay on the website \u2014 quotes and chat, not a full ops dashboard.',
@@ -145,7 +145,7 @@
       'services.starter_f2':    'iOS &amp; Android for you and the team',
       'services.starter_f3':    'App store setup',
       'services.starter_f4':    'Alerts on new inquiries',
-      'services.starter_cta':   'Choose $1,500 Package',
+      'services.starter_cta':   'Choose {pkg_starter} Package',
 
       'services.growth_badge':  'Most Popular',
       'services.growth_title':  'Growth Package',
@@ -155,7 +155,7 @@
       'services.growth_f2':     'Admin: calendar, crew, and job workflow',
       'services.growth_f3':     'Stripe, PDFs, and Tap to Pay',
       'services.growth_f4':     'Crew hours + before/after you approve',
-      'services.growth_cta':    'Choose $3,500 Package',
+      'services.growth_cta':    'Choose {pkg_growth} Package',
 
 
 
@@ -194,7 +194,7 @@
       'services.linktree_f3':    'Stacked action links — book, call, website, menu, and more',
       'services.linktree_f4':    'Social icons row + mobile-first, fast-loading layout',
       'services.linktree_f5':    'One revision round \u00b7 hosting setup help (subdomain or path)',
-      'services.linktree_cta':   'Start from $99',
+      'services.linktree_cta':   'Start from {pkg_linktree}',
 
       'services.maint_title':   'Maintenance Plans',
       'services.maint_lead':    'Annual pricing: Essential {ess_annual}/year · Standard {std_annual}/year · Priority {pri_annual}/year. Paying annually <strong>saves {yearly_pct}</strong> compared to month-to-month on any plan.',
@@ -255,13 +255,13 @@
       'hire.package_label':       'Package or service',
       'hire.package_placeholder': 'Not sure yet / custom scope',
       'hire.package_none':        'Not sure yet / custom scope',
-      'hire.package_linktree':    'Link Tree — $99–$199',
-      'hire.package_page':        'Starter Package — $499',
-      'hire.package_website':     'Multi-Page Package — $999',
-      'hire.package_starter':     'Website + App Package — $1,500',
-      'hire.package_growth':      'Growth Package — $3,500',
-      'hire.package_agency':      'Business Platform (Website + App) — $6k–$12k',
-      'hire.package_studio':      'Studio Build (Website + App) — $15k–$40k',
+      'hire.package_linktree':    'Link Tree — {pkg_linktree_range}',
+      'hire.package_page':        'Starter Package — {pkg_starter_page}',
+      'hire.package_website':     'Multi-Page Package — {pkg_website}',
+      'hire.package_starter':     'Website + App Package — {pkg_starter}',
+      'hire.package_growth':      'Growth Package — {pkg_growth}',
+      'hire.package_agency':      'Business Platform (Website + App) — {pkg_agency_k}–{pkg_agency_max_k}',
+      'hire.package_studio':      'Studio Build (Website + App) — {pkg_studio_k}–{pkg_studio_max_k}',
       'hire.package_hint':        'Need help choosing?',
       'hire.package_hint_link':   'See package details',
 
@@ -306,7 +306,7 @@
       /* ── Home ───────────────────────────────────────────── */
       'home.brand_sub':       'Estudio de Desarrollo Web y M\u00f3vil',
       'home.hero_title':      'Administra tu negocio<br>desde tu tel\u00e9fono',
-      'home.price_line':      'Paquetes desde <strong>$499</strong> \u00b7 Mantenimiento desde <strong>$44/mes</strong>',
+      'home.price_line':      'Paquetes desde <strong>{pkg_from}</strong> \u00b7 Mantenimiento desde <strong>$44/mes</strong>',
       'home.proof_line':      '<span class="cwr-landing-proof-accent">Estudio en Fresno</span> \u00b7 Web + iOS + Android \u00b7 Paneles en tiempo real',
       'home.cta_start':       'Iniciar un proyecto',
       'home.cta_pricing':     'Ver precios',
@@ -338,7 +338,7 @@
       'home.testimonials_title':  'Lo que dicen los clientes',
       'home.testimonials_link':   'Leer m\u00e1s',
       'home.cta_title':       '\u00bfListo para administrar tu negocio desde tu tel\u00e9fono?',
-      'home.cta_lead':        'Paquetes desde <strong>$499</strong> \u00b7 Mantenimiento desde <strong>$44/mes</strong> \u00b7 Estudio en Fresno',
+      'home.cta_lead':        'Paquetes desde <strong>{pkg_from}</strong> \u00b7 Mantenimiento desde <strong>$44/mes</strong> \u00b7 Estudio en Fresno',
 
       /* ── About ──────────────────────────────────────────── */
       'about.title':          'Nosotros',
@@ -362,7 +362,7 @@
       'about.testimonials_title': 'Lo que dicen los clientes',
       'about.testimonial_roberto': 'Ruben fue contratado para crear un ecosistema de pedidos con interfaces duales para clientes y personal de cocina. Los clientes disfrutan una experiencia fluida con seguimiento de pedidos en tiempo real, mientras el Panel de Cocina permite al personal gestionar pedidos de Pendiente a Completado en tiempo real.',
       'about.cta_title':      '\u00bfListo para construir algo real?',
-      'about.cta_lead':       'Paquetes desde <strong>$499</strong> \u00b7 Web + iOS + Android \u00b7 Estudio en Fresno',
+      'about.cta_lead':       'Paquetes desde <strong>{pkg_from}</strong> \u00b7 Web + iOS + Android \u00b7 Estudio en Fresno',
       'about.cta_btn':        'Iniciar un proyecto',
 
       /* ── Testimonials ───────────────────────────────────── */
@@ -370,7 +370,7 @@
       'testimonials.lead':        'Comentarios reales de clientes que administran su negocio con el software que construimos — reservas, pedidos y operaciones del d\u00eda a d\u00eda.',
       'testimonials.list_title':   'Lo que dicen los clientes',
       'testimonials.cta_title':    '\u00bfQuieres resultados como estos?',
-      'testimonials.cta_lead':     'Paquetes desde <strong>$499</strong> \u00b7 Web + iOS + Android \u00b7 Estudio en Fresno',
+      'testimonials.cta_lead':     'Paquetes desde <strong>{pkg_from}</strong> \u00b7 Web + iOS + Android \u00b7 Estudio en Fresno',
       'testimonials.cta_btn':      'Iniciar un proyecto',
 
       /* ── Portfolio ──────────────────────────────────────── */
@@ -398,7 +398,7 @@
       'services.page_f3':      'Cotizaciones, bandeja y lista simple de trabajos',
       'services.page_f4':      'Cambia servicios, fotos y horarios t\u00fa mismo',
       'services.page_f5':      'Rese\u00f1as + ingl\u00e9s y espa\u00f1ol',
-      'services.page_cta':     'Elegir paquete de $499',
+      'services.page_cta':     'Elegir paquete de {pkg_starter_page}',
 
       'services.examples_btn':          'Ver ejemplos',
       'services.examples_live_demo':    'Demo en vivo',
@@ -417,7 +417,7 @@
       'services.web_f2':       '1\u20133 p\u00e1ginas en vez de una',
       'services.web_f3':       'Chat en vivo, galer\u00eda y formularios extra',
       'services.web_f4':       'SEO, hospedaje y Link Tree con tu marca',
-      'services.web_cta':      'Elegir paquete de $999',
+      'services.web_cta':      'Elegir paquete de {pkg_website}',
 
       'services.starter_title': 'Paquete Sitio + App',
       'services.starter_sub':   'El mismo sitio con tu marca, m\u00e1s iOS y Android para ti y el equipo. Los clientes se quedan en la web \u2014 cotizaciones y chat, no un panel de operaciones.',
@@ -426,7 +426,7 @@
       'services.starter_f2':    'iOS y Android para ti y el equipo',
       'services.starter_f3':    'Configuraci\u00f3n en las tiendas de apps',
       'services.starter_f4':    'Alertas cuando alguien consulta',
-      'services.starter_cta':   'Elegir paquete de $1,500',
+      'services.starter_cta':   'Elegir paquete de {pkg_starter}',
 
       'services.growth_badge':  'M\u00e1s Popular',
       'services.growth_title':  'Paquete Crecimiento',
@@ -436,7 +436,7 @@
       'services.growth_f2':     'Admin: calendario, equipo y flujo de trabajos',
       'services.growth_f3':     'Stripe, PDFs y Tap to Pay',
       'services.growth_f4':     'Horas del equipo + antes/despu\u00e9s que t\u00fa apruebas',
-      'services.growth_cta':    'Elegir paquete de $3,500',
+      'services.growth_cta':    'Elegir paquete de {pkg_growth}',
 
 
 
@@ -475,7 +475,7 @@
       'services.linktree_f3':    'Enlaces de acci\u00f3n — reservar, llamar, sitio, men\u00fa y m\u00e1s',
       'services.linktree_f4':    'Fila de iconos sociales + dise\u00f1o m\u00f3vil r\u00e1pido',
       'services.linktree_f5':    'Una ronda de revisi\u00f3n \u00b7 ayuda con hospedaje (subdominio o ruta)',
-      'services.linktree_cta':   'Comenzar desde $99',
+      'services.linktree_cta':   'Comenzar desde {pkg_linktree}',
 
       'services.maint_title':   'Planes de Mantenimiento',
       'services.maint_lead':    'Precio anual: Esencial {ess_annual}/a\u00f1o \u00b7 Est\u00e1ndar {std_annual}/a\u00f1o \u00b7 Prioritario {pri_annual}/a\u00f1o. Pagar anual <strong>ahorra {yearly_pct}</strong> comparado con el mes a mes en cualquier plan.',
@@ -536,13 +536,13 @@
       'hire.package_label':       'Paquete o servicio',
       'hire.package_placeholder': 'A\u00fan no s\u00e9 / alcance personalizado',
       'hire.package_none':        'A\u00fan no s\u00e9 / alcance personalizado',
-      'hire.package_linktree':    'Link Tree — $99–$199',
-      'hire.package_page':        'Paquete Inicial — $499',
-      'hire.package_website':     'Paquete Multip\u00e1gina — $999',
-      'hire.package_starter':     'Paquete Sitio + App — $1,500',
-      'hire.package_growth':      'Paquete Crecimiento — $3,500',
-      'hire.package_agency':      'Plataforma Empresarial (Sitio + App) — $6k–$12k',
-      'hire.package_studio':      'Studio Build (Sitio + App) — $15k–$40k',
+      'hire.package_linktree':    'Link Tree — {pkg_linktree_range}',
+      'hire.package_page':        'Paquete Inicial — {pkg_starter_page}',
+      'hire.package_website':     'Paquete Multip\u00e1gina — {pkg_website}',
+      'hire.package_starter':     'Paquete Sitio + App — {pkg_starter}',
+      'hire.package_growth':      'Paquete Crecimiento — {pkg_growth}',
+      'hire.package_agency':      'Plataforma Empresarial (Sitio + App) — {pkg_agency_k}–{pkg_agency_max_k}',
+      'hire.package_studio':      'Studio Build (Sitio + App) — {pkg_studio_k}–{pkg_studio_max_k}',
       'hire.package_hint':        '\u00bfNecesitas ayuda para elegir?',
       'hire.package_hint_link':   'Ver detalles de paquetes',
 
@@ -617,6 +617,9 @@
     } catch (e) {}
   }
 
+  // Read by scripts/lib/prices.mjs, which writes the {pkg_*} strings into the
+  // page shells' static text with the current prices.
+  window.CWR_I18N = CWR_I18N;
   window.cwrSetLang = function (lang) { applyTranslations(lang); };
   window.cwrGetLang = function () {
     return document.documentElement.getAttribute('data-lang') || 'en';

@@ -5,13 +5,13 @@
  * assets/js/ig-posts.js). `<div id="pb-root" data-local>` skips Firebase and saves to
  * localStorage (examples/instagram/builder.html uses this for local work).
  *
- * Cache-busting: every module import carries ?v=pb3. After changing any file in this
+ * Cache-busting: every module import carries ?v=pb4. After changing any file in this
  * folder, bump it everywhere:
- *   sed -i '' 's/?v=pb3/?v=pb3/g' assets/js/post-builder/*.js
+ *   sed -i '' 's/?v=pb4/?v=pb4/g' assets/js/post-builder/*.js
  * and bump the <script>/<link> ?v= in index.html (then run scripts/sync-spa-shells.mjs).
  */
-import { createStore, firebaseReady } from './store.js?v=pb3';
-import { mountLibrary } from './library.js?v=pb3';
+import { createStore, firebaseReady } from './store.js?v=pb4';
+import { mountLibrary } from './library.js?v=pb4';
 
 function boot() {
   var root = document.getElementById('pb-root');

@@ -23,7 +23,7 @@
       vertical: 'real estate and insurance offices',
       demoLink: '',
       order: 10,
-      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build client portals for real estate & insurance offices. Listings or plans, quotes, signed docs, and messages in one branded app instead of split across email and DocuSign. Custom builds like this usually run $15k–$40k; I offer it as a fixed $3,500 package. [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
+      text: '[Name] — this is Ruben with CodeWithRuben. I know you’re busy, so instead of a cold call I’ll cut right to the chase: I build client portals for real estate & insurance offices. Listings or plans, quotes, signed docs, and messages in one branded app instead of split across email and DocuSign. Custom builds like this usually run $15k–$40k; I offer it as a fixed {pkg_growth} package. [demo link]\n\nWorth a 2-minute look? Reply STOP to opt out.',
       subject: 'Subject: [Company] — one place for listings, quotes & client docs?',
       email:
         'Hi [Name],\n' +
@@ -32,7 +32,7 @@
         '\n' +
         'I build a branded platform that puts all of it in one place: property or plan browsing, a guided quote flow, a client portal for documents and payments, and direct messaging — plus an admin dashboard for leads and policies.\n' +
         '\n' +
-        'A custom platform like this usually costs $15,000–$40,000 from an agency. I offer it as our Growth Package: a fixed $3,500, 50% to start, launched in about 3–4 weeks.\n' +
+        'A custom platform like this usually costs $15,000–$40,000 from an agency. I offer it as our Growth Package: a fixed {pkg_growth}, 50% to start, launched in about 3–4 weeks.\n' +
         '\n' +
         'If it’s relevant for [Company], I’ll send a one-pager and hold 15 minutes — fit call, not a pitch deck — to see if it maps to how your office runs today.\n' +
         '\n' +
@@ -40,7 +40,7 @@
       call:
         'You:\n' +
         '"Hi, is this [Name]? This is Ruben — I build client portals for real estate and insurance offices in [City]. Have I caught you for 20 seconds, or is [later today / tomorrow] better?"\n' +
-        '[continue] "It’s one branded app for listings or plans, quotes, signed docs, and client messages — instead of split across email, DocuSign, and text. Custom builds like this usually run $15k to $40k. I do it as a fixed $3,500 package. Worth a 15-minute look at how it’d fit [Company]?"'
+        '[continue] "It’s one branded app for listings or plans, quotes, signed docs, and client messages — instead of split across email, DocuSign, and text. Custom builds like this usually run $15k to $40k. I do it as a fixed {pkg_growth} package. Worth a 15-minute look at how it’d fit [Company]?"'
     },
     {
       id: 'lawn',
@@ -461,7 +461,7 @@
         'You:\n' +
         '"Hey — is this the owner for [Company]? This is Ruben with CodeWithRuben. Have I caught you for 20 seconds?"\n' +
         '[continue] "I noticed you\'re on Instagram but don\'t have a website yet. I can build one to your needs — changes along the way, no deposit, and you only pay if you like the final result. Want me to send a quick mockup?"\n' +
-        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from $99. Want me to text you an example?"\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from {pkg_linktree}. Want me to text you an example?"\n' +
         '[if they ask the price] "For reference, [package], with your first month of care included."'
     },
     {
@@ -493,7 +493,7 @@
         'You:\n' +
         '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben. Got 20 seconds?"\n' +
         '[continue] "I saw you\'re active online but don\'t have a website yet. I can build one to your needs — changes along the way, no deposit, pay only if you like it. Want me to send a mockup, or a live booking demo?"\n' +
-        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from $99. Want me to text you an example?"\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from {pkg_linktree}. Want me to text you an example?"\n' +
         '[if they ask the price] "For reference, [package], with your first month of care included."'
     },
     {
@@ -522,7 +522,7 @@
       call:
         'You:\n' +
         '"Hey — Ruben again with CodeWithRuben, quick follow-up on [Company]. Still open to a free mockup — no deposit, pay only if you like it?"\n' +
-        '[if not ready for a site] "Totally fine — I can start you with a branded link page for your Instagram bio instead. From $99. Want an example?"\n' +
+        '[if not ready for a site] "Totally fine — I can start you with a branded link page for your Instagram bio instead. From {pkg_linktree}. Want an example?"\n' +
         '[if they ask the price] "For reference, [package], with your first month of care included."'
     },
     {
@@ -693,7 +693,7 @@
         'You:\n' +
         '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben. Got 20 seconds?"\n' +
         '[continue] "I saw your work on Instagram but couldn\'t find a website to book you. I build booking sites for photographers: packages, date, and the retainer paid online, in English and Spanish. No deposit, and you only pay if you like it. Want me to send a mockup or the live demo?"\n' +
-        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from $99. Want me to text you an example?"\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio, a branded Linktree. Live in a few days, from {pkg_linktree}. Want me to text you an example?"\n' +
         '[if they ask the price] "For reference, [package], with your first month of care included."'
     },
     {
@@ -725,7 +725,7 @@
         '[continue] "Quick heads-up — I tried your website today and it isn’t loading, it shows an error. Were you aware?"\n' +
         '[if no] "Customers searching for you are probably hitting the same thing. I build websites for local businesses, and you’d keep your same domain. Want me to send you a quick mockup or a fix-it plan?"\n' +
         '[if yes] "Got it. If you want a hand getting it back up, or a fresh site on the same domain, I can send a quick mockup. No pressure either way."\n' +
-        '[stopgap] "While it’s down, I can also put up a branded link page so customers can still reach you — live in a day or two, from $99."\n' +
+        '[stopgap] "While it’s down, I can also put up a branded link page so customers can still reach you — live in a day or two, from {pkg_linktree}."\n' +
         '[if they ask the price] "For reference, [package], with your first month of care included."'
     },
     {
@@ -758,7 +758,7 @@
         '"Hey — is this [Name] with [Company]? This is Ruben with CodeWithRuben here in [City]. Got 20 seconds?"\n' +
         '[continue] "I pulled up your website on my phone and it’s tough to use there. I rebuild sites mobile-friendly — same content, same web address — and add online booking or estimate requests."\n' +
         '[if they ask the price] "For reference, [package], with your first month of care included."\n' +
-        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio. Live in a few days, from $99. Want me to text you an example?"\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio. Live in a few days, from {pkg_linktree}. Want me to text you an example?"\n' +
         '[close] "Want me to send a quick mockup of what the new homepage could look like?"'
     },
     {
@@ -792,7 +792,7 @@
         '[continue] "I noticed your site runs on a website builder. Are you paying for that plus add-ons every month?"\n' +
         '[if yes] "I move businesses to a custom, mobile-friendly site — same content and web address — with booking built in, and hosting is included in the care plan."\n' +
         '[if they ask the price] "For reference, [package], with your first month of care included."\n' +
-        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio. From $99. Want an example?"\n' +
+        '[if not ready for a site] "No problem — I can start you with a custom link page for your Instagram bio. From {pkg_linktree}. Want an example?"\n' +
         '[close] "Want me to send a quick mockup?"'
     },
     {

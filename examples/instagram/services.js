@@ -1,5 +1,8 @@
 /**
- * Services kit — "What $499 vs $1,500 vs $3,500 gets you".
+ * Services kit — "What the Starter, Website + App and Growth packages get you".
+ * Prices are {pkg_*} tokens, filled from the live prices (care-pricing.js) when
+ * the kit renders. services-dump.js turns them back into tokens in its output,
+ * so starters.json (the Post builder starters) follows the live prices too.
  * One package per slide on real device mockups (captures/), styled like the
  * project posts. English or Spanish (?lang=es); ?export=<board id> shows one board.
  */
@@ -27,7 +30,7 @@
   // Each tier: price, which capture to show, and copy per language.
   var TIERS = [
     {
-      key: 't499', price: '$499', capture: 'barbershop', layout: 'phone',
+      key: 't499', price: '{pkg_starter_page}', capture: 'barbershop', layout: 'phone',
       en: {
         name: 'Starter Package', time: '~1 week', short: 'Website',
         title: 'A website you update <em>from your phone</em>',
@@ -44,35 +47,35 @@
       }
     },
     {
-      key: 't1500', price: '$1,500', capture: 'rizo', layout: 'laptop',
+      key: 't1500', price: '{pkg_starter}', capture: 'rizo', layout: 'laptop',
       en: {
         name: 'Website + App Package', time: '~2–3 weeks', short: 'Website + app',
         title: 'Your website + <em>your own app</em>',
-        checks: ['Everything in $499', '1–3 pages + SEO', 'iOS + Android app', 'Alerts on every inquiry'],
+        checks: ['Everything in {pkg_starter_page}', '1–3 pages + SEO', 'iOS + Android app', 'Alerts on every inquiry'],
         chips: [['bell', 'New inquiry']],
         fit: 'I want my own app'
       },
       es: {
         name: 'Paquete Sitio + App', time: '~2–3 semanas', short: 'Sitio + app',
         title: 'Tu sitio web + <em>tu propia app</em>',
-        checks: ['Todo lo de $499', '1–3 páginas + SEO', 'App iOS + Android', 'Alertas de cada consulta'],
+        checks: ['Todo lo de {pkg_starter_page}', '1–3 páginas + SEO', 'App iOS + Android', 'Alertas de cada consulta'],
         chips: [['bell', 'Nueva consulta']],
         fit: 'Quiero mi propia app'
       }
     },
     {
-      key: 't3500', price: '$3,500', capture: 'tradeservice', layout: 'laptop', popular: true,
+      key: 't3500', price: '{pkg_growth}', capture: 'tradeservice', layout: 'laptop', popular: true,
       en: {
         name: 'Growth Package', time: '3–4 weeks', short: 'Full platform',
         title: 'Run the whole business <em>from your phone</em>',
-        checks: ['Everything in $1,500', 'Booking calendar + jobs', 'Stripe + Tap to Pay', 'Crew hours + photos'],
+        checks: ['Everything in {pkg_starter}', 'Booking calendar + jobs', 'Stripe + Tap to Pay', 'Crew hours + photos'],
         chips: [['calendar', 'New booking · Sat 10 AM'], ['card', 'Deposit received · $50'], ['team', 'Job assigned · Crew 2']],
         fit: 'I take bookings + payments daily'
       },
       es: {
         name: 'Paquete Crecimiento', time: '3–4 semanas', short: 'Plataforma completa',
         title: 'Administra todo tu negocio <em>desde tu teléfono</em>',
-        checks: ['Todo lo de $1,500', 'Agenda + trabajos', 'Stripe + Tap to Pay', 'Horas + fotos del equipo'],
+        checks: ['Todo lo de {pkg_starter}', 'Agenda + trabajos', 'Stripe + Tap to Pay', 'Horas + fotos del equipo'],
         chips: [['calendar', 'Nueva reserva · sáb 10 AM'], ['card', 'Depósito recibido · $50'], ['team', 'Trabajo asignado · Equipo 2']],
         fit: 'Recibo reservas y pagos a diario'
       }
@@ -86,13 +89,13 @@
       popular: 'Most popular',
       care: '1st month of care included',
       cover: {
-        title: 'What <em>$499</em>, <em>$1,500</em> + <em>$3,500</em> actually get you',
+        title: 'What <em>{pkg_starter_page}</em>, <em>{pkg_starter}</em> + <em>{pkg_growth}</em> actually get you',
         sub: 'Websites + apps for any business, team or creator'
       },
       compare: {
         kicker: 'Which one is you?',
         title: 'Pick by how <em>you work</em>',
-        note: 'Bigger team or fully custom? Builds from $6k.'
+        note: 'Bigger team or fully custom? Builds from {pkg_agency_k}.'
       },
       cta: {
         title: 'Not sure which one <em>fits?</em>',
@@ -109,13 +112,13 @@
       popular: 'Más popular',
       care: '1er mes de mantenimiento incluido',
       cover: {
-        title: 'Lo que realmente recibes por <em>$499</em>, <em>$1,500</em> y <em>$3,500</em>',
+        title: 'Lo que realmente recibes por <em>{pkg_starter_page}</em>, <em>{pkg_starter}</em> y <em>{pkg_growth}</em>',
         sub: 'Sitios web + apps para cualquier negocio, equipo o creador'
       },
       compare: {
         kicker: '¿Cuál eres tú?',
         title: 'Elige según <em>cómo trabajas</em>',
-        note: '¿Equipo grande o algo a la medida? Desde $6k.'
+        note: '¿Equipo grande o algo a la medida? Desde {pkg_agency_k}.'
       },
       cta: {
         title: '¿No sabes cuál <em>te conviene?</em>',
@@ -266,24 +269,29 @@
 
   var boards = [
     { id: 'post-1-cover', kind: 'feed', label: 'Carousel 1/6 · Cover', html: coverBoard(1, 6) },
-    { id: 'post-2-499', kind: 'feed', label: 'Carousel 2/6 · $499', html: tierBoard(TIERS[0], 2, 6, feedFoot(TIERS[0])) },
-    { id: 'post-3-1500', kind: 'feed', label: 'Carousel 3/6 · $1,500', html: tierBoard(TIERS[1], 3, 6, feedFoot(TIERS[1])) },
-    { id: 'post-4-3500', kind: 'feed', label: 'Carousel 4/6 · $3,500', html: tierBoard(TIERS[2], 4, 6, feedFoot(TIERS[2])) },
+    { id: 'post-2-499', kind: 'feed', label: 'Carousel 2/6 · {pkg_starter_page}', html: tierBoard(TIERS[0], 2, 6, feedFoot(TIERS[0])) },
+    { id: 'post-3-1500', kind: 'feed', label: 'Carousel 3/6 · {pkg_starter}', html: tierBoard(TIERS[1], 3, 6, feedFoot(TIERS[1])) },
+    { id: 'post-4-3500', kind: 'feed', label: 'Carousel 4/6 · {pkg_growth}', html: tierBoard(TIERS[2], 4, 6, feedFoot(TIERS[2])) },
     { id: 'post-5-compare', kind: 'feed', label: 'Carousel 5/6 · Which one is you?', html: compareBoard(5, 6) },
     { id: 'post-6-cta', kind: 'feed', label: 'Carousel 6/6 · Call to action', html: ctaBoard(6, 6) },
     { id: 'story-cover', kind: 'story', label: 'Story / reel cover', html: coverBoard() },
-    { id: 'story-1-499', kind: 'story', label: 'Story 1/3 · $499', html: tierBoard(TIERS[0], 1, 3, storyFoot()) },
-    { id: 'story-2-1500', kind: 'story', label: 'Story 2/3 · $1,500', html: tierBoard(TIERS[1], 2, 3, storyFoot()) },
-    { id: 'story-3-3500', kind: 'story', label: 'Story 3/3 · $3,500', html: tierBoard(TIERS[2], 3, 3, storyFoot(true)) }
+    { id: 'story-1-499', kind: 'story', label: 'Story 1/3 · {pkg_starter_page}', html: tierBoard(TIERS[0], 1, 3, storyFoot()) },
+    { id: 'story-2-1500', kind: 'story', label: 'Story 2/3 · {pkg_starter}', html: tierBoard(TIERS[1], 2, 3, storyFoot()) },
+    { id: 'story-3-3500', kind: 'story', label: 'Story 3/3 · {pkg_growth}', html: tierBoard(TIERS[2], 3, 3, storyFoot(true)) }
   ];
 
   document.documentElement.lang = lang;
 
-  document.getElementById('kit').innerHTML = boards.map(function (b) {
-    var current = b.id === exportId ? ' is-current' : '';
-    return '<p class="board-label">' + esc(b.label) + ' · <code>' + b.id + '</code></p>' +
-      '<article class="artboard artboard--' + b.kind + ' pk pk--' + b.id + current + '" id="' + b.id + '">' +
-        '<div class="pk-inner">' + b.html + '</div>' +
-      '</article>';
-  }).join('');
+  function render() {
+    var html = boards.map(function (b) {
+      var current = b.id === exportId ? ' is-current' : '';
+      return '<p class="board-label">' + esc(b.label) + ' · <code>' + b.id + '</code></p>' +
+        '<article class="artboard artboard--' + b.kind + ' pk pk--' + b.id + current + '" id="' + b.id + '">' +
+          '<div class="pk-inner">' + b.html + '</div>' +
+        '</article>';
+    }).join('');
+    document.getElementById('kit').innerHTML = window.PackagePricing ? window.PackagePricing.fill(html) : html;
+  }
+  render();
+  if (window.CarePricing) window.CarePricing.onChange(render);
 })();

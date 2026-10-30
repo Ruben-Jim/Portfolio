@@ -12,12 +12,17 @@
  * 4. Secrets: no service-account keys or private keys tracked in git.
  * 5. Popups: admin code uses the site's own dialogs (window.CwrUI), never the
  *    browser's confirm() / alert() / prompt().
+ * 6. Prices: every typed package price in the files matches the live prices
+ *    from the admin Pricing tab (run scripts/sync-prices.mjs after a change),
+ *    and no package price is typed outside a marker (scripts/lib/prices.mjs).
+ *    Offline, the live comparison is skipped with a warning.
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { adminDialogFiles, findNativeDialogsInFile } from './lib/native-dialogs.mjs';
+import { fetchLive, loadPricing, loadI18nEn, staleFiles, unmarkedPrices, readAllowlist } from './lib/prices.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
@@ -86,10 +91,31 @@ for (const rel of adminDialogFiles(ROOT)) {
   }
 }
 
+// 6. Prices ----------------------------------------------------------------
+const filePrices = await loadPricing();
+const en = loadI18nEn();
+for (const s of staleFiles(filePrices, en)) {
+  fail(`price copy out of date: ${s.file}:${s.line} — run node scripts/sync-prices.mjs\n has:  ${s.has}\n want: ${s.want}`);
+}
+for (const h of unmarkedPrices(filePrices, en, readAllowlist())) {
+  fail(`package price typed without a marker: ${h.file}:${h.line} ${h.figure} — use a {pkg_*} token or data-price-template, or add it to scripts/price-allowlist.json if it isn't a package price\n ${h.text}`);
+}
+let pricesNote = 'prices match the live prices';
+try {
+  const behind = (await loadPricing((await fetchLive()) || {})).PP.filesBehind();
+  if (behind.length) {
+    fail('the site files still show old package prices: ' + behind.map((b) => `${b.name} ${b.files} (live: ${b.live})`).join(', ') +
+      '\n run node scripts/sync-prices.mjs, then commit the changed files');
+  }
+} catch (err) {
+  pricesNote = 'live prices not checked (offline?)';
+  console.warn(`! preflight: could not read the live prices (${err && err.message}); the typed copies were checked against care-pricing.js only.`);
+}
+
 if (failures.length) {
   console.error(`\n✗ preflight: ${failures.length} problem(s)\n`);
   for (const f of failures) console.error('  ✗ ' + f.replace(/\n/g, '\n    '));
   console.error('\nPush blocked. Fix the above, or push with --no-verify if you must.\n');
   process.exit(1);
 }
-console.log(`✓ preflight: JS syntax, ${shells.length} shells in sync, tests, no secrets, no browser popups`);
+console.log(`✓ preflight: JS syntax, ${shells.length} shells in sync, tests, no secrets, no browser popups, ${pricesNote}`);

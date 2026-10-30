@@ -44,9 +44,9 @@
     'services-pricing': {
       path: '/services-pricing/',
       image: 'services.jpg',
-      title: 'Services & Pricing | Web & Mobile Apps from $499',
+      title: 'Services & Pricing | Web & Mobile Apps from {pkg_from}',
       description:
-        'Starter, Multi-Page, and Website + App packages from $499. First month of care included. Clear pricing before we start.',
+        'Starter, Multi-Page, and Website + App packages from {pkg_from}. First month of care included. Clear pricing before we start.',
       robots: INDEX
     },
     'business-systems': {
@@ -68,7 +68,7 @@
       image: 'hire-me.jpg',
       title: 'Start a Project | Hire CodeWithRuben',
       description:
-        'Tell us what you need — site, mobile app, or full operations system. Packages from $499. Remote-friendly.',
+        'Tell us what you need — site, mobile app, or full operations system. Packages from {pkg_from}. Remote-friendly.',
       robots: INDEX
     },
     resume: {
@@ -190,9 +190,26 @@
     };
   }
 
+  /**
+   * {pkg_*} package prices come from care-pricing.js, which loads after this
+   * file and calls applyFromLocation() again once prices arrive. The shells are
+   * stamped with the prices filled (scripts/sync-spa-shells.mjs), so an early
+   * pass that can't fill them yet leaves the stamped tags alone.
+   */
+  function withPrices(entry) {
+    var fill = window.PackagePricing && window.PackagePricing.fill;
+    if (!fill) return entry;
+    var out = {};
+    Object.keys(entry).forEach(function (k) {
+      out[k] = typeof entry[k] === 'string' ? fill(entry[k]) : entry[k];
+    });
+    return out;
+  }
+
   function apply(pageName) {
     if (!document.head) return resolve(pageName);
-    var seo = resolve(pageName);
+    var seo = withPrices(resolve(pageName));
+    if (/\{pkg_[a-z_]+\}/.test(seo.title + seo.description)) return seo;
     var url = ORIGIN + seo.path;
     document.title = seo.title;
     setMeta('name', 'title', seo.title);

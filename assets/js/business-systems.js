@@ -139,7 +139,8 @@
           esc(card.title) +
           '</h4>' +
           '<p class="bs-system-card-summary">' +
-          esc(card.summary) +
+          // {pkg_*}: live package prices (care-pricing.js).
+          esc(window.PackagePricing ? window.PackagePricing.fill(card.summary) : card.summary) +
           '</p>';
         if (card.priceBand) {
           html +=
@@ -318,6 +319,12 @@
     if (leadEl && data.pageLead) leadEl.textContent = data.pageLead;
 
     bindEvents();
+    // Card copy quotes live package prices; redraw once they load or change.
+    if (window.CarePricing) {
+      window.CarePricing.onChange(function () {
+        if (activePath) renderCatalog(activePath);
+      });
+    }
 
     var initial = loadPersistedPath();
     if (initial) {

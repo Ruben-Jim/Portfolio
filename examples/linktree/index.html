@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Link Tree Examples — CodeWithRuben</title>
-<meta name="description" content="See three real Link Tree tiers — $99, $149, and $199 — branded for local Fresno businesses. Book yours with CodeWithRuben.">
+<meta name="description" content="See three real Link Tree tiers — $99, $149, and $199 — branded for local Fresno businesses. Book yours with CodeWithRuben." data-price-template="See three real Link Tree tiers — {pkg_linktree}, $149, and {pkg_linktree_max} — branded for local Fresno businesses. Book yours with CodeWithRuben." data-price-attr="content">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -179,13 +179,13 @@ body.in-frame .live-demo{display:none}
 </div>
 
 <div class="tier-nav">
-  <button class="tier-btn active" id="btn-99" onclick="showTier(99)">$99 &mdash; Foundation</button>
+  <button class="tier-btn active" id="btn-99" onclick="showTier(99)" data-price-template="{pkg_linktree} — Foundation">$99 — Foundation</button>
   <button class="tier-btn" id="btn-149" onclick="showTier(149)">$149 &mdash; Enhanced</button>
-  <button class="tier-btn" id="btn-199" onclick="showTier(199)">$199+ &mdash; Premium</button>
+  <button class="tier-btn" id="btn-199" onclick="showTier(199)" data-price-template="{pkg_linktree_max}+ — Premium">$199+ — Premium</button>
 </div>
 
 <div class="tier-banner">
-  <p class="tier-price" id="tier-desc"><strong>$99 one-time.</strong> Custom domain, hours, embedded map, EN/ES toggle, 2 reviews, action links. Real trust-builders free tools don't give you.</p>
+  <p class="tier-price" id="tier-desc"><strong data-price-template="{pkg_linktree} one-time.">$99 one-time.</strong> Custom domain, hours, embedded map, EN/ES toggle, 2 reviews, action links. Real trust-builders free tools don't give you.</p>
 </div>
 
 <div class="examples-wrap">
@@ -329,14 +329,15 @@ body.in-frame .live-demo{display:none}
 <div class="cta-band">
   <h2>Want one for your business?</h2>
   <p>Pick a tier, tell me your business, and I'll have your branded Link Tree ready in 3&ndash;5 days.</p>
-  <a href="/hire-me" class="cta-btn" target="_top">Start from $99 &rarr;</a>
+  <a href="/hire-me" class="cta-btn" target="_top" data-price-template="Start from {pkg_linktree} →">Start from $99 →</a>
 </div>
 
+<script src="/assets/js/care-pricing.js?v=pricing-20261029"></script>
 <script>
 const tierData = {
-  99: "<strong>$99 one-time.</strong> Custom domain, hours, embedded map, EN/ES toggle, 2 reviews, action links. Real trust-builders free tools don't give you.",
-  149: "<strong>$149 one-time.</strong> Everything in $99, plus: owner intro, video, before/after slider, FAQ, live chat, no CodeWithRuben branding, better analytics.",
-  199: "<strong>$199+ one-time.</strong> Everything in $149, plus: team bios, IG feed, video testimonial, full analytics dashboard. The + means custom add-ons are available."
+  99: "<strong>{pkg_linktree} one-time.</strong> Custom domain, hours, embedded map, EN/ES toggle, 2 reviews, action links. Real trust-builders free tools don't give you.",
+  149: "<strong>$149 one-time.</strong> Everything in {pkg_linktree}, plus: owner intro, video, before/after slider, FAQ, live chat, no CodeWithRuben branding, better analytics.",
+  199: "<strong>{pkg_linktree_max}+ one-time.</strong> Everything in $149, plus: team bios, IG feed, video testimonial, full analytics dashboard. The + means custom add-ons are available."
 };
 function showTier(tier){
   document.querySelectorAll('.tier-btn').forEach(function(b){b.classList.remove('active','gold')});
@@ -345,7 +346,9 @@ function showTier(tier){
   document.querySelector('.tier99-set').style.display = tier===99 ? 'flex':'none';
   document.querySelector('.tier149-set').style.display = tier===149 ? 'flex':'none';
   document.querySelector('.tier199-set').style.display = tier===199 ? 'flex':'none';
-  document.getElementById('tier-desc').innerHTML = tierData[tier];
+  // {pkg_*} are the live Link Tree prices (care-pricing.js, set in the admin Pricing tab).
+  var html = tierData[tier];
+  document.getElementById('tier-desc').innerHTML = window.PackagePricing ? window.PackagePricing.fill(html) : html;
 }
 (function(){
   var params = new URLSearchParams(window.location.search);

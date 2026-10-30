@@ -99,7 +99,7 @@
       }
     })();
   </script>
-  <script src="/assets/js/seo.js?v=reviews-tab-20261020"></script>
+  <script src="/assets/js/seo.js?v=pricing-20261029"></script>
   
   <!-- Sitemap -->
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
@@ -127,7 +127,7 @@
     .admin-auth-checking{display:none;align-items:center;justify-content:center;min-height:220px;padding:40px 20px;flex-direction:column;gap:12px}
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-auth-checking{display:flex!important}
   </style>
-  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=ticketpages-20261029">
+  <link rel="stylesheet" href="/assets/css/agency-tools.css?v=pricing-20261029">
   <link rel="stylesheet" href="/assets/css/business-systems.css?v=business-systems-density-20260601">
 
   <!--
@@ -3530,6 +3530,10 @@
                   <ion-icon name="chatbubbles-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Outreach Scripts</span><span class="admin-tab-label-mobile">Outreach</span></span>
                 </button>
+                <button type="button" class="admin-tab" role="tab" id="admin-tab-pricing" data-admin-tab="pricing" aria-selected="false" aria-controls="admin-panel-pricing" tabindex="-1" aria-label="Pricing">
+                  <ion-icon name="pricetags-outline" aria-hidden="true"></ion-icon>
+                  <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Pricing</span><span class="admin-tab-label-mobile">Pricing</span></span>
+                </button>
                 <button type="button" class="admin-tab" role="tab" id="admin-tab-prospects" data-admin-tab="prospects" aria-selected="false" aria-controls="admin-panel-prospects" tabindex="-1" aria-label="Prospects">
                   <ion-icon name="list-outline" aria-hidden="true"></ion-icon>
                   <span class="admin-tab-label" aria-hidden="true"><span class="admin-tab-label-desktop">Prospects</span><span class="admin-tab-label-mobile">Prospects</span></span>
@@ -4001,7 +4005,7 @@
                       <label class="form-label admin-client-email-package-label" id="admin-client-email-package-label" for="admin-client-email-package">Package <em>(fills {{package}} / the price line)</em></label>
                       <div class="business-doc-select" data-select-name="client-email-package">
                         <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="admin-client-email-package-label">
-                          <span class="business-doc-select-trigger-label">Multi-Page Package — $999</span>
+                          <span class="business-doc-select-trigger-label" data-price-template="Multi-Page Package — {pkg_website}">Multi-Page Package — $999</span>
                           <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
                         </button>
                         <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
@@ -4833,14 +4837,31 @@
               </div>
             </div>
           </section>
+          </div><!-- /admin-panel-client-projects -->
+
+          <!-- Outreach Scripts -->
+          <!-- Pricing: what clients pay. Package prices + offers, care-plan discount + promo. -->
+          <div id="admin-panel-pricing" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-pricing" data-admin-tab="pricing" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
             <div class="admin-panel-heading">
-              <h3 class="h3 admin-panel-title">Pricing &amp; offers</h3>
-              <p class="admin-panel-lead">Care plan yearly discount, new-client promo, and limited-time package offers.</p>
+              <h3 class="h3 admin-panel-title">Pricing</h3>
+              <p class="admin-panel-lead">What clients pay: package prices and limited-time offers, the care plan yearly discount and the new-client promo.</p>
             </div>
             <div class="admin-collapsible-content">
               <div class="admin-collapsible-inner-content">
+                <div class="package-offers-admin" id="package-offers-section">
+                  <h4 class="package-offers-title">Package prices &amp; offers</h4>
+                  <p class="care-pricing-admin-lead">Regular prices show on the Services page, Hire Me, Link Tree, Outreach Scripts, Compose, the Post builder and new proposals the moment you save. A limited-time offer shows crossed-out next to the regular price and ends on its date or when its spots are claimed (a lead on that package reaching Deposit claims one), whichever comes first.</p>
+                  <p class="package-files-notice" id="package-files-notice" role="status" hidden></p>
+                  <div class="package-offers-table-wrap"><table class="package-offers-table" id="package-offers-table"></table></div>
+                  <div class="care-pricing-admin-actions">
+                    <button type="button" class="btn btn-primary btn-sm" id="package-offers-save">Save prices &amp; offers</button>
+                    <span class="care-pricing-admin-feedback" id="package-offers-feedback" role="status"></span>
+                  </div>
+                  <div class="package-content-review" id="package-content-review" hidden></div>
+                </div>
                 <div class="care-pricing-admin" id="care-pricing-section">
+                  <h4 class="package-offers-title">Care plan pricing</h4>
                   <p class="care-pricing-admin-lead">Applies to the Services &amp; Pricing page, client portals and proposals. Clients with their own yearly discount (set in their maintenance editor) keep it.</p>
                   <div class="care-pricing-admin-grid">
                     <label class="care-pricing-admin-field">Yearly discount (%)<input id="care-pricing-yearly" class="form-input" type="number" min="0" max="90" step="1" value="45"></label>
@@ -4854,21 +4875,11 @@
                     <span class="care-pricing-admin-feedback" id="care-pricing-feedback" role="status"></span>
                   </div>
                 </div>
-                <div class="package-offers-admin" id="package-offers-section">
-                  <h4 class="package-offers-title">Package offers</h4>
-                  <p class="care-pricing-admin-lead">Turn on a limited-time price for a package. It shows crossed-out on the Services page, Hire Me pages, Outreach Scripts, Compose and proposals. It ends on the date or when the spots are claimed (a lead on that package reaching Deposit claims one), whichever comes first.</p>
-                  <div class="package-offers-table-wrap"><table class="package-offers-table" id="package-offers-table"></table></div>
-                  <div class="care-pricing-admin-actions">
-                    <button type="button" class="btn btn-primary btn-sm" id="package-offers-save">Save offers</button>
-                    <span class="care-pricing-admin-feedback" id="package-offers-feedback" role="status"></span>
-                  </div>
-                </div>
               </div>
             </div>
           </section>
-          </div><!-- /admin-panel-client-projects -->
+          </div><!-- /admin-panel-pricing -->
 
-          <!-- Outreach Scripts -->
           <div id="admin-panel-outreach" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-outreach" data-admin-tab="outreach" hidden>
           <section class="service admin-collapsible-section admin-collapsible-open">
             <div class="admin-panel-heading">
@@ -4938,7 +4949,7 @@
                           <span id="outreach-var-package-label">Package <em>(fills the package line)</em></span>
                           <div class="business-doc-select" data-select-name="outreach-package">
                             <button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="outreach-var-package-label">
-                              <span class="business-doc-select-trigger-label">Multi-Page Package — $999</span>
+                              <span class="business-doc-select-trigger-label" data-price-template="Multi-Page Package — {pkg_website}">Multi-Page Package — $999</span>
                               <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon" aria-hidden="true"></ion-icon>
                             </button>
                             <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true"></div>
@@ -5440,7 +5451,7 @@
                       <h3 class="text-lg font-semibold mt-3 mb-2">Managed Build (CWR hosts)</h3>
                       <ol class="step-list text-sm">
                         <li>Client licenses a branded site/app; CWR owns code, repo, and hosting until buyout.</li>
-                        <li>Packages: Starter $499 · Multi-Page $999 · Website + App $1,500 · Growth $3,500.</li>
+                        <li data-price-template="Packages: Starter {pkg_starter_page} · Multi-Page {pkg_website} · Website + App {pkg_starter} · Growth {pkg_growth}.">Packages: Starter $499 · Multi-Page $999 · Website + App $1,500 · Growth $3,500.</li>
                         <li>Deliverable: live branded product + owner admin (app stores when the package includes them).</li>
                         <li>After launch: monthly care plan (first month included). Essential from ~$44/mo.</li>
                       </ol>
@@ -7703,11 +7714,11 @@
                   </button>
                   <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
                     <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">None</button>
-                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="starter-page">Starter Package — $499</button>
-                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="website">Multi-Page Package — $999</button>
-                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="starter">Website + App Package — $1,500</button>
-                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="growth">Growth Package — $3,500</button>
-                    <button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="linktree">Link Tree — $99–$199</button>
+                    <button type="button" class="business-doc-select-option" data-price-template="Starter Package — {pkg_starter_page}" role="option" aria-selected="false" data-value="starter-page">Starter Package — $499</button>
+                    <button type="button" class="business-doc-select-option" data-price-template="Multi-Page Package — {pkg_website}" role="option" aria-selected="false" data-value="website">Multi-Page Package — $999</button>
+                    <button type="button" class="business-doc-select-option" data-price-template="Website + App Package — {pkg_starter}" role="option" aria-selected="false" data-value="starter">Website + App Package — $1,500</button>
+                    <button type="button" class="business-doc-select-option" data-price-template="Growth Package — {pkg_growth}" role="option" aria-selected="false" data-value="growth">Growth Package — $3,500</button>
+                    <button type="button" class="business-doc-select-option" data-price-template="Link Tree — {pkg_linktree_range}" role="option" aria-selected="false" data-value="linktree">Link Tree — $99–$199</button>
                   </div>
                   <input type="hidden" id="portfolio-project-pricing-package" value="">
                 </div>
@@ -7792,21 +7803,21 @@
                 <p class="form-hint">Package demo links: each one adds this template to that package’s “See examples” on Services &amp; Pricing. Leave a package blank to skip it.</p>
                 <div class="form-row">
                   <div class="form-group form-group-half">
-                    <label for="portfolio-project-demo-starter-page">Starter Package ($499) demo</label>
+                    <label for="portfolio-project-demo-starter-page" data-price-template="Starter Package ({pkg_starter_page}) demo">Starter Package ($499) demo</label>
                     <input type="url" id="portfolio-project-demo-starter-page" maxlength="500" placeholder="https://…--starter.expo.app">
                   </div>
                   <div class="form-group form-group-half">
-                    <label for="portfolio-project-demo-website">Multi-Page Package ($999) demo</label>
+                    <label for="portfolio-project-demo-website" data-price-template="Multi-Page Package ({pkg_website}) demo">Multi-Page Package ($999) demo</label>
                     <input type="url" id="portfolio-project-demo-website" maxlength="500" placeholder="https://…--multi-page.expo.app">
                   </div>
                 </div>
                 <div class="form-row">
                   <div class="form-group form-group-half">
-                    <label for="portfolio-project-demo-starter">Website + App Package ($1,500) demo</label>
+                    <label for="portfolio-project-demo-starter" data-price-template="Website + App Package ({pkg_starter}) demo">Website + App Package ($1,500) demo</label>
                     <input type="url" id="portfolio-project-demo-starter" maxlength="500" placeholder="https://…--website-app.expo.app">
                   </div>
                   <div class="form-group form-group-half">
-                    <label for="portfolio-project-demo-growth">Growth Package ($3,500) demo</label>
+                    <label for="portfolio-project-demo-growth" data-price-template="Growth Package ({pkg_growth}) demo">Growth Package ($3,500) demo</label>
                     <input type="url" id="portfolio-project-demo-growth" maxlength="500" placeholder="https://…--growth.expo.app">
                   </div>
                 </div>
@@ -7970,7 +7981,7 @@
                 <li>Receive lead (DM, email, social reply) or send proactive outreach.</li>
                 <li>Send procleaning.expo.app demo link immediately.</li>
                 <li>Wait for response (“looks good, can it do X?”).</li>
-                <li>Reply with branded 1-Page Sales PDF (anchors $1,500 price).</li>
+                <li data-price-template="Reply with branded 1-Page Sales PDF (anchors {pkg_starter} price).">Reply with branded 1-Page Sales PDF (anchors $1,500 price).</li>
                 <li>Log interaction in Obsidian CRM note.</li>
               </ol>
             </div>
@@ -8810,8 +8821,8 @@
 
   <script src="/assets/js/portfolio-built-in-data.js?v=chair-studio-20261015"></script>
   <script src="/assets/js/portfolio-assets.js?v=media-picker-20260929"></script>
-  <script src="/assets/js/business-systems-data.js?v=expo-app-demo-20260911"></script>
-  <script src="/assets/js/care-pricing.js?v=faq-20261016"></script>
+  <script src="/assets/js/business-systems-data.js?v=pricing-20261029"></script>
+  <script src="/assets/js/care-pricing.js?v=pricing-20261029"></script>
   <script src="/assets/js/blog-covers.js?v=category-covers-20261015"></script>
   <script src="/assets/js/lead-match.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/business-doc-shared.js?v=package-offers-20261005"></script>
@@ -8821,7 +8832,7 @@
   <script src="/assets/js/social-proof.js?v=one-card-20261018"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=skins-20261015"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
-  <script src="/assets/js/i18n.js?v=reviews-tab-20261020"></script>
+  <script src="/assets/js/i18n.js?v=pricing-20261029"></script>
   <!--
     - Admin-only scripts: loaded on /admin or after admin sign-in, never for
       public visitors (they were ~220 KB gz of the homepage). Order matches the
@@ -8833,15 +8844,15 @@
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', integrity: 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==' },
         { src: '/assets/js/blog-tiptap-editor.js?v=dialogs-20261018' },
         { src: '/assets/js/ticket-shared.js?v=tickets-20261021' },
-        { src: '/assets/js/agency-tools.js?v=ticketpages-20261029' },
-        { src: '/assets/js/ig-posts.js?v=ig-library-20260827' },
-        { src: '/assets/js/outreach-composer.js?v=dialogs-20261018' },
+        { src: '/assets/js/agency-tools.js?v=pricing-20261029' },
+        { src: '/assets/js/ig-posts.js?v=pricing-20261029' },
+        { src: '/assets/js/outreach-composer.js?v=pricing-20261029' },
         { src: '/assets/js/prospects.js?v=dialogs-20261018' },
         { src: '/assets/js/social-proof-admin.js?v=reviews-tab-20261020' },
         { src: '/assets/js/reviews-admin.js?v=reviews-tab-20261020' },
         { src: '/assets/js/dm-migration.js' }
       ];
-      var MODULE = '/assets/js/post-builder/index.js?v=pb3';
+      var MODULE = '/assets/js/post-builder/index.js?v=pb4';
       var pending = null;
       window.loadAdminBundle = function () {
         if (pending) return pending;
@@ -8870,8 +8881,8 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=dialogs-20261018"></script>
-  <script src="/assets/js/script.js?v=reviews-tab-20261020"></script>
-  <script src="/assets/js/business-systems.js?v=business-systems-trim-20260601"></script>
+  <script src="/assets/js/script.js?v=pricing-20261029"></script>
+  <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--
     - ionicons link

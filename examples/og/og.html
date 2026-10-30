@@ -117,6 +117,7 @@
 </head>
 <body>
 <div class="card" id="card"></div>
+<script src="/assets/js/care-pricing.js?v=pricing-20261029"></script>
 <script>
   var LOGO = '../../assets/images/logo/logo.jpg';
   var AVATAR = '../../assets/images/avatar/my-avatar.png';
@@ -141,7 +142,7 @@
       '<div class="wordmark">CodeWith<span>Ruben</span></div>' +
       '<div class="kicker">Web &amp; Mobile Dev Studio · Fresno</div></div></div>' +
       '<div class="banner-sell"><div class="offer">Websites <i>·</i> Staff apps <i>·</i> Admin dashboards</div>' +
-      '<div class="price">Starting at $499</div></div>' },
+      '<div class="price">Starting at {pkg_from}</div></div>' },
 
     // Personal link page — what you send people who want your links.
     linktree: { html:
@@ -156,7 +157,7 @@
       brandline() +
       '<h1>Your brand’s<br><span class="gold">link in bio</span></h1>' +
       '<div class="sub">Book <i>·</i> Call <i>·</i> Menu <i>·</i> Reviews — one branded link for Instagram &amp; TikTok</div>' +
-      '<div class="pill">Custom Link Tree · from $99</div>' +
+      '<div class="pill">Custom Link Tree · from {pkg_linktree}</div>' +
       '<div class="phone"><img src="' + PHONE + '" alt=""></div>' },
 
     services: { html:
@@ -164,9 +165,9 @@
       '<h1>What you<br><span class="gold">actually get</span></h1>' +
       '<div class="sub">Fixed-price packages · first month of care included · care plans from $44/mo</div>' +
       '<div class="prices">' +
-      '<div class="price-card"><b>$499</b><span>Website<br>1 page + admin</span></div>' +
-      '<div class="price-card"><b>$1,500</b><span>Website + app<br>iOS &amp; Android</span></div>' +
-      '<div class="price-card hot"><b>$3,500</b><span><em>Most popular</em>Full platform</span></div>' +
+      '<div class="price-card"><b>{pkg_starter_page}</b><span>Website<br>1 page + admin</span></div>' +
+      '<div class="price-card"><b>{pkg_starter}</b><span>Website + app<br>iOS &amp; Android</span></div>' +
+      '<div class="price-card hot"><b>{pkg_growth}</b><span><em>Most popular</em>Full platform</span></div>' +
       '</div>' +
       '<div class="url">rubenjimenez.dev/services-pricing</div>' },
 
@@ -189,7 +190,14 @@
   var c = CARDS[name] || CARDS.home;
   var card = document.getElementById('card');
   if (c.center) card.classList.add('center');
-  card.innerHTML = wall() + '<div class="content">' + c.html + '</div>';
+  // {pkg_*}: live package prices from care-pricing.js (the admin Pricing tab),
+  // drawn again once they load.
+  function render() {
+    var html = window.PackagePricing ? window.PackagePricing.fill(c.html) : c.html;
+    card.innerHTML = wall() + '<div class="content">' + html + '</div>';
+  }
+  render();
+  if (window.CarePricing) window.CarePricing.onChange(render);
 </script>
 </body>
 </html>

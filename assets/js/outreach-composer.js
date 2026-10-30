@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=demo-picker-20261009';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=pricing-20261029';
   var STORE_KEY = 'cwrOutreachVars';
   // Last script used on this device, so the picker reopens on it (never empty).
   var LAST_SCRIPT_KEY = 'cwrOutreachLastScript';
@@ -31,7 +31,7 @@
     { token: '[Company]', field: 'company' },
     { token: '[City]', field: 'city' },
     { token: '[demo link]', field: 'demo' },
-    // "our Multi-Page Package is $999" — or the live offer wording.
+    // "our Multi-Page Package is <price>" — or the live offer wording.
     { token: '[package]', field: 'package' },
     // Whole paragraphs the composer writes from the Demo picker and the controls
     // under Package. Removed (with their blank line) when empty, so templates
@@ -357,9 +357,9 @@
   }
 
   /**
-   * "Multi-Page Package — $999: 1–3 pages, … . First month of care included."
+   * "Multi-Page Package — <price>: 1–3 pages, … . First month of care included."
    * With "Lead with the offer" on and an offer live:
-   * "This month only: our Multi-Page Package is $499 (normally $999) for
+   * "This month only: our Multi-Page Package is <offer> (normally <price>) for
    *  the next 3 clients. First month of care included."
    */
   function packageLine() {
@@ -540,7 +540,8 @@
   function escapeRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
   function fill(body, vars) {
-    var out = body || '';
+    // {pkg_*}: live package prices (care-pricing.js, the admin Pricing tab).
+    var out = global.PackagePricing ? global.PackagePricing.fill(body || '') : body || '';
     var droppedBlock = false;
     TOKENS.forEach(function (t) {
       var v = vars[t.field];
@@ -951,6 +952,15 @@
       .forEach(function (t) {
         out = out.split(vars[t.field]).join(t.token);
       });
+    // Prices that were {pkg_*} tokens go back to tokens, so the saved script
+    // keeps following the Pricing tab instead of freezing today's price.
+    if (global.PackagePricing && original) {
+      var priceTokens = global.PackagePricing.tokens();
+      (String(original).match(/\{pkg_[a-z_]+\}/g) || []).forEach(function (tok) {
+        var val = priceTokens[tok.slice(1, -1)];
+        if (val) out = out.split(val).join(tok);
+      });
+    }
     // A block that was switched off for this lead (or deleted by hand) stays in
     // the template, so the next lead still gets the package and Link Tree lines.
     BLOCK_TOKENS.forEach(function (t, i) {

@@ -2,13 +2,13 @@
  * Post builder — library (lives in the admin tab): your designs, plus the
  * "New design" dialog: start from the services posts, a blank canvas, or a copy.
  */
-import { FORMATS, createDesign, duplicateDesign, normalizeDesign } from './model.js?v=pb3';
-import { esc } from './render.js?v=pb3';
-import { uiIcon } from './icons.js?v=pb3';
-import { openEditor } from './editor.js?v=pb3';
-import { renderThumb } from './export.js?v=pb3';
+import { FORMATS, createDesign, duplicateDesign, normalizeDesign } from './model.js?v=pb4';
+import { esc } from './render.js?v=pb4';
+import { uiIcon } from './icons.js?v=pb4';
+import { openEditor } from './editor.js?v=pb4';
+import { renderThumb } from './export.js?v=pb4';
 
-var STARTERS_URL = '/assets/js/post-builder/starters.json?v=pb3';
+var STARTERS_URL = '/assets/js/post-builder/starters.json?v=pb4';
 var startersPromise = null;
 
 function loadStarters() {
@@ -21,7 +21,24 @@ function loadStarters() {
       throw err;
     });
   }
-  return startersPromise;
+  return startersPromise.then(withPrices);
+}
+
+/**
+ * Starter text carries {pkg_*} tokens (see examples/instagram/services-dump.js);
+ * filled on every use so a price saved in the Pricing tab shows up at once.
+ */
+function withPrices(value) {
+  var PP = typeof window !== 'undefined' ? window.PackagePricing : null;
+  if (!PP) return value;
+  if (typeof value === 'string') return PP.fill(value);
+  if (Array.isArray(value)) return value.map(withPrices);
+  if (value && typeof value === 'object') {
+    var out = {};
+    Object.keys(value).forEach(function (k) { out[k] = withPrices(value[k]); });
+    return out;
+  }
+  return value;
 }
 
 function ago(ts) {

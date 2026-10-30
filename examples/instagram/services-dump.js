@@ -179,6 +179,32 @@
     };
   }
 
+  // The kit is measured with real prices (a token is far wider than a price),
+  // then the prices go back to {pkg_*} tokens, which the Post builder fills
+  // from the live prices when it loads a starter.
+  function tokenizePrices(value) {
+    var PP = window.PackagePricing;
+    if (!PP) return value;
+    var t = PP.tokens();
+    var pairs = ['pkg_starter_page', 'pkg_starter', 'pkg_growth', 'pkg_agency_k'].map(function (k) {
+      return { re: new RegExp(t[k].replace(/[$.*+?^{}()|[\]\\]/g, '\\$&') + '(?![\\d,]*\\d)', 'g'), token: '{' + k + '}', len: t[k].length };
+    }).sort(function (a, b) { return b.len - a.len; });
+    function walk(v) {
+      if (typeof v === 'string') {
+        pairs.forEach(function (p) { v = v.replace(p.re, p.token); });
+        return v;
+      }
+      if (Array.isArray(v)) return v.map(walk);
+      if (v && typeof v === 'object') {
+        var o = {};
+        Object.keys(v).forEach(function (k) { o[k] = walk(v[k]); });
+        return o;
+      }
+      return v;
+    }
+    return walk(value);
+  }
+
   function run() {
     var label = lang === 'es' ? 'ES' : 'EN';
     var result;
@@ -193,7 +219,7 @@
     var out = document.createElement('script');
     out.type = 'application/json';
     out.id = 'pb-dump';
-    out.textContent = JSON.stringify(result);
+    out.textContent = JSON.stringify(tokenizePrices(result));
     document.body.appendChild(out);
   }
 

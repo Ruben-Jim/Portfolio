@@ -122,11 +122,11 @@
     return plans;
   }
 
-  /** Tokens the services page strings use, e.g. {ess_annual}. */
+  /** Tokens the services page strings use, e.g. {ess_annual}, plus the {pkg_*} package prices. */
   function i18nVars() {
     var e = quote('essential'), s = quote('standard'), p = quote('priority');
     var promo = config.promo;
-    return {
+    return Object.assign(priceTokens(), {
       yearly_pct: pctLabel(e.pct),
       // Month-to-month prices (Services FAQ).
       ess_mo: money(e.monthly), std_mo: money(s.monthly), pri_mo: money(p.monthly),
@@ -144,7 +144,7 @@
       promo_ess: money(promoMonthly('essential')),
       promo_std: money(promoMonthly('standard')),
       promo_pri: money(promoMonthly('priority'))
-    };
+    });
   }
 
   function publishVars() {
@@ -170,6 +170,10 @@
     }
     applyToServicesPage();
     applyPackagesToPage();
+    // Titles and descriptions that quote a package price (seo.js).
+    if (window.CWR_SEO && typeof window.CWR_SEO.applyFromLocation === 'function' && typeof document !== 'undefined' && document.head) {
+      try { window.CWR_SEO.applyFromLocation(); } catch (e) { /* seo is best-effort */ }
+    }
     listeners.forEach(function (fn) {
       try { fn(config); } catch (e) { console.warn(e); }
     });
@@ -187,22 +191,45 @@
     });
   }
 
-  /** Reads /agencyPricing once per page. Falls back to defaults if offline. */
-  function load() {
-    if (loadPromise) return loadPromise;
-    loadPromise = waitForRtdb(15000).then(function (ok) {
+  function applyStored(raw) {
+    config = normalizeConfig(raw);
+    packageOffers = normalizeOffers(raw && raw.packageOffers);
+    applyPackagePrices(raw && raw.packagePrices);
+    notify();
+    return config;
+  }
+
+  function loadFromSdk() {
+    return waitForRtdb(15000).then(function (ok) {
       if (!ok) return config;
       return window.rtdbGet(window.rtdbRef(window.rtdb, PATH)).then(function (snap) {
-        var raw = snap && snap.val();
-        config = normalizeConfig(raw);
-        packageOffers = normalizeOffers(raw && raw.packageOffers);
-        notify();
-        return config;
+        return applyStored(snap && snap.val());
       }).catch(function (err) {
         console.warn('Care pricing: using defaults', err);
         return config;
       });
     });
+  }
+
+  // /agencyPricing is public-read, so pages without the Firebase SDK (Link
+  // Tree, the examples) and the SPA before Firebase boots read it over REST.
+  var DATABASE_URL = 'https://portfolio-2578e-default-rtdb.firebaseio.com';
+
+  function loadFromRest() {
+    var base = String((window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL) || DATABASE_URL).replace(/\/$/, '');
+    return window.fetch(base + '/' + PATH + '.json').then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(applyStored);
+  }
+
+  /** Reads /agencyPricing once per page. Falls back to defaults if offline. */
+  function load() {
+    if (loadPromise) return loadPromise;
+    var sdkReady = !!(window.rtdb && window.rtdbRef && window.rtdbGet);
+    loadPromise = !sdkReady && typeof window.fetch === 'function'
+      ? loadFromRest().catch(loadFromSdk)
+      : loadFromSdk();
     return loadPromise;
   }
 
@@ -223,11 +250,16 @@
   }
 
   // ——— Setup packages + limited-time offers ———
-  // Regular prices match llms.txt / the Services page. Offers live at
-  // /agencyPricing/packageOffers/<id> = { enabled, price, endsAt, spots, claimed }.
+  // Regular prices are edited in the admin Pricing tab and live at
+  // /agencyPricing/packagePrices/<id> = { price, max? }. The prices below are
+  // the defaults until that loads, and what every typed copy in the site files
+  // shows: `node scripts/sync-prices.mjs` rewrites them (and those copies) from
+  // the live prices, and the pre-push gate fails while they differ.
+  // Offers live at /agencyPricing/packageOffers/<id> = { enabled, price, endsAt, spots, claimed }.
 
   // `summary` is the one-line "what's included" used in outreach DMs. Keep it
   // in step with the package bullets in llms.txt and the Services page.
+  // sync-prices: begin defaults
   var PACKAGES = [
     { id: 'linktree', name: 'Link Tree', price: 99, max: 199, projectType: 'web', offerable: true,
       summary: 'a branded link-in-bio page with your logo, links, and social icons' },
@@ -244,12 +276,149 @@
     { id: 'studio', name: 'Studio Build', price: 15000, max: 40000, projectType: 'both', offerable: false,
       summary: 'a full custom platform, from quote to invoice, with recurring billing and multi-location' }
   ];
+  // sync-prices: end defaults
 
   var packageOffers = {};
 
   function packageById(id) {
     for (var i = 0; i < PACKAGES.length; i++) if (PACKAGES[i].id === id) return PACKAGES[i];
     return null;
+  }
+
+  // The prices the code (and so every typed copy in the files) ships with.
+  var DEFAULT_PRICES = {};
+  PACKAGES.forEach(function (p) {
+    DEFAULT_PRICES[p.id] = p.max ? { price: p.price, max: p.max } : { price: p.price };
+  });
+
+  /** A typed amount ("12,345", "$12345", 12345.4) as whole dollars; anything else → NaN. */
+  function wholeDollars(v) {
+    var n = Number(String(v == null ? '' : v).replace(/[$,\s]/g, ''));
+    return String(v == null ? '' : v).trim() === '' ? NaN : n;
+  }
+
+  /**
+   * Stored prices made safe to show: a missing or unusable price is the code
+   * default, a "to" at or below "from" is dropped rather than shown backwards,
+   * and only packages that are ranges by default carry a "to".
+   */
+  function normalizePrices(raw) {
+    var out = {};
+    PACKAGES.forEach(function (p) {
+      var d = DEFAULT_PRICES[p.id];
+      var o = (raw && raw[p.id]) || {};
+      var price = Math.round(wholeDollars(o.price));
+      if (!(price >= 1)) price = d.price;
+      var row = { price: price };
+      if (d.max) {
+        var max = o.max == null ? d.max : Math.round(wholeDollars(o.max));
+        if (max > price) row.max = max;
+      }
+      out[p.id] = row;
+    });
+    return out;
+  }
+
+  /** Writes prices onto the PACKAGES objects, so every reference stays live. */
+  function applyPackagePrices(raw) {
+    var clean = normalizePrices(raw);
+    PACKAGES.forEach(function (p) {
+      p.price = clean[p.id].price;
+      if (clean[p.id].max) p.max = clean[p.id].max;
+      else delete p.max;
+    });
+  }
+
+  /** What the admin is about to save, in plain words; empty when it's fine. */
+  function validatePricing(prices, offers) {
+    var errors = [];
+    PACKAGES.forEach(function (p) {
+      var row = (prices && prices[p.id]) || {};
+      var price = wholeDollars(row.price);
+      if (!(price >= 1)) {
+        errors.push(p.name + ': the price must be at least $1.');
+        return;
+      }
+      if (price !== Math.round(price)) {
+        errors.push(p.name + ': use whole dollars.');
+        return;
+      }
+      if (DEFAULT_PRICES[p.id].max) {
+        var max = wholeDollars(row.max);
+        if (!(max > price) || max !== Math.round(max)) {
+          errors.push(p.name + ': the "to" price must be a whole dollar amount above the "from" price.');
+        }
+      }
+      var o = offers && offers[p.id];
+      var offer = o ? wholeDollars(o.price) : NaN;
+      if (o && o.enabled && !(offer > 0 && offer < price)) {
+        errors.push(p.name + ': the offer price must be above $0 and below the regular price (' + money(price) + ').');
+      }
+    });
+    return errors;
+  }
+
+  /** Admin only: prices and offers in one write, so they never disagree. */
+  function savePricing(prices, offers) {
+    var cleanPrices = normalizePrices(prices);
+    var cleanOffers = normalizeOffers(offers);
+    return window.rtdbUpdate(window.rtdbRef(window.rtdb, PATH), {
+      packagePrices: cleanPrices,
+      packageOffers: cleanOffers,
+      updatedAt: Date.now()
+    }).then(function () {
+      applyPackagePrices(cleanPrices);
+      packageOffers = cleanOffers;
+      notify();
+      return cleanPrices;
+    });
+  }
+
+  /** Packages whose live price differs from the one the site files carry. */
+  function filesBehind() {
+    return PACKAGES.filter(function (p) {
+      var d = DEFAULT_PRICES[p.id];
+      return d.price !== p.price || (d.max || 0) !== (p.max || 0);
+    }).map(function (p) {
+      var d = DEFAULT_PRICES[p.id];
+      return { id: p.id, name: p.name, files: regularLabel(d), live: regularLabel(p) };
+    });
+  }
+
+  /**
+   * {pkg_*} tokens for i18n strings, templates and markers:
+   * pkg_<id> (the price), pkg_<id>_max and pkg_<id>_range for ranges ("from–to"),
+   * pkg_<id>_k shorthand ("6k"), and pkg_from, the cheapest website package.
+   */
+  function priceTokens() {
+    var out = {};
+    var from = Infinity;
+    PACKAGES.forEach(function (p) {
+      var key = 'pkg_' + p.id.replace(/-/g, '_');
+      out[key] = money(p.price);
+      out[key + '_k'] = moneyK(p.price);
+      out[key + '_range'] = regularLabel(p);
+      if (p.max) {
+        out[key + '_max'] = money(p.max);
+        out[key + '_max_k'] = moneyK(p.max);
+      }
+      if (p.id !== 'linktree') from = Math.min(from, p.price);
+    });
+    out.pkg_from = money(from);
+    return out;
+  }
+
+  /** Thousands as "k" with at most one decimal; under 1,000 it is just the price. */
+  function moneyK(n) {
+    if (n < 1000) return money(n);
+    return '$' + String(Math.round(n / 100) / 10) + 'k';
+  }
+
+  function fillPrices(text) {
+    var tokens = priceTokens();
+    return String(text == null ? '' : text).replace(/\{(pkg_[a-z_]+)\}/g, function (m, k) {
+      return tokens[k] != null ? tokens[k] : m;
+    });
   }
 
   function normalizeOffers(raw) {
@@ -332,8 +501,8 @@
 
   /**
    * What [package] / {{package}} becomes in a message, e.g.
-   * "our Multi-Page Package is $999" or
-   * "our Multi-Page Package is $499 (normally $999) until Oct 31".
+   * "our Multi-Page Package is <price>" or
+   * "our Multi-Page Package is <offer> (normally <price>) until Oct 31".
    */
   function packagePhrase(id) {
     var p = packageById(id);
@@ -346,7 +515,7 @@
     return 'our ' + withPackageWord(p.name) + ' ' + (p.max ? 'runs ' + regularLabel(p) : 'is ' + money(p.price));
   }
 
-  /** Dropdown label, e.g. "Multi-Page Package — $499 offer (normally $999)". */
+  /** Dropdown label, e.g. "Multi-Page Package — <offer> offer (normally <price>)". */
   function packageOptionLabel(id) {
     var p = packageById(id);
     if (!p) return '';
@@ -379,7 +548,19 @@
       el.innerHTML = priceHtml(id, lang);
       el.classList.toggle('has-package-offer', !!activeOffer(id));
     });
-    // "Choose $999 Package" → "Choose $499 Package" while an offer runs. The
+    // Typed copies marked with a template: "Starter Package ({pkg_starter_page}) demo".
+    // data-price-attr names an attribute to fill instead of the text (meta tags).
+    // Custom dropdowns are skipped: their owners rebuild options and label from
+    // the live prices, and rewriting a trigger label here could name the wrong
+    // package. scripts/sync-prices.mjs writes the same templates into the files.
+    document.querySelectorAll('[data-price-template]').forEach(function (el) {
+      if (el.closest('.business-doc-select')) return;
+      var text = fillPrices(el.getAttribute('data-price-template'));
+      var attr = el.getAttribute('data-price-attr');
+      if (attr) el.setAttribute(attr, text);
+      else el.textContent = text;
+    });
+    // "Choose <price> Package" → "Choose <offer> Package" while an offer runs. The
     // regular text comes from i18n, which re-renders before this runs.
     document.querySelectorAll('[data-package-cta]').forEach(function (el) {
       var p = packageById(el.getAttribute('data-package-cta'));
@@ -426,6 +607,13 @@
     priceHtml: priceHtml,
     applyToPage: applyPackagesToPage,
     save: savePackageOffers,
+    savePricing: savePricing,
+    normalizePrices: normalizePrices,
+    validatePricing: validatePricing,
+    filesBehind: filesBehind,
+    DEFAULT_PRICES: DEFAULT_PRICES,
+    tokens: priceTokens,
+    fill: fillPrices,
     claimSpot: claimPackageSpot,
     load: function () { return load(); }
   };

@@ -12,7 +12,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CodeWithRuben — Websites &amp; apps for any business</title>
-  <meta name="description" content="Fresno web &amp; mobile dev studio. Branded websites and iOS/Android apps for any business — packages from $499, maintenance from $44/mo." />
+  <meta name="description" content="Fresno web &amp; mobile dev studio. Branded websites and iOS/Android apps for any business — packages from $499, maintenance from $44/mo." data-price-template="Fresno web &amp; mobile dev studio. Branded websites and iOS/Android apps for any business — packages from {pkg_from}, maintenance from $44/mo." data-price-attr="content" />
   <link rel="canonical" href="https://rubenjimenez.dev/linktree" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://rubenjimenez.dev/linktree" />
@@ -518,18 +518,18 @@
       <p class="section-label" data-i18n="section.packages">What it costs</p>
       <div class="price-row">
         <a href="https://rubenjimenez.dev/services-pricing" class="price-card">
-          <span class="price-amount">$499</span>
+          <span class="price-amount" data-price-template="{pkg_starter_page}">$499</span>
           <span class="price-name" data-i18n="price.499.name">Website</span>
           <span class="price-note" data-i18n="price.499.note">1 page + owner admin</span>
         </a>
         <a href="https://rubenjimenez.dev/services-pricing" class="price-card">
-          <span class="price-amount">$1,500</span>
+          <span class="price-amount" data-price-template="{pkg_starter}">$1,500</span>
           <span class="price-name" data-i18n="price.1500.name">Website + app</span>
           <span class="price-note" data-i18n="price.1500.note">iOS + Android app</span>
         </a>
         <a href="https://rubenjimenez.dev/services-pricing" class="price-card is-popular">
           <span class="price-tag" data-i18n="price.popular">Most popular</span>
-          <span class="price-amount">$3,500</span>
+          <span class="price-amount" data-price-template="{pkg_growth}">$3,500</span>
           <span class="price-name" data-i18n="price.3500.name">Full platform</span>
           <span class="price-note" data-i18n="price.3500.note">Booking, payments + crew</span>
         </a>
@@ -686,12 +686,13 @@
     - language toggle (shares localStorage['cwr-lang'] with the main site, so the
       choice carries over both ways). Spanish copy mirrors assets/js/i18n.js.
   -->
+  <script src="/assets/js/care-pricing.js?v=pricing-20261029"></script>
   <script>
     (function () {
       var DICT = {
         en: {
           'meta.title': 'CodeWithRuben — Websites & apps for any business',
-          'meta.desc': 'Fresno web & mobile dev studio. Branded websites and iOS/Android apps for any business — packages from $499, maintenance from $44/mo.',
+          'meta.desc': 'Fresno web & mobile dev studio. Branded websites and iOS/Android apps for any business — packages from {pkg_from}, maintenance from $44/mo.',
           'profile.title': 'Web & Mobile Dev Studio · Fresno, CA',
           'profile.bio': 'Websites and iOS/Android apps for any business, team or creator — built around how you actually work.',
           'status.taking': 'Taking new projects',
@@ -722,7 +723,7 @@
         },
         es: {
           'meta.title': 'CodeWithRuben — Sitios web y apps para cualquier negocio',
-          'meta.desc': 'Estudio de desarrollo web y móvil en Fresno. Sitios web y apps iOS/Android con tu marca — paquetes desde $499, mantenimiento desde $44/mes.',
+          'meta.desc': 'Estudio de desarrollo web y móvil en Fresno. Sitios web y apps iOS/Android con tu marca — paquetes desde {pkg_from}, mantenimiento desde $44/mes.',
           'profile.title': 'Estudio de desarrollo web y móvil · Fresno, CA',
           'profile.bio': 'Sitios web y apps iOS/Android para cualquier negocio, equipo o creador — hechos para cómo trabajas de verdad.',
           'status.taking': 'Aceptando proyectos',
@@ -753,12 +754,17 @@
         }
       };
 
+      // {pkg_*} prices come from care-pricing.js (live from the admin Pricing tab).
+      var fill = function (v) { return window.PackagePricing ? window.PackagePricing.fill(v) : v; };
+      var currentLang = 'en';
+
       function apply(lang) {
         var d = DICT[lang] || DICT.en;
+        currentLang = lang;
         document.documentElement.lang = lang;
         document.querySelectorAll('[data-i18n]').forEach(function (n) {
           var v = d[n.getAttribute('data-i18n')];
-          if (v != null) n.textContent = v;
+          if (v != null) n.textContent = fill(v);
         });
         document.querySelectorAll('[data-i18n-title]').forEach(function (n) {
           var v = d[n.getAttribute('data-i18n-title')];
@@ -766,7 +772,7 @@
         });
         document.title = d['meta.title'];
         var desc = document.querySelector('meta[name="description"]');
-        if (desc) desc.setAttribute('content', d['meta.desc']);
+        if (desc) desc.setAttribute('content', fill(d['meta.desc']));
         document.querySelectorAll('.lang-toggle button').forEach(function (b) {
           b.classList.toggle('is-on', b.getAttribute('data-lang') === lang);
         });
@@ -777,6 +783,8 @@
       var saved = null;
       try { saved = localStorage.getItem('cwr-lang'); } catch (e) {}
       apply(param === 'es' || param === 'en' ? param : (saved === 'es' ? 'es' : 'en'));
+
+      if (window.CarePricing) window.CarePricing.onChange(function () { apply(currentLang); });
 
       var toggle = document.querySelector('.lang-toggle');
       if (toggle) toggle.addEventListener('click', function (e) {

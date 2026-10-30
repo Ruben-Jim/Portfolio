@@ -1,9 +1,9 @@
 /**
  * Post builder — "Slides" pane: live mini previews, switch, add, duplicate, reorder, delete.
  */
-import { FORMATS, MAX_SLIDES, clone } from './model.js?v=pb3';
-import { renderSlide, layoutSlide } from './render.js?v=pb3';
-import { uiIcon } from './icons.js?v=pb3';
+import { FORMATS, MAX_SLIDES, clone } from './model.js?v=pb4';
+import { renderSlide, layoutSlide } from './render.js?v=pb4';
+import { uiIcon } from './icons.js?v=pb4';
 
 var THUMB_W = 120;
 var THUMB_W_WIDE = 190;

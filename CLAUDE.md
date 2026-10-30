@@ -28,5 +28,5 @@ CWR's marketing site, plus the admin hub (pipeline CRM, DM inbox, blog/portfolio
 - **Ask first:** any `firebase deploy` (follow the deploy order in the security file). The site goes live when Ruben pushes.
 
 ### Business
-- Pricing source of truth: `services-pricing/` + `llms.txt`
+- Package prices are edited in the admin **Pricing** tab (`/agencyPricing/packagePrices`) and are live at once. After a change, run `node scripts/sync-prices.mjs` before pushing: it rewrites `llms.txt`, the shells and the code defaults, and preflight blocks the push until it has run. Never hand-type a package price; use a `{pkg_*}` token or `data-price-template` (`scripts/lib/prices.mjs`). A figure that isn't a package price goes in `scripts/price-allowlist.json`. Care-plan monthly prices are still fixed in `care-pricing.js`.
 - Portfolio entry copy: follow `.cursor/rules/portfolio-scan.mdc` (plain business language)

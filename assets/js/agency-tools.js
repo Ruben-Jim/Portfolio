@@ -22,7 +22,8 @@
     {
       id: 'link-tree',
       name: 'Link Tree',
-      price: '$99+',
+      // {pkg_*}: fill with PackagePricing.fill() wherever this is shown.
+      price: '{pkg_linktree}+',
       industries: ['lawn', 'landscaping', 'home-service', 'barber', 'salon', 'beauty', 'ecommerce', 'retail', 'shop'],
       description: 'Branded Instagram/TikTok bio link page with stacked action links and social icons.'
     },
@@ -1937,12 +1938,31 @@
     out.textContent = text;
   }
 
-  // ——— Package offers (limited-time price per setup package) ———
+  // ——— Package prices + offers (Pricing tab) ———
+  // Regular prices and limited-time offers save together; see care-pricing.js.
   function renderPackageOffersTable() {
     var table = document.getElementById('package-offers-table');
     var PP = window.PackagePricing;
     if (!table || !PP) return;
-    var rows = PP.PACKAGES.filter(function (p) { return p.offerable; }).map(function (p) {
+    var rows = PP.PACKAGES.map(function (p) {
+      var range = !!PP.DEFAULT_PRICES[p.id].max;
+      var priceCell =
+        '<td class="package-offers-regular-cell"><div class="package-offers-price' + (range ? ' is-range' : '') + '">' +
+        '<input class="form-input" type="number" min="1" step="1" data-field="regular" value="' + p.price + '" aria-label="' +
+        esc(p.name) + (range ? ' price from' : ' regular price') + '">' +
+        (range
+          ? '<span aria-hidden="true">to</span><input class="form-input" type="number" min="1" step="1" data-field="regularMax" value="' +
+            (p.max || '') + '" aria-label="' + esc(p.name) + ' price to">'
+          : '') +
+        '</div></td>';
+      if (!p.offerable) {
+        return (
+          '<tr data-package="' + esc(p.id) + '">' +
+          '<th scope="row">' + esc(p.name) + '</th>' + priceCell +
+          '<td class="package-offers-na" colspan="6">Scoped per client, so no limited-time offer</td>' +
+          '</tr>'
+        );
+      }
       var o = PP.offers[p.id] || {};
       var live = PP.activeOffer(p.id);
       var status = live
@@ -1952,7 +1972,7 @@
           : 'Off';
       return (
         '<tr data-package="' + esc(p.id) + '">' +
-        '<th scope="row">' + esc(p.name) + '<span class="package-offers-regular">' + esc(PP.regularLabel(p)) + '</span></th>' +
+        '<th scope="row">' + esc(p.name) + '</th>' + priceCell +
         '<td><label class="package-offers-on"><input type="checkbox" data-field="enabled"' + (o.enabled ? ' checked' : '') + '> On</label></td>' +
         '<td><input class="form-input" type="number" min="1" step="1" data-field="price" placeholder="Offer $" value="' + (o.price || '') + '" aria-label="' + esc(p.name) + ' offer price"></td>' +
         '<td><input class="form-input" type="date" data-field="endsAt" value="' + esc(o.endsAt || '') + '" aria-label="' + esc(p.name) + ' offer end date"></td>' +
@@ -1963,17 +1983,22 @@
       );
     }).join('');
     table.innerHTML =
-      '<thead><tr><th scope="col">Package</th><th scope="col">On</th><th scope="col">Offer price</th><th scope="col">Ends</th><th scope="col">Spots</th><th scope="col">Claimed</th><th scope="col">Status</th></tr></thead>' +
+      '<thead><tr><th scope="col">Package</th><th scope="col">Regular price</th><th scope="col">Offer</th><th scope="col">Offer price</th><th scope="col">Ends</th><th scope="col">Spots</th><th scope="col">Claimed</th><th scope="col">Status</th></tr></thead>' +
       '<tbody>' + rows + '</tbody>';
+    renderPackageFilesNotice();
   }
 
-  function readPackageOffersTable() {
-    var out = {};
+  function readPackagePricingTable() {
     var PP = window.PackagePricing;
+    var prices = {};
+    var offers = {};
     document.querySelectorAll('#package-offers-table tbody tr').forEach(function (tr) {
       var id = tr.getAttribute('data-package');
       var get = function (f) { return tr.querySelector('[data-field="' + f + '"]'); };
-      out[id] = {
+      prices[id] = { price: get('regular').value };
+      if (get('regularMax')) prices[id].max = get('regularMax').value;
+      if (!get('enabled')) return;
+      offers[id] = {
         enabled: !!get('enabled').checked,
         price: get('price').value,
         endsAt: get('endsAt').value,
@@ -1981,9 +2006,23 @@
         claimed: get('claimed').value
       };
     });
-    // Keep stored values for packages not shown (non-offerable).
-    if (PP) Object.keys(PP.offers).forEach(function (id) { if (!out[id]) out[id] = PP.offers[id]; });
-    return out;
+    // Packages without offer inputs keep whatever is stored for them.
+    if (PP) Object.keys(PP.offers).forEach(function (id) { if (!offers[id]) offers[id] = PP.offers[id]; });
+    return { prices: prices, offers: offers };
+  }
+
+  /** The site files carry the prices the code shipped with; say when they're behind. */
+  function renderPackageFilesNotice() {
+    var el = document.getElementById('package-files-notice');
+    var PP = window.PackagePricing;
+    if (!el || !PP || typeof PP.filesBehind !== 'function') return;
+    var behind = PP.filesBehind();
+    el.hidden = !behind.length;
+    el.innerHTML = behind.length
+      ? 'Live on the site now. The site files (llms.txt and the text search engines read) still show ' +
+        behind.map(function (b) { return esc(b.name) + ' ' + esc(b.files) + ' (live: ' + esc(b.live) + ')'; }).join(', ') +
+        '. Before your next push, run <code>node scripts/sync-prices.mjs</code>.'
+      : '';
   }
 
   function initPackageOffersSettings() {
@@ -1996,21 +2035,26 @@
     var feedback = document.getElementById('package-offers-feedback');
     if (!btn) return;
     btn.addEventListener('click', async function () {
-      var next = readPackageOffersTable();
-      var bad = Object.keys(next).filter(function (id) {
-        var p = window.PackagePricing.packageById(id);
-        return next[id].enabled && p && !(Number(next[id].price) > 0 && Number(next[id].price) < p.price);
-      });
-      if (bad.length) {
-        if (feedback) feedback.textContent = 'An offer price must be above $0 and below the regular price (' + bad.join(', ') + ').';
+      var PP = window.PackagePricing;
+      var next = readPackagePricingTable();
+      var errors = PP.validatePricing(next.prices, next.offers);
+      if (errors.length) {
+        if (feedback) feedback.textContent = errors.join(' ');
         return;
       }
+      var before = PP.PACKAGES.map(function (p) { return { id: p.id, name: p.name, price: p.price, max: p.max || 0 }; });
       btn.disabled = true;
       if (feedback) feedback.textContent = 'Saving…';
       try {
-        await window.PackagePricing.save(next);
+        await PP.savePricing(next.prices, next.offers);
         renderPackageOffersTable();
-        if (feedback) feedback.textContent = 'Offers saved — live on the site, scripts and proposals.';
+        if (feedback) {
+          feedback.textContent = PP.filesBehind().length
+            ? 'Saved. Live on the site, scripts and proposals now; the site files update on your next push.'
+            : 'Saved. Live on the site, scripts and proposals.';
+        }
+        var changes = priceChanges(before, PP);
+        if (changes.length) openPackageContentReview(changes).catch(console.error);
       } catch (err) {
         console.error(err);
         if (feedback) feedback.textContent = (err && err.message) || 'Save failed.';
@@ -2018,6 +2062,179 @@
         btn.disabled = false;
       }
     });
+    var review = document.getElementById('package-content-review');
+    if (review && !review.dataset.bound) {
+      review.dataset.bound = '1';
+      review.addEventListener('click', function (e) {
+        if (e.target.closest('[data-review-apply]')) applyPackageContentReview().catch(console.error);
+        else if (e.target.closest('[data-review-skip]')) closePackageContentReview();
+      });
+      review.addEventListener('change', function () {
+        var n = review.querySelectorAll('[data-review-hit]:checked').length;
+        var apply = review.querySelector('[data-review-apply]');
+        if (apply) {
+          apply.disabled = !n;
+          apply.textContent = 'Update ' + n + (n === 1 ? ' line' : ' lines');
+        }
+      });
+    }
+  }
+
+  // ——— Old prices in saved content ———
+  // Scripts and drafts are Ruben's own text in the database, so no file sync
+  // reaches them. After a price change, every old figure found there is listed
+  // for him to tick; only ticked ones change. [package] text follows the live
+  // price already, so it never appears here.
+  var PRICE_CONTENT_SOURCES = [
+    { path: 'agencyOutreachScripts', kind: 'Outreach script', fields: ['text', 'subject', 'email', 'call'], title: 'label' },
+    { path: 'agencyEmailDrafts', kind: 'Email draft', fields: ['subject', 'message'], title: 'subject' }
+  ];
+  var packageContentReview = null;
+
+  /** [{ name, from, to }] for every regular figure that changed in this save. */
+  function priceChanges(before, PP) {
+    var out = [];
+    before.forEach(function (b) {
+      var p = PP.packageById(b.id);
+      if (!p) return;
+      if (p.price !== b.price) out.push({ name: b.name, from: b.price, to: p.price });
+      if (b.max && p.max && p.max !== b.max) out.push({ name: b.name, from: b.max, to: p.max });
+    });
+    return out;
+  }
+
+  /** The figure with or without its thousands comma, not part of a bigger number or "k" shorthand. */
+  function oldPricePattern(amount) {
+    var digits = Number(amount).toLocaleString('en-US').replace(/,/g, ',?');
+    return new RegExp('\\$' + digits + '(?![\\d,]*\\d|k)', 'g');
+  }
+
+  function hitContext(text, start, end, replacement) {
+    var from = Math.max(0, text.lastIndexOf('\n', start - 1) + 1, start - 60);
+    var lineEnd = text.indexOf('\n', end);
+    var to = Math.min(lineEnd === -1 ? text.length : lineEnd, end + 60);
+    var lead = (from > 0 && text[from - 1] !== '\n' ? '…' : '') + text.slice(from, start);
+    var tail = text.slice(end, to) + (to < text.length && text[to] !== '\n' ? '…' : '');
+    return { lead: lead, old: text.slice(start, end), next: replacement, tail: tail };
+  }
+
+  async function findOldPricesInContent(changes) {
+    var hits = [];
+    for (var s = 0; s < PRICE_CONTENT_SOURCES.length; s++) {
+      var src = PRICE_CONTENT_SOURCES[s];
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, src.path));
+      var rows = (snap && snap.val()) || {};
+      Object.keys(rows).forEach(function (id) {
+        var row = rows[id] || {};
+        src.fields.forEach(function (field) {
+          var text = row[field];
+          if (typeof text !== 'string' || !text) return;
+          changes.forEach(function (c) {
+            var re = oldPricePattern(c.from);
+            var m;
+            while ((m = re.exec(text))) {
+              hits.push({
+                path: src.path + '/' + id,
+                kind: src.kind,
+                title: String(row[src.title] || row.name || id),
+                field: field,
+                index: m.index,
+                length: m[0].length,
+                replacement: money(c.to),
+                pkg: c.name,
+                context: hitContext(text, m.index, m.index + m[0].length, money(c.to))
+              });
+            }
+          });
+        });
+      });
+    }
+    return hits;
+  }
+
+  function money(n) {
+    return window.CarePricing ? window.CarePricing.money(n) : '$' + Number(n || 0).toLocaleString('en-US');
+  }
+
+  async function openPackageContentReview(changes) {
+    var box = document.getElementById('package-content-review');
+    if (!box || !rtdbReady()) return;
+    var hits = await findOldPricesInContent(changes);
+    packageContentReview = { hits: hits };
+    if (!hits.length) {
+      closePackageContentReview();
+      return;
+    }
+    box.hidden = false;
+    box.innerHTML =
+      '<p class="package-content-review-head">Your saved scripts and drafts still mention the old price</p>' +
+      '<p class="care-pricing-admin-lead">Untick anything that isn\'t that package\'s price, like an agency comparison. Only ticked lines change.</p>' +
+      '<ul class="package-content-review-list">' +
+      hits
+        .map(function (h, i) {
+          return (
+            '<li><label>' +
+            '<input type="checkbox" data-review-hit="' + i + '" checked>' +
+            '<span class="package-content-review-where">' + esc(h.kind) + ' · ' + esc(h.title) + ' · ' + esc(h.field) + ' · ' + esc(h.pkg) + '</span>' +
+            '<span class="package-content-review-line">' + esc(h.context.lead) +
+            '<del>' + esc(h.context.old) + '</del> <ins>' + esc(h.context.next) + '</ins>' + esc(h.context.tail) + '</span>' +
+            '</label></li>'
+          );
+        })
+        .join('') +
+      '</ul>' +
+      '<div class="care-pricing-admin-actions">' +
+      '<button type="button" class="btn btn-primary btn-sm" data-review-apply>Update ' + hits.length + (hits.length === 1 ? ' line' : ' lines') + '</button>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-review-skip>Leave them</button>' +
+      '</div>';
+  }
+
+  function closePackageContentReview() {
+    var box = document.getElementById('package-content-review');
+    packageContentReview = null;
+    if (!box) return;
+    box.hidden = true;
+    box.innerHTML = '';
+  }
+
+  /** Applies the ticked hits, last first per field so earlier positions stay valid. */
+  async function applyPackageContentReview() {
+    var box = document.getElementById('package-content-review');
+    if (!box || !packageContentReview) return;
+    var picked = Array.prototype.map.call(box.querySelectorAll('[data-review-hit]:checked'), function (el) {
+      return packageContentReview.hits[Number(el.getAttribute('data-review-hit'))];
+    });
+    if (!picked.length) return;
+    var byRecord = {};
+    picked.forEach(function (h) {
+      (byRecord[h.path] = byRecord[h.path] || []).push(h);
+    });
+    var paths = Object.keys(byRecord);
+    for (var i = 0; i < paths.length; i++) {
+      var path = paths[i];
+      var snap = await window.rtdbGet(window.rtdbRef(window.rtdb, path));
+      var row = (snap && snap.val()) || {};
+      var patch = { updatedAt: ts() };
+      var fields = {};
+      byRecord[path].forEach(function (h) {
+        (fields[h.field] = fields[h.field] || []).push(h);
+      });
+      Object.keys(fields).forEach(function (field) {
+        var text = String(row[field] || '');
+        fields[field]
+          .sort(function (a, b) { return b.index - a.index; })
+          .forEach(function (h) {
+            // Skip a spot that changed since it was listed rather than clobber it.
+            var current = text.slice(h.index, h.index + h.length);
+            if (current !== h.context.old) return;
+            text = text.slice(0, h.index) + h.replacement + text.slice(h.index + h.length);
+          });
+        patch[field] = text;
+      });
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, path), patch);
+    }
+    closePackageContentReview();
+    window.CwrUI.toast('Updated ' + picked.length + (picked.length === 1 ? ' line' : ' lines') + ' in your saved scripts and drafts.', { tone: 'success' });
   }
 
   function initCarePricingSettings() {

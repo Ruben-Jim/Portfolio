@@ -1,0 +1,64 @@
+{
+  "about": "Dollar figures that match a package price but are not one. scripts/lib/prices.mjs skips a figure when this exact text surrounds it (in that file, when a file is given; a file ending in / means everything under it). Anything else typed outside a price marker fails the pre-push check.",
+  "allow": [
+    {
+      "text": "$1,500 Turn-Key = Branding + 1 Custom Form only",
+      "why": "old Turn-Key note in the admin playbook, not a package"
+    },
+    {
+      "text": "Base Turn-Key: $1,500",
+      "why": "old Turn-Key note in the admin playbook, not a package"
+    },
+    {
+      "text": "Under ~$1,500",
+      "why": "matcher budget bracket a visitor picks"
+    },
+    {
+      "text": "~$1,500 – $2,750",
+      "why": "matcher budget bracket a visitor picks"
+    },
+    {
+      "text": "Typical range: $500 – $1,500 (base template)",
+      "file": "assets/js/agency-tools.js",
+      "why": "matcher typical-range note"
+    },
+    {
+      "text": "Typical range: $1,500 – $2,750 (customized build)",
+      "file": "assets/js/agency-tools.js",
+      "why": "matcher typical-range note"
+    },
+    {
+      "text": "$8,000–$15,000",
+      "why": "Ownership Upgrade (buyout) range, not a package"
+    },
+    {
+      "text": "$8,000&ndash;$15,000",
+      "why": "Ownership Upgrade (buyout) range in the Services FAQ"
+    },
+    {
+      "text": "$8,000\\u2013$15,000",
+      "file": "assets/js/i18n.js",
+      "why": "Ownership Upgrade (buyout) range in the FAQ strings"
+    },
+    {
+      "text": "$15,000–$40,000 from an agency",
+      "file": "assets/js/outreach-scripts-seed.js",
+      "why": "what an agency charges, the comparison in the pitch"
+    },
+    {
+      "text": "buyNowLabel: 'Buy Now: $1,500'",
+      "file": "assets/js/portfolio-built-in-data.js",
+      "why": "Shelton Springs HOA template's own buy price, one of several per-project template prices ($500, $2,000)"
+    },
+    {
+      "text": "usually run $15k–$40k",
+      "file": "assets/js/outreach-scripts-seed.js",
+      "why": "what an agency charges, the comparison in the pitch"
+    },
+    {
+      "text": "usually run $15k to $40k",
+      "file": "assets/js/outreach-scripts-seed.js",
+      "why": "what an agency charges, the comparison in the pitch"
+    }
+  ]
+}

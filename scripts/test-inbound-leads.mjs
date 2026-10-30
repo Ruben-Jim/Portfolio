@@ -94,6 +94,21 @@ await upsertInboundLead(db, await eventFromMessage(db, 'C3', { senderRole: 'cust
 const lee = leads().find(([, l]) => l.email === 'lee@x.com')[1];
 ok(lee.value === 999 && !lee.packageOfferPrice, 'expired offer falls back to the regular price');
 
+// A regular price edited in the Pricing tab sets the value, and an offer
+// counts against it (here $3,700 is only an offer because Growth is now $3,900).
+data.agencyPricing.packagePrices = { growth: { price: 3900 } };
+setAt('dm/meta/C4', { customerName: 'Gus', customerEmail: 'gus@x.com' });
+await upsertInboundLead(db, await eventFromMessage(db, 'C4', { senderRole: 'customer', source: 'hire-me', package_id: 'growth' }), NOW);
+const gus = leads().find(([, l]) => l.email === 'gus@x.com')[1];
+ok(gus.value === 3900 && !gus.packageOfferPrice, 'live regular price from /agencyPricing/packagePrices');
+data.agencyPricing.packageOffers.growth = { enabled: true, price: 3700 };
+setAt('dm/meta/C5', { customerName: 'Ivy', customerEmail: 'ivy@x.com' });
+await upsertInboundLead(db, await eventFromMessage(db, 'C5', { senderRole: 'customer', source: 'hire-me', package_id: 'growth' }), NOW);
+const ivy = leads().find(([, l]) => l.email === 'ivy@x.com')[1];
+ok(ivy.value === 3700 && ivy.packageOfferPrice === 3700, 'an offer below the new regular price applies');
+delete data.agencyPricing.packageOffers.growth;
+delete data.agencyPricing.packagePrices;
+
 // Manual "Convert to lead" from the DM inbox (Hire Me / contact no longer auto-convert).
 data.agencyPricing.packageOffers.website.endsAt = '2026-11-09';
 setAt('dm/meta/C9', { customerName: 'Ana', customerEmail: 'ana@shop.com' });

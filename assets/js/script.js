@@ -4267,7 +4267,7 @@ function collectPortfolioDetailSectionsFromDom() {
   return out.slice(0, 8);
 }
 
-/** Pricing packages a starter template can have a live demo for (site ids; 'starter' = Website + App $1,500). */
+/** Pricing packages a starter template can have a live demo for (site ids; 'starter' = the Website + App Package). */
 var PORTFOLIO_TEMPLATE_DEMO_PACKAGES = ['starter-page', 'website', 'starter', 'growth'];
 
 /** Keep only https demo URLs for known packages. */
@@ -7345,10 +7345,10 @@ function portfolioPlanBuyTargets(record) {
   if (typeof HIRE_ME_PACKAGES === 'undefined') return null;
   var id = getPortfolioPricingPackage(record);
   var idx = PORTFOLIO_PLAN_LADDER.indexOf(id);
-  var pkg = HIRE_ME_PACKAGES[id];
+  var pkg = hireMePackage(id);
   if (idx < 0 || !pkg) return null;
   var nextId = PORTFOLIO_PLAN_LADDER[idx + 1];
-  var next = nextId ? HIRE_ME_PACKAGES[nextId] : null;
+  var next = nextId ? hireMePackage(nextId) : null;
   return {
     buyId: id,
     buyLabel: 'Buy ' + portfolioPlanName(pkg) + ': ' + portfolioPlanPriceText(pkg),
@@ -7362,7 +7362,7 @@ var PRICING_PACKAGE_STATIC_EXAMPLES = {
     {
       id: 'static-linktree-99',
       title: 'Ruiz Lawn Care',
-      exampleHint: '$99 · Foundation',
+      exampleHint: '{pkg_linktree} · Foundation',
       exampleUrl: '/assets/templates/client-linktree/99/index.html'
     },
     {
@@ -7374,7 +7374,7 @@ var PRICING_PACKAGE_STATIC_EXAMPLES = {
     {
       id: 'static-linktree-199',
       title: 'ProCleaning Seattle',
-      exampleHint: '$199+ · Premium',
+      exampleHint: '{pkg_linktree_max}+ · Premium',
       exampleUrl: '/assets/templates/client-linktree/199/index.html'
     },
     {
@@ -8033,7 +8033,9 @@ function initPackageExamplesSheet() {
             ? portfolioCoverImageUrl(p)
             : urls[0] || p.imageUrl || '';
         var alt = p.imageAlt || p.title || '';
-        var hint = p.exampleHint || cwrText('services.examples_open', 'Open details');
+        var hint = p.exampleHint
+          ? (window.PackagePricing ? window.PackagePricing.fill(p.exampleHint) : p.exampleHint)
+          : cwrText('services.examples_open', 'Open details');
         return (
           '<li>' +
           '<button type="button" class="package-examples-item" data-examples-index="' +
@@ -8532,7 +8534,7 @@ var HIRE_ME_PACKAGES = {
   linktree: {
     id: 'linktree',
     pill: 'Link Tree',
-    price: '$99 – $199',
+    price: '{pkg_linktree} – {pkg_linktree_max}',
     bannerNote: 'Branded bio link · ~3–5 days · One revision round · Hosting setup help',
     heroLabel: 'Link Tree package',
     heroTitle: 'Your one link for',
@@ -8547,17 +8549,17 @@ var HIRE_ME_PACKAGES = {
       { title: 'Go live', desc: 'Shareable URL plus hosting setup help.' }
     ],
     formTitle: 'Start Link Tree',
-    formLead: 'Tell me about your business and which links matter most — I\'ll confirm fit for the $99–$199 range.',
+    formLead: 'Tell me about your business and which links matter most — I\'ll confirm fit for the {pkg_linktree_range} range.',
     projectType: 'Link Tree — Bio link page',
-    budget: '$99 – $199',
+    budget: '{pkg_linktree} – {pkg_linktree_max}',
     message:
-      'Interested in a Link Tree ($99–$199). I need a branded bio link page for Instagram/TikTok with my links and brand colors.',
+      'Interested in a Link Tree ({pkg_linktree_range}). I need a branded bio link page for Instagram/TikTok with my links and brand colors.',
     messagePlaceholder: 'What should visitors do from your bio link, and which links belong on the page?'
   },
   'starter-page': {
     id: 'starter-page',
     pill: 'Starter Package',
-    price: '$499 fixed',
+    price: '{pkg_starter_page} fixed',
     bannerNote: 'One public page + owner admin · ~1 week · 1 month maintenance included',
     heroLabel: 'Starter Package',
     heroTitle: 'Launch with a',
@@ -8573,17 +8575,17 @@ var HIRE_ME_PACKAGES = {
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
     formTitle: 'Start Starter Package',
-    formLead: 'Tell me about your business — I\'ll confirm fit for the $499 Starter Package (one page + admin).',
+    formLead: 'Tell me about your business — I\'ll confirm fit for the {pkg_starter_page} Starter Package (one page + admin).',
     projectType: 'Starter Package — one page + admin',
-    budget: '$499',
+    budget: '{pkg_starter_page}',
     message:
-      'Interested in Starter Package ($499). I need one public page plus an owner admin for quotes, messages, a simple job list, and editing the page myself. English and Spanish. No phone app.',
+      'Interested in Starter Package ({pkg_starter_page}). I need one public page plus an owner admin for quotes, messages, a simple job list, and editing the page myself. English and Spanish. No phone app.',
     messagePlaceholder: 'What does your business do, and what should customers do on the page?'
   },
   website: {
     id: 'website',
     pill: 'Multi-Page Package',
-    price: '$999 fixed',
+    price: '{pkg_website} fixed',
     bannerNote: '1–3 pages + owner admin · ~1–2 weeks · 1 month maintenance included',
     heroLabel: 'Multi-Page Package',
     heroTitle: 'Launch with a',
@@ -8599,17 +8601,17 @@ var HIRE_ME_PACKAGES = {
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
     formTitle: 'Start Multi-Page Package',
-    formLead: 'Tell me about your business and what the site should do — I\'ll confirm fit for the $999 website + admin package.',
+    formLead: 'Tell me about your business and what the site should do — I\'ll confirm fit for the {pkg_website} website + admin package.',
     projectType: 'Multi-Page Package',
-    budget: '$999',
+    budget: '{pkg_website}',
     message:
-      'Interested in the Multi-Page Package ($999). I need a branded 1–3 page site plus owner admin (quotes, inbox, jobs) with gallery, bilingual copy, and hosting — no phone app.',
+      'Interested in the Multi-Page Package ({pkg_website}). I need a branded 1–3 page site plus owner admin (quotes, inbox, jobs) with gallery, bilingual copy, and hosting — no phone app.',
     messagePlaceholder: 'What does your business do, and what should customers do on the website?'
   },
   starter: {
     id: 'starter',
     pill: 'Website + App Package',
-    price: '$1,500 fixed',
+    price: '{pkg_starter} fixed',
     bannerNote: 'Website + iOS/Android · quotes & chat · ~2–3 weeks · 1 month maintenance included',
     heroLabel: 'Website + App Package',
     heroTitle: 'Launch with',
@@ -8625,17 +8627,17 @@ var HIRE_ME_PACKAGES = {
       { title: 'First month support', desc: 'Maintenance included for 30 days post-launch.' }
     ],
     formTitle: 'Start Website + App Package',
-    formLead: 'Tell me about your business — I\'ll confirm fit for the $1,500 Website + App package.',
+    formLead: 'Tell me about your business — I\'ll confirm fit for the {pkg_starter} Website + App package.',
     projectType: 'Website + App Package',
-    budget: '$1,500',
+    budget: '{pkg_starter}',
     message:
-      'Interested in the Website + App Package ($1,500). I need a branded site for customers plus iOS/Android for the team (quotes and chat, not full admin).',
+      'Interested in the Website + App Package ({pkg_starter}). I need a branded site for customers plus iOS/Android for the team (quotes and chat, not full admin).',
     messagePlaceholder: 'What does your business do, and who on the team needs the phone app?'
   },
   growth: {
     id: 'growth',
     pill: 'Growth Package',
-    price: '$3,500 fixed',
+    price: '{pkg_growth} fixed',
     bannerNote: 'Website + iOS/Android + admin · 3–4 weeks · 1 month maintenance included',
     heroLabel: 'Growth Package',
     heroTitle: 'Run the business with',
@@ -8651,17 +8653,17 @@ var HIRE_ME_PACKAGES = {
       { title: 'Launch + month 1', desc: 'Stores, hosting, and maintenance included.' }
     ],
     formTitle: 'Start Growth Package',
-    formLead: 'Share how jobs, crews, and payments work today — I\'ll confirm scope for the $3,500 Growth Package.',
+    formLead: 'Share how jobs, crews, and payments work today — I\'ll confirm scope for the {pkg_growth} Growth Package.',
     projectType: 'Growth Package',
-    budget: '$3,500',
+    budget: '{pkg_growth}',
     message:
-      'Interested in the Growth Package ($3,500) — website for customers, iOS/Android staff app, and admin for leads, jobs, Stripe, crew, and Tap to Pay.',
+      'Interested in the Growth Package ({pkg_growth}) — website for customers, iOS/Android staff app, and admin for leads, jobs, Stripe, crew, and Tap to Pay.',
     messagePlaceholder: 'How do jobs get booked, assigned, and paid today?'
   },
   agency: {
     id: 'agency',
     pill: 'Agency Build · Website + App',
-    price: '$6k – $12k',
+    price: '{pkg_agency_k} – {pkg_agency_max_k}',
     bannerNote: 'Website + mobile · Scoped after discovery · 1 month maintenance included',
     heroLabel: 'Agency Build · Discovery',
     heroTitle: 'Book your',
@@ -8671,7 +8673,7 @@ var HIRE_ME_PACKAGES = {
     timelineLabel: 'After discovery — typical path',
     timelineSteps: [
       { title: 'Discovery call', desc: '15–30 min to map ops, users, and priorities.' },
-      { title: 'Scope & proposal', desc: 'Fixed milestones and investment range ($6k–$12k).' },
+      { title: 'Scope & proposal', desc: 'Fixed milestones and investment range ({pkg_agency_k}–{pkg_agency_max_k}).' },
       { title: 'Design & build', desc: 'Web + mobile with regular check-ins.' },
       { title: 'Test with your team', desc: 'Crew workflows, payments, and admin review.' },
       { title: 'Launch & support', desc: 'Go-live plus one month maintenance.' }
@@ -8679,7 +8681,7 @@ var HIRE_ME_PACKAGES = {
     formTitle: 'Book Discovery — Agency Build',
     formLead: 'Share your operations and timeline — we\'ll use the discovery call to scope the Business Platform tier.',
     projectType: 'Agency Build — Business Platform (Website + App)',
-    budget: '$6,000 – $12,000',
+    budget: '{pkg_agency} – {pkg_agency_max}',
     message:
       'Interested in an Agency Build (Business Platform — Website + App). I need web + mobile for field crews, payments, and admin — ready for a discovery call to scope investment.',
     messagePlaceholder: 'Describe your team workflow, customers, and must-have features for day one.',
@@ -8690,13 +8692,13 @@ var HIRE_ME_PACKAGES = {
       { icon: 'people-outline', text: 'Who uses the app — owners, crews, and customers' },
       { icon: 'card-outline', text: 'Payments, bookings, and job assignment flows' },
       { icon: 'phone-portrait-outline', text: 'Web + iOS + Android from one shared codebase' },
-      { icon: 'calendar-outline', text: 'Timeline, milestones, and investment range ($6k–$12k)' }
+      { icon: 'calendar-outline', text: 'Timeline, milestones, and investment range ({pkg_agency_k}–{pkg_agency_max_k})' }
     ]
   },
   studio: {
     id: 'studio',
     pill: 'Studio Build · Website + App',
-    price: '$15k – $40k',
+    price: '{pkg_studio_k} – {pkg_studio_max_k}',
     bannerNote: 'Full field-service platform · Custom scope · 1 month maintenance included',
     heroLabel: 'Studio Build · Discovery',
     heroTitle: 'Scope your',
@@ -8706,7 +8708,7 @@ var HIRE_ME_PACKAGES = {
     timelineLabel: 'Studio engagement — typical path',
     timelineSteps: [
       { title: 'Deep discovery', desc: 'Ops map, integrations, and phased rollout plan.' },
-      { title: 'Architecture & proposal', desc: 'Custom scope with milestone pricing ($15k–$40k).' },
+      { title: 'Architecture & proposal', desc: 'Custom scope with milestone pricing ({pkg_studio_k}–{pkg_studio_max_k}).' },
       { title: 'Phased build', desc: 'Core ops first, then billing, automation, and polish.' },
       { title: 'UAT with your team', desc: 'Field testing, admin training, and data migration.' },
       { title: 'Launch & hypercare', desc: 'Production cutover plus first month support.' }
@@ -8714,7 +8716,7 @@ var HIRE_ME_PACKAGES = {
     formTitle: 'Start Discovery — Studio Build',
     formLead: 'Outline your field operations and scale — we\'ll shape a Studio Build proposal after discovery.',
     projectType: 'Studio Build — Field Operations (Website + App)',
-    budget: '$15,000 – $40,000',
+    budget: '{pkg_studio} – {pkg_studio_max}',
     message:
       'Interested in a Studio Build (Website + App). I need a full field-service platform (crews, quotes, invoicing, subscriptions, admin) — ready to start discovery for custom scope.',
     messagePlaceholder: 'What operations do you run today, and what should the platform own end-to-end?',
@@ -8725,10 +8727,32 @@ var HIRE_ME_PACKAGES = {
       { icon: 'construct-outline', text: 'Field teams, job pipeline, and back-office automation' },
       { icon: 'document-text-outline', text: 'Estimates, invoices, subscriptions, and customer comms' },
       { icon: 'git-network-outline', text: 'Integrations, multi-location rules, and reporting needs' },
-      { icon: 'rocket-outline', text: 'Phased rollout, timeline, and investment range ($15k–$40k)' }
+      { icon: 'rocket-outline', text: 'Phased rollout, timeline, and investment range ({pkg_studio_k}–{pkg_studio_max_k})' }
     ]
   }
 };
+
+/**
+ * A Hire Me package with its {pkg_*} prices filled from the live prices
+ * (care-pricing.js), nested timeline and discovery copy included. Read
+ * packages through this, not HIRE_ME_PACKAGES[id], or a token shows raw.
+ */
+function hireMePackage(id) {
+  var pkg = HIRE_ME_PACKAGES[id];
+  if (!pkg) return null;
+  var fill = window.PackagePricing && window.PackagePricing.fill;
+  function walk(v) {
+    if (typeof v === 'string') return fill ? fill(v) : v;
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === 'object') {
+      var out = {};
+      Object.keys(v).forEach(function (k) { out[k] = walk(v[k]); });
+      return out;
+    }
+    return v;
+  }
+  return walk(pkg);
+}
 
 function getHireMePackageFromSearch() {
   try {
@@ -9176,7 +9200,7 @@ function applyHireMePackageView(packageId) {
     article.classList.remove('hire-me--package-' + id);
   });
 
-  var config = packageId && HIRE_ME_PACKAGES[packageId] ? HIRE_ME_PACKAGES[packageId] : null;
+  var config = packageId && HIRE_ME_PACKAGES[packageId] ? hireMePackage(packageId) : null;
   var view = config || HIRE_ME_GENERIC;
   var isPackage = !!config;
 
@@ -9230,7 +9254,7 @@ function applyHireMePackageView(packageId) {
   if (formLead) {
     var leadText = view.formLead;
     if (hireOffer) {
-      // Ranges ($99–$199) are replaced whole, fixed prices ($999) as-is.
+      // Ranges (from–to) are replaced whole, fixed prices as-is.
       var regularMoney = window.PackagePricing.regularLabel(window.PackagePricing.packageById(packageId));
       leadText = leadText.split(regularMoney).join(window.CarePricing.money(hireOffer.price) + ' limited-time');
     }
@@ -12697,7 +12721,7 @@ window.addEventListener('load', function() {
     var pitch = getDemoPitch(demo);
     var companyName = isDemo ? nextRaw || 'your company' : 'your project';
     var siteUrl = displaySiteUrl(els.siteUrl && els.siteUrl.value);
-    // "our Multi-Page Package is $999" (or the live offer wording).
+    // "our Multi-Page Package is <price>" (or the live offer wording).
     var packageId = isDemo && els.package ? String(els.package.value || '') : '';
     var packageText = packageId && window.PackagePricing ? window.PackagePricing.packagePhrase(packageId) : '';
     return {
@@ -20513,11 +20537,11 @@ window.addEventListener('load', function() {
     var MOBILE_ORDER_KEY = 'adminMobileTabOrder';
     var PRIMARY_SLOT_COUNT = 4;
     var DEFAULT_ORDER = [
-      'overview', 'crm-hub', 'content-hub', 'outreach', 'prospects', 'ops', 'referrals', 'studio-costs'
+      'overview', 'crm-hub', 'content-hub', 'outreach', 'pricing', 'prospects', 'ops', 'referrals', 'studio-costs'
     ];
     var VALID_TAB = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
-      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1, outreach: 1, prospects: 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1, outreach: 1, pricing: 1, prospects: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, 'social-proof': 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
@@ -21330,7 +21354,7 @@ window.addEventListener('load', function() {
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, 'social-proof': 1, blog: 1, portfolio: 1, pipeline: 1,
-      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1, outreach: 1, prospects: 1
+      'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1, outreach: 1, pricing: 1, prospects: 1
     };
     var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, 'social-proof': 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };

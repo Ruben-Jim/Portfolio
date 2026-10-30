@@ -1,7 +1,7 @@
 /**
  * Post builder — "Add" pane: everything you can drop onto a slide.
  */
-import { uiIcon, iconSvg, ICONS } from './icons.js?v=pb3';
+import { uiIcon, iconSvg, ICONS } from './icons.js?v=pb4';
 
 var GROUPS = [
   {

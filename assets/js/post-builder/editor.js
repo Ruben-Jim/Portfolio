@@ -8,15 +8,15 @@
  *
  * Panels (add, style, layers, slides) talk to the editor through `ctx` only.
  */
-import { FORMATS, TILE_NAMES, MAX_SLIDES, createElement, createSlide, duplicateElement, duplicateSlide, sizingOf, clone, slugify } from './model.js?v=pb3';
-import { createHistory } from './history.js?v=pb3';
-import { renderSlide, layoutSlide, layoutElement, applyBox, renderElement, ensureFonts } from './render.js?v=pb3';
-import { uiIcon } from './icons.js?v=pb3';
-import { renderAddPane } from './panel-add.js?v=pb3';
-import { renderStylePane, syncStyleBox } from './panel-props.js?v=pb3';
-import { renderLayersPane } from './panel-layers.js?v=pb3';
-import { renderSlidesPane } from './panel-slides.js?v=pb3';
-import * as exporter from './export.js?v=pb3';
+import { FORMATS, TILE_NAMES, MAX_SLIDES, createElement, createSlide, duplicateElement, duplicateSlide, sizingOf, clone, slugify } from './model.js?v=pb4';
+import { createHistory } from './history.js?v=pb4';
+import { renderSlide, layoutSlide, layoutElement, applyBox, renderElement, ensureFonts } from './render.js?v=pb4';
+import { uiIcon } from './icons.js?v=pb4';
+import { renderAddPane } from './panel-add.js?v=pb4';
+import { renderStylePane, syncStyleBox } from './panel-props.js?v=pb4';
+import { renderLayersPane } from './panel-layers.js?v=pb4';
+import { renderSlidesPane } from './panel-slides.js?v=pb4';
+import * as exporter from './export.js?v=pb4';
 
 var moveablePromise = null;
 var PHONE_MQ = '(max-width: 900px)';
