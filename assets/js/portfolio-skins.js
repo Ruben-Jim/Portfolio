@@ -2,12 +2,16 @@
  * Portfolio skins — pure rules shared by the public card, the popup tabs and
  * the admin Skins section. A platform is a template project; its skins are
  * projects with builtFromTemplateId pointing at it.
+ * A skin is a demo (an industry version visitors can open: its own projectUrl)
+ * or a client (a real business on the platform: shown, never linked). An
+ * unmarked skin is a client, so nothing opens until admin marks it a demo.
  * Browser: window.PortfolioSkins. Node (tests): module.exports.
  */
 (function (root) {
   'use strict';
 
   var MAX_LABEL = 40;
+  var MAX_BLURB = 120;
   // Same test as portfolioIsVideoUrl in script.js.
   var VIDEO_RE = /\.(?:mp4|webm|mov)(?:\?|$)/i;
   var DOC_RE = /\.md(?:\?|$)/i;
@@ -87,6 +91,60 @@
       });
   }
 
+  function kindOf(record) {
+    return record && record.skinKind === 'demo' ? 'demo' : 'client';
+  }
+
+  /** A real http(s) link, or ''. */
+  function cleanLink(v) {
+    var s = String(v == null ? '' : v).trim();
+    return /^https?:\/\/[^\s"'<>]+$/i.test(s) ? s.slice(0, 2000) : '';
+  }
+
+  function cleanBlurb(v) {
+    return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, MAX_BLURB);
+  }
+
+  /** The link a demo opens; clients and demos without a link get ''. */
+  function demoLinkFor(record) {
+    return kindOf(record) === 'demo' ? cleanLink(record.projectUrl) : '';
+  }
+
+  /**
+   * What the popup shows for a tab: blurb and live button. The platform tab
+   * keeps the platform's link; a skin tab never falls back to it.
+   */
+  function tabInfo(platform, record, isPlatform, platformLiveUrl) {
+    if (isPlatform) {
+      return { blurb: cleanBlurb(platform && platform.skinBlurb), liveUrl: platformLiveUrl || '', liveLabel: '', isClient: false };
+    }
+    var link = demoLinkFor(record);
+    return {
+      blurb: cleanBlurb(record && record.skinBlurb),
+      liveUrl: link,
+      liveLabel: link ? 'Open ' + labelFor(record, false) + ' demo' : '',
+      isClient: kindOf(record) === 'client'
+    };
+  }
+
+  function plural(n, one, many) {
+    return n + ' ' + (n === 1 ? one : many);
+  }
+
+  /** "2 industry demos · 1 live business" for the card badge and the popup line. */
+  function buildsSummary(skins) {
+    var demos = 0;
+    var clients = 0;
+    (skins || []).forEach(function (s) {
+      if (kindOf(s) === 'demo') demos += 1;
+      else clients += 1;
+    });
+    var parts = [];
+    if (demos) parts.push(plural(demos, 'industry demo', 'industry demos'));
+    if (clients) parts.push(plural(clients, 'live business', 'live businesses'));
+    return { demos: demos, clients: clients, text: parts.join(' · ') };
+  }
+
   /** What a skin save may write — nothing else on the skin is ever touched. */
   function skinPatch(fields) {
     fields = fields || {};
@@ -94,17 +152,26 @@
     if ('skinLabel' in fields) out.skinLabel = cleanLabel(fields.skinLabel);
     if ('skinOrder' in fields) out.skinOrder = orderNumber(fields.skinOrder);
     if ('coverImageUrl' in fields) out.coverImageUrl = String(fields.coverImageUrl || '');
+    if ('skinKind' in fields) out.skinKind = fields.skinKind === 'demo' ? 'demo' : 'client';
+    if ('skinBlurb' in fields) out.skinBlurb = cleanBlurb(fields.skinBlurb);
+    if ('projectUrl' in fields) out.projectUrl = cleanLink(fields.projectUrl);
     return out;
   }
 
   var api = {
     MAX_LABEL: MAX_LABEL,
+    MAX_BLURB: MAX_BLURB,
     isVideoUrl: isVideoUrl,
     isAllowedCover: isAllowedCover,
     coverChoices: coverChoices,
     labelFor: labelFor,
     orderSkins: orderSkins,
-    skinPatch: skinPatch
+    skinPatch: skinPatch,
+    kindOf: kindOf,
+    cleanLink: cleanLink,
+    demoLinkFor: demoLinkFor,
+    tabInfo: tabInfo,
+    buildsSummary: buildsSummary
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.PortfolioSkins = api;

@@ -131,3 +131,21 @@ Below the rows:
 - Merging skins into the platform record.
 - Renaming the live demo app or its address.
 - Creating skin records from the Skins section directly (Add skin uses the normal new-project form).
+
+## Addendum 2026-10-31: demo vs client, each vertical's own link
+
+Decided in chat (Ruben): tapping a vertical tab swaps the pictures, a one-line
+blurb, and the live button, which opens **that vertical's** link (never the
+platform's); client builds are shown but never linked; builds live only inside
+the platform's card; admin nests builds under their platform.
+
+- New fields: `skinKind` (`demo` | `client`, missing = client) and `skinBlurb`
+  (max 120). A demo's link is its own `projectUrl`. Rules in
+  `portfolio-skins.js`: `kindOf`, `demoLinkFor`, `tabInfo`, `buildsSummary`.
+- Existing builds start as Client (Ruben's call); he marks demos in the
+  platform's Skins section, which now has Shows as / Live link (suggests the
+  8 Trades template demo links) / Blurb. A client's saved link is kept, unshown.
+- Popup line and card badge: "2 industry demos · 1 live business"; the "live
+  businesses" list shows clients only. A vertical still needs pictures to show.
+- A build's own editor hides "Show on public Portfolio page" and says where it
+  shows.

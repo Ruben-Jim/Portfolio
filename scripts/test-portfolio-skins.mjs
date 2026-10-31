@@ -44,3 +44,33 @@ ok(JSON.stringify(Object.keys(patch).sort()) === '["coverImageUrl","skinLabel","
 ok(patch.skinLabel === 'Barber Shop' && patch.skinOrder === 20, 'patch cleans label and order');
 ok(S.skinPatch({ skinOrder: 'abc' }).skinOrder === null, 'bad order becomes null');
 ok(JSON.stringify(S.skinPatch({ skinLabel: 'x' })) === '{"skinLabel":"x"}', 'only fields that were passed come out');
+
+// ── Demo vs client, each vertical's own link (2026-10-31) ──
+ok(S.kindOf({}) === 'client' && S.kindOf({ skinKind: 'nope' }) === 'client', 'an unmarked build is a client (nothing opens by accident)');
+ok(S.kindOf({ skinKind: 'demo' }) === 'demo', 'a build marked demo is a demo');
+ok(S.demoLinkFor({ skinKind: 'demo', projectUrl: ' https://carpet.expo.app ' }) === 'https://carpet.expo.app', "a demo opens its own link");
+ok(S.demoLinkFor({ skinKind: 'client', projectUrl: 'https://rizopizzeria.com' }) === '', 'a client never gets a link');
+ok(S.demoLinkFor({ skinKind: 'demo', projectUrl: '#' }) === '' && S.demoLinkFor({ skinKind: 'demo', projectUrl: 'javascript:alert(1)' }) === '', 'only real http(s) links count');
+
+const plat = { title: 'Trade Services Platform', skinBlurb: 'Roof cleaning out of the box.' };
+const carpet = { title: 'Masters Carpet', skinLabel: 'Carpet Cleaning', skinKind: 'demo', projectUrl: 'https://carpet.expo.app', skinBlurb: 'Book a carpet clean in two taps.' };
+const t0 = S.tabInfo(plat, plat, true, 'https://tradeservice.expo.app');
+ok(t0.liveUrl === 'https://tradeservice.expo.app' && t0.liveLabel === '' && t0.blurb === 'Roof cleaning out of the box.', 'the platform tab keeps the platform link');
+const t1 = S.tabInfo(plat, carpet, false, 'https://tradeservice.expo.app');
+ok(t1.liveUrl === 'https://carpet.expo.app' && t1.liveLabel === 'Open Carpet Cleaning demo', "a demo tab opens that vertical's demo, never the platform's");
+ok(t1.blurb === 'Book a carpet clean in two taps.' && !t1.isClient, 'a demo tab shows its blurb');
+const t2 = S.tabInfo(plat, { title: 'Tree', skinKind: 'demo' }, false, 'https://tradeservice.expo.app');
+ok(t2.liveUrl === '', 'a demo without a link hides the button (no fallback to the platform)');
+const t3 = S.tabInfo(plat, { title: 'Rizo', projectUrl: 'https://rizopizzeria.com' }, false, 'https://x.expo.app');
+ok(t3.liveUrl === '' && t3.isClient, 'a client tab has no link');
+
+ok(S.buildsSummary([]).text === '', 'no builds: no line');
+ok(S.buildsSummary([carpet, { skinKind: 'demo' }, {}]).text === '2 industry demos · 1 live business', 'line counts demos and live businesses');
+ok(S.buildsSummary([carpet]).text === '1 industry demo', 'one demo only');
+ok(S.buildsSummary([{}, {}]).text === '2 live businesses', 'clients only');
+
+const p2 = S.skinPatch({ skinKind: 'demo', skinBlurb: '  Book   a clean  ', projectUrl: ' https://carpet.expo.app ' });
+ok(p2.skinKind === 'demo' && p2.skinBlurb === 'Book a clean' && p2.projectUrl === 'https://carpet.expo.app', 'patch cleans kind, blurb and link');
+ok(S.skinPatch({ skinKind: 'x' }).skinKind === 'client', 'an unknown kind saves as client');
+ok(S.skinPatch({ skinBlurb: 'y'.repeat(200) }).skinBlurb.length === 120, 'blurb capped at 120');
+ok(S.skinPatch({ projectUrl: 'not a link' }).projectUrl === '', 'a bad link saves as empty');

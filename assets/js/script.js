@@ -4323,6 +4323,9 @@ function portfolioSanitizeDocumentPayload(data) {
     // Short label on the card slide / popup tab, and position among a platform's skins.
     skinLabel: window.PortfolioSkins.skinPatch({ skinLabel: data.skinLabel }).skinLabel,
     skinOrder: window.PortfolioSkins.skinPatch({ skinOrder: data.skinOrder }).skinOrder,
+    // A build is a demo (opens its own projectUrl from the platform's popup) or a client (never linked).
+    skinKind: window.PortfolioSkins.skinPatch({ skinKind: data.skinKind }).skinKind,
+    skinBlurb: window.PortfolioSkins.skinPatch({ skinBlurb: data.skinBlurb }).skinBlurb,
     imageAlt: String(data.imageAlt != null ? data.imageAlt : '').slice(0, 200),
     description: String(data.description != null ? data.description : '').slice(0, 8000),
     techTags: portfolioParseTechTags(data.techTags),
@@ -5098,19 +5101,14 @@ function portfolioRenderCardCoverHtml(p, alt) {
 function portfolioRenderBuildsBadgeHtml(p) {
   var builds = getPortfolioDerivedBuilds(p);
   if (!builds.length) return '';
+  var summary = window.PortfolioSkins.buildsSummary(builds).text;
   return (
-    '<span class="project-builds-badge" title="' +
-    portfolioEscapeHtml(
-      builds.length === 1
-        ? '1 business is built on this platform'
-        : builds.length + ' businesses are built on this platform'
-    ) +
-    '">' +
+    '<span class="project-builds-badge" title="' + portfolioEscapeHtml(summary) + '">' +
     '<ion-icon name="layers-outline" aria-hidden="true"></ion-icon>' +
     '<span class="project-builds-badge-count">' +
     builds.length +
     '</span>' +
-    '<span class="sr-only"> businesses built on this platform</span>' +
+    '<span class="sr-only"> ' + portfolioEscapeHtml(summary) + '</span>' +
     '</span>'
   );
 }
@@ -5206,7 +5204,9 @@ function renderPublicPortfolioProjects() {
     renderPortfolioLoadError(ul);
     return;
   }
-  const list = getEffectivePortfolioProjects();
+  const list = getEffectivePortfolioProjects().filter(function (p) {
+    return !portfolioLivesInPlatformCard(p);
+  });
   ul.innerHTML = '';
   if (!list.length) {
     ul.innerHTML =
@@ -5239,7 +5239,10 @@ function syncAdminPortfolioLocalBanner() {
 }
 
 function getAdminPortfolioVisibilityGroups() {
-  const sorted = portfolioProjectsRtdb.slice().sort(comparePortfolioProjectsByOrder);
+  // Builds of a platform are listed under it (buildAdminPortfolioBuildsHtml).
+  const sorted = portfolioProjectsRtdb
+    .filter(function (p) { return !portfolioLivesInPlatformCard(p, portfolioProjectsRtdb); })
+    .sort(comparePortfolioProjectsByOrder);
   return {
     publicProjects: sorted.filter(isPortfolioPublic),
     privateProjects: sorted.filter(function (p) {
@@ -5248,7 +5251,53 @@ function getAdminPortfolioVisibilityGroups() {
   };
 }
 
+/** A platform's demos and client builds, under its row: they only show inside its card. */
+function buildAdminPortfolioBuildsHtml(platform) {
+  var id = String(platform.id);
+  var builds = window.PortfolioSkins.orderSkins(portfolioProjectsRtdb.filter(function (p) {
+    return p && String(p.builtFromTemplateId || '') === id;
+  }));
+  var rows = builds.map(function (b) {
+    var kind = window.PortfolioSkins.kindOf(b);
+    var link = window.PortfolioSkins.demoLinkFor(b);
+    var label = window.PortfolioSkins.labelFor(b, false);
+    var thumb = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(b) || b.imageUrl);
+    return (
+      '<li class="admin-portfolio-build">' +
+      (thumb ? '<img class="admin-portfolio-build-thumb" src="' + portfolioEscapeHtml(thumb) + '" alt="" loading="lazy">' : '<span class="admin-portfolio-build-thumb" aria-hidden="true"></span>') +
+      '<span class="admin-portfolio-build-text">' +
+      '<span class="admin-portfolio-build-name">' + portfolioEscapeHtml(label) +
+      (label !== (b.title || '') && b.title ? ' <span class="admin-portfolio-build-title">' + portfolioEscapeHtml(b.title) + '</span>' : '') +
+      '</span>' +
+      '<span class="admin-portfolio-build-meta">' +
+      '<span class="admin-portfolio-badge admin-portfolio-badge--' + kind + '">' + (kind === 'demo' ? 'Demo' : 'Client') + '</span>' +
+      '<span class="admin-portfolio-build-link">' +
+      (kind === 'client' ? 'Never linked' : link ? '↗ ' + portfolioEscapeHtml(link.replace(/^https?:\/\//, '').replace(/\/$/, '')) : 'No link') +
+      '</span>' +
+      (!portfolioImageUrlsFromRecord(b).length ? '<span class="admin-portfolio-build-link is-warn">No images — not shown</span>' : '') +
+      '</span></span>' +
+      '<button type="button" class="btn btn-secondary btn-sm" data-edit-portfolio="' + portfolioEscapeHtml(b.id) + '">Edit</button>' +
+      '</li>'
+    );
+  }).join('');
+  return (
+    '<div class="admin-portfolio-builds" data-portfolio-builds-of="' + portfolioEscapeHtml(id) + '">' +
+    '<p class="admin-portfolio-builds-head">' +
+    (builds.length ? builds.length + (builds.length === 1 ? ' build' : ' builds') + ' inside this card' : 'No builds yet') +
+    '</p>' +
+    (rows ? '<ul class="admin-portfolio-builds-list">' + rows + '</ul>' : '') +
+    '<button type="button" class="btn btn-secondary btn-sm admin-portfolio-builds-add" data-portfolio-add-build="' + portfolioEscapeHtml(id) + '">+ Add build</button>' +
+    '</div>'
+  );
+}
+
 function buildAdminPortfolioRowHtml(p, listPosition, groupKey) {
+  const row = buildAdminPortfolioSingleRowHtml(p, listPosition, groupKey);
+  if (p.isTemplate !== true) return row;
+  return '<div class="admin-portfolio-platform-group">' + row + buildAdminPortfolioBuildsHtml(p) + '</div>';
+}
+
+function buildAdminPortfolioSingleRowHtml(p, listPosition, groupKey) {
   const cat = String(p.category || 'professional').toLowerCase();
   const catClass =
     cat === 'templates' || cat === 'creative' || cat === 'professional' ? cat : 'professional';
@@ -5590,6 +5639,20 @@ var portfolioFormCoverUrl = '';
 // section edits the label; order only changes from a platform's Skins section).
 var portfolioFormSkinLabel = '';
 var portfolioFormSkinOrder = null;
+// Demo / client and the one-line blurb under the popup tabs (portfolio-skins.js).
+var portfolioFormSkinKind = '';
+var portfolioFormSkinBlurb = '';
+// Demo links of the Trades template's verticals, suggested in each skin's Live link box.
+var PORTFOLIO_SKIN_LINK_SUGGESTIONS = [
+  { url: 'https://tradeservice.expo.app', label: 'Roof cleaning' },
+  { url: 'https://carpet.expo.app', label: 'Carpet cleaning' },
+  { url: 'https://squirreltreeservice.expo.app', label: 'Tree service' },
+  { url: 'https://sunergyelectricservices.expo.app', label: 'Electrician' },
+  { url: 'https://pawshine.expo.app', label: 'Pet groomer' },
+  { url: 'https://generalcontractor.expo.app', label: 'General contractor' },
+  { url: 'https://partyrentals.expo.app', label: 'Event rentals' },
+  { url: 'https://valleyhaul.expo.app', label: 'Junk removal' }
+];
 
 function renderPortfolioFormImagesList(urls) {
   const list = document.getElementById('portfolio-project-images-list');
@@ -5756,7 +5819,8 @@ function serializePortfolioProjectFormState() {
     images: typeof getPortfolioFormImageUrlsFromDom === 'function' ? getPortfolioFormImageUrlsFromDom() : [],
     cover: portfolioFormCoverUrl,
     skinLabel: portfolioFormSkinLabel,
-    skins: portfolioSkinsForm.rows.map(function (r) { return [r.id, r.label, r.order, r.cover]; }),
+    skinBlurb: portfolioFormSkinBlurb,
+    skins: portfolioSkinsForm.rows.map(function (r) { return [r.id, r.label, r.order, r.cover, r.kind, r.link, r.blurb]; }),
     sections: typeof collectPortfolioDetailSectionsFromDom === 'function'
       ? collectPortfolioDetailSectionsFromDom()
       : []
@@ -5799,19 +5863,31 @@ function portfolioSkinsLoad(platform) {
         order: window.PortfolioSkins.skinPatch({ skinOrder: p.skinOrder }).skinOrder,
         cover: portfolioExplicitCoverUrl(p),
         urls: portfolioImageUrlsFromRecord(p),
-        isPrivate: !isPortfolioPublic(p)
+        kind: window.PortfolioSkins.kindOf(p),
+        link: String(p.projectUrl || ''),
+        blurb: String(p.skinBlurb || '')
       };
-      row.original = { label: row.label, order: row.order, cover: row.cover };
+      row.original = { label: row.label, order: row.order, cover: row.cover, kind: row.kind, link: row.link, blurb: row.blurb };
       return row;
     })
   };
 }
 
-/** Rows whose label, order or cover differ from what was loaded. */
+var PORTFOLIO_SKIN_FIELDS = ['label', 'order', 'cover', 'kind', 'link', 'blurb'];
+
+/** Rows where any Skins-section field differs from what was loaded. */
 function portfolioSkinsChangedRows() {
   return portfolioSkinsForm.rows.filter(function (r) {
-    return r.label !== r.original.label || r.order !== r.original.order || r.cover !== r.original.cover;
+    return PORTFOLIO_SKIN_FIELDS.some(function (k) { return r[k] !== r.original[k]; });
   });
+}
+
+function portfolioSkinLinkSuggestionsHtml() {
+  return '<datalist id="portfolio-skin-link-suggestions">' +
+    PORTFOLIO_SKIN_LINK_SUGGESTIONS.map(function (s) {
+      return '<option value="' + portfolioEscapeHtml(s.url) + '" label="' + portfolioEscapeHtml(s.label) + '"></option>';
+    }).join('') +
+    '</datalist>';
 }
 
 function portfolioSkinCoverOptionsHtml(urls, current) {
@@ -5855,12 +5931,15 @@ function renderPortfolioSkinsSection() {
     '<select class="form-input" data-skin-platform-cover>' +
     portfolioSkinCoverOptionsHtml(formUrls, portfolioFormCoverUrl) +
     '</select></label>' +
+    '<label class="portfolio-skin-field portfolio-skin-field--wide">Blurb' +
+    '<input type="text" class="form-input" id="portfolio-project-skin-blurb" maxlength="120" placeholder="One line under the tabs" value="' +
+    portfolioEscapeHtml(portfolioFormSkinBlurb) + '"></label>' +
     '</div></li>';
 
   html += portfolioSkinsForm.rows.map(function (r, i) {
     var src = r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls });
     var chips =
-      (r.isPrivate ? '<span class="portfolio-skin-chip">Private</span>' : '') +
+      '<span class="portfolio-skin-chip' + (r.kind === 'demo' ? ' is-demo' : '') + '">' + (r.kind === 'demo' ? 'Demo' : 'Client') + '</span>' +
       (!r.urls.length ? '<span class="portfolio-skin-chip is-warn">No images yet — not on the card</span>' : '');
     return (
       '<li class="portfolio-skin-row" data-skin-row="' + portfolioEscapeHtml(r.id) + '">' +
@@ -5873,6 +5952,17 @@ function renderPortfolioSkinsSection() {
       portfolioEscapeHtml(r.title) + '" value="' + portfolioEscapeHtml(r.label) + '"></label>' +
       '<label class="portfolio-skin-field">Cover' +
       '<select class="form-input" data-skin-cover>' + portfolioSkinCoverOptionsHtml(r.urls, r.cover) + '</select></label>' +
+      '<label class="portfolio-skin-field">Shows as' +
+      '<select class="form-input" data-skin-kind>' +
+      '<option value="demo"' + (r.kind === 'demo' ? ' selected' : '') + '>Demo · opens its link</option>' +
+      '<option value="client"' + (r.kind === 'client' ? ' selected' : '') + '>Client · no link</option>' +
+      '</select></label>' +
+      '<label class="portfolio-skin-field"' + (r.kind === 'demo' ? '' : ' hidden') + '>Live link' +
+      '<input type="url" class="form-input" data-skin-link list="portfolio-skin-link-suggestions" maxlength="2000" placeholder="https://….expo.app" value="' +
+      portfolioEscapeHtml(r.link) + '"></label>' +
+      '<label class="portfolio-skin-field portfolio-skin-field--wide">Blurb' +
+      '<input type="text" class="form-input" data-skin-blurb maxlength="120" placeholder="One line under the tabs" value="' +
+      portfolioEscapeHtml(r.blurb) + '"></label>' +
       '</div>' +
       '<div class="portfolio-skin-move">' +
       '<button type="button" class="btn btn-secondary btn-sm" data-skin-up aria-label="Move ' +
@@ -5884,7 +5974,7 @@ function renderPortfolioSkinsSection() {
       '</div></li>'
     );
   }).join('');
-  list.innerHTML = html;
+  list.innerHTML = html + portfolioSkinLinkSuggestionsHtml();
   renderPortfolioSkinsPreview();
 }
 
@@ -5930,10 +6020,19 @@ function bindPortfolioSkinsSection() {
       renderPortfolioSkinsPreview();
       return;
     }
+    if (e.target.id === 'portfolio-project-skin-blurb') {
+      portfolioFormSkinBlurb = e.target.value;
+      return;
+    }
     var row = rowOf(e.target);
-    if (row && e.target.hasAttribute('data-skin-label')) {
+    if (!row) return;
+    if (e.target.hasAttribute('data-skin-label')) {
       row.label = e.target.value;
       renderPortfolioSkinsPreview();
+    } else if (e.target.hasAttribute('data-skin-link')) {
+      row.link = e.target.value.trim();
+    } else if (e.target.hasAttribute('data-skin-blurb')) {
+      row.blurb = e.target.value;
     }
   });
   list.addEventListener('change', function (e) {
@@ -5946,6 +6045,9 @@ function bindPortfolioSkinsSection() {
     var row = rowOf(e.target);
     if (row && e.target.hasAttribute('data-skin-cover')) {
       row.cover = e.target.value;
+      renderPortfolioSkinsSection();
+    } else if (row && e.target.hasAttribute('data-skin-kind')) {
+      row.kind = e.target.value === 'demo' ? 'demo' : 'client';
       renderPortfolioSkinsSection();
     }
   });
@@ -5994,13 +6096,16 @@ async function savePortfolioSkinRows() {
   var rows = portfolioSkinsChangedRows();
   for (var i = 0; i < rows.length; i++) {
     var r = rows[i];
-    var patch = window.PortfolioSkins.skinPatch({ skinLabel: r.label, skinOrder: r.order, coverImageUrl: r.cover });
+    var fields = { skinLabel: r.label, skinOrder: r.order, coverImageUrl: r.cover, skinKind: r.kind, skinBlurb: r.blurb };
+    // The link is only written when it was edited, so a client's saved link stays put.
+    if (r.link !== r.original.link) fields.projectUrl = r.link;
+    var patch = window.PortfolioSkins.skinPatch(fields);
     try {
       await window.rtdbUpdate(window.rtdbRef(window.rtdb, 'portfolioProjects/' + r.id), patch);
       // Keep the loaded copy current: the skin's own editor saves from it.
       var rec = portfolioProjectsRtdb.find(function (p) { return String(p.id) === r.id; });
       if (rec) Object.assign(rec, patch);
-      r.original = { label: r.label, order: r.order, cover: r.cover };
+      r.original = { label: r.label, order: r.order, cover: r.cover, kind: r.kind, link: r.link, blurb: r.blurb };
     } catch (err) {
       console.error('Skin save failed', r.id, err);
       failed.push(r.title);
@@ -6098,6 +6203,33 @@ function setupPortfolioUnsavedConfirmModal() {
   if (saveBtn) saveBtn.addEventListener('click', saveAndClose);
 }
 
+/**
+ * A build of a platform only shows inside that platform's card, so the public
+ * switch doesn't apply: hide it and say where the build shows instead.
+ */
+function syncPortfolioBuildPlacementUi() {
+  var sw = document.getElementById('portfolio-project-show-public');
+  var group = sw && sw.closest('.form-group');
+  if (!group) return;
+  var builtFrom = document.getElementById('portfolio-project-built-from');
+  var platformId = builtFrom ? builtFrom.value.trim() : '';
+  var platform = platformId
+    ? portfolioProjectsRtdb.find(function (p) { return p && String(p.id) === platformId && p.isTemplate === true; })
+    : null;
+  var note = document.getElementById('portfolio-project-inside-note');
+  if (!note) {
+    note = document.createElement('p');
+    note.id = 'portfolio-project-inside-note';
+    note.className = 'form-hint portfolio-project-inside-note';
+    group.parentNode.insertBefore(note, group);
+  }
+  group.hidden = !!platform;
+  note.hidden = !platform;
+  note.textContent = platform
+    ? 'Shown inside ' + (platform.title || 'its platform') + '’s card on the Portfolio page. Demo or client, link and blurb are set in that platform’s Skins section.'
+    : '';
+}
+
 function syncPortfolioTemplateFieldsVisibility() {
   var checkbox = document.getElementById('portfolio-project-is-template');
   var fields = document.getElementById('portfolio-editor-template-fields');
@@ -6117,6 +6249,8 @@ function openPortfolioProjectModal(isNew, project) {
   portfolioFormCoverUrl = !isNew && project ? portfolioExplicitCoverUrl(project) : '';
   portfolioFormSkinLabel = !isNew && project ? String(project.skinLabel || '') : '';
   portfolioFormSkinOrder = !isNew && project ? window.PortfolioSkins.skinPatch({ skinOrder: project.skinOrder }).skinOrder : null;
+  portfolioFormSkinKind = !isNew && project ? window.PortfolioSkins.kindOf(project) : '';
+  portfolioFormSkinBlurb = !isNew && project ? String(project.skinBlurb || '') : '';
   document.getElementById('portfolio-project-edit-id').value = isNew ? '' : (project && project.id) || '';
   if (titleEl) titleEl.textContent = isNew ? 'New portfolio project' : 'Edit portfolio project';
   if (!isNew && project) {
@@ -6195,6 +6329,7 @@ function openPortfolioProjectModal(isNew, project) {
     }
   });
   syncPortfolioTemplateFieldsVisibility();
+  syncPortfolioBuildPlacementUi();
   populatePortfolioImageAssetSelect();
   syncPortfolioImageAssetSelectFromInput();
   resetPortfolioSlidesPreviewDetails();
@@ -6328,6 +6463,11 @@ function setupPortfolioAdminControls() {
   if (isTemplateToggle && !isTemplateToggle.dataset.templateFieldsBound) {
     isTemplateToggle.dataset.templateFieldsBound = '1';
     isTemplateToggle.addEventListener('change', syncPortfolioTemplateFieldsVisibility);
+  }
+  var builtFromInput = document.getElementById('portfolio-project-built-from');
+  if (builtFromInput && !builtFromInput.dataset.placementBound) {
+    builtFromInput.dataset.placementBound = '1';
+    builtFromInput.addEventListener('change', syncPortfolioBuildPlacementUi);
   }
   syncPortfolioTemplateFieldsVisibility();
 
@@ -6512,6 +6652,8 @@ function setupPortfolioAdminControls() {
         coverImageUrl: portfolioFormCoverUrl,
         skinLabel: portfolioFormSkinLabel,
         skinOrder: portfolioFormSkinOrder,
+        skinKind: portfolioFormSkinKind,
+        skinBlurb: portfolioFormSkinBlurb,
         imageAlt: document.getElementById('portfolio-project-image-alt').value,
         description: document.getElementById('portfolio-project-description').value,
         techTags: document.getElementById('portfolio-project-tech').value,
@@ -6636,6 +6778,11 @@ function setupPortfolioAdminControls() {
       const orderDownBtn = e.target.closest('[data-portfolio-order-down]');
       const editBtn = e.target.closest('[data-edit-portfolio]');
       const delBtn = e.target.closest('[data-delete-portfolio]');
+      const addBuildBtn = e.target.closest('[data-portfolio-add-build]');
+      if (addBuildBtn) {
+        openPortfolioProjectModal(true, { builtFromTemplateId: addBuildBtn.getAttribute('data-portfolio-add-build'), showQuoteButton: true });
+        return;
+      }
       if (orderUpBtn || orderDownBtn) {
         if (!isAdmin()) {
           showErrorMessage('Admin privileges required.');
@@ -7149,6 +7296,14 @@ function trackEvent(eventName, eventLabel, eventValue) {
  * public build derived from it. Selecting a tab re-renders the same carousel
  * with that build's images and video. Display only — tabs never navigate away.
  */
+/** A build of a starter template shows inside that platform's card, never as its own card. */
+function portfolioLivesInPlatformCard(p, all) {
+  var platformId = String((p && p.builtFromTemplateId) || '');
+  if (!platformId) return false;
+  all = all || window.portfolioProjectsAll || window.portfolioProjects || [];
+  return all.some(function (x) { return x && String(x.id) === platformId && x.isTemplate === true; });
+}
+
 function getPortfolioDerivedBuilds(record) {
   if (!record || record.isTemplate !== true || !record.id) return [];
   // Private builds are included on purpose: this surface shows their media only,
@@ -7162,13 +7317,51 @@ function getPortfolioDerivedBuilds(record) {
   }));
 }
 
-function renderPortfolioVariantTabs(record) {
+/**
+ * The popup's live buttons. url '' hides them; longLabel replaces "Open Live
+ * Project" (a vertical's tab says "Open Carpet Cleaning demo").
+ */
+function portfolioSetDetailLiveLink(url, longLabel) {
+  var show = !!url;
+  var top = document.getElementById('project-detail-cta-top');
+  if (top) top.hidden = !show;
+  ['project-detail-live', 'project-detail-live-footer'].forEach(function (id) {
+    var btn = document.getElementById(id);
+    if (!btn) return;
+    btn.href = show ? url : '#';
+    btn.hidden = !show;
+    var label = btn.querySelector('.project-detail-btn-label--long');
+    if (label) label.textContent = longLabel || 'Open Live Project';
+  });
+}
+
+/** Blurb, live link and label for the tab on screen (portfolio-skins.js tabInfo). */
+function portfolioApplyVariantTab(wrap, idx) {
+  var recs = wrap._variantRecords || [];
+  var target = recs[idx];
+  if (!target) return;
+  var info = window.PortfolioSkins.tabInfo(recs[0], target, idx === 0, wrap._platformLiveUrl || '');
+  var blurb = document.getElementById('project-detail-variant-blurb');
+  if (blurb) {
+    blurb.textContent = info.blurb;
+    blurb.hidden = !info.blurb;
+  }
+  portfolioSetDetailLiveLink(info.liveUrl, info.liveLabel);
+}
+
+function renderPortfolioVariantTabs(record, platformLiveUrl) {
   var wrap = document.getElementById('project-detail-variant-tabs');
   if (!wrap) return;
+  var blurbEl = document.getElementById('project-detail-variant-blurb');
+  if (blurbEl) {
+    blurbEl.hidden = true;
+    blurbEl.textContent = '';
+  }
   var builds = getPortfolioDerivedBuilds(record);
   if (!builds.length) {
     wrap.hidden = true;
     wrap.innerHTML = '';
+    wrap._variantRecords = [];
     return;
   }
 
@@ -7184,6 +7377,9 @@ function renderPortfolioVariantTabs(record) {
         '" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') +
         '" data-variant-index="' + i + '">' +
         portfolioEscapeHtml(t.label) +
+        (i > 0 && window.PortfolioSkins.kindOf(t.record) === 'client'
+          ? ' <span class="project-detail-variant-chip">Live client</span>'
+          : '') +
         '</button>'
       );
     })
@@ -7191,6 +7387,7 @@ function renderPortfolioVariantTabs(record) {
   wrap.hidden = false;
 
   wrap._variantRecords = tabs.map(function (t) { return t.record; });
+  wrap._platformLiveUrl = platformLiveUrl || '';
 
   if (wrap.dataset.bound !== '1') {
     wrap.dataset.bound = '1';
@@ -7206,6 +7403,7 @@ function renderPortfolioVariantTabs(record) {
         b.classList.toggle('is-active', on);
         b.setAttribute('aria-selected', on ? 'true' : 'false');
       });
+      portfolioApplyVariantTab(wrap, idx);
       var carousel = document.getElementById('project-detail-carousel');
       if (!carousel) return;
       portfolioRenderCarousel(carousel, {
@@ -7226,10 +7424,7 @@ function renderPortfolioBuildsLine(record) {
     el.textContent = '';
     return;
   }
-  el.textContent =
-    builds.length === 1
-      ? '1 business is built on this platform'
-      : builds.length + ' businesses are built on this platform';
+  el.textContent = window.PortfolioSkins.buildsSummary(builds).text;
   el.hidden = false;
 }
 
@@ -7246,7 +7441,10 @@ function renderPublicBuiltWithTemplate(record) {
     return;
   }
 
-  var builds = getPortfolioDerivedBuilds(record);
+  // Real businesses only; the demos are the tabs above.
+  var builds = getPortfolioDerivedBuilds(record).filter(function (p) {
+    return window.PortfolioSkins.kindOf(p) === 'client';
+  });
 
   if (!builds.length) {
     wrap.hidden = true;
@@ -7256,8 +7454,8 @@ function renderPublicBuiltWithTemplate(record) {
 
   if (lead) {
     lead.textContent = builds.length === 1
-      ? 'One live business runs on this template.'
-      : builds.length + ' live businesses run on this template.';
+      ? 'One live business runs on this platform.'
+      : builds.length + ' live businesses run on this platform.';
   }
 
   list.innerHTML = builds
@@ -7414,10 +7612,9 @@ function initPortfolioProjectModal() {
   const canvasSection = document.getElementById('project-detail-canvas-section');
   const canvasTitleEl = document.getElementById('project-detail-canvas-title-el');
   const canvasBody = document.getElementById('project-detail-canvas-body');
-  const ctaTop = document.getElementById('project-detail-cta-top');
+  // The live buttons (project-detail-live / -live-footer / -cta-top) are set by
+  // portfolioSetDetailLiveLink, so a platform's tabs can swap the link.
   const ctaInline = document.getElementById('project-detail-cta-inline');
-  const liveBtn = document.getElementById('project-detail-live');
-  const liveFooterBtn = document.getElementById('project-detail-live-footer');
   const buyNowBtn = document.getElementById('project-detail-buy-now');
   const buyPremiumBtn = document.getElementById('project-detail-buy-premium');
   const quoteBtn = document.getElementById('project-detail-quote');
@@ -7657,7 +7854,7 @@ function initPortfolioProjectModal() {
     var slideUrls = record ? portfolioImageUrlsFromRecord(record) : [];
     // On a starter template, tabs let the same carousel show each derived build's
     // media — the point of the template page is proving it works across verticals.
-    renderPortfolioVariantTabs(record);
+    renderPortfolioVariantTabs(record, hasLiveUrl ? liveUrl : '');
     if (!slideUrls.length && cardImage && cardImage.getAttribute('src')) {
       var cardSrc = cardImage.getAttribute('src') || '';
       var fromCard = portfolioNormalizeAssetImageUrl(
@@ -7674,13 +7871,6 @@ function initPortfolioProjectModal() {
           titleText ||
           'Project preview'
       });
-    }
-    // A rotating cover opens on the build it was showing when clicked.
-    var rotator = card.querySelector('[data-portfolio-rotator]');
-    var startTab = rotator ? Number(rotator.getAttribute('data-current')) || 0 : 0;
-    if (startTab > 0) {
-      var tabBtn = document.querySelector('#project-detail-variant-tabs [data-variant-index="' + startTab + '"]');
-      if (tabBtn) tabBtn.click();
     }
     if (title) title.textContent = titleText;
     if (description) portfolioSetMultilineElement(description, descriptionText);
@@ -7762,19 +7952,18 @@ function initPortfolioProjectModal() {
       }
     }
 
-    function setLiveButtonsVisible(show) {
-      if (ctaTop) ctaTop.hidden = !show;
-      if (liveBtn) {
-        liveBtn.href = show ? liveUrl : '#';
-        liveBtn.hidden = !show;
-      }
-      if (liveFooterBtn) {
-        liveFooterBtn.href = show ? liveUrl : '#';
-        liveFooterBtn.hidden = !show;
-      }
+    portfolioSetDetailLiveLink(hasLiveUrl ? liveUrl : '');
+    var variantWrap = document.getElementById('project-detail-variant-tabs');
+    if (variantWrap && !variantWrap.hidden) portfolioApplyVariantTab(variantWrap, 0);
+
+    // A rotating cover opens on the build it was showing when clicked (after
+    // the platform's buttons are set, so that build's own link wins).
+    var rotator = card.querySelector('[data-portfolio-rotator]');
+    var startTab = rotator ? Number(rotator.getAttribute('data-current')) || 0 : 0;
+    if (startTab > 0) {
+      var tabBtn = document.querySelector('#project-detail-variant-tabs [data-variant-index="' + startTab + '"]');
+      if (tabBtn) tabBtn.click();
     }
-    if (hasLiveUrl) setLiveButtonsVisible(true);
-    else setLiveButtonsVisible(false);
 
     var showQuote =
       !record || record.showQuoteButton === undefined || record.showQuoteButton !== false;

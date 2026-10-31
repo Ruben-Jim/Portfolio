@@ -33556,3 +33556,171 @@ body.cwr-overlay-open [data-float] {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* ── Platform verticals: demo / client (portfolio-skins.js, 2026-10-31) ── */
+.project-detail-variant-chip {
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 10px;
+  font-weight: var(--fw-500);
+  opacity: 0.8;
+}
+
+.project-detail-variant-blurb {
+  margin: -4px 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--light-gray);
+}
+
+.project-detail-variant-blurb[hidden] {
+  display: none;
+}
+
+.portfolio-skin-field--wide {
+  grid-column: 1 / -1;
+}
+
+.portfolio-skin-field[hidden] {
+  display: none;
+}
+
+.portfolio-skin-chip.is-demo {
+  border-color: hsla(45, 100%, 72%, 0.45);
+  color: var(--orange-yellow-crayola);
+}
+
+.portfolio-editor-toggles .form-group[hidden] {
+  display: none;
+}
+
+.portfolio-project-inside-note {
+  margin: 0 0 8px;
+}
+
+.portfolio-project-inside-note[hidden] {
+  display: none;
+}
+
+/* Admin list: a platform's builds under its row. */
+.admin-portfolio-builds {
+  margin: -6px 0 6px 28px;
+  padding: 10px 12px;
+  border-left: 2px solid hsla(45, 72%, 58%, 0.45);
+  border-radius: 0 12px 12px 0;
+  background: hsla(0, 0%, 100%, 0.02);
+}
+
+.admin-portfolio-builds-head {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: var(--fw-500);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--light-gray-70);
+}
+
+.admin-portfolio-builds-list {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-portfolio-build {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  border-radius: 10px;
+}
+
+.admin-portfolio-build-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--onyx);
+}
+
+.admin-portfolio-build-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.admin-portfolio-build-name {
+  font-size: 13px;
+  color: var(--white-2);
+  overflow-wrap: anywhere;
+}
+
+.admin-portfolio-build-title {
+  font-size: 11px;
+  color: var(--light-gray-70);
+}
+
+.admin-portfolio-build-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-portfolio-build-link {
+  font-size: 11px;
+  color: var(--light-gray-70);
+  overflow-wrap: anywhere;
+}
+
+.admin-portfolio-build-link.is-warn {
+  color: hsl(35, 90%, 70%);
+}
+
+.admin-portfolio-badge--demo {
+  border-color: hsla(45, 100%, 72%, 0.45);
+  color: var(--orange-yellow-crayola);
+}
+
+.admin-portfolio-badge--client {
+  color: var(--light-gray);
+}
+
+@media (max-width: 640px) {
+  .admin-portfolio-builds {
+    margin-left: 10px;
+  }
+
+  .admin-portfolio-build .btn {
+    min-height: 40px;
+  }
+}
+
+/* A platform row and its builds stay together in the two-column list. */
+.admin-portfolio-platform-group {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+@media (min-width: 1200px) {
+  .admin-portfolio-platform-group {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .admin-portfolio-platform-group .admin-portfolio-builds {
+    margin: 0;
+  }
+}
+
+.project-detail-variant-tab {
+  display: inline-flex;
+  align-items: center;
+}
