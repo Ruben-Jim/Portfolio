@@ -5650,8 +5650,9 @@ var PORTFOLIO_SKIN_LINK_SUGGESTIONS = [
   { url: 'https://sunergyelectricservices.expo.app', label: 'Electrician' },
   { url: 'https://pawshine.expo.app', label: 'Pet groomer' },
   { url: 'https://generalcontractor.expo.app', label: 'General contractor' },
-  { url: 'https://partyrentals.expo.app', label: 'Event rentals' },
-  { url: 'https://valleyhaul.expo.app', label: 'Junk removal' }
+  { url: 'https://rentals.expo.app', label: 'Event rentals' },
+  { url: 'https://junk.expo.app', label: 'Junk removal' },
+  { url: 'https://roadsidefix.expo.app', label: 'Mobile mechanic' }
 ];
 
 function renderPortfolioFormImagesList(urls) {

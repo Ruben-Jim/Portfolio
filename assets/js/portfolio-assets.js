@@ -206,6 +206,34 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "fiestarentals",
+    "label": "fiestarentals",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/fiestarentals/fiestarentals-demo.mp4",
+        "name": "fiestarentals-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/fiestarentals/fiestarentals-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/fiestarentals/fiestarentals-home-services.webp",
+        "name": "fiestarentals-home-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/fiestarentals/fiestarentals-home.webp",
+        "name": "fiestarentals-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/fiestarentals/fiestarentals-services.webp",
+        "name": "fiestarentals-services.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
     "group": "firecon",
     "label": "firecon",
     "source": "images",
@@ -650,6 +678,39 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "masterscarpet",
+    "label": "masterscarpet",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/masterscarpet/masterscarpet-demo.mp4",
+        "name": "masterscarpet-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/masterscarpet/masterscarpet-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/masterscarpet/masterscarpet-home.webp",
+        "name": "masterscarpet-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/masterscarpet/masterscarpet-our-work.webp",
+        "name": "masterscarpet-our-work.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/masterscarpet/masterscarpet-services.webp",
+        "name": "masterscarpet-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/masterscarpet/masterscarpet-testimonials.webp",
+        "name": "masterscarpet-testimonials.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
     "group": "merchstore",
     "label": "merchstore",
     "source": "images",
@@ -809,6 +870,34 @@ window.PORTFOLIO_ASSET_GROUPS = [
       {
         "path": "/assets/images/projects/procleaning/procleaning3.webp",
         "name": "procleaning3.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "group": "rapidoroadside",
+    "label": "rapidoroadside",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/rapidoroadside/rapidoroadside-demo.mp4",
+        "name": "rapidoroadside-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/rapidoroadside/rapidoroadside-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/rapidoroadside/rapidoroadside-home-services.webp",
+        "name": "rapidoroadside-home-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rapidoroadside/rapidoroadside-home.webp",
+        "name": "rapidoroadside-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rapidoroadside/rapidoroadside-services.webp",
+        "name": "rapidoroadside-services.webp",
         "kind": "image"
       }
     ]
@@ -1188,6 +1277,39 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "squirreltree",
+    "label": "squirreltree",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/squirreltree/squirreltree-demo.mp4",
+        "name": "squirreltree-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/squirreltree/squirreltree-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/squirreltree/squirreltree-home-services.webp",
+        "name": "squirreltree-home-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/squirreltree/squirreltree-home.webp",
+        "name": "squirreltree-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/squirreltree/squirreltree-our-work.webp",
+        "name": "squirreltree-our-work.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/squirreltree/squirreltree-services.webp",
+        "name": "squirreltree-services.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
     "group": "sunergy",
     "label": "sunergy",
     "source": "images",
@@ -1249,6 +1371,34 @@ window.PORTFOLIO_ASSET_GROUPS = [
       {
         "path": "/assets/images/projects/tradeservice/tradeservice.webp",
         "name": "tradeservice.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "group": "valleyhaul",
+    "label": "valleyhaul",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/valleyhaul/valleyhaul-demo.mp4",
+        "name": "valleyhaul-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/valleyhaul/valleyhaul-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/valleyhaul/valleyhaul-home-services.webp",
+        "name": "valleyhaul-home-services.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/valleyhaul/valleyhaul-home.webp",
+        "name": "valleyhaul-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/valleyhaul/valleyhaul-services.webp",
+        "name": "valleyhaul-services.webp",
         "kind": "image"
       }
     ]
