@@ -158,6 +158,29 @@
     return out;
   }
 
+  // Admin list row field → saved field.
+  var ROW_FIELDS = { label: 'skinLabel', order: 'skinOrder', cover: 'coverImageUrl', kind: 'skinKind', link: 'projectUrl', blurb: 'skinBlurb' };
+
+  /** Only the fields edited since the row loaded (vs row.original), cleaned; null when nothing changed. */
+  function changedPatch(row) {
+    var orig = (row && row.original) || {};
+    var fields = {};
+    Object.keys(ROW_FIELDS).forEach(function (k) {
+      if (k in row && row[k] !== orig[k]) fields[ROW_FIELDS[k]] = row[k];
+    });
+    return Object.keys(fields).length ? skinPatch(fields) : null;
+  }
+
+  /** Moves rows[i] by delta (-1 up, 1 down) and renumbers 10, 20, 30…; returns new rows. */
+  function moveRow(rows, i, delta) {
+    var out = rows.map(function (r) { return Object.assign({}, r); });
+    var j = i + delta;
+    if (j >= 0 && j < out.length) out.splice(j, 0, out.splice(i, 1)[0]);
+    else return out;
+    out.forEach(function (r, k) { r.order = (k + 1) * 10; });
+    return out;
+  }
+
   var api = {
     MAX_LABEL: MAX_LABEL,
     MAX_BLURB: MAX_BLURB,
@@ -167,6 +190,8 @@
     labelFor: labelFor,
     orderSkins: orderSkins,
     skinPatch: skinPatch,
+    changedPatch: changedPatch,
+    moveRow: moveRow,
     kindOf: kindOf,
     cleanLink: cleanLink,
     demoLinkFor: demoLinkFor,

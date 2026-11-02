@@ -149,3 +149,23 @@ the platform's card; admin nests builds under their platform.
   businesses" list shows clients only. A vertical still needs pictures to show.
 - A build's own editor hides "Show on public Portfolio page" and says where it
   shows.
+
+## Addendum 2026-11-02: verticals managed in the admin list
+
+Decided in chat (Ruben): the vertical settings move out of the platform's
+editor drawer into the admin Portfolio list, so they're easy to see and change.
+
+- Under each platform: a "This platform" row (its card label, cover, blurb),
+  then each build. Rows are compact; tapping one opens its fields under it,
+  one row at a time (Ruben's choice). Fields: card label, cover, Shows as,
+  Live link (Demo only, with the Trades suggestions), blurb, and "Full edit →"
+  for the record's own editor.
+- Order: up/down arrows on each build (Ruben's choice).
+- Saving: one Save per platform (Ruben's choice), with Undo changes; only the
+  fields that changed are written (`changedPatch`), arrows renumber 10, 20, 30
+  (`moveRow`).
+- Leaving with unsaved changes (opening any editor, switching admin tabs,
+  opening a row under another platform) asks Save / Discard / Keep editing
+  (CwrUI); closing the page gets the browser's warning.
+- The drawer's Skins section is gone (Ruben: one place). The card preview
+  moved to the top of the platform's group.

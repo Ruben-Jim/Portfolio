@@ -2,8 +2,8 @@
 /**
  * Portfolio skin rules (assets/js/portfolio-skins.js). Run: node scripts/test-portfolio-skins.mjs
  * Guards: which covers are allowed (stills + own video posters only), the
- * card/tab label fallback, skin ordering, and that a skin save only ever
- * carries label, order and cover.
+ * card/tab label fallback, skin ordering, demo/client links and blurbs, and
+ * that the admin list's verticals save only the fields that changed.
  */
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
@@ -74,3 +74,25 @@ ok(p2.skinKind === 'demo' && p2.skinBlurb === 'Book a clean' && p2.projectUrl ==
 ok(S.skinPatch({ skinKind: 'x' }).skinKind === 'client', 'an unknown kind saves as client');
 ok(S.skinPatch({ skinBlurb: 'y'.repeat(200) }).skinBlurb.length === 120, 'blurb capped at 120');
 ok(S.skinPatch({ projectUrl: 'not a link' }).projectUrl === '', 'a bad link saves as empty');
+
+// Admin list: a vertical's row saves only what changed.
+const rowOf = (o) => Object.assign({}, o, { original: Object.assign({}, o) });
+const r0 = rowOf({ label: 'Carpet', order: 10, cover: '', kind: 'demo', link: 'https://carpet.expo.app', blurb: '' });
+ok(S.changedPatch(r0) === null, 'an untouched row saves nothing');
+const r1 = Object.assign(rowOf({ label: 'Pizza', order: 30, cover: '', kind: 'client', link: 'https://rizopizzeria.com', blurb: '' }), { label: 'Rizo' });
+const p3 = S.changedPatch(r1);
+ok(p3 && p3.skinLabel === 'Rizo' && !('projectUrl' in p3) && !('skinKind' in p3) && !('skinOrder' in p3), "a label edit saves only the label (a client's saved link is never rewritten)");
+const r2 = Object.assign(rowOf({ label: '', order: 20, cover: '', kind: 'client', link: '', blurb: '' }), { kind: 'demo', link: ' https://junk.expo.app ', blurb: '  Pickups  by load ' });
+const p4 = S.changedPatch(r2);
+ok(p4.skinKind === 'demo' && p4.projectUrl === 'https://junk.expo.app' && p4.skinBlurb === 'Pickups by load', 'kind, link and blurb edits are cleaned like any save');
+const plat0 = Object.assign(rowOf({ label: 'Roof Cleaning', cover: '/a/one.webp', blurb: '' }), { cover: '/a/two.webp' });
+const p5 = S.changedPatch(plat0);
+ok(p5 && p5.coverImageUrl === '/a/two.webp' && Object.keys(p5).length === 1, "the platform row saves only its own label, cover and blurb");
+
+// Arrows move one row and renumber all, so later inserts never collide.
+const rows = [{ id: 'a', order: 10 }, { id: 'b', order: 20 }, { id: 'c', order: 25 }];
+const up = S.moveRow(rows, 2, -1);
+ok(up.map((r) => r.id).join() === 'a,c,b' && up.map((r) => r.order).join() === '10,20,30', 'moving up swaps with the row above and renumbers 10, 20, 30');
+ok(rows.map((r) => r.id).join() === 'a,b,c' && rows[2].order === 25, 'moving returns new rows (the old list is untouched)');
+ok(S.moveRow(rows, 0, -1).map((r) => r.id).join() === 'a,b,c', 'the first row cannot move up');
+ok(S.moveRow(rows, 2, 1).map((r) => r.id).join() === 'a,b,c', 'the last row cannot move down');

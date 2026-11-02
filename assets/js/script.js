@@ -5251,44 +5251,405 @@ function getAdminPortfolioVisibilityGroups() {
   };
 }
 
-/** A platform's demos and client builds, under its row: they only show inside its card. */
+/**
+ * Verticals under each platform in the admin list (they only show inside its
+ * card). Tap a row to open its card label, cover, Demo/Client, link and blurb;
+ * arrows set the card order. Edits wait in a per-platform draft until Save.
+ * Rules live in portfolio-skins.js.
+ */
+var portfolioVerticals = { open: '', drafts: {} };
+
+function portfolioVerticalsRecord(id) {
+  return portfolioProjectsRtdb.find(function (p) { return p && String(p.id) === String(id); }) || null;
+}
+
+/** The fields a row can change, as loaded or last saved (changedPatch compares against this). */
+function portfolioVerticalsSnapshot(r) {
+  var out = { label: r.label, cover: r.cover, blurb: r.blurb };
+  if (!r.isPlatform) { out.order = r.order; out.kind = r.kind; out.link = r.link; }
+  return out;
+}
+
+function portfolioVerticalsRowFrom(p, isPlatform) {
+  var row = {
+    id: String(p.id),
+    title: p.title || '',
+    isPlatform: !!isPlatform,
+    urls: portfolioImageUrlsFromRecord(p),
+    label: String(p.skinLabel || ''),
+    cover: portfolioExplicitCoverUrl(p),
+    blurb: String(p.skinBlurb || '')
+  };
+  if (!isPlatform) {
+    row.order = window.PortfolioSkins.skinPatch({ skinOrder: p.skinOrder }).skinOrder;
+    row.kind = window.PortfolioSkins.kindOf(p);
+    row.link = String(p.projectUrl || '');
+  }
+  row.original = portfolioVerticalsSnapshot(row);
+  return row;
+}
+
+function portfolioVerticalsFresh(platform) {
+  var id = String(platform.id);
+  return {
+    platform: portfolioVerticalsRowFrom(platform, true),
+    rows: window.PortfolioSkins.orderSkins(portfolioProjectsRtdb.filter(function (p) {
+      return p && String(p.builtFromTemplateId || '') === id;
+    })).map(function (p) { return portfolioVerticalsRowFrom(p, false); })
+  };
+}
+
+/** The platform's draft, made from the saved records on its first edit. */
+function portfolioVerticalsDraft(platformId) {
+  var id = String(platformId);
+  if (!portfolioVerticals.drafts[id]) {
+    var platform = portfolioVerticalsRecord(id);
+    if (!platform) return null;
+    portfolioVerticals.drafts[id] = portfolioVerticalsFresh(platform);
+  }
+  return portfolioVerticals.drafts[id];
+}
+
+function portfolioVerticalsIsDirty(draft) {
+  if (!draft) return false;
+  return !!window.PortfolioSkins.changedPatch(draft.platform) ||
+    draft.rows.some(function (r) { return !!window.PortfolioSkins.changedPatch(r); });
+}
+
+function portfolioVerticalsDirtyIds() {
+  return Object.keys(portfolioVerticals.drafts).filter(function (id) {
+    return portfolioVerticalsIsDirty(portfolioVerticals.drafts[id]);
+  });
+}
+
+function portfolioVerticalsRowName(r) {
+  return window.PortfolioSkins.labelFor({ skinLabel: r.label, title: r.title }, r.isPlatform);
+}
+
+/** The card's cover rotator, as the public card will show it. */
+function portfolioVerticalsPreviewHtml(view) {
+  var slides = [{
+    index: 0,
+    label: portfolioVerticalsRowName(view.platform),
+    src: view.platform.cover || portfolioAutoCoverStillUrl({ imageUrls: view.platform.urls })
+  }].concat(
+    view.rows
+      .filter(function (r) { return r.urls.length; })
+      .map(function (r, k) {
+        return { index: k + 1, label: portfolioVerticalsRowName(r), src: r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls }) };
+      })
+  ).filter(function (s) { return !!s.src; });
+  return portfolioRenderRotatorFromSlides(slides, 'Card preview') ||
+    '<p class="form-hint">Add a build with pictures to see the card rotate.</p>';
+}
+
+function portfolioVerticalRowHtml(r, i, count) {
+  var open = portfolioVerticals.open === r.id;
+  var thumb = r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls });
+  var name = portfolioVerticalsRowName(r);
+  var panelId = 'portfolio-vpanel-' + r.id;
+  var meta;
+  if (r.isPlatform) {
+    meta = '<span class="admin-portfolio-build-link">This platform · first on the card</span>';
+  } else {
+    var link = window.PortfolioSkins.demoLinkFor({ skinKind: r.kind, projectUrl: r.link });
+    meta =
+      '<span class="admin-portfolio-badge admin-portfolio-badge--' + r.kind + '">' + (r.kind === 'demo' ? 'Demo' : 'Client') + '</span>' +
+      '<span class="admin-portfolio-build-link">' +
+      (r.kind === 'client' ? 'Never linked' : link ? '↗ ' + portfolioEscapeHtml(link.replace(/^https?:\/\//, '').replace(/\/$/, '')) : 'No link') +
+      '</span>' +
+      (!r.urls.length ? '<span class="admin-portfolio-build-link is-warn">No images — not shown</span>' : '');
+  }
+  var arrows = r.isPlatform ? '' :
+    '<span class="admin-portfolio-build-move">' +
+    '<button type="button" class="btn btn-secondary btn-sm" data-vup aria-label="Move ' + portfolioEscapeHtml(name) + ' up"' + (i === 0 ? ' disabled' : '') +
+    '><ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon></button>' +
+    '<button type="button" class="btn btn-secondary btn-sm" data-vdown aria-label="Move ' + portfolioEscapeHtml(name) + ' down"' + (i === count - 1 ? ' disabled' : '') +
+    '><ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon></button>' +
+    '</span>';
+  var fields =
+    '<label class="admin-portfolio-vfield">Card label' +
+    '<input type="text" class="form-input" data-vfield="label" maxlength="40" placeholder="' +
+    portfolioEscapeHtml(r.isPlatform ? 'Platform' : r.title) + '" value="' + portfolioEscapeHtml(r.label) + '"></label>' +
+    '<label class="admin-portfolio-vfield">Cover' +
+    '<select class="form-input" data-vfield="cover">' + portfolioSkinCoverOptionsHtml(r.urls, r.cover) + '</select></label>' +
+    (r.isPlatform ? '' :
+      '<label class="admin-portfolio-vfield">Shows as' +
+      '<select class="form-input" data-vfield="kind">' +
+      '<option value="demo"' + (r.kind === 'demo' ? ' selected' : '') + '>Demo · opens its link</option>' +
+      '<option value="client"' + (r.kind === 'client' ? ' selected' : '') + '>Client · no link</option>' +
+      '</select></label>' +
+      '<label class="admin-portfolio-vfield"' + (r.kind === 'demo' ? '' : ' hidden') + '>Live link' +
+      '<input type="url" class="form-input" data-vfield="link" list="portfolio-skin-link-suggestions" maxlength="2000" placeholder="https://….expo.app" value="' +
+      portfolioEscapeHtml(r.link) + '"></label>') +
+    '<label class="admin-portfolio-vfield admin-portfolio-vfield--wide">Blurb' +
+    '<input type="text" class="form-input" data-vfield="blurb" maxlength="120" placeholder="One line under the tabs" value="' +
+    portfolioEscapeHtml(r.blurb) + '"></label>' +
+    '<button type="button" class="admin-portfolio-build-full" data-vfull-edit>' +
+    (r.isPlatform ? 'Full edit: link, pictures, details →' : 'Full edit: title, pictures, details →') + '</button>';
+  return (
+    '<li class="admin-portfolio-build' + (r.isPlatform ? ' is-platform' : '') + (open ? ' is-open' : '') + '" data-vrow="' + portfolioEscapeHtml(r.id) + '">' +
+    '<div class="admin-portfolio-build-row">' +
+    '<button type="button" class="admin-portfolio-build-toggle" data-vtoggle aria-expanded="' + (open ? 'true' : 'false') + '" aria-controls="' + portfolioEscapeHtml(panelId) + '">' +
+    (thumb ? '<img class="admin-portfolio-build-thumb" src="' + portfolioEscapeHtml(portfolioDisplayImageSrc(thumb)) + '" alt="" loading="lazy">' : '<span class="admin-portfolio-build-thumb" aria-hidden="true"></span>') +
+    '<span class="admin-portfolio-build-text">' +
+    '<span class="admin-portfolio-build-name">' + portfolioEscapeHtml(name) +
+    (!r.isPlatform && name !== r.title && r.title ? ' <span class="admin-portfolio-build-title">' + portfolioEscapeHtml(r.title) + '</span>' : '') +
+    '</span>' +
+    '<span class="admin-portfolio-build-meta">' + meta + '</span>' +
+    '</span>' +
+    '<ion-icon class="admin-portfolio-build-chevron" name="chevron-down-outline" aria-hidden="true"></ion-icon>' +
+    '</button>' +
+    arrows +
+    '</div>' +
+    '<div class="admin-portfolio-build-panel" id="' + portfolioEscapeHtml(panelId) + '" data-vpanel' + (open ? '' : ' hidden') + '>' + fields + '</div>' +
+    '</li>'
+  );
+}
+
 function buildAdminPortfolioBuildsHtml(platform) {
   var id = String(platform.id);
-  var builds = window.PortfolioSkins.orderSkins(portfolioProjectsRtdb.filter(function (p) {
-    return p && String(p.builtFromTemplateId || '') === id;
-  }));
-  var rows = builds.map(function (b) {
-    var kind = window.PortfolioSkins.kindOf(b);
-    var link = window.PortfolioSkins.demoLinkFor(b);
-    var label = window.PortfolioSkins.labelFor(b, false);
-    var thumb = portfolioDisplayImageSrc(portfolioPrimaryImageUrl(b) || b.imageUrl);
-    return (
-      '<li class="admin-portfolio-build">' +
-      (thumb ? '<img class="admin-portfolio-build-thumb" src="' + portfolioEscapeHtml(thumb) + '" alt="" loading="lazy">' : '<span class="admin-portfolio-build-thumb" aria-hidden="true"></span>') +
-      '<span class="admin-portfolio-build-text">' +
-      '<span class="admin-portfolio-build-name">' + portfolioEscapeHtml(label) +
-      (label !== (b.title || '') && b.title ? ' <span class="admin-portfolio-build-title">' + portfolioEscapeHtml(b.title) + '</span>' : '') +
-      '</span>' +
-      '<span class="admin-portfolio-build-meta">' +
-      '<span class="admin-portfolio-badge admin-portfolio-badge--' + kind + '">' + (kind === 'demo' ? 'Demo' : 'Client') + '</span>' +
-      '<span class="admin-portfolio-build-link">' +
-      (kind === 'client' ? 'Never linked' : link ? '↗ ' + portfolioEscapeHtml(link.replace(/^https?:\/\//, '').replace(/\/$/, '')) : 'No link') +
-      '</span>' +
-      (!portfolioImageUrlsFromRecord(b).length ? '<span class="admin-portfolio-build-link is-warn">No images — not shown</span>' : '') +
-      '</span></span>' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-edit-portfolio="' + portfolioEscapeHtml(b.id) + '">Edit</button>' +
-      '</li>'
-    );
-  }).join('');
+  var view = portfolioVerticals.drafts[id] || portfolioVerticalsFresh(platform);
+  var n = view.rows.length;
   return (
     '<div class="admin-portfolio-builds" data-portfolio-builds-of="' + portfolioEscapeHtml(id) + '">' +
+    '<div class="project-img admin-portfolio-builds-preview" data-vpreview>' + portfolioVerticalsPreviewHtml(view) + '</div>' +
     '<p class="admin-portfolio-builds-head">' +
-    (builds.length ? builds.length + (builds.length === 1 ? ' build' : ' builds') + ' inside this card' : 'No builds yet') +
+    (n ? n + (n === 1 ? ' build' : ' builds') + ' inside this card · tap one to change it' : 'No builds yet') +
     '</p>' +
-    (rows ? '<ul class="admin-portfolio-builds-list">' + rows + '</ul>' : '') +
+    '<ul class="admin-portfolio-builds-list">' +
+    portfolioVerticalRowHtml(view.platform, -1, n) +
+    view.rows.map(function (r, i) { return portfolioVerticalRowHtml(r, i, n); }).join('') +
+    '</ul>' +
+    '<div class="admin-portfolio-builds-actions"' + (portfolioVerticalsIsDirty(portfolioVerticals.drafts[id]) ? '' : ' hidden') + '>' +
+    '<span class="admin-portfolio-builds-unsaved">Unsaved changes</span>' +
+    '<button type="button" class="btn btn-secondary btn-sm" data-vundo>Undo changes</button>' +
+    '<button type="button" class="btn btn-primary btn-sm" data-vsave>Save</button>' +
+    '</div>' +
     '<button type="button" class="btn btn-secondary btn-sm admin-portfolio-builds-add" data-portfolio-add-build="' + portfolioEscapeHtml(id) + '">+ Add build</button>' +
     '</div>'
   );
+}
+
+/** Redraws one platform's verticals from its draft, keeping focus on the same control. */
+function rerenderPortfolioVerticals(platformId) {
+  var box = document.querySelector('[data-portfolio-builds-of="' + CSS.escape(String(platformId)) + '"]');
+  var platform = portfolioVerticalsRecord(platformId);
+  if (!box || !platform) return;
+  var active = document.activeElement;
+  var focusRow = active && box.contains(active) && active.closest('[data-vrow]');
+  var focusKey = '';
+  if (focusRow) {
+    ['data-vfield', 'data-vup', 'data-vdown', 'data-vtoggle'].some(function (attr) {
+      if (!active.hasAttribute(attr)) return false;
+      focusKey = '[' + attr + (attr === 'data-vfield' ? '="' + active.getAttribute(attr) + '"' : '') + ']';
+      return true;
+    });
+  }
+  var rowId = focusRow ? focusRow.getAttribute('data-vrow') : '';
+  var wrap = document.createElement('div');
+  wrap.innerHTML = buildAdminPortfolioBuildsHtml(platform);
+  var fresh = wrap.firstChild;
+  box.replaceWith(fresh);
+  portfolioObserveCoverRotators(fresh);
+  if (rowId && focusKey) {
+    var row = fresh.querySelector('[data-vrow="' + CSS.escape(rowId) + '"]');
+    var el = row && row.querySelector(focusKey);
+    // A moved row's arrow can turn off at the top or bottom: use the other one.
+    if (el && el.disabled) el = row.querySelector(focusKey === '[data-vup]' ? '[data-vdown]' : '[data-vup]');
+    if (el && !el.disabled) el.focus();
+  }
+}
+
+/** Shows or hides the Save bar and refreshes the preview, without redrawing the rows (typing keeps its caret). */
+function syncPortfolioVerticalsChrome(platformId) {
+  var box = document.querySelector('[data-portfolio-builds-of="' + CSS.escape(String(platformId)) + '"]');
+  var draft = portfolioVerticals.drafts[String(platformId)];
+  if (!box || !draft) return;
+  var bar = box.querySelector('.admin-portfolio-builds-actions');
+  if (bar) bar.hidden = !portfolioVerticalsIsDirty(draft);
+  var preview = box.querySelector('[data-vpreview]');
+  if (preview) {
+    preview.innerHTML = portfolioVerticalsPreviewHtml(draft);
+    portfolioObserveCoverRotators(preview);
+  }
+}
+
+/** Writes each changed field of the platform's verticals; returns false if any failed (they stay unsaved). */
+async function savePortfolioVerticals(platformId) {
+  var id = String(platformId);
+  var draft = portfolioVerticals.drafts[id];
+  if (!draft) return true;
+  if (!isAdmin()) {
+    showErrorMessage('Admin privileges required.');
+    return false;
+  }
+  if (!window.rtdb) {
+    showErrorMessage('Realtime Database is not initialized.');
+    return false;
+  }
+  var failed = [];
+  var items = [draft.platform].concat(draft.rows);
+  for (var i = 0; i < items.length; i++) {
+    var r = items[i];
+    var patch = window.PortfolioSkins.changedPatch(r);
+    // A record deleted elsewhere is skipped: an update would recreate it with only these fields.
+    if (!patch || !portfolioVerticalsRecord(r.id)) continue;
+    try {
+      await window.rtdbUpdate(window.rtdbRef(window.rtdb, 'portfolioProjects/' + r.id), patch);
+      Object.assign(portfolioVerticalsRecord(r.id), patch);
+      r.original = portfolioVerticalsSnapshot(r);
+    } catch (err) {
+      console.error('Vertical save failed', r.id, err);
+      failed.push(portfolioVerticalsRowName(r));
+    }
+  }
+  if (failed.length) {
+    showErrorMessage('These did not save: ' + failed.join(', ') + '. Press Save to try again.');
+    rerenderPortfolioVerticals(id);
+    return false;
+  }
+  delete portfolioVerticals.drafts[id];
+  showSuccessMessage('Verticals saved.');
+  try {
+    await loadPortfolioProjectsFromRtdb();
+  } catch (err) {
+    // Saved already; only the refresh failed, so the list shows the loaded copy.
+    console.error(err);
+    showErrorMessage('Saved, but the list did not refresh. Reload to see the latest.');
+  }
+  renderPublicPortfolioProjects();
+  applyCurrentPortfolioFilter();
+  renderAdminPortfolioProjects();
+  syncAdminPortfolioLocalBanner();
+  if (typeof window.__renderPortfolioBestForHook === 'function') {
+    window.__renderPortfolioBestForHook();
+  }
+  return true;
+}
+
+/**
+ * Unsaved verticals: asks Save, Discard or Keep editing before `next` runs
+ * (opening an editor, switching admin tabs). Returns true when it stepped in.
+ */
+function portfolioVerticalsLeaveGuard(next) {
+  var dirty = portfolioVerticalsDirtyIds();
+  if (!dirty.length || !window.CwrUI) return false;
+  (async function () {
+    var pick = await window.CwrUI.choose({
+      title: 'Save your vertical changes?',
+      message: 'You changed verticals in the Portfolio list and have not saved them yet.',
+      actions: [
+        { label: 'Keep editing', value: 'keep' },
+        { label: 'Discard', value: 'discard' },
+        { label: 'Save', value: 'save' }
+      ]
+    });
+    if (pick === 'save') {
+      for (var i = 0; i < dirty.length; i++) {
+        if (!(await savePortfolioVerticals(dirty[i]))) return;
+      }
+      next();
+    } else if (pick === 'discard') {
+      dirty.forEach(function (id) { delete portfolioVerticals.drafts[id]; });
+      renderAdminPortfolioProjects();
+      next();
+    }
+  })();
+  return true;
+}
+
+function bindAdminPortfolioVerticals(listEl) {
+  if (!listEl || listEl.dataset.verticalsBound === '1') return;
+  listEl.dataset.verticalsBound = '1';
+  function where(el) {
+    var box = el.closest('[data-portfolio-builds-of]');
+    var li = el.closest('[data-vrow]');
+    if (!box || !li) return null;
+    var platformId = box.getAttribute('data-portfolio-builds-of');
+    return { platformId: platformId, rowId: li.getAttribute('data-vrow') };
+  }
+  function rowOf(draft, rowId) {
+    if (draft.platform.id === rowId) return draft.platform;
+    return draft.rows.find(function (r) { return r.id === rowId; }) || null;
+  }
+  listEl.addEventListener('click', function (e) {
+    var box = e.target.closest('[data-portfolio-builds-of]');
+    if (!box) return;
+    var platformId = box.getAttribute('data-portfolio-builds-of');
+    if (e.target.closest('[data-vsave]')) {
+      savePortfolioVerticals(platformId);
+      return;
+    }
+    if (e.target.closest('[data-vundo]')) {
+      delete portfolioVerticals.drafts[platformId];
+      rerenderPortfolioVerticals(platformId);
+      return;
+    }
+    var at = where(e.target);
+    if (!at) return;
+    if (e.target.closest('[data-vtoggle]')) {
+      var toggle = function () {
+        portfolioVerticals.open = portfolioVerticals.open === at.rowId ? '' : at.rowId;
+        listEl.querySelectorAll('[data-vrow]').forEach(function (li) {
+          var on = li.getAttribute('data-vrow') === portfolioVerticals.open;
+          li.classList.toggle('is-open', on);
+          var t = li.querySelector('[data-vtoggle]');
+          if (t) t.setAttribute('aria-expanded', on ? 'true' : 'false');
+          var p = li.querySelector('[data-vpanel]');
+          if (p) p.hidden = !on;
+        });
+      };
+      // Opening a row under another platform leaves this one's unsaved edits behind: ask first.
+      var others = portfolioVerticalsDirtyIds().filter(function (id) { return id !== platformId; });
+      if (others.length && portfolioVerticalsLeaveGuard(toggle)) return;
+      toggle();
+      return;
+    }
+    if (e.target.closest('[data-vfull-edit]')) {
+      var rec = portfolioVerticalsRecord(at.rowId);
+      if (rec) openPortfolioProjectModal(false, rec);
+      return;
+    }
+    var up = e.target.closest('[data-vup]');
+    var down = e.target.closest('[data-vdown]');
+    if ((up || down) && !(up || down).disabled) {
+      var draft = portfolioVerticalsDraft(platformId);
+      if (!draft) return;
+      var i = draft.rows.findIndex(function (r) { return r.id === at.rowId; });
+      draft.rows = window.PortfolioSkins.moveRow(draft.rows, i, up ? -1 : 1);
+      rerenderPortfolioVerticals(platformId);
+    }
+  });
+  listEl.addEventListener('input', function (e) {
+    var key = e.target.getAttribute && e.target.getAttribute('data-vfield');
+    if (key !== 'label' && key !== 'link' && key !== 'blurb') return;
+    var at = where(e.target);
+    var draft = at && portfolioVerticalsDraft(at.platformId);
+    var row = draft && rowOf(draft, at.rowId);
+    if (!row) return;
+    row[key] = key === 'link' ? e.target.value.trim() : e.target.value;
+    if (key === 'label') {
+      var nameEl = e.target.closest('[data-vrow]').querySelector('.admin-portfolio-build-name');
+      if (nameEl && nameEl.firstChild) nameEl.firstChild.textContent = portfolioVerticalsRowName(row) + ' ';
+    }
+    syncPortfolioVerticalsChrome(at.platformId);
+  });
+  listEl.addEventListener('change', function (e) {
+    var key = e.target.getAttribute && e.target.getAttribute('data-vfield');
+    if (key !== 'cover' && key !== 'kind') return;
+    var at = where(e.target);
+    var draft = at && portfolioVerticalsDraft(at.platformId);
+    var row = draft && rowOf(draft, at.rowId);
+    if (!row) return;
+    row[key] = key === 'kind' ? (e.target.value === 'demo' ? 'demo' : 'client') : e.target.value;
+    rerenderPortfolioVerticals(at.platformId);
+  });
+  window.addEventListener('beforeunload', function (e) {
+    if (!portfolioVerticalsDirtyIds().length) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
 }
 
 function buildAdminPortfolioRowHtml(p, listPosition, groupKey) {
@@ -5481,8 +5842,13 @@ function renderAdminPortfolioProjects() {
     });
     return;
   }
+  // A draft with nothing left to save would only hide later changes made elsewhere.
+  Object.keys(portfolioVerticals.drafts).forEach(function (id) {
+    if (!portfolioVerticalsIsDirty(portfolioVerticals.drafts[id])) delete portfolioVerticals.drafts[id];
+  });
   const groups = getAdminPortfolioVisibilityGroups();
   listEl.innerHTML =
+    portfolioSkinLinkSuggestionsHtml() +
     renderAdminPortfolioSectionHtml(
       'Public on site',
       'Shown on the Portfolio page. Up/Down only reorder this group.',
@@ -5495,6 +5861,8 @@ function renderAdminPortfolioProjects() {
       groups.privateProjects,
       'private'
     );
+  bindAdminPortfolioVerticals(listEl);
+  portfolioObserveCoverRotators(listEl);
 }
 
 let portfolioModalHandlersBound = false;
@@ -5821,7 +6189,6 @@ function serializePortfolioProjectFormState() {
     cover: portfolioFormCoverUrl,
     skinLabel: portfolioFormSkinLabel,
     skinBlurb: portfolioFormSkinBlurb,
-    skins: portfolioSkinsForm.rows.map(function (r) { return [r.id, r.label, r.order, r.cover, r.kind, r.link, r.blurb]; }),
     sections: typeof collectPortfolioDetailSectionsFromDom === 'function'
       ? collectPortfolioDetailSectionsFromDom()
       : []
@@ -5837,50 +6204,6 @@ var portfolioProjectFormBaseline = '';
 
 function capturePortfolioProjectFormBaseline() {
   portfolioProjectFormBaseline = serializePortfolioProjectFormState();
-}
-
-/**
- * Skins section: a template's skins (projects built from it) with their card
- * label, cover and order. Edits stay here until the platform is saved
- * (savePortfolioSkinRows). Rules live in portfolio-skins.js.
- */
-var portfolioSkinsForm = { platformId: '', reordered: false, rows: [] };
-
-function portfolioSkinsLoad(platform) {
-  var id = platform && platform.id ? String(platform.id) : '';
-  var skins = id
-    ? window.PortfolioSkins.orderSkins(portfolioProjectsRtdb.filter(function (p) {
-        return p && String(p.builtFromTemplateId || '') === id;
-      }))
-    : [];
-  portfolioSkinsForm = {
-    platformId: id,
-    reordered: false,
-    rows: skins.map(function (p) {
-      var row = {
-        id: String(p.id),
-        title: p.title || 'Build',
-        label: String(p.skinLabel || ''),
-        order: window.PortfolioSkins.skinPatch({ skinOrder: p.skinOrder }).skinOrder,
-        cover: portfolioExplicitCoverUrl(p),
-        urls: portfolioImageUrlsFromRecord(p),
-        kind: window.PortfolioSkins.kindOf(p),
-        link: String(p.projectUrl || ''),
-        blurb: String(p.skinBlurb || '')
-      };
-      row.original = { label: row.label, order: row.order, cover: row.cover, kind: row.kind, link: row.link, blurb: row.blurb };
-      return row;
-    })
-  };
-}
-
-var PORTFOLIO_SKIN_FIELDS = ['label', 'order', 'cover', 'kind', 'link', 'blurb'];
-
-/** Rows where any Skins-section field differs from what was loaded. */
-function portfolioSkinsChangedRows() {
-  return portfolioSkinsForm.rows.filter(function (r) {
-    return PORTFOLIO_SKIN_FIELDS.some(function (k) { return r[k] !== r.original[k]; });
-  });
 }
 
 function portfolioSkinLinkSuggestionsHtml() {
@@ -5901,225 +6224,6 @@ function portfolioSkinCoverOptionsHtml(urls, current) {
       );
     })
     .join('');
-}
-
-function portfolioSkinThumbHtml(src) {
-  return src
-    ? '<img src="' + portfolioEscapeHtml(portfolioDisplayImageSrc(src)) + '" alt="" loading="lazy">'
-    : '<span class="portfolio-skin-thumb-empty" aria-hidden="true"></span>';
-}
-
-function renderPortfolioSkinsSection() {
-  var section = document.getElementById('portfolio-editor-section-skins');
-  var list = document.getElementById('portfolio-skins-list');
-  if (!section || !list) return;
-  var isTemplateEl = document.getElementById('portfolio-project-is-template');
-  var editId = document.getElementById('portfolio-project-edit-id').value.trim();
-  section.hidden = !(isTemplateEl && isTemplateEl.checked && editId);
-
-  var formUrls = getPortfolioFormImageUrlsFromDom();
-  var platformCover = portfolioFormCoverUrl || portfolioAutoCoverStillUrl({ imageUrls: formUrls });
-
-  var html =
-    '<li class="portfolio-skin-row is-platform" data-skin-row="' + portfolioEscapeHtml(editId) + '">' +
-    '<div class="portfolio-skin-thumb">' + portfolioSkinThumbHtml(platformCover) + '</div>' +
-    '<div class="portfolio-skin-body">' +
-    '<p class="portfolio-skin-title">This platform</p>' +
-    '<label class="portfolio-skin-field">Card label' +
-    '<input type="text" class="form-input" id="portfolio-project-skin-label" maxlength="40" placeholder="Platform" value="' +
-    portfolioEscapeHtml(portfolioFormSkinLabel) + '"></label>' +
-    '<label class="portfolio-skin-field">Cover' +
-    '<select class="form-input" data-skin-platform-cover>' +
-    portfolioSkinCoverOptionsHtml(formUrls, portfolioFormCoverUrl) +
-    '</select></label>' +
-    '<label class="portfolio-skin-field portfolio-skin-field--wide">Blurb' +
-    '<input type="text" class="form-input" id="portfolio-project-skin-blurb" maxlength="120" placeholder="One line under the tabs" value="' +
-    portfolioEscapeHtml(portfolioFormSkinBlurb) + '"></label>' +
-    '</div></li>';
-
-  html += portfolioSkinsForm.rows.map(function (r, i) {
-    var src = r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls });
-    var chips =
-      '<span class="portfolio-skin-chip' + (r.kind === 'demo' ? ' is-demo' : '') + '">' + (r.kind === 'demo' ? 'Demo' : 'Client') + '</span>' +
-      (!r.urls.length ? '<span class="portfolio-skin-chip is-warn">No images yet — not on the card</span>' : '');
-    return (
-      '<li class="portfolio-skin-row" data-skin-row="' + portfolioEscapeHtml(r.id) + '">' +
-      '<div class="portfolio-skin-thumb">' + portfolioSkinThumbHtml(src) + '</div>' +
-      '<div class="portfolio-skin-body">' +
-      '<p class="portfolio-skin-title">' + portfolioEscapeHtml(r.title) + chips +
-      '<button type="button" class="portfolio-skin-edit" data-skin-edit>Edit full skin →</button></p>' +
-      '<label class="portfolio-skin-field">Card label' +
-      '<input type="text" class="form-input" data-skin-label maxlength="40" placeholder="' +
-      portfolioEscapeHtml(r.title) + '" value="' + portfolioEscapeHtml(r.label) + '"></label>' +
-      '<label class="portfolio-skin-field">Cover' +
-      '<select class="form-input" data-skin-cover>' + portfolioSkinCoverOptionsHtml(r.urls, r.cover) + '</select></label>' +
-      '<label class="portfolio-skin-field">Shows as' +
-      '<select class="form-input" data-skin-kind>' +
-      '<option value="demo"' + (r.kind === 'demo' ? ' selected' : '') + '>Demo · opens its link</option>' +
-      '<option value="client"' + (r.kind === 'client' ? ' selected' : '') + '>Client · no link</option>' +
-      '</select></label>' +
-      '<label class="portfolio-skin-field"' + (r.kind === 'demo' ? '' : ' hidden') + '>Live link' +
-      '<input type="url" class="form-input" data-skin-link list="portfolio-skin-link-suggestions" maxlength="2000" placeholder="https://….expo.app" value="' +
-      portfolioEscapeHtml(r.link) + '"></label>' +
-      '<label class="portfolio-skin-field portfolio-skin-field--wide">Blurb' +
-      '<input type="text" class="form-input" data-skin-blurb maxlength="120" placeholder="One line under the tabs" value="' +
-      portfolioEscapeHtml(r.blurb) + '"></label>' +
-      '</div>' +
-      '<div class="portfolio-skin-move">' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-skin-up aria-label="Move ' +
-      portfolioEscapeHtml(r.title) + ' up"' + (i === 0 ? ' disabled' : '') +
-      '><ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon></button>' +
-      '<button type="button" class="btn btn-secondary btn-sm" data-skin-down aria-label="Move ' +
-      portfolioEscapeHtml(r.title) + ' down"' + (i === portfolioSkinsForm.rows.length - 1 ? ' disabled' : '') +
-      '><ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon></button>' +
-      '</div></li>'
-    );
-  }).join('');
-  list.innerHTML = html + portfolioSkinLinkSuggestionsHtml();
-  renderPortfolioSkinsPreview();
-}
-
-/** The card cover rotator built from the in-form values, like the public card. */
-function renderPortfolioSkinsPreview() {
-  var box = document.getElementById('portfolio-skins-preview');
-  if (!box) return;
-  var formUrls = getPortfolioFormImageUrlsFromDom();
-  var slides = [{
-    index: 0,
-    label: window.PortfolioSkins.labelFor({ skinLabel: portfolioFormSkinLabel }, true),
-    src: portfolioFormCoverUrl || portfolioAutoCoverStillUrl({ imageUrls: formUrls })
-  }].concat(
-    portfolioSkinsForm.rows
-      .filter(function (r) { return r.urls.length; })
-      .map(function (r, k) {
-        return {
-          index: k + 1,
-          label: window.PortfolioSkins.labelFor({ skinLabel: r.label, title: r.title }, false),
-          src: r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls })
-        };
-      })
-  ).filter(function (s) { return !!s.src; });
-  box.innerHTML =
-    portfolioRenderRotatorFromSlides(slides, 'Card preview') ||
-    '<p class="form-hint">Add a skin with images to see the card rotate.</p>';
-  portfolioObserveCoverRotators(box);
-}
-
-function bindPortfolioSkinsSection() {
-  var list = document.getElementById('portfolio-skins-list');
-  if (!list || list.dataset.bound === '1') return;
-  list.dataset.bound = '1';
-  function rowOf(el) {
-    var li = el.closest('[data-skin-row]');
-    if (!li) return null;
-    var id = li.getAttribute('data-skin-row');
-    return portfolioSkinsForm.rows.find(function (r) { return r.id === id; }) || null;
-  }
-  list.addEventListener('input', function (e) {
-    if (e.target.id === 'portfolio-project-skin-label') {
-      portfolioFormSkinLabel = e.target.value;
-      renderPortfolioSkinsPreview();
-      return;
-    }
-    if (e.target.id === 'portfolio-project-skin-blurb') {
-      portfolioFormSkinBlurb = e.target.value;
-      return;
-    }
-    var row = rowOf(e.target);
-    if (!row) return;
-    if (e.target.hasAttribute('data-skin-label')) {
-      row.label = e.target.value;
-      renderPortfolioSkinsPreview();
-    } else if (e.target.hasAttribute('data-skin-link')) {
-      row.link = e.target.value.trim();
-    } else if (e.target.hasAttribute('data-skin-blurb')) {
-      row.blurb = e.target.value;
-    }
-  });
-  list.addEventListener('change', function (e) {
-    if (e.target.hasAttribute('data-skin-platform-cover')) {
-      portfolioFormCoverUrl = e.target.value;
-      renderPortfolioFormImagesList(getPortfolioFormImageUrlsFromDom());
-      renderPortfolioSkinsSection();
-      return;
-    }
-    var row = rowOf(e.target);
-    if (row && e.target.hasAttribute('data-skin-cover')) {
-      row.cover = e.target.value;
-      renderPortfolioSkinsSection();
-    } else if (row && e.target.hasAttribute('data-skin-kind')) {
-      row.kind = e.target.value === 'demo' ? 'demo' : 'client';
-      renderPortfolioSkinsSection();
-    }
-  });
-  list.addEventListener('click', function (e) {
-    var row = rowOf(e.target);
-    if (!row) return;
-    var rows = portfolioSkinsForm.rows;
-    var i = rows.indexOf(row);
-    if (e.target.closest('[data-skin-up]') && i > 0) {
-      rows.splice(i - 1, 0, rows.splice(i, 1)[0]);
-    } else if (e.target.closest('[data-skin-down]') && i < rows.length - 1) {
-      rows.splice(i + 1, 0, rows.splice(i, 1)[0]);
-    } else if (e.target.closest('[data-skin-edit]')) {
-      var skin = portfolioProjectsRtdb.find(function (p) { return String(p.id) === row.id; });
-      portfolioRunAfterEditorCloses(function () {
-        if (skin) openPortfolioProjectModal(false, skin);
-      });
-      return;
-    } else {
-      return;
-    }
-    // Any reorder renumbers every skin, so later inserts don't collide.
-    portfolioSkinsForm.reordered = true;
-    rows.forEach(function (r, k) { r.order = (k + 1) * 10; });
-    renderPortfolioSkinsSection();
-  });
-  var addBtn = document.getElementById('portfolio-skins-add');
-  if (addBtn) {
-    addBtn.addEventListener('click', function () {
-      var platformId = portfolioSkinsForm.platformId;
-      portfolioRunAfterEditorCloses(function () {
-        openPortfolioProjectModal(true, { builtFromTemplateId: platformId, showQuoteButton: true });
-      });
-    });
-  }
-  var isTemplateEl = document.getElementById('portfolio-project-is-template');
-  if (isTemplateEl) isTemplateEl.addEventListener('change', renderPortfolioSkinsSection);
-}
-
-/**
- * Writes each changed skin's label, order and cover — a partial update, so
- * nothing else on the skin is touched. Returns the titles that failed.
- */
-async function savePortfolioSkinRows() {
-  var failed = [];
-  var rows = portfolioSkinsChangedRows();
-  for (var i = 0; i < rows.length; i++) {
-    var r = rows[i];
-    var fields = { skinLabel: r.label, skinOrder: r.order, coverImageUrl: r.cover, skinKind: r.kind, skinBlurb: r.blurb };
-    // The link is only written when it was edited, so a client's saved link stays put.
-    if (r.link !== r.original.link) fields.projectUrl = r.link;
-    var patch = window.PortfolioSkins.skinPatch(fields);
-    try {
-      await window.rtdbUpdate(window.rtdbRef(window.rtdb, 'portfolioProjects/' + r.id), patch);
-      // Keep the loaded copy current: the skin's own editor saves from it.
-      var rec = portfolioProjectsRtdb.find(function (p) { return String(p.id) === r.id; });
-      if (rec) Object.assign(rec, patch);
-      r.original = { label: r.label, order: r.order, cover: r.cover, kind: r.kind, link: r.link, blurb: r.blurb };
-    } catch (err) {
-      console.error('Skin save failed', r.id, err);
-      failed.push(r.title);
-    }
-  }
-  return { failed: failed };
-}
-
-/** Runs fn once the editor actually closes: now, or after the unsaved prompt is resolved. */
-var portfolioAfterEditorClose = null;
-function portfolioRunAfterEditorCloses(fn) {
-  portfolioAfterEditorClose = fn;
-  closePortfolioProjectModal();
 }
 
 function isPortfolioProjectFormDirty() {
@@ -6167,7 +6271,6 @@ function setupPortfolioUnsavedConfirmModal() {
   modal.dataset.bound = '1';
 
   function keepEditing() {
-    portfolioAfterEditorClose = null;
     closePortfolioUnsavedConfirmModal();
   }
 
@@ -6245,6 +6348,11 @@ function openPortfolioProjectModal(isNew, project) {
   const titleEl = document.getElementById('portfolio-project-modal-title');
   const form = document.getElementById('portfolio-project-form');
   if (!modal || !form) return;
+  // Unsaved verticals in the list: Save or discard first, then open from the saved record.
+  if (portfolioVerticalsLeaveGuard(function () {
+    var fresh = !isNew && project && project.id ? portfolioVerticalsRecord(project.id) : null;
+    openPortfolioProjectModal(isNew, fresh || project);
+  })) return;
   closePortfolioUnsavedConfirmModal();
   form.reset();
   portfolioFormCoverUrl = !isNew && project ? portfolioExplicitCoverUrl(project) : '';
@@ -6357,9 +6465,6 @@ function openPortfolioProjectModal(isNew, project) {
   const panel = modal.querySelector('.portfolio-project-modal-content');
   if (panel) panel.style.zIndex = '10101';
   modal.setAttribute('aria-hidden', 'false');
-  portfolioSkinsLoad(isNew ? null : project);
-  bindPortfolioSkinsSection();
-  renderPortfolioSkinsSection();
   // Baseline immediately so outside-click before rAF isn't treated as "clean".
   capturePortfolioProjectFormBaseline();
   requestAnimationFrame(function () {
@@ -6403,10 +6508,6 @@ function closePortfolioProjectModal(options) {
   if (panel) panel.style.zIndex = '';
   modal.setAttribute('aria-hidden', 'true');
   portfolioProjectFormBaseline = '';
-  // Skins section: "Edit full skin" / "Add skin" open the next form only once this one is closed.
-  var next = portfolioAfterEditorClose;
-  portfolioAfterEditorClose = null;
-  if (next) setTimeout(next, 0);
 }
 
 window.closePortfolioProjectModal = closePortfolioProjectModal;
@@ -6560,7 +6661,6 @@ function setupPortfolioAdminControls() {
           portfolioFormCoverUrl = '';
         }
         renderPortfolioFormImagesList(urls);
-        if (typeof renderPortfolioSkinsSection === 'function') renderPortfolioSkinsSection();
         return;
       }
       const remove = e.target.closest('[data-portfolio-image-remove]');
@@ -6697,19 +6797,6 @@ function setupPortfolioAdminControls() {
           const existing = portfolioProjectsRtdb.find(function (x) { return x.id === editId; });
           payload.order = existing ? portfolioNumericOrder(existing) : 0;
           await updatePortfolioProjectDoc(editId, payload);
-          if (portfolioSkinsForm.platformId === editId) {
-            var skinResult = await savePortfolioSkinRows();
-            if (skinResult.failed.length) {
-              // Stay open and unsaved so closing still prompts; Save again
-              // re-sends only the failed skins (saved ones are marked done).
-              showErrorMessage(
-                'Saved the platform, but these skins did not save: ' +
-                  skinResult.failed.join(', ') +
-                  '. Save again to retry.'
-              );
-              return;
-            }
-          }
           showSuccessMessage('Project updated.');
         } else {
           payload.order = getNextPortfolioOrderValue();
@@ -21638,6 +21725,9 @@ window.addEventListener('load', function() {
     function activate(tabId) {
       tabId = resolveAdminTab(tabId);
       if (!VALID[tabId]) return;
+      // Unsaved verticals in the Portfolio list: Save or discard before leaving.
+      if (tabId !== 'portfolio' && typeof portfolioVerticalsLeaveGuard === 'function' &&
+          portfolioVerticalsLeaveGuard(function () { activate(tabId); })) return;
       tabs.forEach(function(t) {
         var id = t.getAttribute('data-admin-tab');
         var on = id === tabId;

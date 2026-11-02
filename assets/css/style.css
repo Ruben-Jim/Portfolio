@@ -9117,157 +9117,6 @@ body.package-examples-open {
   border-top: 1px solid hsla(0, 0%, 100%, 0.06);
 }
 
-/* Portfolio editor — Skins section (a template's skins: card label, cover, order) */
-.portfolio-skins-list {
-  list-style: none;
-  margin: 8px 0 12px;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.portfolio-skin-row {
-  display: grid;
-  grid-template-columns: 96px 1fr auto;
-  gap: 12px;
-  align-items: start;
-  padding: 10px;
-  border: 1px solid var(--jet);
-  border-radius: 10px;
-}
-
-.portfolio-skin-row.is-platform {
-  grid-template-columns: 96px 1fr;
-  border-color: hsla(45, 100%, 72%, 0.3);
-}
-
-.portfolio-skin-thumb {
-  width: 96px;
-  aspect-ratio: 16 / 10;
-  border-radius: 6px;
-  overflow: hidden;
-  background: var(--onyx);
-}
-
-.portfolio-skin-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.portfolio-skin-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 12px;
-  min-width: 0;
-}
-
-.portfolio-skin-title {
-  grid-column: 1 / -1;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  font-weight: var(--fw-600);
-  color: var(--white-2);
-}
-
-.portfolio-skin-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-  font-size: 12px;
-  color: var(--light-gray-70);
-}
-
-/* Long cover names ("Home page (video poster) · …") must not widen the row. */
-.portfolio-skin-field .form-input {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.portfolio-skin-field select.form-input {
-  padding: 10px 12px;
-  border: 1px solid var(--jet);
-  border-radius: 8px;
-  background: var(--onyx);
-  color: var(--white-1);
-  text-overflow: ellipsis;
-}
-
-.portfolio-skin-field select.form-input option {
-  background: var(--eerie-black-2);
-  color: var(--white-1);
-}
-
-.portfolio-skin-chip {
-  padding: 1px 7px;
-  border: 1px solid var(--jet);
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: var(--fw-500);
-  color: var(--light-gray-70);
-}
-
-.portfolio-skin-chip.is-warn {
-  border-color: hsla(35, 90%, 60%, 0.5);
-  color: hsl(35, 90%, 70%);
-}
-
-.portfolio-skin-edit {
-  margin-left: auto;
-  white-space: nowrap;
-  background: none;
-  border: 0;
-  font-size: 12px;
-  color: var(--orange-yellow-crayola);
-  cursor: pointer;
-}
-
-.portfolio-skin-move {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.portfolio-skins-preview-wrap {
-  margin-top: 14px;
-}
-
-.portfolio-skins-preview {
-  position: relative;
-  max-width: 360px;
-  aspect-ratio: 16 / 10;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-@media (max-width: 579px) {
-  .portfolio-skin-row {
-    grid-template-columns: 72px 1fr;
-  }
-
-  .portfolio-skin-thumb {
-    width: 72px;
-  }
-
-  .portfolio-skin-body {
-    grid-template-columns: 1fr;
-  }
-
-  .portfolio-skin-move {
-    grid-column: 1 / -1;
-    flex-direction: row;
-    justify-content: flex-end;
-  }
-}
-
 .portfolio-editor-toggles {
   display: grid;
   gap: 4px;
@@ -33579,19 +33428,6 @@ body.cwr-overlay-open [data-float] {
   display: none;
 }
 
-.portfolio-skin-field--wide {
-  grid-column: 1 / -1;
-}
-
-.portfolio-skin-field[hidden] {
-  display: none;
-}
-
-.portfolio-skin-chip.is-demo {
-  border-color: hsla(45, 100%, 72%, 0.45);
-  color: var(--orange-yellow-crayola);
-}
-
 .portfolio-editor-toggles .form-group[hidden] {
   display: none;
 }
@@ -33631,13 +33467,173 @@ body.cwr-overlay-open [data-float] {
 }
 
 .admin-portfolio-build {
+  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  border-radius: 10px;
+}
+
+.admin-portfolio-build.is-platform {
+  border-color: hsla(45, 100%, 72%, 0.3);
+}
+
+.admin-portfolio-build.is-open {
+  border-color: hsla(45, 100%, 72%, 0.5);
+  background: hsla(0, 0%, 100%, 0.02);
+}
+
+.admin-portfolio-build-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 6px;
+}
+
+/* The whole row (picture, name, status) is the tap target that opens its fields. */
+.admin-portfolio-build-toggle {
+  flex: 1;
+  min-width: 0;
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  padding: 6px 8px;
-  border: 1px solid hsla(0, 0%, 100%, 0.06);
+  padding: 2px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-portfolio-build-toggle:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+.admin-portfolio-build-chevron {
+  font-size: 16px;
+  color: var(--light-gray-70);
+  transition: transform 0.2s ease;
+}
+
+.admin-portfolio-build.is-open .admin-portfolio-build-chevron {
+  transform: rotate(180deg);
+}
+
+.admin-portfolio-build-move {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.admin-portfolio-build-move .btn {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+.admin-portfolio-build-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+  padding: 4px 10px 12px;
+}
+
+.admin-portfolio-build-panel[hidden],
+.admin-portfolio-vfield[hidden],
+.admin-portfolio-builds-actions[hidden] {
+  display: none;
+}
+
+.admin-portfolio-vfield {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--light-gray-70);
+}
+
+.admin-portfolio-vfield--wide {
+  grid-column: 1 / -1;
+}
+
+/* Long cover names ("Home page (video poster) · …") must not widen the row. */
+.admin-portfolio-vfield .form-input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-portfolio-vfield select.form-input {
+  padding: 10px 12px;
+  border: 1px solid var(--jet);
+  border-radius: 8px;
+  background: var(--onyx);
+  color: var(--white-1);
+  text-overflow: ellipsis;
+}
+
+.admin-portfolio-vfield select.form-input option {
+  background: var(--eerie-black-2);
+  color: var(--white-1);
+}
+
+.admin-portfolio-build-full {
+  grid-column: 1 / -1;
+  justify-self: start;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  color: var(--orange-yellow-crayola);
+  cursor: pointer;
+}
+
+.admin-portfolio-builds-preview {
+  position: relative;
+  max-width: 280px;
+  aspect-ratio: 16 / 10;
+  margin: 0 0 10px;
   border-radius: 10px;
+  overflow: hidden;
+}
+
+.admin-portfolio-builds-preview:not(:has(.project-cover-rotator)) {
+  aspect-ratio: auto;
+}
+
+.admin-portfolio-builds-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  border-radius: 10px;
+  background: hsla(45, 100%, 72%, 0.06);
+}
+
+.admin-portfolio-builds-unsaved {
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--orange-yellow-crayola);
+}
+
+@media (max-width: 579px) {
+  .admin-portfolio-build-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-portfolio-build-chevron {
+    transition: none;
+  }
 }
 
 .admin-portfolio-build-thumb {
