@@ -3218,7 +3218,7 @@ function portfolioNormalizeAssetImageUrl(url) {
   return s;
 }
 
-var PORTFOLIO_IMAGE_CACHE_BUST = '20260818n';
+var PORTFOLIO_IMAGE_CACHE_BUST = '20261102a';
 
 /** Root-relative src for <img> / <video> — never breaks on /admin or /portfolio routes. */
 function portfolioDisplayImageSrc(url) {

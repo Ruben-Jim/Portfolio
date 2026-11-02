@@ -2,7 +2,7 @@
 // the same set the existing verticals use (pawshine, sunergy, homecontractors).
 // Usage: npm i --no-save puppeteer-core && node scripts/capture-vertical-media.mjs <outDir> /tmp/vcap [stills|video|all] [id,id]
 // Writes <outDir>/<id>/<id>-{home,home-services,services,our-work,testimonials,contact}.webp
-// and <id>-demo.mp4 + <id>-demo-poster.webp (480×300). MP4 only: the site plays one file per video
+// and <id>-demo.mp4 + <id>-demo-poster.webp (960×600: it is the card cover, so it must stay sharp). MP4 only: the site plays one file per video
 // and the admin picker prefers the .mp4, so a .webm twin would never be used.
 // Capture into a review folder, then copy the keepers into assets/images/projects/<id>/
 // and run ./scripts/build-portfolio-assets.sh so the admin picker lists them.
@@ -200,7 +200,7 @@ async function video(id, base) {
   const out = join(dir, `${id}-demo`);
   const input = ['-v', 'error', '-y', '-framerate', String(FPS), '-i', join(frames, '%05d.jpg'), '-vf', 'scale=1920:1200,format=yuv420p', '-an'];
   execFileSync('ffmpeg', [...input, '-c:v', 'libx264', '-crf', '24', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out + '.mp4']);
-  execFileSync('magick', [join(frames, '00000.jpg'), '-resize', '480x300!', '-quality', '75', out + '-poster.webp']);
+  execFileSync('magick', [join(frames, '00000.jpg'), '-resize', '960x600!', '-quality', '80', out + '-poster.webp']);
   rmSync(frames, { recursive: true, force: true });
   return { secs: (n / FPS).toFixed(1), frames: n };
 }
