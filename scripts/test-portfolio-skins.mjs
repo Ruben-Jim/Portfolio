@@ -96,3 +96,21 @@ ok(up.map((r) => r.id).join() === 'a,c,b' && up.map((r) => r.order).join() === '
 ok(rows.map((r) => r.id).join() === 'a,b,c' && rows[2].order === 25, 'moving returns new rows (the old list is untouched)');
 ok(S.moveRow(rows, 0, -1).map((r) => r.id).join() === 'a,b,c', 'the first row cannot move up');
 ok(S.moveRow(rows, 2, 1).map((r) => r.id).join() === 'a,b,c', 'the last row cannot move down');
+
+// Top-level projects (a platform, or a standalone project): Demo unless marked Client.
+ok(S.liveKindOf({}) === 'demo' && S.liveKindOf({ liveKind: 'client' }) === 'client' && S.liveKindOf({ liveKind: 'x' }) === 'demo', 'a top-level project is a demo until marked client');
+ok(S.liveKindOf({ skinKind: 'client' }) === 'demo', "a leftover vertical setting never hides a top-level project's link");
+ok(S.skinPatch({ liveKind: 'client' }).liveKind === 'client' && S.skinPatch({ liveKind: 'nope' }).liveKind === 'demo', 'the top-level setting saves as demo or client');
+const platRow = Object.assign(rowOf({ label: 'Roof Cleaning', cover: '', blurb: '', liveKind: 'demo', link: 'https://roofcleaning.expo.app' }), { liveKind: 'client' });
+const p6 = S.changedPatch(platRow);
+ok(p6 && p6.liveKind === 'client' && Object.keys(p6).length === 1, "the platform row saves its Shows as on the platform's own setting");
+const platLink = Object.assign(rowOf({ label: '', cover: '', blurb: '', liveKind: 'demo', link: '' }), { link: 'https://lawncare.expo.app' });
+ok(S.changedPatch(platLink).projectUrl === 'https://lawncare.expo.app', "the platform row's live link saves as its project link");
+const t4 = S.tabInfo({ liveKind: 'client' }, { liveKind: 'client' }, true, 'https://roofcleaning.expo.app');
+ok(t4.liveUrl === '' && t4.isClient, 'a client platform tab has no link');
+
+// A build's row also sets whether it's public (See examples, business-type search).
+const r9 = Object.assign(rowOf({ label: 'Paw', order: 10, cover: '', kind: 'demo', link: '', blurb: '', visibility: 'private' }), { visibility: 'public' });
+const p9 = S.changedPatch(r9);
+ok(p9 && p9.visibility === 'public' && Object.keys(p9).length === 1, "a build's Public saves on its own field");
+ok(S.skinPatch({ visibility: 'nope' }).visibility === 'public' && S.skinPatch({ visibility: 'private' }).visibility === 'private', 'visibility saves as public or private');

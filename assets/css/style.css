@@ -11946,6 +11946,7 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   line-height: 1.7;
 }
 
+.project-detail-included-section,
 .project-detail-bestfor-section {
   border: 1px solid hsla(45, 100%, 72%, 0.16);
   background: hsla(240, 2%, 18%, 0.65);
@@ -32391,7 +32392,7 @@ html:has(body.home-page-active) {
 
 @media (max-width: 579px) {
   .project-img.has-mobile-shot > img:not(.project-img-mobile),
-  .project-img.has-mobile-shot > video,
+  .project-img.has-mobile-shot > video:not(.project-img-mobile),
   .project-img.has-mobile-shot > .project-card-rotator,
   .project-img.has-mobile-shot > [class*="rotator"] {
     display: none;
@@ -33592,17 +33593,20 @@ body.cwr-overlay-open [data-float] {
   cursor: pointer;
 }
 
-.admin-portfolio-builds-preview {
-  position: relative;
-  max-width: 280px;
-  aspect-ratio: 16 / 10;
-  margin: 0 0 10px;
-  border-radius: 10px;
-  overflow: hidden;
+/* A build's Public switch: a checkbox line across the row's fields. */
+.admin-portfolio-vfield--check {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  color: var(--light-gray);
+  cursor: pointer;
 }
 
-.admin-portfolio-builds-preview:not(:has(.project-cover-rotator)) {
-  aspect-ratio: auto;
+.admin-portfolio-vfield--check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--orange-yellow-crayola);
 }
 
 .admin-portfolio-builds-actions {
@@ -33719,4 +33723,173 @@ body.cwr-overlay-open [data-float] {
 .project-detail-variant-tab {
   display: inline-flex;
   align-items: center;
+}
+
+/* ── "What's included" (portfolio-features.js, 2026-11-02) ── */
+/* The gold part of the heading rule spans the longer label. */
+.project-fit-title.is-included {
+  --fit-rule-gold: 136px;
+}
+
+.project-fit-more {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--light-gray-70);
+}
+
+/* Project form: tap a feature to turn it on. Styled like the form's own labels. */
+.portfolio-feature-label {
+  margin: 0 0 6px;
+  color: var(--white-1);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.portfolio-feature-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.portfolio-feature-chip {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--jet);
+  border-radius: 999px;
+  background: var(--onyx);
+  color: var(--light-gray);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.portfolio-feature-chip[aria-pressed="true"] {
+  border-color: hsla(45, 100%, 72%, 0.6);
+  background: hsla(45, 100%, 72%, 0.14);
+  color: var(--orange-yellow-crayola);
+}
+
+.portfolio-feature-chip[aria-pressed="true"]::before {
+  content: "\2713\00a0";
+}
+
+.portfolio-feature-chip:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola);
+  outline-offset: 2px;
+}
+
+/* ── Top-level Demo / Client (liveKind, 2026-11-03) ── */
+/* A live client's card: tagged, and never linked to their app. Top-left; the builds count sits top-right. */
+.project-client-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  padding: 5px 9px;
+  border: 1px solid hsla(0, 0%, 100%, 0.14);
+  border-radius: 999px;
+  background: hsla(240, 2%, 12%, 0.82);
+  color: var(--light-gray);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Popup: the tag sits right after the title; the text-size button stays on the right.
+   The title normally grows to fill the row, which would push the tag to the middle. */
+.project-detail-meta:has(.project-detail-client-chip:not([hidden])) .project-detail-title {
+  flex: 0 1 auto;
+}
+
+.project-detail-client-chip {
+  align-self: center;
+  margin-right: auto;
+  padding: 3px 9px;
+  border: 1px solid hsla(45, 100%, 72%, 0.35);
+  border-radius: 999px;
+  color: var(--orange-yellow-crayola);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.project-detail-client-chip[hidden],
+#portfolio-project-live-kind-group[hidden] {
+  display: none;
+}
+
+/* Project form: Shows as, styled like the Portfolio list's selects. */
+.portfolio-live-kind-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--jet);
+  border-radius: 8px;
+  background: var(--onyx);
+  color: var(--white-1);
+}
+
+.portfolio-live-kind-select option {
+  background: var(--eerie-black-2);
+  color: var(--white-1);
+}
+
+/* Popup vertical tabs: drag to scroll with a mouse (portfolioBindTabsBar); fades mark more tabs.
+   Tab names are never selectable: Safari starts highlighting from a drag that begins between tabs. */
+.project-detail-variant-tabs {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.project-detail-variant-tabs.is-scrollable {
+  cursor: grab;
+}
+
+.project-detail-variant-tabs.is-dragging,
+.project-detail-variant-tabs.is-dragging .project-detail-variant-tab {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.project-detail-variant-tabs.has-more-right {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent);
+}
+
+.project-detail-variant-tabs.has-more-left {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px);
+  mask-image: linear-gradient(90deg, transparent, #000 40px);
+}
+
+.project-detail-variant-tabs.has-more-left.has-more-right {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent);
+}
+
+/* Project form → Package demos: each package's link and, once it has one, its own feature chips. */
+.portfolio-package-demo {
+  padding: 10px 0 12px;
+  border-bottom: 1px solid hsla(0, 0%, 100%, 0.06);
+}
+
+.portfolio-package-demo:last-child {
+  border-bottom: 0;
+}
+
+.portfolio-package-demo .form-group {
+  margin-bottom: 6px;
+}
+
+.portfolio-package-features[hidden],
+.project-detail-package-chip[hidden] {
+  display: none;
+}
+
+.portfolio-package-features .portfolio-feature-chips {
+  margin: 6px 0 0;
 }

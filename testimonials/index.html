@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=verticals-list-20261102">
+  <link rel="stylesheet" href="/assets/css/style.css?v=pkg-demos-20261103">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-center-20260609">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -1566,6 +1566,8 @@
             <div class="project-detail-scroll has-scrollbar is-detail-compact" id="project-detail-scroll">
             <div class="project-detail-meta">
               <h3 class="h3 project-detail-title" id="project-detail-title">Project Title</h3>
+              <span class="project-detail-client-chip" id="project-detail-client-chip" hidden>Live client</span>
+              <span class="project-detail-client-chip project-detail-package-chip" id="project-detail-package-chip" hidden></span>
               <button type="button" class="project-detail-density-btn" id="project-detail-density-toggle" aria-pressed="true" aria-label="Use larger text size" title="Text size">
                 <span class="project-detail-density-btn-label" aria-hidden="true">A</span>
                 <span class="project-detail-density-btn-hint">Compact</span>
@@ -1585,6 +1587,16 @@
             </div>
 
             <p class="project-detail-description" id="project-detail-description"></p>
+
+            <section class="project-detail-section project-detail-included-section" id="project-detail-included-section" hidden>
+              <h4 class="h4 project-detail-section-title">What's included</h4>
+              <ul class="project-fit-list" id="project-detail-included"></ul>
+            </section>
+
+            <section class="project-detail-section project-detail-bestfor-section" id="project-detail-bestfor-section" hidden>
+              <h4 class="h4 project-detail-section-title">Best for</h4>
+              <ul class="project-fit-list" id="project-detail-bestfor"></ul>
+            </section>
 
             <div class="project-detail-tech" id="project-detail-tech"></div>
 
@@ -7618,6 +7630,13 @@
                   <input type="url" id="portfolio-project-url" inputmode="url" placeholder="https:// or leave empty / #">
                 </div>
               </div>
+              <div class="form-group" id="portfolio-project-live-kind-group">
+                <label for="portfolio-project-live-kind">Shows as</label>
+                <select id="portfolio-project-live-kind" class="form-input portfolio-live-kind-select">
+                  <option value="demo">Demo · the live button opens this link</option>
+                  <option value="client">Client · no live button (their app stays untouched)</option>
+                </select>
+              </div>
               <div class="portfolio-editor-toggles">
                 <div class="form-group form-group-checkbox-row">
                   <label class="portfolio-project-checkbox">
@@ -7732,6 +7751,12 @@
                 <textarea id="portfolio-project-description" class="has-scrollbar" rows="4" required placeholder="Short summary for the card and detail modal."></textarea>
               </div>
               <div class="form-group">
+                <p class="portfolio-feature-label" id="portfolio-project-features-label">What's included</p>
+                <p class="form-hint">Tap to turn on. Cards show the first 6, in this order.</p>
+                <div class="portfolio-feature-chips" id="portfolio-project-features" role="group" aria-labelledby="portfolio-project-features-label"></div>
+                <button type="button" class="btn btn-secondary btn-sm" id="portfolio-project-feature-add">+ Add feature</button>
+              </div>
+              <div class="form-group">
                 <label for="portfolio-project-tech">Tech stack (comma or line separated)</label>
                 <textarea id="portfolio-project-tech" class="has-scrollbar" rows="2" placeholder="React Native, Expo, Firebase"></textarea>
               </div>
@@ -7748,25 +7773,6 @@
                   <label for="portfolio-project-buy-premium">Premium label (optional)</label>
                   <input type="text" id="portfolio-project-buy-premium" maxlength="160" placeholder="Premium: $750 - $1,000">
                 </div>
-              </div>
-              <div class="form-group">
-                <label id="portfolio-project-pricing-package-label" for="portfolio-project-pricing-package">Show as example on package (optional)</label>
-                <div class="business-doc-select" data-select-name="portfolio-pricing-package">
-                  <button type="button" class="business-doc-select-trigger form-input" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="portfolio-project-pricing-package-label">
-                    <span class="business-doc-select-trigger-label">None</span>
-                    <ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>
-                  </button>
-                  <div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">
-                    <button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="">None</button>
-                    <button type="button" class="business-doc-select-option" data-price-template="Starter Package — {pkg_starter_page}" role="option" aria-selected="false" data-value="starter-page">Starter Package — $499</button>
-                    <button type="button" class="business-doc-select-option" data-price-template="Multi-Page Package — {pkg_website}" role="option" aria-selected="false" data-value="website">Multi-Page Package — $999</button>
-                    <button type="button" class="business-doc-select-option" data-price-template="Website + App Package — {pkg_starter}" role="option" aria-selected="false" data-value="starter">Website + App Package — $1,500</button>
-                    <button type="button" class="business-doc-select-option" data-price-template="Growth Package — {pkg_growth}" role="option" aria-selected="false" data-value="growth">Growth Package — $3,500</button>
-                    <button type="button" class="business-doc-select-option" data-price-template="Link Tree — {pkg_linktree_range}" role="option" aria-selected="false" data-value="linktree">Link Tree — $99–$199</button>
-                  </div>
-                  <input type="hidden" id="portfolio-project-pricing-package" value="">
-                </div>
-                <p class="form-hint">Adds this project to “See examples” on Services &amp; Pricing.</p>
               </div>
               <div class="form-group">
                 <label for="portfolio-project-bestfor">“Best for” lines (optional, one per line)</label>
@@ -7802,6 +7808,56 @@
                 <ul class="portfolio-detail-sections-list" id="portfolio-detail-sections-list"></ul>
                 <button type="button" class="btn btn-secondary btn-sm" id="portfolio-detail-section-add">Add section</button>
               </div>
+            </div>
+          </details>
+
+          <details class="portfolio-editor-section" data-portfolio-editor-section="package-demos" id="portfolio-editor-section-package-demos">
+            <summary class="portfolio-editor-summary">
+              <span class="portfolio-editor-summary-title">Package demos</span>
+              <span class="portfolio-editor-summary-hint">See examples on Services &amp; Pricing</span>
+            </summary>
+            <div class="portfolio-editor-section-body">
+              <p class="form-hint">A demo link adds this project (or build) to that package’s “See examples” when it’s public. Pick what each package’s demo includes. Leave a package blank to skip it.</p>
+                <div class="portfolio-package-demo" data-package-demo="starter-page">
+                  <div class="form-group">
+                    <label for="portfolio-project-demo-starter-page" data-price-template="Starter Package ({pkg_starter_page}) demo">Starter Package ($499) demo</label>
+                    <input type="url" id="portfolio-project-demo-starter-page" maxlength="500" placeholder="https://…--starter.expo.app">
+                  </div>
+                  <div class="portfolio-package-features" data-package-features="starter-page" hidden>
+                    <p class="form-hint">What this package's demo includes (shown when a visitor opens it from See examples):</p>
+                    <div class="portfolio-feature-chips" data-package-chips="starter-page" role="group" aria-label="What the Starter Package includes"></div>
+                  </div>
+                </div>
+                <div class="portfolio-package-demo" data-package-demo="website">
+                  <div class="form-group">
+                    <label for="portfolio-project-demo-website" data-price-template="Multi-Page Package ({pkg_website}) demo">Multi-Page Package ($999) demo</label>
+                    <input type="url" id="portfolio-project-demo-website" maxlength="500" placeholder="https://…--multi-page.expo.app">
+                  </div>
+                  <div class="portfolio-package-features" data-package-features="website" hidden>
+                    <p class="form-hint">What this package's demo includes (shown when a visitor opens it from See examples):</p>
+                    <div class="portfolio-feature-chips" data-package-chips="website" role="group" aria-label="What the Multi-Page Package includes"></div>
+                  </div>
+                </div>
+                <div class="portfolio-package-demo" data-package-demo="starter">
+                  <div class="form-group">
+                    <label for="portfolio-project-demo-starter" data-price-template="Website + App Package ({pkg_starter}) demo">Website + App Package ($1,500) demo</label>
+                    <input type="url" id="portfolio-project-demo-starter" maxlength="500" placeholder="https://…--website-app.expo.app">
+                  </div>
+                  <div class="portfolio-package-features" data-package-features="starter" hidden>
+                    <p class="form-hint">What this package's demo includes (shown when a visitor opens it from See examples):</p>
+                    <div class="portfolio-feature-chips" data-package-chips="starter" role="group" aria-label="What the Website + App Package includes"></div>
+                  </div>
+                </div>
+                <div class="portfolio-package-demo" data-package-demo="growth">
+                  <div class="form-group">
+                    <label for="portfolio-project-demo-growth" data-price-template="Growth Package ({pkg_growth}) demo">Growth Package ($3,500) demo</label>
+                    <input type="url" id="portfolio-project-demo-growth" maxlength="500" placeholder="https://…--growth.expo.app">
+                  </div>
+                  <div class="portfolio-package-features" data-package-features="growth" hidden>
+                    <p class="form-hint">What this package's demo includes (shown when a visitor opens it from See examples):</p>
+                    <div class="portfolio-feature-chips" data-package-chips="growth" role="group" aria-label="What the Growth Package includes"></div>
+                  </div>
+                </div>
             </div>
           </details>
 
@@ -7842,27 +7898,6 @@
                   <div class="form-group form-group-half">
                     <label for="portfolio-project-demo-firebase">Demo Firebase project ID</label>
                     <input type="text" id="portfolio-project-demo-firebase" maxlength="120" placeholder="Shared demo backend for this template">
-                  </div>
-                </div>
-                <p class="form-hint">Package demo links: each one adds this template to that package’s “See examples” on Services &amp; Pricing. Leave a package blank to skip it.</p>
-                <div class="form-row">
-                  <div class="form-group form-group-half">
-                    <label for="portfolio-project-demo-starter-page" data-price-template="Starter Package ({pkg_starter_page}) demo">Starter Package ($499) demo</label>
-                    <input type="url" id="portfolio-project-demo-starter-page" maxlength="500" placeholder="https://…--starter.expo.app">
-                  </div>
-                  <div class="form-group form-group-half">
-                    <label for="portfolio-project-demo-website" data-price-template="Multi-Page Package ({pkg_website}) demo">Multi-Page Package ($999) demo</label>
-                    <input type="url" id="portfolio-project-demo-website" maxlength="500" placeholder="https://…--multi-page.expo.app">
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group form-group-half">
-                    <label for="portfolio-project-demo-starter" data-price-template="Website + App Package ({pkg_starter}) demo">Website + App Package ($1,500) demo</label>
-                    <input type="url" id="portfolio-project-demo-starter" maxlength="500" placeholder="https://…--website-app.expo.app">
-                  </div>
-                  <div class="form-group form-group-half">
-                    <label for="portfolio-project-demo-growth" data-price-template="Growth Package ({pkg_growth}) demo">Growth Package ($3,500) demo</label>
-                    <input type="url" id="portfolio-project-demo-growth" maxlength="500" placeholder="https://…--growth.expo.app">
                   </div>
                 </div>
               </div>
@@ -8854,7 +8889,8 @@
   <script src="/assets/js/business-doc-shared.js?v=package-offers-20261005"></script>
   <script src="/assets/js/hire-me-booking.js?v=security-20261010"></script>
   <script src="/assets/js/customer-dm-shared.js?v=security-20261010"></script>
-  <script src="/assets/js/portfolio-skins.js?v=verticals-list-20261102"></script>
+  <script src="/assets/js/portfolio-skins.js?v=pkg-demos-20261103"></script>
+  <script src="/assets/js/portfolio-features.js?v=pkg-demos-20261103"></script>
   <script src="/assets/js/social-proof.js?v=one-card-20261018"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=images-20261102"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
@@ -8911,7 +8947,7 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=verticals-images-20261102"></script>
+  <script src="/assets/js/script.js?v=pkg-demos2-20261103"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--

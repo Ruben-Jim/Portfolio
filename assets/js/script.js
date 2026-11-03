@@ -4326,6 +4326,8 @@ function portfolioSanitizeDocumentPayload(data) {
     // A build is a demo (opens its own projectUrl from the platform's popup) or a client (never linked).
     skinKind: window.PortfolioSkins.skinPatch({ skinKind: data.skinKind }).skinKind,
     skinBlurb: window.PortfolioSkins.skinPatch({ skinBlurb: data.skinBlurb }).skinBlurb,
+    // A top-level project is a demo (its live button opens projectUrl) or a client (never linked).
+    liveKind: window.PortfolioSkins.skinPatch({ liveKind: data.liveKind }).liveKind,
     imageAlt: String(data.imageAlt != null ? data.imageAlt : '').slice(0, 200),
     description: String(data.description != null ? data.description : '').slice(0, 8000),
     techTags: portfolioParseTechTags(data.techTags),
@@ -4333,11 +4335,12 @@ function portfolioSanitizeDocumentPayload(data) {
     buyNowLabel: data.buyNowLabel != null ? String(data.buyNowLabel).slice(0, 120) : '',
     buyPremiumLabel: data.buyPremiumLabel != null ? String(data.buyPremiumLabel).slice(0, 160) : '',
     showQuoteButton: data.showQuoteButton !== false,
-    pricingPackage: sanitizePricingPackage(data.pricingPackage),
     adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
       : [],
+    // "What's included" on the card: names from the shared list, saved in its order.
+    features: window.PortfolioFeatures.ordered(data.features, window.PortfolioFeatures.masterList(portfolioProjectsRtdb)),
     isTemplate: data.isTemplate === true || data.isTemplate === 'true' || data.isTemplate === 1,
     // Id of the starter template this project was built from. Lives on
     // portfolioProjects (publicly readable) rather than being derived from
@@ -4349,6 +4352,8 @@ function portfolioSanitizeDocumentPayload(data) {
     // Starter templates: one live demo URL per pricing package (EAS alias per package).
     // Feeds "See examples" on Services & Pricing — see getTemplateDemosForPackage().
     packageDemos: portfolioSanitizePackageDemos(data.packageDemos),
+    // Each package demo's own "What's included" (kept only where that package has a link).
+    packageFeatures: window.PortfolioFeatures.cleanPackageFeatures(data.packageFeatures, portfolioSanitizePackageDemos(data.packageDemos)),
     demoFirebaseProjectId: String(
       data.demoFirebaseProjectId != null ? data.demoFirebaseProjectId : ''
     )
@@ -4392,6 +4397,20 @@ function portfolioSafeProjectUrl(u) {
   if (!s || s === '#') return '#';
   if (/^https?:\/\//i.test(s)) return s;
   return '#';
+}
+
+/** True for a top-level project marked Client (a vertical's own setting lives in skinKind). */
+function portfolioIsLiveClient(p) {
+  return !!p && !p.builtFromTemplateId && window.PortfolioSkins.liveKindOf(p) === 'client';
+}
+
+/** The link visitors may open: none for a live client, so their production app stays untouched. */
+function portfolioPublicLiveUrl(p) {
+  return portfolioIsLiveClient(p) ? '#' : portfolioSafeProjectUrl(p && p.projectUrl);
+}
+
+function portfolioRenderClientBadgeHtml(p) {
+  return portfolioIsLiveClient(p) ? '<span class="project-client-badge">Live client</span>' : '';
 }
 
 function portfolioDetailBtnShortLabel(longLabel) {
@@ -4621,6 +4640,64 @@ function portfolioGetDefaultBestFor(projectTitle, projectCategory) {
   return ['Small businesses', 'Growing businesses', 'Teams seeking digital operations workflows'];
 }
 
+/** A record's Best for lines: its own, else the title preset, else the generic default. */
+function portfolioBestForLines(rec, titleText) {
+  if (rec && Array.isArray(rec.bestFor) && rec.bestFor.length) return rec.bestFor.slice();
+  var preset = PORTFOLIO_DETAIL_PRESETS[titleText];
+  return preset && preset.bestFor ? preset.bestFor.slice() : portfolioGetDefaultBestFor(titleText, '');
+}
+
+/** The shared feature list as visitors see it (every project, private ones included). */
+function portfolioFeaturesShared() {
+  return window.PortfolioFeatures.masterList(window.portfolioProjectsAll || window.portfolioProjects || []);
+}
+
+/** Popup: What's included (every feature) and Best for, under the description. */
+function portfolioFillDetailFitSections(record, titleText) {
+  portfolioFillDetailFitLists(record && record.features, portfolioBestForLines(record, titleText));
+}
+
+function portfolioFillDetailFitLists(features, bestFor) {
+  function fill(sectionId, listId, lines) {
+    var section = document.getElementById(sectionId);
+    var list = document.getElementById(listId);
+    if (!section || !list) return;
+    list.innerHTML = '';
+    lines.forEach(function (text) {
+      var li = document.createElement('li');
+      li.textContent = text;
+      list.appendChild(li);
+    });
+    section.hidden = !lines.length;
+  }
+  fill('project-detail-included-section', 'project-detail-included',
+    window.PortfolioFeatures.ordered(features, portfolioFeaturesShared()));
+  if (bestFor !== undefined) fill('project-detail-bestfor-section', 'project-detail-bestfor', bestFor || []);
+}
+
+/**
+ * Package view, when the popup was opened from a package's "See examples":
+ * that package's tag, its own What's included and its demo link. null clears
+ * the tag (every other way of opening the popup).
+ */
+function portfolioApplyPackageView(view) {
+  var chip = document.getElementById('project-detail-package-chip');
+  if (!view) {
+    if (chip) chip.hidden = true;
+    return;
+  }
+  var name = PORTFOLIO_PACKAGE_NAMES[view.pkg] || 'Package';
+  if (chip) {
+    chip.textContent = name + ' demo';
+    chip.hidden = false;
+  }
+  var r = view.record || {};
+  portfolioFillDetailFitLists((r.packageFeatures && r.packageFeatures[view.pkg]) || []);
+  var url = r.packageDemos && r.packageDemos[view.pkg];
+  // The tag carries the full name; the button stays on one line.
+  portfolioSetDetailLiveLink(url ? portfolioSafeProjectUrl(url) : '', url ? 'Open ' + name.replace(/ Package$/, '') + ' demo' : '');
+}
+
 function portfolioBestForTagsForProject(p) {
   const titleText = String(p.title || '').trim();
   let tags = [];
@@ -4803,6 +4880,13 @@ function applyPortfolioFilters() {
     const nicheMatch = portfolioItemMatchesNicheFilter(itemNiches, portfolioFilterNiche);
     if (nicheMatch) item.classList.add('active');
     else item.classList.remove('active');
+    // Matched only through one of its builds: the popup opens on that build.
+    const via = {};
+    (item.dataset.buildNiches || '').split(/\s+/).filter(Boolean).forEach(function (pair) {
+      const at = pair.indexOf(':');
+      via[pair.slice(0, at)] = pair.slice(at + 1);
+    });
+    item.dataset.startBuild = (portfolioFilterNiche && portfolioFilterNiche !== 'all' && via[portfolioFilterNiche]) || '';
   });
   const nicheChips = document.querySelectorAll('[data-portfolio-niche]');
   nicheChips.forEach(function (btn) {
@@ -4811,6 +4895,8 @@ function applyPortfolioFilters() {
     btn.classList.toggle('active', on);
     btn.setAttribute('aria-selected', on ? 'true' : 'false');
   });
+  // The rows just changed: the row in focus may be a different one now.
+  portfolioScheduleCardFocus();
 }
 
 function initPortfolioFilterControls() {
@@ -4832,54 +4918,113 @@ function initPortfolioFilterControls() {
 }
 
 /**
- * Plays [data-portfolio-autoplay] videos while they are on screen and pauses
- * them once they leave, so a page of video cards only ever streams what the
- * visitor can actually see. Without this every card would download in full on
- * load — these clips run 1.4-14 MB each.
- *
- * src is held in data-src until first intersection: preload="none" stops the
- * body downloading but some browsers still fetch metadata for a real src.
+ * Portfolio cards play by row: only the row nearest the middle of the screen
+ * plays its videos (from 0:00) and rotates its cover; every other row rests on
+ * its first frame. One row moves at a time, and only that row downloads video
+ * (preload="none" holds each body back until play()). Phones play a card's
+ * phone-size video when it has one. A hidden tab and "reduce motion" play
+ * nothing — the covers stay.
  */
-var portfolioAutoplayObserver = null;
+var portfolioFocusRaf = 0;
+var portfolioFocusBound = false;
+var portfolioCardObserver = null;
+
+function portfolioReducedMotion() {
+  return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+/** Visible cards grouped into rows by their top edge. */
+function portfolioCardRows() {
+  var rows = [];
+  document.querySelectorAll('.project-item[data-portfolio-id]').forEach(function (card) {
+    if (!card.offsetParent) return;
+    var r = card.getBoundingClientRect();
+    if (!r.height) return;
+    var row = rows.find(function (x) { return Math.abs(x.top - r.top) < 4; });
+    if (!row) {
+      row = { top: r.top, bottom: r.bottom, cards: [] };
+      rows.push(row);
+    }
+    row.bottom = Math.max(row.bottom, r.bottom);
+    row.cards.push(card);
+  });
+  return rows;
+}
+
+/** The on-screen row whose middle is nearest the screen's middle (the first or last row at the page ends). */
+function portfolioFocusedRow(rows) {
+  var mid = window.innerHeight / 2;
+  var best = null;
+  var bestGap = Infinity;
+  rows.forEach(function (row) {
+    if (row.bottom <= 0 || row.top >= window.innerHeight) return;
+    var gap = Math.abs((row.top + row.bottom) / 2 - mid);
+    if (gap < bestGap) {
+      best = row;
+      bestGap = gap;
+    }
+  });
+  return best;
+}
+
+function portfolioSetCardVideo(v, on) {
+  if (on) {
+    if (v.dataset.focusPlaying === '1') return;
+    v.dataset.focusPlaying = '1';
+    try { v.currentTime = 0; } catch (e) {}
+    var promise = v.play();
+    // Autoplay can still be refused (Low Power Mode, data saver); the cover stays.
+    if (promise && promise.catch) promise.catch(function () {});
+  } else if (v.dataset.focusPlaying === '1') {
+    v.dataset.focusPlaying = '';
+    v.pause();
+    try { v.currentTime = 0; } catch (e) {}
+  }
+}
+
+function portfolioApplyCardFocus() {
+  portfolioFocusRaf = 0;
+  var row = document.hidden || portfolioReducedMotion() ? null : portfolioFocusedRow(portfolioCardRows());
+  var focused = row ? row.cards : [];
+  document.querySelectorAll('.project-item[data-portfolio-id]').forEach(function (card) {
+    var on = focused.indexOf(card) !== -1;
+    var was = card.classList.contains('is-in-focus');
+    card.classList.toggle('is-in-focus', on);
+    card.querySelectorAll('video[data-portfolio-autoplay]').forEach(function (v) {
+      // Only the copy this screen shows: the computer video or the phone one.
+      portfolioSetCardVideo(v, on && v.offsetWidth > 0);
+    });
+    if (was && !on) {
+      var rot = card.querySelector('[data-portfolio-rotator]');
+      if (rot) portfolioShowRotatorSlide(rot, 0);
+    }
+  });
+}
+
+function portfolioScheduleCardFocus() {
+  if (portfolioFocusRaf) return;
+  portfolioFocusRaf = window.requestAnimationFrame(portfolioApplyCardFocus);
+}
 
 function portfolioObserveAutoplayVideos(root) {
-  var scope = root || document;
-  var videos = scope.querySelectorAll('video[data-portfolio-autoplay]');
-  if (!videos.length) return;
-
-  // No IntersectionObserver (very old browsers): just play them all.
-  if (typeof IntersectionObserver !== 'function') {
-    Array.prototype.forEach.call(videos, function (v) {
-      var p = v.play();
-      if (p && p.catch) p.catch(function () {});
+  if (!portfolioFocusBound) {
+    portfolioFocusBound = true;
+    // Capture: the page may scroll an inner element rather than the window.
+    document.addEventListener('scroll', portfolioScheduleCardFocus, { passive: true, capture: true });
+    window.addEventListener('resize', portfolioScheduleCardFocus);
+    window.addEventListener('load', portfolioScheduleCardFocus);
+    document.addEventListener('visibilitychange', portfolioScheduleCardFocus);
+    // Cards hidden or shown without a scroll (route change, filter, late layout).
+    if (typeof IntersectionObserver === 'function') {
+      portfolioCardObserver = new IntersectionObserver(portfolioScheduleCardFocus);
+    }
+  }
+  if (portfolioCardObserver) {
+    (root || document).querySelectorAll('.project-item[data-portfolio-id]').forEach(function (card) {
+      portfolioCardObserver.observe(card);
     });
-    return;
   }
-
-  if (!portfolioAutoplayObserver) {
-    portfolioAutoplayObserver = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          var v = entry.target;
-          if (entry.isIntersecting) {
-            var promise = v.play();
-            // Autoplay can still be refused (Low Power Mode, data saver).
-            // The poster stays visible in that case, which is the old behaviour.
-            if (promise && promise.catch) promise.catch(function () {});
-          } else if (!v.paused) {
-            v.pause();
-          }
-        });
-      },
-      { threshold: 0.25 }
-    );
-  }
-
-  Array.prototype.forEach.call(videos, function (v) {
-    if (v.dataset.portfolioAutoplayBound) return;
-    v.dataset.portfolioAutoplayBound = '1';
-    portfolioAutoplayObserver.observe(v);
-  });
+  portfolioScheduleCardFocus();
 }
 
 /**
@@ -4939,11 +5084,22 @@ function portfolioRenderRotatorFromSlides(slides, alt) {
 
 /**
  * Advances every on-screen cover rotator together every few seconds. Off-screen
- * rotators, a hidden tab, and reduced motion all hold the current still.
+ * rotators, a hidden tab, and reduced motion all hold the current still; a
+ * portfolio card also waits until its row is in focus (portfolioApplyCardFocus).
  */
 var portfolioRotatorObserver = null;
 var portfolioRotatorTimer = null;
 var portfolioRotatorsVisible = [];
+
+function portfolioShowRotatorSlide(rot, n) {
+  var slides = rot.querySelectorAll('.project-cover-slide');
+  if (!slides[n]) return;
+  slides.forEach(function (s, i) { s.classList.toggle('is-active', i === n); });
+  rot.setAttribute('data-current', slides[n].getAttribute('data-variant-index'));
+  var label = rot.querySelector('.project-cover-skin');
+  if (label) label.textContent = slides[n].getAttribute('data-label') || '';
+  rot.querySelectorAll('.project-cover-dots i').forEach(function (d, i) { d.classList.toggle('is-active', i === n); });
+}
 
 function portfolioAdvanceRotator(rot) {
   var slides = rot.querySelectorAll('.project-cover-slide');
@@ -4953,12 +5109,7 @@ function portfolioAdvanceRotator(rot) {
   var next = (cur + 1) % slides.length;
   // Skip a still that hasn't loaded rather than fade to a blank frame.
   if (!(slides[next].complete && slides[next].naturalWidth)) return;
-  slides[cur].classList.remove('is-active');
-  slides[next].classList.add('is-active');
-  rot.setAttribute('data-current', slides[next].getAttribute('data-variant-index'));
-  var label = rot.querySelector('.project-cover-skin');
-  if (label) label.textContent = slides[next].getAttribute('data-label') || '';
-  rot.querySelectorAll('.project-cover-dots i').forEach(function (d, i) { d.classList.toggle('is-active', i === next); });
+  portfolioShowRotatorSlide(rot, next);
 }
 
 function portfolioObserveCoverRotators(root) {
@@ -4989,7 +5140,12 @@ function portfolioObserveCoverRotators(root) {
     portfolioRotatorTimer = setInterval(function () {
       if (document.hidden) return;
       portfolioRotatorsVisible = portfolioRotatorsVisible.filter(function (r) { return r.isConnected; });
-      portfolioRotatorsVisible.forEach(portfolioAdvanceRotator);
+      portfolioRotatorsVisible.forEach(function (rot) {
+        // A portfolio card rotates only while its row is in focus; admin previews whenever on screen.
+        var card = rot.closest('.project-item');
+        if (card && !card.classList.contains('is-in-focus')) return;
+        portfolioAdvanceRotator(rot);
+      });
     }, 3200);
   }
 
@@ -5003,7 +5159,7 @@ function portfolioObserveCoverRotators(root) {
 /**
  * Cover media for a public card.
  * A video cover plays inline instead of showing its poster still — see
- * portfolioObserveAutoplayVideos() for the scroll-into-view wiring. The poster
+ * portfolioObserveAutoplayVideos() for the focus-row wiring. The poster
  * stays on the element so there is something to paint before the first frame
  * decodes, and preload="none" keeps offscreen cards off the network entirely.
  */
@@ -5041,14 +5197,40 @@ function portfolioMobileShotUrl(p) {
   }
 }
 
+// Phone-size demo videos recorded for the hero showcase (assets/video/showcase/<id>-mobile.mp4,
+// scripts/record-hero-showcase.mjs). A phone card plays one of these with its screenshot as the cover.
+var PORTFOLIO_MOBILE_VIDEOS = ['barbershop', 'beautysalon', 'carpet', 'lawncare', 'pawshine', 'photographer',
+  'procleaning', 'realtor', 'roofcleaning', 'sunergy', 'treeservice'];
+
 function portfolioRenderMobileShotHtml(p, alt) {
   var src = portfolioMobileShotUrl(p);
   if (!src) return '';
   var id = (src.match(/showcase\/([a-z]+)-mobile/) || [])[1];
   var pos = PORTFOLIO_MOBILE_SHOT_POSITION[id];
+  if (PORTFOLIO_MOBILE_VIDEOS.indexOf(id) !== -1) {
+    return '<video class="project-img-mobile" src="/assets/video/showcase/' + id + '-mobile.mp4?v=' + PORTFOLIO_MOBILE_SHOT_VERSION +
+      '" poster="' + portfolioEscapeHtml(src) + '"' + (pos ? ' style="object-position:' + pos + '"' : '') +
+      ' muted loop playsinline disablepictureinpicture preload="none" data-portfolio-autoplay aria-label="' +
+      portfolioEscapeHtml(alt) + '"></video>';
+  }
   return '<img class="project-img-mobile" src="' + portfolioEscapeHtml(src) + '"' +
     (pos ? ' style="object-position:' + pos + '"' : '') + ' alt="' +
     portfolioEscapeHtml(alt) + '" loading="lazy" decoding="async">';
+}
+
+/**
+ * A card video's sources. A row starts two videos at once, and Mac Chrome
+ * fails to decode about half of VP9 (.webm) pairs started together, while
+ * H.264 (.mp4) pairs play every time. So a .webm cover tries its .mp4 twin
+ * first; when there is none, the browser falls through to the .webm.
+ */
+function portfolioCardVideoSourcesHtml(url) {
+  var norm = portfolioNormalizeAssetImageUrl(url);
+  var list = /\.webm$/i.test(norm) ? [norm.replace(/\.webm$/i, '.mp4'), norm] : [norm];
+  return list.map(function (u) {
+    var type = /\.mp4$/i.test(u) ? 'video/mp4' : /\.webm$/i.test(u) ? 'video/webm' : '';
+    return '<source src="' + portfolioEscapeHtml(portfolioDisplayMediaSrc(u)) + '"' + (type ? ' type="' + type + '"' : '') + '>';
+  }).join('');
 }
 
 function portfolioRenderCardCoverHtml(p, alt) {
@@ -5069,16 +5251,14 @@ function portfolioRenderCardCoverHtml(p, alt) {
   if (cover && portfolioIsVideoUrl(cover)) {
     const poster = portfolioVideoPosterUrlBest(cover);
     return (
-      '<video class="project-cover-video" src="' +
-      portfolioEscapeHtml(portfolioDisplayMediaSrc(cover)) +
-      '"' +
+      '<video class="project-cover-video"' +
       (poster
         ? ' poster="' + portfolioEscapeHtml(portfolioDisplayMediaSrc(poster)) + '"'
         : '') +
       ' muted loop playsinline disablepictureinpicture preload="none"' +
       ' data-portfolio-autoplay aria-label="' +
       portfolioEscapeHtml(alt) +
-      '"></video>'
+      '">' + portfolioCardVideoSourcesHtml(cover) + '</video>'
     );
   }
   return (
@@ -5113,15 +5293,35 @@ function portfolioRenderBuildsBadgeHtml(p) {
   );
 }
 
+/**
+ * A card's business types: its own, plus those of its public builds (a pet
+ * groomer finds the Trades card through Paw Shine). viaBuild maps a type only
+ * a build has to that build, so the popup can open on it.
+ */
+function portfolioCardNiches(p) {
+  const own = portfolioCuratedNichesForProject(p);
+  const all = own.slice();
+  const viaBuild = {};
+  getPortfolioDerivedBuilds(p).filter(isPortfolioPublic).forEach(function (b) {
+    portfolioCuratedNichesForProject(b).forEach(function (id) {
+      if (all.indexOf(id) === -1) all.push(id);
+      if (own.indexOf(id) === -1 && !viaBuild[id]) viaBuild[id] = String(b.id);
+    });
+  });
+  return { all: all, viaBuild: viaBuild };
+}
+
 function buildPortfolioProjectCardHtml(p) {
-  const liveHref = portfolioSafeProjectUrl(p.projectUrl);
-  const nicheSlugs = portfolioCuratedNichesForProject(p).join(' ');
+  const liveHref = portfolioPublicLiveUrl(p);
+  const niches = portfolioCardNiches(p);
+  const nicheSlugs = niches.all.join(' ');
+  const buildNiches = Object.keys(niches.viaBuild).map(function (id) { return id + ':' + niches.viaBuild[id]; }).join(' ');
   return (
     '<li class="project-item active" data-filter-item data-niches="' +
     portfolioEscapeHtml(nicheSlugs) +
     '" data-portfolio-id="' +
     portfolioEscapeHtml(p.id) +
-    '">' +
+    '"' + (buildNiches ? ' data-build-niches="' + portfolioEscapeHtml(buildNiches) + '"' : '') + '>' +
     '<div class="project-card">' +
     '<a href="' +
     portfolioEscapeHtml(liveHref) +
@@ -5133,12 +5333,13 @@ function buildPortfolioProjectCardHtml(p) {
     portfolioRenderCardCoverHtml(p, p.imageAlt || p.title || '') +
     portfolioRenderMobileShotHtml(p, p.imageAlt || p.title || '') +
     portfolioRenderBuildsBadgeHtml(p) +
+    portfolioRenderClientBadgeHtml(p) +
     '</figure>' +
     '<div class="project-content">' +
     '<h3 class="project-title">' +
     portfolioEscapeHtml(p.title || '') +
     '</h3>' +
-    '<div class="project-bestfor-card" aria-label="Best for"></div>' +
+    '<div class="project-bestfor-card"></div>' +
     '</div>' +
     '</a>' +
     '</div></li>'
@@ -5265,8 +5466,9 @@ function portfolioVerticalsRecord(id) {
 
 /** The fields a row can change, as loaded or last saved (changedPatch compares against this). */
 function portfolioVerticalsSnapshot(r) {
-  var out = { label: r.label, cover: r.cover, blurb: r.blurb };
-  if (!r.isPlatform) { out.order = r.order; out.kind = r.kind; out.link = r.link; }
+  var out = { label: r.label, cover: r.cover, blurb: r.blurb, link: r.link };
+  if (r.isPlatform) out.liveKind = r.liveKind;
+  else { out.order = r.order; out.kind = r.kind; out.visibility = r.visibility; }
   return out;
 }
 
@@ -5280,11 +5482,15 @@ function portfolioVerticalsRowFrom(p, isPlatform) {
     cover: portfolioExplicitCoverUrl(p),
     blurb: String(p.skinBlurb || '')
   };
-  if (!isPlatform) {
+  if (isPlatform) {
+    row.liveKind = window.PortfolioSkins.liveKindOf(p);
+  } else {
     row.order = window.PortfolioSkins.skinPatch({ skinOrder: p.skinOrder }).skinOrder;
     row.kind = window.PortfolioSkins.kindOf(p);
-    row.link = String(p.projectUrl || '');
+    // A build is its own portfolio project too: a package example when public.
+    row.visibility = isPortfolioPublic(p) ? 'public' : 'private';
   }
+  row.link = String(p.projectUrl || '');
   row.original = portfolioVerticalsSnapshot(row);
   return row;
 }
@@ -5326,40 +5532,22 @@ function portfolioVerticalsRowName(r) {
   return window.PortfolioSkins.labelFor({ skinLabel: r.label, title: r.title }, r.isPlatform);
 }
 
-/** The card's cover rotator, as the public card will show it. */
-function portfolioVerticalsPreviewHtml(view) {
-  var slides = [{
-    index: 0,
-    label: portfolioVerticalsRowName(view.platform),
-    src: view.platform.cover || portfolioAutoCoverStillUrl({ imageUrls: view.platform.urls })
-  }].concat(
-    view.rows
-      .filter(function (r) { return r.urls.length; })
-      .map(function (r, k) {
-        return { index: k + 1, label: portfolioVerticalsRowName(r), src: r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls }) };
-      })
-  ).filter(function (s) { return !!s.src; });
-  return portfolioRenderRotatorFromSlides(slides, 'Card preview') ||
-    '<p class="form-hint">Add a build with pictures to see the card rotate.</p>';
-}
-
 function portfolioVerticalRowHtml(r, i, count) {
   var open = portfolioVerticals.open === r.id;
   var thumb = r.cover || portfolioAutoCoverStillUrl({ imageUrls: r.urls });
   var name = portfolioVerticalsRowName(r);
   var panelId = 'portfolio-vpanel-' + r.id;
-  var meta;
-  if (r.isPlatform) {
-    meta = '<span class="admin-portfolio-build-link">This platform · first on the card</span>';
-  } else {
-    var link = window.PortfolioSkins.demoLinkFor({ skinKind: r.kind, projectUrl: r.link });
-    meta =
-      '<span class="admin-portfolio-badge admin-portfolio-badge--' + r.kind + '">' + (r.kind === 'demo' ? 'Demo' : 'Client') + '</span>' +
-      '<span class="admin-portfolio-build-link">' +
-      (r.kind === 'client' ? 'Never linked' : link ? '↗ ' + portfolioEscapeHtml(link.replace(/^https?:\/\//, '').replace(/\/$/, '')) : 'No link') +
-      '</span>' +
-      (!r.urls.length ? '<span class="admin-portfolio-build-link is-warn">No images — not shown</span>' : '');
-  }
+  // The platform keeps its Demo / Client on its own field (liveKind); a vertical on skinKind.
+  var kind = r.isPlatform ? r.liveKind : r.kind;
+  var link = kind === 'demo' ? window.PortfolioSkins.cleanLink(r.link) : '';
+  var meta =
+    (r.isPlatform ? '<span class="admin-portfolio-build-link">This platform · first on the card</span>' : '') +
+    '<span class="admin-portfolio-badge admin-portfolio-badge--' + kind + '">' + (kind === 'demo' ? 'Demo' : 'Client') + '</span>' +
+    '<span class="admin-portfolio-build-link">' +
+    (kind === 'client' ? 'Never linked' : link ? '↗ ' + portfolioEscapeHtml(link.replace(/^https?:\/\//, '').replace(/\/$/, '')) : 'No link') +
+    '</span>' +
+    (!r.isPlatform && r.visibility === 'private' ? '<span class="admin-portfolio-badge admin-portfolio-badge--private">Private</span>' : '') +
+    (!r.isPlatform && !r.urls.length ? '<span class="admin-portfolio-build-link is-warn">No images — not shown</span>' : '');
   var arrows = r.isPlatform ? '' :
     '<span class="admin-portfolio-build-move">' +
     '<button type="button" class="btn btn-secondary btn-sm" data-vup aria-label="Move ' + portfolioEscapeHtml(name) + ' up"' + (i === 0 ? ' disabled' : '') +
@@ -5373,15 +5561,18 @@ function portfolioVerticalRowHtml(r, i, count) {
     portfolioEscapeHtml(r.isPlatform ? 'Platform' : r.title) + '" value="' + portfolioEscapeHtml(r.label) + '"></label>' +
     '<label class="admin-portfolio-vfield">Cover' +
     '<select class="form-input" data-vfield="cover">' + portfolioSkinCoverOptionsHtml(r.urls, r.cover) + '</select></label>' +
+    '<label class="admin-portfolio-vfield">Shows as' +
+    '<select class="form-input" data-vfield="kind">' +
+    '<option value="demo"' + (kind === 'demo' ? ' selected' : '') + '>Demo · opens its link</option>' +
+    '<option value="client"' + (kind === 'client' ? ' selected' : '') + '>Client · no link</option>' +
+    '</select></label>' +
+    '<label class="admin-portfolio-vfield"' + (kind === 'demo' ? '' : ' hidden') + '>Live link' +
+    '<input type="url" class="form-input" data-vfield="link" list="portfolio-skin-link-suggestions" maxlength="2000" placeholder="https://….expo.app" value="' +
+    portfolioEscapeHtml(r.link) + '"></label>' +
     (r.isPlatform ? '' :
-      '<label class="admin-portfolio-vfield">Shows as' +
-      '<select class="form-input" data-vfield="kind">' +
-      '<option value="demo"' + (r.kind === 'demo' ? ' selected' : '') + '>Demo · opens its link</option>' +
-      '<option value="client"' + (r.kind === 'client' ? ' selected' : '') + '>Client · no link</option>' +
-      '</select></label>' +
-      '<label class="admin-portfolio-vfield"' + (r.kind === 'demo' ? '' : ' hidden') + '>Live link' +
-      '<input type="url" class="form-input" data-vfield="link" list="portfolio-skin-link-suggestions" maxlength="2000" placeholder="https://….expo.app" value="' +
-      portfolioEscapeHtml(r.link) + '"></label>') +
+      '<label class="admin-portfolio-vfield admin-portfolio-vfield--check">' +
+      '<input type="checkbox" data-vfield="public"' + (r.visibility === 'public' ? ' checked' : '') + '>' +
+      '<span>Public — can show in See examples and business-type search</span></label>') +
     '<label class="admin-portfolio-vfield admin-portfolio-vfield--wide">Blurb' +
     '<input type="text" class="form-input" data-vfield="blurb" maxlength="120" placeholder="One line under the tabs" value="' +
     portfolioEscapeHtml(r.blurb) + '"></label>' +
@@ -5413,7 +5604,6 @@ function buildAdminPortfolioBuildsHtml(platform) {
   var n = view.rows.length;
   return (
     '<div class="admin-portfolio-builds" data-portfolio-builds-of="' + portfolioEscapeHtml(id) + '">' +
-    '<div class="project-img admin-portfolio-builds-preview" data-vpreview>' + portfolioVerticalsPreviewHtml(view) + '</div>' +
     '<p class="admin-portfolio-builds-head">' +
     (n ? n + (n === 1 ? ' build' : ' builds') + ' inside this card · tap one to change it' : 'No builds yet') +
     '</p>' +
@@ -5461,18 +5651,13 @@ function rerenderPortfolioVerticals(platformId) {
   }
 }
 
-/** Shows or hides the Save bar and refreshes the preview, without redrawing the rows (typing keeps its caret). */
+/** Shows or hides the Save bar without redrawing the rows (typing keeps its caret). */
 function syncPortfolioVerticalsChrome(platformId) {
   var box = document.querySelector('[data-portfolio-builds-of="' + CSS.escape(String(platformId)) + '"]');
   var draft = portfolioVerticals.drafts[String(platformId)];
   if (!box || !draft) return;
   var bar = box.querySelector('.admin-portfolio-builds-actions');
   if (bar) bar.hidden = !portfolioVerticalsIsDirty(draft);
-  var preview = box.querySelector('[data-vpreview]');
-  if (preview) {
-    preview.innerHTML = portfolioVerticalsPreviewHtml(draft);
-    portfolioObserveCoverRotators(preview);
-  }
 }
 
 /** Writes each changed field of the platform's verticals; returns false if any failed (they stay unsaved). */
@@ -5637,12 +5822,20 @@ function bindAdminPortfolioVerticals(listEl) {
   });
   listEl.addEventListener('change', function (e) {
     var key = e.target.getAttribute && e.target.getAttribute('data-vfield');
-    if (key !== 'cover' && key !== 'kind') return;
+    if (key !== 'cover' && key !== 'kind' && key !== 'public') return;
     var at = where(e.target);
     var draft = at && portfolioVerticalsDraft(at.platformId);
     var row = draft && rowOf(draft, at.rowId);
     if (!row) return;
-    row[key] = key === 'kind' ? (e.target.value === 'demo' ? 'demo' : 'client') : e.target.value;
+    if (key === 'kind') {
+      var kind = e.target.value === 'demo' ? 'demo' : 'client';
+      if (row.isPlatform) row.liveKind = kind;
+      else row.kind = kind;
+    } else if (key === 'public') {
+      row.visibility = e.target.checked ? 'public' : 'private';
+    } else {
+      row[key] = e.target.value;
+    }
     rerenderPortfolioVerticals(at.platformId);
   });
   window.addEventListener('beforeunload', function (e) {
@@ -5811,15 +6004,6 @@ function fillPortfolioBuiltFromSelect(selectedId, currentProjectId) {
   });
 
   sel.value = selectedId || '';
-}
-
-function syncPortfolioPricingPackageSelect(value) {
-  var el = document.getElementById('portfolio-project-pricing-package');
-  if (!el) return;
-  el.value = sanitizePricingPackage(value);
-  if (typeof window.syncBusinessDocSelectUI === 'function') {
-    window.syncBusinessDocSelectUI(el);
-  }
 }
 
 function renderAdminPortfolioProjects() {
@@ -6003,8 +6187,8 @@ function initPortfolioSlidesListDrag() {
 
 /** Card cover picked in the project form; '' = auto. Slide order stays the popup order. */
 var portfolioFormCoverUrl = '';
-// The edited record's own skin label / order, written back on save (the Skins
-// section edits the label; order only changes from a platform's Skins section).
+// The edited record's own skin label / order, written back on save (both are
+// changed from the platform's verticals in the admin Portfolio list).
 var portfolioFormSkinLabel = '';
 var portfolioFormSkinOrder = null;
 // Demo / client and the one-line blurb under the popup tabs (portfolio-skins.js).
@@ -6022,6 +6206,114 @@ var PORTFOLIO_SKIN_LINK_SUGGESTIONS = [
   { url: 'https://junk.expo.app', label: 'Junk removal' },
   { url: 'https://roadsidefix.expo.app', label: 'Mobile mechanic' }
 ];
+
+// "What's included" chips in the project form (rules in portfolio-features.js).
+var portfolioFormFeatures = [];
+// Names added with + Add feature that no saved project uses yet.
+var portfolioFeatureExtras = [];
+
+function portfolioFeatureMaster() {
+  return window.PortfolioFeatures.masterList(portfolioProjectsRtdb.concat([{ features: portfolioFeatureExtras }]));
+}
+
+function renderPortfolioFeatureChips() {
+  var box = document.getElementById('portfolio-project-features');
+  if (!box) return;
+  var slug = window.PortfolioFeatures.slug;
+  var on = {};
+  portfolioFormFeatures.forEach(function (l) { on[slug(l)] = true; });
+  box.innerHTML = portfolioFeatureMaster().map(function (l) {
+    return '<button type="button" class="portfolio-feature-chip" data-feature="' + portfolioEscapeHtml(l) +
+      '" aria-pressed="' + (on[slug(l)] ? 'true' : 'false') + '">' + portfolioEscapeHtml(l) + '</button>';
+  }).join('');
+}
+
+// Package demos: each package's demo has its own What's included, picked from the same shared list.
+var portfolioFormPackageFeatures = {};
+
+function renderPortfolioPackageChips() {
+  var slug = window.PortfolioFeatures.slug;
+  var master = portfolioFeatureMaster();
+  window.PortfolioFeatures.PACKAGES.forEach(function (id) {
+    var input = document.getElementById(portfolioPackageDemoInputId(id));
+    var wrap = document.querySelector('[data-package-features="' + id + '"]');
+    var box = document.querySelector('[data-package-chips="' + id + '"]');
+    // Chips only for packages with a demo link: a list without a link isn't saved.
+    if (wrap) wrap.hidden = !(input && input.value.trim());
+    if (!box) return;
+    var on = {};
+    (portfolioFormPackageFeatures[id] || []).forEach(function (l) { on[slug(l)] = true; });
+    box.innerHTML = master.map(function (l) {
+      return '<button type="button" class="portfolio-feature-chip" data-feature="' + portfolioEscapeHtml(l) +
+        '" aria-pressed="' + (on[slug(l)] ? 'true' : 'false') + '">' + portfolioEscapeHtml(l) + '</button>';
+    }).join('');
+  });
+}
+
+function bindPortfolioPackageDemos() {
+  var section = document.getElementById('portfolio-editor-section-package-demos');
+  if (!section || section.dataset.bound === '1') return;
+  section.dataset.bound = '1';
+  var slug = window.PortfolioFeatures.slug;
+  section.addEventListener('click', function (e) {
+    var chip = e.target.closest('[data-package-chips] [data-feature]');
+    if (!chip) return;
+    var id = chip.closest('[data-package-chips]').getAttribute('data-package-chips');
+    var label = chip.getAttribute('data-feature');
+    var key = slug(label);
+    var list = portfolioFormPackageFeatures[id] || [];
+    var had = list.some(function (l) { return slug(l) === key; });
+    portfolioFormPackageFeatures[id] = had
+      ? list.filter(function (l) { return slug(l) !== key; })
+      : list.concat([label]);
+    chip.setAttribute('aria-pressed', had ? 'false' : 'true');
+  });
+  section.addEventListener('input', function (e) {
+    var row = e.target.closest('[data-package-demo]');
+    var wrap = row && row.querySelector('[data-package-features]');
+    if (wrap) wrap.hidden = !e.target.value.trim();
+  });
+}
+
+function bindPortfolioFeaturePicker() {
+  var box = document.getElementById('portfolio-project-features');
+  var addBtn = document.getElementById('portfolio-project-feature-add');
+  if (!box || box.dataset.bound === '1') return;
+  box.dataset.bound = '1';
+  var slug = window.PortfolioFeatures.slug;
+  box.addEventListener('click', function (e) {
+    var chip = e.target.closest('[data-feature]');
+    if (!chip) return;
+    var label = chip.getAttribute('data-feature');
+    var key = slug(label);
+    var had = portfolioFormFeatures.some(function (l) { return slug(l) === key; });
+    portfolioFormFeatures = had
+      ? portfolioFormFeatures.filter(function (l) { return slug(l) !== key; })
+      : portfolioFormFeatures.concat([label]);
+    chip.setAttribute('aria-pressed', had ? 'false' : 'true');
+  });
+  if (addBtn) {
+    addBtn.addEventListener('click', async function () {
+      var name = await window.CwrUI.prompt({
+        title: 'Add a feature',
+        label: 'Feature name',
+        placeholder: 'e.g. Gift cards',
+        confirmLabel: 'Add',
+        required: true
+      });
+      var label = window.PortfolioFeatures.clean([name])[0];
+      if (!label) return;
+      var key = slug(label);
+      var known = portfolioFeatureMaster().find(function (l) { return slug(l) === key; });
+      if (!known) portfolioFeatureExtras.push(label);
+      if (!portfolioFormFeatures.some(function (l) { return slug(l) === key; })) {
+        portfolioFormFeatures = portfolioFormFeatures.concat([known || label]);
+      }
+      renderPortfolioFeatureChips();
+      renderPortfolioPackageChips();
+    });
+  }
+}
 
 function renderPortfolioFormImagesList(urls) {
   const list = document.getElementById('portfolio-project-images-list');
@@ -6156,6 +6448,7 @@ function serializePortfolioProjectFormState() {
     'portfolio-project-edit-id',
     'portfolio-project-title',
     'portfolio-project-url',
+    'portfolio-project-live-kind',
     'portfolio-project-image',
     'portfolio-project-image-alt',
     'portfolio-project-description',
@@ -6163,7 +6456,6 @@ function serializePortfolioProjectFormState() {
     'portfolio-project-outcome',
     'portfolio-project-buy-now',
     'portfolio-project-buy-premium',
-    'portfolio-project-pricing-package',
     'portfolio-project-admin-note',
     'portfolio-project-canvas-doc',
     'portfolio-project-canvas-title',
@@ -6189,6 +6481,8 @@ function serializePortfolioProjectFormState() {
     cover: portfolioFormCoverUrl,
     skinLabel: portfolioFormSkinLabel,
     skinBlurb: portfolioFormSkinBlurb,
+    features: portfolioFormFeatures.slice(),
+    packageFeatures: JSON.stringify(portfolioFormPackageFeatures),
     sections: typeof collectPortfolioDetailSectionsFromDom === 'function'
       ? collectPortfolioDetailSectionsFromDom()
       : []
@@ -6327,11 +6621,23 @@ function syncPortfolioBuildPlacementUi() {
     note.className = 'form-hint portfolio-project-inside-note';
     group.parentNode.insertBefore(note, group);
   }
-  group.hidden = !!platform;
+  // A build keeps its Public switch: it decides See examples and business-type search
+  // (it shows inside the platform's card either way).
+  var switchText = group.querySelector('.portfolio-project-checkbox span:last-child');
+  var switchHint = group.querySelector('.form-hint');
+  if (switchText) switchText.textContent = platform ? 'Public — can show in See examples and business-type search' : 'Show on public Portfolio page';
+  if (switchHint) {
+    switchHint.textContent = platform
+      ? 'Off = it still shows inside the platform’s card, just not as an example or in business-type search.'
+      : 'Off = client-only showcase (portal link). Hidden from the public Portfolio tab.';
+  }
   note.hidden = !platform;
   note.textContent = platform
-    ? 'Shown inside ' + (platform.title || 'its platform') + '’s card on the Portfolio page. Demo or client, link and blurb are set in that platform’s Skins section.'
+    ? 'Shown inside ' + (platform.title || 'its platform') + '’s card on the Portfolio page. Demo or client, link and blurb are set under that platform in the Portfolio list.'
     : '';
+  // A vertical's Demo / Client is set in the list; this one is for top-level projects.
+  var liveKindGroup = document.getElementById('portfolio-project-live-kind-group');
+  if (liveKindGroup) liveKindGroup.hidden = !!platform;
 }
 
 function syncPortfolioTemplateFieldsVisibility() {
@@ -6360,8 +6666,15 @@ function openPortfolioProjectModal(isNew, project) {
   portfolioFormSkinOrder = !isNew && project ? window.PortfolioSkins.skinPatch({ skinOrder: project.skinOrder }).skinOrder : null;
   portfolioFormSkinKind = !isNew && project ? window.PortfolioSkins.kindOf(project) : '';
   portfolioFormSkinBlurb = !isNew && project ? String(project.skinBlurb || '') : '';
+  portfolioFormFeatures = !isNew && project ? window.PortfolioFeatures.clean(project.features) : [];
+  portfolioFormPackageFeatures = {};
+  bindPortfolioFeaturePicker();
+  renderPortfolioFeatureChips();
+  bindPortfolioPackageDemos();
   document.getElementById('portfolio-project-edit-id').value = isNew ? '' : (project && project.id) || '';
   if (titleEl) titleEl.textContent = isNew ? 'New portfolio project' : 'Edit portfolio project';
+  var liveKindEl = document.getElementById('portfolio-project-live-kind');
+  if (liveKindEl) liveKindEl.value = !isNew && project ? window.PortfolioSkins.liveKindOf(project) : 'demo';
   if (!isNew && project) {
     document.getElementById('portfolio-project-title').value = project.title || '';
     document.getElementById('portfolio-project-url').value = project.projectUrl || '';
@@ -6373,11 +6686,6 @@ function openPortfolioProjectModal(isNew, project) {
     document.getElementById('portfolio-project-outcome').value = project.outcome || '';
     document.getElementById('portfolio-project-buy-now').value = project.buyNowLabel || '';
     document.getElementById('portfolio-project-buy-premium').value = project.buyPremiumLabel || '';
-    var pricingPkgEl = document.getElementById('portfolio-project-pricing-package');
-    if (pricingPkgEl) pricingPkgEl.value = sanitizePricingPackage(project.pricingPackage);
-    if (typeof window.syncBusinessDocSelectUI === 'function' && pricingPkgEl) {
-      window.syncBusinessDocSelectUI(pricingPkgEl);
-    }
     document.getElementById('portfolio-project-show-quote').checked = project.showQuoteButton !== false;
     document.getElementById('portfolio-project-admin-note').value = project.adminModalNote || '';
     document.getElementById('portfolio-project-canvas-doc').value = project.canvasDocUrl || '';
@@ -6393,6 +6701,7 @@ function openPortfolioProjectModal(isNew, project) {
     const demoFbEl = document.getElementById('portfolio-project-demo-firebase');
     if (demoFbEl) demoFbEl.value = project.demoFirebaseProjectId || '';
     portfolioFillPackageDemosForm(project.packageDemos);
+    portfolioFormPackageFeatures = window.PortfolioFeatures.cleanPackageFeatures(project.packageFeatures, project.packageDemos);
     const showPublicEl = document.getElementById('portfolio-project-show-public');
     if (showPublicEl) showPublicEl.checked = isPortfolioPublic(project);
     renderPortfolioDetailSectionsList(project.detailSections);
@@ -6406,6 +6715,7 @@ function openPortfolioProjectModal(isNew, project) {
     const showPublicEl = document.getElementById('portfolio-project-show-public');
     if (showPublicEl) showPublicEl.checked = project.visibility !== 'private';
     portfolioFillPackageDemosForm({});
+    portfolioFormPackageFeatures = {};
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
   } else {
@@ -6420,11 +6730,11 @@ function openPortfolioProjectModal(isNew, project) {
     const demoFbDefault = document.getElementById('portfolio-project-demo-firebase');
     if (demoFbDefault) demoFbDefault.value = '';
     portfolioFillPackageDemosForm({});
+    portfolioFormPackageFeatures = {};
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
   }
   if (!project || isNew) {
-    syncPortfolioPricingPackageSelect((project && project.pricingPackage) || '');
   }
   initPortfolioAssetGrid();
   portfolioAssetPickerReset();
@@ -6465,6 +6775,7 @@ function openPortfolioProjectModal(isNew, project) {
   const panel = modal.querySelector('.portfolio-project-modal-content');
   if (panel) panel.style.zIndex = '10101';
   modal.setAttribute('aria-hidden', 'false');
+  renderPortfolioPackageChips();
   // Baseline immediately so outside-click before rAF isn't treated as "clean".
   capturePortfolioProjectFormBaseline();
   requestAnimationFrame(function () {
@@ -6748,6 +7059,9 @@ function setupPortfolioAdminControls() {
       const payload = {
         title: document.getElementById('portfolio-project-title').value,
         projectUrl: document.getElementById('portfolio-project-url').value,
+        liveKind: document.getElementById('portfolio-project-live-kind')
+          ? document.getElementById('portfolio-project-live-kind').value
+          : 'demo',
         imageUrls: formImageUrls,
         imageUrl: formImageUrls.length ? formImageUrls[0] : '',
         coverImageUrl: portfolioFormCoverUrl,
@@ -6755,15 +7069,13 @@ function setupPortfolioAdminControls() {
         skinOrder: portfolioFormSkinOrder,
         skinKind: portfolioFormSkinKind,
         skinBlurb: portfolioFormSkinBlurb,
+        features: portfolioFormFeatures.slice(),
         imageAlt: document.getElementById('portfolio-project-image-alt').value,
         description: document.getElementById('portfolio-project-description').value,
         techTags: document.getElementById('portfolio-project-tech').value,
         outcome: document.getElementById('portfolio-project-outcome').value,
         buyNowLabel: document.getElementById('portfolio-project-buy-now').value,
         buyPremiumLabel: document.getElementById('portfolio-project-buy-premium').value,
-        pricingPackage: document.getElementById('portfolio-project-pricing-package')
-          ? document.getElementById('portfolio-project-pricing-package').value
-          : '',
         showQuoteButton: document.getElementById('portfolio-project-show-quote').checked,
         adminModalNote: document.getElementById('portfolio-project-admin-note').value,
         canvasDocUrl: document.getElementById('portfolio-project-canvas-doc').value,
@@ -6786,6 +7098,7 @@ function setupPortfolioAdminControls() {
           ? document.getElementById('portfolio-project-demo-firebase').value
           : '',
         packageDemos: portfolioPackageDemosFromForm(),
+        packageFeatures: portfolioFormPackageFeatures,
         showPublicPortfolio: document.getElementById('portfolio-project-show-public')
           ? document.getElementById('portfolio-project-show-public').checked
           : true,
@@ -7435,6 +7748,15 @@ function portfolioApplyVariantTab(wrap, idx) {
     blurb.hidden = !info.blurb;
   }
   portfolioSetDetailLiveLink(info.liveUrl, info.liveLabel);
+  // A build's own What's included / Best for when it has them; else the platform's.
+  var platform = recs[0];
+  var own = idx > 0 ? target : null;
+  portfolioFillDetailFitLists(
+    own && Array.isArray(own.features) && own.features.length ? own.features : platform && platform.features,
+    own && Array.isArray(own.bestFor) && own.bestFor.length ? own.bestFor.slice() : portfolioBestForLines(platform, (platform && platform.title) || '')
+  );
+  var view = wrap._packageView;
+  portfolioApplyPackageView(view && String(target.id) === view.recordId ? view : null);
 }
 
 function renderPortfolioVariantTabs(record, platformLiveUrl) {
@@ -7465,7 +7787,7 @@ function renderPortfolioVariantTabs(record, platformLiveUrl) {
         '" role="tab" aria-selected="' + (i === 0 ? 'true' : 'false') +
         '" data-variant-index="' + i + '">' +
         portfolioEscapeHtml(t.label) +
-        (i > 0 && window.PortfolioSkins.kindOf(t.record) === 'client'
+        ((i > 0 ? window.PortfolioSkins.kindOf(t.record) === 'client' : portfolioIsLiveClient(t.record))
           ? ' <span class="project-detail-variant-chip">Live client</span>'
           : '') +
         '</button>'
@@ -7479,6 +7801,7 @@ function renderPortfolioVariantTabs(record, platformLiveUrl) {
 
   if (wrap.dataset.bound !== '1') {
     wrap.dataset.bound = '1';
+    portfolioBindTabsBar(wrap);
     wrap.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-variant-index]');
       if (!btn) return;
@@ -7491,6 +7814,7 @@ function renderPortfolioVariantTabs(record, platformLiveUrl) {
         b.classList.toggle('is-active', on);
         b.setAttribute('aria-selected', on ? 'true' : 'false');
       });
+      portfolioScrollTabIntoView(wrap, btn);
       portfolioApplyVariantTab(wrap, idx);
       var carousel = document.getElementById('project-detail-carousel');
       if (!carousel) return;
@@ -7499,6 +7823,82 @@ function renderPortfolioVariantTabs(record, platformLiveUrl) {
         altBase: target.imageAlt || target.title || 'Project preview'
       });
     });
+  }
+}
+
+/**
+ * The popup's vertical tabs scroll sideways: a finger or trackpad natively, a
+ * mouse by dragging. A drag never picks the tab it ends on. Edge fades show
+ * there are more tabs that way, and the picked tab slides into view.
+ */
+function portfolioSyncTabsBar(wrap) {
+  var max = wrap.scrollWidth - wrap.clientWidth;
+  wrap.classList.toggle('is-scrollable', max > 2);
+  wrap.classList.toggle('has-more-left', wrap.scrollLeft > 2);
+  wrap.classList.toggle('has-more-right', wrap.scrollLeft < max - 2);
+}
+
+function portfolioScrollTabIntoView(wrap, btn) {
+  if (!btn) return;
+  var edge = 28; // clear of the edge fade
+  var wr = wrap.getBoundingClientRect();
+  var br = btn.getBoundingClientRect();
+  if (!wr.width) return;
+  var by = br.left < wr.left + edge ? br.left - (wr.left + edge) : br.right > wr.right - edge ? br.right - (wr.right - edge) : 0;
+  if (by) wrap.scrollLeft += by;
+  portfolioSyncTabsBar(wrap);
+}
+
+function portfolioBindTabsBar(wrap) {
+  var press = null;
+  wrap.addEventListener('pointerdown', function (e) {
+    if (e.pointerType !== 'mouse' || e.button !== 0 || !wrap.classList.contains('is-scrollable')) return;
+    press = { id: e.pointerId, x: e.clientX, left: wrap.scrollLeft, moved: false };
+  });
+  wrap.addEventListener('pointermove', function (e) {
+    if (!press || e.pointerId !== press.id) return;
+    var dx = e.clientX - press.x;
+    if (!press.moved) {
+      if (Math.abs(dx) < 6) return;
+      press.moved = true;
+      wrap.classList.add('is-dragging');
+      // Anything the press already highlighted (Safari) goes; the drag is a scroll, not a selection.
+      if (window.getSelection) window.getSelection().removeAllRanges();
+      try { wrap.setPointerCapture(e.pointerId); } catch (err) { /* already released */ }
+    }
+    wrap.scrollLeft = press.left - dx;
+  });
+  function end(e) {
+    if (!press || e.pointerId !== press.id) return;
+    if (press.moved) {
+      wrap.classList.remove('is-dragging');
+      // The click that ends a drag comes right after pointerup: skip just that one.
+      wrap._justDragged = true;
+      setTimeout(function () { wrap._justDragged = false; }, 0);
+    }
+    press = null;
+  }
+  wrap.addEventListener('pointerup', end);
+  wrap.addEventListener('pointercancel', end);
+  // A mouse press here is a drag or a tab click, never the start of a text selection
+  // (Safari otherwise highlights the title as the drag drifts down). Clicks still fire.
+  wrap.addEventListener('mousedown', function (e) {
+    if (e.button === 0 && wrap.classList.contains('is-scrollable')) e.preventDefault();
+  });
+  document.addEventListener('selectstart', function (e) {
+    if (press) e.preventDefault();
+  });
+  wrap.addEventListener('click', function (e) {
+    if (!wrap._justDragged) return;
+    e.stopPropagation();
+    e.preventDefault();
+  }, true);
+  wrap.addEventListener('scroll', function () { portfolioSyncTabsBar(wrap); }, { passive: true });
+  // The popup lays out after the tabs render (and on resize): show the picked tab once it has a size.
+  if (typeof ResizeObserver === 'function') {
+    new ResizeObserver(function () {
+      portfolioScrollTabIntoView(wrap, wrap.querySelector('.is-active'));
+    }).observe(wrap);
   }
 }
 
@@ -7573,31 +7973,34 @@ function sanitizePricingPackage(raw) {
   return allowed.indexOf(id) >= 0 ? id : '';
 }
 
-/** The package admin picked for this project; '' when it's None. */
-function getPortfolioPricingPackage(record) {
-  return sanitizePricingPackage(record && record.pricingPackage);
-}
+// Package names for the popup's "Growth Package demo" tag (names only: prices live in the Pricing tab).
+var PORTFOLIO_PACKAGE_NAMES = {
+  'starter-page': 'Starter Package',
+  website: 'Multi-Page Package',
+  starter: 'Website + App Package',
+  growth: 'Growth Package'
+};
 
 /**
- * Starter templates with a live demo for this package, as "See examples" rows.
- * Each row opens that template's EAS alias for the package (e.g. …--website-app.expo.app),
- * so the price on the card matches what the visitor sees.
+ * Projects and builds with a demo link for this package (Package demos), as
+ * "See examples" rows. Public ones only. A row opens that project's popup in
+ * the package's view: its features for that package and that demo link.
  */
-function getTemplateDemosForPackage(packageId) {
+function getPackageDemosForPackage(packageId) {
   var list = window.portfolioProjects || [];
   return list
     .filter(function (p) {
-      return p && p.isTemplate === true && isPortfolioPublic(p) &&
-        p.packageDemos && p.packageDemos[packageId];
+      return p && isPortfolioPublic(p) && p.packageDemos && p.packageDemos[packageId];
     })
     .map(function (p) {
       var niches = Array.isArray(p.bestFor) ? p.bestFor.slice(0, 3) : [];
       var cover = typeof portfolioCoverImageUrl === 'function' ? portfolioCoverImageUrl(p) : '';
       return {
-        id: 'template-demo-' + p.id + '-' + packageId,
-        title: p.title || 'Template',
+        id: 'package-demo-' + p.id + '-' + packageId,
+        recordId: String(p.id),
+        packageId: packageId,
+        title: p.title || 'Project',
         exampleHint: [cwrText('services.examples_live_demo', 'Live demo')].concat(niches).join(' · '),
-        externalUrl: p.packageDemos[packageId],
         imageUrl: cover || (Array.isArray(p.imageUrls) && p.imageUrls[0]) || p.imageUrl || '',
         imageAlt: p.imageAlt || p.title || ''
       };
@@ -7607,43 +8010,7 @@ function getTemplateDemosForPackage(packageId) {
 function getProjectsForPricingPackage(packageId) {
   var id = sanitizePricingPackage(packageId);
   if (!id) return [];
-  var staticList = PRICING_PACKAGE_STATIC_EXAMPLES[id] || [];
-  var templateDemos = getTemplateDemosForPackage(id);
-  var list = window.portfolioProjects || [];
-  var fromPortfolio = list.filter(function (p) {
-    // A template already listed as a live demo for this package isn't repeated.
-    if (p && p.isTemplate === true && p.packageDemos && p.packageDemos[id]) return false;
-    return getPortfolioPricingPackage(p) === id;
-  });
-  return staticList.concat(templateDemos, fromPortfolio);
-}
-
-/** Website/app packages in upgrade order; Premium on a Growth project points at Agency. */
-var PORTFOLIO_PLAN_LADDER = ['starter-page', 'website', 'starter', 'growth', 'agency'];
-
-function portfolioPlanName(pkg) {
-  return String((pkg && pkg.pill) || '').split(' · ')[0].trim();
-}
-
-function portfolioPlanPriceText(pkg) {
-  return String((pkg && pkg.price) || '').replace(/\s*fixed\s*$/i, '').trim();
-}
-
-/** Buy Now / Premium labels + target packages for a portfolio project, or null if it has no package. */
-function portfolioPlanBuyTargets(record) {
-  if (typeof HIRE_ME_PACKAGES === 'undefined') return null;
-  var id = getPortfolioPricingPackage(record);
-  var idx = PORTFOLIO_PLAN_LADDER.indexOf(id);
-  var pkg = hireMePackage(id);
-  if (idx < 0 || !pkg) return null;
-  var nextId = PORTFOLIO_PLAN_LADDER[idx + 1];
-  var next = nextId ? hireMePackage(nextId) : null;
-  return {
-    buyId: id,
-    buyLabel: 'Buy ' + portfolioPlanName(pkg) + ': ' + portfolioPlanPriceText(pkg),
-    premiumId: next ? nextId : '',
-    premiumLabel: next ? 'Upgrade to ' + portfolioPlanName(next) + ': ' + portfolioPlanPriceText(next) : ''
-  };
+  return (PRICING_PACKAGE_STATIC_EXAMPLES[id] || []).concat(getPackageDemosForPackage(id));
 }
 
 var PRICING_PACKAGE_STATIC_EXAMPLES = {
@@ -7751,36 +8118,37 @@ function initPortfolioProjectModal() {
       const titleText = titleNode.textContent.trim();
       const rowItem = card.closest('.project-item');
       const pid = rowItem ? rowItem.getAttribute('data-portfolio-id') : null;
-      let customBest = null;
-      if (pid && window.portfolioProjects) {
-        const rec = window.portfolioProjects.find(function (x) {
-          return x.id === pid;
-        });
-        if (rec && Array.isArray(rec.bestFor) && rec.bestFor.length) {
-          customBest = rec.bestFor;
-        }
-      }
-      const preset = PORTFOLIO_DETAIL_PRESETS[titleText];
-      const bestForItems =
-        customBest || preset?.bestFor || portfolioGetDefaultBestFor(titleText, '');
+      const rec = pid && window.portfolioProjects
+        ? window.portfolioProjects.find(function (x) { return x.id === pid; })
+        : null;
+      // What the project includes; Best for until features are ticked in admin.
+      const included = window.PortfolioFeatures.cardView(rec && rec.features, portfolioFeaturesShared());
+      const items = included.shown.length ? included.shown : portfolioBestForLines(rec, titleText);
 
       const section = document.createElement('section');
       section.className = 'project-fit-section';
 
       const heading = document.createElement('h5');
       heading.className = 'project-fit-title';
-      heading.textContent = 'Best For';
+      heading.textContent = included.shown.length ? 'What\u2019s included' : 'Best For';
+      if (included.shown.length) heading.classList.add('is-included');
 
       const list = document.createElement('ul');
       list.className = 'project-fit-list';
-      bestForItems.forEach((businessType) => {
+      items.forEach((text) => {
         const item = document.createElement('li');
-        item.textContent = businessType;
+        item.textContent = text;
         list.appendChild(item);
       });
 
       section.appendChild(heading);
       section.appendChild(list);
+      if (included.more) {
+        const more = document.createElement('p');
+        more.className = 'project-fit-more';
+        more.textContent = '+ ' + included.more + ' more in details';
+        section.appendChild(more);
+      }
 
       bestForContainer.appendChild(section);
     });
@@ -7933,6 +8301,9 @@ function initPortfolioProjectModal() {
       });
     }
 
+    const clientChip = document.getElementById('project-detail-client-chip');
+    if (clientChip) clientChip.hidden = !portfolioIsLiveClient(record);
+
     // Card markup is intentionally minimal; rely on the source record for modal description.
     if (record && record.description != null) {
       const d = String(record.description).trim();
@@ -7943,6 +8314,16 @@ function initPortfolioProjectModal() {
     // On a starter template, tabs let the same carousel show each derived build's
     // media — the point of the template page is proving it works across verticals.
     renderPortfolioVariantTabs(record, hasLiveUrl ? liveUrl : '');
+    // Opened from a package's See examples: that package's view for its project or build.
+    var pkgId = rowItem ? rowItem.dataset.package || '' : '';
+    var pkgView = null;
+    if (pkgId) {
+      var pkgSource = window.portfolioProjectsAll || window.portfolioProjects || [];
+      var pkgTarget = pkgSource.find(function (x) { return x && String(x.id) === rowItem.dataset.packageRecord; }) || record;
+      if (pkgTarget) pkgView = { pkg: pkgId, recordId: String(pkgTarget.id), record: pkgTarget };
+    }
+    var tabsForPackage = document.getElementById('project-detail-variant-tabs');
+    if (tabsForPackage) tabsForPackage._packageView = pkgView;
     if (!slideUrls.length && cardImage && cardImage.getAttribute('src')) {
       var cardSrc = cardImage.getAttribute('src') || '';
       var fromCard = portfolioNormalizeAssetImageUrl(
@@ -7962,6 +8343,7 @@ function initPortfolioProjectModal() {
     }
     if (title) title.textContent = titleText;
     if (description) portfolioSetMultilineElement(description, descriptionText);
+    portfolioFillDetailFitSections(record, titleText);
     if (tech) {
       const tags = record ? portfolioTechTagsFromRecord(record) : [];
       if (tags.length) {
@@ -8043,11 +8425,18 @@ function initPortfolioProjectModal() {
     portfolioSetDetailLiveLink(hasLiveUrl ? liveUrl : '');
     var variantWrap = document.getElementById('project-detail-variant-tabs');
     if (variantWrap && !variantWrap.hidden) portfolioApplyVariantTab(variantWrap, 0);
+    else portfolioApplyPackageView(pkgView);
 
-    // A rotating cover opens on the build it was showing when clicked (after
-    // the platform's buttons are set, so that build's own link wins).
+    // Open on a build: the one a business-type filter or an example asked for,
+    // else the one the rotating cover was showing (after the platform's buttons
+    // are set, so that build's own link wins).
     var rotator = card.querySelector('[data-portfolio-rotator]');
     var startTab = rotator ? Number(rotator.getAttribute('data-current')) || 0 : 0;
+    var startBuild = rowItem && rowItem.dataset.startBuild;
+    if (startBuild && variantWrap && variantWrap._variantRecords) {
+      var at = variantWrap._variantRecords.findIndex(function (x) { return x && String(x.id) === startBuild; });
+      if (at > 0) startTab = at;
+    }
     if (startTab > 0) {
       var tabBtn = document.querySelector('#project-detail-variant-tabs [data-variant-index="' + startTab + '"]');
       if (tabBtn) tabBtn.click();
@@ -8060,15 +8449,10 @@ function initPortfolioProjectModal() {
     if (quoteFooterBtn) quoteFooterBtn.hidden = !showQuote;
 
     const showBuyButtons = window.PORTFOLIO_SHOW_BUY_BUTTONS === true;
-    // Buy buttons follow the project's pricing package (single source: HIRE_ME_PACKAGES).
-    // Buy Now = that package; Premium = the next package up. Projects without a package
-    // fall back to the labels saved in Admin and open Hire Me with no package selected.
-    const planBuy = portfolioPlanBuyTargets(record);
+    // Buy buttons use the labels saved in Admin and open Hire Me with no package selected.
     if (buyNowBtn) {
-      const buyNowLabel = planBuy
-        ? planBuy.buyLabel
-        : record && record.buyNowLabel != null ? String(record.buyNowLabel).trim() : '';
-      buyNowBtn.dataset.hirePackage = planBuy ? planBuy.buyId : '';
+      const buyNowLabel = record && record.buyNowLabel != null ? String(record.buyNowLabel).trim() : '';
+      buyNowBtn.dataset.hirePackage = '';
       if (showBuyButtons && buyNowLabel) {
         buyNowBtn.innerHTML = portfolioDetailBtnHtml('cart-outline', buyNowLabel);
         buyNowBtn.hidden = false;
@@ -8077,10 +8461,8 @@ function initPortfolioProjectModal() {
       }
     }
     if (buyPremiumBtn) {
-      const buyPremiumLabel = planBuy
-        ? planBuy.premiumLabel
-        : record && record.buyPremiumLabel != null ? String(record.buyPremiumLabel).trim() : '';
-      buyPremiumBtn.dataset.hirePackage = planBuy ? planBuy.premiumId : '';
+      const buyPremiumLabel = record && record.buyPremiumLabel != null ? String(record.buyPremiumLabel).trim() : '';
+      buyPremiumBtn.dataset.hirePackage = '';
       if (showBuyButtons && buyPremiumLabel) {
         buyPremiumBtn.innerHTML = portfolioDetailBtnHtml('star-outline', buyPremiumLabel);
         buyPremiumBtn.hidden = false;
@@ -8191,11 +8573,28 @@ function initPortfolioProjectModal() {
     });
   }
 
-  window.openPortfolioProjectDetail = function (record) {
+  window.openPortfolioProjectDetail = function (record, opts) {
     if (!record || !modal) return;
+    var packageId = (opts && opts.packageId) || '';
+    var packageRecord = packageId && record.id ? String(record.id) : '';
+    // A build lives inside its platform's card: open that popup on the build's tab.
+    var startBuild = '';
+    if (record.builtFromTemplateId) {
+      var all = window.portfolioProjectsAll || window.portfolioProjects || [];
+      var platform = all.find(function (x) { return x && String(x.id) === String(record.builtFromTemplateId); });
+      if (platform) {
+        startBuild = String(record.id || '');
+        record = platform;
+      }
+    }
     var wrap = document.createElement('div');
     wrap.className = 'project-item';
     if (record.id) wrap.setAttribute('data-portfolio-id', record.id);
+    if (startBuild) wrap.dataset.startBuild = startBuild;
+    if (packageRecord) {
+      wrap.dataset.package = packageId;
+      wrap.dataset.packageRecord = packageRecord;
+    }
     wrap.innerHTML =
       '<article class="project-card"><a class="project-link" href="#"><figure class="project-img"><img alt=""></figure>' +
       '<h3 class="project-title"></h3><p class="project-description"></p></a></article>';
@@ -8205,8 +8604,7 @@ function initPortfolioProjectModal() {
     if (urls[0]) img.setAttribute('src', urls[0]);
     if (record.imageAlt) img.setAttribute('alt', record.imageAlt);
     var link = wrap.querySelector('.project-link');
-    var href = String(record.projectUrl || '').trim() || '#';
-    link.setAttribute('href', href);
+    link.setAttribute('href', portfolioPublicLiveUrl(record));
     fillProjectModal(wrap.querySelector('.project-card'), link);
     openProjectModal();
   };
@@ -8307,7 +8705,7 @@ function initPackageExamplesSheet() {
     listEl.innerHTML = matches
       .map(function (p, i) {
         var urls = typeof portfolioImageUrlsFromRecord === 'function' ? portfolioImageUrlsFromRecord(p) : [];
-        var img = p.exampleUrl || p.externalUrl
+        var img = p.exampleUrl || p.externalUrl || p.packageId
           ? p.imageUrl || ''
           : typeof portfolioCoverImageUrl === 'function'
             ? portfolioCoverImageUrl(p)
@@ -8361,6 +8759,14 @@ function initPackageExamplesSheet() {
       var recs = listEl._records || [];
       var record = recs[idx];
       if (!record) return;
+      if (record.packageId && record.recordId) {
+        var source = (window.portfolioProjects || []).find(function (x) { return x && String(x.id) === record.recordId; });
+        if (source && typeof window.openPortfolioProjectDetail === 'function') {
+          closeExamplesSheet();
+          window.openPortfolioProjectDetail(source, { packageId: record.packageId });
+          return;
+        }
+      }
       if (record.externalUrl) {
         window.open(record.externalUrl, '_blank', 'noopener');
         return;

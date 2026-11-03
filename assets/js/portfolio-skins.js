@@ -95,6 +95,15 @@
     return record && record.skinKind === 'demo' ? 'demo' : 'client';
   }
 
+  /**
+   * A top-level project (a platform, or a standalone project) is a demo until
+   * marked client, so its link keeps opening. Its own field: an old skinKind
+   * left on it by the editor must never hide the link.
+   */
+  function liveKindOf(record) {
+    return record && record.liveKind === 'client' ? 'client' : 'demo';
+  }
+
   /** A real http(s) link, or ''. */
   function cleanLink(v) {
     var s = String(v == null ? '' : v).trim();
@@ -116,7 +125,8 @@
    */
   function tabInfo(platform, record, isPlatform, platformLiveUrl) {
     if (isPlatform) {
-      return { blurb: cleanBlurb(platform && platform.skinBlurb), liveUrl: platformLiveUrl || '', liveLabel: '', isClient: false };
+      var client = liveKindOf(platform) === 'client';
+      return { blurb: cleanBlurb(platform && platform.skinBlurb), liveUrl: client ? '' : platformLiveUrl || '', liveLabel: '', isClient: client };
     }
     var link = demoLinkFor(record);
     return {
@@ -153,13 +163,15 @@
     if ('skinOrder' in fields) out.skinOrder = orderNumber(fields.skinOrder);
     if ('coverImageUrl' in fields) out.coverImageUrl = String(fields.coverImageUrl || '');
     if ('skinKind' in fields) out.skinKind = fields.skinKind === 'demo' ? 'demo' : 'client';
+    if ('liveKind' in fields) out.liveKind = fields.liveKind === 'client' ? 'client' : 'demo';
+    if ('visibility' in fields) out.visibility = fields.visibility === 'private' ? 'private' : 'public';
     if ('skinBlurb' in fields) out.skinBlurb = cleanBlurb(fields.skinBlurb);
     if ('projectUrl' in fields) out.projectUrl = cleanLink(fields.projectUrl);
     return out;
   }
 
   // Admin list row field → saved field.
-  var ROW_FIELDS = { label: 'skinLabel', order: 'skinOrder', cover: 'coverImageUrl', kind: 'skinKind', link: 'projectUrl', blurb: 'skinBlurb' };
+  var ROW_FIELDS = { label: 'skinLabel', order: 'skinOrder', cover: 'coverImageUrl', kind: 'skinKind', liveKind: 'liveKind', link: 'projectUrl', blurb: 'skinBlurb', visibility: 'visibility' };
 
   /** Only the fields edited since the row loaded (vs row.original), cleaned; null when nothing changed. */
   function changedPatch(row) {
@@ -193,6 +205,7 @@
     changedPatch: changedPatch,
     moveRow: moveRow,
     kindOf: kindOf,
+    liveKindOf: liveKindOf,
     cleanLink: cleanLink,
     demoLinkFor: demoLinkFor,
     tabInfo: tabInfo,
