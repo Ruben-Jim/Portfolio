@@ -912,6 +912,7 @@
       else if (act === 'export') exportCsv();
     });
 
+    if (els.filters && typeof global.cwrBindDragScroll === 'function') global.cwrBindDragScroll(els.filters);
     if (els.search) els.search.addEventListener('input', function () { query = els.search.value.trim(); renderList(); });
     if (els.niche) els.niche.addEventListener('change', function () { nicheFilter = els.niche.value; renderList(); });
     if (els.website) els.website.addEventListener('change', function () { websiteFilter = els.website.value; renderList(); });
@@ -958,7 +959,8 @@
   }
 
   function open() {
-    if (unsub && els.root) return Promise.resolve();
+    // Overview / Outreach may have subscribed already: the tab's clicks still need binding.
+    if (unsub && els.root) { bind(); return Promise.resolve(); }
     if (!opening) opening = openOnce().then(function () { opening = null; }, function () { opening = null; });
     return opening;
   }

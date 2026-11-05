@@ -7849,10 +7849,22 @@ function portfolioScrollTabIntoView(wrap, btn) {
   portfolioSyncTabsBar(wrap);
 }
 
-function portfolioBindTabsBar(wrap) {
+/**
+ * Mouse drag-to-scroll for a sideways bar of buttons (touch already swipes).
+ * A drag never clicks the button it ends on and never highlights text.
+ * Toggles .is-scrollable (grab cursor) and .is-dragging on the bar.
+ */
+function bindDragScroll(wrap) {
   var press = null;
+  function scrollable() {
+    var on = wrap.scrollWidth - wrap.clientWidth > 2;
+    wrap.classList.toggle('is-scrollable', on);
+    return on;
+  }
+  // Checked on hover: the grab cursor shows only when there's somewhere to drag.
+  wrap.addEventListener('mouseenter', scrollable);
   wrap.addEventListener('pointerdown', function (e) {
-    if (e.pointerType !== 'mouse' || e.button !== 0 || !wrap.classList.contains('is-scrollable')) return;
+    if (e.pointerType !== 'mouse' || e.button !== 0 || !scrollable()) return;
     press = { id: e.pointerId, x: e.clientX, left: wrap.scrollLeft, moved: false };
   });
   wrap.addEventListener('pointermove', function (e) {
@@ -7880,10 +7892,10 @@ function portfolioBindTabsBar(wrap) {
   }
   wrap.addEventListener('pointerup', end);
   wrap.addEventListener('pointercancel', end);
-  // A mouse press here is a drag or a tab click, never the start of a text selection
-  // (Safari otherwise highlights the title as the drag drifts down). Clicks still fire.
+  // A mouse press here is a drag or a button click, never the start of a text selection
+  // (Safari otherwise highlights the text below as the drag drifts down). Clicks still fire.
   wrap.addEventListener('mousedown', function (e) {
-    if (e.button === 0 && wrap.classList.contains('is-scrollable')) e.preventDefault();
+    if (e.button === 0 && scrollable()) e.preventDefault();
   });
   document.addEventListener('selectstart', function (e) {
     if (press) e.preventDefault();
@@ -7893,6 +7905,12 @@ function portfolioBindTabsBar(wrap) {
     e.stopPropagation();
     e.preventDefault();
   }, true);
+}
+
+window.cwrBindDragScroll = bindDragScroll;
+
+function portfolioBindTabsBar(wrap) {
+  bindDragScroll(wrap);
   wrap.addEventListener('scroll', function () { portfolioSyncTabsBar(wrap); }, { passive: true });
   // The popup lays out after the tabs render (and on resize): show the picked tab once it has a size.
   if (typeof ResizeObserver === 'function') {

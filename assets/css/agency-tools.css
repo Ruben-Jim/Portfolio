@@ -7134,6 +7134,11 @@ body.cp-client-page-open #admin-panel-client-projects > :not(#cp-client-page-hos
 .prospects-toolbar { display: grid; gap: 8px; margin-bottom: 12px; }
 .prospects-filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .prospects-filters::-webkit-scrollbar { display: none; }
+/* Drag to scroll with a mouse (cwrBindDragScroll in script.js); chip names never highlight. */
+.prospects-filters { -webkit-user-select: none; user-select: none; }
+.prospects-filters.is-scrollable { cursor: grab; }
+.prospects-filters.is-dragging,
+.prospects-filters.is-dragging .prospects-chip { cursor: grabbing; }
 .prospects-toolbar-row { display: grid; gap: 8px; grid-template-columns: 1fr auto auto auto auto; align-items: center; }
 .prospects-toolbar-row .form-input { min-height: 40px; min-width: 0; font-size: 15px; }
 .prospects-toolbar-row .outreach-btn { flex: none; min-height: 40px; padding: 8px 12px; font-size: 13px; }

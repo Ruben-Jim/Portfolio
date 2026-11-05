@@ -12,7 +12,7 @@
       'nav.about':            'About',
       'nav.testimonials':     'Reviews',
       'nav.portfolio':        'Portfolio',
-      'nav.services_pricing': 'Services &amp; Pricing',
+      'nav.services_pricing': 'Pricing',
       'nav.contact':          'Contact',
       'nav.get_started':      'Get started',
       'nav.start_project':    'Start a project',
@@ -101,7 +101,7 @@
       'portfolio.retry':       'Retry',
 
       /* ── Services & Pricing ─────────────────────────────── */
-      'services.title':        'Services &amp; Pricing',
+      'services.title':        'Pricing &amp; Services',
       'services.intro':        'Housecall Pro, Jobber, GoDaddy, and tools like them rent you a template — monthly fees, their rules, and no way to own it. We license a branded website and app built around how you actually work. You pay a setup package, then a monthly care plan for hosting, updates, and support. CodeWithRuben owns the product until you buy it out. Every package includes 1 month of the care plan you pick.',
 
       'services.platform_website': 'Website',
@@ -293,7 +293,7 @@
       'nav.about':            'Nosotros',
       'nav.testimonials':     'Reseñas',
       'nav.portfolio':        'Portafolio',
-      'nav.services_pricing': 'Servicios y Precios',
+      'nav.services_pricing': 'Precios',
       'nav.contact':          'Contacto',
       'nav.get_started':      'Comenzar',
       'nav.start_project':    'Iniciar un proyecto',
@@ -382,7 +382,7 @@
       'portfolio.retry':      'Reintentar',
 
       /* ── Services & Pricing ─────────────────────────────── */
-      'services.title':       'Servicios y Precios',
+      'services.title':       'Precios y Servicios',
       'services.intro':       'Housecall Pro, Jobber, GoDaddy y herramientas as\u00ed te rentan una plantilla \u2014 cuotas mensuales, sus reglas y sin forma de ser due\u00f1o. Licenciamos un sitio y app con tu marca, armados alrededor de c\u00f3mo trabajas. Pagas un paquete de arranque y luego un plan mensual de cuidado (hospedaje, actualizaciones y soporte). CodeWithRuben es due\u00f1o del producto hasta que lo compres. Cada paquete incluye 1 mes del plan de cuidado que elijas.',
 
       'services.platform_website': 'Sitio web',
