@@ -1940,51 +1940,82 @@
 
   // ——— Package prices + offers (Pricing tab) ———
   // Regular prices and limited-time offers save together; see care-pricing.js.
+  // One short line per package; an offer's fields open under its row only while
+  // its switch is on (switching off keeps the numbers), so nothing scrolls sideways.
+
+  /** "Nov 9" from "2026-11-09", read as a local date. */
+  function offerShortDate(key) {
+    var d = String(key || '').split('-');
+    return new Date(Number(d[0]), Number(d[1]) - 1, Number(d[2])).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  /** What the saved offer is doing on the site now; '' when it's off. */
+  function packageOfferStatus(PP, id) {
+    var o = PP.offers[id] || {};
+    var live = PP.activeOffer(id);
+    if (live) {
+      var bits = ['Live'];
+      if (live.endsAt) bits.push('ends ' + offerShortDate(live.endsAt));
+      if (live.spots) bits.push(live.spotsLeft + (live.spotsLeft === 1 ? ' spot left' : ' spots left'));
+      if (bits.length === 1) bits.push('no end set');
+      return bits.join(' · ');
+    }
+    if (!o.enabled) return '';
+    if (o.spots && o.claimed >= o.spots) return 'Ended · all spots claimed';
+    if (o.endsAt && o.endsAt < new Date().toISOString().slice(0, 10)) return 'Ended · past end date';
+    return 'Not live · check price';
+  }
+
   function renderPackageOffersTable() {
     var table = document.getElementById('package-offers-table');
     var PP = window.PackagePricing;
     if (!table || !PP) return;
     var rows = PP.PACKAGES.map(function (p) {
       var range = !!PP.DEFAULT_PRICES[p.id].max;
-      var priceCell =
-        '<td class="package-offers-regular-cell"><div class="package-offers-price' + (range ? ' is-range' : '') + '">' +
+      var head =
+        '<div class="package-offers-name">' + esc(p.name) + '</div>' +
+        '<div class="package-offers-price' + (range ? ' is-range' : '') + '">' +
         '<input class="form-input" type="number" min="1" step="1" data-field="regular" value="' + p.price + '" aria-label="' +
         esc(p.name) + (range ? ' price from' : ' regular price') + '">' +
         (range
           ? '<span aria-hidden="true">to</span><input class="form-input" type="number" min="1" step="1" data-field="regularMax" value="' +
             (p.max || '') + '" aria-label="' + esc(p.name) + ' price to">'
           : '') +
-        '</div></td>';
+        '</div>';
       if (!p.offerable) {
         return (
-          '<tr data-package="' + esc(p.id) + '">' +
-          '<th scope="row">' + esc(p.name) + '</th>' + priceCell +
-          '<td class="package-offers-na" colspan="6">Scoped per client, so no limited-time offer</td>' +
-          '</tr>'
+          '<div class="package-offers-row" data-package="' + esc(p.id) + '">' + head +
+          '<div class="package-offers-na">Scoped per client, so no limited-time offer</div>' +
+          '</div>'
         );
       }
       var o = PP.offers[p.id] || {};
-      var live = PP.activeOffer(p.id);
-      var status = live
-        ? 'Live · ' + (PP.offerLimitText(live, 'en') || 'no end set')
-        : o.enabled
-          ? (o.spots && o.claimed >= o.spots ? 'Ended · all spots claimed' : o.endsAt && o.endsAt < new Date().toISOString().slice(0, 10) ? 'Ended · past end date' : 'Off · check price')
-          : 'Off';
+      var status = packageOfferStatus(PP, p.id);
+      var field = function (label, input) {
+        return '<label class="package-offers-field"><span>' + label + '</span>' + input + '</label>';
+      };
       return (
-        '<tr data-package="' + esc(p.id) + '">' +
-        '<th scope="row">' + esc(p.name) + '</th>' + priceCell +
-        '<td><label class="package-offers-on"><input type="checkbox" data-field="enabled"' + (o.enabled ? ' checked' : '') + '> On</label></td>' +
-        '<td><input class="form-input" type="number" min="1" step="1" data-field="price" placeholder="Offer $" value="' + (o.price || '') + '" aria-label="' + esc(p.name) + ' offer price"></td>' +
-        '<td><input class="form-input" type="date" data-field="endsAt" value="' + esc(o.endsAt || '') + '" aria-label="' + esc(p.name) + ' offer end date"></td>' +
-        '<td><input class="form-input" type="number" min="0" step="1" data-field="spots" placeholder="No limit" value="' + (o.spots || '') + '" aria-label="' + esc(p.name) + ' spots"></td>' +
-        '<td><input class="form-input" type="number" min="0" step="1" data-field="claimed" value="' + (o.claimed || 0) + '" aria-label="' + esc(p.name) + ' spots claimed"></td>' +
-        '<td class="package-offers-status' + (live ? ' is-live' : '') + '">' + esc(status) + '</td>' +
-        '</tr>'
+        '<div class="package-offers-row" data-package="' + esc(p.id) + '">' + head +
+        '<div class="package-offers-offer">' +
+          '<label class="custom-switch-label package-offers-on">' +
+            '<input type="checkbox" class="custom-switch-input" data-field="enabled"' + (o.enabled ? ' checked' : '') +
+            ' aria-label="' + esc(p.name) + ' limited-time offer">' +
+            '<span class="custom-switch" aria-hidden="true"></span>' +
+            '<span data-offer-state>' + (o.enabled ? 'On' : 'Off') + '</span>' +
+          '</label>' +
+          (status ? '<span class="package-offers-status' + (PP.activeOffer(p.id) ? ' is-live' : '') + '">' + esc(status) + '</span>' : '') +
+        '</div>' +
+        '<div class="package-offers-box"' + (o.enabled ? '' : ' hidden') + '>' +
+          field('Offer price', '<input class="form-input" type="number" min="1" step="1" data-field="price" placeholder="Offer $" value="' + (o.price || '') + '" aria-label="' + esc(p.name) + ' offer price">') +
+          field('Ends', '<input class="form-input" type="date" data-field="endsAt" value="' + esc(o.endsAt || '') + '" aria-label="' + esc(p.name) + ' offer end date">') +
+          field('Spots', '<input class="form-input" type="number" min="0" step="1" data-field="spots" placeholder="No limit" value="' + (o.spots || '') + '" aria-label="' + esc(p.name) + ' spots">') +
+          field('Claimed', '<input class="form-input" type="number" min="0" step="1" data-field="claimed" value="' + (o.claimed || 0) + '" aria-label="' + esc(p.name) + ' spots claimed">') +
+        '</div>' +
+        '</div>'
       );
     }).join('');
     table.innerHTML =
-      '<thead><tr><th scope="col">Package</th><th scope="col">Regular price</th><th scope="col">Offer</th><th scope="col">Offer price</th><th scope="col">Ends</th><th scope="col">Spots</th><th scope="col">Claimed</th><th scope="col">Status</th></tr></thead>' +
-      '<tbody>' + rows + '</tbody>';
+      '<div class="package-offers-head" aria-hidden="true"><span>Package</span><span>Price</span><span>Limited-time offer</span></div>' + rows;
     renderPackageFilesNotice();
   }
 
@@ -1992,7 +2023,7 @@
     var PP = window.PackagePricing;
     var prices = {};
     var offers = {};
-    document.querySelectorAll('#package-offers-table tbody tr').forEach(function (tr) {
+    document.querySelectorAll('#package-offers-table [data-package]').forEach(function (tr) {
       var id = tr.getAttribute('data-package');
       var get = function (f) { return tr.querySelector('[data-field="' + f + '"]'); };
       prices[id] = { price: get('regular').value };
@@ -2031,6 +2062,18 @@
     section.dataset.bound = '1';
     renderPackageOffersTable();
     window.PackagePricing.load().then(renderPackageOffersTable).catch(function () {});
+    // The switch opens or closes the row's offer fields; the numbers stay either way.
+    section.addEventListener('change', function (e) {
+      var sw = e.target.closest('[data-field="enabled"]');
+      var row = sw && sw.closest('[data-package]');
+      if (!row) return;
+      var box = row.querySelector('.package-offers-box');
+      var state = row.querySelector('[data-offer-state]');
+      if (box) box.hidden = !sw.checked;
+      if (state) state.textContent = sw.checked ? 'On' : 'Off';
+      var price = row.querySelector('[data-field="price"]');
+      if (sw.checked && price) price.focus();
+    });
     var btn = document.getElementById('package-offers-save');
     var feedback = document.getElementById('package-offers-feedback');
     if (!btn) return;

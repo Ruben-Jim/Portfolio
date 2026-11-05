@@ -31631,70 +31631,106 @@ body.admin-page-active .site-footer {
   color: var(--white-2);
 }
 
-.package-offers-table-wrap {
-  overflow-x: auto;
-  margin: 10px 0 12px;
-}
-
+/* One short line per package: name, price, offer switch (+ status). The offer
+   fields open under the row while its switch is on. Narrow panels stack. */
 .package-offers-table {
-  width: 100%;
-  border-collapse: collapse;
+  container: pkgoffers / inline-size;
+  margin: 10px 0 12px;
   font-size: 13px;
 }
 
-.package-offers-table th,
-.package-offers-table td {
-  padding: 8px;
-  border-bottom: 1px solid var(--jet);
-  text-align: left;
-  vertical-align: middle;
-  color: var(--light-gray);
+.package-offers-head,
+.package-offers-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(0, 1.2fr) minmax(0, 1.5fr);
+  gap: 8px 14px;
+  align-items: center;
 }
 
-.package-offers-table thead th {
+.package-offers-head {
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--jet);
   font-size: 11px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--light-gray-70);
 }
 
-.package-offers-table tbody th {
+.package-offers-row {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--jet);
+  color: var(--light-gray);
+}
+
+.package-offers-name {
   color: var(--white-2);
   font-weight: 500;
-  white-space: nowrap;
 }
 
-.package-offers-regular {
-  display: block;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--light-gray-70);
-}
-
-.package-offers-table .form-input {
-  min-width: 96px;
-  padding: 8px 10px;
+.package-offers-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  min-width: 0;
 }
 
 .package-offers-on {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  font-size: 12.5px;
   white-space: nowrap;
-}
-
-.package-offers-on input {
-  accent-color: var(--orange-yellow-crayola);
 }
 
 .package-offers-status {
-  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--jet);
+  font-size: 11.5px;
   color: var(--light-gray-70);
 }
 
 .package-offers-status.is-live {
+  background: hsla(45, 100%, 72%, 0.14);
   color: var(--orange-yellow-crayola);
   font-weight: 600;
+}
+
+.package-offers-box {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--jet);
+  border-left: 3px solid var(--orange-yellow-crayola);
+  border-radius: 10px;
+  background: var(--eerie-black-1);
+}
+
+.package-offers-box[hidden] {
+  display: none;
+}
+
+.package-offers-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 11.5px;
+  color: var(--light-gray-70);
+}
+
+.package-offers-table .form-input {
+  min-width: 0;
+  width: 100%;
+  padding: 8px 10px;
+}
+
+@container pkgoffers (max-width: 560px) {
+  .package-offers-head { display: none; }
+  /* Price keeps its width; the switch takes the rest and the status wraps under it. */
+  .package-offers-row { grid-template-columns: auto minmax(0, 1fr); }
+  .package-offers-offer { justify-content: flex-end; }
+  .package-offers-name { grid-column: 1 / -1; }
+  .package-offers-na { grid-column: 1 / -1; }
 }
 
 /* Proposal editor: package added during an offer */
