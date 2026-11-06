@@ -829,6 +829,234 @@
         '\n' +
         'Voicemail (under 20 seconds):\n' +
         '"Hi, this is Ruben with CodeWithRuben in [City]. I sent [Company] a note about a free website mockup. If you’d like to see it, call or text me at 559-653-7380. Thanks!"'
+    },
+
+    // ——— Mockup first (2026-11-05) ———
+    // Hormozi-style first touch for the newer niches: one real detail about the
+    // business, the outcome they want, a free mockup with their name on it, then a
+    // yes/no ask. No price and no link until they say yes; price and the deposit
+    // come on the walkthrough call. Follow-ups: day 4 text, day 7 call, day 14 check-in.
+    {
+      id: 'mf-contractors',
+      label: 'Home contractors & remodeling',
+      tag: 'Mockup first · First touch: text or call, then email the next day',
+      vertical: 'home contractors and remodelers',
+      demoLink: 'https://generalcontractor.expo.app',
+      order: 130,
+      text: '[Name], Ruben here with CodeWithRuben. I know you’re busy, so I’ll cut to the chase. [What you noticed — e.g. your remodel photos look great, but the only way to get an estimate is to call.] I build estimate-request apps for contractors in [City]: homeowners send photos, scope and budget before you ever drive out. I’ll put together a free mockup with [Company]’s name on it, no strings. Want me to send it?\n\nReply STOP to opt out.',
+      subject: 'Subject: estimates for [Company]',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        '[What you noticed — e.g. Your kitchen remodels look great, but the only way to get an estimate is to call.]\n' +
+        '\n' +
+        'Most contractors I talk to in [City] lose good jobs to whoever calls back first, and spend evenings driving out to quote jobs that were never a fit.\n' +
+        '\n' +
+        'I build estimate-request apps for remodelers: homeowners send photos, the scope and their budget up front, so you only drive out for real jobs.\n' +
+        '\n' +
+        'I’d like to put together a free mockup with [Company]’s name on it. No cost, no strings. Want me to send it over?\n' +
+        '\n' +
+        '— Ruben\n' +
+        'CodeWithRuben · (559) 653-7380\n' +
+        '\n' +
+        'Not for you? Reply “no” and I won’t email again.',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben with CodeWithRuben. I know you’re busy, and yes, this is a cold call. Can I take 30 seconds to tell you why I called, and you tell me if it’s worth talking?"\n' +
+        '[continue] "I build estimate-request apps for contractors in [City], so homeowners send photos and a budget before you drive out. I’d like to make you a free mockup with [Company]’s name on it. No cost, no strings. Want me to text it to you when it’s ready?"\n' +
+        '[if yes] "Great. Is this the best number to text? You’ll have it in [a day or two]."\n' +
+        '[if they ask the price] "Depends on what you’d want in it. You’ll get exact prices when I show you the mockup, so you can judge it with the real thing in front of you."\n' +
+        '\n' +
+        'Voicemail (under 20 seconds):\n' +
+        '"Hi [Name], Ruben with CodeWithRuben in [City]. I’d like to make [Company] a free mockup of an estimate-request app. No cost, no strings. Text or call me at 559-653-7380."'
+    },
+    {
+      id: 'mf-event-rentals',
+      label: 'Event & party rentals',
+      tag: 'Mockup first · First touch: text or call, then email the next day',
+      vertical: 'event and party rental companies',
+      demoLink: 'https://rentals.expo.app',
+      order: 131,
+      text: '[Name], Ruben here with CodeWithRuben. I know you’re busy, so I’ll cut to the chase. [What you noticed — e.g. saw you’re taking bounce house bookings through Facebook messages.] I build booking apps for party rental companies in [City]: customers pick a date, see what’s free and pay the deposit, so no more “is it open Saturday?” back-and-forth. I’ll put together a free mockup with [Company]’s name on it, no strings. Want me to send it?\n\nReply STOP to opt out.',
+      subject: 'Subject: weekend bookings for [Company]',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        '[What you noticed — e.g. Saw you’re taking bounce house bookings through Facebook messages.]\n' +
+        '\n' +
+        'Most party rental owners I talk to in [City] spend the week answering “is it open Saturday?” and chasing deposits, and one mix-up means two parties booked for the same tent.\n' +
+        '\n' +
+        'I build booking apps for rental companies: customers pick the date, see what’s still free, and pay the deposit to lock it in. Nothing gets double-booked.\n' +
+        '\n' +
+        'I’d like to put together a free mockup with [Company]’s name on it. No cost, no strings. Want me to send it over?\n' +
+        '\n' +
+        '— Ruben\n' +
+        'CodeWithRuben · (559) 653-7380\n' +
+        '\n' +
+        'Not for you? Reply “no” and I won’t email again.',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben with CodeWithRuben. I know you’re busy, and yes, this is a cold call. Can I take 30 seconds to tell you why I called, and you tell me if it’s worth talking?"\n' +
+        '[continue] "I build booking apps for party rental companies in [City]. Customers pick a date, see what’s free and pay the deposit, so you’re not answering “is it open Saturday?” all week. I’d like to make you a free mockup with [Company]’s name on it. No cost, no strings. Want me to text it to you when it’s ready?"\n' +
+        '[if yes] "Great. Is this the best number to text? You’ll have it in [a day or two]."\n' +
+        '[if they ask the price] "Depends on what you’d want in it. You’ll get exact prices when I show you the mockup, so you can judge it with the real thing in front of you."\n' +
+        '\n' +
+        'Voicemail (under 20 seconds):\n' +
+        '"Hi [Name], Ruben with CodeWithRuben in [City]. I’d like to make [Company] a free mockup of a booking app for your rentals. No cost, no strings. Text or call me at 559-653-7380."'
+    },
+    {
+      id: 'mf-junk',
+      label: 'Junk removal',
+      tag: 'Mockup first · First touch: text or call, then email the next day',
+      vertical: 'junk removal and hauling crews',
+      demoLink: 'https://junk.expo.app',
+      order: 132,
+      text: '[Name], Ruben here with CodeWithRuben. I know you’re busy, so I’ll cut to the chase. [What you noticed — e.g. saw you quote every job by phone.] I build booking apps for junk haulers in [City]: customers snap photos of the pile, get a quote and pick a pickup window, so fewer wasted trips and a fuller truck. I’ll put together a free mockup with [Company]’s name on it, no strings. Want me to send it?\n\nReply STOP to opt out.',
+      subject: 'Subject: photo quotes for [Company]',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        '[What you noticed — e.g. Saw that the only way to get a quote from you is to call.]\n' +
+        '\n' +
+        'Most junk haulers I talk to in [City] drive out to eyeball jobs, quote over the phone, and still get surprised by what’s in the garage, or by a customer who isn’t home.\n' +
+        '\n' +
+        'I build booking apps for junk removal: customers send photos of the pile, get a quote and book a pickup window. You see the job before you roll, and the truck stays full.\n' +
+        '\n' +
+        'I’d like to put together a free mockup with [Company]’s name on it. No cost, no strings. Want me to send it over?\n' +
+        '\n' +
+        '— Ruben\n' +
+        'CodeWithRuben · (559) 653-7380\n' +
+        '\n' +
+        'Not for you? Reply “no” and I won’t email again.',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben with CodeWithRuben. I know you’re busy, and yes, this is a cold call. Can I take 30 seconds to tell you why I called, and you tell me if it’s worth talking?"\n' +
+        '[continue] "I build booking apps for junk haulers in [City]. Customers snap photos of the pile, get a quote and pick a pickup window, so you’re not driving out just to eyeball a job. I’d like to make you a free mockup with [Company]’s name on it. No cost, no strings. Want me to text it to you when it’s ready?"\n' +
+        '[if yes] "Great. Is this the best number to text? You’ll have it in [a day or two]."\n' +
+        '[if they ask the price] "Depends on what you’d want in it. You’ll get exact prices when I show you the mockup, so you can judge it with the real thing in front of you."\n' +
+        '\n' +
+        'Voicemail (under 20 seconds):\n' +
+        '"Hi [Name], Ruben with CodeWithRuben in [City]. I’d like to make [Company] a free mockup of a booking app where customers send photos for a quote. No cost, no strings. Text or call me at 559-653-7380."'
+    },
+    {
+      id: 'mf-roadside',
+      label: 'Mobile mechanic & roadside',
+      tag: 'Mockup first · First touch: text or call, then email the next day',
+      vertical: 'mobile mechanics and roadside crews',
+      demoLink: 'https://roadsidefix.expo.app',
+      order: 133,
+      text: '[Name], Ruben here with CodeWithRuben. I know you’re busy, so I’ll cut to the chase. [What you noticed — e.g. saw customers can only reach you by calling.] I build service-request apps for mobile mechanics in [City]: customers send their location, the car and what’s wrong, so you know the job and the parts before you roll. I’ll put together a free mockup with [Company]’s name on it, no strings. Want me to send it?\n\nReply STOP to opt out.',
+      subject: 'Subject: service requests for [Company]',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        '[What you noticed — e.g. Saw that customers can only reach you by phone, and you’re probably under a car half the day.]\n' +
+        '\n' +
+        'Most mobile mechanics I talk to in [City] miss calls while they’re working, then play phone tag to get the car, the problem and the location before they can quote.\n' +
+        '\n' +
+        'I build service-request apps for mobile mechanics: customers send their location, the car and what’s wrong, and pay from their phone when the job’s done. You know the parts before you roll.\n' +
+        '\n' +
+        'I’d like to put together a free mockup with [Company]’s name on it. No cost, no strings. Want me to send it over?\n' +
+        '\n' +
+        '— Ruben\n' +
+        'CodeWithRuben · (559) 653-7380\n' +
+        '\n' +
+        'Not for you? Reply “no” and I won’t email again.',
+      call:
+        'You:\n' +
+        '"Hi, is this [Name]? This is Ruben with CodeWithRuben. I know you’re busy, and yes, this is a cold call. Can I take 30 seconds to tell you why I called, and you tell me if it’s worth talking?"\n' +
+        '[continue] "I build service-request apps for mobile mechanics in [City]. Customers send their location, the car and what’s wrong, so you know the job before you roll and you’re not missing calls while you work. I’d like to make you a free mockup with [Company]’s name on it. No cost, no strings. Want me to text it to you when it’s ready?"\n' +
+        '[if yes] "Great. Is this the best number to text? You’ll have it in [a day or two]."\n' +
+        '[if they ask the price] "Depends on what you’d want in it. You’ll get exact prices when I show you the mockup, so you can judge it with the real thing in front of you."\n' +
+        '\n' +
+        'Voicemail (under 20 seconds):\n' +
+        '"Hi [Name], Ruben with CodeWithRuben in [City]. I’d like to make [Company] a free mockup of a service-request app. No cost, no strings. Text or call me at 559-653-7380."'
+    },
+    {
+      id: 'mf-mockup-ready',
+      label: 'Mockup ready — send it',
+      tag: 'Mockup first · After they say yes · Put the mockup link in Demo (Custom URL) and pick the Package',
+      vertical: 'any niche, once they asked for the mockup',
+      demoLink: '',
+      order: 134,
+      text: '[Name], here’s the mockup I made for [Company]: [demo link]\n\nTap around like one of your customers would. If you like it, I’ll walk you through how it would work for you and what it costs. Got 15 minutes today or tomorrow?\n\nReply STOP to opt out.',
+      subject: 'Subject: your [Company] mockup',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Here’s the mockup I made for [Company]: [demo link]\n' +
+        '\n' +
+        'Tap around like one of your customers would. Your name is on it, and it shows how new jobs would come in.\n' +
+        '\n' +
+        'If you like it, I’ll walk you through how it would work day to day and what it costs. Got 15 minutes today or tomorrow?\n' +
+        '\n' +
+        '— Ruben\n' +
+        'CodeWithRuben · (559) 653-7380\n' +
+        '\n' +
+        'Not for you? Reply “no” and I won’t email again.',
+      call:
+        'You:\n' +
+        '"Hi [Name], Ruben with CodeWithRuben. The mockup for [Company] is ready, I just texted you the link. Got 15 minutes to walk through it, now or [later today / tomorrow]?"\n' +
+        '\n' +
+        'On the walkthrough call:\n' +
+        '1. Let them tap through it. Ask: “What would you change?”\n' +
+        '2. Ask what a typical job is worth to them, and how many they lose to missed calls or slow replies.\n' +
+        '3. Then the price: “[package].”\n' +
+        '4. To hold their start date: “It’s a $250 deposit to hold your spot, and I get started.”'
+    },
+    {
+      id: 'mf-bump',
+      label: 'Follow-up — free mockup bump (day 4)',
+      tag: 'Mockup first · Follow-up · Text on day 4, call on day 7',
+      vertical: 'any niche, no reply yet',
+      demoLink: '',
+      order: 135,
+      text: '[Name], Ruben again. Still happy to make that free mockup for [Company]: your name, your services, ready to tap through like a customer. No cost, no strings. Want me to send it?\n\nReply STOP to opt out.',
+      subject: 'Subject: still want the mockup?',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Quick follow-up. I’m still happy to make a free mockup for [Company], with your name and your services, ready to tap through like one of your customers would.\n' +
+        '\n' +
+        'No cost, no strings. Want me to send it over?\n' +
+        '\n' +
+        '— Ruben\n' +
+        'CodeWithRuben · (559) 653-7380\n' +
+        '\n' +
+        'Not for you? Reply “no” and I won’t email again.',
+      call:
+        'Day 7, if there’s still no reply.\n' +
+        '\n' +
+        'You:\n' +
+        '"Hi [Name], Ruben with CodeWithRuben. I texted you last week about a free mockup for [Company]. I know you’re busy. Is that something you’d want to see, or should I stop bugging you?"\n' +
+        '[if yes] "Great. Is this the best number to text? You’ll have it in [a day or two]."\n' +
+        '[if no] "No problem at all. Thanks for telling me straight."\n' +
+        '\n' +
+        'Voicemail (under 20 seconds):\n' +
+        '"Hi [Name], Ruben with CodeWithRuben. Still happy to make [Company] a free mockup, no strings. Text or call me at 559-653-7380."'
+    },
+    {
+      id: 'mf-last-check',
+      label: 'Follow-up — last check-in (day 14)',
+      tag: 'Mockup first · Follow-up · Day 14, the last message',
+      vertical: 'any niche, no reply after the bump',
+      demoLink: '',
+      order: 136,
+      text: '[Name], are you still taking on new jobs this month?\n\nReply STOP to opt out.',
+      subject: 'Subject: quick question',
+      email:
+        'Hi [Name],\n' +
+        '\n' +
+        'Are you still taking on new jobs this month?\n' +
+        '\n' +
+        '— Ruben\n' +
+        'CodeWithRuben · (559) 653-7380\n' +
+        '\n' +
+        'Not for you? Reply “no” and I won’t email again.',
+      call:
+        'No call for this one. It’s the last message.\n' +
+        '\n' +
+        'If they reply yes: “Great. I’d like to make [Company] a free mockup, no strings. Want me to send it?” Then use “Mockup ready” once it’s built.'
     }
   ];
 })(window);

@@ -12,7 +12,7 @@
   'use strict';
 
   var RTDB_PATH = 'agencyOutreachScripts';
-  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=pricing-20261029';
+  var SEED_SRC = '/assets/js/outreach-scripts-seed.js?v=mockup-first-20261105';
   var STORE_KEY = 'cwrOutreachVars';
   // Last script used on this device, so the picker reopens on it (never empty).
   var LAST_SCRIPT_KEY = 'cwrOutreachLastScript';
@@ -81,7 +81,11 @@
     { url: 'https://barbershoptemplate.expo.app', label: 'Barber shop' },
     { url: 'https://beautysalon.expo.app', label: 'Beauty salon' },
     { url: 'https://photographer.expo.app', label: 'Photographer' },
-    { url: 'https://realtor.expo.app', label: 'Realtor & insurance' }
+    { url: 'https://realtor.expo.app', label: 'Realtor & insurance' },
+    { url: 'https://generalcontractor.expo.app', label: 'General contractor' },
+    { url: 'https://rentals.expo.app', label: 'Event rentals' },
+    { url: 'https://junk.expo.app', label: 'Junk removal' },
+    { url: 'https://roadsidefix.expo.app', label: 'Mobile mechanic' }
   ];
   var CUSTOM_DEMO = '__custom';
 
@@ -621,6 +625,7 @@
   function scriptGroup(s) {
     if (s.group) return s.group;
     var id = String(s.id || '');
+    if (/^mf-/.test(id)) return 'Mockup first';
     if (/-ads$/.test(id)) return 'Running ads';
     if (/^no-site/.test(id) || /^site-/.test(id)) return 'Website problems';
     if (id === 'landline') return 'Special cases';
