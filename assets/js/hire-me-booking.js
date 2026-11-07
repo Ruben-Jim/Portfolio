@@ -13,6 +13,61 @@
   var DAY_IDS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
   var MAX_LOOKAHEAD_DAYS = 60;
   var MIN_LEAD_MINUTES = 60;
+  // Start times are spaced at least this far apart, so a 15-min call
+  // doesn't fill a day with 30+ buttons. Override with availability.slotStepMin.
+  var MIN_SLOT_STEP_MIN = 30;
+  var DEFAULT_BUSINESS_TZ = 'America/Los_Angeles';
+
+  /** ms to add to a UTC instant to get wall-clock time in `tz` at that instant. */
+  function tzOffsetMs(tz, utcMs) {
+    var parts = {};
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hourCycle: 'h23',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).formatToParts(new Date(utcMs)).forEach(function (p) { parts[p.type] = p.value; });
+    var asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day,
+      (+parts.hour) % 24, +parts.minute, +parts.second);
+    return asUtc - utcMs;
+  }
+
+  /** The instant when the wall clock in `tz` reads y-mo-d h:mi. Falls back to the viewer's clock. */
+  function zonedTime(tz, y, mo, d, h, mi) {
+    try {
+      var guess = Date.UTC(y, mo, d, h, mi);
+      var off = tzOffsetMs(tz, guess);
+      var t = guess - off;
+      var off2 = tzOffsetMs(tz, t);
+      if (off2 !== off) t = guess - off2;
+      return new Date(t);
+    } catch (e) {
+      return new Date(y, mo, d, h, mi);
+    }
+  }
+
+  function zonedParts(tz, date) {
+    try {
+      var parts = {};
+      new Intl.DateTimeFormat('en-US', {
+        timeZone: tz, hourCycle: 'h23',
+        year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+      }).formatToParts(date).forEach(function (p) { parts[p.type] = p.value; });
+      return { y: +parts.year, mo: +parts.month - 1, d: +parts.day, h: (+parts.hour) % 24, mi: +parts.minute };
+    } catch (e) {
+      return { y: date.getFullYear(), mo: date.getMonth(), d: date.getDate(), h: date.getHours(), mi: date.getMinutes() };
+    }
+  }
+
+  /** Short name of the viewer's own time zone, e.g. "PST" or "GMT-5". */
+  function viewerTzLabel() {
+    try {
+      var part = new Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
+        .formatToParts(new Date()).filter(function (p) { return p.type === 'timeZoneName'; })[0];
+      return part ? part.value : '';
+    } catch (e) {
+      return '';
+    }
+  }
 
   function rtdbReady() {
     return !!(window.rtdb && window.rtdbRef && window.rtdbGet && window.rtdbSet);
@@ -26,8 +81,10 @@
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
   }
 
-  function slotKeyFor(d) {
-    return dayKeyFor(d) + 'T' + pad2(d.getHours()) + '-' + pad2(d.getMinutes());
+  /** Keys are in the business time zone so every visitor writes the same key for a slot. */
+  function slotKeyFor(d, tz) {
+    var p = zonedParts(tz || DEFAULT_BUSINESS_TZ, d);
+    return p.y + '-' + pad2(p.mo + 1) + '-' + pad2(p.d) + 'T' + pad2(p.h) + '-' + pad2(p.mi);
   }
 
   function formatSlotTime(d) {
@@ -343,14 +400,17 @@
 
       var now = new Date();
       var earliest = new Date(now.getTime() + MIN_LEAD_MINUTES * 60000);
+      var tz = businessTz();
+      var stepMin = Math.max(durationMin, Number(availability.slotStepMin) || MIN_SLOT_STEP_MIN);
       var slots = [];
       dayWindows.forEach(function (w) {
         var startParts = String(w.start || '').split(':');
         var endParts = String(w.end || '').split(':');
         if (startParts.length < 2 || endParts.length < 2) return;
-        var cursor = new Date(date.getFullYear(), date.getMonth(), date.getDate(),
+        // Windows are set in the business time zone (admin Bookings tab), not the visitor's.
+        var cursor = zonedTime(tz, date.getFullYear(), date.getMonth(), date.getDate(),
           parseInt(startParts[0], 10), parseInt(startParts[1], 10));
-        var windowEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(),
+        var windowEnd = zonedTime(tz, date.getFullYear(), date.getMonth(), date.getDate(),
           parseInt(endParts[0], 10), parseInt(endParts[1], 10));
         while (cursor.getTime() + durationMin * 60000 <= windowEnd.getTime()) {
           var slotEnd = new Date(cursor.getTime() + durationMin * 60000);
@@ -360,10 +420,16 @@
             });
             if (!conflict) slots.push({ start: new Date(cursor), end: new Date(slotEnd) });
           }
-          cursor = new Date(cursor.getTime() + durationMin * 60000);
+          cursor = new Date(cursor.getTime() + stepMin * 60000);
         }
       });
+      slots.sort(function (a, b) { return a.start - b.start; });
       return slots;
+    }
+
+    function businessTz() {
+      var tz = state.availability && state.availability.timezone;
+      return (typeof tz === 'string' && tz.trim()) ? tz.trim() : DEFAULT_BUSINESS_TZ;
     }
 
     function findFirstAvailableDate(durationMin) {
@@ -516,7 +582,40 @@
       cfg.slotGridEl.innerHTML = '';
       if (!state.activeDate) return;
       var slots = getDaySlots(state.activeDate, state.durationMin);
-      slots.forEach(function (slot) {
+      if (!slots.length) return;
+
+      var tzLabel = viewerTzLabel();
+      if (tzLabel) {
+        var tzNote = document.createElement('p');
+        tzNote.className = 'hire-booking-tz-note';
+        tzNote.textContent = 'Times shown in your time zone (' + tzLabel + ')';
+        cfg.slotGridEl.appendChild(tzNote);
+      }
+
+      // Group by the hour the visitor sees, so the list reads Morning / Afternoon / Evening.
+      var groups = [
+        { label: 'Morning', test: function (h) { return h < 12; } },
+        { label: 'Afternoon', test: function (h) { return h >= 12 && h < 17; } },
+        { label: 'Evening', test: function (h) { return h >= 17; } }
+      ];
+      groups.forEach(function (g) {
+        var inGroup = slots.filter(function (s) { return g.test(s.start.getHours()); });
+        if (!inGroup.length) return;
+        var section = document.createElement('div');
+        section.className = 'hire-booking-slot-group';
+        var heading = document.createElement('p');
+        heading.className = 'hire-booking-slot-group-label';
+        heading.textContent = g.label;
+        var row = document.createElement('div');
+        row.className = 'hire-booking-slot-row';
+        section.appendChild(heading);
+        section.appendChild(row);
+        cfg.slotGridEl.appendChild(section);
+        inGroup.forEach(function (slot) { row.appendChild(buildSlotChip(slot)); });
+      });
+    }
+
+    function buildSlotChip(slot) {
         var chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'hire-booking-slot';
@@ -533,8 +632,7 @@
           }
           showConfirmRow();
         });
-        cfg.slotGridEl.appendChild(chip);
-      });
+        return chip;
     }
 
     async function confirmBooking() {
@@ -556,7 +654,7 @@
       cfg.confirmBtn.disabled = true;
       cfg.confirmBtn.innerHTML = '<ion-icon name="hourglass" aria-hidden="true"></ion-icon><span>Booking…</span>';
 
-      var slotKey = slotKeyFor(slot.start);
+      var slotKey = slotKeyFor(slot.start, businessTz());
       var startISO = slot.start.toISOString();
       var endISO = slot.end.toISOString();
 
