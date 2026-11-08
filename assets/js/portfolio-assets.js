@@ -1120,6 +1120,49 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "rizoajijic",
+    "label": "rizoajijic",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/rizoajijic/rizoajijic-cart.webp",
+        "name": "rizoajijic-cart.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rizoajijic/rizoajijic-demo.mp4",
+        "name": "rizoajijic-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/rizoajijic/rizoajijic-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/rizoajijic/rizoajijic-home.webp",
+        "name": "rizoajijic-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rizoajijic/rizoajijic-item.webp",
+        "name": "rizoajijic-item.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rizoajijic/rizoajijic-menu-en.webp",
+        "name": "rizoajijic-menu-en.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rizoajijic/rizoajijic-menu.webp",
+        "name": "rizoajijic-menu.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/rizoajijic/rizoajijic-phone.webp",
+        "name": "rizoajijic-phone.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
     "group": "rizopizzeria",
     "label": "rizopizzeria",
     "source": "images",
