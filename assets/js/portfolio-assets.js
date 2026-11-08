@@ -120,6 +120,69 @@ window.PORTFOLIO_ASSET_GROUPS = [
     ]
   },
   {
+    "group": "cocinaviva",
+    "label": "cocinaviva",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-admin.webp",
+        "name": "cocinaviva-admin.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-courses.webp",
+        "name": "cocinaviva-courses.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-demo.mp4",
+        "name": "cocinaviva-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/cocinaviva/cocinaviva-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-home.webp",
+        "name": "cocinaviva-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-locked.webp",
+        "name": "cocinaviva-locked.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-memberlessons.webp",
+        "name": "cocinaviva-memberlessons.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-members.webp",
+        "name": "cocinaviva-members.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-paywall.webp",
+        "name": "cocinaviva-paywall.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-phone-home.webp",
+        "name": "cocinaviva-phone-home.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-phone-links.webp",
+        "name": "cocinaviva-phone-links.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/cocinaviva/cocinaviva-player.webp",
+        "name": "cocinaviva-player.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
     "group": "digitalclock",
     "label": "digitalclock",
     "source": "images",
@@ -718,6 +781,64 @@ window.PORTFOLIO_ASSET_GROUPS = [
       {
         "path": "/assets/images/projects/merchstore/merchstore.webp",
         "name": "merchstore.webp",
+        "kind": "image"
+      }
+    ]
+  },
+  {
+    "group": "micheladas",
+    "label": "micheladas",
+    "source": "images",
+    "files": [
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-driver-checklist.webp",
+        "name": "micheladas-driver-checklist.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-driver-cover.webp",
+        "name": "micheladas-driver-cover.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-driver-delivery.webp",
+        "name": "micheladas-driver-delivery.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-driver-demo.mp4",
+        "name": "micheladas-driver-demo.mp4",
+        "kind": "video",
+        "poster": "/assets/images/projects/micheladas/micheladas-driver-demo-poster.webp"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-driver-id-checked.webp",
+        "name": "micheladas-driver-id-checked.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-driver-paid.webp",
+        "name": "micheladas-driver-paid.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-driver-route.webp",
+        "name": "micheladas-driver-route.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-owner-board.webp",
+        "name": "micheladas-owner-board.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-owner-orders.webp",
+        "name": "micheladas-owner-orders.webp",
+        "kind": "image"
+      },
+      {
+        "path": "/assets/images/projects/micheladas/micheladas-owner-out-for-delivery.webp",
+        "name": "micheladas-owner-out-for-delivery.webp",
         "kind": "image"
       }
     ]
