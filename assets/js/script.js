@@ -23062,7 +23062,10 @@ window.addEventListener('load', function() {
   }
 
   // The DM inbox ("Open lead") and the email reply link reach leads from outside this scope.
+  // Takes a lead id string or { id, email }. AgencyTools passes a bare id (Client project
+  // button, hub sync); before this, a string matched nothing and the button did nothing.
   window.findPipelineLead = function (q) {
+    if (typeof q === 'string') q = { id: q };
     q = q || {};
     var email = String(q.email || '').trim().toLowerCase();
     return pipelineLeads.find(function (l) {
