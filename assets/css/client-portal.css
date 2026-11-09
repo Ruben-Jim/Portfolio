@@ -2732,12 +2732,21 @@ body.portal-dm-sheet-open {
     margin: 0;
   }
 
-  /* Proposals sit in the grid; Maintenance and Project status span the full
-     width. Maintenance is by far the tallest block, and leaving it in one
-     column left the other as a tall empty gutter. */
+  /* Every section spans the full width. Proposals used to sit alone in the
+     left column, which left half the row empty next to it; Maintenance is by
+     far the tallest block, so it never paired well either. */
+  .client-portal-grid > .client-portal-docs-footer,
   .client-portal-grid > .client-portal-support-footer,
   .client-portal-grid > .client-portal-status-footer {
     grid-column: 1 / -1;
+  }
+
+  /* With the full width, documents sit side by side (contract, proposal,
+     invoice) instead of one tall stack. */
+  .client-portal-docs-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    align-items: stretch;
   }
 }
 
