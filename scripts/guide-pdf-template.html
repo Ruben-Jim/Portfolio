@@ -4,80 +4,87 @@
   local server, calls renderGuide(), then prints it to PDF. Not published
   (scripts/ stays private). Editing this file rebuilds every guide PDF.
 
-  Pages: the title and intro on page 1, then every "Step N" section starts a
-  new page. Screenshots and tables never split across pages.
+  Looks like the guide in the client portal: it loads the portal's own
+  stylesheets (client-portal.css for the colors and Poppins, portfolio-markdown.css
+  for the guide), so a style change there reaches the PDFs on the next build.
+  PDF-only rules below: dark page edge to edge, page numbers, each "Step"
+  starts a page, screenshots larger than the portal's tap-to-zoom thumbnails.
 -->
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Guide</title>
+  <link rel="stylesheet" href="/assets/css/client-portal.css">
+  <link rel="stylesheet" href="/assets/css/portfolio-markdown.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-    @page { size: Letter; }
-    * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    html, body { margin: 0; background: #fff; }
-    body { font: 11pt/1.55 -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #1d1d1f; }
-    a { color: #8a6200; }
+    /* The guide window's color (.portal-guide-sheet), painted into the page margins too. */
+    @page {
+      size: Letter;
+      margin: 0.6in 0.65in 0.75in;
+      background: var(--eerie-black-2, hsl(240, 2%, 12%));
+      @bottom-right {
+        content: counter(page) " / " counter(pages);
+        font: 8pt 'Poppins', sans-serif;
+        color: hsla(0, 0%, 84%, 0.6);
+      }
+    }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { margin: 0; background: var(--eerie-black-2); }
+    body { font-family: var(--ff-poppins); }
 
-    .portfolio-md-doc-title { font-size: 24pt; line-height: 1.15; margin: 0 0 6pt; color: #111; }
-    .portfolio-md-subtitle { color: #6e6e73; font-size: 10pt; margin: 0 0 14pt; }
-    .portfolio-md-subtitle em { font-style: normal; }
-    h2 { font-size: 15pt; margin: 18pt 0 6pt; color: #111; break-after: avoid; }
-    h3 { font-size: 13pt; margin: 14pt 0 6pt; color: #111; break-after: avoid; }
-    p { margin: 0 0 8pt; }
-    strong { color: #111; }
+    /* The portal shows the guide's title in gold above it (and hides this H1); the PDF keeps the H1, in gold. */
+    .portfolio-markdown .portfolio-md-doc-title { color: var(--orange-yellow-crayola); }
 
-    /* One step per page: a step starts a new page, its heading never ends one. */
-    .portfolio-md-step { break-before: page; }
-    .portfolio-md-step > h3 {
-      font-size: 16pt; margin: 0 0 10pt; padding-bottom: 6pt;
-      border-bottom: 2px solid #e8b400; break-after: avoid;
+    .portfolio-markdown {
+      /* No tap-to-zoom in a PDF: screenshots read at full size. */
+      --md-screenshot-max-width: 460px;
+    }
+    .portfolio-md-figure img,
+    .portfolio-md-inline-img {
+      width: auto;
+      max-height: 4.2in;
+      box-shadow: none;
     }
 
-    .portfolio-md-list { margin: 0 0 10pt; padding-left: 16pt; }
-    .portfolio-md-list li { margin: 0 0 4pt; break-inside: avoid; }
-
-    .portfolio-md-figure { margin: 8pt 0 10pt; text-align: center; break-inside: avoid; }
-    /* Two screenshots fit on a page; tall phone shots stay a readable width. */
-    .portfolio-md-figure img { max-width: 100%; max-height: 4in; width: auto; height: auto;
-      border: 1px solid #e3e3e6; border-radius: 6pt; }
-    .portfolio-md-figure figcaption { font-size: 9pt; color: #6e6e73; margin-top: 4pt; }
+    /* One step per page; nothing splits across a page edge. */
+    .pdf-step-start { break-before: page; }
+    .portfolio-markdown > .pdf-step-start { margin-top: 0; }
+    h1, h2, h3 { break-after: avoid; }
+    .portfolio-md-figure,
+    .portfolio-md-table-wrap,
+    .portfolio-md-callout,
+    .portfolio-markdown pre,
+    .portfolio-md-list li { break-inside: avoid; }
     .portfolio-md-figure-video { display: none; }
-
-    .portfolio-md-callout { margin: 10pt 0; padding: 8pt 12pt; background: #fff8e1; border-left: 3px solid #e8b400;
-      border-radius: 0 6pt 6pt 0; break-inside: avoid; }
-    .portfolio-md-callout p { margin: 0; }
-
-    .portfolio-md-table-wrap { margin: 8pt 0 12pt; break-inside: avoid; }
-    .portfolio-md-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
-    .portfolio-md-table th, .portfolio-md-table td { text-align: left; vertical-align: top; padding: 5pt 7pt; border: 1px solid #e3e3e6; }
-    .portfolio-md-table th { background: #f5f5f7; font-weight: 600; }
-    .portfolio-md-table tr { break-inside: avoid; }
-
-    .portfolio-md-hr { border: 0; border-top: 1px solid #e3e3e6; margin: 14pt 0; }
-    pre { white-space: pre-wrap; font-size: 9pt; background: #f5f5f7; padding: 8pt; border-radius: 6pt; break-inside: avoid; }
-    code { font-family: Menlo, monospace; font-size: 9pt; }
   </style>
 </head>
 <body>
   <main id="guide"></main>
   <script src="/assets/js/portfolio-detail-shared.js"></script>
   <script>
+    var PAGE_BG = '#1e1e1f';
+
     /** JPEG keeps a screenshot-heavy guide a few MB instead of tens (Chrome embeds JPEG as-is). */
     function toJpeg(img) {
-      var w = Math.min(img.naturalWidth || 0, 1600);
+      var w = Math.min(img.naturalWidth || 0, 1400);
       if (!w) return;
       var h = Math.round((img.naturalHeight / img.naturalWidth) * w);
       var c = document.createElement('canvas');
       c.width = w;
       c.height = h;
       var ctx = c.getContext('2d');
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = PAGE_BG;
       ctx.fillRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
       img.src = c.toDataURL('image/jpeg', 0.82);
     }
 
-    /** Renders one language of a guide; resolves with its title once every image is in. */
+    function cssString(s) {
+      return '"' + String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, ' ') + '"';
+    }
+
+    /** Renders one language of a guide; resolves with its title once every image and font is in. */
     window.renderGuide = async function (mdUrl, lang) {
       var S = window.PortfolioDetailShared;
       var md = await (await fetch(mdUrl)).text();
@@ -86,22 +93,36 @@
       var text = part ? split.preamble + '\n' + part.text : md;
       var main = document.getElementById('guide');
       if (lang) document.documentElement.lang = lang;
-      main.innerHTML = S.renderMarkdownToHtml(text, mdUrl);
+      // Same wrapper the portal puts around a guide (renderLocalizedMarkdownHtml).
+      main.innerHTML = '<div class="project-detail-canvas-md portfolio-markdown">' + S.renderMarkdownToHtml(text, mdUrl) + '</div>';
+
+      // "## Step 1" / "## Paso 1" and "### Step 1" (the renderer's step sections) each start a page.
+      Array.prototype.forEach.call(main.querySelectorAll('.portfolio-markdown > h2, .portfolio-md-step'), function (el) {
+        if (el.classList.contains('portfolio-md-step') || /^(Step|Paso) \d+/i.test(el.textContent.trim())) el.classList.add('pdf-step-start');
+      });
+
       var imgs = Array.prototype.slice.call(main.querySelectorAll('img'));
       await Promise.all(imgs.map(function (img) {
         img.loading = 'eager';
         return img.decode().catch(function () {});
       }));
-      imgs.forEach(toJpeg);
-      await Promise.all(imgs.map(function (img) { return img.decode().catch(function () {}); }));
       var broken = imgs.filter(function (i) { return !i.naturalWidth; });
       broken.forEach(function (i) {
         var fig = i.closest('figure');
         (fig || i).remove();
       });
+      imgs = imgs.filter(function (i) { return i.naturalWidth; });
+      imgs.forEach(toJpeg);
+      await Promise.all(imgs.map(function (img) { return img.decode().catch(function () {}); }));
+
       var h1 = main.querySelector('h1');
       document.title = (h1 ? h1.textContent : 'Guide').trim();
-      return { title: document.title, images: imgs.length - broken.length, broken: broken.map(function (i) { return i.getAttribute('alt') || i.getAttribute('src'); }) };
+      var footer = document.createElement('style');
+      footer.textContent = '@page { @bottom-left { content: ' + cssString(document.title + ' · CodeWithRuben') +
+        "; font: 8pt 'Poppins', sans-serif; color: hsla(0, 0%, 84%, 0.6); } }";
+      document.head.appendChild(footer);
+      await document.fonts.ready;
+      return { title: document.title, images: imgs.length, broken: broken.map(function (i) { return i.getAttribute('alt') || i.getAttribute('src'); }) };
     };
   </script>
 </body>

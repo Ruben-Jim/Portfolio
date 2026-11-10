@@ -3344,6 +3344,7 @@
     syncGuideSheetSize();
     reader.scrollTop = 0;
     if (focus && typeof reader.focus === 'function') reader.focus();
+    preloadCurrentGuidePdf();
   }
 
   function setGuideSheetActionsVisible(visible) {
@@ -3388,39 +3389,121 @@
     return name + (pdf.lang && pdf.lang !== 'en' ? '-' + pdf.lang.toUpperCase() : '') + '.pdf';
   }
 
+  // Each guide PDF is fetched once per visit. iPhone Safari shares a file only
+  // from the tap itself, so the file must already be here when Share is tapped:
+  // it loads in the background as soon as a guide (or its other language) shows.
+  var guidePdfBlobs = {};
+  var guidePdfLoads = {};
+
+  function loadGuidePdf(href) {
+    if (!guidePdfLoads[href]) {
+      // no-cache: a rebuilt PDF keeps its name, so revalidate rather than reuse a stale copy.
+      guidePdfLoads[href] = fetch(href, { cache: 'no-cache' })
+        .then(function (res) {
+          if (!res.ok) throw new Error('no PDF');
+          return res.blob();
+        })
+        .then(function (blob) {
+          guidePdfBlobs[href] = blob;
+          return blob;
+        })
+        .catch(function () {
+          delete guidePdfLoads[href];
+          return null;
+        });
+    }
+    return guidePdfLoads[href];
+  }
+
+  /** Starts loading the PDF for the language on screen, once the guide text is in. */
+  function preloadCurrentGuidePdf() {
+    var reader = document.getElementById('portal-guide-reader');
+    if (!reader) return;
+    function go() {
+      var pdf = currentGuidePdf();
+      if (pdf) loadGuidePdf(pdf.href);
+    }
+    // The guide text arrives after the sheet opens; a two-language guide's PDF
+    // name depends on the language pane, so wait for the text.
+    if (reader.querySelector('.portfolio-markdown') || !/\.md$/i.test(currentGuideFileHref().split(/[?#]/)[0])) {
+      go();
+      return;
+    }
+    var watch = new MutationObserver(function () {
+      if (!reader.querySelector('.portfolio-markdown')) return;
+      watch.disconnect();
+      go();
+    });
+    watch.observe(reader, { childList: true, subtree: true });
+  }
+
+  function saveGuideBlob(blob, filename) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () {
+      URL.revokeObjectURL(a.href);
+    }, 1000);
+  }
+
   function downloadCurrentGuide() {
     var pdf = currentGuidePdf();
     var href = pdf ? pdf.href : currentGuideFileHref();
     if (!href) return;
     var filename = currentGuideFilename(pdf);
-    // no-cache: a rebuilt PDF keeps its name, so revalidate rather than reuse a stale copy.
-    fetch(href, { cache: 'no-cache' })
-      .then(function (res) {
-        if (!res.ok) throw new Error('download failed');
-        return res.blob();
-      })
+    var load = pdf
+      ? loadGuidePdf(href)
+      : fetch(href).then(function (res) {
+          if (!res.ok) throw new Error('download failed');
+          return res.blob();
+        });
+    load
       .then(function (blob) {
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(function () {
-          URL.revokeObjectURL(a.href);
-        }, 1000);
+        if (!blob) throw new Error('download failed');
+        saveGuideBlob(blob, filename);
       })
       .catch(function () {
         window.open(href, '_blank', 'noopener,noreferrer');
       });
   }
 
+  /**
+   * Shares the PDF file itself — never a link, so nothing a client passes on can
+   * open their portal. Browsers that can't share files (most computers) save it.
+   */
   function shareCurrentGuide() {
     var pdf = currentGuidePdf();
-    var href = pdf ? pdf.href : currentGuideFileHref();
     var guide = portalGuideState.guides[portalGuideState.selectedIndex];
-    if (!href) return;
     var title = (guide && guide.title) || 'Project guide';
+    if (pdf) {
+      var filename = currentGuideFilename(pdf);
+      var shareFile = function (blob) {
+        if (!blob) {
+          window.open(pdf.href, '_blank', 'noopener,noreferrer');
+          return;
+        }
+        var file = typeof File === 'function' ? new File([blob], filename, { type: 'application/pdf' }) : null;
+        if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], title: title }).catch(function (err) {
+            if (err && err.name === 'AbortError') return;
+            saveGuideBlob(blob, filename);
+          });
+          return;
+        }
+        saveGuideBlob(blob, filename);
+      };
+      // Already loaded: share inside the tap, which iPhone Safari needs.
+      if (guidePdfBlobs[pdf.href]) shareFile(guidePdfBlobs[pdf.href]);
+      else loadGuidePdf(pdf.href).then(shareFile);
+      return;
+    }
+
+    // A guide with no PDF (hosted elsewhere): its own link, which never opens the portal.
+    var href = currentGuideFileHref();
+    if (!href) return;
     var shareBtn = document.getElementById('portal-guide-share');
 
     function copied() {
@@ -3452,6 +3535,27 @@
       return;
     }
     copyLink();
+  }
+
+  /** "platform-guide" for …/platform-guide.md: the name a ?guide= link uses. */
+  function guideLinkName(url) {
+    return String(url || '').split(/[?#]/)[0].split('/').pop().replace(/\.(md|pdf)$/i, '').toLowerCase();
+  }
+
+  /**
+   * ?guide=platform-guide (the link Ruben copies in admin) opens the portal
+   * straight on that guide. A guide that was removed since just opens the portal.
+   */
+  function openGuideFromLink() {
+    var want = String(new URLSearchParams(location.search).get('guide') || '').trim().toLowerCase();
+    if (!want) return;
+    var index = -1;
+    portalGuideState.guides.forEach(function (g, i) {
+      if (index < 0 && guideLinkName(g.url) === want) index = i;
+    });
+    if (index < 0) return;
+    portalGuideState.selectedIndex = index;
+    openGuideSheet();
   }
 
   function bindGuideSheet(root) {
@@ -3495,6 +3599,13 @@
     if (shareBtn) {
       shareBtn.addEventListener('click', function () {
         shareCurrentGuide();
+      });
+    }
+    // Switching English / Español: have that language's PDF ready for Share too.
+    var reader = root.querySelector('#portal-guide-reader');
+    if (reader) {
+      reader.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('[data-md-lang]')) setTimeout(preloadCurrentGuidePdf, 0);
       });
     }
 
@@ -3611,6 +3722,7 @@
     // initPortfolioDetailPage on the chosen guide when it mounts.
     bindTeamShareSection(inner);
     bindGuideSheet(inner);
+    openGuideFromLink();
     bindShowcaseCollapse(inner);
     bindDemoHintScroll(inner);
     bindPortalDocSheet();

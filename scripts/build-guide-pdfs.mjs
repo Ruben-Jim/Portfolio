@@ -8,8 +8,9 @@
  *   node scripts/build-guide-pdfs.mjs           new or changed guides
  *   node scripts/build-guide-pdfs.mjs --all     every guide
  *
- * Layout lives in scripts/guide-pdf-template.html: Letter pages, the title and
- * intro first, then one page per "Step", page numbers in the footer.
+ * Layout lives in scripts/guide-pdf-template.html: the portal's guide look on
+ * dark Letter pages, the title and intro first, then one page per "Step",
+ * page numbers in the footer.
  */
 import http from 'node:http';
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
@@ -45,7 +46,6 @@ const server = http.createServer((req, res) => {
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const base = 'http://127.0.0.1:' + server.address().port;
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const page = await browser.newPage();
 let failed = 0;
@@ -66,18 +66,8 @@ try {
       // A screenshot missing from the repo is left out (it's broken in the portal too);
       // adding the file later changes the guide's fingerprint, so preflight asks for a rebuild.
       if (info.broken.length) console.warn(`! ${path}: left out missing screenshots: ${info.broken.join(', ')}`);
-      await page.pdf({
-        path: join(ROOT, path),
-        format: 'Letter',
-        printBackground: true,
-        margin: { top: '0.6in', bottom: '0.75in', left: '0.65in', right: '0.65in' },
-        displayHeaderFooter: true,
-        headerTemplate: '<span></span>',
-        footerTemplate:
-          '<div style="width:100%;padding:0 0.65in;font:8px -apple-system,Helvetica,Arial,sans-serif;color:#8e8e93;display:flex;justify-content:space-between">' +
-          '<span>' + esc(info.title) + ' · CodeWithRuben</span>' +
-          '<span><span class="pageNumber"></span> / <span class="totalPages"></span></span></div>'
-      });
+      // Page size, margins, the dark page edge and the page-number footer all come from the template's @page.
+      await page.pdf({ path: join(ROOT, path), preferCSSPageSize: true, printBackground: true });
       const kb = Math.round(statSync(join(ROOT, path)).size / 1024);
       console.log(`✓ ${path}  (${info.images} screenshots, ${kb} KB)`);
     }

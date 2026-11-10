@@ -1533,6 +1533,12 @@
     return base + '/portal.html?token=' + encodeURIComponent(token);
   }
 
+  /** The portal link opening straight on one guide: …&guide=platform-guide (openGuideFromLink in client-portal.js). */
+  function clientGuideUrl(token, guideUrl) {
+    var name = String(guideUrl || '').split(/[?#]/)[0].split('/').pop().replace(/\.(md|pdf)$/i, '').toLowerCase();
+    return clientPortalUrl(token) + (name ? '&guide=' + encodeURIComponent(name) : '');
+  }
+
   function formatPortalExpiry(expiresAt) {
     if (!expiresAt) return '';
     try {
@@ -5669,6 +5675,7 @@
       '<p class="cp-section-feedback" data-cp-feedback="portal" role="status"></p></div>';
 
     var hubGuides = normalizePortalGuides(hub);
+    var guideLinkToken = hub.portalToken && !(hub.portalExpiresAt && hub.portalExpiresAt < Date.now()) ? hub.portalToken : '';
     var guideStatus = hubGuides.length
       ? '<div class="cp-guide-status is-set" role="status">' +
         '<ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>' +
@@ -5684,12 +5691,21 @@
               esc(g.title || 'Project guide') +
               '</span> · <code>' +
               esc(g.url) +
-              '</code></li>'
+              '</code>' +
+              (guideLinkToken
+                ? ' <button type="button" class="btn btn-secondary btn-sm cp-guide-copy-link" data-cp-action="copy-guide-link" data-guide-title="' +
+                  esc(g.title || 'Project guide') + '" data-guide-link="' + esc(clientGuideUrl(guideLinkToken, g.url)) + '">Copy link</button>'
+                : '') +
+              '</li>'
             );
           })
           .join('') +
         '</ul>' +
-        '<p class="form-hint">Each guide appears as its own section in the client portal.</p></div></div>'
+        '<p class="form-hint">Each guide appears as its own section in the client portal. ' +
+        (guideLinkToken
+          ? 'Copy link opens the client’s portal straight on that guide.'
+          : 'Generate the client link (Client portal section) to copy a link that opens each guide.') +
+        '</p></div></div>'
       : '<div class="cp-guide-status is-empty" role="status">' +
         '<ion-icon name="document-outline" aria-hidden="true"></ion-icon>' +
         '<div><strong>No guide files yet</strong>' +
@@ -6681,6 +6697,22 @@
           renderClientProjectsWorkspace();
         })
         .catch(console.error);
+      return;
+    }
+    if (action === 'copy-guide-link') {
+      var guideLink = el && el.getAttribute('data-guide-link');
+      if (!guideLink) return;
+      var guideTitle = el.getAttribute('data-guide-title') || 'guide';
+      var copiedGuide = function () {
+        setCpFeedback('guide', 'Link to “' + guideTitle + '” copied. It opens the client’s portal on that guide.', false);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(guideLink).then(copiedGuide).catch(function () {
+          setCpFeedback('guide', guideLink, false);
+        });
+      } else {
+        setCpFeedback('guide', guideLink, false);
+      }
       return;
     }
     if (action === 'copy-portal') {
