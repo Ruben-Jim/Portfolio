@@ -3188,11 +3188,11 @@
       '</h2>' +
       '<div class="portal-guide-sheet-actions" id="portal-guide-sheet-actions" hidden>' +
       '<button type="button" class="portal-guide-sheet-action" id="portal-guide-download" ' +
-      'aria-label="Download guide">' +
+      'aria-label="Download guide (PDF)">' +
       guideIconSvg(GUIDE_ICON_DOWNLOAD, 18) +
       '</button>' +
       '<button type="button" class="portal-guide-sheet-action" id="portal-guide-share" ' +
-      'aria-label="Share guide">' +
+      'aria-label="Share guide (PDF)">' +
       guideIconSvg(GUIDE_ICON_SHARE, 18) +
       '</button>' +
       '</div>' +
@@ -3363,18 +3363,38 @@
     }
   }
 
-  function currentGuideFilename() {
+  /**
+   * The guide's PDF in the language on screen. Client guides in
+   * assets/docs/projects/ get a PDF next to them (scripts/build-guide-pdfs.mjs):
+   * platform-guide.md -> platform-guide.pdf, or .en.pdf / .es.pdf for a guide
+   * with both languages. null when the guide has no PDF (e.g. a guide hosted
+   * elsewhere), so Download / Share fall back to the file itself.
+   */
+  function currentGuidePdf() {
+    var href = currentGuideFileHref().split(/[?#]/)[0];
+    if (/\.pdf$/i.test(href)) return { href: href, lang: '' };
+    if (!/\/assets\/docs\/projects\/[^/]+\/[a-z0-9][a-z0-9-]*\.md$/.test(href)) return null;
+    var reader = document.getElementById('portal-guide-reader');
+    var pane = reader && reader.querySelector('[data-md-lang-pane]:not([hidden])');
+    var lang = pane ? pane.getAttribute('data-md-lang-pane') : '';
+    return { href: href.replace(/\.md$/, (lang ? '.' + lang : '') + '.pdf'), lang: lang };
+  }
+
+  /** "Platform-guide.pdf", "Platform-guide-ES.pdf": the guide's own title, not its file name. */
+  function currentGuideFilename(pdf) {
     var guide = portalGuideState.guides[portalGuideState.selectedIndex];
-    var url = String((guide && guide.url) || '').split('?')[0];
-    var name = url.split('/').pop();
-    return name || 'guide.md';
+    if (!pdf) return String((guide && guide.url) || '').split('?')[0].split('/').pop() || 'guide.md';
+    var name = filenameSlug(guide && guide.title) || 'Guide';
+    return name + (pdf.lang && pdf.lang !== 'en' ? '-' + pdf.lang.toUpperCase() : '') + '.pdf';
   }
 
   function downloadCurrentGuide() {
-    var href = currentGuideFileHref();
+    var pdf = currentGuidePdf();
+    var href = pdf ? pdf.href : currentGuideFileHref();
     if (!href) return;
-    var filename = currentGuideFilename();
-    fetch(href)
+    var filename = currentGuideFilename(pdf);
+    // no-cache: a rebuilt PDF keeps its name, so revalidate rather than reuse a stale copy.
+    fetch(href, { cache: 'no-cache' })
       .then(function (res) {
         if (!res.ok) throw new Error('download failed');
         return res.blob();
@@ -3396,7 +3416,8 @@
   }
 
   function shareCurrentGuide() {
-    var href = currentGuideFileHref();
+    var pdf = currentGuidePdf();
+    var href = pdf ? pdf.href : currentGuideFileHref();
     var guide = portalGuideState.guides[portalGuideState.selectedIndex];
     if (!href) return;
     var title = (guide && guide.title) || 'Project guide';
@@ -3407,7 +3428,7 @@
       var prev = shareBtn.getAttribute('aria-label');
       shareBtn.setAttribute('aria-label', 'Link copied');
       setTimeout(function () {
-        shareBtn.setAttribute('aria-label', prev || 'Share guide');
+        shareBtn.setAttribute('aria-label', prev || 'Share guide (PDF)');
       }, 1600);
     }
 

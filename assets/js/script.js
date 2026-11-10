@@ -14872,6 +14872,8 @@ window.addEventListener('load', function() {
    * @property {string=} includedItems
    * @property {string=} whyDifferentIntro
    * @property {string=} whyDifferent
+   * @property {string=} goodToKnow - proposal only; one line per item, "Label: text" bolds the label
+   * @property {string=} priceBreakdown - proposal / contract; "Item: amount" per line (BusinessDocShared.parsePriceBreakdown)
    * @property {BusinessDocAddOn[]=} addOns
    * @property {string=} maintenancePlanId - 'essential' | 'standard' | 'priority' (estimate/invoice); proposals ignore and show all
    * @property {'monthly'|'annual'=} maintenanceBilling - estimate/invoice billing display preference
@@ -15060,6 +15062,10 @@ window.addEventListener('load', function() {
     if (whyIntro) out.whyDifferentIntro = whyIntro;
     var whyDiff = String(doc.whyDifferent || '').trim().slice(0, 4000);
     if (whyDiff) out.whyDifferent = whyDiff;
+    var goodToKnow = String(doc.goodToKnow || '').trim().slice(0, 4000);
+    if (goodToKnow) out.goodToKnow = goodToKnow;
+    var priceBreakdown = String(doc.priceBreakdown || '').trim().slice(0, 4000);
+    if (priceBreakdown) out.priceBreakdown = priceBreakdown;
     if (Array.isArray(doc.addOns) && doc.addOns.length) {
       out.addOns = doc.addOns
         .slice(0, 24)
@@ -18870,6 +18876,8 @@ window.addEventListener('load', function() {
   const businessDocIncludedItemsInput = document.getElementById('business-doc-included-items');
   const businessDocWhyIntroInput = document.getElementById('business-doc-why-intro');
   const businessDocWhyDifferentInput = document.getElementById('business-doc-why-different');
+  const businessDocGoodToKnowInput = document.getElementById('business-doc-good-to-know');
+  const businessDocPriceBreakdownInput = document.getElementById('business-doc-price-breakdown');
   const businessDocFoundationInput = document.getElementById('business-doc-foundation-url');
   const businessDocProposalFields = document.getElementById('business-doc-proposal-fields');
   const businessDocScopeSection = document.getElementById('business-doc-scope-section');
@@ -20027,11 +20035,32 @@ window.addEventListener('load', function() {
     if (kindInput) syncBusinessDocToggleUI(kindInput);
   }
 
+  /** "Adds up to $3,000 · matches the total" under the breakdown, or a warning when it doesn't. */
+  function renderBusinessDocBreakdownSum() {
+    var out = document.getElementById('business-doc-price-breakdown-sum');
+    var B = window.BusinessDocShared;
+    if (!out || !businessDocPriceBreakdownInput || !B || typeof B.parsePriceBreakdown !== 'function') return;
+    var parsed = B.parsePriceBreakdown(businessDocPriceBreakdownInput.value);
+    var priced = parsed.rows.filter(function (r) { return r.amount !== null; });
+    out.hidden = !priced.length;
+    if (!priced.length) return;
+    var total = businessDocTotalInput ? parseFloat(businessDocTotalInput.value || '0') || 0 : 0;
+    var matches = Math.abs(parsed.sum - total) < 0.01;
+    out.classList.toggle('is-warning', !matches);
+    out.textContent = 'Adds up to ' + B.formatCurrency(parsed.sum).replace(/\.00$/, '') +
+      (matches ? ' · matches the total.' : ' · the total above is ' + B.formatCurrency(total).replace(/\.00$/, '') + '. Fix one so they match.');
+  }
+
+  if (businessDocPriceBreakdownInput) businessDocPriceBreakdownInput.addEventListener('input', renderBusinessDocBreakdownSum);
+  if (businessDocTotalInput) businessDocTotalInput.addEventListener('input', renderBusinessDocBreakdownSum);
+
   function updateBusinessDocContractVisibility() {
     var type = businessDocTypeInput ? businessDocTypeInput.value : 'proposal';
     if (businessDocContractFields) {
       businessDocContractFields.hidden = type !== 'contract';
     }
+    var breakdownGroup = document.getElementById('business-doc-price-breakdown-group');
+    if (breakdownGroup) breakdownGroup.hidden = type !== 'proposal' && type !== 'contract';
     updateBusinessDocClientLogoVisibility();
   }
 
@@ -20155,6 +20184,9 @@ window.addEventListener('load', function() {
     if (businessDocIncludedItemsInput) businessDocIncludedItemsInput.value = '';
     if (businessDocWhyIntroInput) businessDocWhyIntroInput.value = '';
     if (businessDocWhyDifferentInput) businessDocWhyDifferentInput.value = '';
+    if (businessDocGoodToKnowInput) businessDocGoodToKnowInput.value = '';
+    if (businessDocPriceBreakdownInput) businessDocPriceBreakdownInput.value = '';
+    renderBusinessDocBreakdownSum();
     if (businessDocNotesInput) businessDocNotesInput.value = '';
     if (businessDocMaintenancePlanInput) businessDocMaintenancePlanInput.value = '';
     if (businessDocMaintenanceBillingInput) businessDocMaintenanceBillingInput.value = 'monthly';
@@ -20220,6 +20252,10 @@ window.addEventListener('load', function() {
     }
     if (whyIntroEl) whyIntroEl.value = doc.whyDifferentIntro || '';
     if (whyDiffEl) whyDiffEl.value = doc.whyDifferent || '';
+    var goodEl = document.getElementById('business-doc-good-to-know') || businessDocGoodToKnowInput;
+    if (goodEl) goodEl.value = doc.goodToKnow || '';
+    if (businessDocPriceBreakdownInput) businessDocPriceBreakdownInput.value = doc.priceBreakdown || '';
+    renderBusinessDocBreakdownSum();
     fillBusinessDocCoreFeaturesUI(doc);
     if (businessDocMaintenancePlanInput) {
       var planId = String(doc.maintenancePlanId || '').toLowerCase();
@@ -20382,6 +20418,7 @@ window.addEventListener('load', function() {
           notes: doc.includedItems || doc.notes || '',
           theme: doc.theme || 'cwr',
           sourceProposalId: doc.id,
+          priceBreakdown: doc.priceBreakdown || '',
           ipTransferMode: 'license',
           createdAt: nowIso,
           updatedAt: nowIso
@@ -20855,6 +20892,11 @@ window.addEventListener('load', function() {
         } else {
           delete doc.whyDifferent;
         }
+        if (businessDocGoodToKnowInput && businessDocGoodToKnowInput.value.trim()) {
+          doc.goodToKnow = businessDocGoodToKnowInput.value.trim();
+        } else {
+          delete doc.goodToKnow;
+        }
         delete doc.maintenancePlanId;
         delete doc.maintenanceBilling;
         delete doc.maintenanceInvoiceKind;
@@ -20866,6 +20908,13 @@ window.addEventListener('load', function() {
         delete doc.includedItems;
         delete doc.whyDifferentIntro;
         delete doc.whyDifferent;
+        delete doc.goodToKnow;
+      }
+
+      if ((doc.type === 'proposal' || doc.type === 'contract') && businessDocPriceBreakdownInput && businessDocPriceBreakdownInput.value.trim()) {
+        doc.priceBreakdown = businessDocPriceBreakdownInput.value.trim();
+      } else {
+        delete doc.priceBreakdown;
       }
 
       if (collectedAddOns.length > 0) {

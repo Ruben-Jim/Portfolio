@@ -876,6 +876,42 @@
     return formatCurrency(n);
   }
 
+  /**
+   * Price breakdown (proposals and contracts): one "Label: amount" per line.
+   * Amounts take $, commas and cents; a minus is a discount. A line with no
+   * amount after its colon is a note ("Hosting is billed by the provider").
+   * @returns {{rows: {label: string, amount: (number|null)}[], sum: number}}
+   */
+  function parsePriceBreakdown(raw) {
+    var rows = [];
+    var sum = 0;
+    jotLines(raw).forEach(function (line) {
+      var m = /^(.+?):\s*([-\u2212])?\s*\$?\s*(\d[\d,]*(?:\.\d{1,2})?)\s*$/.exec(line);
+      if (!m) {
+        rows.push({ label: line, amount: null });
+        return;
+      }
+      var amount = Number(m[3].replace(/,/g, '')) * (m[2] ? -1 : 1);
+      rows.push({ label: m[1].trim(), amount: amount });
+      sum += amount;
+    });
+    return { rows: rows, sum: Math.round(sum * 100) / 100 };
+  }
+
+  /** <tr>s for the breakdown, ending in the document's Total; '' when there is none. */
+  function buildPriceBreakdownRowsHtml(doc, money) {
+    var parsed = parsePriceBreakdown(doc && doc.priceBreakdown);
+    if (!parsed.rows.length) return '';
+    var rows = parsed.rows
+      .map(function (r) {
+        if (r.amount === null) return '<tr class="pb-note"><td colspan="2">' + escapeHtml(r.label) + '</td></tr>';
+        var amt = r.amount < 0 ? '\u2212' + money(-r.amount) : money(r.amount);
+        return '<tr><td>' + escapeHtml(r.label) + '</td><td class="amt">' + escapeHtml(amt) + '</td></tr>';
+      })
+      .join('');
+    return rows + '<tr class="pb-total"><td>Total</td><td class="amt">' + escapeHtml(money((doc && doc.total) || 0)) + '</td></tr>';
+  }
+
   function normalizeCoreFeatures(doc) {
     var list = [];
     if (doc && Array.isArray(doc.coreFeatures)) {
@@ -987,6 +1023,20 @@
       (whyIntro ? '    <p class="pc-body">' + escapeHtml(whyIntro) + '</p>\n' : '') +
       (whyLis ? '    <ul class="why-list">' + whyLis + '</ul>\n' : '');
 
+    var goodLines = jotLines(doc && doc.goodToKnow);
+    var goodLis = '';
+    for (var g = 0; g < goodLines.length; g++) {
+      var gm = /^([^:]{2,60}):\s+(.+)$/.exec(goodLines[g]);
+      goodLis += gm
+        ? '<li><strong>' + escapeHtml(gm[1]) + ':</strong> ' + escapeHtml(gm[2]) + '</li>'
+        : '<li>' + escapeHtml(goodLines[g]) + '</li>';
+    }
+    var goodHtml = goodLis
+      ? '    <hr class="divider">\n' +
+        '    <div class="section-title">Good to Know</div>\n' +
+        '    <ul class="why-list">' + goodLis + '</ul>\n'
+      : '';
+
     var demoUrl = String((doc && doc.proposedSiteUrl) || '').trim();
     var foundationUrl = String((doc && doc.foundationUrl) || '').trim();
     var demoHref = demoUrl ? escapeHtml(normalizeProposedSiteHref(demoUrl)) : '';
@@ -1027,6 +1077,13 @@
 
     var addOnsBlockHtml = buildAddOnsPdfHtml(doc, { compactSingle: true });
 
+    var breakdownRows = buildPriceBreakdownRowsHtml(doc, formatMoneyShort);
+    var breakdownHtml = breakdownRows
+      ? '    <hr class="divider">\n' +
+        '    <div class="section-title">Price Breakdown</div>\n' +
+        '    <table class="pb-table">' + breakdownRows + '</table>\n'
+      : '';
+
     return '<!DOCTYPE html>\n<html>\n<head>\n  <meta charset="utf-8">\n  <meta name="viewport" content="width=820">\n  <title>PROPOSAL — ' + escapeHtml(clientName) + '</title>\n  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">\n  <style>\n' +
       '@page { size: A4; margin: 10mm; }\n' +
       '@media print { * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } body { padding: 10px 14px !important; } .doc { page-break-inside: avoid; } .doc-title { font-size: 22px; } .section-title { font-size: 11px; margin-bottom: 8px; } .pc-body { font-size: 12px; margin-bottom: 0; } .pc-core-grid { gap: 12px; } .pc-core-title { font-size: 11px; } .pc-core-desc { font-size: 11px; } .pc-pricing-row { gap: 12px; grid-template-columns: 1fr; } .pc-gold { padding: 14px 16px; } .pc-gold-amt { font-size: 28px; } .pc-gold-list { columns: 2; font-size: 11px; } .pc-maint-dual { grid-template-columns: 1fr 1fr 1fr; height: auto; } .pc-maint-card { padding: 10px 12px; } .pc-maint-price { font-size: 16px; } .pc-maint-feats li { font-size: 10px; } .why-list { font-size: 12px; } .next-steps-grid { gap: 12px; } .footer-buttons { margin-top: 14px; } .divider { margin: 12px 0 !important; } .addon-cards-grid--single .addon-card { padding: 0; } }\n' +
@@ -1066,6 +1123,11 @@
       '.pc-maint-feats li { position: relative; padding: 4px 0 4px 12px; font-size: 12px; line-height: 1.4; color: ' + C.muted + '; }\n' +
       '.pc-maint-feats li::before { content: \'\'; position: absolute; left: 0; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: ' + C.primary + '; }\n' +
       '.why-list { margin: 10px 0 0; padding-left: 18px; font-size: 13px; line-height: 1.55; color: ' + C.text + '; }\n' +
+      '.pb-table { width: 100%; max-width: 560px; border-collapse: collapse; font-size: 13px; margin-top: 2px; page-break-inside: avoid; }\n' +
+      '.pb-table td { padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.08); color: ' + C.text + '; }\n' +
+      '.pb-table td.amt { text-align: right; white-space: nowrap; padding-left: 16px; font-variant-numeric: tabular-nums; }\n' +
+      '.pb-table .pb-note td { color: ' + C.muted + '; font-size: 12px; font-style: italic; }\n' +
+      '.pb-table .pb-total td { border-bottom: none; padding-top: 9px; font-weight: 700; color: ' + C.primary + '; }\n' +
       '.why-list li { margin-bottom: 6px; }\n' +
       '.next-steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 6px; }\n' +
       '.next-steps-grid--two { grid-template-columns: 1fr 1fr; max-width: none; width: 100%; }\n' +
@@ -1118,7 +1180,9 @@
       '      </div>\n' +
       maintCompact +
       '    </div>\n' +
+      breakdownHtml +
       whyHtml +
+      goodHtml +
       '    <hr class="divider">\n' +
       '    <div class="section-title">The Next Steps</div>\n' +
       '    <div class="' + nextStepsGridClass + '">' + nextStepsInner + '</div>\n' +
@@ -1177,6 +1241,13 @@
     );
   }
 
+  /** Same in license and buyout contracts: what the client brings stays the client's. */
+  var CONTRACT_CLIENT_CONTENT_HTML =
+    '<p>Client owns all content Client provides or creates for the product &mdash; including videos, recipes, ' +
+    'photos, text, downloadable files, logos and brand names &mdash; and Client&rsquo;s domain name. Client grants ' +
+    'CWR a limited license to host, display and adapt that content only to build and operate the product. Nothing in ' +
+    'this Agreement transfers ownership of Client content to CWR.</p>';
+
   function buildContractOwnershipClauseHtml(mode) {
     if (String(mode || '').toLowerCase() === 'buyout') {
       return (
@@ -1186,7 +1257,8 @@
         'documentation. No license or ownership interest transfers before that payment clears and handoff is complete.</p>' +
         '<p>After handoff is complete, CWR’s hosting, maintenance, and support obligations under this Agreement end. ' +
         'CWR will no longer offer those services for the transferred product. Client (or Client’s developer) is solely ' +
-        'responsible for hosting, operating, maintaining, and supporting the product thereafter.</p>'
+        'responsible for hosting, operating, maintaining, and supporting the product thereafter.</p>' +
+        CONTRACT_CLIENT_CONTENT_HTML
       );
     }
     return (
@@ -1202,7 +1274,8 @@
       'without an Ownership Upgrade, the license ends and CWR may take the product offline.</p>' +
       '<p>Full ownership &mdash; including source code, files, store listings, and accounts &mdash; is available ' +
       'separately via CWR’s Ownership Upgrade (Buyout). Until a buyout is paid in full and handoff is complete, no ' +
-      'ownership interest transfers to Client.</p>'
+      'ownership interest transfers to Client.</p>' +
+      CONTRACT_CLIENT_CONTENT_HTML
     );
   }
 
@@ -1306,6 +1379,12 @@
     var sigBlockHtml = buildContractSignatureBlockHtml(signature);
     var maintenanceBlockHtml = buildMaintenancePdfHtml(doc);
     var maintenanceLapseHtml = buildMaintenanceLapseClauseHtml(doc);
+    var breakdownRows = buildPriceBreakdownRowsHtml(doc, formatCurrency);
+    var breakdownHtml = breakdownRows
+      ? '<p>What the fee covers:</p>' +
+        '<table class="contract-breakdown-table"><thead><tr><th>Item</th><th class="amt">Amount</th></tr></thead><tbody>' +
+        breakdownRows + '</tbody></table><p>Payment schedule:</p>'
+      : '';
 
     var timelineHtml = targetDate
       ? '<p>Target completion date: <strong>' + escapeHtml(targetDate) + '</strong>. Delays caused by late Client ' +
@@ -1335,11 +1414,12 @@
       '.contract-clause h3 { font-family: \'Playfair Display\', serif; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: ' + C.primary + '; margin: 0 0 8px 0; }\n' +
       '.contract-clause p { margin: 0 0 8px 0; font-size: 13px; line-height: 1.65; color: ' + C.text + '; }\n' +
       '.contract-clause p:last-child { margin-bottom: 0; }\n' +
-      '.contract-pay-table { width: 100%; border-collapse: collapse; margin: 8px 0 10px; font-size: 13px; }\n' +
-      '.contract-pay-table th, .contract-pay-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }\n' +
-      '.contract-pay-table th { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: ' + C.muted + '; font-weight: 700; }\n' +
-      '.contract-pay-table td.amt, .contract-pay-table th.amt { text-align: right; }\n' +
-      '.contract-pay-total td { border-bottom: none; font-weight: 700; color: ' + C.primary + '; }\n' +
+      '.contract-pay-table, .contract-breakdown-table { width: 100%; border-collapse: collapse; margin: 8px 0 10px; font-size: 13px; }\n' +
+      '.contract-pay-table th, .contract-pay-table td, .contract-breakdown-table th, .contract-breakdown-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }\n' +
+      '.contract-pay-table th, .contract-breakdown-table th { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: ' + C.muted + '; font-weight: 700; }\n' +
+      '.contract-pay-table td.amt, .contract-pay-table th.amt, .contract-breakdown-table td.amt, .contract-breakdown-table th.amt { text-align: right; }\n' +
+      '.contract-pay-total td, .contract-breakdown-table .pb-total td { border-bottom: none; font-weight: 700; color: ' + C.primary + '; }\n' +
+      '.contract-breakdown-table .pb-note td { color: ' + C.muted + '; font-size: 12px; font-style: italic; }\n' +
       '.contract-callout { padding: 10px 14px; background: ' + C.a(0.1) + '; border-left: 3px solid ' + C.primary + '; border-radius: 0 8px 8px 0; font-size: 12px; color: ' + C.text + '; margin: 8px 0 10px; }\n' +
       '.contract-sig-block { margin-top: 32px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.12); }\n' +
       '.contract-sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }\n' +
@@ -1384,10 +1464,14 @@
       '    </div>\n' +
       '    <div class="contract-clause"><h3>1 &middot; Scope of work</h3>' + scopeHtml + '<p>Work not described above is out of scope and subject to a separate change order under Clause 4.</p></div>\n' +
       '    <div class="contract-clause"><h3>2 &middot; Fees &amp; payment schedule</h3>' +
+      breakdownHtml +
       buildContractPaymentTableHtml(total, doc && doc.paymentStages) +
       '<div class="contract-callout">Work begins once the first payment above clears; each later payment is due per this schedule regardless of delays caused by Client.' +
       (doc && doc.paymentMethods ? ' Accepted payment methods: ' + escapeHtml(doc.paymentMethods) + '.' : '') +
-      '</div></div>\n' +
+      '</div>' +
+      '<p>Third-party fees are paid by Client directly and are not part of the fees above: payment processing (for ' +
+      'example, Stripe&rsquo;s per-payment fee), domain renewal, video-conferencing accounts, and any usage-based ' +
+      'storage beyond what Clause 1 or the selected care plan includes.</p></div>\n' +
       '    <div class="contract-clause"><h3>3 &middot; Timeline</h3>' + timelineHtml + '</div>\n' +
       '    <div class="contract-clause"><h3>4 &middot; Revisions</h3><p>Two structured revision rounds are included per milestone during the build. Once delivered, ongoing changes and support are covered under the maintenance plan below if one is selected; without an active plan, changes outside the scope in Clause 1 are billed at CWR’s standard change-order rate.</p></div>\n' +
       maintenanceBlockHtml +
@@ -2046,6 +2130,7 @@
     resolveDocTheme: resolveDocTheme,
     resolveColorMode: resolveColorMode,
     clientLogoPresets: CLIENT_LOGO_PRESETS,
-    normalizeClientLogo: normalizeClientLogo
+    normalizeClientLogo: normalizeClientLogo,
+    parsePriceBreakdown: parsePriceBreakdown
   };
 })(typeof window !== 'undefined' ? window : this);

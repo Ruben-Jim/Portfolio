@@ -14066,6 +14066,17 @@ body.portfolio-project-modal-open .cp-client-drawer {
   max-width: 52ch;
 }
 
+/* Price breakdown: "Adds up to …" under the lines; amber when it doesn't match the total. */
+.business-doc-breakdown-sum {
+  margin-top: 6px;
+  color: var(--orange-yellow-crayola);
+}
+
+.business-doc-breakdown-sum.is-warning {
+  color: hsl(32, 95%, 58%);
+  font-weight: 600;
+}
+
 .business-doc-scope-hint a {
   display: inline;
   color: var(--orange-yellow-crayola);

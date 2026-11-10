@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=slots-20261107">
+  <link rel="stylesheet" href="/assets/css/style.css?v=price-breakdown-20261109">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-lang-20261109">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -776,7 +776,7 @@
               <span class="about-stat-label" data-i18n="about.stat_location">Central Valley, CA</span>
             </div>
             <div>
-              <span class="about-stat-number">2025</span>
+              <span class="about-stat-number">2024</span>
               <span class="about-stat-label" data-i18n="about.stat_founded">Founded</span>
             </div>
           </div>
@@ -6233,6 +6233,17 @@
                     </div>
                   </div>
 
+                  <!-- Proposals and contracts only; estimates and invoices have line items. -->
+                  <div class="form-group" id="business-doc-price-breakdown-group" hidden>
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-scope-label" for="business-doc-price-breakdown">Price breakdown (optional)</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Price breakdown</span>
+                    </div>
+                    <p class="business-doc-scope-hint">When the total needs explaining. One "Item: amount" per line; a minus is a discount. Empty leaves it off.</p>
+                    <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-price-breakdown" rows="4" spellcheck="true" placeholder="Website build: 2,500&#10;Booking system: 800&#10;Launch offer: -300"></textarea>
+                    <p class="business-doc-scope-hint business-doc-breakdown-sum" id="business-doc-price-breakdown-sum" aria-live="polite" hidden></p>
+                  </div>
+
                   <div class="form-group business-doc-theme-field">
                     <label id="business-doc-theme-label">Document theme</label>
                     <p class="business-doc-scope-hint">Accent color for the PDF. Light or dark follows the viewer’s device.</p>
@@ -6331,6 +6342,15 @@
                     <p class="business-doc-scope-hint">An optional intro sentence, then one bullet per line.</p>
                     <input type="text" id="business-doc-why-intro" placeholder="Optional intro sentence" class="business-doc-why-intro">
                     <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-why-different" rows="4" spellcheck="true" aria-label="Why this build is different, one bullet per line" placeholder="Tech stack: …&#10;Design standards: …&#10;Speed: …"></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-scope-label" for="business-doc-good-to-know">Good to know</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Good to know</span>
+                    </div>
+                    <p class="business-doc-scope-hint">Other costs, ownership, payment terms. One per line; "Label: text" bolds the label.</p>
+                    <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-good-to-know" rows="5" spellcheck="true" placeholder="Payments: …&#10;Ownership: …&#10;Other costs: …"></textarea>
                   </div>
                 </section>
 
@@ -8886,13 +8906,13 @@
   <script src="/assets/js/care-pricing.js?v=pricing-20261029"></script>
   <script src="/assets/js/blog-covers.js?v=category-covers-20261015"></script>
   <script src="/assets/js/lead-match.js?v=leads-flow-20261010"></script>
-  <script src="/assets/js/business-doc-shared.js?v=package-offers-20261005"></script>
+  <script src="/assets/js/business-doc-shared.js?v=price-breakdown-20261109"></script>
   <script src="/assets/js/hire-me-booking.js?v=slots-20261107"></script>
   <script src="/assets/js/customer-dm-shared.js?v=security-20261010"></script>
   <script src="/assets/js/portfolio-skins.js?v=pkg-demos-20261103"></script>
   <script src="/assets/js/portfolio-features.js?v=pkg-demos-20261103"></script>
   <script src="/assets/js/social-proof.js?v=one-card-20261018"></script>
-  <script src="/assets/js/portfolio-detail-shared.js?v=guide-lang-20261109"></script>
+  <script src="/assets/js/portfolio-detail-shared.js?v=guide-pdf-20261109"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
   <script src="/assets/js/i18n.js?v=pricing-title-20261104"></script>
   <!--
@@ -8947,7 +8967,7 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=lead-hub-btn-20261109"></script>
+  <script src="/assets/js/script.js?v=price-breakdown-20261109"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--

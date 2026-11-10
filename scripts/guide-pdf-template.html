@@ -1,0 +1,108 @@
+<!doctype html>
+<!--
+  Print page for client guide PDFs. scripts/build-guide-pdfs.mjs opens it on a
+  local server, calls renderGuide(), then prints it to PDF. Not published
+  (scripts/ stays private). Editing this file rebuilds every guide PDF.
+
+  Pages: the title and intro on page 1, then every "Step N" section starts a
+  new page. Screenshots and tables never split across pages.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Guide</title>
+  <style>
+    @page { size: Letter; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { margin: 0; background: #fff; }
+    body { font: 11pt/1.55 -apple-system, 'Helvetica Neue', Arial, sans-serif; color: #1d1d1f; }
+    a { color: #8a6200; }
+
+    .portfolio-md-doc-title { font-size: 24pt; line-height: 1.15; margin: 0 0 6pt; color: #111; }
+    .portfolio-md-subtitle { color: #6e6e73; font-size: 10pt; margin: 0 0 14pt; }
+    .portfolio-md-subtitle em { font-style: normal; }
+    h2 { font-size: 15pt; margin: 18pt 0 6pt; color: #111; break-after: avoid; }
+    h3 { font-size: 13pt; margin: 14pt 0 6pt; color: #111; break-after: avoid; }
+    p { margin: 0 0 8pt; }
+    strong { color: #111; }
+
+    /* One step per page: a step starts a new page, its heading never ends one. */
+    .portfolio-md-step { break-before: page; }
+    .portfolio-md-step > h3 {
+      font-size: 16pt; margin: 0 0 10pt; padding-bottom: 6pt;
+      border-bottom: 2px solid #e8b400; break-after: avoid;
+    }
+
+    .portfolio-md-list { margin: 0 0 10pt; padding-left: 16pt; }
+    .portfolio-md-list li { margin: 0 0 4pt; break-inside: avoid; }
+
+    .portfolio-md-figure { margin: 8pt 0 10pt; text-align: center; break-inside: avoid; }
+    /* Two screenshots fit on a page; tall phone shots stay a readable width. */
+    .portfolio-md-figure img { max-width: 100%; max-height: 4in; width: auto; height: auto;
+      border: 1px solid #e3e3e6; border-radius: 6pt; }
+    .portfolio-md-figure figcaption { font-size: 9pt; color: #6e6e73; margin-top: 4pt; }
+    .portfolio-md-figure-video { display: none; }
+
+    .portfolio-md-callout { margin: 10pt 0; padding: 8pt 12pt; background: #fff8e1; border-left: 3px solid #e8b400;
+      border-radius: 0 6pt 6pt 0; break-inside: avoid; }
+    .portfolio-md-callout p { margin: 0; }
+
+    .portfolio-md-table-wrap { margin: 8pt 0 12pt; break-inside: avoid; }
+    .portfolio-md-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+    .portfolio-md-table th, .portfolio-md-table td { text-align: left; vertical-align: top; padding: 5pt 7pt; border: 1px solid #e3e3e6; }
+    .portfolio-md-table th { background: #f5f5f7; font-weight: 600; }
+    .portfolio-md-table tr { break-inside: avoid; }
+
+    .portfolio-md-hr { border: 0; border-top: 1px solid #e3e3e6; margin: 14pt 0; }
+    pre { white-space: pre-wrap; font-size: 9pt; background: #f5f5f7; padding: 8pt; border-radius: 6pt; break-inside: avoid; }
+    code { font-family: Menlo, monospace; font-size: 9pt; }
+  </style>
+</head>
+<body>
+  <main id="guide"></main>
+  <script src="/assets/js/portfolio-detail-shared.js"></script>
+  <script>
+    /** JPEG keeps a screenshot-heavy guide a few MB instead of tens (Chrome embeds JPEG as-is). */
+    function toJpeg(img) {
+      var w = Math.min(img.naturalWidth || 0, 1600);
+      if (!w) return;
+      var h = Math.round((img.naturalHeight / img.naturalWidth) * w);
+      var c = document.createElement('canvas');
+      c.width = w;
+      c.height = h;
+      var ctx = c.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      img.src = c.toDataURL('image/jpeg', 0.82);
+    }
+
+    /** Renders one language of a guide; resolves with its title once every image is in. */
+    window.renderGuide = async function (mdUrl, lang) {
+      var S = window.PortfolioDetailShared;
+      var md = await (await fetch(mdUrl)).text();
+      var split = S.splitMarkdownByLang(md);
+      var part = lang ? split.parts.filter(function (p) { return p.lang === lang; })[0] : null;
+      var text = part ? split.preamble + '\n' + part.text : md;
+      var main = document.getElementById('guide');
+      if (lang) document.documentElement.lang = lang;
+      main.innerHTML = S.renderMarkdownToHtml(text, mdUrl);
+      var imgs = Array.prototype.slice.call(main.querySelectorAll('img'));
+      await Promise.all(imgs.map(function (img) {
+        img.loading = 'eager';
+        return img.decode().catch(function () {});
+      }));
+      imgs.forEach(toJpeg);
+      await Promise.all(imgs.map(function (img) { return img.decode().catch(function () {}); }));
+      var broken = imgs.filter(function (i) { return !i.naturalWidth; });
+      broken.forEach(function (i) {
+        var fig = i.closest('figure');
+        (fig || i).remove();
+      });
+      var h1 = main.querySelector('h1');
+      document.title = (h1 ? h1.textContent : 'Guide').trim();
+      return { title: document.title, images: imgs.length - broken.length, broken: broken.map(function (i) { return i.getAttribute('alt') || i.getAttribute('src'); }) };
+    };
+  </script>
+</body>
+</html>

@@ -16,6 +16,8 @@
  *    from the admin Pricing tab (run scripts/sync-prices.mjs after a change),
  *    and no package price is typed outside a marker (scripts/lib/prices.mjs).
  *    Offline, the live comparison is skipped with a warning.
+ * 7. Guide PDFs: every client guide in assets/docs/projects/ has a PDF built
+ *    from its current text and screenshots (scripts/build-guide-pdfs.mjs).
  */
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -23,6 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { adminDialogFiles, findNativeDialogsInFile } from './lib/native-dialogs.mjs';
 import { fetchLive, loadPricing, loadI18nEn, staleFiles, unmarkedPrices, readAllowlist } from './lib/prices.mjs';
+import { staleGuides } from './lib/guide-pdfs.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const failures = [];
@@ -112,10 +115,15 @@ try {
   console.warn(`! preflight: could not read the live prices (${err && err.message}); the typed copies were checked against care-pricing.js only.`);
 }
 
+// 7. Guide PDFs --------------------------------------------------------------
+for (const g of staleGuides(ROOT)) {
+  fail(`guide PDF out of date: ${g.md} (${g.reason}) — run node scripts/build-guide-pdfs.mjs, then commit the PDFs`);
+}
+
 if (failures.length) {
   console.error(`\n✗ preflight: ${failures.length} problem(s)\n`);
   for (const f of failures) console.error('  ✗ ' + f.replace(/\n/g, '\n    '));
   console.error('\nPush blocked. Fix the above, or push with --no-verify if you must.\n');
   process.exit(1);
 }
-console.log(`✓ preflight: JS syntax, ${shells.length} shells in sync, tests, no secrets, no browser popups, ${pricesNote}`);
+console.log(`✓ preflight: JS syntax, ${shells.length} shells in sync, tests, no secrets, no browser popups, ${pricesNote}, guide PDFs current`);

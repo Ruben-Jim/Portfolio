@@ -1,0 +1,62 @@
+{
+  "about": "Built by scripts/build-guide-pdfs.mjs. hash = guide text + screenshots + PDF template; preflight rebuild check.",
+  "guides": {
+    "assets/docs/projects/Lawncare/admin-guide.md": {
+      "hash": "50924ea699a7bb82",
+      "pdfs": [
+        "assets/docs/projects/Lawncare/admin-guide.pdf"
+      ]
+    },
+    "assets/docs/projects/aimnshootrecords/admin-guide.md": {
+      "hash": "2675680e9ba2e6d8",
+      "pdfs": [
+        "assets/docs/projects/aimnshootrecords/admin-guide.pdf"
+      ]
+    },
+    "assets/docs/projects/procleaning-team/admin-app-walkthrough.md": {
+      "hash": "19b2f355b82314c3",
+      "pdfs": [
+        "assets/docs/projects/procleaning-team/admin-app-walkthrough.pdf"
+      ]
+    },
+    "assets/docs/projects/procleaning-team/android-access-guide.md": {
+      "hash": "12357123459b25a3",
+      "pdfs": [
+        "assets/docs/projects/procleaning-team/android-access-guide.pdf"
+      ]
+    },
+    "assets/docs/projects/procleaning-team/tap-to-pay-guide.md": {
+      "hash": "40e0bf10f85f2833",
+      "pdfs": [
+        "assets/docs/projects/procleaning-team/tap-to-pay-guide.pdf"
+      ]
+    },
+    "assets/docs/projects/real-food-by-maria/dashboard-guide.md": {
+      "hash": "1359a27001634f9c",
+      "pdfs": [
+        "assets/docs/projects/real-food-by-maria/dashboard-guide.en.pdf",
+        "assets/docs/projects/real-food-by-maria/dashboard-guide.es.pdf"
+      ]
+    },
+    "assets/docs/projects/real-food-by-maria/platform-guide.md": {
+      "hash": "bdc101b7914cb95c",
+      "pdfs": [
+        "assets/docs/projects/real-food-by-maria/platform-guide.en.pdf",
+        "assets/docs/projects/real-food-by-maria/platform-guide.es.pdf"
+      ]
+    },
+    "assets/docs/projects/real-food-by-maria/pricing-and-plans.md": {
+      "hash": "455f9b85c7f7dc6e",
+      "pdfs": [
+        "assets/docs/projects/real-food-by-maria/pricing-and-plans.en.pdf",
+        "assets/docs/projects/real-food-by-maria/pricing-and-plans.es.pdf"
+      ]
+    },
+    "assets/docs/projects/rizo-pizzeria/rizo-features-guide.md": {
+      "hash": "540b70cf8d847ecb",
+      "pdfs": [
+        "assets/docs/projects/rizo-pizzeria/rizo-features-guide.pdf"
+      ]
+    }
+  }
+}

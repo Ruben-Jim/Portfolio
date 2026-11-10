@@ -12,7 +12,7 @@ Everything in one place, so you can lay it next to your other options: what the 
 | Step 1 — The build | What the $2,000 covers, piece by piece |
 | Step 2 — Payment schedule | When you pay |
 | Step 3 — Care plans | The monthly or yearly cost after launch |
-| Step 4 — Other costs | What you'd pay to other companies |
+| Step 4 — Other costs | What you'd pay to other companies, and video storage |
 | Step 5 — Ownership | What's yours and what's ours |
 | Step 6 — Compare side by side | A checklist for your other quotes |
 
@@ -87,6 +87,26 @@ A care plan keeps the website and apps online, secure and up to date. You can pa
 | Your domain | Your domain company | You already own it; you keep renewing it as you do today. |
 | Live classes | Zoom or Google Meet | Your existing account. Free plans have time limits. |
 | Apple and Google developer fees | None for you | The apps are published under our developer accounts. |
+| Video storage | Included up to 100 GB | See below. Past 100 GB, Cloudflare's price at cost. |
+
+### Video storage
+
+Your lesson videos are stored privately on Cloudflare. Cloudflare's first 10 GB a month are free, and there's no charge for people watching (no bandwidth fees).
+
+How much video fits depends on how it's recorded:
+
+| Recorded as | Size per hour | Fits in the free 10 GB | Fits in 100 GB |
+| --- | --- | --- | --- |
+| Straight from an iPhone (1080p) | about 3.6 GB | about 3 hours | about 28 hours |
+| Exported for the web (1080p, smaller file) | about 1.8 GB | about 5½ hours | about 55 hours |
+| 720p | about 1.1 GB | about 9 hours | about 90 hours |
+
+- **After the free 10 GB,** storage costs $0.015 per GB a month: about **$1.35 a month at 100 GB**, and about $1.50 a month for each 100 GB after that.
+- **What's included:** your care plan covers storage up to 100 GB. A weekly 15-minute lesson adds about 13 hours of video a year, so 100 GB is about 2 years of weekly lessons recorded straight from a phone, or about 4 years exported for the web.
+- **Past 100 GB,** Cloudflare's charge is passed on at cost, with no markup. We'll tell you before you get close.
+- **Downloads** like recipe cards and PDFs are tiny and don't change these numbers.
+
+> We'll show you the export setting that cuts file size in half without a visible loss in quality.
 
 > Unlike Kajabi or Teachable, there's no platform fee and no cut of your sales. Members pay you through your own Stripe account.
 
@@ -124,6 +144,7 @@ Use this to line up your other quotes. Our answers are filled in.
 | Platform fee or cut of your sales? | None, only Stripe's card fee | | |
 | Who owns your content? | You | | |
 | Who owns the software? | Code With Ruben (buyout available) | | |
+| Video storage cost | Included up to 100 GB, then at cost | | |
 | Who do you call when something breaks? | Ruben directly | | |
 
 <!-- lang:es -->
@@ -140,7 +161,7 @@ Todo en un solo lugar, para que lo pongas junto a tus otras opciones: qué cubre
 | Paso 1 — La construcción | Qué cubren los $2,000, pieza por pieza |
 | Paso 2 — Calendario de pagos | Cuándo pagas |
 | Paso 3 — Planes de mantenimiento | El costo mensual o anual después del lanzamiento |
-| Paso 4 — Otros costos | Lo que pagarías a otras empresas |
+| Paso 4 — Otros costos | Lo que pagarías a otras empresas, y el almacenamiento de videos |
 | Paso 5 — Propiedad | Qué es tuyo y qué es nuestro |
 | Paso 6 — Comparar lado a lado | Una lista para tus otras cotizaciones |
 
@@ -215,6 +236,26 @@ Un plan de mantenimiento mantiene el sitio y las apps en línea, seguros y actua
 | Tu dominio | Tu compañía de dominio | Ya es tuyo; lo sigues renovando como hoy. |
 | Clases en vivo | Zoom o Google Meet | Tu cuenta actual. Los planes gratis tienen límite de tiempo. |
 | Cuotas de desarrollador de Apple y Google | Ninguna para ti | Las apps se publican con nuestras cuentas de desarrollador. |
+| Almacenamiento de videos | Incluido hasta 100 GB | Ver abajo. Después de 100 GB, al precio de Cloudflare. |
+
+### Almacenamiento de videos
+
+Tus videos se guardan en privado en Cloudflare. Los primeros 10 GB al mes son gratis, y no se cobra cuando la gente los ve (no hay cargos por ancho de banda).
+
+Cuánto video cabe depende de cómo se graba:
+
+| Grabado como | Tamaño por hora | Cabe en los 10 GB gratis | Cabe en 100 GB |
+| --- | --- | --- | --- |
+| Directo del iPhone (1080p) | unos 3.6 GB | unas 3 horas | unas 28 horas |
+| Exportado para la web (1080p, archivo más ligero) | unos 1.8 GB | unas 5½ horas | unas 55 horas |
+| 720p | unos 1.1 GB | unas 9 horas | unas 90 horas |
+
+- **Después de los 10 GB gratis,** el almacenamiento cuesta $0.015 por GB al mes: unos **$1.35 al mes con 100 GB**, y unos $1.50 al mes por cada 100 GB adicionales.
+- **Qué está incluido:** tu plan de mantenimiento cubre hasta 100 GB. Una lección semanal de 15 minutos suma unas 13 horas de video al año, así que 100 GB son unos 2 años de lecciones grabadas directo del teléfono, o unos 4 años exportadas para la web.
+- **Después de 100 GB,** el cargo de Cloudflare se pasa a costo, sin ganancia para nosotros. Te avisamos antes de llegar.
+- **Las descargas** como tarjetas de receta y PDFs pesan muy poco y no cambian estos números.
+
+> Te enseñamos la configuración de exportación que reduce el archivo a la mitad sin que se note en la calidad.
 
 > A diferencia de Kajabi o Teachable, no hay cuota de plataforma ni comisión sobre tus ventas. Los miembros te pagan a través de tu propia cuenta de Stripe.
 
@@ -252,4 +293,5 @@ Un plan de mantenimiento mantiene el sitio y las apps en línea, seguros y actua
 | ¿Cuota de plataforma o comisión de ventas? | Ninguna, solo la de Stripe por tarjeta | | |
 | ¿De quién es tu contenido? | Tuyo | | |
 | ¿De quién es el programa? | De Code With Ruben (compra disponible) | | |
+| Costo de almacenar videos | Incluido hasta 100 GB, luego a costo | | |
 | ¿A quién llamas si algo falla? | A Ruben directamente | | |

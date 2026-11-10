@@ -1056,6 +1056,9 @@
     initCanvasDoc: initCanvasDoc,
     normalizeCanvasDocUrl: normalizeCanvasDocUrl,
     displayCanvasDocSrc: displayCanvasDocSrc,
-    resolveLiveUrl: resolveLiveUrl
+    resolveLiveUrl: resolveLiveUrl,
+    // Guide PDFs (scripts/build-guide-pdfs.mjs) render with the same Markdown rules.
+    splitMarkdownByLang: splitMarkdownByLang,
+    renderMarkdownToHtml: renderMarkdownToHtml
   };
 })(typeof window !== 'undefined' ? window : this);
