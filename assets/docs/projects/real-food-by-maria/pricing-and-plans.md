@@ -40,7 +40,7 @@ Everything in one place, so you can lay it next to your other options: what the 
 | At signing (to start the build) | $1,000 |
 | At launch (when it's live on the web and in the stores) | $1,000 |
 
-After launch, you have 14 days to report anything that isn't working as agreed, and we fix it at no cost. The care plan you choose starts at launch.
+After launch, you have 14 days to report anything that isn't working as agreed, and we fix it at no cost. The first 2 months of the care plan you choose are free; billing starts in month 3.
 
 ## Step 3 — Care plans after launch
 
@@ -189,7 +189,7 @@ Todo en un solo lugar, para que lo pongas junto a tus otras opciones: qué cubre
 | Al firmar (para empezar la construcción) | $1,000 |
 | Al lanzar (cuando está en vivo en la web y en las tiendas) | $1,000 |
 
-Después del lanzamiento tienes 14 días para reportar cualquier cosa que no funcione como acordamos, y la arreglamos sin costo. El plan de mantenimiento que elijas empieza al lanzar.
+Después del lanzamiento tienes 14 días para reportar cualquier cosa que no funcione como acordamos, y la arreglamos sin costo. Los primeros 2 meses del plan de mantenimiento que elijas son gratis; el cobro empieza en el mes 3.
 
 ## Paso 3 — Planes de mantenimiento después del lanzamiento
 
