@@ -347,6 +347,96 @@
     return /^Step \d+/i.test(String(text || '').trim());
   }
 
+  /*
+   * Bilingual guides: one .md file with <!-- lang:en --> and <!-- lang:es --> markers renders
+   * as one guide with an English / Español toggle, so a client reads one language at a time
+   * instead of a page twice as long. A file without markers renders exactly as before.
+   */
+  var MD_LANG_LABELS = { en: 'English', es: 'Español' };
+  var MD_LANG_STORE = 'cwrGuideLang';
+
+  function splitMarkdownByLang(md) {
+    var re = /^[ \t]*<!--\s*lang:([a-z]{2})\s*-->[ \t]*$/gim;
+    var parts = [];
+    var m;
+    var last = null;
+    var preamble = '';
+    while ((m = re.exec(md))) {
+      if (last) last.text = md.slice(last.start, m.index);
+      else preamble = md.slice(0, m.index);
+      last = { lang: m[1].toLowerCase(), start: re.lastIndex };
+      parts.push(last);
+    }
+    if (last) last.text = md.slice(last.start);
+    return { preamble: preamble, parts: parts };
+  }
+
+  function preferredMarkdownLang(langs) {
+    var stored = '';
+    try {
+      stored = window.localStorage.getItem(MD_LANG_STORE) || '';
+    } catch (e) {}
+    if (stored && langs.indexOf(stored) !== -1) return stored;
+    var nav = String((navigator.language || '')).slice(0, 2).toLowerCase();
+    if (langs.indexOf(nav) !== -1) return nav;
+    return langs[0];
+  }
+
+  function renderLocalizedMarkdownHtml(md, docUrl) {
+    var split = splitMarkdownByLang(String(md || ''));
+    if (split.parts.length < 2) {
+      return '<div class="project-detail-canvas-md portfolio-markdown">' + renderMarkdownToHtml(md, docUrl) + '</div>';
+    }
+    var langs = split.parts.map(function (p) { return p.lang; });
+    var current = preferredMarkdownLang(langs);
+    var toggle =
+      '<div class="portfolio-md-lang-toggle" role="group" aria-label="Language / Idioma">' +
+      split.parts
+        .map(function (p) {
+          var on = p.lang === current;
+          return (
+            '<button type="button" class="portfolio-md-lang-btn' + (on ? ' is-active' : '') +
+            '" data-md-lang="' + esc(p.lang) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+            esc(MD_LANG_LABELS[p.lang] || p.lang.toUpperCase()) +
+            '</button>'
+          );
+        })
+        .join('') +
+      '</div>';
+    var panes = split.parts
+      .map(function (p) {
+        return (
+          '<div class="project-detail-canvas-md portfolio-markdown" data-md-lang-pane="' + esc(p.lang) + '" lang="' +
+          esc(p.lang) + '"' + (p.lang === current ? '' : ' hidden') + '>' +
+          renderMarkdownToHtml(split.preamble + '\n' + p.text, docUrl) +
+          '</div>'
+        );
+      })
+      .join('');
+    return '<div class="portfolio-md-lang" data-md-lang-root>' + toggle + panes + '</div>';
+  }
+
+  function bindMarkdownLangToggle(root) {
+    var box = root && root.querySelector('[data-md-lang-root]');
+    if (!box) return;
+    box.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('[data-md-lang]') : null;
+      if (!btn) return;
+      var lang = btn.getAttribute('data-md-lang');
+      box.querySelectorAll('[data-md-lang]').forEach(function (b) {
+        var on = b.getAttribute('data-md-lang') === lang;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      box.querySelectorAll('[data-md-lang-pane]').forEach(function (pane) {
+        pane.hidden = pane.getAttribute('data-md-lang-pane') !== lang;
+      });
+      try {
+        window.localStorage.setItem(MD_LANG_STORE, lang);
+      } catch (err) {}
+    });
+  }
+
   function renderMarkdownToHtml(md, docUrl) {
     var lines = String(md || '').replace(/\r\n/g, '\n').split('\n');
     var html = [];
@@ -628,10 +718,8 @@
             return res.text();
           })
           .then(function (text) {
-            body.innerHTML =
-              '<div class="project-detail-canvas-md portfolio-markdown">' +
-              renderMarkdownToHtml(text, url) +
-              '</div>';
+            body.innerHTML = renderLocalizedMarkdownHtml(text, url);
+            bindMarkdownLangToggle(body);
           })
           .catch(function () {
             body.innerHTML =

@@ -316,3 +316,41 @@
     font-size: 0.88em;
   }
 }
+
+/* Bilingual guides: English / Español toggle above the guide (one language shown at a time). */
+.portfolio-md-lang-toggle {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 0 16px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid hsla(45, 100%, 72%, 0.22);
+  background: hsla(240, 2%, 12%, 0.9);
+}
+
+.portfolio-md-lang-btn {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--light-gray, #d6d6d6);
+  font: inherit;
+  font-size: var(--fs-7, 14px);
+  font-weight: var(--fw-600, 600);
+  cursor: pointer;
+}
+
+.portfolio-md-lang-btn:hover {
+  color: var(--white-1, #fff);
+}
+
+.portfolio-md-lang-btn.is-active {
+  background: var(--orange-yellow-crayola, #ffd966);
+  color: var(--smoky-black, #121212);
+}
+
+.portfolio-md-lang-btn:focus-visible {
+  outline: 2px solid var(--orange-yellow-crayola, #ffd966);
+  outline-offset: 2px;
+}
