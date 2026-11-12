@@ -912,10 +912,31 @@
     return rows + '<tr class="pb-total"><td>Total</td><td class="amt">' + escapeHtml(money((doc && doc.total) || 0)) + '</td></tr>';
   }
 
+  /**
+   * Comparison table typed as lines: columns split by "|". The first line is
+   * the header (first cell may be blank), column 2 is CWR, then up to 3 others.
+   * Returns null unless there is a header and at least one row.
+   */
+  function parseComparisonTable(raw) {
+    var lines = String(raw || '').split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    if (lines.length < 2) return null;
+    var cells = function (line) {
+      return line.replace(/^\|/, ' |').replace(/\|$/, '').split('|').map(function (c) { return c.trim(); }).slice(0, 5);
+    };
+    var columns = cells(lines[0]);
+    if (columns.length < 2) return null;
+    var rows = [];
+    for (var i = 1; i < lines.length && rows.length < 12; i++) {
+      var r = cells(lines[i]);
+      if (r.length >= 2) rows.push(r);
+    }
+    return rows.length ? { columns: columns, rows: rows } : null;
+  }
+
   function normalizeCoreFeatures(doc) {
     var list = [];
     if (doc && Array.isArray(doc.coreFeatures)) {
-      for (var i = 0; i < doc.coreFeatures.length && list.length < 4; i++) {
+      for (var i = 0; i < doc.coreFeatures.length && list.length < 6; i++) {
         var f = doc.coreFeatures[i] || {};
         var title = String(f.title || '').trim();
         var description = String(f.description || '').trim();
@@ -1023,6 +1044,29 @@
       (whyIntro ? '    <p class="pc-body">' + escapeHtml(whyIntro) + '</p>\n' : '') +
       (whyLis ? '    <ul class="why-list">' + whyLis + '</ul>\n' : '');
 
+    var cmp = parseComparisonTable(doc && doc.comparisonTable);
+    var cmpNote = String((doc && doc.comparisonNote) || '').trim();
+    var cmpHtml = '';
+    if (cmp) {
+      var cmpHead = '';
+      for (var ch = 0; ch < cmp.columns.length; ch++) {
+        cmpHead += '<th' + (ch === 1 ? ' class="cmp-us"' : '') + '>' + escapeHtml(cmp.columns[ch]) + '</th>';
+      }
+      var cmpBody = '';
+      for (var cr = 0; cr < cmp.rows.length; cr++) {
+        cmpBody += '<tr>';
+        for (var cc = 0; cc < cmp.columns.length; cc++) {
+          cmpBody += '<td' + (cc === 1 ? ' class="cmp-us"' : '') + '>' + escapeHtml(cmp.rows[cr][cc] || '') + '</td>';
+        }
+        cmpBody += '</tr>';
+      }
+      cmpHtml =
+        '    <hr class="divider">\n' +
+        '    <div class="section-title">How It Compares</div>\n' +
+        '    <table class="cmp-table"><thead><tr>' + cmpHead + '</tr></thead><tbody>' + cmpBody + '</tbody></table>\n' +
+        (cmpNote ? '    <p class="cmp-note">' + escapeHtml(cmpNote) + '</p>\n' : '');
+    }
+
     var goodLines = jotLines(doc && doc.goodToKnow);
     var goodLis = '';
     for (var g = 0; g < goodLines.length; g++) {
@@ -1102,6 +1146,13 @@
       '.pc-core-grid--2 { grid-template-columns: 1fr 1fr; }\n' +
       '.pc-core-grid--3 { grid-template-columns: 1fr 1fr 1fr; }\n' +
       '.pc-core-grid--4 { grid-template-columns: 1fr 1fr 1fr 1fr; }\n' +
+      '.pc-core-grid--5, .pc-core-grid--6 { grid-template-columns: 1fr 1fr 1fr; }\n' +
+      '.cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; page-break-inside: avoid; }\n' +
+      '.cmp-table th, .cmp-table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.08); vertical-align: top; color: ' + C.text + '; }\n' +
+      '.cmp-table th { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: ' + C.muted + '; font-weight: 700; }\n' +
+      '.cmp-table td:first-child { color: ' + C.muted + '; }\n' +
+      '.cmp-table .cmp-us { color: ' + C.primary + '; font-weight: 600; }\n' +
+      '.cmp-note { font-size: 11px; color: ' + C.muted + '; margin: 8px 0 0 0; }\n' +
       '.pc-core-title { font-size: 12px; font-weight: 600; color: ' + C.primary + '; margin-bottom: 6px; line-height: 1.3; }\n' +
       '.pc-core-desc { font-size: 12px; line-height: 1.5; color: ' + C.muted + '; }\n' +
       '.pc-pricing-row { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: stretch; margin-top: 4px; }\n' +
@@ -1182,6 +1233,7 @@
       '    </div>\n' +
       breakdownHtml +
       whyHtml +
+      cmpHtml +
       goodHtml +
       '    <hr class="divider">\n' +
       '    <div class="section-title">The Next Steps</div>\n' +
@@ -1376,6 +1428,18 @@
     var scopeHtml = buildScopeBodyHtml(doc && doc.notes);
     var contractId = escapeHtml((doc && doc.id) || '');
     var ownershipHtml = buildContractOwnershipClauseHtml(doc && doc.ipTransferMode);
+    var specialLines = jotLines(doc && doc.specialTerms);
+    var specialLis = '';
+    for (var st = 0; st < specialLines.length; st++) {
+      var sm = /^([^:]{2,60}):\s+(.+)$/.exec(specialLines[st]);
+      specialLis += sm
+        ? '<li><strong>' + escapeHtml(sm[1]) + ':</strong> ' + escapeHtml(sm[2]) + '</li>'
+        : '<li>' + escapeHtml(specialLines[st]) + '</li>';
+    }
+    var specialTermsHtml = specialLis
+      ? '    <div class="contract-clause"><h3>11 &middot; Special terms</h3><p>The terms below were agreed for this project. ' +
+        'If one conflicts with a clause above, the term below applies.</p><ul class="contract-special-list">' + specialLis + '</ul></div>\n'
+      : '';
     var sigBlockHtml = buildContractSignatureBlockHtml(signature);
     var maintenanceBlockHtml = buildMaintenancePdfHtml(doc);
     var maintenanceLapseHtml = buildMaintenanceLapseClauseHtml(doc);
@@ -1420,6 +1484,9 @@
       '.contract-pay-table td.amt, .contract-pay-table th.amt, .contract-breakdown-table td.amt, .contract-breakdown-table th.amt { text-align: right; }\n' +
       '.contract-pay-total td, .contract-breakdown-table .pb-total td { border-bottom: none; font-weight: 700; color: ' + C.primary + '; }\n' +
       '.contract-breakdown-table .pb-note td { color: ' + C.muted + '; font-size: 12px; font-style: italic; }\n' +
+      '.contract-special-list { margin: 8px 0 0 0; padding-left: 20px; }\n' +
+      '.contract-special-list li { margin-bottom: 6px; }\n' +
+      '.contract-special-list li strong { color: ' + C.primary + '; }\n' +
       '.contract-callout { padding: 10px 14px; background: ' + C.a(0.1) + '; border-left: 3px solid ' + C.primary + '; border-radius: 0 8px 8px 0; font-size: 12px; color: ' + C.text + '; margin: 8px 0 10px; }\n' +
       '.contract-sig-block { margin-top: 32px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.12); }\n' +
       '.contract-sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }\n' +
@@ -1481,6 +1548,7 @@
       '    <div class="contract-clause"><h3>8 &middot; Confidentiality</h3><p>Each party will keep the other’s non-public business, technical, and financial information confidential, and use it only to perform this Agreement.</p></div>\n' +
       '    <div class="contract-clause"><h3>9 &middot; Warranty &amp; liability</h3><p>CWR warrants the delivered work will substantially match the agreed scope and will correct material defects reported within 14 days of launch at no charge. Beyond that window, the work is provided as-is. CWR’s total liability under this Agreement is capped at the total fees paid by Client, and CWR is not liable for indirect or consequential damages.</p></div>\n' +
       '    <div class="contract-clause"><h3>10 &middot; Governing law</h3><p>This Agreement is governed by the laws of the State of California. Any dispute will be resolved in the state or federal courts of Fresno County, California.</p></div>\n' +
+      specialTermsHtml +
       sigBlockHtml + '\n' +
       '    <div class="footer-meta">CWR-' + contractId + (doc && doc.sourceProposalId ? ' &middot; Generated from Proposal ' + escapeHtml(doc.sourceProposalId) : '') + '</div>\n' +
       '  </div>\n</body>\n</html>';

@@ -6294,9 +6294,9 @@
                   <div class="form-group business-doc-core-features-section">
                     <div class="business-doc-scope-title-row">
                       <label class="business-doc-addons-label">Core features</label>
-                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: 4 columns</span>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: up to 6</span>
                     </div>
-                    <p class="business-doc-addons-hint">Up to four. Empty slots are left off the PDF.</p>
+                    <p class="business-doc-addons-hint">Up to six. Empty slots are left off the PDF.</p>
                     <div class="business-doc-core-features-grid" id="business-doc-core-features">
                       <div class="business-doc-core-feature-card">
                         <label for="business-doc-core-title-0">Feature 1 title</label>
@@ -6322,6 +6322,18 @@
                         <label for="business-doc-core-desc-3">Description</label>
                         <textarea id="business-doc-core-desc-3" rows="2" placeholder="Short blurb…"></textarea>
                       </div>
+                      <div class="business-doc-core-feature-card">
+                        <label for="business-doc-core-title-4">Feature 5 title</label>
+                        <input type="text" id="business-doc-core-title-4" placeholder="Optional">
+                        <label for="business-doc-core-desc-4">Description</label>
+                        <textarea id="business-doc-core-desc-4" rows="2" placeholder="Short blurb…"></textarea>
+                      </div>
+                      <div class="business-doc-core-feature-card">
+                        <label for="business-doc-core-title-5">Feature 6 title</label>
+                        <input type="text" id="business-doc-core-title-5" placeholder="Optional">
+                        <label for="business-doc-core-desc-5">Description</label>
+                        <textarea id="business-doc-core-desc-5" rows="2" placeholder="Short blurb…"></textarea>
+                      </div>
                     </div>
                   </div>
 
@@ -6342,6 +6354,16 @@
                     <p class="business-doc-scope-hint">An optional intro sentence, then one bullet per line.</p>
                     <input type="text" id="business-doc-why-intro" placeholder="Optional intro sentence" class="business-doc-why-intro">
                     <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-why-different" rows="4" spellcheck="true" aria-label="Why this build is different, one bullet per line" placeholder="Tech stack: …&#10;Design standards: …&#10;Speed: …"></textarea>
+                  </div>
+
+                  <div class="form-group">
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-scope-label" for="business-doc-comparison-table">How it compares</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Comparison table</span>
+                    </div>
+                    <p class="business-doc-scope-hint">One row per line, cells split by <code>|</code>. First line names the columns: yours first, then up to 3 competitors.</p>
+                    <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-comparison-table" rows="5" spellcheck="true" placeholder=" | Code With Ruben | Kajabi | Teachable&#10;Monthly cost | $150 | $342+ | $39+&#10;Your own app | Included | +$199/mo | No&#10;Cut of your sales | None | 0.5–2% | 7.5%"></textarea>
+                    <input type="text" id="business-doc-comparison-note" placeholder="Prices checked Nov 9, 2026 on each company's pricing page" aria-label="Note under the comparison table">
                   </div>
 
                   <div class="form-group">
@@ -6423,6 +6445,15 @@
                   <div class="form-group business-doc-payment-methods-field">
                     <label for="business-doc-payment-methods">Accepted payment methods</label>
                     <input type="text" id="business-doc-payment-methods" placeholder="Bank transfer (ACH/Zelle), major credit/debit cards">
+                  </div>
+
+                  <div class="form-group">
+                    <div class="business-doc-scope-title-row">
+                      <label class="business-doc-scope-label" for="business-doc-special-terms">Special terms</label>
+                      <span class="business-doc-scope-badge" aria-hidden="true">PDF: Clause 11</span>
+                    </div>
+                    <p class="business-doc-scope-hint">One-off promises for this client, one per line. "Label: text" bolds the label. Filled from the proposal's Good to know.</p>
+                    <textarea class="business-doc-notes-input has-scrollbar" id="business-doc-special-terms" rows="4" spellcheck="true" placeholder="Care plan: first 2 months free; billing starts in month 3&#10;Video storage: included up to 100 GB"></textarea>
                   </div>
                 </section>
 
@@ -8906,7 +8937,7 @@
   <script src="/assets/js/care-pricing.js?v=pricing-20261029"></script>
   <script src="/assets/js/blog-covers.js?v=category-covers-20261015"></script>
   <script src="/assets/js/lead-match.js?v=leads-flow-20261010"></script>
-  <script src="/assets/js/business-doc-shared.js?v=price-breakdown-20261109"></script>
+  <script src="/assets/js/business-doc-shared.js?v=compare-terms-20261109"></script>
   <script src="/assets/js/hire-me-booking.js?v=slots-20261107"></script>
   <script src="/assets/js/customer-dm-shared.js?v=security-20261010"></script>
   <script src="/assets/js/portfolio-skins.js?v=pkg-demos-20261103"></script>
@@ -8967,7 +8998,7 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=price-breakdown-20261109"></script>
+  <script src="/assets/js/script.js?v=compare-terms-20261109"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--

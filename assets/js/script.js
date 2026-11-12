@@ -14873,6 +14873,9 @@ window.addEventListener('load', function() {
    * @property {string=} whyDifferentIntro
    * @property {string=} whyDifferent
    * @property {string=} goodToKnow - proposal only; one line per item, "Label: text" bolds the label
+   * @property {string=} comparisonTable - proposal only; lines of cells split by "|", first line = column names (BusinessDocShared.parseComparisonTable)
+   * @property {string=} comparisonNote - proposal only; small line under the table, e.g. "Prices checked Nov 9, 2026"
+   * @property {string=} specialTerms - contract only; one per line, shown as clause 11
    * @property {string=} priceBreakdown - proposal / contract; "Item: amount" per line (BusinessDocShared.parsePriceBreakdown)
    * @property {BusinessDocAddOn[]=} addOns
    * @property {string=} maintenancePlanId - 'essential' | 'standard' | 'priority' (estimate/invoice); proposals ignore and show all
@@ -15048,7 +15051,7 @@ window.addEventListener('load', function() {
     var valueProp = String(doc.valueProposition || '').trim().slice(0, 4000);
     if (valueProp) out.valueProposition = valueProp;
     if (Array.isArray(doc.coreFeatures) && doc.coreFeatures.length) {
-      out.coreFeatures = doc.coreFeatures.slice(0, 4).map(function (f) {
+      out.coreFeatures = doc.coreFeatures.slice(0, 6).map(function (f) {
         return {
           title: String((f && f.title) || '').slice(0, 120),
           description: String((f && f.description) || '').slice(0, 500)
@@ -15066,6 +15069,10 @@ window.addEventListener('load', function() {
     if (goodToKnow) out.goodToKnow = goodToKnow;
     var priceBreakdown = String(doc.priceBreakdown || '').trim().slice(0, 4000);
     if (priceBreakdown) out.priceBreakdown = priceBreakdown;
+    var comparisonTable = String(doc.comparisonTable || '').trim().slice(0, 3000);
+    if (comparisonTable) out.comparisonTable = comparisonTable;
+    var comparisonNote = String(doc.comparisonNote || '').trim().slice(0, 300);
+    if (comparisonNote) out.comparisonNote = comparisonNote;
     if (Array.isArray(doc.addOns) && doc.addOns.length) {
       out.addOns = doc.addOns
         .slice(0, 24)
@@ -15167,6 +15174,8 @@ window.addEventListener('load', function() {
       }
       var paymentMethods = String(doc.paymentMethods || '').trim().slice(0, 200);
       if (paymentMethods) out.paymentMethods = paymentMethods;
+      var specialTerms = String(doc.specialTerms || '').trim().slice(0, 4000);
+      if (specialTerms) out.specialTerms = specialTerms;
     }
     return out;
   }
@@ -18877,6 +18886,9 @@ window.addEventListener('load', function() {
   const businessDocWhyIntroInput = document.getElementById('business-doc-why-intro');
   const businessDocWhyDifferentInput = document.getElementById('business-doc-why-different');
   const businessDocGoodToKnowInput = document.getElementById('business-doc-good-to-know');
+  const businessDocComparisonTableInput = document.getElementById('business-doc-comparison-table');
+  const businessDocComparisonNoteInput = document.getElementById('business-doc-comparison-note');
+  const businessDocSpecialTermsInput = document.getElementById('business-doc-special-terms');
   const businessDocPriceBreakdownInput = document.getElementById('business-doc-price-breakdown');
   const businessDocFoundationInput = document.getElementById('business-doc-foundation-url');
   const businessDocProposalFields = document.getElementById('business-doc-proposal-fields');
@@ -20113,7 +20125,7 @@ window.addEventListener('load', function() {
 
   function collectBusinessDocCoreFeaturesFromForm() {
     var list = [];
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < 6; i++) {
       var titleEl = document.getElementById('business-doc-core-title-' + i);
       var descEl = document.getElementById('business-doc-core-desc-' + i);
       var title = titleEl ? String(titleEl.value || '').trim() : '';
@@ -20126,7 +20138,7 @@ window.addEventListener('load', function() {
   function fillBusinessDocCoreFeaturesUI(doc) {
     var normalized = normalizeBusinessDocRecord(doc || {});
     var features = Array.isArray(normalized.coreFeatures) ? normalized.coreFeatures : [];
-    for (var i = 0; i < 4; i++) {
+    for (var i = 0; i < 6; i++) {
       var titleEl = document.getElementById('business-doc-core-title-' + i);
       var descEl = document.getElementById('business-doc-core-desc-' + i);
       var f = features[i] || {};
@@ -20185,6 +20197,9 @@ window.addEventListener('load', function() {
     if (businessDocWhyIntroInput) businessDocWhyIntroInput.value = '';
     if (businessDocWhyDifferentInput) businessDocWhyDifferentInput.value = '';
     if (businessDocGoodToKnowInput) businessDocGoodToKnowInput.value = '';
+    if (businessDocComparisonTableInput) businessDocComparisonTableInput.value = '';
+    if (businessDocComparisonNoteInput) businessDocComparisonNoteInput.value = '';
+    if (businessDocSpecialTermsInput) businessDocSpecialTermsInput.value = '';
     if (businessDocPriceBreakdownInput) businessDocPriceBreakdownInput.value = '';
     renderBusinessDocBreakdownSum();
     if (businessDocNotesInput) businessDocNotesInput.value = '';
@@ -20254,6 +20269,9 @@ window.addEventListener('load', function() {
     if (whyDiffEl) whyDiffEl.value = doc.whyDifferent || '';
     var goodEl = document.getElementById('business-doc-good-to-know') || businessDocGoodToKnowInput;
     if (goodEl) goodEl.value = doc.goodToKnow || '';
+    if (businessDocComparisonTableInput) businessDocComparisonTableInput.value = doc.comparisonTable || '';
+    if (businessDocComparisonNoteInput) businessDocComparisonNoteInput.value = doc.comparisonNote || '';
+    if (businessDocSpecialTermsInput) businessDocSpecialTermsInput.value = doc.specialTerms || '';
     if (businessDocPriceBreakdownInput) businessDocPriceBreakdownInput.value = doc.priceBreakdown || '';
     renderBusinessDocBreakdownSum();
     fillBusinessDocCoreFeaturesUI(doc);
@@ -20415,7 +20433,23 @@ window.addEventListener('load', function() {
           total: doc.total || 0,
           status: 'draft',
           dueDate: doc.dueDate || '',
-          notes: doc.includedItems || doc.notes || '',
+          // Scope = what gets built (core features), not the price lines;
+          // the proposal's Good to know lines become the contract's Special terms.
+          notes:
+            (Array.isArray(doc.coreFeatures) && doc.coreFeatures.length
+              ? doc.coreFeatures
+                  .map(function (f) {
+                    var t = String((f && f.title) || '').trim();
+                    var d = String((f && f.description) || '').trim();
+                    return t && d ? t + ': ' + d : t || d;
+                  })
+                  .filter(Boolean)
+                  .join('\n')
+              : '') ||
+            doc.includedItems ||
+            doc.notes ||
+            '',
+          specialTerms: doc.goodToKnow || '',
           theme: doc.theme || 'cwr',
           sourceProposalId: doc.id,
           priceBreakdown: doc.priceBreakdown || '',
@@ -20897,6 +20931,16 @@ window.addEventListener('load', function() {
         } else {
           delete doc.goodToKnow;
         }
+        if (businessDocComparisonTableInput && businessDocComparisonTableInput.value.trim()) {
+          doc.comparisonTable = businessDocComparisonTableInput.value.trim();
+        } else {
+          delete doc.comparisonTable;
+        }
+        if (businessDocComparisonNoteInput && businessDocComparisonNoteInput.value.trim()) {
+          doc.comparisonNote = businessDocComparisonNoteInput.value.trim();
+        } else {
+          delete doc.comparisonNote;
+        }
         delete doc.maintenancePlanId;
         delete doc.maintenanceBilling;
         delete doc.maintenanceInvoiceKind;
@@ -20909,6 +20953,8 @@ window.addEventListener('load', function() {
         delete doc.whyDifferentIntro;
         delete doc.whyDifferent;
         delete doc.goodToKnow;
+        delete doc.comparisonTable;
+        delete doc.comparisonNote;
       }
 
       if ((doc.type === 'proposal' || doc.type === 'contract') && businessDocPriceBreakdownInput && businessDocPriceBreakdownInput.value.trim()) {
@@ -20948,7 +20994,11 @@ window.addEventListener('load', function() {
         var paymentMethods = businessDocPaymentMethodsInput ? businessDocPaymentMethodsInput.value.trim() : '';
         if (paymentMethods) doc.paymentMethods = paymentMethods;
         else delete doc.paymentMethods;
+        var specialTerms = businessDocSpecialTermsInput ? businessDocSpecialTermsInput.value.trim() : '';
+        if (specialTerms) doc.specialTerms = specialTerms;
+        else delete doc.specialTerms;
       } else {
+        delete doc.specialTerms;
         delete doc.sourceProposalId;
         delete doc.ipTransferMode;
         delete doc.paymentScheduleType;
