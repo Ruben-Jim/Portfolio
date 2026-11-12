@@ -59,6 +59,10 @@
       "text": "usually run $15k to $40k",
       "file": "assets/js/outreach-scripts-seed.js",
       "why": "what an agency charges, the comparison in the pitch"
+    },
+    {
+      "text": "Your own app | Included | +$199/mo",
+      "why": "Kajabi's own-app add-on in the proposal comparison-table placeholder (every page shell), not a package"
     }
   ]
 }
