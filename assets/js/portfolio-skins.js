@@ -42,6 +42,18 @@
     return stills(urls).indexOf(cover) >= 0 || posters(urls, posterOf).indexOf(cover) >= 0;
   }
 
+  /**
+   * The video whose poster was picked as the cover ("Set poster as cover"), or ''.
+   * Picking a video's poster means "this video is the cover": the card plays it.
+   */
+  function videoForCover(urls, cover, posterOf) {
+    if (!cover || !posterOf) return '';
+    var hit = (urls || []).filter(function (u) {
+      return isVideoUrl(u) && posterOf(u) === cover;
+    })[0];
+    return hit || '';
+  }
+
   function fileName(u) {
     return String(u).split('?')[0].split('/').pop();
   }
@@ -198,6 +210,7 @@
     MAX_BLURB: MAX_BLURB,
     isVideoUrl: isVideoUrl,
     isAllowedCover: isAllowedCover,
+    videoForCover: videoForCover,
     coverChoices: coverChoices,
     labelFor: labelFor,
     orderSkins: orderSkins,

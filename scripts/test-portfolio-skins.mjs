@@ -21,6 +21,12 @@ ok(!S.isAllowedCover(urls, '/a/guide.md', posterOf), 'a doc slide is not a cover
 ok(!S.isAllowedCover(urls, '', posterOf), 'empty is not a picked cover');
 ok(!S.isAllowedCover(['/a/one.webp'], '/a/demo-poster.webp', posterOf), 'a cover whose video was removed falls back');
 
+// "Set poster as cover" picks the video: the card plays it, starting on that poster.
+ok(S.videoForCover(urls, '/a/demo-poster.webp', posterOf) === '/a/demo.webm', "a picked video poster gives back its video");
+ok(S.videoForCover(urls, '/a/two.webp', posterOf) === '', 'a picked still is not a video');
+ok(S.videoForCover(urls, '', posterOf) === '', 'auto cover is not a video');
+ok(S.videoForCover(['/a/one.webp'], '/a/demo-poster.webp', posterOf) === '', 'a poster whose video was removed is not a video');
+
 const choices = S.coverChoices(urls, posterOf);
 ok(choices[0].value === '' && /Auto/.test(choices[0].label), 'Auto comes first');
 ok(choices.map((c) => c.value).join() === ',/a/one.webp,/a/two.webp,/a/admin-dashboard.webp,/a/demo-poster.webp', 'stills in order, then posters');

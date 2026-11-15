@@ -1,5 +1,8 @@
 // Record live laptop + phone clips of each demo for the hero showcase and the Reels.
 // Usage: npm i --no-save puppeteer-core && node scripts/record-hero-showcase.mjs assets/video/showcase /tmp/rec [id,id]
+// Any site, not just the showcase list: pass id=url, e.g. cocinaviva=https://courses.expo.app.
+// REC_KINDS=mobile records only the phone clip (portfolio phone cards: copy it into the project's
+// folder as <name>-phone-demo.mp4 + <name>-phone-demo-poster.webp and re-run build-portfolio-assets.sh).
 //
 // Per project: hold on the hero (typewriter / hero video plays), then each device scrolls its
 // whole page to the footer at the same steady pace (screens per second), so each clip is as long
@@ -13,7 +16,10 @@ import { join } from 'node:path';
 
 const OUT = process.argv[2];
 const TMP = process.argv[3];
-const ONLY = process.argv[4] ? process.argv[4].split(',') : null;
+const ARGS = process.argv[4] ? process.argv[4].split(',') : null;
+const ONLY = ARGS ? ARGS.filter((a) => !a.includes('=')) : null;
+const EXTRA = (ARGS || []).filter((a) => a.includes('=')).map((a) => [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)]);
+const KINDS = (process.env.REC_KINDS || 'mobile,desktop').split(',');
 mkdirSync(OUT, { recursive: true });
 mkdirSync(TMP, { recursive: true });
 
@@ -29,7 +35,7 @@ const PROJECTS = [
   ['beautysalon', 'https://beautysalon.expo.app'],
   ['barbershop', 'https://barbershoptemplate.expo.app'],
   ['photographer', 'https://photographer.expo.app']
-].filter(([id]) => !ONLY || ONLY.includes(id));
+].filter(([id]) => !ONLY || ONLY.includes(id)).concat(EXTRA);
 
 const HOLD = 4;            // seconds on the hero before scrolling
 const END_HOLD = 1.2;      // seconds resting on the footer
@@ -68,6 +74,16 @@ const HIDE_COOKIES = () => document.querySelectorAll('body *').forEach((e) => {
   if ((cs.position === 'fixed' || cs.position === 'sticky') && e.offsetHeight < innerHeight * 0.6 &&
       /cookie|consent|we use analytics|privacy choices/i.test(e.textContent || '')) e.style.display = 'none';
 });
+
+// Promo popups (the restaurant demo's "Upcoming event") cover the whole page: close them before the take.
+const DISMISS_POPUPS = () => {
+  let n = 0;
+  document.querySelectorAll('[aria-modal="true"]').forEach((d) => {
+    const btn = d.querySelector('[aria-label="Dismiss event"], [aria-label="Dismiss"], [aria-label="Close"]');
+    if (btn) { btn.click(); n++; }
+  });
+  return n;
+};
 
 // Injected before any page script: a clock that runs in real time while the page loads, then
 // freezes and only moves when the recorder steps it (timers, rAF, Date/performance.now, CSS
@@ -150,6 +166,11 @@ async function record(id, url, kind) {
   await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 }).catch(() => {});
   for (let k = 0; k < 40 && (await page.evaluate(MARK_SCROLLER)) < warmRange * 0.8; k++) await sleep(250);
   await page.evaluate(HIDE_COOKIES);
+  // A popup can open a moment after load; give it 3s, and let its close animation finish before the clock freezes.
+  for (let k = 0; k < 12; k++) {
+    if (await page.evaluate(DISMISS_POPUPS)) { await sleep(1200); break; }
+    await sleep(250);
+  }
 
   const dir = join(TMP, `${id}-${kind}`);
   rmSync(dir, { recursive: true, force: true });
@@ -190,9 +211,12 @@ async function record(id, url, kind) {
 
 for (const [id, url] of PROJECTS) {
   try {
-    const mob = await record(id, url, 'mobile');
-    const dsk = await record(id, url, 'desktop');
-    console.log(`✓ ${id}  desktop ${dsk.secs}s/${dsk.frames}f  mobile ${mob.secs}s/${mob.frames}f`);
+    const done = [];
+    for (const kind of KINDS) {
+      const r = await record(id, url, kind);
+      done.push(`${kind} ${r.secs}s/${r.frames}f`);
+    }
+    console.log(`✓ ${id}  ${done.join('  ')}`);
   } catch (err) {
     console.log(`✗ ${id}: ${err.message}`);
   }

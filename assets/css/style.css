@@ -32459,25 +32459,62 @@ html:has(body.home-page-active) {
   }
 }
 
-/* Portfolio cards: on phones, a readable phone capture replaces the shrunken desktop shot.
-   Hidden (and never downloaded, it's loading="lazy") on wider screens. */
+/* Portfolio cards on phones: a phone-screen capture in a phone frame replaces the shrunken
+   desktop shot (portfolioPhoneMedia picks it). The whole phone sits centered over a blurred
+   copy of the same screen, so every phone card has one height and the hero is readable.
+   Hidden (and never downloaded) on wider screens. */
+.project-img .project-phone,
+.project-img .project-phone-bg,
 .project-img .project-img-mobile {
-  display: none;
+  display: none; /* on the <img> itself too: a lazy image only skips loading when it is display:none */
 }
 
 @media (max-width: 579px) {
-  .project-img.has-mobile-shot > img:not(.project-img-mobile),
-  .project-img.has-mobile-shot > video:not(.project-img-mobile),
-  .project-img.has-mobile-shot > .project-card-rotator,
-  .project-img.has-mobile-shot > [class*="rotator"] {
+  /* The whole phone, 16px above and below it: the phone sets the height, so it fits at any width.
+     Cards without a phone capture keep their 16:10 desktop video. */
+  .project-img.has-mobile-shot {
+    display: flex;
+    justify-content: center;
+    aspect-ratio: auto;
+    padding: 16px 0;
+  }
+
+  .project-img.has-mobile-shot > img,
+  .project-img.has-mobile-shot > video,
+  .project-img.has-mobile-shot > .project-cover-rotator {
     display: none;
+  }
+
+  .project-img.has-mobile-shot .project-phone-bg {
+    position: absolute;
+    inset: -30px;
+    display: block;
+    background-image: var(--phone-bg);
+    background-position: center top;
+    background-size: cover;
+    filter: blur(20px) saturate(1.15) brightness(0.5);
+  }
+
+  .project-img.has-mobile-shot .project-phone {
+    position: relative;
+    display: block;
+    width: 46%;
+    aspect-ratio: 392 / 710;
+    overflow: hidden;
+    border: 4px solid #111;
+    border-radius: 20px;
+    background: #000;
+    box-shadow: 0 0 0 1px hsla(0, 0%, 100%, 0.16), 0 16px 36px hsla(0, 0%, 0%, 0.6);
   }
 
   .project-img.has-mobile-shot .project-img-mobile {
     display: block;
+    width: 100%;
+    height: 100%;
     padding: 0;
     object-fit: cover;
     object-position: top center;
+    transform: none;
   }
 }
 

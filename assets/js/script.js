@@ -5164,8 +5164,16 @@ function portfolioObserveCoverRotators(root) {
  * decodes, and preload="none" keeps offscreen cards off the network entirely.
  */
 /**
- * Phone captures from the hero showcase (assets/images/hero/showcase/<id>-mobile.webp), keyed by the
- * project's live expo.app host. On phones the card shows this instead of a shrunken desktop shot.
+ * Phone cards (max-width 579px) show a phone-screen capture in a phone frame
+ * instead of the shrunken desktop shot. Where the capture comes from, first hit wins:
+ *   1. the hero showcase capture for the project's live host (PORTFOLIO_MOBILE_SHOTS),
+ *   2. a phone-shaped video: on the project's slides, else in its media folder,
+ *   3. a phone-shaped still: on its slides, else in its folder.
+ * (Phone-shaped = marked "portrait" in portfolio-assets.js by scripts/build-portfolio-assets.sh.)
+ * So a new project gets a phone card just by having a phone capture in its folder.
+ *
+ * Hero showcase captures (assets/images/hero/showcase/<id>-mobile.webp), keyed by the
+ * project's live host.
  */
 var PORTFOLIO_MOBILE_SHOTS = {
   'procleaning.expo.app': 'procleaning',
@@ -5182,40 +5190,102 @@ var PORTFOLIO_MOBILE_SHOTS = {
   'ruben-jim.github.io/DEMO': 'homeverse',
   'ruben-jim.github.io/ZoomRealty2025-main': 'zoomrealty'
 };
-var PORTFOLIO_MOBILE_SHOT_VERSION = 4; // keep in sync with SHOT_VERSION in index.html
-// Where to crop a capture whose hero starts with empty space (default: top).
-var PORTFOLIO_MOBILE_SHOT_POSITION = { realtor: 'center 11%' };
-
-function portfolioMobileShotUrl(p) {
-  try {
-    var u = new URL(String(p.projectUrl || ''));
-    var firstSeg = u.pathname.split('/').filter(Boolean)[0];
-    var id = PORTFOLIO_MOBILE_SHOTS[u.hostname] || (firstSeg && PORTFOLIO_MOBILE_SHOTS[u.hostname + '/' + firstSeg]);
-    return id ? '/assets/images/hero/showcase/' + id + '-mobile.webp?v=' + PORTFOLIO_MOBILE_SHOT_VERSION : '';
-  } catch (e) {
-    return '';
-  }
-}
+var PORTFOLIO_MOBILE_SHOT_VERSION = 5; // keep in sync with CLIP_VERSION in index.html (the hero showcase)
 
 // Phone-size demo videos recorded for the hero showcase (assets/video/showcase/<id>-mobile.mp4,
 // scripts/record-hero-showcase.mjs). A phone card plays one of these with its screenshot as the cover.
 var PORTFOLIO_MOBILE_VIDEOS = ['barbershop', 'beautysalon', 'carpet', 'lawncare', 'pawshine', 'photographer',
   'procleaning', 'realtor', 'roofcleaning', 'sunergy', 'treeservice'];
 
-function portfolioRenderMobileShotHtml(p, alt) {
-  var src = portfolioMobileShotUrl(p);
-  if (!src) return '';
-  var id = (src.match(/showcase\/([a-z]+)-mobile/) || [])[1];
-  var pos = PORTFOLIO_MOBILE_SHOT_POSITION[id];
-  if (PORTFOLIO_MOBILE_VIDEOS.indexOf(id) !== -1) {
-    return '<video class="project-img-mobile" src="/assets/video/showcase/' + id + '-mobile.mp4?v=' + PORTFOLIO_MOBILE_SHOT_VERSION +
-      '" poster="' + portfolioEscapeHtml(src) + '"' + (pos ? ' style="object-position:' + pos + '"' : '') +
-      ' muted loop playsinline disablepictureinpicture preload="none" data-portfolio-autoplay aria-label="' +
-      portfolioEscapeHtml(alt) + '"></video>';
+function portfolioShowcasePhoneMedia(p) {
+  try {
+    var u = new URL(String(p.projectUrl || ''));
+    var firstSeg = u.pathname.split('/').filter(Boolean)[0];
+    var id = PORTFOLIO_MOBILE_SHOTS[u.hostname] || (firstSeg && PORTFOLIO_MOBILE_SHOTS[u.hostname + '/' + firstSeg]);
+    if (!id) return null;
+    var v = '?v=' + PORTFOLIO_MOBILE_SHOT_VERSION;
+    // A clip's poster is its own first frame, so a re-recorded clip never opens on an older still.
+    return PORTFOLIO_MOBILE_VIDEOS.indexOf(id) !== -1
+      ? { kind: 'video', src: '/assets/video/showcase/' + id + '-mobile.mp4' + v, poster: '/assets/video/showcase/' + id + '-mobile-poster.webp' + v }
+      : { kind: 'image', src: '/assets/images/hero/showcase/' + id + '-mobile.webp' + v };
+  } catch (e) {
+    return null;
   }
-  return '<img class="project-img-mobile" src="' + portfolioEscapeHtml(src) + '"' +
-    (pos ? ' style="object-position:' + pos + '"' : '') + ' alt="' +
-    portfolioEscapeHtml(alt) + '" loading="lazy" decoding="async">';
+}
+
+var portfolioPhoneFilesIndex = null;
+
+/** Phone-shaped project media from the manifest, by path and by folder. Back-office screens left out. */
+function portfolioPhoneFiles() {
+  if (portfolioPhoneFilesIndex) return portfolioPhoneFilesIndex;
+  var byPath = {};
+  var byFolder = {};
+  (window.PORTFOLIO_ASSET_GROUPS || []).forEach(function (g) {
+    if (g.source !== 'images') return;
+    (g.files || []).forEach(function (f) {
+      if (!f.portrait || portfolioIsBackOfficeMediaUrl(f.path)) return;
+      var path = portfolioNormalizeAssetImageUrl(f.path);
+      var folder = path.slice(0, path.lastIndexOf('/'));
+      byPath[path] = f;
+      (byFolder[folder] = byFolder[folder] || []).push(f);
+    });
+  });
+  portfolioPhoneFilesIndex = { byPath: byPath, byFolder: byFolder };
+  return portfolioPhoneFilesIndex;
+}
+
+/** From a folder: a video beats a still (it moves), then a home screen, then file order. */
+function portfolioBestPhoneFile(files) {
+  var best = null;
+  var bestScore = -1;
+  files.forEach(function (f) {
+    var score = (f.kind === 'video' ? 2 : 0) + (/home/i.test(f.name || '') ? 1 : 0);
+    if (score > bestScore) {
+      best = f;
+      bestScore = score;
+    }
+  });
+  return best;
+}
+
+/**
+ * The phone card's media, { kind, src, poster? }, or null when the project has no phone capture.
+ * A phone video beats a phone still wherever it is: slides first, then the folder.
+ */
+function portfolioPhoneMedia(p) {
+  var showcase = portfolioShowcasePhoneMedia(p);
+  if (showcase) return showcase;
+  var index = portfolioPhoneFiles();
+  var urls = portfolioImageUrlsFromRecord(p);
+  var own = urls.map(function (u) { return index.byPath[u]; }).filter(Boolean);
+  var folder = urls.length ? index.byFolder[urls[0].slice(0, urls[0].lastIndexOf('/'))] || [] : [];
+  var isVideo = function (f) { return f.kind === 'video'; };
+  var file = own.filter(isVideo)[0] || portfolioBestPhoneFile(folder.filter(isVideo)) || own[0] || portfolioBestPhoneFile(folder);
+  if (!file) return null;
+  return file.kind === 'video'
+    ? { kind: 'video', src: portfolioDisplayMediaSrc(file.path), poster: file.poster ? portfolioDisplayMediaSrc(file.poster) : '' }
+    : { kind: 'image', src: portfolioDisplayImageSrc(file.path) };
+}
+
+/** The phone frame over a blurred copy of its screen. Both are hidden (and never fetched) on wider screens. */
+function portfolioRenderPhoneShotHtml(m, alt) {
+  if (!m) return '';
+  var still = m.kind === 'video' ? m.poster : m.src;
+  var media = m.kind === 'video'
+    ? '<video class="project-img-mobile" src="' + portfolioEscapeHtml(m.src) + '"' +
+      (m.poster ? ' poster="' + portfolioEscapeHtml(m.poster) + '"' : '') +
+      ' muted loop playsinline disablepictureinpicture preload="none" data-portfolio-autoplay aria-label="' +
+      portfolioEscapeHtml(alt) + '"></video>'
+    : '<img class="project-img-mobile" src="' + portfolioEscapeHtml(m.src) + '" alt="' +
+      portfolioEscapeHtml(alt) + '" loading="lazy" decoding="async">';
+  return (
+    (still
+      // A variable, not background-image: browsers fetch a hidden element's own background,
+      // and only the phone layout (style.css) turns this into one.
+      ? '<span class="project-phone-bg" aria-hidden="true" style="--phone-bg:url(\'' + portfolioEscapeHtml(still) + '\')"></span>'
+      : '') +
+    '<span class="project-phone">' + media + '</span>'
+  );
 }
 
 /**
@@ -5233,11 +5303,28 @@ function portfolioCardVideoSourcesHtml(url) {
   }).join('');
 }
 
+function portfolioCardVideoHtml(video, poster, alt) {
+  return (
+    '<video class="project-cover-video"' +
+    (poster
+      ? ' poster="' + portfolioEscapeHtml(portfolioDisplayMediaSrc(poster)) + '"'
+      : '') +
+    ' muted loop playsinline disablepictureinpicture preload="none"' +
+    ' data-portfolio-autoplay aria-label="' +
+    portfolioEscapeHtml(alt) +
+    '">' + portfolioCardVideoSourcesHtml(video) + '</video>'
+  );
+}
+
 function portfolioRenderCardCoverHtml(p, alt) {
   const rotator = portfolioRenderCardRotatorHtml(p, alt);
   if (rotator) return rotator;
+  const urls = portfolioImageUrlsFromRecord(p);
   const explicitCover = portfolioExplicitCoverUrl(p);
   if (explicitCover) {
+    // "Set poster as cover" picks the video itself: play it, starting on that poster.
+    const coverVideo = window.PortfolioSkins.videoForCover(urls, explicitCover, portfolioVideoPosterUrlBest);
+    if (coverVideo) return portfolioCardVideoHtml(coverVideo, explicitCover, alt);
     return (
       '<img src="' +
       portfolioEscapeHtml(portfolioDisplayImageSrc(explicitCover)) +
@@ -5246,20 +5333,9 @@ function portfolioRenderCardCoverHtml(p, alt) {
       '" loading="lazy" onerror="portfolioHandleImageError(this)">'
     );
   }
-  const urls = portfolioImageUrlsFromRecord(p);
   const cover = urls.length ? urls[0] : '';
   if (cover && portfolioIsVideoUrl(cover)) {
-    const poster = portfolioVideoPosterUrlBest(cover);
-    return (
-      '<video class="project-cover-video"' +
-      (poster
-        ? ' poster="' + portfolioEscapeHtml(portfolioDisplayMediaSrc(poster)) + '"'
-        : '') +
-      ' muted loop playsinline disablepictureinpicture preload="none"' +
-      ' data-portfolio-autoplay aria-label="' +
-      portfolioEscapeHtml(alt) +
-      '">' + portfolioCardVideoSourcesHtml(cover) + '</video>'
-    );
+    return portfolioCardVideoHtml(cover, portfolioVideoPosterUrlBest(cover), alt);
   }
   return (
     '<img src="' +
@@ -5316,6 +5392,7 @@ function buildPortfolioProjectCardHtml(p) {
   const niches = portfolioCardNiches(p);
   const nicheSlugs = niches.all.join(' ');
   const buildNiches = Object.keys(niches.viaBuild).map(function (id) { return id + ':' + niches.viaBuild[id]; }).join(' ');
+  const phone = portfolioPhoneMedia(p);
   return (
     '<li class="project-item active" data-filter-item data-niches="' +
     portfolioEscapeHtml(nicheSlugs) +
@@ -5326,12 +5403,12 @@ function buildPortfolioProjectCardHtml(p) {
     '<a href="' +
     portfolioEscapeHtml(liveHref) +
     '" class="project-link">' +
-    '<figure class="project-img' + (portfolioMobileShotUrl(p) ? ' has-mobile-shot' : '') + '">' +
+    '<figure class="project-img' + (phone ? ' has-mobile-shot' : '') + '">' +
     '<div class="project-item-icon-box">' +
     '<ion-icon name="eye-outline"></ion-icon>' +
     '</div>' +
     portfolioRenderCardCoverHtml(p, p.imageAlt || p.title || '') +
-    portfolioRenderMobileShotHtml(p, p.imageAlt || p.title || '') +
+    portfolioRenderPhoneShotHtml(phone, p.imageAlt || p.title || '') +
     portfolioRenderBuildsBadgeHtml(p) +
     portfolioRenderClientBadgeHtml(p) +
     '</figure>' +

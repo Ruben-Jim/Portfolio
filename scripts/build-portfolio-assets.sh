@@ -20,11 +20,73 @@ if [[ ! -d "$DIR" ]]; then
 fi
 
 python3 - "$DIR" "$DOCS" "$OUT" <<'PY'
-import json, os, sys
+import json, os, shutil, struct, subprocess, sys
 
 src, docs, out = sys.argv[1], sys.argv[2], sys.argv[3]
 IMG = {'.webp', '.png', '.jpg', '.jpeg', '.svg', '.gif'}
 VID = {'.webm', '.mp4'}
+FFPROBE = shutil.which('ffprobe')
+
+
+def image_size(path):
+    """(width, height) from a webp/png/gif/jpeg header, or None."""
+    try:
+        with open(path, 'rb') as fh:
+            head = fh.read(1 << 20)
+    except OSError:
+        return None
+    if head[:4] == b'RIFF' and head[8:12] == b'WEBP':
+        chunk = head[12:16]
+        if chunk == b'VP8 ' and len(head) >= 30:
+            w, h = struct.unpack('<HH', head[26:30])
+            return w & 0x3FFF, h & 0x3FFF
+        if chunk == b'VP8L' and len(head) >= 25:
+            b = head[21:25]
+            return 1 + (b[0] | (b[1] & 0x3F) << 8), 1 + (b[1] >> 6 | b[2] << 2 | (b[3] & 0x0F) << 10)
+        if chunk == b'VP8X' and len(head) >= 30:
+            return 1 + int.from_bytes(head[24:27], 'little'), 1 + int.from_bytes(head[27:30], 'little')
+        return None
+    if head[:8] == b'\x89PNG\r\n\x1a\n' and len(head) >= 24:
+        return struct.unpack('>II', head[16:24])
+    if head[:6] in (b'GIF87a', b'GIF89a'):
+        return struct.unpack('<HH', head[6:10])
+    if head[:2] == b'\xff\xd8':
+        i = 2
+        while i + 9 < len(head):
+            if head[i] != 0xFF:
+                i += 1
+                continue
+            marker = head[i + 1]
+            if marker in (0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF):
+                h, w = struct.unpack('>HH', head[i + 5:i + 9])
+                return w, h
+            i += 2 + struct.unpack('>H', head[i + 2:i + 4])[0]
+    return None
+
+
+def video_size(path, poster):
+    """The poster's size when there is one (same frame), else ffprobe's, else None."""
+    if poster:
+        size = image_size(poster)
+        if size:
+            return size
+    if not FFPROBE:
+        return None
+    try:
+        res = subprocess.run(
+            [FFPROBE, '-v', 'error', '-select_streams', 'v:0',
+             '-show_entries', 'stream=width,height', '-of', 'csv=p=0', path],
+            capture_output=True, text=True, timeout=20)
+        w, h = res.stdout.strip().split(',')[:2]
+        return int(w), int(h)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return None
+
+
+def is_portrait(size):
+    """A phone-screen capture (phones are 16:9 or taller). Phone portfolio cards use these.
+    Old card thumbnails around 5:7 are tall too, but they aren't phone screens."""
+    return bool(size) and size[1] >= size[0] * 1.6
 
 
 def walk(base, url_prefix, group_for):
@@ -53,10 +115,18 @@ def walk(base, url_prefix, group_for):
             }
             if folder:
                 entry['folder'] = folder
+            full = os.path.join(dirpath, name)
             if ext in VID:
                 poster = os.path.join(dirpath, stem + '-poster.webp')
-                if os.path.isfile(poster):
+                if not os.path.isfile(poster):
+                    poster = None
+                if poster:
                     entry['poster'] = url_prefix + os.path.relpath(poster, base).replace(os.sep, '/')
+                size = video_size(full, poster)
+            else:
+                size = image_size(full)
+            if is_portrait(size):
+                entry['portrait'] = True
             yield group, entry
 
 
