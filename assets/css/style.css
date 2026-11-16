@@ -11535,15 +11535,10 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   backdrop-filter: blur(6px);
 }
 
+/* Layout per screen size: two columns above 900px, a full-height sheet at 900px and under (below). */
 .project-detail-content {
   position: relative;
   z-index: 2;
-  width: min(1080px, calc(100vw - 48px));
-  max-height: min(94vh, 960px);
-  height: min(94vh, 960px);
-  display: grid;
-  grid-template-columns: minmax(280px, 40%) minmax(0, 1fr);
-  align-items: stretch;
   background: linear-gradient(150deg, hsl(240, 2%, 16%) 0%, hsl(240, 2%, 12%) 100%);
   border-radius: 22px;
   border: 1px solid hsla(45, 100%, 72%, 0.2);
@@ -11648,55 +11643,66 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   justify-content: center;
 }
 
-/* Desktop: hero image on top, copy + actions below (mobile sheet unchanged below 901px) */
+/* Wider than 900px: two columns. The slideshow and build tabs fill the left 58% and stay put;
+   the details scroll on the right, with the buttons pinned under them. The pane wrapper
+   (the sheet's scroller on phones) steps aside so its children sit in the grid. */
 @media (min-width: 901px) {
   .project-detail-content {
-    grid-template-columns: 1fr;
-    /* Media band trimmed 46vh -> 38vh and the modal grown, so the text section
-       below roughly doubles instead of being squeezed into the remainder. */
-    grid-template-rows: minmax(240px, 38vh) minmax(0, 1fr);
-    height: min(94vh, 960px);
-    max-height: min(94vh, 960px);
+    width: min(1180px, calc(100vw - 48px));
+    height: min(90vh, 860px);
+    max-height: min(90vh, 860px);
+    display: grid;
+    grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 
-  /* Templates with variant tabs get a third row and a little extra height, so
-     the tab strip does not come out of the reading area. */
-  .project-detail-content:has(.project-detail-variant-tabs:not([hidden])) {
-    grid-template-rows: minmax(240px, 38vh) auto minmax(0, 1fr);
-    height: min(94vh, 1000px);
-    max-height: min(94vh, 1000px);
+  .project-detail-pane {
+    display: contents;
+  }
+
+  .project-detail-showcase {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    min-height: 0;
+    padding: 24px 22px 18px 24px;
+    background:
+      radial-gradient(circle at 15% 10%, hsla(45, 100%, 72%, 0.14), transparent 46%),
+      linear-gradient(145deg, hsla(45, 100%, 72%, 0.1), hsla(240, 2%, 14%, 0.95));
+    border-right: 1px solid hsla(45, 100%, 72%, 0.12);
   }
 
   .project-detail-media {
+    flex: 1 1 auto;
     width: 100%;
     height: auto;
-    min-height: 260px;
-    max-height: 46vh;
-    flex-shrink: 0;
-    border-right: 0;
-    border-bottom: 1px solid hsla(45, 100%, 72%, 0.12);
-    padding: 18px 28px 14px;
+    min-height: 0;
+    padding: 0;
+    background: none;
+    border: 0;
   }
 
   .project-detail-media .project-detail-carousel,
   .project-detail-media .portfolio-carousel {
-    min-height: 200px;
-    max-height: calc(46vh - 36px);
+    height: 100%;
+    min-height: 0;
+    max-height: none;
   }
 
   .project-detail-media .portfolio-carousel-track {
     flex: 1 1 auto;
-    min-height: 200px;
     width: 100%;
-    aspect-ratio: unset;
-    max-height: calc(46vh - 36px);
+    min-height: 0;
+    aspect-ratio: auto;
     overflow: hidden;
-    padding-bottom: 28px;
-    box-sizing: border-box;
   }
 
+  /* Leave room under the screenshot for the dots. */
   .project-detail-media .portfolio-carousel-slide {
-    padding: 0 8px;
+    bottom: 30px;
   }
 
   .project-detail-media img,
@@ -11705,14 +11711,34 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
     width: auto;
     max-width: 100%;
     height: auto;
-    max-height: min(520px, calc(46vh - 48px));
+    max-height: 100%;
     margin-inline: auto;
     object-fit: contain;
     object-position: center center;
   }
 
-  .project-detail-body {
-    min-height: 0;
+  .project-detail-showcase .project-detail-variant-tabs {
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .project-detail-scroll {
+    grid-column: 2;
+    grid-row: 1;
+    overflow-y: auto;
+    padding: 28px 30px 24px;
+  }
+
+  .project-detail-actions {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  /* The title row leaves room for the close button. */
+  .project-detail-meta {
+    padding-right: 48px;
   }
 }
 
@@ -11758,21 +11784,14 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   pointer-events: auto;
 }
 
-.project-detail-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  height: 100%;
-  padding: 0;
-  overflow: hidden;
-}
-
+/* The details. One comfortable text size for everyone (there is no size toggle). */
 .project-detail-scroll {
-  flex: 1 1 auto;
+  min-width: 0;
   min-height: 0;
-  overflow-y: auto;
-  padding: 28px 30px 18px;
   -webkit-overflow-scrolling: touch;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--light-gray);
 }
 
 .project-detail-meta {
@@ -11786,75 +11805,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
 .project-detail-meta .project-detail-title {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.project-detail-density-btn {
-  display: none;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 5px;
-  margin-top: 2px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid hsla(45, 100%, 72%, 0.28);
-  background: hsla(240, 2%, 18%, 0.9);
-  color: var(--light-gray);
-  font-size: 11px;
-  font-weight: var(--fw-600);
-  line-height: 1;
-  cursor: pointer;
-  transition: var(--transition-1);
-}
-
-.project-detail-density-btn:hover,
-.project-detail-density-btn[aria-pressed="true"] {
-  border-color: hsla(45, 100%, 72%, 0.45);
-  color: var(--orange-yellow-crayola);
-  background: hsla(45, 100%, 72%, 0.1);
-}
-
-.project-detail-density-btn-label {
-  font-size: 15px;
-  font-weight: var(--fw-700);
-  line-height: 1;
-}
-
-.project-detail-density-btn-hint {
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.project-detail-cta-top {
-  margin: 0 0 16px;
-}
-
-.project-detail-cta-top .project-detail-btn {
-  flex: 1 1 100%;
-  width: 100%;
-  max-width: 320px;
-}
-
-.project-detail-cta-inline {
-  margin-top: 8px;
-  padding-top: 18px;
-  border-top: 1px solid hsla(45, 100%, 72%, 0.12);
-}
-
-.project-detail-cta-inline-hint {
-  margin: 0 0 12px;
-  color: var(--light-gray-70);
-  font-size: var(--fs-7);
-  line-height: 1.45;
-}
-
-.project-detail-cta-inline .project-detail-btn {
-  flex: 1 1 100%;
-  width: 100%;
-  max-width: 360px;
-}
-
-.project-detail-extra-sections {
-  margin-top: 4px;
 }
 
 .project-detail-category {
@@ -11876,27 +11826,95 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   line-height: 1.15;
 }
 
-.project-detail-description,
-.project-detail-outcome,
-.project-detail-admin-text,
 .portfolio-preserve-breaks {
   white-space: pre-line;
 }
 
-.project-detail-description {
-  margin: 0 0 18px;
-  color: var(--light-gray);
-  line-height: 1.75;
-}
-
+/* Sections: no boxes. Each starts with a bold white heading and a thin line running to the right. */
 .project-detail-section {
-  margin: 0 0 16px;
+  margin: 28px 0 0;
 }
 
 .project-detail-section-title {
-  margin: 0 0 10px;
-  font-size: var(--fs-6);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  font-size: 16px;
+  font-weight: var(--fw-600);
+  line-height: 1.3;
   color: var(--white-2);
+}
+
+.project-detail-section-title::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: hsla(0, 0%, 100%, 0.1);
+}
+
+/* About, Outcome, Admin Page: paragraphs and bullet lists (portfolioSetRichText). */
+.project-detail-richtext p {
+  margin: 0 0 10px;
+}
+
+.project-detail-richtext ul {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.project-detail-richtext li {
+  position: relative;
+  padding-left: 18px;
+}
+
+.project-detail-richtext li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.62em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--orange-yellow-crayola);
+}
+
+.project-detail-richtext > :last-child {
+  margin-bottom: 0;
+}
+
+/* What's included: the card's checklist, at reading size. */
+.project-detail-included-section .project-fit-list li {
+  font-size: 14px;
+  color: var(--white-2);
+}
+
+/* Best for: small rounded tags, so it doesn't read as a second checklist. */
+.project-detail-bestfor-section .project-fit-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  column-count: auto;
+}
+
+.project-detail-bestfor-section .project-fit-list li {
+  display: inline-flex;
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid hsla(0, 0%, 100%, 0.12);
+  border-radius: 999px;
+  background: hsla(240, 2%, 20%, 0.9);
+  color: var(--white-2);
+  font-size: 13px;
+  line-height: 1.35;
+  hyphens: none;
+}
+
+.project-detail-bestfor-section .project-fit-list li::before {
+  content: none;
 }
 
 .project-detail-page-accordion {
@@ -11959,64 +11977,6 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
 .project-detail-page-row strong {
   color: var(--orange-yellow-crayola);
   font-weight: var(--fw-600);
-}
-
-.project-detail-admin-section {
-  border: 1px solid hsla(45, 100%, 72%, 0.22);
-  background: linear-gradient(145deg, hsla(45, 100%, 72%, 0.1), hsla(240, 2%, 18%, 0.9));
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.project-detail-admin-text {
-  margin: 0;
-  color: var(--light-gray);
-  line-height: 1.7;
-}
-
-.project-detail-included-section,
-.project-detail-bestfor-section {
-  border: 1px solid hsla(45, 100%, 72%, 0.16);
-  background: hsla(240, 2%, 18%, 0.65);
-  border-radius: 12px;
-  padding: 12px 14px;
-}
-
-.project-detail-bestfor-list {
-  margin: 0;
-}
-
-.project-detail-tech {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin: 0 0 18px;
-}
-
-.project-detail-outcome-section {
-  margin: 0 0 20px;
-}
-
-.project-detail-outcome-section .project-detail-section-title {
-  margin-bottom: 8px;
-}
-
-.project-detail-outcome {
-  margin: 0;
-  padding: 14px 16px;
-  border-left: 3px solid var(--orange-yellow-crayola);
-  border-radius: 12px;
-  background: hsla(240, 2%, 20%, 0.9);
-  color: var(--light-gray);
-  line-height: 1.7;
-}
-
-.project-detail-admin-section {
-  margin-top: 0;
-}
-
-.project-detail-canvas-doc {
-  margin-top: 0;
 }
 
 .project-detail-canvas-loading,
@@ -12511,24 +12471,24 @@ button.portfolio-slides-cover-badge {
   background: linear-gradient(180deg, hsla(240, 2%, 12%, 0.4), hsl(240, 2%, 11));
 }
 
+/* No buttons for this project (a client build with the quote button off): no bar. */
+.project-detail-actions:not(:has(.project-detail-btn:not([hidden]))) {
+  display: none;
+}
+
+/* Wide screens: the live button keeps its long label ("Open Carpet Cleaning demo");
+   the quote button uses the short one so both fit side by side. */
 @media (min-width: 901px) {
-  .project-detail-cta-top:not([hidden]) {
-    display: block;
+  .project-detail-actions {
+    padding: 14px 24px 18px;
   }
 
-  .project-detail-cta-inline:not([hidden]) {
-    display: block;
-  }
-
-  .project-detail-actions .project-detail-btn--live-footer,
-  .project-detail-actions .project-detail-btn--quote-footer {
-    display: none !important;
-  }
-
-  .project-detail-actions:not(:has(.project-detail-btn:not([hidden]))) {
+  #project-detail-quote-footer .project-detail-btn-label--long {
     display: none;
-    border-top: 0;
-    padding: 0;
+  }
+
+  #project-detail-quote-footer .project-detail-btn-label--short {
+    display: inline;
   }
 }
 
@@ -12603,8 +12563,8 @@ body.project-modal-open {
   .project-detail-content {
     width: 100%;
     max-width: 100%;
-    height: var(--project-sheet-height, 78dvh);
-    max-height: var(--project-sheet-height, min(92dvh, 100%));
+    height: var(--project-sheet-height, 94dvh);
+    max-height: var(--project-sheet-height, min(94dvh, 100%));
     display: flex;
     flex-direction: column;
     border-radius: 22px 22px 0 0;
@@ -12648,6 +12608,16 @@ body.project-modal-open {
     top: 10px;
     right: 10px;
     z-index: 30;
+  }
+
+  /* One scroll: the slideshow, build tabs and details move together, so the reading area is
+     the whole sheet. The close button and the buttons below stay put. */
+  .project-detail-pane {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .project-detail-media {
@@ -12703,112 +12673,17 @@ body.project-modal-open {
     font-size: 18px;
   }
 
-  .project-detail-body {
-    flex: 1 1 auto;
-    min-height: 0;
-    max-height: none;
-  }
-
-  .project-detail-density-btn {
-    display: inline-flex;
-  }
-
   .project-detail-scroll {
-    padding: 12px 14px 10px;
-    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    padding: 16px 18px 24px;
+    font-size: 15px;
   }
 
-  .project-detail-scroll.is-detail-compact {
-    font-size: 13px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-title {
-    font-size: 18px;
-    line-height: 1.2;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-meta {
-    margin-bottom: 10px;
-    gap: 8px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-description {
-    margin-bottom: 12px;
-    line-height: 1.55;
-    font-size: 0.95em;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-tech {
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-tech .tech-tag {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-section {
-    margin-bottom: 10px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-section-title,
-  .project-detail-scroll.is-detail-compact .h4.project-detail-section-title {
-    margin-bottom: 6px;
-    font-size: 14px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-outcome {
-    padding: 10px 12px;
-    line-height: 1.55;
-    font-size: 0.95em;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-admin-section {
-    padding: 10px 12px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-admin-text,
-  .project-detail-scroll.is-detail-compact .project-detail-page-row {
-    line-height: 1.55;
-    font-size: 0.95em;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-page-accordion {
-    gap: 7px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-page-item summary {
-    padding: 8px 11px;
-    font-size: 13px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-page-body {
-    padding: 0 11px 9px;
-    gap: 7px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-cta-inline {
-    margin-top: 4px;
-    padding-top: 12px;
-  }
-
-  .project-detail-scroll.is-detail-compact .project-detail-cta-inline-hint {
-    margin-bottom: 8px;
-    font-size: 12px;
-  }
-
-  .project-detail-scroll:not(.is-detail-compact) .project-detail-title {
-    font-size: 22px;
+  .project-detail-section {
+    margin-top: 24px;
   }
 
   .project-detail-title {
     font-size: 22px;
-  }
-
-  .project-detail-cta-top,
-  .project-detail-cta-inline {
-    display: none !important;
   }
 
   .project-detail-actions {
@@ -12889,11 +12764,6 @@ body.project-modal-open {
 
   #project-detail-buy-premium {
     order: 3;
-  }
-
-  #project-detail-quote {
-    order: 4;
-    grid-column: 1 / -1;
   }
 
   .project-detail-actions:not(:has(#project-detail-buy-now:not([hidden]))):not(:has(#project-detail-buy-premium:not([hidden]))) {
@@ -30539,34 +30409,6 @@ body.admin-tab-reorder-active::before {
   color: var(--light-gray-70);
 }
 
-/* ——— Project detail modal: readable measure ———
-   The modal is up to ~1100px wide and the copy had no max-width, so bullets ran
-   ~130 characters per line — roughly double a comfortable measure. Media stays
-   full width; only the reading column is constrained. */
-@media (min-width: 900px) {
-  .project-detail-modal .project-detail-description,
-  .project-detail-modal .project-detail-outcome,
-  .project-detail-modal .project-detail-admin-text,
-  .project-detail-modal .portfolio-preserve-breaks,
-  .project-detail-modal .project-detail-section-title,
-  .project-detail-modal .project-detail-page-body,
-  .project-detail-modal .project-detail-built-with-lead {
-    max-width: 72ch;
-  }
-
-  .project-detail-modal .project-detail-title {
-    max-width: 24ch;
-  }
-
-  /* Shorter lines read better a touch tighter. */
-  .project-detail-modal .project-detail-description {
-    line-height: 1.7;
-  }
-
-  .project-detail-modal .project-detail-scroll {
-    padding: 26px 34px 18px;
-  }
-}
 
 /* ——— Portfolio media picker ———
    "Which project?" dropdown → that folder's media as a thumbnail grid; tick

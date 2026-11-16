@@ -1047,7 +1047,49 @@
     });
   }
 
+  // "· item", "• item", "- item": a bullet. A dash needs a space after it, so "-5% off" stays text.
+  var BULLET_RE = /^(?:[·•▪◦‣]\s*|[-–—*]\s+)/;
+
+  /**
+   * Admin text (description, Outcome, Admin Page) as paragraphs and bullet lists:
+   * [{ type: 'p', text }, { type: 'ul', items: [...] }]. Blank lines separate blocks.
+   * In a block, bullet lines become a list and plain lines stay paragraphs; a block of
+   * two or more plain lines is written as jot dots, so it becomes a list too.
+   */
+  function textBlocks(value) {
+    var out = [];
+    String(value == null ? '' : value)
+      .replace(/\r\n?/g, '\n')
+      .split(/\n\s*\n/)
+      .forEach(function (block) {
+        var lines = block.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+        if (!lines.length) return;
+        var hasBullets = lines.some(function (l) { return BULLET_RE.test(l); });
+        if (!hasBullets && lines.length === 1) {
+          out.push({ type: 'p', text: lines[0] });
+          return;
+        }
+        var list = null;
+        lines.forEach(function (line) {
+          if (hasBullets && !BULLET_RE.test(line)) {
+            list = null;
+            out.push({ type: 'p', text: line });
+            return;
+          }
+          var item = line.replace(BULLET_RE, '').trim();
+          if (!item) return;
+          if (!list) {
+            list = { type: 'ul', items: [] };
+            out.push(list);
+          }
+          list.items.push(item);
+        });
+      });
+    return out;
+  }
+
   global.PortfolioDetailShared = {
+    textBlocks: textBlocks,
     normalizePortfolioDetailRecord: normalizePortfolioDetailRecord,
     parseDetailSections: parseDetailSections,
     renderPortfolioDetailHtml: renderPortfolioDetailHtml,

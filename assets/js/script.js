@@ -3085,17 +3085,6 @@ function portfolioEscapeHtml(str) {
 }
 
 /** Preserve line breaks from admin textarea / RTDB (pair with .portfolio-preserve-breaks CSS). */
-function portfolioNormalizeMultilineText(value) {
-  return String(value == null ? '' : value)
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n');
-}
-
-function portfolioSetMultilineElement(el, value) {
-  if (!el) return;
-  el.textContent = portfolioNormalizeMultilineText(value).trim();
-}
-
 function getPortfolioAssetImageOptions() {
   var seen = {};
   var list = [];
@@ -4167,10 +4156,6 @@ function portfolioParseTechTags(raw) {
     .map(function (t) { return t.trim(); })
     .filter(Boolean)
     .slice(0, 24);
-}
-
-function portfolioTechTagsFromRecord(data) {
-  return portfolioParseTechTags(data.techTags);
 }
 
 function portfolioParseDetailSections(raw) {
@@ -7796,21 +7781,40 @@ function getPortfolioDerivedBuilds(record) {
 }
 
 /**
- * The popup's live buttons. url '' hides them; longLabel replaces "Open Live
- * Project" (a vertical's tab says "Open Carpet Cleaning demo").
+ * The popup's live button (pinned at the bottom). url '' hides it; longLabel replaces
+ * "Open Live Project" on wide screens (a vertical's tab says "Open Carpet Cleaning demo").
  */
 function portfolioSetDetailLiveLink(url, longLabel) {
   var show = !!url;
-  var top = document.getElementById('project-detail-cta-top');
-  if (top) top.hidden = !show;
-  ['project-detail-live', 'project-detail-live-footer'].forEach(function (id) {
-    var btn = document.getElementById(id);
-    if (!btn) return;
-    btn.href = show ? url : '#';
-    btn.hidden = !show;
-    var label = btn.querySelector('.project-detail-btn-label--long');
-    if (label) label.textContent = longLabel || 'Open Live Project';
+  var btn = document.getElementById('project-detail-live-footer');
+  if (!btn) return;
+  btn.href = show ? url : '#';
+  btn.hidden = !show;
+  var label = btn.querySelector('.project-detail-btn-label--long');
+  if (label) label.textContent = longLabel || 'Open Live Project';
+}
+
+/** Admin text as paragraphs and bullet lists (PortfolioDetailShared.textBlocks). Returns false when empty. */
+function portfolioSetRichText(el, value) {
+  if (!el) return false;
+  el.textContent = '';
+  var blocks = window.PortfolioDetailShared.textBlocks(value);
+  blocks.forEach(function (block) {
+    if (block.type === 'p') {
+      var p = document.createElement('p');
+      p.textContent = block.text;
+      el.appendChild(p);
+      return;
+    }
+    var ul = document.createElement('ul');
+    block.items.forEach(function (text) {
+      var li = document.createElement('li');
+      li.textContent = text;
+      ul.appendChild(li);
+    });
+    el.appendChild(ul);
   });
+  return blocks.length > 0;
 }
 
 /** Blurb, live link and label for the tab on screen (portfolio-skins.js tabInfo). */
@@ -8153,7 +8157,7 @@ function initPortfolioProjectModal() {
   const outcomeSection = document.getElementById('project-detail-outcome-section');
   const title = document.getElementById('project-detail-title');
   const description = document.getElementById('project-detail-description');
-  const tech = document.getElementById('project-detail-tech');
+  const aboutSection = document.getElementById('project-detail-about-section');
   const outcome = document.getElementById('project-detail-outcome');
   const admin = document.getElementById('project-detail-admin');
   const adminSection = document.getElementById('project-detail-admin-section');
@@ -8162,37 +8166,14 @@ function initPortfolioProjectModal() {
   const canvasSection = document.getElementById('project-detail-canvas-section');
   const canvasTitleEl = document.getElementById('project-detail-canvas-title-el');
   const canvasBody = document.getElementById('project-detail-canvas-body');
-  // The live buttons (project-detail-live / -live-footer / -cta-top) are set by
-  // portfolioSetDetailLiveLink, so a platform's tabs can swap the link.
-  const ctaInline = document.getElementById('project-detail-cta-inline');
+  // The live button (project-detail-live-footer) is set by portfolioSetDetailLiveLink,
+  // so a platform's tabs can swap the link.
   const buyNowBtn = document.getElementById('project-detail-buy-now');
   const buyPremiumBtn = document.getElementById('project-detail-buy-premium');
-  const quoteBtn = document.getElementById('project-detail-quote');
   const quoteFooterBtn = document.getElementById('project-detail-quote-footer');
+  // Phones scroll the pane (media + details together); wider screens scroll the details column.
+  const detailPane = document.getElementById('project-detail-pane');
   const detailScroll = document.getElementById('project-detail-scroll');
-  const detailDensityToggle = document.getElementById('project-detail-density-toggle');
-
-  function applyProjectDetailDensity(compact) {
-    if (!detailScroll) return;
-    detailScroll.classList.toggle('is-detail-compact', !!compact);
-    if (!detailDensityToggle) return;
-    detailDensityToggle.setAttribute('aria-pressed', compact ? 'true' : 'false');
-    detailDensityToggle.setAttribute(
-      'aria-label',
-      compact ? 'Use larger text size' : 'Use compact text size'
-    );
-    var hint = detailDensityToggle.querySelector('.project-detail-density-btn-hint');
-    if (hint) hint.textContent = compact ? 'Compact' : 'Comfort';
-  }
-
-  function syncProjectDetailDensityForViewport() {
-    if (!detailScroll) return;
-    if (isProjectSheetViewport()) applyProjectDetailDensity(true);
-    else {
-      detailScroll.classList.remove('is-detail-compact');
-      if (detailDensityToggle) detailDensityToggle.setAttribute('aria-pressed', 'false');
-    }
-  }
 
   // Hard reset modal state on init so it never renders open by default.
   if (modal) {
@@ -8249,8 +8230,12 @@ function initPortfolioProjectModal() {
     });
   }
 
+  // Heights the sheet rests at (share of the screen). It opens at the top one; dragging the
+  // handle below PROJECT_SHEET_CLOSE_AT closes it.
   const PROJECT_SHEET_SNAPS = [0.5, 0.78, 0.94];
-  let projectSheetSnapIndex = 1;
+  const PROJECT_SHEET_OPEN_INDEX = PROJECT_SHEET_SNAPS.length - 1;
+  const PROJECT_SHEET_CLOSE_AT = 0.38;
+  let projectSheetSnapIndex = PROJECT_SHEET_OPEN_INDEX;
   let projectSheetDragBound = false;
 
   function isProjectSheetViewport() {
@@ -8301,7 +8286,8 @@ function initPortfolioProjectModal() {
     function pointerMove(clientY) {
       if (!dragging) return;
       const delta = startY - clientY;
-      const minH = window.innerHeight * PROJECT_SHEET_SNAPS[0];
+      // Below the lowest snap so a downward drag can reach the close threshold.
+      const minH = window.innerHeight * 0.2;
       const maxH = window.innerHeight * PROJECT_SHEET_SNAPS[PROJECT_SHEET_SNAPS.length - 1];
       const next = Math.max(minH, Math.min(maxH, startHeightPx + delta));
       content.style.setProperty('--project-sheet-height', Math.round(next) + 'px');
@@ -8312,6 +8298,10 @@ function initPortfolioProjectModal() {
       dragging = false;
       content.classList.remove('is-sheet-dragging');
       const ratio = content.getBoundingClientRect().height / window.innerHeight;
+      if (ratio < PROJECT_SHEET_CLOSE_AT) {
+        closeProjectModal();
+        return;
+      }
       let nearest = 0;
       let best = Infinity;
       PROJECT_SHEET_SNAPS.forEach(function (snap, i) {
@@ -8362,7 +8352,7 @@ function initPortfolioProjectModal() {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('project-modal-open');
-    projectSheetSnapIndex = 1;
+    projectSheetSnapIndex = PROJECT_SHEET_OPEN_INDEX;
     resetProjectSheetHeight();
   }
 
@@ -8371,7 +8361,9 @@ function initPortfolioProjectModal() {
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('project-modal-open');
-    syncProjectDetailDensityForViewport();
+    // The same popup is reused for every project: start each one at the top.
+    if (detailPane) detailPane.scrollTop = 0;
+    if (detailScroll) detailScroll.scrollTop = 0;
     initProjectDetailSheetDrag();
     if (isProjectSheetViewport()) applyProjectSheetSnap(projectSheetSnapIndex);
     else resetProjectSheetHeight();
@@ -8437,34 +8429,12 @@ function initPortfolioProjectModal() {
       });
     }
     if (title) title.textContent = titleText;
-    if (description) portfolioSetMultilineElement(description, descriptionText);
+    // Tech tags stay in admin but aren't shown: visitors are business owners (portfolio-scan rule).
+    var hasAbout = portfolioSetRichText(description, descriptionText);
+    if (aboutSection) aboutSection.hidden = !hasAbout;
     portfolioFillDetailFitSections(record, titleText);
-    if (tech) {
-      const tags = record ? portfolioTechTagsFromRecord(record) : [];
-      if (tags.length) {
-        tech.innerHTML = tags
-          .map(function (tag) {
-            return '<span class="tech-tag">' + portfolioEscapeHtml(String(tag)) + '</span>';
-          })
-          .join('');
-        tech.hidden = false;
-      } else {
-        tech.innerHTML = '';
-        tech.hidden = true;
-      }
-    }
-    if (outcome) {
-      const outcomeText = record && record.outcome != null ? String(record.outcome).trim() : '';
-      if (outcomeText) {
-        portfolioSetMultilineElement(outcome, outcomeText);
-        outcome.hidden = false;
-        if (outcomeSection) outcomeSection.hidden = false;
-      } else {
-        outcome.textContent = '';
-        outcome.hidden = true;
-        if (outcomeSection) outcomeSection.hidden = true;
-      }
-    }
+    var hasOutcome = portfolioSetRichText(outcome, record && record.outcome != null ? record.outcome : '');
+    if (outcomeSection) outcomeSection.hidden = !hasOutcome;
 
     var adminText = '';
     if (record && record.adminModalNote && String(record.adminModalNote).trim()) {
@@ -8472,17 +8442,11 @@ function initPortfolioProjectModal() {
     } else if (projectPreset?.admin) {
       adminText = String(projectPreset.admin).trim();
     }
-    if (admin) {
-      if (adminText) {
-        portfolioSetMultilineElement(admin, adminText);
-      } else {
-        admin.textContent =
-          'Admin page focus: central management panel for operations, user actions, and business updates.';
-      }
-    }
-    if (adminSection && admin) {
-      adminSection.hidden = !String(admin.textContent || '').trim();
-    }
+    var hasAdmin = portfolioSetRichText(
+      admin,
+      adminText || 'Admin page focus: central management panel for operations, user actions, and business updates.'
+    );
+    if (adminSection) adminSection.hidden = !hasAdmin;
 
     if (extraSectionsWrap && extraSectionsAccordion) {
       var sectionsHtml = record
@@ -8539,8 +8503,6 @@ function initPortfolioProjectModal() {
 
     var showQuote =
       !record || record.showQuoteButton === undefined || record.showQuoteButton !== false;
-    if (ctaInline) ctaInline.hidden = !showQuote;
-    if (quoteBtn) quoteBtn.hidden = !showQuote;
     if (quoteFooterBtn) quoteFooterBtn.hidden = !showQuote;
 
     const showBuyButtons = window.PORTFOLIO_SHOW_BUY_BUTTONS === true;
@@ -8592,20 +8554,6 @@ function initPortfolioProjectModal() {
   renderPortfolioBestForSections();
   initProjectDetailSheetDrag();
 
-  if (detailDensityToggle && !detailDensityToggle.dataset.portfolioDetailBound) {
-    detailDensityToggle.dataset.portfolioDetailBound = '1';
-    detailDensityToggle.addEventListener('click', function () {
-      if (!detailScroll || !isProjectSheetViewport()) return;
-      applyProjectDetailDensity(!detailScroll.classList.contains('is-detail-compact'));
-    });
-  }
-  if (!window.__projectDetailDensityResizeBound) {
-    window.__projectDetailDensityResizeBound = true;
-    window.addEventListener('resize', function () {
-      if (modal && modal.classList.contains('active')) syncProjectDetailDensityForViewport();
-    });
-  }
-
   if (closeBtn && !closeBtn.dataset.portfolioDetailBound) {
     closeBtn.dataset.portfolioDetailBound = '1';
     closeBtn.addEventListener('click', function (event) {
@@ -8630,7 +8578,6 @@ function initPortfolioProjectModal() {
       }
     });
   }
-  bindProjectDetailContactBtn(quoteBtn);
   bindProjectDetailContactBtn(quoteFooterBtn);
   if (buyNowBtn && !buyNowBtn.dataset.portfolioDetailBound) {
     buyNowBtn.dataset.portfolioDetailBound = '1';

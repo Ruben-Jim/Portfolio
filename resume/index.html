@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=phone-cards-20261115">
+  <link rel="stylesheet" href="/assets/css/style.css?v=popup-20261116">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-lang-20261109">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -1536,7 +1536,10 @@
         </section>
       </article>
 
-      <!-- Portfolio Project Detail Modal -->
+      <!-- Portfolio Project Detail Modal.
+           Phones (900px and under): a full-height sheet; the media, build tabs and details scroll
+           together in .project-detail-pane. Wider: two columns, media + build tabs on the left and
+           the details scrolling on the right. The two buttons stay pinned at the bottom on both. -->
       <div class="project-detail-modal" id="project-detail-modal" aria-hidden="true">
         <div class="project-detail-overlay" id="project-detail-overlay"></div>
         <section class="project-detail-content" role="dialog" aria-modal="true" aria-labelledby="project-detail-title">
@@ -1548,125 +1551,104 @@
             <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
           </button>
 
-          <figure class="project-detail-media">
-            <div class="portfolio-carousel project-detail-carousel" id="project-detail-carousel" aria-roledescription="carousel">
-              <div class="portfolio-carousel-track" id="project-detail-carousel-track" aria-live="polite"></div>
-              <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="project-detail-carousel-prev" aria-label="Previous slide" hidden>
-                <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
-              </button>
-              <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="project-detail-carousel-next" aria-label="Next slide" hidden>
-                <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
-              </button>
-              <div class="portfolio-carousel-dots" id="project-detail-carousel-dots" role="tablist" aria-label="Slideshow slides"></div>
-            </div>
-          </figure>
-
-          <div class="project-detail-variant-tabs" id="project-detail-variant-tabs" role="tablist" aria-label="Builds using this template" hidden></div>
-          <div class="project-detail-body">
-            <div class="project-detail-scroll has-scrollbar is-detail-compact" id="project-detail-scroll">
-            <div class="project-detail-meta">
-              <h3 class="h3 project-detail-title" id="project-detail-title">Project Title</h3>
-              <span class="project-detail-client-chip" id="project-detail-client-chip" hidden>Live client</span>
-              <span class="project-detail-client-chip project-detail-package-chip" id="project-detail-package-chip" hidden></span>
-              <button type="button" class="project-detail-density-btn" id="project-detail-density-toggle" aria-pressed="true" aria-label="Use larger text size" title="Text size">
-                <span class="project-detail-density-btn-label" aria-hidden="true">A</span>
-                <span class="project-detail-density-btn-hint">Compact</span>
-              </button>
-            </div>
-            <p class="project-detail-builds-line" id="project-detail-builds-line" hidden></p>
-            <p class="project-detail-variant-blurb" id="project-detail-variant-blurb" hidden></p>
-
-            <div class="project-detail-cta-top" id="project-detail-cta-top" hidden>
-              <a class="project-detail-btn project-detail-btn-primary" id="project-detail-live" href="#" target="_blank" rel="noopener noreferrer">
-                <ion-icon name="open-outline" aria-hidden="true"></ion-icon>
-                <span class="project-detail-btn-text">
-                  <span class="project-detail-btn-label project-detail-btn-label--long">Open Live Project</span>
-                  <span class="project-detail-btn-label project-detail-btn-label--short">Live demo</span>
-                </span>
-              </a>
+          <div class="project-detail-pane has-scrollbar" id="project-detail-pane">
+            <div class="project-detail-showcase">
+              <figure class="project-detail-media">
+                <div class="portfolio-carousel project-detail-carousel" id="project-detail-carousel" aria-roledescription="carousel">
+                  <div class="portfolio-carousel-track" id="project-detail-carousel-track" aria-live="polite"></div>
+                  <button type="button" class="portfolio-carousel-btn portfolio-carousel-prev" id="project-detail-carousel-prev" aria-label="Previous slide" hidden>
+                    <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                  <button type="button" class="portfolio-carousel-btn portfolio-carousel-next" id="project-detail-carousel-next" aria-label="Next slide" hidden>
+                    <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+                  </button>
+                  <div class="portfolio-carousel-dots" id="project-detail-carousel-dots" role="tablist" aria-label="Slideshow slides"></div>
+                </div>
+              </figure>
+              <div class="project-detail-variant-tabs" id="project-detail-variant-tabs" role="tablist" aria-label="Builds using this template" hidden></div>
             </div>
 
-            <p class="project-detail-description" id="project-detail-description"></p>
+            <div class="project-detail-scroll has-scrollbar" id="project-detail-scroll">
+              <div class="project-detail-meta">
+                <h3 class="h3 project-detail-title" id="project-detail-title">Project Title</h3>
+                <span class="project-detail-client-chip" id="project-detail-client-chip" hidden>Live client</span>
+                <span class="project-detail-client-chip project-detail-package-chip" id="project-detail-package-chip" hidden></span>
+              </div>
+              <p class="project-detail-builds-line" id="project-detail-builds-line" hidden></p>
+              <p class="project-detail-variant-blurb" id="project-detail-variant-blurb" hidden></p>
 
-            <section class="project-detail-section project-detail-included-section" id="project-detail-included-section" hidden>
-              <h4 class="h4 project-detail-section-title">What's included</h4>
-              <ul class="project-fit-list" id="project-detail-included"></ul>
-            </section>
+              <section class="project-detail-section project-detail-included-section" id="project-detail-included-section" hidden>
+                <h4 class="h4 project-detail-section-title">What's included</h4>
+                <ul class="project-fit-list" id="project-detail-included"></ul>
+              </section>
 
-            <section class="project-detail-section project-detail-bestfor-section" id="project-detail-bestfor-section" hidden>
-              <h4 class="h4 project-detail-section-title">Best for</h4>
-              <ul class="project-fit-list" id="project-detail-bestfor"></ul>
-            </section>
+              <section class="project-detail-section project-detail-about-section" id="project-detail-about-section" hidden>
+                <h4 class="h4 project-detail-section-title">About</h4>
+                <div class="project-detail-description project-detail-richtext" id="project-detail-description"></div>
+              </section>
 
-            <div class="project-detail-tech" id="project-detail-tech"></div>
+              <section class="project-detail-section project-detail-bestfor-section" id="project-detail-bestfor-section" hidden>
+                <h4 class="h4 project-detail-section-title">Best for</h4>
+                <ul class="project-fit-list" id="project-detail-bestfor"></ul>
+              </section>
 
-            <section class="project-detail-section project-detail-outcome-section" id="project-detail-outcome-section" hidden>
-              <h4 class="h4 project-detail-section-title">Outcome</h4>
-              <p class="project-detail-outcome" id="project-detail-outcome"></p>
-            </section>
+              <section class="project-detail-section project-detail-outcome-section" id="project-detail-outcome-section" hidden>
+                <h4 class="h4 project-detail-section-title">Outcome</h4>
+                <div class="project-detail-outcome project-detail-richtext" id="project-detail-outcome"></div>
+              </section>
 
-            <section class="project-detail-section project-detail-admin-section" id="project-detail-admin-section">
-              <h4 class="h4 project-detail-section-title">Admin Page</h4>
-              <p class="project-detail-admin-text" id="project-detail-admin"></p>
-            </section>
+              <section class="project-detail-section project-detail-admin-section" id="project-detail-admin-section" hidden>
+                <h4 class="h4 project-detail-section-title">Admin Page</h4>
+                <div class="project-detail-admin-text project-detail-richtext" id="project-detail-admin"></div>
+              </section>
 
-            <section class="project-detail-section project-detail-canvas-doc" id="project-detail-canvas-section" data-portfolio-canvas-doc hidden>
-              <h4 class="h4 project-detail-section-title" id="project-detail-canvas-title-el">Project overview</h4>
-              <div class="project-detail-canvas-body" id="project-detail-canvas-body" data-portfolio-canvas-body></div>
-            </section>
+              <section class="project-detail-section project-detail-canvas-doc" id="project-detail-canvas-section" data-portfolio-canvas-doc hidden>
+                <h4 class="h4 project-detail-section-title" id="project-detail-canvas-title-el">Project overview</h4>
+                <div class="project-detail-canvas-body" id="project-detail-canvas-body" data-portfolio-canvas-body></div>
+              </section>
 
-                <section class="project-detail-section project-detail-built-with" id="project-detail-built-with" hidden>
-                  <h4 class="h4 project-detail-section-title">Built with this template</h4>
-                  <p class="project-detail-built-with-lead" id="project-detail-built-with-lead"></p>
-                  <ul class="project-detail-built-with-list" id="project-detail-built-with-list"></ul>
-                </section>
-            <section class="project-detail-section project-detail-extra-sections" id="project-detail-extra-sections" hidden>
-              <h4 class="h4 project-detail-section-title">Project details</h4>
-              <div class="project-detail-page-accordion" id="project-detail-sections-accordion" role="region" aria-label="Project detail sections"></div>
-            </section>
+              <section class="project-detail-section project-detail-built-with" id="project-detail-built-with" hidden>
+                <h4 class="h4 project-detail-section-title">Built with this template</h4>
+                <p class="project-detail-built-with-lead" id="project-detail-built-with-lead"></p>
+                <ul class="project-detail-built-with-list" id="project-detail-built-with-list"></ul>
+              </section>
 
-            <div class="project-detail-cta-inline" id="project-detail-cta-inline" hidden>
-              <p class="project-detail-cta-inline-hint">Want something like this for your business?</p>
-              <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote" id="project-detail-quote" href="/hire-me">
-                <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
-                <span class="project-detail-btn-text">
-                  <span class="project-detail-btn-label project-detail-btn-label--long">Similar project? Start a project</span>
-                  <span class="project-detail-btn-label project-detail-btn-label--short">Start a project</span>
-                </span>
-              </a>
+              <section class="project-detail-section project-detail-extra-sections" id="project-detail-extra-sections" hidden>
+                <h4 class="h4 project-detail-section-title">Project details</h4>
+                <div class="project-detail-page-accordion" id="project-detail-sections-accordion" role="region" aria-label="Project detail sections"></div>
+              </section>
             </div>
-            </div>
+          </div>
 
-            <div class="project-detail-actions">
-              <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-now" href="/hire-me" hidden>
-                <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
-                <span class="project-detail-btn-text">
-                  <span class="project-detail-btn-label project-detail-btn-label--long">Buy Now</span>
-                  <span class="project-detail-btn-label project-detail-btn-label--short">Buy Now</span>
-                </span>
-              </a>
-              <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-premium" href="/hire-me" hidden>
-                <ion-icon name="star-outline" aria-hidden="true"></ion-icon>
-                <span class="project-detail-btn-text">
-                  <span class="project-detail-btn-label project-detail-btn-label--long">Premium with Customizations</span>
-                  <span class="project-detail-btn-label project-detail-btn-label--short">Premium</span>
-                </span>
-              </a>
-              <a class="project-detail-btn project-detail-btn-primary project-detail-btn--live-footer" id="project-detail-live-footer" href="#" target="_blank" rel="noopener noreferrer" hidden>
-                <ion-icon name="open-outline" aria-hidden="true"></ion-icon>
-                <span class="project-detail-btn-text">
-                  <span class="project-detail-btn-label project-detail-btn-label--long">Open Live Project</span>
-                  <span class="project-detail-btn-label project-detail-btn-label--short">Live demo</span>
-                </span>
-              </a>
-              <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote-footer" id="project-detail-quote-footer" href="/hire-me" hidden>
-                <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
-                <span class="project-detail-btn-text">
-                  <span class="project-detail-btn-label project-detail-btn-label--long">Similar project? Start a project</span>
-                  <span class="project-detail-btn-label project-detail-btn-label--short">Start a project</span>
-                </span>
-              </a>
-            </div>
+          <div class="project-detail-actions">
+            <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-now" href="/hire-me" hidden>
+              <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
+              <span class="project-detail-btn-text">
+                <span class="project-detail-btn-label project-detail-btn-label--long">Buy Now</span>
+                <span class="project-detail-btn-label project-detail-btn-label--short">Buy Now</span>
+              </span>
+            </a>
+            <a class="project-detail-btn project-detail-btn-secondary" id="project-detail-buy-premium" href="/hire-me" hidden>
+              <ion-icon name="star-outline" aria-hidden="true"></ion-icon>
+              <span class="project-detail-btn-text">
+                <span class="project-detail-btn-label project-detail-btn-label--long">Premium with Customizations</span>
+                <span class="project-detail-btn-label project-detail-btn-label--short">Premium</span>
+              </span>
+            </a>
+            <a class="project-detail-btn project-detail-btn-primary project-detail-btn--live-footer" id="project-detail-live-footer" href="#" target="_blank" rel="noopener noreferrer" hidden>
+              <ion-icon name="open-outline" aria-hidden="true"></ion-icon>
+              <span class="project-detail-btn-text">
+                <span class="project-detail-btn-label project-detail-btn-label--long">Open Live Project</span>
+                <span class="project-detail-btn-label project-detail-btn-label--short">Live demo</span>
+              </span>
+            </a>
+            <a class="project-detail-btn project-detail-btn-secondary project-detail-btn--quote-footer" id="project-detail-quote-footer" href="/hire-me" hidden>
+              <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon>
+              <span class="project-detail-btn-text">
+                <span class="project-detail-btn-label project-detail-btn-label--long">Similar project? Start a project</span>
+                <span class="project-detail-btn-label project-detail-btn-label--short">Start a project</span>
+              </span>
+            </a>
           </div>
         </section>
       </div>
@@ -8938,7 +8920,7 @@
   <script src="/assets/js/portfolio-skins.js?v=cover-video-20261115"></script>
   <script src="/assets/js/portfolio-features.js?v=pkg-demos-20261103"></script>
   <script src="/assets/js/social-proof.js?v=one-card-20261018"></script>
-  <script src="/assets/js/portfolio-detail-shared.js?v=guide-pdf-20261109"></script>
+  <script src="/assets/js/portfolio-detail-shared.js?v=popup-20261116"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
   <script src="/assets/js/i18n.js?v=pricing-title-20261104"></script>
   <!--
@@ -8993,7 +8975,7 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=phone-cards-20261115"></script>
+  <script src="/assets/js/script.js?v=popup-20261116"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--
