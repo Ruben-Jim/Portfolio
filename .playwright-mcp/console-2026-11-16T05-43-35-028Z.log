@@ -1,0 +1,9 @@
+[  108262ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/images/projects/grippysocks/grippysocks-1.webp?v=20261102a:1
+[  108264ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/images/projects/grippysocks/grippysocks-4.webp?v=20261102a:1
+[  108264ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/images/projects/grippysocks/grippysocks-2.webp?v=20261102a:1
+[  108265ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/images/projects/grippysocks/grippysocks-3.webp?v=20261102a:1
+[  108266ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/images/projects/project-comingsoon.svg?v=20261102a:1
+[  108266ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/images/projects/grippysocks/grippysocks-demo.webm?v=20261102a:1
+[  110320ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/images/projects/restaurant-template/restaurant-phone-demo.mp4?v=20261102a:1
+[  110375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/video/showcase/photographer-mobile.mp4?v=5:1
+[  110398ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:8765/assets/images/projects/rizoajijic/rizoajijic-phone-demo.mp4?v=20261102a:1

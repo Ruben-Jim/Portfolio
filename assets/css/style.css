@@ -32518,47 +32518,6 @@ html:has(body.home-page-active) {
   }
 }
 
-/* Sticky "Start a project" bar: phones, Portfolio only, above Safari's bottom toolbar. */
-.cwr-sticky-cta {
-  display: none;
-}
-
-@media (max-width: 579px) {
-  body:has(article[data-page="portfolio"].active) .cwr-sticky-cta {
-    position: fixed;
-    z-index: 800;
-    left: 16px;
-    right: 16px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-    display: flex;
-  }
-
-  /* Solid fill: it floats over content, so the outlined button style would show text through it. */
-  .cwr-sticky-cta-btn,
-  .cwr-sticky-cta-btn:hover,
-  .cwr-sticky-cta-btn:active {
-    width: 100%;
-    justify-content: center;
-    padding: 14px 20px;
-    border: 1px solid hsl(45, 90%, 62%);
-    border-radius: 999px;
-    background: linear-gradient(180deg, #fcd515 0%, #febc37 55%, #ff9d4c 100%);
-    color: #111;
-    font-weight: 600;
-    box-shadow: 0 12px 30px hsla(0, 0%, 0%, 0.55);
-  }
-
-  .cwr-sticky-cta-btn::before,
-  .cwr-sticky-cta-btn::after {
-    display: none;
-  }
-
-  /* Keep the last card clear of the bar. */
-  body:has(article[data-page="portfolio"].active) main {
-    margin-bottom: 110px;
-  }
-}
-
 /* Showcase screens now play live recordings: fill the screen like the old screenshots. */
 @media (min-width: 960px) {
   .cwr-hero-shot video.cwr-hero-shot-img {
