@@ -7589,48 +7589,6 @@ body.package-examples-open {
   background: linear-gradient(160deg, hsla(240, 4%, 14%, 0.95), hsla(240, 4%, 10%, 0.98));
 }
 
-.project-img::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  z-index: 1;
-  transition: var(--transition-1);
-}
-
-.project-item > a:hover .project-img::before,
-.project-link:hover .project-img::before { 
-  background: hsla(0, 0%, 0%, 0.6); 
-}
-
-.project-item-icon-box {
-  --scale: 0.8;
-
-  background: var(--jet);
-  color: var(--orange-yellow-crayola);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(var(--scale));
-  font-size: 20px;
-  padding: 18px;
-  border-radius: 12px;
-  opacity: 0;
-  z-index: 1;
-  transition: var(--transition-1);
-}
-
-.project-item > a:hover .project-item-icon-box,
-.project-link:hover .project-item-icon-box {
-  --scale: 1;
-  opacity: 1;
-}
-
-.project-item-icon-box ion-icon { --ionicon-stroke-width: 50px; }
-
 .project-img img,
 .project-img video {
   width: 100%;
@@ -7641,11 +7599,6 @@ body.package-examples-open {
   transition: var(--transition-1);
 }
 
-.project-item > a:hover img,
-.project-link:hover img { 
-  transform: scale(1.05); 
-  transition: transform 0.5s ease;
-}
 
 .project-title,
 .project-category { 

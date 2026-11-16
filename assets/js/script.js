@@ -5389,9 +5389,6 @@ function buildPortfolioProjectCardHtml(p) {
     portfolioEscapeHtml(liveHref) +
     '" class="project-link">' +
     '<figure class="project-img' + (phone ? ' has-mobile-shot' : '') + '">' +
-    '<div class="project-item-icon-box">' +
-    '<ion-icon name="eye-outline"></ion-icon>' +
-    '</div>' +
     portfolioRenderCardCoverHtml(p, p.imageAlt || p.title || '') +
     portfolioRenderPhoneShotHtml(phone, p.imageAlt || p.title || '') +
     portfolioRenderBuildsBadgeHtml(p) +
