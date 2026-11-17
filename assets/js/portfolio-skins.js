@@ -153,7 +153,7 @@
     return n + ' ' + (n === 1 ? one : many);
   }
 
-  /** "2 industry demos · 1 live business" for the card badge and the popup line. */
+  /** "2 industry demos · 1 live business" for the line under the popup title. */
   function buildsSummary(skins) {
     var demos = 0;
     var clients = 0;

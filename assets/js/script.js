@@ -5332,29 +5332,6 @@ function portfolioRenderCardCoverHtml(p, alt) {
 }
 
 /**
- * Count of real businesses running on a starter template, shown on its card so
- * the signal is visible while browsing rather than only after opening the modal.
- *
- * Informational only — no click target. The whole card is already one <a>, and
- * nesting an interactive element inside it produces invalid markup and swallows
- * the card's own click on touch devices.
- */
-function portfolioRenderBuildsBadgeHtml(p) {
-  var builds = getPortfolioDerivedBuilds(p);
-  if (!builds.length) return '';
-  var summary = window.PortfolioSkins.buildsSummary(builds).text;
-  return (
-    '<span class="project-builds-badge" title="' + portfolioEscapeHtml(summary) + '">' +
-    '<ion-icon name="layers-outline" aria-hidden="true"></ion-icon>' +
-    '<span class="project-builds-badge-count">' +
-    builds.length +
-    '</span>' +
-    '<span class="sr-only"> ' + portfolioEscapeHtml(summary) + '</span>' +
-    '</span>'
-  );
-}
-
-/**
  * A card's business types: its own, plus those of its public builds (a pet
  * groomer finds the Trades card through Paw Shine). viaBuild maps a type only
  * a build has to that build, so the popup can open on it.
@@ -5391,7 +5368,6 @@ function buildPortfolioProjectCardHtml(p) {
     '<figure class="project-img' + (phone ? ' has-mobile-shot' : '') + '">' +
     portfolioRenderCardCoverHtml(p, p.imageAlt || p.title || '') +
     portfolioRenderPhoneShotHtml(phone, p.imageAlt || p.title || '') +
-    portfolioRenderBuildsBadgeHtml(p) +
     portfolioRenderClientBadgeHtml(p) +
     '</figure>' +
     '<div class="project-content">' +

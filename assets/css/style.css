@@ -30667,40 +30667,9 @@ body.admin-tab-reorder-active::before {
 }
 
 /* ---------------------------------------------------------------------------
-   Starter-template "builds" count
-   Shown on the portfolio card and under the detail modal title so the signal is
-   visible while browsing, not only after opening the project.
-   Non-interactive: the whole card is already a single <a>.
+   Starter-template "builds" line under the popup title ("8 industry demos").
+   The card's count badge was removed 2026-11-16: it covered the media.
 --------------------------------------------------------------------------- */
-.project-builds-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 9px;
-  border-radius: 999px;
-  background: hsla(240, 2%, 12%, 0.82);
-  border: 1px solid hsla(0, 0%, 100%, 0.14);
-  color: var(--orange-yellow-crayola);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1;
-  pointer-events: none;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.project-builds-badge ion-icon {
-  font-size: 14px;
-}
-
-.project-builds-badge-count {
-  font-variant-numeric: tabular-nums;
-}
-
 .project-detail-builds-line {
   margin: 2px 0 10px;
   font-size: 13px;
