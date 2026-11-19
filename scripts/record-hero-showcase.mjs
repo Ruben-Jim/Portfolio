@@ -183,17 +183,19 @@ async function record(id, url, kind) {
   const secs = Math.max(MIN_SCROLL, Math.min(MAX_SCROLL, range / (screen * SCREENS_PER_SEC)));
   const n = Math.round((HOLD + secs + END_HOLD) * FPS);
   const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
-  await page.evaluate(() => { document.querySelector('[data-rec-scroller]').scrollTop = 0; window.__vt.freeze(); });
+  // Start where the page rests on its own: some sites (photographer on iPhone) settle a few px down and
+  // smooth-scroll back there when moved above it, so pinning 0 made the hero jump during the hold.
+  const start = await page.evaluate(() => { window.__vt.freeze(); return document.querySelector('[data-rec-scroller]').scrollTop; });
   for (let i = 0; i < n; i++) {
     const t = i / FPS;
     const p = t <= HOLD ? 0 : ease(Math.min(1, (t - HOLD) / secs));
     if (i % 15 === 0) await page.evaluate(HIDE_COOKIES); // banners can appear after load
     // Re-read max each frame: late content can grow the page.
-    await page.evaluate((p, ms) => {
+    await page.evaluate((p, ms, start) => {
       const el = document.querySelector('[data-rec-scroller]');
-      el.scrollTop = (el.scrollHeight - el.clientHeight) * p;
+      el.scrollTop = start + (el.scrollHeight - el.clientHeight - start) * p;
       window.__vt.step(ms);
-    }, p, 1000 / FPS);
+    }, p, 1000 / FPS, start);
     const shot = await s.send('Page.captureScreenshot', { format: 'jpeg', quality: 90, optimizeForSpeed: true });
     writeFileSync(join(dir, `${String(i).padStart(5, '0')}.jpg`), Buffer.from(shot.data, 'base64'));
   }
