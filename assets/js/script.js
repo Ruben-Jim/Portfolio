@@ -8415,10 +8415,8 @@ function initPortfolioProjectModal() {
     } else if (projectPreset?.admin) {
       adminText = String(projectPreset.admin).trim();
     }
-    var hasAdmin = portfolioSetRichText(
-      admin,
-      adminText || 'Admin page focus: central management panel for operations, user actions, and business updates.'
-    );
+    // No admin text written for this project: no Admin Page section (no filler line).
+    var hasAdmin = portfolioSetRichText(admin, adminText);
     if (adminSection) adminSection.hidden = !hasAdmin;
 
     if (extraSectionsWrap && extraSectionsAccordion) {

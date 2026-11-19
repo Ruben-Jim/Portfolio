@@ -11839,35 +11839,41 @@ article.hire-me.hire-me--package-studio .hire-package-banner-inner {
   margin-bottom: 0;
 }
 
+/* Outcome lists results: a trending-up arrow instead of the dot. */
+.project-detail-outcome-section .project-detail-richtext li {
+  padding-left: 22px;
+}
+
+.project-detail-outcome-section .project-detail-richtext li::before {
+  content: "\2197";
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+  color: var(--orange-yellow-crayola);
+  font-weight: var(--fw-600);
+}
+
 /* What's included: the card's checklist, at reading size. */
 .project-detail-included-section .project-fit-list li {
   font-size: 14px;
   color: var(--white-2);
 }
 
-/* Best for: small rounded tags, so it doesn't read as a second checklist. */
-.project-detail-bestfor-section .project-fit-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  column-count: auto;
-}
-
+/* Best for: two columns like What's included, each line led by a yellow arrow ("this points
+   to you"). Tags wrapped into boxy bubbles on long entries. */
 .project-detail-bestfor-section .project-fit-list li {
-  display: inline-flex;
-  margin: 0;
-  padding: 6px 12px;
-  border: 1px solid hsla(0, 0%, 100%, 0.12);
-  border-radius: 999px;
-  background: hsla(240, 2%, 20%, 0.9);
+  font-size: 14px;
   color: var(--white-2);
-  font-size: 13px;
-  line-height: 1.35;
   hyphens: none;
 }
 
 .project-detail-bestfor-section .project-fit-list li::before {
-  content: none;
+  content: "\2192";
+  color: var(--orange-yellow-crayola);
+  font-weight: var(--fw-600);
 }
 
 .project-detail-page-accordion {
