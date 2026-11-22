@@ -164,10 +164,22 @@
     }
 
     .profile-name {
-      font-size: 1.5rem; font-weight: 600;
-      color: var(--white-1); letter-spacing: -0.3px; line-height: 1.2;
-      margin-bottom: 7px;
+      font-size: 1.9rem; font-weight: 700;
+      color: var(--white-1); letter-spacing: -0.5px; line-height: 1.1;
+      margin-bottom: 8px;
     }
+    /* "Ruben": a light sweep crosses the gold every few seconds. */
+    .brand-accent {
+      background: linear-gradient(100deg, var(--gold) 0%, var(--gold) 40%, hsl(45, 90%, 82%) 50%, var(--gold) 60%, var(--gold) 100%);
+      background-size: 250% 100%; background-position: 100% 0;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: brandShine 4.5s ease-in-out 0.6s infinite;
+    }
+    @keyframes brandShine {
+      0% { background-position: 100% 0; }
+      35%, 100% { background-position: 0 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .brand-accent { animation: none; } }
 
     .profile-title {
       font-size: 0.72rem; font-weight: 500;
@@ -190,10 +202,10 @@
     /* ── CTA buttons ── */
     .cta-row {
       display: flex; gap: 10px;
-      justify-content: center; flex-wrap: wrap;
+      justify-content: flex-start; flex-wrap: wrap;
       padding: 0 28px 10px;
     }
-    .btn-block { width: 100%; justify-content: center; padding: 12px 20px; font-size: 0.88rem; }
+    .btn-block { justify-content: center; padding: 12px 26px; font-size: 0.88rem; }
 
     .btn {
       display: inline-flex; align-items: center; gap: 7px;
@@ -433,10 +445,10 @@
       .contact-grid { grid-template-columns: 1fr; }
       .cta-row { gap: 8px; }
       .btn { padding: 9px 16px; font-size: 0.8rem; }
-      .btn-block { padding: 12px 16px; font-size: 0.86rem; }
+      .btn-block { padding: 12px 22px; font-size: 0.86rem; }
       .profile-head { gap: 14px; }
       .avatar { width: 68px; height: 68px; }
-      .profile-name { font-size: 1.35rem; }
+      .profile-name { font-size: 1.65rem; }
       .profile-title { font-size: 0.62rem; letter-spacing: 0.05em; padding: 3px 10px; }
       .card-footer { flex-direction: column; justify-content: center; gap: 8px; text-align: center; }
       .footer-meta { justify-content: center; }
@@ -458,8 +470,8 @@
     /* ── Package cards (mirror the Instagram carousel) ── */
     .price-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .price-card {
-      position: relative; display: flex; flex-direction: column; gap: 2px;
-      padding: 15px 10px 12px; text-align: center; text-decoration: none;
+      position: relative; display: flex; flex-direction: column; justify-content: center; gap: 2px;
+      padding: 18px 8px 14px; text-align: center; text-decoration: none;
       border: 1px solid var(--border-1); border-radius: var(--radius-12);
       background: hsla(0,0%,100%,0.03); transition: var(--ease);
     }
@@ -500,13 +512,19 @@
     .legal-row a { color: var(--light-gray-70); text-decoration: none; }
     .legal-row a:hover { color: var(--gold); }
 
+    /* Small phones keep the 3 cards side by side, a little tighter. */
     @media (max-width: 380px) {
-      .price-row { grid-template-columns: 1fr; }
-      .price-card { flex-direction: row; align-items: baseline; gap: 8px; text-align: left; }
-      .price-tag { position: static; transform: none; margin-left: auto; }
-      .price-card.is-sale { flex-wrap: wrap; }
-      .price-limit { flex-basis: 100%; margin-top: 0; }
+      .price-row { gap: 6px; }
+      .price-card { padding: 18px 5px 12px; }
+      .price-amount, .price-now { font-size: 1.05rem; }
+      .price-tag { font-size: 0.5rem; padding: 2px 6px; }
+      .profile-title { font-size: 0.56rem; letter-spacing: 0.03em; padding: 3px 8px; border-radius: 8px; line-height: 1.5; }
+      .profile-name { font-size: 1.5rem; }
       .link-row { grid-template-columns: 1fr; }
+    }
+    /* Very narrow screens: one card per row. */
+    @media (max-width: 330px) {
+      .price-row { grid-template-columns: 1fr; gap: 14px; }
     }
   </style>
 </head>
@@ -532,7 +550,7 @@
           <div class="status-dot" data-i18n-title="status.taking" title="Taking new projects"></div>
         </div>
         <div class="profile-id">
-          <h1 class="profile-name">CodeWith<span style="color:var(--gold)">Ruben</span></h1>
+          <h1 class="profile-name">CodeWith<span class="brand-accent">Ruben</span></h1>
           <p class="profile-title" data-i18n="profile.title">Web &amp; Mobile Dev Studio · Fresno, CA</p>
         </div>
       </div>
@@ -563,7 +581,7 @@
           <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
           <span class="price-amount" data-price-template="{pkg_website}">$999</span>
           <span class="price-now" hidden></span>
-          <span class="price-name" data-i18n="price.999.name">Multi-page site</span>
+          <span class="price-name" data-i18n="price.999.name">Multi-page</span>
           <span class="price-note" data-i18n="price.999.note">1–3 pages + live chat</span>
           <span class="price-limit" hidden></span>
         </a>
@@ -749,7 +767,7 @@
           'price.499.note': '1 page + owner admin',
           'price.1500.name': 'Website + app',
           'price.1500.note': 'iOS + Android app',
-          'price.999.name': 'Multi-page site',
+          'price.999.name': 'Multi-page',
           'price.999.note': '1–3 pages + live chat',
           'price.popular': 'Most popular',
           'price.sale': 'On sale',
@@ -781,7 +799,7 @@
           'price.499.note': '1 página + panel de dueño',
           'price.1500.name': 'Sitio + app',
           'price.1500.note': 'App iOS + Android',
-          'price.999.name': 'Sitio de varias páginas',
+          'price.999.name': 'Varias páginas',
           'price.999.note': '1–3 páginas + chat en vivo',
           'price.popular': 'Más popular',
           'price.sale': 'En oferta',
