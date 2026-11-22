@@ -2,8 +2,14 @@
 /**
  * Claude Code usage per day → Admin → Studio Costs → Claude usage.
  *
- *   node scripts/claude-usage.mjs            # last 30 days: print + upload
+ *   cd ~/Dev/Apps/Portfolio && npm run claude-usage   # last 30 days: print + upload
+ *   node scripts/claude-usage.mjs            # same, from the Portfolio folder
+ *   npm run claude-usage:all                 # every log still on this Mac
  *   node scripts/claude-usage.mjs --days 90  # further back
+ *
+ * Claude Code deletes its logs after 30 days, so run this at least every ~3 weeks:
+ * uploaded days are kept for good (each run only adds or replaces its own days),
+ * which is what lets Studio Costs compare months and years.
  *   node scripts/claude-usage.mjs --dry      # print only, upload nothing
  *
  * Free: it reads the session logs Claude Code already keeps on this Mac
@@ -27,7 +33,11 @@ import { aggregate, dayOf, dayTotal, short } from './lib/claude-usage.mjs';
 const args = process.argv.slice(2);
 const dry = args.includes('--dry');
 const daysArg = Number(args[args.indexOf('--days') + 1]);
-const DAYS = args.includes('--days') && daysArg > 0 ? Math.min(365, Math.round(daysArg)) : 30;
+// --all: every log still on this Mac. Claude Code deletes logs after 30 days
+// (cleanupPeriodDays), so older history only lives in what was uploaded before.
+const ALL = args.includes('--all');
+const DAYS = args.includes('--days') && daysArg > 0 ? Math.min(3650, Math.round(daysArg)) : 30;
+const WINDOW = ALL ? 'all logs on this Mac' : `last ${DAYS} days`;
 const ROOT = join(homedir(), '.claude', 'projects');
 const PATH = 'agencyStudioCosts/_claudeUsage';
 
@@ -46,8 +56,8 @@ function logFiles(dir) {
 
 const since = new Date();
 since.setDate(since.getDate() - (DAYS - 1));
-const sinceDay = dayOf(since);
-const sinceMs = new Date(since.getFullYear(), since.getMonth(), since.getDate()).getTime();
+const sinceDay = ALL ? '' : dayOf(since);
+const sinceMs = ALL ? 0 : new Date(since.getFullYear(), since.getMonth(), since.getDate()).getTime();
 
 // Files untouched since before the window can't hold days in it.
 const files = logFiles(ROOT).filter((f) => f.mtime >= sinceMs);
@@ -76,11 +86,11 @@ for (const f of files) {
 const days = aggregate(entries, sinceDay);
 const dates = Object.keys(days).sort();
 if (!dates.length) {
-  console.log(`No Claude Code usage found in the last ${DAYS} days (${ROOT}).`);
+  console.log(`No Claude Code usage found (${WINDOW}, ${ROOT}).`);
   process.exit(0);
 }
 
-console.log(`Claude Code usage, last ${DAYS} days (${files.length} log files)\n`);
+console.log(`Claude Code usage, ${WINDOW} (${files.length} log files)\n`);
 console.log('Date        Replies  Sessions  Tokens   Output  Top project');
 for (const d of dates) {
   const day = days[d];

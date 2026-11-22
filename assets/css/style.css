@@ -33877,3 +33877,42 @@ body.cwr-overlay-open [data-float] {
   .claude-usage-day { grid-template-columns: 78px minmax(40px, 1fr) 46px; }
   .claude-usage-day-meta { grid-column: 1 / -1; margin: -4px 0 4px; }
 }
+.admin-linktree-row--work { flex-wrap: wrap; }
+.admin-linktree-blurb { display: grid; gap: 4px; flex-basis: 100%; padding-left: 50px; }
+.admin-linktree-blurb-label { font-size: 11px; color: var(--light-gray-70); }
+.admin-linktree-blurb-input {
+  width: 100%; height: 36px; padding: 0 10px;
+  border: 1px solid var(--jet); border-radius: 8px;
+  background: var(--eerie-black-1); color: var(--white-2);
+  font: inherit; font-size: var(--fs-8);
+}
+.admin-linktree-blurb-input::placeholder { color: var(--light-gray-70); opacity: 0.8; }
+.admin-linktree-blurb-input:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: 1px; }
+@media (max-width: 640px) { .admin-linktree-blurb { padding-left: 0; } }
+
+/* Claude usage → By month: picked year solid, the year before faint behind. */
+.claude-usage-year-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.claude-usage-year-head .claude-usage-sublabel { margin: 0; }
+.claude-usage-year-select {
+  height: 32px; padding: 0 8px; border: 1px solid var(--jet); border-radius: 8px;
+  background: var(--eerie-black-1); color: var(--white-2); font: inherit; font-size: var(--fs-8);
+}
+.claude-usage-year-total { margin: 6px 0 10px; font-size: var(--fs-8); color: var(--light-gray); }
+.claude-usage-months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 6px; align-items: end; }
+.claude-usage-month { display: grid; grid-template-rows: 14px 120px 14px; gap: 4px; text-align: center; min-width: 0; }
+.claude-usage-month-track { position: relative; border-radius: 6px; background: hsla(0, 0%, 100%, 0.03); overflow: hidden; }
+.claude-usage-month-prev, .claude-usage-month-now { position: absolute; bottom: 0; border-radius: 6px 6px 0 0; }
+.claude-usage-month-prev { left: 0; right: 0; background: hsla(0, 0%, 100%, 0.12); }
+.claude-usage-month-now { left: 22%; right: 22%; background: var(--orange-yellow-crayola); }
+.claude-usage-month-num { font-size: 10px; color: var(--light-gray-70); white-space: nowrap; overflow: hidden; }
+.claude-usage-month-label { font-size: 11px; color: var(--light-gray-70); }
+.claude-usage-legend { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 11px; color: var(--light-gray-70); }
+.claude-usage-key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-left: 8px; }
+.claude-usage-key:first-child { margin-left: 0; }
+.claude-usage-key--now { background: var(--orange-yellow-crayola); }
+.claude-usage-key--prev { background: hsla(0, 0%, 100%, 0.18); }
+@media (max-width: 640px) {
+  .claude-usage-months { gap: 3px; }
+  .claude-usage-month { grid-template-rows: 12px 100px 14px; }
+  .claude-usage-month-num { font-size: 8px; }
+}

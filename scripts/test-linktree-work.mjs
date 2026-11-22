@@ -89,3 +89,23 @@ ok(W.reviewsFor(reviews).map((x) => x.id).join() === 'b,d', 'none picked → 2 n
 const picked = [rv('a', 1, { linktree: true }), rv('b', 5), rv('c', 3, { linktree: true, hidden: true }), rv('d', 4, { linktree: true }), rv('e', 2, { linktree: true }), rv('f', 6, { linktree: true })];
 ok(W.reviewsFor(picked).map((x) => x.id).join() === 'f,d,e', 'picked ones only, newest first, max 3, hidden never');
 ok(W.millis('2026-01-01') > 0 && W.millis(5) === 5 && W.millis(null) === 0, 'dates from Firestore, numbers or strings');
+
+// ── Cards: blurb, features, link ──
+const lib = {
+  plat: { title: 'Platform', isTemplate: true },
+  privPlat: { title: 'Hidden platform', visibility: 'private' },
+  build: { title: 'Build', builtFromTemplateId: 'plat', linktree: true, linktreeOrder: 1, visibility: 'private' },
+  buildOfPriv: { title: 'B2', builtFromTemplateId: 'privPlat', linktree: true, linktreeOrder: 2, projectUrl: 'https://b2.app' },
+  solo: { title: 'Solo', linktree: true, linktreeOrder: 3, linktreeBlurb: '  Short   line  ', features: ['A', 'B', 'C', 'D'], description: 'Long. More.' },
+  privClient: { title: 'Private client', linktree: true, linktreeOrder: 4, visibility: 'private', liveKind: 'client', projectUrl: 'https://c.app' }
+};
+const cards = Object.fromEntries(W.pick(lib).map((x) => [x.id, x]));
+ok(cards.solo.href === 'https://rubenjimenez.dev/portfolio?project=solo', 'a public project opens its popup on the portfolio');
+ok(cards.build.href === 'https://rubenjimenez.dev/portfolio?project=build', 'a build opens through its public platform');
+ok(cards.buildOfPriv.href === 'https://b2.app', 'a build of a private platform falls back to its live site');
+ok(cards.privClient.href === '', 'a private client project has no link');
+ok(cards.solo.desc === 'Short line' && cards.solo.blurb === 'Short line', 'the typed Link Tree line wins, cleaned');
+ok(W.toItem({ title: 'X', description: 'First one. Second.' }).desc === 'First one.', 'no typed line → first sentence');
+ok(cards.solo.features.join() === 'A,B,C', "first 3 What's included chips");
+ok(W.cleanBlurb('x'.repeat(200)).length === W.MAX_BLURB, 'the typed line is capped');
+ok(W.adminRows(lib).shown.find((r) => r.id === 'solo').autoBlurb === 'Long.', 'admin rows carry the automatic line as a placeholder');

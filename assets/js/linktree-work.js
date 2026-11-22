@@ -62,8 +62,33 @@
     return (space > 60 ? cut.slice(0, space) : cut).replace(/[,;:\s]+$/, '') + '…';
   }
 
-  /** One card's data from a portfolioProjects record. */
-  function toItem(p) {
+  var MAX_BLURB = 90;
+  var MAX_FEATURES = 3;
+  var PORTFOLIO_URL = 'https://rubenjimenez.dev/portfolio';
+
+  /** The one line typed in Admin → Link Tree: single spaces, at most MAX_BLURB. */
+  function cleanBlurb(v) {
+    return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, MAX_BLURB);
+  }
+
+  function isPrivate(p) {
+    return !p || String(p.visibility || '').toLowerCase() === 'private';
+  }
+
+  /**
+   * Where a card goes: the project's popup on the portfolio (/portfolio?project=id)
+   * when visitors can see it there (a build needs its platform public too), else
+   * its live site, else nowhere.
+   */
+  function hrefFor(p, byId) {
+    var platform = p.builtFromTemplateId && byId ? byId[p.builtFromTemplateId] : null;
+    var onPortfolio = platform ? !isPrivate(platform) : !isPrivate(p);
+    if (onPortfolio && p.id) return PORTFOLIO_URL + '?project=' + encodeURIComponent(String(p.id));
+    return p.liveKind === 'client' ? '' : cleanLink(p.projectUrl);
+  }
+
+  /** One card's data from a portfolioProjects record (byId: all records, for a build's platform). */
+  function toItem(p, byId) {
     return {
       id: String(p.id || ''),
       title: String(p.title || '').trim().slice(0, 80),
@@ -71,7 +96,12 @@
       url: p.liveKind === 'client' ? '' : cleanLink(p.projectUrl),
       thumb: thumbFor(p),
       badge: p.isTemplate === true ? 'template' : 'live',
-      desc: descFor(p),
+      href: hrefFor(p, byId),
+      blurb: cleanBlurb(p.linktreeBlurb),
+      // The typed line, else the description's first sentence.
+      desc: cleanBlurb(p.linktreeBlurb) || descFor(p),
+      // "What's included" chips: the first features ticked in the Portfolio editor.
+      features: list(p.features).map(function (f) { return String(f || '').trim(); }).filter(Boolean).slice(0, MAX_FEATURES),
       tags: list(p.techTags).map(function (t) { return String(t || '').trim(); }).filter(Boolean).slice(0, MAX_TAGS)
     };
   }
@@ -84,6 +114,8 @@
         var r = projects[id];
         return r && typeof r === 'object' ? Object.assign({ id: id }, r) : null;
       });
+    var byId = {};
+    rows.forEach(function (p) { if (p && p.id) byId[p.id] = p; });
     return rows
       .map(function (p, i) { return { p: p, i: i, n: p ? orderNumber(p.linktreeOrder) : null }; })
       .filter(function (x) { return x.p && x.p.linktree === true && String(x.p.title || '').trim(); })
@@ -96,7 +128,7 @@
         return ao !== bo ? ao - bo : a.i - b.i;
       })
       .slice(0, MAX_ITEMS)
-      .map(function (x) { return toItem(x.p); });
+      .map(function (x) { return toItem(x.p, byId); });
   }
 
   // ── Admin → Link Tree: the Recent work list ──
@@ -128,6 +160,8 @@
         title: String(p.title).trim(),
         thumb: thumbFor(p),
         badge: p.isTemplate === true ? 'template' : 'live',
+        blurb: cleanBlurb(p.linktreeBlurb),
+        autoBlurb: descFor(p),
         parentTitle: parent ? String(parent.title || '').trim() : '',
         isPrivate: String(p.visibility || '').toLowerCase() === 'private',
         order: orderNumber(p.linktreeOrder),
@@ -215,6 +249,9 @@
   var api = {
     MAX_ITEMS: MAX_ITEMS,
     MAX_REVIEWS: MAX_REVIEWS,
+    MAX_BLURB: MAX_BLURB,
+    cleanBlurb: cleanBlurb,
+    hrefFor: hrefFor,
     DEFAULT_PACKAGES: DEFAULT_PACKAGES,
     DEFAULT_POPULAR: DEFAULT_POPULAR,
     pick: pick,

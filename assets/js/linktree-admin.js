@@ -302,7 +302,44 @@
     li.appendChild(switchEl(!!shownRows, 'Show ' + r.title + ' on the Link Tree', function (on, input) {
       setProject(r, on, input);
     }));
+    if (shownRows) li.appendChild(blurbField(r));
     return li;
+  }
+
+  /** The one line under the card on /linktree. Blank = the description's first sentence. */
+  function blurbField(r) {
+    var wrap = el('label', 'admin-linktree-blurb');
+    wrap.appendChild(el('span', 'admin-linktree-blurb-label', 'Line on the Link Tree'));
+    var input = el('input', 'admin-linktree-blurb-input');
+    input.type = 'text';
+    input.maxLength = W.MAX_BLURB;
+    input.value = r.blurb || '';
+    input.placeholder = r.autoBlurb ? 'Auto: ' + r.autoBlurb : 'One short line';
+    var saved = input.value;
+    input.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') input.blur(); });
+    input.addEventListener('change', async function () {
+      var next = W.cleanBlurb(input.value);
+      if (next === saved) return;
+      input.disabled = true;
+      try {
+        var patch = {};
+        patch[r.id] = { linktreeBlurb: next };
+        await writeProjects(patch);
+        saved = next;
+        input.value = next;
+        toast(next ? 'Line saved.' : 'Line cleared: the first sentence shows.');
+        // Keep the editor's copy current so a later project save carries it.
+        var rec = projects().filter(function (p) { return p.id === r.id; })[0];
+        if (rec) rec.linktreeBlurb = next;
+      } catch (err) {
+        console.error(err);
+        input.value = saved;
+        toast('Couldn’t save the line: ' + (err.message || 'try again'), 'error');
+      }
+      input.disabled = false;
+    });
+    wrap.appendChild(input);
+    return wrap;
   }
 
   function renderWork() {

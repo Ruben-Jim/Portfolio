@@ -2953,9 +2953,103 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
+  var claudeUsageRaw = null;
+  var claudeUsageYear = '';
+  var MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  /** { 'YYYY': [12 monthly token totals] } from the uploaded days. */
+  function claudeMonthsByYear(days) {
+    var out = {};
+    Object.keys(days).forEach(function (k) {
+      var y = k.slice(0, 4);
+      var mo = Number(k.slice(5, 7)) - 1;
+      if (!/^\d{4}$/.test(y) || !(mo >= 0 && mo < 12)) return;
+      if (!out[y]) out[y] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      out[y][mo] += claudeDayTotal(days[k]);
+    });
+    return out;
+  }
+
+  /** Monthly bars for the picked year, the year before faint behind them, totals + change. */
+  function renderClaudeUsageYears(days) {
+    var sel = document.getElementById('claude-usage-year');
+    var bars = document.getElementById('claude-usage-months');
+    var totalEl = document.getElementById('claude-usage-year-total');
+    if (!sel || !bars) return;
+    var byYear = claudeMonthsByYear(days);
+    var years = Object.keys(byYear).sort().reverse();
+    if (!years.length) return;
+    if (years.indexOf(claudeUsageYear) < 0) claudeUsageYear = years[0];
+    sel.replaceChildren();
+    years.forEach(function (y) {
+      var o = document.createElement('option');
+      o.value = y;
+      o.textContent = y;
+      if (y === claudeUsageYear) o.selected = true;
+      sel.appendChild(o);
+    });
+    if (!sel.dataset.bound) {
+      sel.dataset.bound = '1';
+      sel.addEventListener('change', function () {
+        claudeUsageYear = sel.value;
+        var d = claudeUsageRaw && claudeUsageRaw.days ? claudeUsageRaw.days : {};
+        renderClaudeUsageYears(d);
+      });
+    }
+    var now = byYear[claudeUsageYear];
+    var prevKey = String(Number(claudeUsageYear) - 1);
+    var prev = byYear[prevKey] || null;
+    var max = 1;
+    now.concat(prev || []).forEach(function (v) { if (v > max) max = v; });
+    bars.replaceChildren();
+    for (var m = 0; m < 12; m++) {
+      var col = document.createElement('div');
+      col.className = 'claude-usage-month';
+      col.title = MONTHS_SHORT[m] + ' ' + claudeUsageYear + ': ' + claudeShort(now[m]) +
+        (prev ? ' · ' + MONTHS_SHORT[m] + ' ' + prevKey + ': ' + claudeShort(prev[m]) : '');
+      var track = document.createElement('div');
+      track.className = 'claude-usage-month-track';
+      if (prev && prev[m]) {
+        var ghost = document.createElement('span');
+        ghost.className = 'claude-usage-month-prev';
+        ghost.style.height = Math.max(2, Math.round((prev[m] / max) * 100)) + '%';
+        track.appendChild(ghost);
+      }
+      if (now[m]) {
+        var fill = document.createElement('span');
+        fill.className = 'claude-usage-month-now';
+        fill.style.height = Math.max(2, Math.round((now[m] / max) * 100)) + '%';
+        track.appendChild(fill);
+      }
+      var num = document.createElement('span');
+      num.className = 'claude-usage-month-num';
+      num.textContent = now[m] ? claudeShort(now[m]) : '';
+      var lab = document.createElement('span');
+      lab.className = 'claude-usage-month-label';
+      lab.textContent = MONTHS_SHORT[m].charAt(0);
+      lab.setAttribute('aria-hidden', 'true');
+      col.appendChild(num);
+      col.appendChild(track);
+      col.appendChild(lab);
+      bars.appendChild(col);
+    }
+    if (totalEl) {
+      var sum = function (arr) { return arr.reduce(function (s, v) { return s + v; }, 0); };
+      var text = claudeUsageYear + ': ' + claudeShort(sum(now)) + ' tokens';
+      if (prev && sum(prev)) {
+        var pct = Math.round(((sum(now) - sum(prev)) / sum(prev)) * 100);
+        text += ' · ' + prevKey + ': ' + claudeShort(sum(prev)) + ' (' + (pct >= 0 ? '+' : '') + pct + '%)';
+      } else {
+        text += ' · no ' + prevKey + ' data yet';
+      }
+      totalEl.textContent = text;
+    }
+  }
+
   function renderClaudeUsage(raw) {
     var root = document.getElementById('claude-usage');
     if (!root) return;
+    claudeUsageRaw = raw || null;
     var days = (raw && raw.days && typeof raw.days === 'object') ? raw.days : {};
     var keys = Object.keys(days).sort();
     var empty = document.getElementById('claude-usage-empty');
@@ -3029,6 +3123,8 @@
         list.appendChild(li);
       });
     }
+
+    renderClaudeUsageYears(days);
 
     // Projects over the last 30 days.
     var proj = document.getElementById('claude-usage-projects');

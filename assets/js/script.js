@@ -4334,6 +4334,8 @@ function portfolioSanitizeDocumentPayload(data) {
     // Shown under "Recent work" on /linktree, sorted by linktreeOrder (null = after the numbered ones).
     linktree: data.linktree === true,
     linktreeOrder: portfolioLinktreeOrder(data.linktreeOrder),
+    // The one line under the card on /linktree (typed in Admin → Link Tree).
+    linktreeBlurb: String(data.linktreeBlurb == null ? '' : data.linktreeBlurb).replace(/\s+/g, ' ').trim().slice(0, 90),
     adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
@@ -7159,6 +7161,7 @@ function setupPortfolioAdminControls() {
           // Set in Admin → Link Tree, not this form: a save keeps them (the write replaces the record).
           payload.linktree = !!(existing && existing.linktree === true);
           payload.linktreeOrder = existing ? existing.linktreeOrder : null;
+          payload.linktreeBlurb = existing ? existing.linktreeBlurb : '';
           await updatePortfolioProjectDoc(editId, payload);
           showSuccessMessage('Project updated.');
         } else {
@@ -8636,7 +8639,36 @@ function initPortfolioProjectModal() {
     fillProjectModal(wrap.querySelector('.project-card'), link);
     openProjectModal();
   };
+
+  // /portfolio?project=<id> (the Link Tree's Recent work links here): open that
+  // project's popup once the projects load. The id was read when this file loaded
+  // (PORTFOLIO_DEEP_LINK_ID): the page router drops unknown parameters from the URL.
+  if (!window.__portfolioDeepLinkBound && PORTFOLIO_DEEP_LINK_ID) {
+    window.__portfolioDeepLinkBound = true;
+    var deepDone = false;
+    var openDeepLink = function () {
+      if (deepDone) return;
+      var all = window.portfolioProjectsAll || [];
+      var rec = all.find(function (x) { return x && String(x.id) === PORTFOLIO_DEEP_LINK_ID; });
+      if (!rec) return;
+      deepDone = true;
+      window.openPortfolioProjectDetail(rec);
+    };
+    document.addEventListener('portfolioProjectsLoaded', openDeepLink);
+    openDeepLink();
+  }
 }
+
+/** ?project=<id> from the first URL, read before the router rewrites it (see openPortfolioProjectDetail). */
+var PORTFOLIO_DEEP_LINK_ID = (function () {
+  try {
+    if (!/^\/portfolio\/?$/.test(window.location.pathname)) return '';
+    var id = new URLSearchParams(window.location.search).get('project') || '';
+    return /^[A-Za-z0-9_-]{1,80}$/.test(id) ? id : '';
+  } catch (e) {
+    return '';
+  }
+})();
 
 function initPackageExamplesSheet() {
   var modal = document.getElementById('package-examples-modal');

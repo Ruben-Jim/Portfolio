@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=claude-usage-20261122">
+  <link rel="stylesheet" href="/assets/css/style.css?v=usage-years-20261122">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-lang-20261109">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -5405,7 +5405,7 @@
                     <h4 class="h4 claude-usage-title" id="claude-usage-title">Claude usage</h4>
                     <span class="claude-usage-updated" id="claude-usage-updated"></span>
                   </div>
-                  <p class="claude-usage-hint">Claude Code on your Mac, counted from its own logs. To refresh, run <code>node scripts/claude-usage.mjs</code> in a terminal. It's free: it never calls Claude.</p>
+                  <p class="claude-usage-hint">Claude Code on your Mac, counted from its own logs. To refresh, run <code>npm run claude-usage</code> in a terminal from the Portfolio folder (<code>cd ~/Dev/Apps/Portfolio</code> first). It's free: it never calls Claude.</p>
                   <p class="claude-usage-empty" id="claude-usage-empty">No usage uploaded yet. Run the command above once.</p>
                   <div id="claude-usage-body" hidden>
                     <div class="studio-costs-summary claude-usage-summary">
@@ -5429,6 +5429,16 @@
                     <ul class="claude-usage-days" id="claude-usage-days" aria-label="Tokens per day"></ul>
                     <p class="claude-usage-sublabel">By project, last 30 days</p>
                     <ul class="claude-usage-projects" id="claude-usage-projects" aria-label="Tokens per project"></ul>
+                    <div class="claude-usage-year-head">
+                      <p class="claude-usage-sublabel">By month</p>
+                      <label class="claude-usage-year-pick">
+                        <span class="sr-only">Year</span>
+                        <select id="claude-usage-year" class="claude-usage-year-select"></select>
+                      </label>
+                    </div>
+                    <p class="claude-usage-year-total" id="claude-usage-year-total"></p>
+                    <div class="claude-usage-months" id="claude-usage-months" role="img" aria-label="Tokens per month"></div>
+                    <p class="claude-usage-legend"><span class="claude-usage-key claude-usage-key--now"></span> This year <span class="claude-usage-key claude-usage-key--prev"></span> Year before</p>
                     <p class="claude-usage-note">Tokens include cached context, which is most of it. These are usage counts, not charges: your plan covers them.</p>
                   </div>
                 </section>
@@ -9027,13 +9037,13 @@
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', integrity: 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==' },
         { src: '/assets/js/blog-tiptap-editor.js?v=dialogs-20261018' },
         { src: '/assets/js/ticket-shared.js?v=tickets-20261021' },
-        { src: '/assets/js/agency-tools.js?v=claude-usage-20261122' },
+        { src: '/assets/js/agency-tools.js?v=usage-years-20261122' },
         { src: '/assets/js/ig-posts.js?v=uxpass-20261030' },
         { src: '/assets/js/outreach-composer.js?v=mockup-first-20261105' },
         { src: '/assets/js/prospects.js?v=prospects-drag-20261105' },
         { src: '/assets/js/social-proof-admin.js?v=reviews-tab-20261020' },
-        { src: '/assets/js/linktree-work.js?v=linktree-20261122' },
-        { src: '/assets/js/linktree-admin.js?v=linktree-20261122' },
+        { src: '/assets/js/linktree-work.js?v=work-cards-20261122' },
+        { src: '/assets/js/linktree-admin.js?v=work-cards-20261122' },
         { src: '/assets/js/reviews-admin.js?v=linktree-20261122' },
         { src: '/assets/js/admin-push.js?v=push-20261030' },
         { src: '/assets/js/dm-migration.js' }
@@ -9070,7 +9080,7 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=dupes-20261122"></script>
+  <script src="/assets/js/script.js?v=work-cards-20261122"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--
