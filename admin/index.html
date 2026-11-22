@@ -119,7 +119,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=bestfor-20261119">
+  <link rel="stylesheet" href="/assets/css/style.css?v=stores-20261122">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-lang-20261109">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -450,13 +450,15 @@
                   if (!root || !window.matchMedia('(min-width: 960px)').matches) return;
                   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
                   var SLIDES = ['realtor', 'procleaning', 'roofcleaning', 'treeservice', 'carpet', 'sunergy',
-                    'pawshine', 'lawncare', 'beautysalon', 'barbershop', 'photographer'];
+                    'pawshine', 'lawncare', 'beautysalon', 'barbershop', 'photographer',
+                    'cocinaviva', 'rizoajijic', 'micheladas', 'fiestarentals', 'valleyhaul', 'rapidoroadside', 'squirreltree'];
                   var BASE = '/assets/video/showcase/';
                   // Shown in the phone's Safari address bar.
                   var HOSTS = { realtor: 'realtor.expo.app', procleaning: 'procleaning.expo.app',
                     roofcleaning: 'roofcleaning.expo.app', treeservice: 'treeservice.expo.app', carpet: 'carpet.expo.app',
                     sunergy: 'sunergyelectricservices.expo.app', pawshine: 'pawshine.expo.app', lawncare: 'lawncare.expo.app',
-                    beautysalon: 'beautysalon.expo.app', barbershop: 'barbershoptemplate.expo.app', photographer: 'photographer.expo.app' };
+                    beautysalon: 'beautysalon.expo.app', barbershop: 'barbershoptemplate.expo.app', photographer: 'photographer.expo.app',
+                    cocinaviva: 'courses.expo.app', rizoajijic: 'rizo.expo.app', micheladas: 'micheladas.expo.app', fiestarentals: 'rentals.expo.app', valleyhaul: 'junk.expo.app', rapidoroadside: 'roadsidefix.expo.app', squirreltree: 'squirreltreeservice.expo.app' };
                   var hostEl = root.querySelector('[data-safari-host]');
                   var CLIP_VERSION = 5; // bump after re-recording so cached clips refresh
                   var FADE_MS = 600;
@@ -2305,8 +2307,7 @@
                 <h3 class="h3 sp-faq-title" id="sp-faq-title" data-i18n="services.faq_title">Questions, answered</h3>
                 <p class="sp-faq-lead" data-i18n="services.faq_lead">Plain answers before you call.</p>
                 <div class="sp-faq-ctas">
-                  <a class="sp-faq-cta is-primary" href="sms:+15596537380"><ion-icon name="chatbubble-ellipses-outline" aria-hidden="true"></ion-icon><span data-i18n="services.faq_text_cta">Text Ruben &rarr;</span></a>
-                  <a class="sp-faq-cta" href="#hire-me" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;"><span data-i18n="services.faq_start_cta">Start a project</span></a>
+                  <a class="sp-faq-cta is-primary" href="#hire-me" onclick="if(typeof switchToPage === 'function') { switchToPage('hire-me'); } return false;"><span data-i18n="services.faq_start_cta">Start a project</span></a>
                 </div>
               </div>
               <div class="sp-faq-list">

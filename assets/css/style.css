@@ -2590,6 +2590,23 @@ article.home .cwr-landing-nav-cta:focus-visible {
   margin: -13px;
 }
 
+/* Phones: both badges on one row. Same ratio as above (Google 80/54 of Apple, margin 41/250). */
+@media (max-width: 480px) {
+  .cwr-landing-stores-badges {
+    flex-wrap: nowrap;
+    gap: 12px;
+  }
+
+  .cwr-landing-stores-badges img {
+    height: 44px;
+  }
+
+  .cwr-landing-stores-badges img[src*="play.google.com"] {
+    height: 65px;
+    margin: -10.5px;
+  }
+}
+
 .cwr-landing-demo-grid {
   display: grid;
   gap: clamp(28px, 4vw, 48px);

@@ -34,7 +34,15 @@ const PROJECTS = [
   ['lawncare', 'https://lawncare.expo.app'],
   ['beautysalon', 'https://beautysalon.expo.app'],
   ['barbershop', 'https://barbershoptemplate.expo.app'],
-  ['photographer', 'https://photographer.expo.app']
+  ['photographer', 'https://photographer.expo.app'],
+  // November 2026
+  ['cocinaviva', 'https://courses.expo.app'],
+  ['rizoajijic', 'https://rizo.expo.app'],
+  ['micheladas', 'https://micheladas.expo.app'],
+  ['fiestarentals', 'https://rentals.expo.app'],
+  ['valleyhaul', 'https://junk.expo.app'],
+  ['rapidoroadside', 'https://roadsidefix.expo.app'],
+  ['squirreltree', 'https://squirreltreeservice.expo.app']
 ].filter(([id]) => !ONLY || ONLY.includes(id)).concat(EXTRA);
 
 const HOLD = 4;            // seconds on the hero before scrolling
