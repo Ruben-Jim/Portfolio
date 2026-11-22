@@ -164,7 +164,7 @@
 
   /**
    * The whole document to write (setDoc replaces it on Edit). Keeps the photo,
-   * the switch, and the original time unless the date was changed. Picking today
+   * the On site and Link Tree switches, and the original time unless the date was changed. Picking today
    * means "now", so it isn't saved as a later noon. With no createdAt here, the
    * caller adds serverTimestamp(). `now` is for tests.
    */
@@ -182,6 +182,7 @@
     if (fields.rating) p.rating = fields.rating;
     if (fields.reviewUrl) p.reviewUrl = fields.reviewUrl;
     if (e && typeof e.hidden === 'boolean') p.hidden = e.hidden;
+    if (e && typeof e.linktree === 'boolean') p.linktree = e.linktree;
     var date = str(dateInput).trim();
     var unchanged = e && e.createdAt && date === dateInputValue(msOf(e.createdAt));
     var today = dateInputValue(now == null ? Date.now() : now);

@@ -69,7 +69,7 @@ service cloud.firestore {
     // may keep a https link to the review. `hidden` = switched off the site.
     function validAdminReview(d) {
       return d.keys().hasAll(['name', 'text', 'avatar', 'source']) &&
-        d.keys().hasOnly(['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'source', 'reviewUrl', 'hidden', 'createdAt']) &&
+        d.keys().hasOnly(['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'source', 'reviewUrl', 'hidden', 'linktree', 'createdAt']) &&
         d.source in ['email', 'google'] &&
         isValidString(d.name, 120) &&
         isValidString(d.text, 5000) &&
@@ -80,6 +80,7 @@ service cloud.firestore {
         (d.source != 'google' || d.keys().hasAny(['rating'])) &&
         (!d.keys().hasAny(['reviewUrl']) || (d.source == 'google' && d.reviewUrl is string && d.reviewUrl.size() <= 500 && d.reviewUrl.matches('^https://.+'))) &&
         (!d.keys().hasAny(['hidden']) || d.hidden is bool) &&
+        (!d.keys().hasAny(['linktree']) || d.linktree is bool) &&
         (!d.keys().hasAny(['createdAt']) || d.createdAt is timestamp) &&
         d.avatar is string && d.avatar.size() > 0 && d.avatar.size() <= 500;
     }
@@ -127,7 +128,7 @@ service cloud.firestore {
           ['name', 'title', 'company', 'product', 'text', 'rating', 'avatar', 'token']
         ) &&
         // Only Ruben labels a review as emailed/Google or switches it off the site.
-        !request.resource.data.keys().hasAny(['source', 'hidden', 'reviewUrl']) &&
+        !request.resource.data.keys().hasAny(['source', 'hidden', 'reviewUrl', 'linktree']) &&
         isValidString(request.resource.data.name, 120) &&
         isOptionalString(request.resource.data.title, 120) &&
         isOptionalString(request.resource.data.company, 160) &&
@@ -144,7 +145,7 @@ service cloud.firestore {
         get(/databases/$(database)/documents/testimonialTokens/$(request.resource.data.token)).data.used == false
       ) || (isPortfolioAdmin() && validAdminReview(request.resource.data));
       // Admin-only: the avatar (profile image) or text (public quote) alone, the
-      // On site switch alone, or a full edit of a review Ruben added himself.
+      // On site switch alone, the Link Tree switch alone, or a full edit of a review Ruben added himself.
       allow update: if isPortfolioAdmin() && (
         (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['avatar']) &&
@@ -160,6 +161,10 @@ service cloud.firestore {
           // The "On site" switch, on any review.
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hidden']) &&
           request.resource.data.hidden is bool
+        ) || (
+          // The Link Tree switch (Admin → Link Tree → What clients say), on any review.
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['linktree']) &&
+          request.resource.data.linktree is bool
         ) || (
           // Full edit of a review Ruben added; its source can't change.
           resource.data.get('source', '') in ['email', 'google'] &&

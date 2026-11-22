@@ -99,7 +99,136 @@
       .map(function (x) { return toItem(x.p); });
   }
 
-  var api = { MAX_ITEMS: MAX_ITEMS, pick: pick, toItem: toItem, descFor: descFor, thumbFor: thumbFor, orderNumber: orderNumber };
+  // ── Admin → Link Tree: the Recent work list ──
+
+  function rowsOf(projects) {
+    return Array.isArray(projects)
+      ? projects.filter(Boolean)
+      : Object.keys(projects || {}).map(function (id) {
+        var r = projects[id];
+        return r && typeof r === 'object' ? Object.assign({ id: id }, r) : null;
+      }).filter(Boolean);
+  }
+
+  /**
+   * Every project for the admin list: { shown, hidden }. Shown = on the page,
+   * in page order (the same order pick() uses); hidden = the rest in portfolio
+   * order. Builds name their platform.
+   */
+  function adminRows(projects) {
+    var rows = rowsOf(projects).filter(function (p) { return String(p.title || '').trim(); });
+    var byId = {};
+    rows.forEach(function (p) { byId[p.id] = p; });
+    var shownIds = pick(rows).map(function (x) { return x.id; });
+    var shownAll = rows.filter(function (p) { return p.linktree === true; });
+    function row(p) {
+      var parent = p.builtFromTemplateId && byId[p.builtFromTemplateId];
+      return {
+        id: String(p.id),
+        title: String(p.title).trim(),
+        thumb: thumbFor(p),
+        badge: p.isTemplate === true ? 'template' : 'live',
+        parentTitle: parent ? String(parent.title || '').trim() : '',
+        isPrivate: String(p.visibility || '').toLowerCase() === 'private',
+        order: orderNumber(p.linktreeOrder),
+        // Ticked but past the cap: on in admin, not on the page.
+        overCap: p.linktree === true && shownIds.indexOf(String(p.id)) < 0
+      };
+    }
+    var shown = shownIds.map(function (id) { return row(byId[id]); })
+      .concat(shownAll.filter(function (p) { return shownIds.indexOf(String(p.id)) < 0; }).map(row));
+    var hidden = rows
+      .filter(function (p) { return p.linktree !== true; })
+      .sort(function (a, b) { return (Number(a.order) || 0) - (Number(b.order) || 0); })
+      .map(row);
+    return { shown: shown, hidden: hidden };
+  }
+
+  /** Patch for one project's switch; a newly shown one goes last. */
+  function togglePatch(shownRows, on) {
+    if (!on) return { linktree: false, linktreeOrder: null };
+    var max = 0;
+    (shownRows || []).forEach(function (r) { if (r.order !== null && r.order > max) max = r.order; });
+    return { linktree: true, linktreeOrder: (shownRows && shownRows.length ? Math.max(max, shownRows.length * 10) : 0) + 10 };
+  }
+
+  /** Moves shown[i] by delta and renumbers all 10, 20, 30…: { id: order } for the ones that change. */
+  function movePatches(shownRows, i, delta) {
+    var list = (shownRows || []).slice();
+    var j = i + delta;
+    if (i < 0 || i >= list.length || j < 0 || j >= list.length) return {};
+    list.splice(j, 0, list.splice(i, 1)[0]);
+    var out = {};
+    list.forEach(function (r, k) {
+      var n = (k + 1) * 10;
+      if (r.order !== n) out[r.id] = n;
+    });
+    return out;
+  }
+
+  // ── What it costs: which 3 packages and which is Most popular ──
+  // Stored at /agencyPricing/linktree = { packages: [id, id, id], popular: id | '' }.
+
+  var DEFAULT_PACKAGES = ['starter-page', 'website', 'starter'];
+  var DEFAULT_POPULAR = 'starter';
+
+  /** Three different known ids (else the defaults); popular must be one of them or ''. */
+  function normalizeSettings(raw, knownIds) {
+    raw = raw && typeof raw === 'object' ? raw : {};
+    var known = knownIds && knownIds.length ? knownIds : DEFAULT_PACKAGES;
+    var ids = list(raw.packages).map(function (x) { return String(x || ''); });
+    var ok = ids.length === 3 &&
+      ids.every(function (id) { return known.indexOf(id) >= 0; }) &&
+      ids[0] !== ids[1] && ids[0] !== ids[2] && ids[1] !== ids[2];
+    var packages = ok ? ids : DEFAULT_PACKAGES.slice();
+    var popular = raw.popular === undefined || raw.popular === null ? (ok ? '' : DEFAULT_POPULAR) : String(raw.popular);
+    if (popular && packages.indexOf(popular) < 0) popular = '';
+    return { packages: packages, popular: popular };
+  }
+
+  // ── What clients say ──
+
+  var MAX_REVIEWS = 3;
+
+  function millis(v) {
+    if (!v) return 0;
+    if (typeof v.toMillis === 'function') return v.toMillis();
+    if (typeof v.seconds === 'number') return v.seconds * 1000;
+    var n = Number(v);
+    if (isFinite(n)) return n;
+    var t = Date.parse(v);
+    return isFinite(t) ? t : 0;
+  }
+
+  /**
+   * Reviews for the page, newest first: the ones switched on for the Link Tree
+   * (at most 3); none switched on → the 2 newest. A review switched off the
+   * site (hidden) never shows. Items: { id, data }.
+   */
+  function reviewsFor(items) {
+    var live = (items || []).filter(function (x) { return x && x.data && x.data.hidden !== true; })
+      .sort(function (a, b) { return millis(b.data.createdAt) - millis(a.data.createdAt); });
+    var picked = live.filter(function (x) { return x.data.linktree === true; });
+    return picked.length ? picked.slice(0, MAX_REVIEWS) : live.slice(0, 2);
+  }
+
+  var api = {
+    MAX_ITEMS: MAX_ITEMS,
+    MAX_REVIEWS: MAX_REVIEWS,
+    DEFAULT_PACKAGES: DEFAULT_PACKAGES,
+    DEFAULT_POPULAR: DEFAULT_POPULAR,
+    pick: pick,
+    toItem: toItem,
+    descFor: descFor,
+    thumbFor: thumbFor,
+    orderNumber: orderNumber,
+    adminRows: adminRows,
+    togglePatch: togglePatch,
+    movePatches: movePatches,
+    normalizeSettings: normalizeSettings,
+    reviewsFor: reviewsFor,
+    millis: millis
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.LinktreeWork = api;
 })(typeof window !== 'undefined' ? window : null);

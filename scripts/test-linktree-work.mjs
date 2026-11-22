@@ -45,3 +45,47 @@ ok(W.descFor({ description: '· Books jobs\n· Takes payments' }) === 'Books job
 const long = W.descFor({ description: 'word '.repeat(60) });
 ok(long.length <= 120 && long.endsWith('…'), 'long text is cut on a word with an ellipsis');
 ok(W.toItem({ title: 'S', techTags: 'Expo, Firebase' }).tags.join('|') === 'Expo|Firebase', 'comma-separated tags work');
+
+// ── Admin list ──
+const all = {
+  p1: { title: 'Platform', isTemplate: true, order: 1 },
+  b1: { title: 'Build', builtFromTemplateId: 'p1', linktree: true, linktreeOrder: 20, order: 5 },
+  s1: { title: 'Solo', linktree: true, linktreeOrder: 10, order: 2, visibility: 'private' },
+  s2: { title: 'Other', order: 3 }
+};
+const rows = W.adminRows(all);
+ok(rows.shown.map((r) => r.id).join() === 's1,b1', 'admin: shown in page order');
+ok(rows.hidden.map((r) => r.id).join() === 'p1,s2', 'admin: the rest in portfolio order');
+ok(rows.shown[1].parentTitle === 'Platform', 'admin: a build names its platform');
+ok(rows.shown[0].isPrivate === true, 'admin: private projects are flagged');
+ok(rows.hidden[0].badge === 'template', 'admin: template badge');
+const capped = {};
+for (let i = 0; i < 8; i++) capped['c' + i] = { title: 'C' + i, linktree: true, linktreeOrder: (i + 1) * 10 };
+const cr = W.adminRows(capped);
+ok(cr.shown.length === 8 && cr.shown.filter((r) => r.overCap).map((r) => r.id).join() === 'c6,c7', 'admin: ticked past the cap are marked overCap');
+
+ok(JSON.stringify(W.togglePatch(rows.shown, false)) === JSON.stringify({ linktree: false, linktreeOrder: null }), 'hiding clears the order');
+ok(W.togglePatch(rows.shown, true).linktreeOrder === 30, 'showing goes last');
+ok(W.togglePatch([], true).linktreeOrder === 10, 'first shown gets 10');
+ok(W.togglePatch([{ order: null }, { order: null }], true).linktreeOrder === 30, 'unnumbered shown rows still put the new one after them');
+
+ok(JSON.stringify(W.movePatches(rows.shown, 1, -1)) === JSON.stringify({ b1: 10, s1: 20 }), 'move up swaps and renumbers');
+ok(JSON.stringify(W.movePatches(rows.shown, 0, -1)) === '{}', 'moving past the top does nothing');
+
+// ── Package settings ──
+const KNOWN = ['linktree', 'starter-page', 'website', 'starter', 'growth'];
+const def = W.normalizeSettings(null, KNOWN);
+ok(def.packages.join() === 'starter-page,website,starter' && def.popular === 'starter', 'nothing saved → defaults with Website + app popular');
+ok(W.normalizeSettings({ packages: ['website', 'starter', 'growth'], popular: 'growth' }, KNOWN).popular === 'growth', 'saved picks are kept');
+ok(W.normalizeSettings({ packages: { 0: 'website', 1: 'starter', 2: 'growth' } }, KNOWN).popular === '', 'RTDB object arrays work; no popular saved → none');
+ok(W.normalizeSettings({ packages: ['website', 'website', 'growth'] }, KNOWN).packages.join() === def.packages.join(), 'duplicates → defaults');
+ok(W.normalizeSettings({ packages: ['website', 'gone', 'growth'] }, KNOWN).packages.join() === def.packages.join(), 'an unknown package → defaults');
+ok(W.normalizeSettings({ packages: ['website', 'starter', 'growth'], popular: 'linktree' }, KNOWN).popular === '', 'popular must be one of the 3');
+
+// ── Reviews ──
+const rv = (id, t, extra) => ({ id, data: Object.assign({ createdAt: { seconds: t } }, extra) });
+const reviews = [rv('a', 1), rv('b', 5), rv('c', 3, { hidden: true }), rv('d', 4)];
+ok(W.reviewsFor(reviews).map((x) => x.id).join() === 'b,d', 'none picked → 2 newest, hidden skipped');
+const picked = [rv('a', 1, { linktree: true }), rv('b', 5), rv('c', 3, { linktree: true, hidden: true }), rv('d', 4, { linktree: true }), rv('e', 2, { linktree: true }), rv('f', 6, { linktree: true })];
+ok(W.reviewsFor(picked).map((x) => x.id).join() === 'f,d,e', 'picked ones only, newest first, max 3, hidden never');
+ok(W.millis('2026-01-01') > 0 && W.millis(5) === 5 && W.millis(null) === 0, 'dates from Firestore, numbers or strings');

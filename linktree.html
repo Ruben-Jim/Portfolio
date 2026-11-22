@@ -490,6 +490,7 @@
       white-space: nowrap;
     }
     /* A sale from the admin Pricing tab: regular price crossed out above the sale price. */
+    .price-from { font-size: 0.58rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--light-gray-70); }
     .price-now {
       font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em;
       background: var(--gradient-gold); -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -568,21 +569,22 @@
     <!-- Packages -->
     <div class="section">
       <p class="section-label" data-i18n="section.packages">What it costs</p>
-      <div class="price-row">
+      <!-- Typed cards = the defaults; Admin → Link Tree picks the 3 (and Most popular) at /agencyPricing/linktree. -->
+      <div class="price-row" data-price-row>
         <a href="https://rubenjimenez.dev/services-pricing" class="price-card" data-pkg="starter-page">
           <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
           <span class="price-amount" data-price-template="{pkg_starter_page}">$499</span>
           <span class="price-now" hidden></span>
-          <span class="price-name" data-i18n="price.499.name">Website</span>
-          <span class="price-note" data-i18n="price.499.note">1 page + owner admin</span>
+          <span class="price-name" data-i18n="pkg.starter-page.name">Website</span>
+          <span class="price-note" data-i18n="pkg.starter-page.note">1 page + owner admin</span>
           <span class="price-limit" hidden></span>
         </a>
         <a href="https://rubenjimenez.dev/services-pricing" class="price-card" data-pkg="website">
           <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
           <span class="price-amount" data-price-template="{pkg_website}">$999</span>
           <span class="price-now" hidden></span>
-          <span class="price-name" data-i18n="price.999.name">Multi-page</span>
-          <span class="price-note" data-i18n="price.999.note">1–3 pages + live chat</span>
+          <span class="price-name" data-i18n="pkg.website.name">Multi-page</span>
+          <span class="price-note" data-i18n="pkg.website.note">1–3 pages + live chat</span>
           <span class="price-limit" hidden></span>
         </a>
         <a href="https://rubenjimenez.dev/services-pricing" class="price-card is-popular" data-pkg="starter">
@@ -590,8 +592,8 @@
           <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
           <span class="price-amount" data-price-template="{pkg_starter}">$1,500</span>
           <span class="price-now" hidden></span>
-          <span class="price-name" data-i18n="price.1500.name">Website + app</span>
-          <span class="price-note" data-i18n="price.1500.note">iOS + Android app</span>
+          <span class="price-name" data-i18n="pkg.starter.name">Website + app</span>
+          <span class="price-note" data-i18n="pkg.starter.note">iOS + Android app</span>
           <span class="price-limit" hidden></span>
         </a>
       </div>
@@ -601,7 +603,7 @@
       </p>
     </div>
 
-    <!-- Testimonials: latest 2 from Firestore (see script at end of body) -->
+    <!-- Testimonials: picked in Admin → Link Tree, else the latest 2 (script at end of body) -->
     <div class="section" id="reviews" hidden>
       <p class="section-label" data-i18n="section.reviews">What clients say</p>
       <div class="review-list" data-review-list></div>
@@ -763,12 +765,21 @@
           'status.taking': 'Taking new projects',
           'cta.start': 'Start a project',
           'section.packages': 'What it costs',
-          'price.499.name': 'Website',
-          'price.499.note': '1 page + owner admin',
-          'price.1500.name': 'Website + app',
-          'price.1500.note': 'iOS + Android app',
-          'price.999.name': 'Multi-page',
-          'price.999.note': '1–3 pages + live chat',
+          'pkg.linktree.name': 'Link Tree',
+          'pkg.linktree.note': 'Your link-in-bio page',
+          'pkg.starter-page.name': 'Website',
+          'pkg.starter-page.note': '1 page + owner admin',
+          'pkg.website.name': 'Multi-page',
+          'pkg.website.note': '1–3 pages + live chat',
+          'pkg.starter.name': 'Website + app',
+          'pkg.starter.note': 'iOS + Android app',
+          'pkg.growth.name': 'Full platform',
+          'pkg.growth.note': 'Booking, payments + crew',
+          'pkg.agency.name': 'Business platform',
+          'pkg.agency.note': 'Website + crew app',
+          'pkg.studio.name': 'Custom build',
+          'pkg.studio.note': 'Fully custom platform',
+          'price.from': 'From',
           'price.popular': 'Most popular',
           'price.sale': 'On sale',
           'price.foot': 'Maintenance from $44/mo · 1st month included',
@@ -795,12 +806,21 @@
           'status.taking': 'Aceptando proyectos',
           'cta.start': 'Iniciar un proyecto',
           'section.packages': 'Cuánto cuesta',
-          'price.499.name': 'Sitio web',
-          'price.499.note': '1 página + panel de dueño',
-          'price.1500.name': 'Sitio + app',
-          'price.1500.note': 'App iOS + Android',
-          'price.999.name': 'Varias páginas',
-          'price.999.note': '1–3 páginas + chat en vivo',
+          'pkg.linktree.name': 'Link Tree',
+          'pkg.linktree.note': 'Tu página de enlaces',
+          'pkg.starter-page.name': 'Sitio web',
+          'pkg.starter-page.note': '1 página + panel de dueño',
+          'pkg.website.name': 'Varias páginas',
+          'pkg.website.note': '1–3 páginas + chat en vivo',
+          'pkg.starter.name': 'Sitio + app',
+          'pkg.starter.note': 'App iOS + Android',
+          'pkg.growth.name': 'Plataforma completa',
+          'pkg.growth.note': 'Reservas, pagos y equipo',
+          'pkg.agency.name': 'Plataforma de negocio',
+          'pkg.agency.note': 'Sitio + app para tu equipo',
+          'pkg.studio.name': 'A la medida',
+          'pkg.studio.note': 'Plataforma a tu medida',
+          'price.from': 'Desde',
           'price.popular': 'Más popular',
           'price.sale': 'En oferta',
           'price.foot': 'Mantenimiento desde $44/mes · 1er mes incluido',
@@ -845,6 +865,61 @@
         return text.charAt(0).toUpperCase() + text.slice(1);
       }
 
+      // Which 3 packages show and which is Most popular: Admin → Link Tree, stored at
+      // /agencyPricing/linktree (rules in linktree-work.js). Prices always come from Pricing.
+      var cardSettings = null;
+      var shownKey = 'starter-page,website,starter|starter';
+
+      function el(tag, className, text) {
+        var n = document.createElement(tag);
+        if (className) n.className = className;
+        if (text) n.textContent = text;
+        return n;
+      }
+
+      function renderCards(d) {
+        var PP = window.PackagePricing;
+        var row = document.querySelector('[data-price-row]');
+        if (!row || !cardSettings || !PP || !window.LinktreeWork) return;
+        var key = cardSettings.packages.join() + '|' + cardSettings.popular;
+        if (key === shownKey) return;
+        var frag = document.createDocumentFragment();
+        cardSettings.packages.forEach(function (id) {
+          var pkg = PP.packageById(id);
+          if (!pkg) return;
+          var a = el('a', 'price-card' + (cardSettings.popular === id ? ' is-popular' : ''));
+          a.href = 'https://rubenjimenez.dev/services-pricing';
+          a.setAttribute('data-pkg', id);
+          if (cardSettings.popular === id) {
+            var pop = el('span', 'price-tag price-tag--popular', d['price.popular']);
+            pop.setAttribute('data-i18n', 'price.popular');
+            a.appendChild(pop);
+          }
+          var sale = el('span', 'price-tag price-tag--sale', d['price.sale']);
+          sale.setAttribute('data-i18n', 'price.sale');
+          sale.hidden = true;
+          a.appendChild(sale);
+          if (pkg.max) {
+            var from = el('span', 'price-from', d['price.from']);
+            from.setAttribute('data-i18n', 'price.from');
+            a.appendChild(from);
+          }
+          a.appendChild(el('span', 'price-amount', window.CarePricing.money(pkg.price)));
+          var now = el('span', 'price-now'); now.hidden = true; a.appendChild(now);
+          var name = el('span', 'price-name', d['pkg.' + id + '.name'] || pkg.name);
+          name.setAttribute('data-i18n', 'pkg.' + id + '.name');
+          a.appendChild(name);
+          var note = el('span', 'price-note', d['pkg.' + id + '.note'] || '');
+          note.setAttribute('data-i18n', 'pkg.' + id + '.note');
+          a.appendChild(note);
+          var lim = el('span', 'price-limit'); lim.hidden = true; a.appendChild(lim);
+          frag.appendChild(a);
+        });
+        if (!frag.childNodes.length) return;
+        row.replaceChildren(frag);
+        shownKey = key;
+      }
+
       function renderSales(lang, d) {
         var PP = window.PackagePricing;
         document.querySelectorAll('.price-card[data-pkg]').forEach(function (card) {
@@ -868,6 +943,12 @@
         var d = DICT[lang] || DICT.en;
         currentLang = lang;
         document.documentElement.lang = lang;
+        renderCards(d);
+        // Built cards have no price template: keep their regular price current.
+        document.querySelectorAll('.price-card[data-pkg] .price-amount:not([data-price-template])').forEach(function (n) {
+          var pkg = window.PackagePricing && window.PackagePricing.packageById(n.parentNode.getAttribute('data-pkg'));
+          if (pkg) n.textContent = window.CarePricing.money(pkg.price);
+        });
         document.querySelectorAll('[data-i18n]').forEach(function (n) {
           var v = d[n.getAttribute('data-i18n')];
           if (v != null) n.textContent = fill(v);
@@ -893,6 +974,17 @@
 
       if (window.CarePricing) window.CarePricing.onChange(function () { apply(currentLang); });
       window.linktreeLang = function () { return currentLang; };
+      if (window.LinktreeWork && typeof fetch === 'function') {
+        var dbUrl = String((window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL) || 'https://portfolio-2578e-default-rtdb.firebaseio.com').replace(/\/$/, '');
+        fetch(dbUrl + '/agencyPricing/linktree.json')
+          .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+          .then(function (raw) {
+            var known = window.PackagePricing ? window.PackagePricing.PACKAGES.map(function (p) { return p.id; }) : null;
+            cardSettings = window.LinktreeWork.normalizeSettings(raw, known);
+            apply(currentLang);
+          })
+          .catch(function (e) { console.warn('Link Tree packages: keeping the default cards', e); });
+      }
       window.linktreeText = function (key) { var d = DICT[currentLang] || DICT.en; return d[key] || DICT.en[key] || ''; };
 
       var toggle = document.querySelector('.lang-toggle');
@@ -968,7 +1060,7 @@
   </script>
 
   <!--
-    - testimonials: latest 2 from the same Firestore collection as /testimonials.
+    - testimonials: the ones picked in Admin → Link Tree (else the latest 2), same collection as /testimonials.
       Card quote follows script.js: a short public quote (≤ 60 chars) defers to the
       private notes when they exist. Any failure just leaves the section hidden.
   -->
@@ -1027,9 +1119,13 @@
       if (!list || !window.FIREBASE_CONFIG) return;
       try {
         var db = getFirestore(initializeApp(window.FIREBASE_CONFIG));
-        var snap = await getDocs(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'), limit(2)));
-        snap.forEach(function (docSnap) {
-          var card = renderCard(docSnap.data());
+        // Picked in Admin → Link Tree (linktree: true), else the 2 newest; reviews switched off the site never show.
+        var snap = await getDocs(query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'), limit(40)));
+        var items = [];
+        snap.forEach(function (docSnap) { items.push({ id: docSnap.id, data: docSnap.data() }); });
+        var chosen = window.LinktreeWork ? window.LinktreeWork.reviewsFor(items) : items.filter(function (x) { return x.data.hidden !== true; }).slice(0, 2);
+        chosen.forEach(function (docSnap) {
+          var card = renderCard(docSnap.data);
           if (card) list.appendChild(card);
         });
         if (list.children.length) section.hidden = false;

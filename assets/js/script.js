@@ -6491,7 +6491,6 @@ function serializePortfolioProjectFormState() {
   if (!form) return '';
   var ids = [
     'portfolio-project-edit-id',
-    'portfolio-project-linktree-order',
     'portfolio-project-title',
     'portfolio-project-url',
     'portfolio-project-live-kind',
@@ -6520,8 +6519,6 @@ function serializePortfolioProjectFormState() {
         document.getElementById('portfolio-project-show-public').checked),
       showQuote: !!(document.getElementById('portfolio-project-show-quote') &&
         document.getElementById('portfolio-project-show-quote').checked),
-      linktree: !!(document.getElementById('portfolio-project-linktree') &&
-        document.getElementById('portfolio-project-linktree').checked),
       isTemplate: !!(document.getElementById('portfolio-project-is-template') &&
         document.getElementById('portfolio-project-is-template').checked)
     },
@@ -6781,14 +6778,6 @@ function openPortfolioProjectModal(isNew, project) {
     portfolioFormPackageFeatures = {};
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
-  }
-  // Link Tree "Recent work" (see assets/js/linktree-work.js). New projects start off.
-  var linktreeEl = document.getElementById('portfolio-project-linktree');
-  if (linktreeEl) linktreeEl.checked = !isNew && !!project && project.linktree === true;
-  var linktreeOrderEl = document.getElementById('portfolio-project-linktree-order');
-  if (linktreeOrderEl) {
-    var ltOrder = !isNew && project ? portfolioLinktreeOrder(project.linktreeOrder) : null;
-    linktreeOrderEl.value = ltOrder === null ? '' : String(ltOrder);
   }
   initPortfolioAssetGrid();
   portfolioAssetPickerReset();
@@ -7131,11 +7120,6 @@ function setupPortfolioAdminControls() {
         buyNowLabel: document.getElementById('portfolio-project-buy-now').value,
         buyPremiumLabel: document.getElementById('portfolio-project-buy-premium').value,
         showQuoteButton: document.getElementById('portfolio-project-show-quote').checked,
-        linktree: !!(document.getElementById('portfolio-project-linktree') &&
-          document.getElementById('portfolio-project-linktree').checked),
-        linktreeOrder: document.getElementById('portfolio-project-linktree-order')
-          ? document.getElementById('portfolio-project-linktree-order').value
-          : '',
         adminModalNote: document.getElementById('portfolio-project-admin-note').value,
         canvasDocUrl: document.getElementById('portfolio-project-canvas-doc').value,
         canvasDocTitle: document.getElementById('portfolio-project-canvas-title').value,
@@ -7168,6 +7152,9 @@ function setupPortfolioAdminControls() {
         if (editId) {
           const existing = portfolioProjectsRtdb.find(function (x) { return x.id === editId; });
           payload.order = existing ? portfolioNumericOrder(existing) : 0;
+          // Set in Admin → Link Tree, not this form: a save keeps them (the write replaces the record).
+          payload.linktree = !!(existing && existing.linktree === true);
+          payload.linktreeOrder = existing ? existing.linktreeOrder : null;
           await updatePortfolioProjectDoc(editId, payload);
           showSuccessMessage('Project updated.');
         } else {
@@ -21389,7 +21376,7 @@ window.addEventListener('load', function() {
       overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, 'content-hub': 1, 'crm-hub': 1, outreach: 1, pricing: 1, prospects: 1
     };
-    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, 'social-proof': 1, instagram: 1, 'post-builder': 1 };
+    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, 'social-proof': 1, linktree: 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
     var tabBar = document.querySelector('#admin-tabs .admin-tab-bar');
     var moreWrap = document.getElementById('admin-tab-more-wrap');
@@ -21938,12 +21925,13 @@ window.addEventListener('load', function() {
 
   // Mobile admin — Content section hub + second docked subtab bar (Portfolio · Blog · Reviews · IG)
   (function initAdminMobileContentSubtabBar() {
-    var CONTENT_SUB_TAB_IDS = ['portfolio', 'blog', 'testimonials', 'social-proof', 'instagram', 'post-builder'];
+    var CONTENT_SUB_TAB_IDS = ['portfolio', 'blog', 'testimonials', 'social-proof', 'linktree', 'instagram', 'post-builder'];
     var CONTENT_SUB_META = {
       portfolio: { label: 'Portfolio', icon: 'albums-outline' },
       blog: { label: 'Blog', icon: 'newspaper-outline' },
       testimonials: { label: 'Reviews', icon: 'chatbox-ellipses-outline' },
       'social-proof': { label: 'Proof', icon: 'ribbon-outline' },
+      linktree: { label: 'Link Tree', icon: 'link-outline' },
       instagram: { label: 'IG posts', icon: 'logo-instagram' },
       'post-builder': { label: 'Builder', icon: 'color-palette-outline' }
     };
@@ -22220,10 +22208,10 @@ window.addEventListener('load', function() {
     }
     var STORAGE_KEY = 'adminActiveTab';
     var VALID = {
-      overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, 'social-proof': 1, blog: 1, portfolio: 1, pipeline: 1,
+      overview: 1, 'client-projects': 1, docs: 1, messages: 1, email: 1, 'client-email': 1, planner: 1, bookings: 1, testimonials: 1, 'social-proof': 1, linktree: 1, blog: 1, portfolio: 1, pipeline: 1,
       'time-capacity': 1, referrals: 1, 'studio-costs': 1, ops: 1, instagram: 1, 'post-builder': 1, outreach: 1, pricing: 1, prospects: 1
     };
-    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, 'social-proof': 1, instagram: 1, 'post-builder': 1 };
+    var CONTENT_SUB_TABS = { portfolio: 1, blog: 1, testimonials: 1, 'social-proof': 1, linktree: 1, instagram: 1, 'post-builder': 1 };
     var CRM_SUB_TABS = { pipeline: 1, 'client-projects': 1, planner: 1, messages: 1, email: 1, docs: 1 };
     var AGENCY_TABS = { 'client-projects': 1, planner: 1, referrals: 1 };
     var LEGACY_AGENCY_TABS = { hub: 1, maintenance: 1, health: 1, agency: 1 };
@@ -22304,6 +22292,9 @@ window.addEventListener('load', function() {
       }
       if (tabId === 'social-proof' && window.CWR_SOCIAL_PROOF) {
         window.CWR_SOCIAL_PROOF.open();
+      }
+      if (tabId === 'linktree' && window.CWR_LINKTREE) {
+        window.CWR_LINKTREE.open();
       }
       if (tabId === 'email' && typeof window.initAdminEmailPanel === 'function') {
         window.initAdminEmailPanel();
