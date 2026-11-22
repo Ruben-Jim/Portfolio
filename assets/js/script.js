@@ -4123,13 +4123,17 @@ async function readPortfolioProjectsFromRtdb(timeoutMs) {
       })
     ]);
     const val = snap.val();
+    // Built in its own list, then swapped in: two overlapping reads (page load +
+    // Admin → Link Tree) used to both push into the shared one, listing every project twice.
+    const rows = [];
     if (val && typeof val === 'object') {
       Object.keys(val).forEach(function (key) {
         const row = normalizePortfolioRtdbRow(val[key]);
-        portfolioProjectsRtdb.push(Object.assign({ id: key }, row));
+        rows.push(Object.assign({ id: key }, row));
       });
-      portfolioProjectsRtdb.sort(comparePortfolioProjectsByOrder);
+      rows.sort(comparePortfolioProjectsByOrder);
     }
+    portfolioProjectsRtdb = rows;
   } catch (err) {
     // The public page shows a Retry message for this (renderPublicPortfolioProjects).
     console.error('Portfolio RTDB load failed', err);

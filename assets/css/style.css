@@ -33840,3 +33840,40 @@ body.cwr-overlay-open [data-float] {
   .admin-linktree-row { padding: 8px 10px; gap: 8px; }
   .admin-linktree-arrow { width: 30px; height: 30px; }
 }
+
+/* ── Studio Costs → Claude usage (agency-tools.js renderClaudeUsage) ── */
+.claude-usage { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--jet); }
+.claude-usage-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.claude-usage-title { margin: 0; font-size: var(--fs-5); color: var(--white-2); }
+.claude-usage-updated { font-size: var(--fs-8); color: var(--light-gray-70); }
+.claude-usage-hint, .claude-usage-empty, .claude-usage-note { margin: 6px 0 12px; font-size: var(--fs-8); color: var(--light-gray-70); line-height: 1.5; }
+.claude-usage-hint code { padding: 1px 6px; border-radius: 6px; background: var(--onyx); color: var(--orange-yellow-crayola); font-size: 0.95em; }
+.claude-usage-note { margin: 12px 0 0; }
+.claude-usage-sub { display: block; margin-top: 2px; font-size: 11px; color: var(--light-gray-70); }
+.claude-usage-sublabel {
+  margin: 16px 0 8px; font-size: 11px; font-weight: var(--fw-600);
+  letter-spacing: 0.04em; text-transform: uppercase; color: var(--light-gray-70);
+}
+.claude-usage-days, .claude-usage-projects { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.claude-usage-day {
+  display: grid; grid-template-columns: 96px minmax(60px, 1fr) 52px minmax(0, 1.2fr);
+  align-items: center; gap: 10px; font-size: var(--fs-8); color: var(--light-gray);
+}
+.claude-usage-day.is-empty { color: var(--light-gray-70); }
+.claude-usage-day-date { white-space: nowrap; }
+.claude-usage-bar { height: 8px; border-radius: 999px; background: var(--onyx); overflow: hidden; }
+.claude-usage-bar-fill { display: block; height: 100%; border-radius: inherit; background: var(--orange-yellow-crayola); }
+.claude-usage-day-num { text-align: right; font-weight: var(--fw-600); color: var(--white-2); }
+.claude-usage-day.is-empty .claude-usage-day-num { color: var(--light-gray-70); font-weight: 400; }
+.claude-usage-day-meta { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--light-gray-70); }
+.claude-usage-project {
+  display: flex; justify-content: space-between; gap: 10px;
+  padding: 8px 10px; border: 1px solid var(--jet); border-radius: 8px;
+  font-size: var(--fs-8); color: var(--light-gray);
+}
+.claude-usage-project span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.claude-usage-project-num { flex-shrink: 0; color: var(--orange-yellow-crayola); font-weight: var(--fw-600); }
+@media (max-width: 640px) {
+  .claude-usage-day { grid-template-columns: 78px minmax(40px, 1fr) 46px; }
+  .claude-usage-day-meta { grid-column: 1 / -1; margin: -4px 0 4px; }
+}

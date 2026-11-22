@@ -2919,14 +2919,142 @@
     agencyStudioCosts = [];
     if (val && typeof val === 'object') {
       Object.keys(val).forEach(function (id) {
+        // "_" keys aren't services: _claudeUsage comes from scripts/claude-usage.mjs.
+        if (id.charAt(0) === '_') return;
         agencyStudioCosts.push(normalizeStudioCost(id, val[id]));
       });
     }
+    renderClaudeUsage(val && val._claudeUsage);
     renderStudioCostsTable();
     if (!agencyStudioCosts.length) {
       seedStudioCostsIfEmpty().catch(console.error);
     }
     if (typeof window.renderAdminOverview === 'function') window.renderAdminOverview();
+  }
+
+  // ── Claude usage (Studio Costs). Counts only, uploaded by `node scripts/claude-usage.mjs`
+  // from Claude Code's local logs: free, it never calls Claude. ──
+
+  function claudeShort(v) {
+    var x = Number(v) || 0;
+    if (x >= 1e9) return (Math.round(x / 1e8) / 10) + 'B';
+    if (x >= 1e6) return (Math.round(x / 1e5) / 10) + 'M';
+    if (x >= 1e3) return (Math.round(x / 1e2) / 10) + 'k';
+    return String(Math.round(x));
+  }
+
+  function claudeDayTotal(d) {
+    return (Number(d.input) || 0) + (Number(d.output) || 0) + (Number(d.cacheWrite) || 0) + (Number(d.cacheRead) || 0);
+  }
+
+  function claudeDayKey(offset) {
+    var d = new Date();
+    d.setDate(d.getDate() - offset);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function renderClaudeUsage(raw) {
+    var root = document.getElementById('claude-usage');
+    if (!root) return;
+    var days = (raw && raw.days && typeof raw.days === 'object') ? raw.days : {};
+    var keys = Object.keys(days).sort();
+    var empty = document.getElementById('claude-usage-empty');
+    var body = document.getElementById('claude-usage-body');
+    var updated = document.getElementById('claude-usage-updated');
+    if (empty) empty.hidden = keys.length > 0;
+    if (body) body.hidden = !keys.length;
+    if (updated) {
+      updated.textContent = raw && raw.updatedAt
+        ? 'Updated ' + new Date(raw.updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+        : '';
+    }
+    if (!keys.length) return;
+
+    function sumSince(offset) {
+      var from = claudeDayKey(offset);
+      var tokens = 0, replies = 0;
+      keys.forEach(function (k) {
+        if (k >= from) { tokens += claudeDayTotal(days[k]); replies += Number(days[k].messages) || 0; }
+      });
+      return { tokens: tokens, replies: replies };
+    }
+    var today = days[claudeDayKey(0)] || {};
+    var w = sumSince(6);
+    var m = sumSince(29);
+    var set = function (id, text) { var n = document.getElementById(id); if (n) n.textContent = text; };
+    set('claude-usage-today', claudeShort(claudeDayTotal(today)));
+    var plural = function (n, one, many) { return n + ' ' + (n === 1 ? one : many); };
+    set('claude-usage-today-sub', plural(Number(today.messages) || 0, 'reply', 'replies') + ' · ' + plural(Number(today.sessions) || 0, 'session', 'sessions'));
+    set('claude-usage-week', claudeShort(w.tokens));
+    set('claude-usage-week-sub', w.replies + ' replies');
+    set('claude-usage-month', claudeShort(m.tokens));
+    set('claude-usage-month-sub', m.replies + ' replies');
+
+    // Last 14 days, newest first, bars scaled to the busiest day.
+    var list = document.getElementById('claude-usage-days');
+    if (list) {
+      var shown = [];
+      for (var i = 0; i < 14; i++) shown.push(claudeDayKey(i));
+      var max = 1;
+      shown.forEach(function (k) { if (days[k]) max = Math.max(max, claudeDayTotal(days[k])); });
+      list.replaceChildren();
+      shown.forEach(function (k) {
+        var d = days[k] || {};
+        var total = claudeDayTotal(d);
+        var li = document.createElement('li');
+        li.className = 'claude-usage-day' + (total ? '' : ' is-empty');
+        var parts = k.split('-');
+        var label = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+          .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        var top = Object.keys(d.byProject || {}).sort(function (a, b) { return d.byProject[b] - d.byProject[a]; })[0] || '';
+        var name = document.createElement('span');
+        name.className = 'claude-usage-day-date';
+        name.textContent = label;
+        var bar = document.createElement('span');
+        bar.className = 'claude-usage-bar';
+        var fill = document.createElement('span');
+        fill.className = 'claude-usage-bar-fill';
+        fill.style.width = (total ? Math.max(2, Math.round((total / max) * 100)) : 0) + '%';
+        bar.appendChild(fill);
+        var num = document.createElement('span');
+        num.className = 'claude-usage-day-num';
+        num.textContent = total ? claudeShort(total) : '—';
+        var meta = document.createElement('span');
+        meta.className = 'claude-usage-day-meta';
+        meta.textContent = total ? (Number(d.messages) || 0) + ' replies' + (top ? ' · ' + top : '') : '';
+        li.appendChild(name);
+        li.appendChild(bar);
+        li.appendChild(num);
+        li.appendChild(meta);
+        list.appendChild(li);
+      });
+    }
+
+    // Projects over the last 30 days.
+    var proj = document.getElementById('claude-usage-projects');
+    if (proj) {
+      var from30 = claudeDayKey(29);
+      var byP = {};
+      keys.forEach(function (k) {
+        if (k < from30) return;
+        var bp = days[k].byProject || {};
+        Object.keys(bp).forEach(function (p) { byP[p] = (byP[p] || 0) + (Number(bp[p]) || 0); });
+      });
+      var all = Object.keys(byP).reduce(function (s, p) { return s + byP[p]; }, 0) || 1;
+      proj.replaceChildren();
+      Object.keys(byP).sort(function (a, b) { return byP[b] - byP[a]; }).slice(0, 6).forEach(function (p) {
+        var li = document.createElement('li');
+        li.className = 'claude-usage-project';
+        var n1 = document.createElement('span');
+        n1.textContent = p;
+        var n2 = document.createElement('span');
+        n2.className = 'claude-usage-project-num';
+        n2.textContent = claudeShort(byP[p]) + ' · ' + Math.round((byP[p] / all) * 100) + '%';
+        li.appendChild(n1);
+        li.appendChild(n2);
+        proj.appendChild(li);
+      });
+    }
   }
 
   function openStudioCostEditor(id) {
