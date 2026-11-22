@@ -7687,6 +7687,18 @@
                     <span>Show “Similar project? Get a quote”</span>
                   </label>
                 </div>
+                <div class="form-group form-group-checkbox-row">
+                  <label class="portfolio-project-checkbox">
+                    <input type="checkbox" id="portfolio-project-linktree" class="custom-switch-input">
+                    <span class="custom-switch" aria-hidden="true"></span>
+                    <span>Show on Link Tree (Recent work)</span>
+                  </label>
+                  <p class="form-hint">Up to 6 show on /linktree, lowest number first.</p>
+                </div>
+                <div class="form-group" id="portfolio-project-linktree-order-group">
+                  <label for="portfolio-project-linktree-order">Link Tree order</label>
+                  <input type="number" id="portfolio-project-linktree-order" min="0" max="999" step="1" inputmode="numeric" placeholder="10">
+                </div>
               </div>
             </div>
           </details>
@@ -8976,7 +8988,7 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=bestfor-20261119"></script>
+  <script src="/assets/js/script.js?v=linktree-20261122"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--

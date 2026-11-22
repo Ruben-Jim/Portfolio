@@ -4287,6 +4287,13 @@ function portfolioFillPackageDemosForm(demos) {
   });
 }
 
+/** Link Tree position: a whole number 0–999, or null when blank. */
+function portfolioLinktreeOrder(v) {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  var n = Math.round(Number(v));
+  return isFinite(n) ? Math.max(0, Math.min(999, n)) : null;
+}
+
 function portfolioSanitizeDocumentPayload(data) {
   const imageUrls = portfolioParseImageUrls(
     data.imageUrls,
@@ -4320,6 +4327,9 @@ function portfolioSanitizeDocumentPayload(data) {
     buyNowLabel: data.buyNowLabel != null ? String(data.buyNowLabel).slice(0, 120) : '',
     buyPremiumLabel: data.buyPremiumLabel != null ? String(data.buyPremiumLabel).slice(0, 160) : '',
     showQuoteButton: data.showQuoteButton !== false,
+    // Shown under "Recent work" on /linktree, sorted by linktreeOrder (null = after the numbered ones).
+    linktree: data.linktree === true,
+    linktreeOrder: portfolioLinktreeOrder(data.linktreeOrder),
     adminModalNote: data.adminModalNote != null ? String(data.adminModalNote).slice(0, 2000) : '',
     bestFor: Array.isArray(data.bestFor)
       ? data.bestFor.map(function (x) { return String(x).slice(0, 120); }).filter(Boolean).slice(0, 12)
@@ -6481,6 +6491,7 @@ function serializePortfolioProjectFormState() {
   if (!form) return '';
   var ids = [
     'portfolio-project-edit-id',
+    'portfolio-project-linktree-order',
     'portfolio-project-title',
     'portfolio-project-url',
     'portfolio-project-live-kind',
@@ -6509,6 +6520,8 @@ function serializePortfolioProjectFormState() {
         document.getElementById('portfolio-project-show-public').checked),
       showQuote: !!(document.getElementById('portfolio-project-show-quote') &&
         document.getElementById('portfolio-project-show-quote').checked),
+      linktree: !!(document.getElementById('portfolio-project-linktree') &&
+        document.getElementById('portfolio-project-linktree').checked),
       isTemplate: !!(document.getElementById('portfolio-project-is-template') &&
         document.getElementById('portfolio-project-is-template').checked)
     },
@@ -6769,7 +6782,13 @@ function openPortfolioProjectModal(isNew, project) {
     renderPortfolioFormImagesList([]);
     renderPortfolioDetailSectionsList([]);
   }
-  if (!project || isNew) {
+  // Link Tree "Recent work" (see assets/js/linktree-work.js). New projects start off.
+  var linktreeEl = document.getElementById('portfolio-project-linktree');
+  if (linktreeEl) linktreeEl.checked = !isNew && !!project && project.linktree === true;
+  var linktreeOrderEl = document.getElementById('portfolio-project-linktree-order');
+  if (linktreeOrderEl) {
+    var ltOrder = !isNew && project ? portfolioLinktreeOrder(project.linktreeOrder) : null;
+    linktreeOrderEl.value = ltOrder === null ? '' : String(ltOrder);
   }
   initPortfolioAssetGrid();
   portfolioAssetPickerReset();
@@ -7112,6 +7131,11 @@ function setupPortfolioAdminControls() {
         buyNowLabel: document.getElementById('portfolio-project-buy-now').value,
         buyPremiumLabel: document.getElementById('portfolio-project-buy-premium').value,
         showQuoteButton: document.getElementById('portfolio-project-show-quote').checked,
+        linktree: !!(document.getElementById('portfolio-project-linktree') &&
+          document.getElementById('portfolio-project-linktree').checked),
+        linktreeOrder: document.getElementById('portfolio-project-linktree-order')
+          ? document.getElementById('portfolio-project-linktree-order').value
+          : '',
         adminModalNote: document.getElementById('portfolio-project-admin-note').value,
         canvasDocUrl: document.getElementById('portfolio-project-canvas-doc').value,
         canvasDocTitle: document.getElementById('portfolio-project-canvas-title').value,

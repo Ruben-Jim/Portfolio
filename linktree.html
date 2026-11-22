@@ -118,20 +118,26 @@
     .card > *:nth-child(6) { animation-delay: 0.35s; }
 
     /* ── Profile header ── */
+    /* Avatar top-left with the name + title beside it; the bio and the button run full width below. */
     .profile {
-      padding: 36px 28px 28px;
-      text-align: center;
-      /* border-bottom: 1px solid var(--border-1); */
+      padding: 6px 28px 18px;
+      text-align: left;
     }
+
+    .profile-head {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 14px;
+    }
+    .profile-id { min-width: 0; }
 
     .avatar-wrap {
       position: relative;
       display: inline-block;
-      margin-bottom: 18px;
+      flex-shrink: 0;
     }
 
     .avatar {
-      width: 92px; height: 92px;
+      width: 76px; height: 76px;
       border-radius: 50%;
       background: var(--eerie-black-1);
       border: 3px solid var(--gold);
@@ -143,8 +149,8 @@
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
 
     .status-dot {
-      position: absolute; bottom: 4px; right: 4px;
-      width: 17px; height: 17px;
+      position: absolute; bottom: 2px; right: 2px;
+      width: 16px; height: 16px;
       background: #22c55e;
       border: 2.5px solid var(--eerie-black-2);
       border-radius: 50%; z-index: 2;
@@ -159,8 +165,8 @@
 
     .profile-name {
       font-size: 1.5rem; font-weight: 600;
-      color: var(--white-1); letter-spacing: -0.3px;
-      margin-bottom: 6px;
+      color: var(--white-1); letter-spacing: -0.3px; line-height: 1.2;
+      margin-bottom: 7px;
     }
 
     .profile-title {
@@ -170,8 +176,7 @@
       border: 1px solid var(--gold-glow);
       border-radius: 20px;
       display: inline-block;
-      padding: 3px 14px;
-      margin-bottom: 14px;
+      padding: 3px 12px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
     }
@@ -179,18 +184,16 @@
     .profile-bio {
       font-size: 0.83rem;
       color: var(--light-gray-70);
-      line-height: 1.75;
-      max-width: 400px;
-      margin: 0 auto;
+      line-height: 1.7;
     }
 
     /* ── CTA buttons ── */
     .cta-row {
       display: flex; gap: 10px;
       justify-content: center; flex-wrap: wrap;
-      padding: 22px 28px;
-      /* border-bottom: 1px solid var(--border-1); */
+      padding: 0 28px 10px;
     }
+    .btn-block { width: 100%; justify-content: center; padding: 12px 20px; font-size: 0.88rem; }
 
     .btn {
       display: inline-flex; align-items: center; gap: 7px;
@@ -259,6 +262,7 @@
       overflow: hidden;
     }
     .project-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .project-icon--letter { color: var(--gold); font-weight: 600; font-size: 1.1rem; }
 
     /* ── Testimonials (filled from Firestore; section stays hidden until loaded) ── */
     .review-list { display: flex; flex-direction: column; gap: 10px; }
@@ -302,6 +306,7 @@
     .project-desc {
       font-size: 0.77rem; color: var(--light-gray-70);
       line-height: 1.55; margin-bottom: 8px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
 
     .tag-list { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -398,8 +403,11 @@
       padding: 18px 28px;
       border-top: 1px solid var(--border-1);
       display: flex; align-items: center;
-      justify-content: space-between; flex-wrap: wrap; gap: 6px;
+      justify-content: space-between; flex-wrap: wrap; gap: 10px 20px;
     }
+    .footer-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 18px; }
+    .card-footer p { margin: 0; line-height: 1.4; }
+    .card-footer .legal-row { margin: 0; font-size: 0.71rem; gap: 16px; }
     .footer-copy { font-size: 0.71rem; color: var(--light-gray-70); }
     .footer-copy a { color: var(--gold); text-decoration: none; }
     .footer-copy a:hover { text-decoration: underline; }
@@ -425,6 +433,13 @@
       .contact-grid { grid-template-columns: 1fr; }
       .cta-row { gap: 8px; }
       .btn { padding: 9px 16px; font-size: 0.8rem; }
+      .btn-block { padding: 12px 16px; font-size: 0.86rem; }
+      .profile-head { gap: 14px; }
+      .avatar { width: 68px; height: 68px; }
+      .profile-name { font-size: 1.35rem; }
+      .profile-title { font-size: 0.62rem; letter-spacing: 0.05em; padding: 3px 10px; }
+      .card-footer { flex-direction: column; justify-content: center; gap: 8px; text-align: center; }
+      .footer-meta { justify-content: center; }
     }
 
     /* ── Language toggle ── */
@@ -462,6 +477,19 @@
       font-size: 0.55rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #1a1204;
       white-space: nowrap;
     }
+    /* A sale from the admin Pricing tab: regular price crossed out above the sale price. */
+    .price-now {
+      font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em;
+      background: var(--gradient-gold); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .price-card.is-sale { border-color: var(--gold-glow); }
+    .price-card.is-sale .price-amount {
+      font-size: 0.75rem; font-weight: 500; letter-spacing: 0;
+      background: none; color: var(--light-gray-70);
+      text-decoration: line-through; text-decoration-color: hsla(0,0%,84%,0.6);
+    }
+    .price-card.is-sale .price-tag--popular { display: none; }
+    .price-limit { margin-top: 4px; font-size: 0.6rem; font-weight: 500; color: var(--gold); line-height: 1.3; }
     .price-foot { margin-top: 12px; text-align: center; font-size: 0.72rem; color: var(--light-gray-70); }
     .price-foot a { color: var(--gold); text-decoration: none; }
     .price-foot a:hover { text-decoration: underline; }
@@ -476,6 +504,8 @@
       .price-row { grid-template-columns: 1fr; }
       .price-card { flex-direction: row; align-items: baseline; gap: 8px; text-align: left; }
       .price-tag { position: static; transform: none; margin-left: auto; }
+      .price-card.is-sale { flex-wrap: wrap; }
+      .price-limit { flex-basis: 100%; margin-top: 0; }
       .link-row { grid-template-columns: 1fr; }
     }
   </style>
@@ -494,20 +524,24 @@
 
     <!-- Profile -->
     <div class="profile">
-      <div class="avatar-wrap">
-        <div class="avatar">
-          <img src="/assets/images/avatar/my-avatar.png" alt="Ruben Jimenez, CodeWithRuben" />
+      <div class="profile-head">
+        <div class="avatar-wrap">
+          <div class="avatar">
+            <img src="/assets/images/avatar/my-avatar.png" alt="Ruben Jimenez, CodeWithRuben" />
+          </div>
+          <div class="status-dot" data-i18n-title="status.taking" title="Taking new projects"></div>
         </div>
-        <div class="status-dot" data-i18n-title="status.taking" title="Taking new projects"></div>
+        <div class="profile-id">
+          <h1 class="profile-name">CodeWith<span style="color:var(--gold)">Ruben</span></h1>
+          <p class="profile-title" data-i18n="profile.title">Web &amp; Mobile Dev Studio · Fresno, CA</p>
+        </div>
       </div>
-      <h1 class="profile-name">CodeWith<span style="color:var(--gold)">Ruben</span></h1>
-      <p class="profile-title" data-i18n="profile.title">Web &amp; Mobile Dev Studio · Fresno, CA</p>
       <p class="profile-bio" data-i18n="profile.bio">Websites and iOS/Android apps for any business, team or creator — built around how you actually work.</p>
     </div>
 
     <!-- Primary CTA -->
     <div class="cta-row">
-      <a href="https://rubenjimenez.dev/hire-me" class="btn btn-gold">
+      <a href="https://rubenjimenez.dev/hire-me" class="btn btn-gold btn-block">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         <span data-i18n="cta.start">Start a project</span>
       </a>
@@ -517,21 +551,30 @@
     <div class="section">
       <p class="section-label" data-i18n="section.packages">What it costs</p>
       <div class="price-row">
-        <a href="https://rubenjimenez.dev/services-pricing" class="price-card">
+        <a href="https://rubenjimenez.dev/services-pricing" class="price-card" data-pkg="starter-page">
+          <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
           <span class="price-amount" data-price-template="{pkg_starter_page}">$499</span>
+          <span class="price-now" hidden></span>
           <span class="price-name" data-i18n="price.499.name">Website</span>
           <span class="price-note" data-i18n="price.499.note">1 page + owner admin</span>
+          <span class="price-limit" hidden></span>
         </a>
-        <a href="https://rubenjimenez.dev/services-pricing" class="price-card">
+        <a href="https://rubenjimenez.dev/services-pricing" class="price-card" data-pkg="starter">
+          <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
           <span class="price-amount" data-price-template="{pkg_starter}">$1,500</span>
+          <span class="price-now" hidden></span>
           <span class="price-name" data-i18n="price.1500.name">Website + app</span>
           <span class="price-note" data-i18n="price.1500.note">iOS + Android app</span>
+          <span class="price-limit" hidden></span>
         </a>
-        <a href="https://rubenjimenez.dev/services-pricing" class="price-card is-popular">
-          <span class="price-tag" data-i18n="price.popular">Most popular</span>
+        <a href="https://rubenjimenez.dev/services-pricing" class="price-card is-popular" data-pkg="growth">
+          <span class="price-tag price-tag--popular" data-i18n="price.popular">Most popular</span>
+          <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
           <span class="price-amount" data-price-template="{pkg_growth}">$3,500</span>
+          <span class="price-now" hidden></span>
           <span class="price-name" data-i18n="price.3500.name">Full platform</span>
           <span class="price-note" data-i18n="price.3500.note">Booking, payments + crew</span>
+          <span class="price-limit" hidden></span>
         </a>
       </div>
       <p class="price-foot">
@@ -549,7 +592,8 @@
     <!-- Recent work -->
     <div class="section">
       <p class="section-label" data-i18n="section.work">Recent work</p>
-      <div class="project-list">
+      <!-- Typed cards are the fallback; projects ticked "Show on Link Tree" in admin replace them. -->
+      <div class="project-list" data-work-list>
         <a href="https://procleaning.expo.app" class="project-card" target="_blank" rel="noopener">
           <div class="project-icon"><img src="/assets/images/projects/procleaning/procleaning-logo.webp" alt="ProCleaning Seattle logo" width="44" height="44" loading="lazy"></div>
           <div class="project-body">
@@ -662,11 +706,13 @@
 
     <!-- Footer -->
     <div class="card-footer">
+      <div class="footer-meta">
       <p class="footer-copy">© 2026 <a href="https://rubenjimenez.dev" target="_blank" rel="noopener">rubenjimenez.dev</a></p>
       <p class="footer-loc">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         Fresno, CA
       </p>
+      </div>
       <p class="legal-row">
         <a href="https://rubenjimenez.dev/privacy" data-i18n="legal.privacy">Privacy</a>
         <a href="https://rubenjimenez.dev/terms" data-i18n="legal.terms">Terms</a>
@@ -687,6 +733,7 @@
       choice carries over both ways). Spanish copy mirrors assets/js/i18n.js.
   -->
   <script src="/assets/js/care-pricing.js?v=pricing-20261029"></script>
+  <script src="/assets/js/linktree-work.js?v=linktree-20261122"></script>
   <script>
     (function () {
       var DICT = {
@@ -705,6 +752,7 @@
           'price.3500.name': 'Full platform',
           'price.3500.note': 'Booking, payments + crew',
           'price.popular': 'Most popular',
+          'price.sale': 'On sale',
           'price.foot': 'Maintenance from $44/mo · 1st month included',
           'price.all': 'See all packages',
           'section.reviews': 'What clients say',
@@ -736,6 +784,7 @@
           'price.3500.name': 'Plataforma completa',
           'price.3500.note': 'Reservas, pagos y equipo',
           'price.popular': 'Más popular',
+          'price.sale': 'En oferta',
           'price.foot': 'Mantenimiento desde $44/mes · 1er mes incluido',
           'price.all': 'Ver todos los paquetes',
           'section.reviews': 'Lo que dicen los clientes',
@@ -758,6 +807,27 @@
       var fill = function (v) { return window.PackagePricing ? window.PackagePricing.fill(v) : v; };
       var currentLang = 'en';
 
+      // Sales and promos set in the admin Pricing tab (same rules as the Services page:
+      // on, cheaper, not past the end date, spots left). The regular price stays as the crossed-out one.
+      function renderSales(lang, d) {
+        var PP = window.PackagePricing;
+        document.querySelectorAll('.price-card[data-pkg]').forEach(function (card) {
+          var id = card.getAttribute('data-pkg');
+          var offer = PP && PP.activeOffer ? PP.activeOffer(id) : null;
+          var now = card.querySelector('.price-now');
+          var lim = card.querySelector('.price-limit');
+          var tag = card.querySelector('.price-tag--sale');
+          card.classList.toggle('is-sale', !!offer);
+          if (now) { now.hidden = !offer; now.textContent = offer ? window.CarePricing.money(offer.price) : ''; }
+          if (tag) tag.hidden = !offer;
+          if (lim) {
+            var text = offer ? PP.offerLimitText(offer, lang) : '';
+            lim.hidden = !text;
+            lim.textContent = text;
+          }
+        });
+      }
+
       function apply(lang) {
         var d = DICT[lang] || DICT.en;
         currentLang = lang;
@@ -770,6 +840,7 @@
           var v = d[n.getAttribute('data-i18n-title')];
           if (v != null) n.title = v;
         });
+        renderSales(lang, d);
         document.title = d['meta.title'];
         var desc = document.querySelector('meta[name="description"]');
         if (desc) desc.setAttribute('content', fill(d['meta.desc']));
@@ -785,12 +856,78 @@
       apply(param === 'es' || param === 'en' ? param : (saved === 'es' ? 'es' : 'en'));
 
       if (window.CarePricing) window.CarePricing.onChange(function () { apply(currentLang); });
+      window.linktreeLang = function () { return currentLang; };
+      window.linktreeText = function (key) { var d = DICT[currentLang] || DICT.en; return d[key] || DICT.en[key] || ''; };
 
       var toggle = document.querySelector('.lang-toggle');
       if (toggle) toggle.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-lang]');
         if (btn) apply(btn.getAttribute('data-lang'));
       });
+    })();
+  </script>
+
+
+  <!--
+    - recent work: projects ticked "Show on Link Tree" in the admin Portfolio editor
+      (/portfolioProjects is public-read, so plain REST like the prices). Rules in
+      assets/js/linktree-work.js. Nothing ticked, or a failed read, keeps the typed cards.
+  -->
+  <script>
+    (function () {
+      var listEl = document.querySelector('[data-work-list]');
+      if (!listEl || !window.LinktreeWork || typeof fetch !== 'function') return;
+      var base = String((window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL) || 'https://portfolio-2578e-default-rtdb.firebaseio.com').replace(/\/$/, '');
+      var t = function (k, fb) { return (window.linktreeText && window.linktreeText(k)) || fb; };
+
+      function el(tag, className, text) {
+        var n = document.createElement(tag);
+        if (className) n.className = className;
+        if (text) n.textContent = text;
+        return n;
+      }
+
+      function card(item) {
+        var a = el(item.url ? 'a' : 'div', 'project-card');
+        if (item.url) { a.href = item.url; a.target = '_blank'; a.rel = 'noopener'; }
+        var icon = el('div', 'project-icon');
+        if (item.thumb) {
+          var img = el('img');
+          img.src = item.thumb; img.alt = ''; img.width = 44; img.height = 44; img.loading = 'lazy';
+          icon.appendChild(img);
+        } else {
+          icon.classList.add('project-icon--letter');
+          icon.textContent = item.title.charAt(0).toUpperCase();
+        }
+        a.appendChild(icon);
+        var body = el('div', 'project-body');
+        var name = el('div', 'project-name', item.title + ' ');
+        var key = item.badge === 'template' ? 'badge.template' : 'badge.live';
+        var badge = el('span', 'badge ' + (item.badge === 'template' ? 'badge-wip' : 'badge-live'), t(key, item.badge === 'template' ? 'Template' : 'Live'));
+        badge.setAttribute('data-i18n', key);
+        name.appendChild(badge);
+        body.appendChild(name);
+        if (item.desc) body.appendChild(el('p', 'project-desc', item.desc));
+        if (item.tags.length) {
+          var tags = el('div', 'tag-list');
+          item.tags.forEach(function (tg) { tags.appendChild(el('span', 'tag', tg)); });
+          body.appendChild(tags);
+        }
+        a.appendChild(body);
+        if (item.url) a.appendChild(el('span', 'arrow', '→'));
+        return a;
+      }
+
+      fetch(base + '/portfolioProjects.json')
+        .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+        .then(function (data) {
+          var items = window.LinktreeWork.pick(data);
+          if (!items.length) return;
+          var frag = document.createDocumentFragment();
+          items.forEach(function (item) { frag.appendChild(card(item)); });
+          listEl.replaceChildren(frag);
+        })
+        .catch(function (e) { console.warn('Link Tree recent work: keeping the typed cards', e); });
     })();
   </script>
 
