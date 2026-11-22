@@ -559,21 +559,21 @@
           <span class="price-note" data-i18n="price.499.note">1 page + owner admin</span>
           <span class="price-limit" hidden></span>
         </a>
-        <a href="https://rubenjimenez.dev/services-pricing" class="price-card" data-pkg="starter">
+        <a href="https://rubenjimenez.dev/services-pricing" class="price-card" data-pkg="website">
+          <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
+          <span class="price-amount" data-price-template="{pkg_website}">$999</span>
+          <span class="price-now" hidden></span>
+          <span class="price-name" data-i18n="price.999.name">Multi-page site</span>
+          <span class="price-note" data-i18n="price.999.note">1–3 pages + live chat</span>
+          <span class="price-limit" hidden></span>
+        </a>
+        <a href="https://rubenjimenez.dev/services-pricing" class="price-card is-popular" data-pkg="starter">
+          <span class="price-tag price-tag--popular" data-i18n="price.popular">Most popular</span>
           <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
           <span class="price-amount" data-price-template="{pkg_starter}">$1,500</span>
           <span class="price-now" hidden></span>
           <span class="price-name" data-i18n="price.1500.name">Website + app</span>
           <span class="price-note" data-i18n="price.1500.note">iOS + Android app</span>
-          <span class="price-limit" hidden></span>
-        </a>
-        <a href="https://rubenjimenez.dev/services-pricing" class="price-card is-popular" data-pkg="growth">
-          <span class="price-tag price-tag--popular" data-i18n="price.popular">Most popular</span>
-          <span class="price-tag price-tag--sale" data-i18n="price.sale" hidden>On sale</span>
-          <span class="price-amount" data-price-template="{pkg_growth}">$3,500</span>
-          <span class="price-now" hidden></span>
-          <span class="price-name" data-i18n="price.3500.name">Full platform</span>
-          <span class="price-note" data-i18n="price.3500.note">Booking, payments + crew</span>
           <span class="price-limit" hidden></span>
         </a>
       </div>
@@ -749,8 +749,8 @@
           'price.499.note': '1 page + owner admin',
           'price.1500.name': 'Website + app',
           'price.1500.note': 'iOS + Android app',
-          'price.3500.name': 'Full platform',
-          'price.3500.note': 'Booking, payments + crew',
+          'price.999.name': 'Multi-page site',
+          'price.999.note': '1–3 pages + live chat',
           'price.popular': 'Most popular',
           'price.sale': 'On sale',
           'price.foot': 'Maintenance from $44/mo · 1st month included',
@@ -781,8 +781,8 @@
           'price.499.note': '1 página + panel de dueño',
           'price.1500.name': 'Sitio + app',
           'price.1500.note': 'App iOS + Android',
-          'price.3500.name': 'Plataforma completa',
-          'price.3500.note': 'Reservas, pagos y equipo',
+          'price.999.name': 'Sitio de varias páginas',
+          'price.999.note': '1–3 páginas + chat en vivo',
           'price.popular': 'Más popular',
           'price.sale': 'En oferta',
           'price.foot': 'Mantenimiento desde $44/mes · 1er mes incluido',
@@ -809,6 +809,24 @@
 
       // Sales and promos set in the admin Pricing tab (same rules as the Services page:
       // on, cheaper, not past the end date, spots left). The regular price stays as the crossed-out one.
+      // Card-sized limit: "Until Nov 30 · 5 spots left" (the Services page's sentence is too long here).
+      function shortLimit(offer, lang) {
+        var es = lang === 'es';
+        var bits = [];
+        if (offer.endsAt) {
+          var p = offer.endsAt.split('-');
+          var day = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]))
+            .toLocaleDateString(es ? 'es-MX' : 'en-US', { month: 'short', day: 'numeric' });
+          bits.push((es ? 'Hasta el ' : 'Until ') + day);
+        }
+        if (offer.spots) {
+          var n = offer.spotsLeft;
+          bits.push(es ? (n === 1 ? 'queda 1 lugar' : 'quedan ' + n + ' lugares') : (n === 1 ? '1 spot left' : n + ' spots left'));
+        }
+        var text = bits.join(' · ');
+        return text.charAt(0).toUpperCase() + text.slice(1);
+      }
+
       function renderSales(lang, d) {
         var PP = window.PackagePricing;
         document.querySelectorAll('.price-card[data-pkg]').forEach(function (card) {
@@ -821,7 +839,7 @@
           if (now) { now.hidden = !offer; now.textContent = offer ? window.CarePricing.money(offer.price) : ''; }
           if (tag) tag.hidden = !offer;
           if (lim) {
-            var text = offer ? PP.offerLimitText(offer, lang) : '';
+            var text = offer ? shortLimit(offer, lang) : '';
             lim.hidden = !text;
             lim.textContent = text;
           }
