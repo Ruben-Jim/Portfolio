@@ -34,14 +34,6 @@
       if (code) w.location.replace('/testimonial.html?token=' + encodeURIComponent(code));
     })(window);
   </script>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZHKR19JXE1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-ZHKR19JXE1');
-  </script>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -119,7 +111,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=usage-years-20261122">
+  <link rel="stylesheet" href="/assets/css/style.css?v=plan-left-20261122">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-lang-20261109">
   <style id="admin-auth-critical">
     article.admin[data-page="admin"][data-admin-auth="checking"] .admin-management{display:none!important}
@@ -480,7 +472,8 @@
                       video.addEventListener('error', done);
                       video.poster = url(id, kind, '-poster.webp');
                       video.preload = 'auto';
-                      video.src = url(id, kind, '.mp4');
+                      var clip = url(id, kind, '.mp4');
+                      video.src = typeof window.cwrMediaUrl === 'function' ? window.cwrMediaUrl(clip) : clip;
                       video.load();
                       setTimeout(done, 8000);
                     });
@@ -3007,6 +3000,7 @@
                 <ion-icon name="paper-plane-outline"></ion-icon>
                 <span>Send Inquiry</span>
               </button>
+              <p class="form-recaptcha-note" data-recaptcha-note data-i18n="contact.recaptcha" hidden>Protected by reCAPTCHA. Google’s <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Terms</a> apply.</p>
 
               <div class="form-message" id="hire-form-message" style="display: none;">
                 <div class="message-content">
@@ -3311,6 +3305,7 @@
               <ion-icon name="paper-plane"></ion-icon>
               <span data-i18n="contact.send_btn">Send Message</span>
             </button>
+            <p class="form-recaptcha-note" data-recaptcha-note data-i18n="contact.recaptcha" hidden>Protected by reCAPTCHA. Google’s <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Terms</a> apply.</p>
 
           </form>
 
@@ -5408,6 +5403,14 @@
                   <p class="claude-usage-hint">Claude Code on your Mac, counted from its own logs. To refresh, run <code>npm run claude-usage</code> in a terminal from the Portfolio folder (<code>cd ~/Dev/Apps/Portfolio</code> first). It's free: it never calls Claude.</p>
                   <p class="claude-usage-empty" id="claude-usage-empty">No usage uploaded yet. Run the command above once.</p>
                   <div id="claude-usage-body" hidden>
+                    <div class="claude-usage-plan" id="claude-usage-plan" hidden>
+                      <div class="claude-usage-plan-head">
+                        <span class="claude-usage-plan-label">Weekly plan left</span>
+                        <span class="claude-usage-plan-left" id="claude-usage-plan-left"></span>
+                      </div>
+                      <div class="claude-usage-plan-bar" role="progressbar" aria-label="Weekly plan used" aria-valuemin="0" aria-valuemax="100" id="claude-usage-plan-bar"><span class="claude-usage-plan-fill" id="claude-usage-plan-fill"></span></div>
+                      <p class="claude-usage-plan-meta" id="claude-usage-plan-meta"></p>
+                    </div>
                     <div class="studio-costs-summary claude-usage-summary">
                       <div class="studio-costs-summary-card">
                         <span class="studio-costs-summary-value" id="claude-usage-today">0</span>
@@ -5425,8 +5428,16 @@
                         <span class="claude-usage-sub" id="claude-usage-month-sub"></span>
                       </div>
                     </div>
-                    <p class="claude-usage-sublabel">Last 14 days</p>
-                    <ul class="claude-usage-days" id="claude-usage-days" aria-label="Tokens per day"></ul>
+                    <div class="claude-usage-week-head">
+                      <p class="claude-usage-sublabel" id="claude-usage-week-label">This week</p>
+                      <div class="claude-usage-week-nav">
+                        <button type="button" class="claude-usage-week-btn" id="claude-usage-week-prev" aria-label="Previous week"><ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon></button>
+                        <button type="button" class="claude-usage-week-btn" id="claude-usage-week-next" aria-label="Next week"><ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon></button>
+                      </div>
+                    </div>
+                    <p class="claude-usage-year-total" id="claude-usage-week-total"></p>
+                    <div class="claude-usage-weekdays" id="claude-usage-weekdays" role="group" aria-label="Tokens per day this week"></div>
+                    <p class="claude-usage-week-detail" id="claude-usage-week-detail" aria-live="polite"></p>
                     <p class="claude-usage-sublabel">By project, last 30 days</p>
                     <ul class="claude-usage-projects" id="claude-usage-projects" aria-label="Tokens per project"></ul>
                     <div class="claude-usage-year-head">
@@ -6674,6 +6685,7 @@
             <li><strong>Device &amp; usage basics</strong> — browser type, pages viewed, and similar technical data needed to run the site securely.</li>
             <li><strong>Preferences in your browser</strong> — language choice, cookie/analytics consent, and last public page viewed (stored locally on your device so the site can remember settings).</li>
             <li><strong>Analytics (only if you accept)</strong> — Google Analytics (GA4) to understand aggregate traffic. If you decline, analytics scripts are not loaded for that choice.</li>
+            <li><strong>Spam protection</strong> — Google reCAPTCHA (through Firebase App Check) checks that form and database requests come from a real browser, not a bot. It runs on every visit because it keeps the site and your messages safe, and Google’s <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Terms</a> apply to it.</li>
             <li><strong>Embedded maps</strong> — the Contact page may load a Google Maps embed, which can set its own cookies under Google’s policies.</li>
           </ul>
           <h3>How we use information</h3>
@@ -8516,7 +8528,7 @@
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    window.CWR_GA_ID = 'G-XXXXXXXXXX'; // Replace with your real Google Analytics ID
+    window.CWR_GA_ID = 'G-ZHKR19JXE1'; // GA4: onboard.js loads it only after the visitor accepts cookies
   </script>
 
   <!--
@@ -8529,12 +8541,13 @@
   -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { withAppCheck } from '/assets/js/app-check.js?v=recaptcha-key2-20261123';
     import { getAuth, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
     import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, orderBy, where, query, limit, startAfter, serverTimestamp, updateDoc, deleteDoc, doc, onSnapshot, increment, arrayUnion, arrayRemove, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getDatabase, ref, onValue, push, set, update, get, remove, query as rtdbQuery, orderByChild, orderByKey, limitToLast, limitToFirst, equalTo, endBefore, startAfter as rtdbStartAfter, serverTimestamp as rtdbServerTimestamp, increment as rtdbIncrement, goOffline as rtdbGoOffline, goOnline as rtdbGoOnline } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
     import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
-    window.initializeApp = initializeApp;
+    window.initializeApp = withAppCheck(initializeApp);
     window.getAuth = getAuth;
     window.signOut = signOut;
     window.onAuthStateChanged = onAuthStateChanged;
@@ -9023,9 +9036,10 @@
   <script src="/assets/js/portfolio-skins.js?v=cover-video-20261115"></script>
   <script src="/assets/js/portfolio-features.js?v=pkg-demos-20261103"></script>
   <script src="/assets/js/social-proof.js?v=one-card-20261018"></script>
-  <script src="/assets/js/portfolio-detail-shared.js?v=popup-20261116"></script>
+  <script src="/assets/js/media-url.js?v=media-20261122"></script>
+  <script src="/assets/js/portfolio-detail-shared.js?v=media-20261122"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
-  <script src="/assets/js/i18n.js?v=pricing-title-20261104"></script>
+  <script src="/assets/js/i18n.js?v=appcheck-20261122"></script>
   <!--
     - Admin-only scripts: loaded on /admin or after admin sign-in, never for
       public visitors (they were ~220 KB gz of the homepage). Order matches the
@@ -9037,7 +9051,7 @@
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', integrity: 'sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==' },
         { src: '/assets/js/blog-tiptap-editor.js?v=dialogs-20261018' },
         { src: '/assets/js/ticket-shared.js?v=tickets-20261021' },
-        { src: '/assets/js/agency-tools.js?v=usage-years-20261122' },
+        { src: '/assets/js/agency-tools.js?v=plan-left-20261122' },
         { src: '/assets/js/ig-posts.js?v=uxpass-20261030' },
         { src: '/assets/js/outreach-composer.js?v=mockup-first-20261105' },
         { src: '/assets/js/prospects.js?v=prospects-drag-20261105' },
@@ -9080,7 +9094,7 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=work-cards-20261122"></script>
+  <script src="/assets/js/script.js?v=media-20261122"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--

@@ -96,6 +96,26 @@ const RESEND_INBOUND_DOMAIN = "ouuldeaulk.resend.app";
 const RESEND_REPLY_TO = "replies@" + RESEND_INBOUND_DOMAIN;
 const notifyToEmail = defineString("NOTIFY_TO_EMAIL", { default: "" });
 
+/**
+ * App Check on the public forms (sendPortfolioEmail). The site sends a reCAPTCHA-backed
+ * token in X-Firebase-AppCheck (assets/js/app-check.js). Watch-only by default: the result
+ * is logged, nothing is blocked. Set APP_CHECK_ENFORCE=true once the logs show real
+ * visitors all arrive with "valid".
+ */
+const appCheckEnforce = defineString("APP_CHECK_ENFORCE", { default: "false" });
+
+/** "valid" | "missing" | "invalid" for this request's App Check token. */
+async function appCheckResult(req) {
+  const token = String(req.get("X-Firebase-AppCheck") || "").trim();
+  if (!token) return "missing";
+  try {
+    await admin.appCheck().verifyToken(token);
+    return "valid";
+  } catch (err) {
+    return "invalid";
+  }
+}
+
 const MAX_BODY_BYTES = 48 * 1024;
 const MAX_MESSAGE_LEN = 20000;
 
@@ -283,6 +303,13 @@ exports.sendPortfolioEmail = onRequest(
 
     const type = body.type;
     const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
+
+    const appCheck = await appCheckResult(req);
+    console.log("sendPortfolioEmail app check:", appCheck, String(type || ""));
+    if (appCheck !== "valid" && appCheckEnforce.value() === "true") {
+      res.status(403).json({ ok: false, error: "Please reload the page and try again." });
+      return;
+    }
 
     const from = resolveResendFrom(resendFrom.value());
     const notifyTo = notifyToEmail.value().trim();

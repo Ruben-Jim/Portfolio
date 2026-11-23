@@ -59,6 +59,7 @@
   <script src="/assets/js/config.js?v=security-20261010"></script>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { withAppCheck } from '/assets/js/app-check.js?v=recaptcha-key2-20261123';
     // Auth only for the portal chat: a session scoped to the client's own
     // conversation (dmSession function). Portal data comes from portalApi.
     import { getAuth, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -77,7 +78,7 @@
       serverTimestamp
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-    window.initializeApp = initializeApp;
+    window.initializeApp = withAppCheck(initializeApp);
     window.getAuth = getAuth;
     window.signInWithCustomToken = signInWithCustomToken;
     window.getDatabase = getDatabase;
@@ -97,11 +98,12 @@
   <script src="/assets/js/care-pricing.js?v=package-names-20261016"></script>
   <script src="/assets/js/business-doc-shared.js?v=compare-terms-20261109"></script>
   <script src="/assets/js/portfolio-skins.js?v=cover-video-20261115"></script>
-  <script src="/assets/js/portfolio-detail-shared.js?v=popup-20261116"></script>
+  <script src="/assets/js/media-url.js?v=media-20261122"></script>
+  <script src="/assets/js/portfolio-detail-shared.js?v=media-20261122"></script>
   <!-- Booking controller: the portal mounts the same flow /schedule uses. -->
   <script src="/assets/js/hire-me-booking.js?v=slots-20261107"></script>
   <script src="/assets/js/ticket-shared.js?v=tickets-20261021"></script>
-  <script src="/assets/js/client-portal.js?v=guide-link-20261109"></script>
+  <script src="/assets/js/client-portal.js?v=appcheck-20261122"></script>
 
 </body>
 

@@ -1,15 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZHKR19JXE1"></script>
+  <meta charset="UTF-8" />
+  <!-- GA4 only for visitors who already accepted cookies on the main site
+       (same choice key as assets/js/onboard.js). This page has no banner of its own. -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-ZHKR19JXE1');
+    (function () {
+      var ok = false;
+      try { ok = localStorage.getItem('cwr-cookies-choice') === 'accepted'; } catch (e) {}
+      if (!ok) return;
+      gtag('js', new Date());
+      gtag('config', 'G-ZHKR19JXE1');
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-ZHKR19JXE1';
+      document.head.appendChild(s);
+    })();
   </script>
-  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CodeWithRuben — Websites &amp; apps for any business</title>
   <meta name="description" content="Fresno web &amp; mobile dev studio. Branded websites and iOS/Android apps for any business — packages from $499, maintenance from $44/mo." data-price-template="Fresno web &amp; mobile dev studio. Branded websites and iOS/Android apps for any business — packages from {pkg_from}, maintenance from $44/mo." data-price-attr="content" />
@@ -1120,7 +1129,9 @@
   -->
   <script src="/assets/js/config.js?v=google-auth-20260527"></script>
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { initializeApp as initFirebaseApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { withAppCheck } from '/assets/js/app-check.js?v=recaptcha-key2-20261123';
+    const initializeApp = withAppCheck(initFirebaseApp);
     import { getFirestore, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
     function avatarSrc(avatar) {

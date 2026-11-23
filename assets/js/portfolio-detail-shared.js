@@ -80,8 +80,13 @@
     return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'v=' + IMAGE_CACHE_BUST;
   }
 
+  /** Project videos may be served from Firebase Storage (media-url.js); everything else unchanged. */
+  function storageMedia(src) {
+    return typeof window.cwrMediaUrl === 'function' ? window.cwrMediaUrl(src) : src;
+  }
+
   function displayMediaSrc(url) {
-    return displayImageSrc(url);
+    return storageMedia(displayImageSrc(url));
   }
 
   function renderCarouselSlideMedia(url, alt) {
@@ -592,7 +597,7 @@
           html.push(
             '<figure class="portfolio-md-figure portfolio-md-figure-video">' +
               '<video src="' +
-              esc(mediaUrl) +
+              esc(storageMedia(mediaUrl)) +
               '" controls playsinline preload="metadata" poster="' +
               esc(displayDocAssetSrc(posterSrc, docUrl)) +
               '"></video>' +

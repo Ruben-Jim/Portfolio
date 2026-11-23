@@ -35,6 +35,13 @@ service firebase.storage {
       allow delete: if isPortfolioAdmin();
     }
 
+    // Portfolio videos (assets/js/media-url.js). Public to watch, like the site itself.
+    // Uploaded only by `npm run upload-media` with the Admin SDK, which skips these rules.
+    match /media/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

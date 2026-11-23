@@ -33854,18 +33854,7 @@ body.cwr-overlay-open [data-float] {
   margin: 16px 0 8px; font-size: 11px; font-weight: var(--fw-600);
   letter-spacing: 0.04em; text-transform: uppercase; color: var(--light-gray-70);
 }
-.claude-usage-days, .claude-usage-projects { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-.claude-usage-day {
-  display: grid; grid-template-columns: 96px minmax(60px, 1fr) 52px minmax(0, 1.2fr);
-  align-items: center; gap: 10px; font-size: var(--fs-8); color: var(--light-gray);
-}
-.claude-usage-day.is-empty { color: var(--light-gray-70); }
-.claude-usage-day-date { white-space: nowrap; }
-.claude-usage-bar { height: 8px; border-radius: 999px; background: var(--onyx); overflow: hidden; }
-.claude-usage-bar-fill { display: block; height: 100%; border-radius: inherit; background: var(--orange-yellow-crayola); }
-.claude-usage-day-num { text-align: right; font-weight: var(--fw-600); color: var(--white-2); }
-.claude-usage-day.is-empty .claude-usage-day-num { color: var(--light-gray-70); font-weight: 400; }
-.claude-usage-day-meta { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--light-gray-70); }
+.claude-usage-projects { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .claude-usage-project {
   display: flex; justify-content: space-between; gap: 10px;
   padding: 8px 10px; border: 1px solid var(--jet); border-radius: 8px;
@@ -33873,9 +33862,41 @@ body.cwr-overlay-open [data-float] {
 }
 .claude-usage-project span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .claude-usage-project-num { flex-shrink: 0; color: var(--orange-yellow-crayola); font-weight: var(--fw-600); }
+/* Claude usage → one calendar week, Mon–Sun; tap a bar for that day. */
+.claude-usage-week-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.claude-usage-week-head .claude-usage-sublabel { margin: 0; }
+.claude-usage-week-nav { display: flex; gap: 6px; }
+.claude-usage-week-btn {
+  display: inline-grid; place-items: center; width: 32px; height: 32px;
+  border: 1px solid var(--jet); border-radius: 8px; background: var(--eerie-black-1);
+  color: var(--light-gray); font-size: 16px; cursor: pointer;
+}
+.claude-usage-week-btn:hover:not(:disabled) { color: var(--orange-yellow-crayola); border-color: var(--orange-yellow-crayola); }
+.claude-usage-week-btn:disabled { opacity: 0.35; cursor: default; }
+.claude-usage-week-btn:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: 1px; }
+.claude-usage-weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.claude-usage-wd {
+  display: grid; grid-template-rows: 14px 130px 16px 14px; gap: 4px; min-width: 0;
+  padding: 6px 2px 4px; border: 1px solid transparent; border-radius: 10px;
+  background: none; color: var(--light-gray-70); font: inherit; text-align: center; cursor: pointer;
+}
+.claude-usage-wd:hover:not(:disabled) { background: hsla(0, 0%, 100%, 0.03); }
+.claude-usage-wd.is-picked { border-color: var(--jet); background: hsla(0, 0%, 100%, 0.04); }
+.claude-usage-wd.is-future { cursor: default; opacity: 0.45; }
+.claude-usage-wd:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: 1px; }
+.claude-usage-wd-num { font-size: 10px; white-space: nowrap; overflow: hidden; }
+.claude-usage-wd-track { position: relative; display: block; margin: 0 18%; border-radius: 6px; background: hsla(0, 0%, 100%, 0.04); overflow: hidden; }
+.claude-usage-wd-fill { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 6px 6px 0 0; background: hsla(45, 100%, 72%, 0.55); }
+.claude-usage-wd.is-picked .claude-usage-wd-fill, .claude-usage-wd.is-today .claude-usage-wd-fill { background: var(--orange-yellow-crayola); }
+.claude-usage-wd-label { font-size: 12px; font-weight: var(--fw-600); color: var(--light-gray); }
+.claude-usage-wd.is-today .claude-usage-wd-label { color: var(--orange-yellow-crayola); }
+.claude-usage-wd-date { font-size: 10px; }
+.claude-usage-week-detail { margin: 8px 0 0; min-height: 1.5em; font-size: var(--fs-8); color: var(--light-gray); line-height: 1.5; }
 @media (max-width: 640px) {
-  .claude-usage-day { grid-template-columns: 78px minmax(40px, 1fr) 46px; }
-  .claude-usage-day-meta { grid-column: 1 / -1; margin: -4px 0 4px; }
+  .claude-usage-weekdays { gap: 4px; }
+  .claude-usage-wd { grid-template-rows: 12px 110px 16px 14px; }
+  .claude-usage-wd-track { margin: 0 14%; }
+  .claude-usage-wd-num { font-size: 9px; }
 }
 .admin-linktree-row--work { flex-wrap: wrap; }
 .admin-linktree-blurb { display: grid; gap: 4px; flex-basis: 100%; padding-left: 50px; }
@@ -33916,3 +33937,19 @@ body.cwr-overlay-open [data-float] {
   .claude-usage-month { grid-template-rows: 12px 100px 14px; }
   .claude-usage-month-num { font-size: 8px; }
 }
+
+/* reCAPTCHA (App Check): the floating badge is hidden; the forms carry the notice instead. */
+.grecaptcha-badge { visibility: hidden !important; }
+.form-recaptcha-note { margin: 10px 0 0; font-size: 11px; line-height: 1.5; color: var(--light-gray-70); }
+.form-recaptcha-note a { color: var(--light-gray); text-decoration: underline; }
+
+/* Claude usage → weekly plan left (from the Claude Code status line). */
+.claude-usage-plan { margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--jet); border-radius: 12px; background: var(--eerie-black-1); }
+.claude-usage-plan-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.claude-usage-plan-label { font-size: 11px; font-weight: var(--fw-600); letter-spacing: 0.04em; text-transform: uppercase; color: var(--light-gray-70); }
+.claude-usage-plan-left { font-size: var(--fs-4); font-weight: var(--fw-600); color: var(--orange-yellow-crayola); }
+.claude-usage-plan.is-low .claude-usage-plan-left { color: hsl(0, 75%, 65%); }
+.claude-usage-plan-bar { height: 10px; margin-top: 8px; border-radius: 999px; background: var(--onyx); overflow: hidden; }
+.claude-usage-plan-fill { display: block; height: 100%; border-radius: inherit; background: var(--orange-yellow-crayola); }
+.claude-usage-plan.is-low .claude-usage-plan-fill { background: hsl(0, 75%, 65%); }
+.claude-usage-plan-meta { margin: 8px 0 0; font-size: var(--fs-8); color: var(--light-gray-70); line-height: 1.5; }

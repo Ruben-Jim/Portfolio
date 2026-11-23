@@ -23,7 +23,7 @@
  * Upload sign-in is the same as scripts/set-admin-claim.mjs:
  *   gcloud auth application-default login      (once)
  */
-import { createReadStream, readdirSync, statSync, existsSync } from 'node:fs';
+import { createReadStream, readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
@@ -101,6 +101,24 @@ for (const d of dates) {
   );
 }
 
+// Plan limits, saved by the status line (scripts/claude-statusline.mjs) from what
+// Claude Code already knows. Free: no API call. Missing until the status line has run.
+let limits = null;
+try {
+  const raw = JSON.parse(readFileSync(join(homedir(), '.claude', 'cwr-plan-limits.json'), 'utf8'));
+  const clean = (w) => (w && Number.isFinite(Number(w.usedPct))
+    ? { usedPct: Number(w.usedPct), resetsAt: Number(w.resetsAt) || null } : null);
+  limits = { week: clean(raw.week), fiveHour: clean(raw.fiveHour), savedAt: Number(raw.savedAt) || null };
+  if (!limits.week && !limits.fiveHour) limits = null;
+} catch { /* no status line data yet */ }
+if (limits && limits.week) {
+  const left = Math.round(100 - limits.week.usedPct);
+  const when = limits.week.resetsAt ? new Date(limits.week.resetsAt).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric' }) : '?';
+  console.log(`\nWeekly plan: ${left}% left, resets ${when} (as of ${new Date(limits.savedAt).toLocaleString('en-US')})`);
+} else {
+  console.log('\nWeekly plan: no data yet (it comes from the Claude Code status line in the terminal).');
+}
+
 if (dry) {
   console.log('\n--dry: nothing uploaded.');
   process.exit(0);
@@ -122,6 +140,7 @@ try {
   });
   const patch = { updatedAt: Date.now() };
   for (const d of dates) patch['days/' + d] = Object.assign({}, days[d], { updatedAt: Date.now() });
+  if (limits) patch.limits = limits;
   await admin.database().ref(PATH).update(patch);
   console.log(`\nUploaded ${dates.length} days. Admin → Studio Costs → Claude usage.`);
   await admin.app().delete();

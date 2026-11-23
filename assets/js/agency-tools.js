@@ -2957,6 +2957,155 @@
   var claudeUsageYear = '';
   var MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+  /** 'YYYY-MM-DD' for a local date. */
+  function claudeKeyOf(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  /** Monday of the week `back` weeks before this one (local time, midnight). */
+  function claudeWeekStart(back) {
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() - ((d.getDay() + 6) % 7) - back * 7);
+    return d;
+  }
+
+  var claudeWeekBack = 0;
+  var claudeWeekPick = '';
+  var WEEKDAYS_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+  /** One calendar week, Mon–Sun bars, ‹ › to step back; tap a bar for that day's detail. */
+  function renderClaudeUsageWeek(days) {
+    var bars = document.getElementById('claude-usage-weekdays');
+    if (!bars) return;
+    var label = document.getElementById('claude-usage-week-label');
+    var totalEl = document.getElementById('claude-usage-week-total');
+    var detail = document.getElementById('claude-usage-week-detail');
+    var prevBtn = document.getElementById('claude-usage-week-prev');
+    var nextBtn = document.getElementById('claude-usage-week-next');
+    var keys = Object.keys(days).sort();
+    var oldest = keys[0] || claudeDayKey(0);
+    var todayKey = claudeDayKey(0);
+
+    var start = claudeWeekStart(claudeWeekBack);
+    var week = [];
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(start);
+      d.setDate(start.getDate() + i);
+      week.push({ key: claudeKeyOf(d), date: d });
+    }
+    var prevStart = claudeWeekStart(claudeWeekBack + 1);
+    var lastWeekTotal = 0;
+    for (var j = 0; j < 7; j++) {
+      var pd = new Date(prevStart);
+      pd.setDate(prevStart.getDate() + j);
+      var pk = claudeKeyOf(pd);
+      if (days[pk]) lastWeekTotal += claudeDayTotal(days[pk]);
+    }
+    var totals = week.map(function (w) { return days[w.key] ? claudeDayTotal(days[w.key]) : 0; });
+    var weekTotal = totals.reduce(function (s, v) { return s + v; }, 0);
+    var max = Math.max.apply(null, totals.concat([1]));
+
+    var fmt = function (d, opts) { return d.toLocaleDateString('en-US', opts); };
+    var range = fmt(week[0].date, { month: 'short', day: 'numeric' }) + '–' +
+      (week[0].date.getMonth() === week[6].date.getMonth()
+        ? fmt(week[6].date, { day: 'numeric' })
+        : fmt(week[6].date, { month: 'short', day: 'numeric' }));
+    if (label) {
+      label.textContent = claudeWeekBack === 0 ? 'This week · ' + range
+        : claudeWeekBack === 1 ? 'Last week · ' + range
+        : 'Week of ' + range;
+    }
+    if (totalEl) {
+      var text = claudeShort(weekTotal) + ' tokens';
+      if (lastWeekTotal) {
+        var pct = Math.round(((weekTotal - lastWeekTotal) / lastWeekTotal) * 100);
+        text += ' · week before ' + claudeShort(lastWeekTotal) + ' (' + (pct >= 0 ? '+' : '') + pct + '%)';
+      }
+      if (claudeWeekBack === 0) text += ' · so far';
+      totalEl.textContent = text;
+    }
+    if (prevBtn) prevBtn.disabled = week[0].key <= oldest;
+    if (nextBtn) nextBtn.disabled = claudeWeekBack === 0;
+
+    // Detail: the tapped day if it's in this week, else today, else the busiest day.
+    var inWeek = function (k) { return week.some(function (w) { return w.key === k; }); };
+    if (!inWeek(claudeWeekPick)) {
+      var busiest = week[totals.indexOf(Math.max.apply(null, totals))].key;
+      claudeWeekPick = inWeek(todayKey) ? todayKey : busiest;
+    }
+
+    bars.replaceChildren();
+    week.forEach(function (w, idx) {
+      var total = totals[idx];
+      var future = w.key > todayKey;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'claude-usage-wd' +
+        (w.key === todayKey ? ' is-today' : '') +
+        (w.key === claudeWeekPick ? ' is-picked' : '') +
+        (future ? ' is-future' : '');
+      btn.disabled = future;
+      btn.setAttribute('aria-pressed', w.key === claudeWeekPick ? 'true' : 'false');
+      btn.setAttribute('aria-label', fmt(w.date, { weekday: 'long', month: 'short', day: 'numeric' }) + ': ' + (total ? claudeShort(total) + ' tokens' : 'no usage'));
+      var num = document.createElement('span');
+      num.className = 'claude-usage-wd-num';
+      num.textContent = total ? claudeShort(total) : '';
+      var track = document.createElement('span');
+      track.className = 'claude-usage-wd-track';
+      if (total) {
+        var fill = document.createElement('span');
+        fill.className = 'claude-usage-wd-fill';
+        fill.style.height = Math.max(3, Math.round((total / max) * 100)) + '%';
+        track.appendChild(fill);
+      }
+      var lab = document.createElement('span');
+      lab.className = 'claude-usage-wd-label';
+      lab.textContent = WEEKDAYS_SHORT[idx];
+      var date = document.createElement('span');
+      date.className = 'claude-usage-wd-date';
+      date.textContent = String(w.date.getDate());
+      btn.appendChild(num);
+      btn.appendChild(track);
+      btn.appendChild(lab);
+      btn.appendChild(date);
+      btn.addEventListener('click', function () {
+        claudeWeekPick = w.key;
+        renderClaudeUsageWeek(days);
+      });
+      bars.appendChild(btn);
+    });
+
+    if (detail) {
+      var pick = week.filter(function (w) { return w.key === claudeWeekPick; })[0];
+      var dd = (pick && days[pick.key]) || {};
+      var t = claudeDayTotal(dd);
+      var head = pick ? fmt(pick.date, { weekday: 'long', month: 'short', day: 'numeric' }) : '';
+      if (!t) {
+        detail.textContent = head + ' · no usage';
+      } else {
+        var top = Object.keys(dd.byProject || {}).sort(function (a, b) { return dd.byProject[b] - dd.byProject[a]; })[0] || '';
+        var n = Number(dd.messages) || 0;
+        var s = Number(dd.sessions) || 0;
+        detail.textContent = head + ' · ' + claudeShort(t) + ' tokens · ' +
+          n + (n === 1 ? ' reply' : ' replies') + ' · ' + s + (s === 1 ? ' session' : ' sessions') +
+          (top ? ' · mostly ' + top : '');
+      }
+    }
+
+    var step = function (btn, delta) {
+      if (!btn || btn.dataset.bound) return;
+      btn.dataset.bound = '1';
+      btn.addEventListener('click', function () {
+        claudeWeekBack = Math.max(0, claudeWeekBack + delta);
+        var raw = claudeUsageRaw && claudeUsageRaw.days ? claudeUsageRaw.days : {};
+        renderClaudeUsageWeek(raw);
+      });
+    };
+    step(prevBtn, 1);
+    step(nextBtn, -1);
+  }
+
   /** { 'YYYY': [12 monthly token totals] } from the uploaded days. */
   function claudeMonthsByYear(days) {
     var out = {};
@@ -3046,6 +3195,41 @@
     }
   }
 
+  /**
+   * Weekly plan left, from the Claude Code status line (scripts/claude-statusline.mjs),
+   * uploaded with the daily counts. A snapshot: it's as fresh as the last upload.
+   */
+  function renderClaudeUsagePlan(limits) {
+    var box = document.getElementById('claude-usage-plan');
+    if (!box) return;
+    var week = limits && limits.week;
+    var used = week ? Number(week.usedPct) : NaN;
+    box.hidden = !isFinite(used);
+    if (box.hidden) return;
+    var left = Math.max(0, Math.min(100, Math.round(100 - used)));
+    var reset = Number(week.resetsAt) || 0;
+    // A snapshot from before the last reset is stale: the window has started over.
+    var expired = reset && reset < Date.now();
+    box.classList.toggle('is-low', !expired && left <= 15);
+    var leftEl = document.getElementById('claude-usage-plan-left');
+    if (leftEl) leftEl.textContent = expired ? 'Reset' : left + '%';
+    var fill = document.getElementById('claude-usage-plan-fill');
+    if (fill) fill.style.width = (expired ? 100 : left) + '%';
+    var bar = document.getElementById('claude-usage-plan-bar');
+    if (bar) bar.setAttribute('aria-valuenow', String(expired ? 0 : Math.round(used)));
+    var fmt = function (ms, opts) { return new Date(ms).toLocaleString('en-US', opts); };
+    var bits = [];
+    if (expired) bits.push('The week reset ' + fmt(reset, { weekday: 'short', month: 'short', day: 'numeric' }) + '; run the command again for a fresh number');
+    else if (reset) bits.push('Resets ' + fmt(reset, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }));
+    var five = limits.fiveHour;
+    if (!expired && five && isFinite(Number(five.usedPct)) && (!five.resetsAt || five.resetsAt > Date.now())) {
+      bits.push('5-hour window ' + Math.max(0, Math.round(100 - Number(five.usedPct))) + '% left');
+    }
+    if (limits.savedAt) bits.push('as of ' + fmt(limits.savedAt, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }));
+    var meta = document.getElementById('claude-usage-plan-meta');
+    if (meta) meta.textContent = bits.join(' · ');
+  }
+
   function renderClaudeUsage(raw) {
     var root = document.getElementById('claude-usage');
     if (!root) return;
@@ -3063,6 +3247,7 @@
         : '';
     }
     if (!keys.length) return;
+    renderClaudeUsagePlan(raw && raw.limits);
 
     function sumSince(offset) {
       var from = claudeDayKey(offset);
@@ -3084,45 +3269,7 @@
     set('claude-usage-month', claudeShort(m.tokens));
     set('claude-usage-month-sub', m.replies + ' replies');
 
-    // Last 14 days, newest first, bars scaled to the busiest day.
-    var list = document.getElementById('claude-usage-days');
-    if (list) {
-      var shown = [];
-      for (var i = 0; i < 14; i++) shown.push(claudeDayKey(i));
-      var max = 1;
-      shown.forEach(function (k) { if (days[k]) max = Math.max(max, claudeDayTotal(days[k])); });
-      list.replaceChildren();
-      shown.forEach(function (k) {
-        var d = days[k] || {};
-        var total = claudeDayTotal(d);
-        var li = document.createElement('li');
-        li.className = 'claude-usage-day' + (total ? '' : ' is-empty');
-        var parts = k.split('-');
-        var label = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
-          .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        var top = Object.keys(d.byProject || {}).sort(function (a, b) { return d.byProject[b] - d.byProject[a]; })[0] || '';
-        var name = document.createElement('span');
-        name.className = 'claude-usage-day-date';
-        name.textContent = label;
-        var bar = document.createElement('span');
-        bar.className = 'claude-usage-bar';
-        var fill = document.createElement('span');
-        fill.className = 'claude-usage-bar-fill';
-        fill.style.width = (total ? Math.max(2, Math.round((total / max) * 100)) : 0) + '%';
-        bar.appendChild(fill);
-        var num = document.createElement('span');
-        num.className = 'claude-usage-day-num';
-        num.textContent = total ? claudeShort(total) : '—';
-        var meta = document.createElement('span');
-        meta.className = 'claude-usage-day-meta';
-        meta.textContent = total ? (Number(d.messages) || 0) + ' replies' + (top ? ' · ' + top : '') : '';
-        li.appendChild(name);
-        li.appendChild(bar);
-        li.appendChild(num);
-        li.appendChild(meta);
-        list.appendChild(li);
-      });
-    }
+    renderClaudeUsageWeek(days);
 
     renderClaudeUsageYears(days);
 

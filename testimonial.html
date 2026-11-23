@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/style.css?v=usage-years-20261122">
+  <link rel="stylesheet" href="./assets/css/style.css?v=plan-left-20261122">
   <script>
     (function () {
       var saved = localStorage.getItem('portfolio-theme');
@@ -253,7 +253,9 @@
 
   <script src="./assets/js/config.js?v=reviews-tab-20261020"></script>
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { initializeApp as initFirebaseApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { withAppCheck } from '/assets/js/app-check.js?v=recaptcha-key2-20261123';
+    const initializeApp = withAppCheck(initFirebaseApp);
     import {
       getFirestore, doc, getDoc, collection, runTransaction, serverTimestamp,
     } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';

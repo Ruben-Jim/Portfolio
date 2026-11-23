@@ -3223,8 +3223,13 @@ function portfolioDisplayImageSrc(url) {
   return path + (path.indexOf('?') >= 0 ? '&' : '?') + 'v=' + PORTFOLIO_IMAGE_CACHE_BUST;
 }
 
+/** Project videos may be served from Firebase Storage (media-url.js); anything else unchanged. */
+function portfolioMediaUrl(src) {
+  return typeof window.cwrMediaUrl === 'function' ? window.cwrMediaUrl(src) : src;
+}
+
 function portfolioDisplayMediaSrc(url) {
-  return portfolioDisplayImageSrc(url);
+  return portfolioMediaUrl(portfolioDisplayImageSrc(url));
 }
 
 function portfolioNormalizeCanvasDocUrl(url) {
@@ -5207,7 +5212,7 @@ function portfolioShowcasePhoneMedia(p) {
     var v = '?v=' + PORTFOLIO_MOBILE_SHOT_VERSION;
     // A clip's poster is its own first frame, so a re-recorded clip never opens on an older still.
     return PORTFOLIO_MOBILE_VIDEOS.indexOf(id) !== -1
-      ? { kind: 'video', src: '/assets/video/showcase/' + id + '-mobile.mp4' + v, poster: '/assets/video/showcase/' + id + '-mobile-poster.webp' + v }
+      ? { kind: 'video', src: portfolioMediaUrl('/assets/video/showcase/' + id + '-mobile.mp4' + v), poster: '/assets/video/showcase/' + id + '-mobile-poster.webp' + v }
       : { kind: 'image', src: '/assets/images/hero/showcase/' + id + '-mobile.webp' + v };
   } catch (e) {
     return null;
@@ -7343,6 +7348,10 @@ async function sendPortfolioEmailRequest(body, options) {
     );
   }
   const headers = { "Content-Type": "application/json", Accept: "application/json" };
+  // App Check token (app-check.js); {} while App Check is off.
+  if (typeof window.cwrAppCheckHeaders === "function") {
+    Object.assign(headers, await window.cwrAppCheckHeaders());
+  }
   if (options && options.requireAdmin) {
     const token = await getAdminIdToken();
     headers.Authorization = "Bearer " + token;

@@ -8,6 +8,7 @@
     "deploy:preview": "node scripts/build-site.mjs && EXPO_NO_DOTENV=1 npx eas-cli@latest deploy --export-dir _site",
     "deploy:prod": "node scripts/build-site.mjs && EXPO_NO_DOTENV=1 npx eas-cli@latest deploy --export-dir _site --prod",
     "claude-usage": "node scripts/claude-usage.mjs",
-    "claude-usage:all": "node scripts/claude-usage.mjs --all"
+    "claude-usage:all": "node scripts/claude-usage.mjs --all",
+    "upload-media": "node scripts/upload-media.mjs"
   }
 }

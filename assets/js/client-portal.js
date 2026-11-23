@@ -2458,9 +2458,12 @@
       var cfg = window.RESEND_EMAIL_CONFIG || {};
       var apiUrl = String(cfg.apiUrl || '').trim();
       if (!apiUrl) throw new Error('Email API URL is not configured.');
+      var headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
+      // App Check token (app-check.js); {} while App Check is off.
+      if (typeof window.cwrAppCheckHeaders === 'function') Object.assign(headers, await window.cwrAppCheckHeaders());
       var res = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        headers: headers,
         body: JSON.stringify(body)
       });
       var data = {};
