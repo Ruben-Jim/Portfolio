@@ -26401,7 +26401,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const patch = {};
     patch['dm/meta/' + id] = null;
     patch['dm/threadMessages/' + id] = null;
-    patch['dm/presence/' + id] = null;
+    // The rules grant presence writes per side (admin / customer), not on the
+    // conversation node itself, so remove each side: deleting the node as a whole
+    // was refused and took the whole delete down with it (PERMISSION_DENIED).
+    patch['dm/presence/' + id + '/admin'] = null;
+    patch['dm/presence/' + id + '/customer'] = null;
     await window.rtdbUpdate(rootRef, patch);
   }
 
@@ -26870,9 +26874,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     try {
       await deleteConversationFromRtdb(conversationId);
+      // Closing the sheet marks you offline in the open conversation; skip that for
+      // the one just deleted, or it would leave a stray presence entry behind.
+      if (DM.activeConversationId === conversationId) DM.activeConversationId = null;
       if (typeof window.closeAdminContactDetailDrawer === 'function') {
         window.closeAdminContactDetailDrawer();
       }
+      window.CwrUI.toast('Conversation deleted.', { tone: 'success' });
     } catch (err) {
       window.CwrUI.toast(formatRtdbPortalError(err), { tone: 'error' });
     }
