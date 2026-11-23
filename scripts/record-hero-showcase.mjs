@@ -232,3 +232,5 @@ for (const [id, url] of PROJECTS) {
   }
 }
 await browser.close();
+// Clips play from Firebase Storage (assets/js/media-url.js): new ones show on the site only once uploaded.
+console.log('\nNext: npm run upload-media (uploads new or changed clips), then bump the clip ?v= in the code.');

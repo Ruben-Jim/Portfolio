@@ -6,7 +6,7 @@ const ok = (c, m) => { console.log(`${c ? '✓' : '✗'} ${m}`); if (!c) process
 const src = readFileSync(new URL('../assets/js/media-url.js', import.meta.url), 'utf8');
 
 function load(on) {
-  const code = on ? src.replace('var MEDIA_FROM_STORAGE = false;', 'var MEDIA_FROM_STORAGE = true;') : src;
+  const code = src.replace(/var MEDIA_FROM_STORAGE = (true|false);/, `var MEDIA_FROM_STORAGE = ${on};`);
   const ctx = { window: {}, module: { exports: {} } };
   vm.runInNewContext(code, ctx);
   return ctx.module.exports;

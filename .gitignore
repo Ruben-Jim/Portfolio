@@ -4,3 +4,12 @@ functions/node_modules/
 .firebase/
 _site/
 node_modules/
+
+# Project videos live in Firebase Storage (npm run upload-media; assets/js/media-url.js).
+# The local copies are the upload source; git no longer stores them.
+assets/images/projects/**/*.mp4
+assets/images/projects/**/*.webm
+assets/images/projects/**/*.mov
+assets/video/**/*.mp4
+assets/video/**/*.webm
+assets/video/**/*.mov

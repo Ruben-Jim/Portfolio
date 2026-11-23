@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  var MEDIA_FROM_STORAGE = false;
+  var MEDIA_FROM_STORAGE = true;
   var BUCKET = 'portfolio-2578e.firebasestorage.app';
   var VIDEO_PATH = /^\/assets\/(images\/projects|video)\/[^?#]+\.(mp4|webm|mov)(?=$|[?#])/i;
 

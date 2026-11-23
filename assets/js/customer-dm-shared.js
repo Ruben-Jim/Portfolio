@@ -105,8 +105,20 @@
     );
   }
 
+  /**
+   * Escaped message text with web links made tappable (new tab, no referrer). Runs on the
+   * already-escaped text, so nothing the sender typed can become markup; trailing
+   * punctuation (".", ")", "!") stays outside the link.
+   */
   function renderDmMessageBodyHtml(msg) {
-    return escapeDmHtml(msg && msg.body ? msg.body : '').replace(/\n/g, '<br>');
+    var safe = escapeDmHtml(msg && msg.body ? msg.body : '');
+    var linked = safe.replace(/\bhttps?:\/\/[^\s<]+/gi, function (url) {
+      var trail = (url.match(/(?:[.,!?;:)\]]|&#39;|&quot;)+$/) || [''])[0];
+      var href = trail ? url.slice(0, -trail.length) : url;
+      if (!/^https?:\/\/[^\s]+\.[^\s]+/i.test(href)) return url;
+      return '<a class="dm-message-link" href="' + href + '" target="_blank" rel="noopener noreferrer nofollow">' + href + '</a>' + trail;
+    });
+    return linked.replace(/\n/g, '<br>');
   }
 
   function renderDmAttachmentHtml(msg) {

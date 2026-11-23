@@ -52,6 +52,8 @@ for (const p of PUBLIC) {
       const rel = src.slice(ROOT.length + 1);
       if (rel.split('/').includes('.DS_Store')) return false;
       if (/\.(mjs|sh)$/.test(rel)) return false;
+      // Project videos are served from Firebase Storage (assets/js/media-url.js), not the site.
+      if (/^assets\/(images\/projects|video)\/.+\.(mp4|webm|mov)$/i.test(rel)) return false;
       if (/\.md$/.test(rel) && !rel.startsWith('assets/docs/')) return false;
       return true;
     }

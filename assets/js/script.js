@@ -26497,6 +26497,273 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  // ── Conversation sheet (chat-app layout) ──────────────────────────────
+
+  var DMX_STATUS = [
+    { value: 'open', label: 'Open' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'closed', label: 'Closed' }
+  ];
+  var DMX_PRIORITY = [
+    { value: 'normal', label: 'Normal' },
+    { value: 'high', label: 'High' },
+    { value: 'urgent', label: 'Urgent' }
+  ];
+  var DMX_SOURCE_LABELS = {
+    contact: 'Contact form', 'hire-me': 'Hire Me form', 'client-portal': 'Client portal', portal: 'Client portal', dm: 'Chat'
+  };
+
+  function dmxOptionLabel(list, value) {
+    var hit = list.filter(function (o) { return o.value === value; })[0];
+    return hit ? hit.label : list[0].label;
+  }
+
+  function dmxTags() {
+    var input = document.getElementById('dm-tag-input');
+    return input && input.value
+      ? input.value.split(',').map(function (t) { return t.trim(); }).filter(Boolean)
+      : [];
+  }
+
+  /** Status / priority chips and tag pills from the hidden inputs. */
+  function syncDmxChips() {
+    var status = (document.getElementById('dm-status-select') || {}).value || 'open';
+    var priority = (document.getElementById('dm-priority-select') || {}).value || 'normal';
+    var chevron = '<ion-icon name="chevron-down-outline" class="dmx-chip-caret" aria-hidden="true"></ion-icon>';
+    var statusChip = document.getElementById('dmx-status-chip');
+    if (statusChip) {
+      statusChip.dataset.value = status;
+      statusChip.innerHTML = '<span class="dmx-dot" aria-hidden="true"></span>' + escapeDmHtml(dmxOptionLabel(DMX_STATUS, status)) + chevron;
+      statusChip.setAttribute('aria-label', 'Status: ' + dmxOptionLabel(DMX_STATUS, status));
+    }
+    var priorityChip = document.getElementById('dmx-priority-chip');
+    if (priorityChip) {
+      priorityChip.dataset.value = priority;
+      priorityChip.innerHTML = '<ion-icon name="flag-outline" aria-hidden="true"></ion-icon>' + escapeDmHtml(dmxOptionLabel(DMX_PRIORITY, priority)) + chevron;
+      priorityChip.setAttribute('aria-label', 'Priority: ' + dmxOptionLabel(DMX_PRIORITY, priority));
+    }
+    var tagsEl = document.getElementById('dmx-tags');
+    if (tagsEl) {
+      var tags = dmxTags();
+      tagsEl.innerHTML = tags.slice(0, 3).map(function (t) {
+        return '<span class="dmx-tag">#' + escapeDmHtml(t) + '</span>';
+      }).join('') + (tags.length > 3 ? '<span class="dmx-tag">+' + (tags.length - 3) + '</span>' : '');
+    }
+  }
+
+  /** Saves status / priority / tags right away (no Save button any more). */
+  function dmxSaveMeta() {
+    var conv = DM.activeConversationData;
+    if (conv) {
+      conv.status = (document.getElementById('dm-status-select') || {}).value || conv.status;
+      conv.priority = (document.getElementById('dm-priority-select') || {}).value || conv.priority;
+      conv.tags = dmxTags();
+    }
+    syncDmxChips();
+    return saveConversationMeta().catch(function (error) {
+      window.CwrUI.toast('Could not save: ' + error.message, { tone: 'error' });
+    });
+  }
+
+  var dmxMenuState = null;
+
+  function closeDmxMenu() {
+    if (!dmxMenuState) return;
+    var st = dmxMenuState;
+    dmxMenuState = null;
+    if (st.menu.parentNode) st.menu.parentNode.removeChild(st.menu);
+    st.anchor.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', st.onOutside, true);
+    document.removeEventListener('keydown', st.onKey, true);
+  }
+
+  /** Small popover under `anchor`. items: { label, icon, checked, danger, onSelect }. */
+  function openDmxMenu(anchor, items) {
+    var reopen = dmxMenuState && dmxMenuState.anchor === anchor;
+    closeDmxMenu();
+    if (reopen) return;
+    var panel = document.getElementById('dm-thread-panel');
+    if (!panel) return;
+    var menu = document.createElement('div');
+    menu.className = 'dmx-menu';
+    menu.setAttribute('role', 'menu');
+    items.forEach(function (item) {
+      if (!item) return;
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'dmx-menu-item' + (item.danger ? ' is-danger' : '') + (item.checked ? ' is-checked' : '');
+      b.setAttribute('role', item.checked != null ? 'menuitemradio' : 'menuitem');
+      if (item.checked != null) b.setAttribute('aria-checked', item.checked ? 'true' : 'false');
+      b.innerHTML = (item.icon ? '<ion-icon name="' + item.icon + '" aria-hidden="true"></ion-icon>' : '') +
+        '<span>' + escapeDmHtml(item.label) + '</span>' +
+        (item.checked ? '<ion-icon name="checkmark" class="dmx-menu-check" aria-hidden="true"></ion-icon>' : '');
+      b.addEventListener('click', function () {
+        closeDmxMenu();
+        anchor.focus();
+        item.onSelect();
+      });
+      menu.appendChild(b);
+    });
+    panel.appendChild(menu);
+    var pr = panel.getBoundingClientRect();
+    var ar = anchor.getBoundingClientRect();
+    menu.style.top = Math.round(ar.bottom - pr.top + 6) + 'px';
+    if (ar.left + ar.width / 2 > pr.left + pr.width / 2) {
+      menu.style.right = Math.max(8, Math.round(pr.right - ar.right)) + 'px';
+    } else {
+      menu.style.left = Math.max(8, Math.round(ar.left - pr.left)) + 'px';
+    }
+    anchor.setAttribute('aria-expanded', 'true');
+    var st = {
+      menu: menu,
+      anchor: anchor,
+      onOutside: function (e) {
+        if (!menu.contains(e.target) && !anchor.contains(e.target)) closeDmxMenu();
+      },
+      onKey: function (e) {
+        if (e.key === 'Escape') { e.stopPropagation(); closeDmxMenu(); anchor.focus(); }
+      }
+    };
+    dmxMenuState = st;
+    document.addEventListener('pointerdown', st.onOutside, true);
+    document.addEventListener('keydown', st.onKey, true);
+    var first = menu.querySelector('.is-checked') || menu.querySelector('.dmx-menu-item');
+    if (first) first.focus();
+  }
+
+  function dmxPickMenu(anchor, kind) {
+    var list = kind === 'status' ? DMX_STATUS : DMX_PRIORITY;
+    var input = document.getElementById(kind === 'status' ? 'dm-status-select' : 'dm-priority-select');
+    if (!input) return;
+    openDmxMenu(anchor, list.map(function (o) {
+      return {
+        label: o.label,
+        checked: input.value === o.value,
+        onSelect: function () {
+          if (input.value === o.value) return;
+          input.value = o.value;
+          dmxSaveMeta();
+        }
+      };
+    }));
+  }
+
+  function dmxMoreMenu(anchor) {
+    var conv = DM.activeConversationData;
+    if (!conv) return;
+    var first = String(conv.customerName || '').trim().split(/\s+/)[0] || 'them';
+    var items = [];
+    if (isInquiryConversation(conv)) {
+      items.push(conv.leadId
+        ? { label: 'Open lead', icon: 'open-outline', onSelect: function () {
+            if (typeof window.openPipelineLeadById === 'function') window.openPipelineLeadById(conv.leadId);
+          } }
+        : { label: 'Convert to lead', icon: 'person-add-outline', onSelect: function () {
+            // Reuses the card button's flow (it disables itself while converting).
+            var cardBtn = document.querySelector('#dm-admin-lead-meta [data-dm-convert-lead]');
+            if (cardBtn) { cardBtn.click(); return; }
+            var tmp = document.createElement('button');
+            tmp.setAttribute('data-dm-convert-lead', conv.id);
+            tmp.innerHTML = '<span></span>';
+            convertDmConversationToLead(tmp);
+          } });
+    }
+    if (conv.customerEmail) {
+      items.push({ label: 'Email ' + first, icon: 'mail-outline', onSelect: function () {
+        window.location.href = 'mailto:' + encodeURIComponent(conv.customerEmail);
+      } });
+    }
+    items.push({ label: 'Edit tags', icon: 'pricetags-outline', onSelect: async function () {
+      var value = await window.CwrUI.prompt({
+        title: 'Tags',
+        message: 'Separate tags with commas.',
+        value: dmxTags().join(', '),
+        placeholder: 'website, follow-up'
+      });
+      if (value == null) return;
+      var input = document.getElementById('dm-tag-input');
+      if (input) input.value = value;
+      dmxSaveMeta();
+    } });
+    if (isAdmin()) {
+      items.push({ label: 'Delete conversation', icon: 'trash-outline', danger: true, onSelect: function () {
+        confirmDeleteDmConversation(conv.id, conv.customerName || conv.customerEmail || conv.id);
+      } });
+    }
+    openDmxMenu(anchor, items);
+  }
+
+  /** Reply box grows with the text, up to about five lines. */
+  function dmxAutosize(textarea) {
+    textarea.style.height = 'auto';
+    var full = textarea.scrollHeight;
+    textarea.style.height = Math.min(full, 132) + 'px';
+    // Scrollbar only once it hits the cap; an empty box never shows one.
+    textarea.classList.toggle('is-scrolling', full > 132);
+  }
+
+  /** Close, ⋯ menu, chips, autosize, and swipe-down-to-close on the phone sheet. */
+  function bindDmxPanel(thread) {
+    thread.addEventListener('click', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest('[data-dmx-close]')) {
+        closeDmxMenu();
+        if (typeof window.closeAdminContactDetailDrawer === 'function') window.closeAdminContactDetailDrawer();
+        return;
+      }
+      var more = t.closest('#dmx-more-btn');
+      if (more) { dmxMoreMenu(more); return; }
+      var pick = t.closest('[data-dmx-pick]');
+      if (pick) dmxPickMenu(pick, pick.getAttribute('data-dmx-pick'));
+    });
+
+    var input = thread.querySelector('#dm-admin-message');
+    if (input) {
+      input.addEventListener('input', function () { dmxAutosize(input); });
+      var composer = thread.querySelector('#dm-admin-composer');
+      if (composer) composer.addEventListener('submit', function () {
+        setTimeout(function () { dmxAutosize(input); }, 0);
+      });
+    }
+
+    var head = thread.querySelector('#dmx-head');
+    if (!head) return;
+    var startY = 0;
+    var dy = 0;
+    var dragging = false;
+    var panelOf = function () { return thread.closest('.admin-contact-detail__panel'); };
+    head.addEventListener('touchstart', function (e) {
+      if (!window.matchMedia('(max-width: 767px)').matches) return;
+      if (e.target.closest('button, a, input, textarea')) return;
+      dragging = true;
+      startY = e.touches[0].clientY;
+      dy = 0;
+    }, { passive: true });
+    head.addEventListener('touchmove', function (e) {
+      if (!dragging) return;
+      dy = Math.max(0, e.touches[0].clientY - startY);
+      var panel = panelOf();
+      if (panel) {
+        panel.style.transition = 'none';
+        panel.style.transform = 'translateY(' + dy + 'px)';
+      }
+    }, { passive: true });
+    head.addEventListener('touchend', function () {
+      if (!dragging) return;
+      dragging = false;
+      var panel = panelOf();
+      if (panel) {
+        panel.style.transition = '';
+        panel.style.transform = '';
+      }
+      if (dy > 110 && typeof window.closeAdminContactDetailDrawer === 'function') {
+        closeDmxMenu();
+        window.closeAdminContactDetailDrawer();
+      }
+    });
+  }
+
   function ensureAdminInboxUI() {
     setupAdminMessagesPanelForDm();
     if (!hasDMDeps()) return;
@@ -26508,74 +26775,62 @@ document.addEventListener('DOMContentLoaded', function () {
       const thread = document.createElement('section');
       thread.className = 'dm-thread-panel dm-thread-panel--in-detail';
       thread.id = 'dm-thread-panel';
+      // Chat-app layout: who + how to reach them, status chips, ⋯ menu; messages fill the
+      // middle; one-row reply bar pinned at the bottom. Status/priority/tags save on change
+      // (the hidden inputs keep saveConversationMeta's contract).
       thread.innerHTML = [
-        '<div class="dm-thread-admin-meta">',
-        '<header class="dm-thread-header dm-thread-header--admin">',
-        '<div class="dm-thread-header-main">',
-        '<div class="dm-thread-meta">',
-        '<h4 id="dm-thread-title" class="h4 dm-thread-title">Conversation</h4>',
-        '<p id="dm-thread-subtitle" class="dm-thread-lead"></p>',
-        '</div>',
-        '<div class="dm-thread-toolbar">',
-        '<div class="dm-thread-actions">',
-        '<input id="dm-tag-input" class="form-input dm-mini-input" type="text" placeholder="Tags (comma-separated)">',
-        '<div class="business-doc-select business-doc-select--compact dm-mini-select-wrap">',
-        '<button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Conversation status">',
-        '<span class="business-doc-select-trigger-label">Open</span>',
-        '<ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>',
+        '<header class="dmx-head" id="dmx-head">',
+        '<span class="dmx-grab" aria-hidden="true"></span>',
+        '<div class="dmx-head-row">',
+        '<button type="button" class="dmx-icon-btn dmx-close" data-dmx-close aria-label="Close conversation">',
+        '<ion-icon name="chevron-down-outline" class="dmx-close-down" aria-hidden="true"></ion-icon>',
+        '<ion-icon name="close-outline" class="dmx-close-x" aria-hidden="true"></ion-icon>',
         '</button>',
-        '<div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">',
-        '<button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="open">Open</button>',
-        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="pending">Pending</button>',
-        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="closed">Closed</button>',
+        '<div class="dmx-who">',
+        '<h4 id="dm-thread-title" class="dmx-name">Conversation</h4>',
+        '<p id="dm-thread-subtitle" class="dmx-contact"></p>',
+        '</div>',
+        '<button type="button" class="dmx-icon-btn" id="dmx-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More actions">',
+        '<ion-icon name="ellipsis-horizontal" aria-hidden="true"></ion-icon>',
+        '</button>',
+        '</div>',
+        '<div class="dmx-chips">',
+        '<button type="button" class="dmx-chip dmx-chip--status" id="dmx-status-chip" data-dmx-pick="status" aria-haspopup="menu" aria-label="Status"></button>',
+        '<button type="button" class="dmx-chip dmx-chip--priority" id="dmx-priority-chip" data-dmx-pick="priority" aria-haspopup="menu" aria-label="Priority"></button>',
+        '<span class="dmx-tags" id="dmx-tags"></span>',
+        '<span class="dmx-presence" role="status" aria-live="polite">',
+        '<span id="dm-presence-customer" class="dmx-presence-online">Offline</span>',
+        '<span id="dm-presence-typing" class="dmx-presence-typing" hidden>typing…</span>',
+        '</span>',
         '</div>',
         '<input type="hidden" id="dm-status-select" value="open">',
-        '</div>',
-        '<div class="business-doc-select business-doc-select--compact dm-mini-select-wrap">',
-        '<button type="button" class="business-doc-select-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Priority">',
-        '<span class="business-doc-select-trigger-label">Normal</span>',
-        '<ion-icon name="chevron-down-outline" class="business-doc-select-trigger-icon"></ion-icon>',
-        '</button>',
-        '<div class="business-doc-select-menu has-scrollbar" role="listbox" aria-hidden="true">',
-        '<button type="button" class="business-doc-select-option is-active" role="option" aria-selected="true" data-value="normal">Normal</button>',
-        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="high">High</button>',
-        '<button type="button" class="business-doc-select-option" role="option" aria-selected="false" data-value="urgent">Urgent</button>',
-        '</div>',
         '<input type="hidden" id="dm-priority-select" value="normal">',
-        '</div>',
-        '<button id="dm-save-meta" type="button" class="btn btn-secondary btn-sm">Save</button>',
-        '</div>',
-        '</div>',
-        '</div>',
+        '<input type="hidden" id="dm-tag-input" value="">',
         '</header>',
+        '<div class="dmx-scroll has-scrollbar" id="dm-message-scroll" data-lenis-prevent>',
+        '<button id="dm-load-more" type="button" class="dmx-load-more">Load older messages</button>',
+        '<div id="dm-admin-lead-meta" class="dmx-form-card-host" hidden></div>',
+        '<div id="dm-message-list" class="dm-message-list"></div>',
         '</div>',
-        '<div class="dm-presence-row" role="status" aria-live="polite">',
-        '<span id="dm-presence-customer" class="dm-presence-pill">Customer offline</span>',
-        '<span id="dm-presence-typing" class="dm-presence-pill">Not typing</span>',
+        '<form id="dm-admin-composer" class="dm-composer dm-admin-composer dmx-composer" autocomplete="off">',
+        '<div id="dm-admin-attachment-panel" class="dmx-attach" hidden>',
+        '<input id="dm-attachment-url" class="form-input dm-attachment-field" type="url" placeholder="Link to attach: https://…" aria-label="Attachment link (optional)">',
         '</div>',
-        '<div id="dm-admin-lead-meta" class="admin-dm-lead-meta-host" hidden></div>',
-        '<div id="dm-message-list" class="dm-message-list has-scrollbar"></div>',
-        '<button id="dm-load-more" type="button" class="btn btn-secondary btn-sm dm-load-more-btn">Load older messages</button>',
-        '<form id="dm-admin-composer" class="dm-composer dm-admin-composer" autocomplete="off">',
-        '<div class="dm-admin-composer-bar">',
-        '<button type="button" id="dm-attachment-toggle" class="dm-admin-icon-btn" aria-label="Add attachment link" aria-expanded="false" aria-controls="dm-admin-attachment-panel">',
+        '<div class="dmx-composer-row">',
+        '<button type="button" id="dm-attachment-toggle" class="dmx-icon-btn dmx-icon-btn--soft" aria-label="Attach a link" aria-expanded="false" aria-controls="dm-admin-attachment-panel">',
         '<ion-icon name="link-outline" aria-hidden="true"></ion-icon>',
         '</button>',
-        '<div class="dm-admin-composer-input-wrap">',
-        '<textarea id="dm-admin-message" class="form-input dm-reply-textarea dm-admin-composer-textarea" rows="1" placeholder="Reply…" aria-label="Reply to customer" required></textarea>',
-        '</div>',
-        '<button type="button" id="dm-send-reply-email" class="dm-admin-icon-btn dm-admin-icon-btn-mail" aria-label="Send email copy to customer">',
+        '<textarea id="dm-admin-message" class="dmx-input" rows="1" placeholder="Reply…" aria-label="Reply to customer" required></textarea>',
+        '<button type="button" id="dm-send-reply-email" class="dmx-icon-btn dmx-icon-btn--soft" aria-label="Send and email a copy" title="Send + email a copy">',
         '<ion-icon name="mail-outline" aria-hidden="true"></ion-icon>',
         '</button>',
-        '<button type="submit" class="dm-admin-icon-btn dm-admin-send-btn" aria-label="Send in thread">',
-        '<ion-icon name="send-outline" aria-hidden="true"></ion-icon>',
+        '<button type="submit" class="dmx-icon-btn dmx-send" aria-label="Send">',
+        '<ion-icon name="arrow-up" aria-hidden="true"></ion-icon>',
         '</button>',
-        '</div>',
-        '<div id="dm-admin-attachment-panel" class="dm-admin-attachment-panel" hidden>',
-        '<input id="dm-attachment-url" class="form-input dm-attachment-field" type="url" placeholder="https://…" aria-label="Attachment URL (optional)">',
         '</div>',
         '</form>'
       ].join('');
+      bindDmxPanel(thread);
       dmHost.appendChild(thread);
       if (typeof window.initBusinessDocCustomSelects === 'function') {
         window.initBusinessDocCustomSelects();
@@ -26781,32 +27036,50 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  /**
+   * What the website form said, as a card above the messages: which form, when, the
+   * answers it collected (package, project type, budget), and Convert to lead / Open lead.
+   */
   function renderAdminDmLeadMetaHtml(conv) {
     if (!conv) return '';
-    var projectType = String(conv.projectType || conv.project_type || '').trim();
-    var budget = String(conv.budget || '').trim();
+    var src = formatAdminDmSourceLabel(conv.originSource || conv.source);
+    var given = function (v) {
+      var s = String(v == null ? '' : v).trim();
+      return s && !/^not specified$/i.test(s) ? s : '';
+    };
+    var rows = [];
+    var pkgId = given(conv.packageId);
+    if (pkgId) {
+      var pkg = typeof window.PackagePricing !== 'undefined' && window.PackagePricing.packageById
+        ? window.PackagePricing.packageById(pkgId) : null;
+      rows.push(['Package', (pkg && pkg.name) || pkgId]);
+    }
+    var projectType = given(conv.projectType || conv.project_type);
+    if (projectType) rows.push(['Project', projectType]);
+    var budget = given(conv.budget);
+    if (budget) rows.push(['Budget', budget]);
+    var timeline = given(conv.timeline);
+    if (timeline) rows.push(['Timeline', timeline]);
+
     var action = renderAdminDmLeadActionHtml(conv);
-    if (!projectType && !budget) return action ? '<div class="admin-dm-lead-actions">' + action + '</div>' : '';
+    var title = src === 'hire-me' ? 'Hire Me inquiry' : src === 'contact' ? 'Contact form' : '';
+    if (!title && !rows.length && !action) return '';
+    var icon = src === 'hire-me' ? 'rocket-outline' : 'mail-open-outline';
+    var when = conv.createdAt ? formatDMDate(conv.createdAt) : '';
     return [
-      action ? '<div class="admin-dm-lead-actions">' + action + '</div>' : '',
-      '<div class="message-card-hire-meta admin-dm-lead-meta">',
-      projectType
-        ? '<div class="message-card-hire-section message-card-hire-section--project"><div class="message-card-hire-section-head">' +
-          '<span class="message-card-hire-icon-wrap"><ion-icon name="layers-outline" aria-hidden="true"></ion-icon></span>' +
-          '<span class="message-card-hire-section-label">Project type</span></div>' +
-          '<p class="message-card-hire-section-value">' +
-          escapeDmHtml(projectType) +
-          '</p></div>'
+      '<section class="dmx-form-card" aria-label="' + escapeDmHtml(title || 'Form details') + '">',
+      '<div class="dmx-form-head">',
+      '<span class="dmx-form-icon"><ion-icon name="' + icon + '" aria-hidden="true"></ion-icon></span>',
+      '<span class="dmx-form-title">' + escapeDmHtml(title || 'Form details') + '</span>',
+      when ? '<span class="dmx-form-when">' + escapeDmHtml(when) + '</span>' : '',
+      '</div>',
+      rows.length
+        ? '<dl class="dmx-form-rows">' + rows.map(function (r) {
+            return '<div class="dmx-form-row"><dt>' + escapeDmHtml(r[0]) + '</dt><dd>' + escapeDmHtml(r[1]) + '</dd></div>';
+          }).join('') + '</dl>'
         : '',
-      budget
-        ? '<div class="message-card-hire-section message-card-hire-section--budget"><div class="message-card-hire-section-head">' +
-          '<span class="message-card-hire-icon-wrap"><ion-icon name="wallet-outline" aria-hidden="true"></ion-icon></span>' +
-          '<span class="message-card-hire-section-label">Budget</span></div>' +
-          '<p class="message-card-hire-section-value">' +
-          escapeDmHtml(budget) +
-          '</p></div>'
-        : '',
-      '</div>'
+      action ? '<div class="dmx-form-actions">' + action + '</div>' : '',
+      '</section>'
     ].join('');
   }
 
@@ -27024,20 +27297,26 @@ document.addEventListener('DOMContentLoaded', function () {
     const tagInput = document.getElementById('dm-tag-input');
     if (!title || !subtitle || !list) return;
 
-    title.textContent = conversation.customerName || 'Customer';
-    var srcLabel = formatAdminDmSourceLabel(conversation.source);
-    var sourceNote = srcLabel ? ' · ' + srcLabel : '';
-    subtitle.textContent =
-      (conversation.customerEmail || '') + ' · Assigned: ' + (conversation.assignee || 'unassigned') + sourceNote;
-    if (statusSelect) {
-      statusSelect.value = conversation.status || 'open';
-      if (typeof window.syncBusinessDocSelectUI === 'function') window.syncBusinessDocSelectUI(statusSelect);
+    title.textContent = conversation.customerName || conversation.customerEmail || 'Customer';
+    // Tap to email / call; then where the conversation came from.
+    var contactBits = [];
+    var email = String(conversation.customerEmail || '').trim();
+    var phone = String(conversation.customerPhone || conversation.phone || '').trim();
+    if (email) {
+      contactBits.push('<a class="dmx-contact-link" href="mailto:' + escapeDmHtml(email) + '">' +
+        '<ion-icon name="mail-outline" aria-hidden="true"></ion-icon><span>' + escapeDmHtml(email) + '</span></a>');
     }
-    if (prioritySelect) {
-      prioritySelect.value = conversation.priority || 'normal';
-      if (typeof window.syncBusinessDocSelectUI === 'function') window.syncBusinessDocSelectUI(prioritySelect);
+    if (phone) {
+      contactBits.push('<a class="dmx-contact-link" href="tel:' + escapeDmHtml(phone.replace(/[^\d+]/g, '')) + '">' +
+        '<ion-icon name="call-outline" aria-hidden="true"></ion-icon><span>' + escapeDmHtml(phone) + '</span></a>');
     }
+    var srcKey = formatAdminDmSourceLabel(conversation.originSource || conversation.source);
+    contactBits.push('<span class="dmx-contact-src">' + escapeDmHtml(DMX_SOURCE_LABELS[srcKey] || srcKey) + '</span>');
+    subtitle.innerHTML = contactBits.join('');
+    if (statusSelect) statusSelect.value = conversation.status || 'open';
+    if (prioritySelect) prioritySelect.value = conversation.priority || 'normal';
     if (tagInput) tagInput.value = Array.isArray(conversation.tags) ? conversation.tags.join(', ') : '';
+    syncDmxChips();
     syncAdminDmLeadMeta(conversation);
 
     var detailTitle = document.getElementById('admin-contact-detail-title');
@@ -27059,7 +27338,9 @@ document.addEventListener('DOMContentLoaded', function () {
     list.innerHTML = messages.map(function (msg) {
       return renderAdminDmMessageRow(msg);
     }).join('');
-    list.scrollTop = list.scrollHeight;
+    // The sheet scrolls the whole middle (form card + messages); start at the newest.
+    var scroller = document.getElementById('dm-message-scroll') || list;
+    scroller.scrollTop = scroller.scrollHeight;
     syncAdminDmLayoutClass();
   }
 
@@ -27087,8 +27368,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const typingEl = document.getElementById('dm-presence-typing');
     DM.unsubCustomerPresence = window.rtdbOnValue(rtdbPresenceRef(conversationId, 'customer'), function (snap) {
       const data = snap.val() || {};
-      if (customerPresenceEl) customerPresenceEl.textContent = data.isOnline ? 'Customer online' : 'Customer offline';
-      if (typingEl) typingEl.textContent = data.isTyping ? 'Customer typing...' : 'Not typing';
+      if (customerPresenceEl) {
+        customerPresenceEl.textContent = data.isOnline ? 'Online' : 'Offline';
+        customerPresenceEl.classList.toggle('is-online', !!data.isOnline);
+      }
+      if (typingEl) typingEl.hidden = !data.isTyping;
     });
   }
 
