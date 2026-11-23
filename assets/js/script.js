@@ -11718,23 +11718,6 @@ window.addEventListener('load', function() {
       btn.addEventListener('click', handleFilterClick);
     });
 
-    // Refresh button
-    const refreshBtn = document.getElementById('refresh-messages');
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', () => {
-        fetchMessages();
-      });
-    }
-
-    // Test Firestore button
-    const testBtn = document.getElementById('test-firestore');
-    if (testBtn) {
-      testBtn.addEventListener('click', async () => {
-        testFirestoreConnection();
-        testRealtimeDatabaseConnection();
-      });
-    }
-
     // Reply modal
     const replyModal = document.getElementById('reply-modal');
     const replyModalOverlay = document.getElementById('reply-modal-overlay');
