@@ -44,6 +44,7 @@ const {
 } = require("./emailTemplates");
 const { hasInboundRecipient } = require("./inbound-address");
 const adminPush = require("./admin-push");
+const inboxAutoReply = require("./inbox-auto-reply");
 
 function icsEscapeText(s) {
   return String(s || "")
@@ -1095,6 +1096,53 @@ async function pushToAdmin(notice, opts) {
     console.error("admin push failed", notice.type, err && err.message);
   }
 }
+
+// Instant reply in the customer's chat after a contact / Hire Me form message.
+// Texts: Admin → Messages → Replies (agencyInboxReplies/auto). Once per conversation
+// per 12 h; the cooldown is claimed in a transaction so two triggers can't both send.
+exports.autoReplyOnInquiry = onValueCreated(
+  Object.assign({ ref: "/dm/threadMessages/{convId}/{msgId}" }, RTDB_TRIGGER),
+  async (event) => {
+    const msg = event.data.val();
+    if (!inboxAutoReply.isInquiryMessage(msg)) return;
+    const db = admin.database();
+    const convId = event.params.convId;
+    const [metaSnap, settingsSnap] = await Promise.all([
+      db.ref("dm/meta/" + convId).once("value"),
+      db.ref("agencyInboxReplies/auto").once("value"),
+    ]);
+    const plan = inboxAutoReply.autoReplyFor({
+      msg, meta: metaSnap.val(), settings: settingsSnap.val(), now: Date.now(),
+    });
+    if (!plan) return;
+    const claim = await db.ref("dm/meta/" + convId + "/autoReplyAt").transaction((cur) =>
+      cur && Date.now() - Number(cur) < inboxAutoReply.COOLDOWN_MS ? undefined : Date.now()
+    );
+    if (!claim.committed) return;
+    // The conversation could have been deleted between the read and the claim; the
+    // claim would then have recreated meta/<id> with only autoReplyAt. Undo that.
+    const stillThere = await db.ref("dm/meta/" + convId + "/customerEmail").once("value");
+    if (!stillThere.exists()) {
+      await db.ref("dm/meta/" + convId + "/autoReplyAt").remove();
+      return;
+    }
+    const TS = admin.database.ServerValue.TIMESTAMP;
+    await db.ref("dm/threadMessages/" + convId).push({
+      senderRole: "admin",
+      senderName: "CodeWithRuben",
+      body: plan.body,
+      createdAt: TS,
+      readByAdmin: true,
+      readByCustomer: false,
+      type: "text",
+      auto: true,
+    });
+    await db.ref("dm/meta/" + convId).update({
+      unreadCustomer: admin.database.ServerValue.increment(1),
+      updatedAt: TS,
+    });
+  }
+);
 
 exports.pushOnDmMessage = onValueCreated(
   Object.assign({ ref: "/dm/threadMessages/{convId}/{msgId}" }, RTDB_TRIGGER),

@@ -111,7 +111,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=cc-20261123">
+  <link rel="stylesheet" href="/assets/css/style.css?v=replies-20261123">
   <link rel="stylesheet" href="/assets/css/customer-chat.css?v=cc-20261123">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-lang-20261109">
   <style id="admin-auth-critical">
@@ -3836,6 +3836,10 @@
                 <button type="button" class="filter-btn" data-filter="pending">Pending</button>
                 <button type="button" class="filter-btn" data-filter="closed">Closed</button>
               </div>
+              <!-- Instant reply + saved replies (assets/js/inbox-replies.js, admin bundle) -->
+              <button type="button" class="admin-inbox-replies-btn" data-inbox-replies-open>
+                <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon><span>Replies</span>
+              </button>
             </div>
 
             <div class="messages-list has-scrollbar" id="firestore-messages-list">
@@ -9030,7 +9034,7 @@
   <script src="/assets/js/lead-match.js?v=leads-flow-20261010"></script>
   <script src="/assets/js/business-doc-shared.js?v=compare-terms-20261109"></script>
   <script src="/assets/js/hire-me-booking.js?v=slots-20261107"></script>
-  <script src="/assets/js/customer-dm-shared.js?v=cc-20261123"></script>
+  <script src="/assets/js/customer-dm-shared.js?v=replies-20261123"></script>
   <script src="/assets/js/portfolio-skins.js?v=cover-video-20261115"></script>
   <script src="/assets/js/portfolio-features.js?v=pkg-demos-20261103"></script>
   <script src="/assets/js/social-proof.js?v=one-card-20261018"></script>
@@ -9058,6 +9062,7 @@
         { src: '/assets/js/linktree-admin.js?v=work-cards-20261122' },
         { src: '/assets/js/reviews-admin.js?v=linktree-20261122' },
         { src: '/assets/js/admin-push.js?v=push-20261030' },
+        { src: '/assets/js/inbox-replies.js?v=replies-20261123' },
         { src: '/assets/js/dm-migration.js' }
       ];
       var MODULE = '/assets/js/post-builder/index.js?v=pb5';
@@ -9092,7 +9097,7 @@
     })();
   </script>
   <script src="/assets/js/admin-ui.js?v=uxpass-20261030"></script>
-  <script src="/assets/js/script.js?v=no-messages3-20261123"></script>
+  <script src="/assets/js/script.js?v=replies-20261123"></script>
   <script src="/assets/js/business-systems.js?v=pricing-20261029"></script>
 
   <!--

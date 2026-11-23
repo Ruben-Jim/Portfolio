@@ -26634,7 +26634,14 @@ document.addEventListener('DOMContentLoaded', function () {
     panel.appendChild(menu);
     var pr = panel.getBoundingClientRect();
     var ar = anchor.getBoundingClientRect();
-    menu.style.top = Math.round(ar.bottom - pr.top + 6) + 'px';
+    // Open upward for buttons in the lower half (the reply bar), downward otherwise.
+    if (ar.top - pr.top > pr.height / 2) {
+      menu.style.bottom = Math.round(pr.bottom - ar.top + 6) + 'px';
+      menu.style.maxHeight = Math.round(ar.top - pr.top - 16) + 'px';
+      menu.style.overflowY = 'auto';
+    } else {
+      menu.style.top = Math.round(ar.bottom - pr.top + 6) + 'px';
+    }
     if (ar.left + ar.width / 2 > pr.left + pr.width / 2) {
       menu.style.right = Math.max(8, Math.round(pr.right - ar.right)) + 'px';
     } else {
@@ -26740,6 +26747,32 @@ document.addEventListener('DOMContentLoaded', function () {
     openDmxMenu(anchor, items);
   }
 
+  /** Saved replies (inbox-replies.js): pick one, it lands in the reply box with {name} filled. */
+  function dmxSavedRepliesMenu(anchor) {
+    var api = window.CWR_INBOX_REPLIES;
+    if (!api) {
+      window.CwrUI.toast('Saved replies are still loading. Try again in a moment.', { tone: 'info' });
+      return;
+    }
+    var conv = DM.activeConversationData || {};
+    var input = document.getElementById('dm-admin-message');
+    var items = api.savedList().map(function (r) {
+      return {
+        label: r.title,
+        onSelect: function () {
+          if (!input) return;
+          var text = api.fill(r.body, conv.customerName);
+          input.value = input.value.trim() ? input.value.replace(/\s+$/, '') + '\n\n' + text : text;
+          dmxAutosize(input);
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+      };
+    });
+    items.push({ label: 'Edit replies…', icon: 'create-outline', onSelect: function () { api.openSettings(); } });
+    openDmxMenu(anchor, items);
+  }
+
   /** Reply box grows with the text, up to about five lines. */
   function dmxAutosize(textarea) {
     textarea.style.height = 'auto';
@@ -26761,6 +26794,8 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       var more = t.closest('#dmx-more-btn');
       if (more) { dmxMoreMenu(more); return; }
+      var savedBtn = t.closest('#dmx-saved-btn');
+      if (savedBtn) { dmxSavedRepliesMenu(savedBtn); return; }
       var pick = t.closest('[data-dmx-pick]');
       if (pick) dmxPickMenu(pick, pick.getAttribute('data-dmx-pick'));
     });
@@ -26866,6 +26901,9 @@ document.addEventListener('DOMContentLoaded', function () {
         '<div class="dmx-composer-row">',
         '<button type="button" id="dm-attachment-toggle" class="dmx-icon-btn dmx-icon-btn--soft" aria-label="Attach a link" aria-expanded="false" aria-controls="dm-admin-attachment-panel">',
         '<ion-icon name="link-outline" aria-hidden="true"></ion-icon>',
+        '</button>',
+        '<button type="button" id="dmx-saved-btn" class="dmx-icon-btn dmx-icon-btn--soft" aria-haspopup="menu" aria-expanded="false" aria-label="Saved replies" title="Saved replies">',
+        '<ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>',
         '</button>',
         '<textarea id="dm-admin-message" class="dmx-input" rows="1" placeholder="Reply…" aria-label="Reply to customer" required></textarea>',
         '<button type="button" id="dm-send-reply-email" class="dmx-icon-btn dmx-icon-btn--soft" aria-label="Send and email a copy" title="Send + email a copy">',

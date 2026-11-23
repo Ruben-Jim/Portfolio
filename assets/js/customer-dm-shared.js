@@ -428,6 +428,8 @@
       '</div>' +
       renderDmAttachmentHtml(msg) +
       '<p class="dm-message-meta">' +
+      // Instant replies (autoReplyOnInquiry) are marked for you, not for the customer.
+      (msg.auto ? '<span class="dm-message-auto">Auto-reply</span> · ' : '') +
       formatDMDate(msg.createdAt) +
       readBit +
       '</p></div></div>'
