@@ -741,10 +741,11 @@
   }
 
   function renderPortalDmOverlayHtml(prefillName) {
+    var CDS = window.CustomerDmShared;
     return (
       '<div id="portal-dm-sheet-root" class="portal-dm-sheet-root" aria-hidden="true">' +
       '<div class="portal-dm-sheet-backdrop" id="portal-dm-sheet-backdrop"></div>' +
-      '<div class="portal-dm-sheet" role="dialog" aria-modal="true" aria-labelledby="portal-dm-sheet-title">' +
+      '<div class="portal-dm-sheet cc-chat" role="dialog" aria-modal="true" aria-labelledby="portal-dm-sheet-title">' +
       '<div class="portal-dm-sheet-grabber" id="portal-dm-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag to resize" tabindex="0"></div>' +
       '<div class="portal-dm-sheet-head">' +
       '<h2 id="portal-dm-sheet-title" class="portal-dm-sheet-title">Messages</h2>' +
@@ -760,13 +761,21 @@
       '<input type="email" id="portal-dm-email" class="portal-dm-input" placeholder="Your email" required>' +
       '<p id="portal-dm-status" class="portal-dm-status" role="status" aria-live="polite"></p>' +
       '<button type="submit" class="btn btn-primary btn-block">Open conversation</button></form></div>' +
-      '<div id="portal-dm-conversation" class="portal-dm-conversation" hidden>' +
-      '<div id="portal-dm-status-badges" class="portal-dm-badges" role="status"></div>' +
-      '<div id="portal-dm-message-list" class="portal-dm-message-list has-scrollbar" aria-live="polite"></div>' +
-      '<form id="portal-dm-composer" class="portal-dm-composer">' +
-      '<div class="portal-dm-composer-row">' +
-      '<textarea id="portal-dm-message" class="portal-dm-input portal-dm-textarea" rows="2" placeholder="Describe the issue or question…" required></textarea>' +
-      '<button type="submit" class="btn btn-primary portal-dm-send" aria-label="Send message">Send</button></div></form></div></div></div></div>'
+      // Same chat as the website's message sheet (customer-dm-shared.js + customer-chat.css).
+      '<div id="portal-dm-conversation" class="portal-dm-conversation cc-body" hidden>' +
+      CDS.renderChatHeaderHtml({ closeId: 'portal-dm-cc-close' }) +
+      '<div class="cc-scroll" id="portal-dm-scroll">' +
+      '<div id="portal-dm-inquiry-card"></div>' +
+      '<div id="portal-dm-message-list" class="portal-dm-message-list dm-message-list" aria-live="polite"></div>' +
+      '</div>' +
+      '<div id="portal-dm-ended" class="cc-ended-host" hidden></div>' +
+      '<div id="portal-dm-quick" class="cc-quick-row" hidden></div>' +
+      '<form id="portal-dm-composer" class="cc-composer">' +
+      '<p id="portal-dm-send-error" class="cc-send-error" role="alert" hidden></p>' +
+      '<div class="cc-composer-row">' +
+      '<textarea id="portal-dm-message" class="cc-input" rows="1" placeholder="Message…" aria-label="Your message" required></textarea>' +
+      '<button type="submit" class="cc-icon-btn cc-send" aria-label="Send message">' + CDS.ccIcon('send') + '</button>' +
+      '</div></form></div></div></div></div>'
     );
   }
 
@@ -889,6 +898,36 @@
     var conv = document.getElementById('portal-dm-conversation');
     if (auth) auth.hidden = mode !== 'auth';
     if (conv) conv.hidden = mode !== 'conversation';
+    // The chat brings its own header; the sheet's "Messages" title is for the sign-in step.
+    var sheet = document.querySelector('#portal-dm-sheet-root .portal-dm-sheet');
+    if (sheet) sheet.classList.toggle('is-conversation', mode === 'conversation');
+  }
+
+  /** CWR deleted the conversation: forget it and offer a fresh one. */
+  function showPortalDmEnded() {
+    var DM = window.CustomerDmShared;
+    stopPortalDmSubscription();
+    DM.clearCustomerSession();
+    window.portalDmSession = null;
+    var ended = document.getElementById('portal-dm-ended');
+    var sheet = document.querySelector('#portal-dm-sheet-root .portal-dm-sheet');
+    if (ended) {
+      ended.innerHTML = DM.renderEndedHtml();
+      ended.hidden = false;
+    }
+    if (sheet) sheet.classList.add('is-ended');
+    DM.renderAdminPresence(sheet, {});
+    var quick = document.getElementById('portal-dm-quick');
+    if (quick) { quick.hidden = true; quick.innerHTML = ''; }
+    var fab = document.getElementById('portal-dm-fab');
+    updatePortalDmFabBadge(fab, 0);
+  }
+
+  function resetPortalDmEnded() {
+    var ended = document.getElementById('portal-dm-ended');
+    var sheet = document.querySelector('#portal-dm-sheet-root .portal-dm-sheet');
+    if (ended) { ended.hidden = true; ended.innerHTML = ''; }
+    if (sheet) sheet.classList.remove('is-ended');
   }
 
   function openPortalDmSheet() {
@@ -922,15 +961,29 @@
     window.portalDmSession = session;
     showPortalDmPanel('conversation');
     stopPortalDmSubscription();
+    resetPortalDmEnded();
     var listEl = document.getElementById('portal-dm-message-list');
-    var badgesEl = document.getElementById('portal-dm-status-badges');
+    var scroller = document.getElementById('portal-dm-scroll');
+    var cardEl = document.getElementById('portal-dm-inquiry-card');
+    var quickEl = document.getElementById('portal-dm-quick');
+    var sheet = document.querySelector('#portal-dm-sheet-root .portal-dm-sheet');
     portalDmSubscription = DM.subscribeCustomerThread(session, {
       onMessages: function (messages) {
         DM.renderMessagesToElement(listEl, messages, { showReadState: true });
+        if (scroller) scroller.scrollTop = scroller.scrollHeight;
       },
       onMeta: function (meta) {
-        if (badgesEl) badgesEl.innerHTML = DM.renderStatusBadgesHtml(meta);
-      }
+        if (cardEl) cardEl.innerHTML = DM.renderInquiryCardHtml(meta);
+        if (quickEl) {
+          var html = DM.renderQuickActionsHtml(meta);
+          quickEl.innerHTML = html;
+          quickEl.hidden = !html;
+        }
+      },
+      onAdminPresence: function (presence) {
+        DM.renderAdminPresence(sheet, presence);
+      },
+      onEnded: showPortalDmEnded
     });
   }
 
@@ -1083,8 +1136,21 @@
 
     var backdrop = document.getElementById('portal-dm-sheet-backdrop');
     var closeBtn = document.getElementById('portal-dm-sheet-close');
+    var ccCloseBtn = document.getElementById('portal-dm-cc-close');
     if (backdrop) backdrop.addEventListener('click', closePortalDmSheet);
     if (closeBtn) closeBtn.addEventListener('click', closePortalDmSheet);
+    if (ccCloseBtn) ccCloseBtn.addEventListener('click', closePortalDmSheet);
+    var dmSheet = document.querySelector('#portal-dm-sheet-root .portal-dm-sheet');
+    if (dmSheet) {
+      // "Start a new conversation" after an ended one: back to the name + email step.
+      dmSheet.addEventListener('click', function (e) {
+        if (!e.target.closest || !e.target.closest('[data-cc-start-new]')) return;
+        resetPortalDmEnded();
+        showPortalDmPanel('auth');
+      });
+      // Phones: swipe the chat header down to close.
+      DM.bindSwipeToClose(dmSheet.querySelector('[data-cc-head]'), dmSheet, closePortalDmSheet);
+    }
 
     document.addEventListener('keydown', function portalDmEsc(e) {
       if (e.key !== 'Escape') return;
@@ -1137,16 +1203,24 @@
         }
         var text = msgInput.value.trim();
         if (!text) return;
+        var sendError = document.getElementById('portal-dm-send-error');
+        if (sendError) sendError.hidden = true;
         DM.sendCustomerMessage(session.conversationId, session, text, '')
           .then(function () {
             msgInput.value = '';
+            DM.autosizeComposer(msgInput);
           })
           .catch(function (err) {
-            alert('Failed to send: ' + (err && err.message ? err.message : 'Error'));
+            if (DM.isConversationEndedError(err)) { showPortalDmEnded(); return; }
+            if (sendError) {
+              sendError.textContent = 'Could not send: ' + (err && err.message ? err.message : 'please try again.');
+              sendError.hidden = false;
+            }
           });
       });
 
       msgInput.addEventListener('input', function () {
+        DM.autosizeComposer(msgInput);
         var session = window.portalDmSession || DM.readCustomerSession();
         if (!session || !session.conversationId) return;
         DM.setCustomerTyping(session.conversationId, true).catch(function () {});

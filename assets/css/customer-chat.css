@@ -1,0 +1,251 @@
+/*
+ * Customer chat — the website's message sheet (#customer-dm-portal) and the client
+ * portal's Messages sheet share this look. Markup + behavior: customer-dm-shared.js
+ * (renderChatHeaderHtml, renderInquiryCardHtml, renderQuickActionsHtml, renderEndedHtml).
+ *
+ * `:is(#customer-dm-portal, body) .cc-chat` carries an id's weight on both pages, so
+ * these rules beat the older sheet styles without a pile of !important.
+ */
+:is(#customer-dm-portal, body) .cc-chat {
+  --cc-bg: var(--eerie-black-2, hsl(240, 2%, 12%));
+  --cc-surface: var(--eerie-black-1, hsl(240, 2%, 15%));
+  --cc-line: var(--jet, hsl(0, 0%, 22%));
+  --cc-text: var(--white-2, hsl(0, 0%, 98%));
+  --cc-muted: var(--light-gray-70, hsla(0, 0%, 84%, 0.7));
+  --cc-soft: var(--light-gray, hsl(0, 0%, 84%));
+  --cc-gold: var(--orange-yellow-crayola, hsl(45, 100%, 72%));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--cc-bg);
+  font-family: var(--ff-poppins, 'Poppins', sans-serif);
+}
+
+:is(#customer-dm-portal, body) .cc-chat .cc-body {
+  display: flex; flex-direction: column; flex: 1; min-height: 0;
+  margin: 0; padding: 0; border: 0; background: none; overflow: hidden;
+}
+
+/* Header */
+:is(#customer-dm-portal, body) .cc-chat .cc-head {
+  flex-shrink: 0; padding: 10px 14px 12px; border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-grab {
+  display: none; width: 40px; height: 5px; margin: 0 auto 8px; border-radius: 999px; background: hsla(0, 0%, 100%, 0.22);
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-head-row { display: flex; align-items: center; gap: 10px; }
+:is(#customer-dm-portal, body) .cc-chat .cc-avatar {
+  flex-shrink: 0; width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+  background: var(--cc-surface); border: 1px solid var(--cc-line);
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-who { flex: 1; min-width: 0; }
+:is(#customer-dm-portal, body) .cc-chat .cc-name {
+  margin: 0; font-size: 17px; font-weight: 600; line-height: 1.25; color: var(--cc-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-status { margin: 2px 0 0; font-size: 12.5px; color: var(--cc-muted); }
+:is(#customer-dm-portal, body) .cc-chat .cc-status.is-online { color: hsl(142, 55%, 62%); }
+:is(#customer-dm-portal, body) .cc-chat .cc-status.is-online::before {
+  content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%;
+  background: hsl(142, 60%, 52%); vertical-align: 1px;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-status.is-typing { color: var(--cc-gold); font-style: italic; }
+
+:is(#customer-dm-portal, body) .cc-chat .cc-icon {
+  width: 20px; height: 20px; flex-shrink: 0; display: block;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-icon-btn {
+  display: inline-grid; place-items: center; flex-shrink: 0; width: 40px; height: 40px; margin: 0; padding: 0;
+  border: 1px solid var(--cc-line); border-radius: 12px; background: var(--cc-surface);
+  color: var(--cc-soft); cursor: pointer; box-shadow: none;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-icon-btn:hover { color: var(--cc-text); }
+:is(#customer-dm-portal, body) .cc-chat .cc-icon-btn:focus-visible { outline: 2px solid var(--cc-gold); outline-offset: 2px; }
+:is(#customer-dm-portal, body) .cc-chat .cc-close-down { display: none; }
+:is(#customer-dm-portal, body) .cc-chat .cc-close-x { display: block; }
+
+/* Middle: inquiry card + messages */
+:is(#customer-dm-portal, body) .cc-chat .cc-scroll {
+  flex: 1; min-height: 200px; overflow-y: auto; overscroll-behavior: contain; padding: 14px 14px 18px;
+}
+:is(#customer-dm-portal, body) .cc-chat .dm-message-list {
+  display: flex; flex-direction: column; gap: 10px; min-height: 0 !important; max-height: none !important;
+  overflow: visible; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; flex: none;
+}
+:is(#customer-dm-portal, body) .cc-chat .dm-message-row { display: flex; margin: 0; padding: 0; border: 0; background: none; }
+:is(#customer-dm-portal, body) .cc-chat .dm-message-row.dm-message-customer { justify-content: flex-end; }
+:is(#customer-dm-portal, body) .cc-chat .dm-message-bubble {
+  max-width: 82%; margin: 0; padding: 10px 13px 7px; border: 0; border-radius: 18px 18px 18px 6px;
+  background: hsla(0, 0%, 100%, 0.07); color: var(--cc-text); box-shadow: none;
+}
+:is(#customer-dm-portal, body) .cc-chat .dm-message-customer .dm-message-bubble {
+  border-radius: 18px 18px 6px 18px; background: hsla(45, 85%, 62%, 0.16);
+}
+:is(#customer-dm-portal, body) .cc-chat .dm-message-author,
+:is(#customer-dm-portal, body) .cc-chat .dm-message-source-badge { display: none; }
+:is(#customer-dm-portal, body) .cc-chat .dm-message-body {
+  font-size: 15px; line-height: 1.45; color: var(--cc-text); overflow-wrap: anywhere;
+}
+:is(#customer-dm-portal, body) .cc-chat .dm-message-body a.dm-message-link {
+  display: inline; color: var(--cc-gold); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere;
+}
+:is(#customer-dm-portal, body) .cc-chat .dm-message-meta { margin: 4px 0 0; font-size: 11px; color: var(--cc-muted); text-align: right; }
+:is(#customer-dm-portal, body) .cc-chat .cc-seen { color: var(--cc-gold); font-weight: 500; }
+:is(#customer-dm-portal, body) .cc-chat .dm-thread-empty { margin: 32px 12px; text-align: center; color: var(--cc-muted); }
+:is(#customer-dm-portal, body) .cc-chat .dm-hireme-empty-hint { margin: 8px 0; }
+
+/* The old summary / status pills / Hire Me badge: replaced by the header + card. */
+:is(#customer-dm-portal, body) .cc-chat #dm-hireme-inquiry-summary,
+:is(#customer-dm-portal, body) .cc-chat #dm-customer-status-badges,
+:is(#customer-dm-portal, body) .cc-chat #dm-hireme-thread-badge { display: none !important; }
+
+:is(#customer-dm-portal, body) .cc-chat .cc-card {
+  margin: 0 0 16px; padding: 12px 14px; border: 1px solid hsla(45, 70%, 60%, 0.22); border-radius: 14px;
+  background: hsla(45, 70%, 60%, 0.05);
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-card-head {
+  display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--cc-text);
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-card-head .cc-icon { width: 18px; height: 18px; color: var(--cc-gold); }
+:is(#customer-dm-portal, body) .cc-chat .cc-card-rows { display: grid; gap: 6px; margin: 10px 0 0; }
+:is(#customer-dm-portal, body) .cc-chat .cc-card-row { display: grid; grid-template-columns: 76px 1fr; gap: 10px; font-size: 13px; }
+:is(#customer-dm-portal, body) .cc-chat .cc-card-row dt { color: var(--cc-muted); }
+:is(#customer-dm-portal, body) .cc-chat .cc-card-row dd { margin: 0; color: var(--cc-text); overflow-wrap: anywhere; }
+
+/* Quick actions (only when CWR switched them on for this conversation) */
+:is(#customer-dm-portal, body) .cc-chat .cc-quick-row {
+  display: flex; gap: 8px; flex-shrink: 0; padding: 8px 12px 0; overflow-x: auto; scrollbar-width: none;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-quick-row::-webkit-scrollbar { display: none; }
+:is(#customer-dm-portal, body) .cc-chat .cc-quick-row[hidden] { display: none; }
+:is(#customer-dm-portal, body) .cc-chat .cc-quick {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; height: 34px; padding: 0 12px;
+  border: 1px solid hsla(45, 80%, 60%, 0.35); border-radius: 999px; background: hsla(45, 80%, 60%, 0.08);
+  color: var(--cc-gold); font-size: 13px; font-weight: 500; text-decoration: none; white-space: nowrap;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-quick .cc-icon { width: 16px; height: 16px; }
+:is(#customer-dm-portal, body) .cc-chat .cc-quick:hover { background: hsla(45, 80%, 60%, 0.16); }
+:is(#customer-dm-portal, body) .cc-chat .cc-quick:focus-visible { outline: 2px solid var(--cc-gold); outline-offset: 2px; }
+
+/* Reply bar */
+:is(#customer-dm-portal, body) .cc-chat .cc-composer {
+  display: block; flex-shrink: 0; margin: 0; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  border: 0; border-top: 1px solid hsla(0, 0%, 100%, 0.07); background: var(--cc-bg); box-shadow: none;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-composer-row { display: flex; align-items: flex-end; gap: 6px; }
+:is(#customer-dm-portal, body) .cc-chat .cc-icon-btn--soft { border-color: transparent; background: none; color: var(--cc-muted); }
+:is(#customer-dm-portal, body) .cc-chat .cc-input {
+  flex: 1; min-width: 0; height: 40px; min-height: 40px; max-height: 132px; margin: 0; padding: 9px 14px;
+  border: 1px solid var(--cc-line); border-radius: 20px; background: var(--cc-surface); color: var(--cc-text);
+  font: inherit; font-size: 16px; line-height: 1.35; resize: none; overflow-y: hidden; box-shadow: none;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-input.is-scrolling { overflow-y: auto; }
+:is(#customer-dm-portal, body) .cc-chat .cc-input::placeholder { color: var(--cc-muted); }
+:is(#customer-dm-portal, body) .cc-chat .cc-input:focus { outline: none; border-color: hsla(45, 80%, 60%, 0.6); }
+:is(#customer-dm-portal, body) .cc-chat .cc-send {
+  border-radius: 50%; border-color: transparent; background: var(--cc-gold); color: var(--smoky-black, hsl(0, 0%, 7%));
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-send:hover { color: var(--smoky-black, hsl(0, 0%, 7%)); filter: brightness(1.06); }
+:is(#customer-dm-portal, body) .cc-chat .cc-attach { margin: 0 0 8px; }
+:is(#customer-dm-portal, body) .cc-chat .cc-attach[hidden] { display: none; }
+:is(#customer-dm-portal, body) .cc-chat .cc-attach-input {
+  width: 100%; height: 40px; margin: 0; padding: 0 12px; border: 1px solid var(--cc-line); border-radius: 12px;
+  background: var(--cc-surface); color: var(--cc-text); font: inherit; font-size: 16px;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-send-error { margin: 0 4px 6px; font-size: 12.5px; color: hsl(0, 75%, 68%); }
+:is(#customer-dm-portal, body) .cc-chat .cc-send-error[hidden] { display: none; }
+
+/* Ended (CWR deleted the conversation) */
+:is(#customer-dm-portal, body) .cc-chat .cc-ended-host[hidden] { display: none; }
+:is(#customer-dm-portal, body) .cc-chat.is-ended .cc-scroll,
+:is(#customer-dm-portal, body) .cc-chat.is-ended .cc-composer,
+:is(#customer-dm-portal, body) .cc-chat.is-ended .cc-quick-row { display: none; }
+:is(#customer-dm-portal, body) .cc-chat .cc-ended-host { flex: 1; display: grid; place-items: center; padding: 28px 20px; }
+:is(#customer-dm-portal, body) .cc-chat .cc-ended { max-width: 320px; text-align: center; }
+:is(#customer-dm-portal, body) .cc-chat .cc-ended-icon {
+  display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 16px;
+  background: hsla(45, 80%, 60%, 0.12); color: var(--cc-gold);
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-ended-icon .cc-icon { width: 26px; height: 26px; }
+:is(#customer-dm-portal, body) .cc-chat .cc-ended-title { margin: 14px 0 6px; font-size: 17px; font-weight: 600; color: var(--cc-text); }
+:is(#customer-dm-portal, body) .cc-chat .cc-ended-text { margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: var(--cc-muted); }
+:is(#customer-dm-portal, body) .cc-chat .cc-btn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
+  border: 0; border-radius: 12px; background: var(--cc-gold); color: var(--smoky-black, hsl(0, 0%, 7%));
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+:is(#customer-dm-portal, body) .cc-chat .cc-btn:focus-visible { outline: 2px solid var(--cc-gold); outline-offset: 3px; }
+
+/* ── Website ── */
+/* Contact page shows the thread inline (no close / handle there). */
+#customer-dm-portal.dm-portal--active:not(.dm-portal--hireme-overlay) .cc-chat .cc-close,
+#customer-dm-portal.dm-portal--active:not(.dm-portal--hireme-overlay) .cc-chat .cc-grab { display: none; }
+#customer-dm-portal .cc-chat .dm-customer-thread { padding: 0; }
+
+/* Pop-up sheet: full screen with a handle on phones, a chat-sized dialog on desktop. */
+@media (max-width: 639px) {
+  #customer-dm-portal.dm-portal--hireme-overlay .dm-customer-sheet.cc-chat {
+    top: 0 !important; height: 100% !important; height: 100dvh !important; max-height: none !important;
+    border: 0 !important; border-radius: 0 !important; padding-top: env(safe-area-inset-top, 0px);
+  }
+  #customer-dm-portal.dm-portal--hireme-overlay .cc-chat .cc-grab { display: block; }
+  #customer-dm-portal.dm-portal--hireme-overlay .cc-chat .cc-close-down { display: block; }
+  #customer-dm-portal.dm-portal--hireme-overlay .cc-chat .cc-close-x { display: none; }
+}
+@media (min-width: 900px) {
+  #customer-dm-portal.dm-portal--hireme-overlay .dm-customer-sheet.cc-chat {
+    width: min(560px, calc(100vw - 56px)) !important;
+    height: min(760px, calc(100dvh - 56px)) !important;
+    min-height: 0 !important;
+  }
+}
+
+/* ── Client portal ── (same id weight as the shared rules above) */
+:is(#customer-dm-portal, body) .portal-dm-sheet.cc-chat.is-conversation .portal-dm-sheet-head,
+:is(#customer-dm-portal, body) .portal-dm-sheet.cc-chat.is-conversation .portal-dm-sheet-grabber { display: none; }
+:is(#customer-dm-portal, body) .portal-dm-sheet.cc-chat.is-conversation .portal-dm-sheet-body { padding: 0; overflow: hidden; }
+@media (max-width: 899px) {
+  :is(#customer-dm-portal, body) .portal-dm-sheet.cc-chat.is-conversation {
+    top: 0; height: 100%; height: 100dvh; max-height: none; border: 0; border-radius: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  :is(#customer-dm-portal, body) .portal-dm-sheet.cc-chat.is-conversation .cc-grab { display: block; }
+  :is(#customer-dm-portal, body) .portal-dm-sheet.cc-chat.is-conversation .cc-close-down { display: block; }
+  :is(#customer-dm-portal, body) .portal-dm-sheet.cc-chat.is-conversation .cc-close-x { display: none; }
+}
+@media (min-width: 900px) {
+  :is(#customer-dm-portal, body) .portal-dm-sheet.cc-chat.is-conversation { height: min(720px, 85vh); }
+}
+
+/* Light theme (website) */
+[data-theme="light"] :is(#customer-dm-portal, body) .cc-chat {
+  --cc-bg: hsl(0, 0%, 100%); --cc-surface: hsl(240, 10%, 97%); --cc-line: hsla(0, 0%, 0%, 0.12);
+  --cc-text: hsl(240, 6%, 14%); --cc-muted: hsl(240, 4%, 42%); --cc-soft: hsl(240, 5%, 30%);
+}
+[data-theme="light"] :is(#customer-dm-portal, body) .cc-chat .cc-head,
+[data-theme="light"] :is(#customer-dm-portal, body) .cc-chat .cc-composer { border-color: hsla(0, 0%, 0%, 0.08); }
+[data-theme="light"] :is(#customer-dm-portal, body) .cc-chat .dm-message-bubble { background: hsl(240, 10%, 95%); }
+[data-theme="light"] :is(#customer-dm-portal, body) .cc-chat .dm-message-customer .dm-message-bubble { background: hsl(45, 90%, 88%); }
+[data-theme="light"] :is(#customer-dm-portal, body) .cc-chat .cc-grab { background: hsla(0, 0%, 0%, 0.18); }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(#customer-dm-portal, body) .cc-chat { transition: none !important; }
+}
+
+/* Older #dm-customer-message-list rules carry two ids; clear their box here. */
+#customer-dm-portal .cc-chat #dm-customer-message-list.dm-message-list,
+#customer-dm-portal.dm-portal--hireme-overlay .cc-chat #dm-customer-message-list.dm-message-list,
+.cc-chat #portal-dm-message-list.dm-message-list {
+  flex: none; min-height: 0 !important; max-height: none !important; overflow: visible;
+  margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;
+}
+:is(#customer-dm-portal, body) .cc-chat .dm-message-meta { white-space: nowrap; }
+
+/* The website's reply form carries older two-id rules too. */
+#customer-dm-portal #dm-customer-composer.cc-composer {
+  display: block; gap: 0; margin: 0; padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid hsla(0, 0%, 100%, 0.07);
+}
+#customer-dm-portal .cc-chat.is-ended #dm-customer-composer.cc-composer { display: none; }
+#customer-dm-portal .cc-chat .dm-message-meta { margin: 4px 0 0; font-size: 11px; color: var(--cc-muted); }
+#customer-dm-portal .cc-chat .cc-seen { display: inline; }

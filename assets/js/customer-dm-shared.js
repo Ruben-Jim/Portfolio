@@ -190,6 +190,167 @@
     } catch (e) {}
   }
 
+  // ── Customer chat (website message sheet + client portal) ──────────────
+  // One look for both: header with CodeWithRuben + your status, inquiry card,
+  // optional quick actions, bubbles, one-row reply bar. Inline SVG icons so the
+  // portal (no icon library) can use them. Styles: assets/css/customer-chat.css.
+
+  var CC_ICONS = {
+    down: '<path d="M6 9l6 6 6-6"/>',
+    close: '<path d="M6 6l12 12M18 6L6 18"/>',
+    send: '<path d="M12 19V5M5 12l7-7 7 7"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/>',
+    calendar: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+    tag: '<path d="M20 12l-8 8-8.5-8.5V4h7.5z"/><circle cx="8" cy="8" r="1.4"/>',
+    rocket: '<path d="M5 15c-1.5 1.5-2 4.5-2 4.5s3-.5 4.5-2M9 15l-3-3c1-4 5-8 12-9-1 7-5 11-9 12z"/><circle cx="14.5" cy="9.5" r="1.6"/>',
+    card: '<rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/>',
+    chat: '<path d="M4 5h16v11H9l-5 4z"/>'
+  };
+
+  function ccIcon(name) {
+    return '<svg class="cc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      (CC_ICONS[name] || '') + '</svg>';
+  }
+
+  /** Header: close (⌄ on phones, × on desktop), logo + name, your status line. */
+  function renderChatHeaderHtml(opts) {
+    opts = opts || {};
+    return (
+      '<header class="cc-head" data-cc-head>' +
+      '<span class="cc-grab" aria-hidden="true"></span>' +
+      '<div class="cc-head-row">' +
+      '<button type="button" class="cc-icon-btn cc-close' + (opts.closeClass ? ' ' + opts.closeClass : '') + '"' +
+      (opts.closeId ? ' id="' + opts.closeId + '"' : '') + ' aria-label="Close conversation">' +
+      '<span class="cc-close-down">' + ccIcon('down') + '</span><span class="cc-close-x">' + ccIcon('close') + '</span></button>' +
+      '<img class="cc-avatar" src="/assets/images/logo/logo.svg" alt="" width="40" height="40">' +
+      '<div class="cc-who">' +
+      '<h3 class="cc-name"' + (opts.titleId ? ' id="' + opts.titleId + '"' : '') + '>CodeWithRuben</h3>' +
+      '<p class="cc-status" data-cc-presence>Usually replies within a day</p>' +
+      '</div></div></header>'
+    );
+  }
+
+  /** Your status for the customer: typing beats online beats the usual reply time. */
+  function renderAdminPresence(rootEl, presence) {
+    var el = rootEl && rootEl.querySelector('[data-cc-presence]');
+    if (!el) return;
+    var p = presence || {};
+    el.classList.toggle('is-online', !!p.isOnline && !p.isTyping);
+    el.classList.toggle('is-typing', !!p.isTyping);
+    el.textContent = p.isTyping ? 'Ruben is typing…' : p.isOnline ? 'Online now' : 'Usually replies within a day';
+  }
+
+  /** What they sent in the Hire Me form, shown back to them at the top of the chat. */
+  function renderInquiryCardHtml(meta) {
+    meta = meta || {};
+    var src = String(meta.originSource || meta.source || '').toLowerCase();
+    var given = function (v) {
+      var s = String(v == null ? '' : v).trim();
+      return s && !/^not specified$/i.test(s) ? s : '';
+    };
+    var rows = [];
+    var pkgId = given(meta.packageId);
+    if (pkgId) {
+      var pkg = window.PackagePricing && window.PackagePricing.packageById ? window.PackagePricing.packageById(pkgId) : null;
+      rows.push(['Package', (pkg && pkg.name) || pkgId]);
+    }
+    if (given(meta.projectType)) rows.push(['Project', given(meta.projectType)]);
+    if (given(meta.budget)) rows.push(['Budget', given(meta.budget)]);
+    if (src !== 'hire-me' || !rows.length) return '';
+    return (
+      '<section class="cc-card" aria-label="Your inquiry">' +
+      '<div class="cc-card-head">' + ccIcon('rocket') + '<span>Your inquiry</span></div>' +
+      '<dl class="cc-card-rows">' +
+      rows.map(function (r) {
+        return '<div class="cc-card-row"><dt>' + escapeDmHtml(r[0]) + '</dt><dd>' + escapeDmHtml(r[1]) + '</dd></div>';
+      }).join('') +
+      '</dl></section>'
+    );
+  }
+
+  function safeHttpUrl(raw) {
+    var href = normalizeDmAttachmentUrl(raw);
+    return href && /^https:/i.test(href) ? href : '';
+  }
+
+  /** Buttons above the reply bar, only when the admin switched them on (meta.quickActions). */
+  function renderQuickActionsHtml(meta) {
+    meta = meta || {};
+    if (meta.quickActions !== true) return '';
+    var items = [
+      { href: '/schedule', icon: 'calendar', label: 'Book a call' },
+      { href: '/services-pricing', icon: 'tag', label: 'See pricing' },
+      { href: '/hire-me', icon: 'rocket', label: 'Start a project' }
+    ];
+    var deposit = safeHttpUrl(meta.depositUrl);
+    if (deposit) items.push({ href: deposit, icon: 'card', label: 'Pay deposit', external: true });
+    return items.map(function (a) {
+      var ext = a.external || /^https?:/i.test(a.href);
+      return '<a class="cc-quick" href="' + escapeDmHtml(a.href) + '"' +
+        (ext ? ' target="_blank" rel="noopener noreferrer"' : '') + '>' + ccIcon(a.icon) + '<span>' + a.label + '</span></a>';
+    }).join('');
+  }
+
+  /** Shown instead of the thread once the conversation is gone (deleted by CWR). */
+  function renderEndedHtml() {
+    return (
+      '<div class="cc-ended" role="status">' +
+      '<span class="cc-ended-icon">' + ccIcon('chat') + '</span>' +
+      '<p class="cc-ended-title">This conversation has ended.</p>' +
+      '<p class="cc-ended-text">Need anything else? Start a new one and it comes straight to Ruben.</p>' +
+      '<button type="button" class="cc-btn" data-cc-start-new>Start a new conversation</button>' +
+      '</div>'
+    );
+  }
+
+  /** Reply box grows with the text, up to about five lines. */
+  function autosizeComposer(textarea) {
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    var full = textarea.scrollHeight;
+    textarea.style.height = Math.min(full, 132) + 'px';
+    textarea.classList.toggle('is-scrolling', full > 132);
+  }
+
+  /** Phones: drag the header down to close the full-screen sheet. */
+  function bindSwipeToClose(headEl, panelEl, onClose) {
+    if (!headEl || !panelEl || headEl.dataset.ccSwipe) return;
+    headEl.dataset.ccSwipe = '1';
+    var startY = 0;
+    var dy = 0;
+    var dragging = false;
+    headEl.addEventListener('touchstart', function (e) {
+      if (!window.matchMedia('(max-width: 767px)').matches) return;
+      if (e.target.closest('button, a, input, textarea')) return;
+      dragging = true;
+      startY = e.touches[0].clientY;
+      dy = 0;
+    }, { passive: true });
+    headEl.addEventListener('touchmove', function (e) {
+      if (!dragging) return;
+      dy = Math.max(0, e.touches[0].clientY - startY);
+      panelEl.style.transition = 'none';
+      panelEl.style.transform = 'translateY(' + dy + 'px)';
+    }, { passive: true });
+    headEl.addEventListener('touchend', function () {
+      if (!dragging) return;
+      dragging = false;
+      panelEl.style.transition = '';
+      panelEl.style.transform = '';
+      if (dy > 110 && typeof onClose === 'function') onClose();
+    });
+  }
+
+  function isConversationEndedError(err) {
+    return !!(err && err.code === 'CONVERSATION_ENDED');
+  }
+
+  function conversationEndedError() {
+    var e = new Error('This conversation has ended.');
+    e.code = 'CONVERSATION_ENDED';
+    return e;
+  }
+
   function renderMessagesHtml(messages, options) {
     options = options || {};
     if (!messages.length) {
@@ -201,14 +362,17 @@
         '</p></div>'
       );
     }
+    // "Seen" sits under the customer's latest message once CWR has read it.
+    var lastMineIdx = -1;
+    messages.forEach(function (m, i) { if (m.senderRole === 'customer') lastMineIdx = i; });
     return messages
-      .map(function (msg) {
+      .map(function (msg, idx) {
         var mine = msg.senderRole === 'customer';
         var fromContact = isContactFormMessage(msg);
         var fromHireMe = isHireMeFormMessage(msg);
         var readBit =
-          options.showReadState && !mine
-            ? ' · Read: ' + (msg.readByCustomer ? 'yes' : 'no')
+          options.showReadState && mine && idx === lastMineIdx && msg.readByAdmin
+            ? ' · <span class="cc-seen">Seen</span>'
             : '';
         return (
           '<div class="dm-message-row ' +
@@ -380,6 +544,11 @@
     }
     if (!session.customerEmail) throw new Error('Open your conversation with your email first.');
     var data = await callDmSession({ email: session.customerEmail, name: session.customerName || '', lookupOnly: true });
+    // No conversation for this email any more (or a different, newer one): the one
+    // this browser remembers was deleted.
+    if (!data.conversation || (data.conversation.id && data.conversation.id !== session.conversationId)) {
+      throw conversationEndedError();
+    }
     await signInWithSessionToken(data.token);
   }
 
@@ -486,12 +655,23 @@
 
     var unsubMessages = null;
     var unsubMeta = null;
+    var unsubAdminPresence = null;
     var stopped = false;
+    var ended = false;
+    var presenceAnnounced = false;
     var threadRef = rtdbThreadRef(conversationId);
     var q = window.rtdbQuery(threadRef, window.rtdbOrderByChild('createdAt'), window.rtdbLimitToFirst(200));
 
+    function endConversation() {
+      if (ended) return;
+      ended = true;
+      stopAll();
+      if (typeof callbacks.onEnded === 'function') callbacks.onEnded();
+    }
+
     // Listeners only work once this browser holds the conversation's session.
     ensureCustomerAuth(session).then(start, function (err) {
+      if (isConversationEndedError(err)) { endConversation(); return; }
       console.warn('Customer DM: could not open session', err);
       if (typeof callbacks.onError === 'function') callbacks.onError(err);
     });
@@ -538,32 +718,48 @@
     });
 
     unsubMeta = window.rtdbOnValue(rtdbMetaRef(conversationId), function (snap) {
+      // Meta gone = CWR deleted the conversation.
+      if (!snap.exists()) { endConversation(); return; }
       if (typeof callbacks.onMeta === 'function') {
         callbacks.onMeta(snap.val() || {});
       }
+      // Say "online" only for a conversation that exists, so a deleted one never
+      // gets a stray presence entry written back.
+      if (!presenceAnnounced && window.rtdbSet) {
+        presenceAnnounced = true;
+        window
+          .rtdbSet(rtdbPresenceRef(conversationId, 'customer'), {
+            senderRole: 'customer',
+            isOnline: true,
+            isTyping: false,
+            updatedAt: window.rtdbServerTimestamp()
+          })
+          .catch(function () {});
+      }
+    }, function () {
+      // Read refused: this browser's access to the conversation is gone.
+      endConversation();
     });
 
-    if (window.rtdbSet) {
-      window
-        .rtdbSet(rtdbPresenceRef(conversationId, 'customer'), {
-          senderRole: 'customer',
-          isOnline: true,
-          isTyping: false,
-          updatedAt: window.rtdbServerTimestamp()
-        })
-        .catch(function () {});
+    // Ruben's online / typing status for the header.
+    if (typeof callbacks.onAdminPresence === 'function') {
+      unsubAdminPresence = window.rtdbOnValue(rtdbPresenceRef(conversationId, 'admin'), function (snap) {
+        callbacks.onAdminPresence(snap.val() || {});
+      }, function () {});
     }
     }
 
-    return {
-      stop: function () {
-        stopped = true;
-        if (unsubMessages && typeof unsubMessages === 'function') unsubMessages();
-        if (unsubMeta && typeof unsubMeta === 'function') unsubMeta();
-        unsubMessages = null;
-        unsubMeta = null;
-      }
-    };
+    function stopAll() {
+      stopped = true;
+      if (unsubMessages && typeof unsubMessages === 'function') unsubMessages();
+      if (unsubMeta && typeof unsubMeta === 'function') unsubMeta();
+      if (unsubAdminPresence && typeof unsubAdminPresence === 'function') unsubAdminPresence();
+      unsubMessages = null;
+      unsubMeta = null;
+      unsubAdminPresence = null;
+    }
+
+    return { stop: stopAll };
   }
 
   async function sendCustomerMessage(conversationId, session, text, attachmentUrl) {
@@ -572,6 +768,12 @@
     if (!body && !cleanAttachmentUrl) return;
     var displayName = (session && session.customerName) || 'Customer';
     await ensureCustomerAuth(Object.assign({}, session || {}, { conversationId: conversationId }));
+    // A message into a deleted conversation would be saved with no meta, where CWR
+    // never sees it. Check first.
+    if (window.rtdbGet) {
+      var metaSnap = await window.rtdbGet(rtdbMetaRef(conversationId)).catch(function () { return null; });
+      if (!metaSnap || !metaSnap.exists()) throw conversationEndedError();
+    }
     var msgRef = window.rtdbPush(rtdbThreadRef(conversationId));
     await window.rtdbSet(msgRef, {
       senderRole: 'customer',
@@ -638,6 +840,16 @@
     buildHireMeInquiryFromConversation: buildHireMeInquiryFromConversation,
     subscribeCustomerThread: subscribeCustomerThread,
     sendCustomerMessage: sendCustomerMessage,
-    setCustomerTyping: setCustomerTyping
+    setCustomerTyping: setCustomerTyping,
+    // Customer chat UI (website sheet + client portal)
+    ccIcon: ccIcon,
+    renderChatHeaderHtml: renderChatHeaderHtml,
+    renderAdminPresence: renderAdminPresence,
+    renderInquiryCardHtml: renderInquiryCardHtml,
+    renderQuickActionsHtml: renderQuickActionsHtml,
+    renderEndedHtml: renderEndedHtml,
+    autosizeComposer: autosizeComposer,
+    bindSwipeToClose: bindSwipeToClose,
+    isConversationEndedError: isConversationEndedError
   };
 })();

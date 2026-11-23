@@ -34132,3 +34132,5 @@ body.cwr-overlay-open [data-float] {
 #admin-contact-detail .dmx-input { overflow-y: hidden; }
 #admin-contact-detail .dmx-input.is-scrolling { overflow-y: auto; }
 .dm-message-body a.dm-message-link { display: inline; }
+.dmx-tag--quick { gap: 4px; color: var(--orange-yellow-crayola); background: hsla(45, 80%, 60%, 0.1); }
+.dmx-tag--quick ion-icon { font-size: 12px; }

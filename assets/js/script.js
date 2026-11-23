@@ -9211,6 +9211,7 @@ function updateUrlForPage(pageName, replace, queryParams) {
   if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
     return;
   }
+  if (pageName === 'messages') pageName = 'contact'; // retired page (see switchToPage)
   var url = pageName === 'home' ? '/' : '/' + pageName;
   if (queryParams && typeof queryParams === 'object') {
     var params = new URLSearchParams();
@@ -10132,6 +10133,26 @@ function switchToPage(pageName, skipSave, pageOptions) {
     skipSave = false;
   }
   pageOptions = pageOptions || {};
+  // The Messages page is retired: the chat lives in the pop-up now. /messages (typed,
+  // old links, a restored last page) goes to Contact and opens the pop-up when this
+  // browser has a conversation. The hidden messages article stays only as the
+  // pop-up's home in the DOM (openHireMeInquiryOverlay moves it out and back).
+  if (pageName === 'messages') {
+    pageName = 'contact';
+    try {
+      if (/^\/messages\/?$/i.test(window.location.pathname)) {
+        window.history.replaceState({ page: 'contact', query: null }, '', '/contact' + window.location.search + window.location.hash);
+      }
+    } catch (e) {}
+    setTimeout(function () {
+      var saved = window.CustomerDmShared && window.CustomerDmShared.readCustomerSession
+        ? window.CustomerDmShared.readCustomerSession()
+        : null;
+      if (saved && saved.conversationId && typeof window.openCustomerConversationOverlay === 'function') {
+        window.openCustomerConversationOverlay();
+      }
+    }, 400);
+  }
   if (window.CWR_SEO && typeof window.CWR_SEO.apply === 'function') {
     window.CWR_SEO.apply(pageName);
   }
@@ -26532,7 +26553,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var tagsEl = document.getElementById('dmx-tags');
     if (tagsEl) {
       var tags = dmxTags();
-      tagsEl.innerHTML = tags.slice(0, 3).map(function (t) {
+      var conv = DM.activeConversationData;
+      var quickTag = conv && conv.quickActions === true
+        ? '<span class="dmx-tag dmx-tag--quick"><ion-icon name="flash-outline" aria-hidden="true"></ion-icon>Quick actions</span>'
+        : '';
+      tagsEl.innerHTML = quickTag + tags.slice(0, 3).map(function (t) {
         return '<span class="dmx-tag">#' + escapeDmHtml(t) + '</span>';
       }).join('') + (tags.length > 3 ? '<span class="dmx-tag">+' + (tags.length - 3) + '</span>' : '');
     }
@@ -26550,6 +26575,21 @@ document.addEventListener('DOMContentLoaded', function () {
     return saveConversationMeta().catch(function (error) {
       window.CwrUI.toast('Could not save: ' + error.message, { tone: 'error' });
     });
+  }
+
+  /** Writes a few meta fields on the open conversation (quick actions, deposit link). */
+  function dmxUpdateMeta(fields, doneMessage) {
+    var conv = DM.activeConversationData;
+    if (!conv || !DM.activeConversationId) return;
+    window.rtdbUpdate(rtdbMetaRef(DM.activeConversationId), Object.assign({}, fields, { updatedAt: window.rtdbServerTimestamp() }))
+      .then(function () {
+        Object.keys(fields).forEach(function (k) { conv[k] = fields[k]; });
+        syncDmxChips();
+        if (doneMessage) window.CwrUI.toast(doneMessage, { tone: 'success' });
+      })
+      .catch(function (err) {
+        window.CwrUI.toast('Could not save: ' + (err && err.message ? err.message : 'error'), { tone: 'error' });
+      });
   }
 
   var dmxMenuState = null;
@@ -26646,9 +26686,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (typeof window.openPipelineLeadById === 'function') window.openPipelineLeadById(conv.leadId);
           } }
         : { label: 'Convert to lead', icon: 'person-add-outline', onSelect: function () {
-            // Reuses the card button's flow (it disables itself while converting).
-            var cardBtn = document.querySelector('#dm-admin-lead-meta [data-dm-convert-lead]');
-            if (cardBtn) { cardBtn.click(); return; }
+            // Same flow the old card button used; on success it opens the new lead.
+            window.CwrUI.toast('Converting to a lead…', { tone: 'info' });
             var tmp = document.createElement('button');
             tmp.setAttribute('data-dm-convert-lead', conv.id);
             tmp.innerHTML = '<span></span>';
@@ -26660,6 +26699,27 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = 'mailto:' + encodeURIComponent(conv.customerEmail);
       } });
     }
+    // Quick actions: buttons above the customer's reply bar (Book a call, See pricing,
+    // Start a project, and Pay deposit once a link is set). Off until switched on here.
+    var quickOn = conv.quickActions === true;
+    items.push({ label: quickOn ? 'Hide quick actions' : 'Show quick actions', icon: 'flash-outline', onSelect: function () {
+      dmxUpdateMeta({ quickActions: !quickOn }, quickOn ? 'Quick actions hidden.' : 'Quick actions on: ' + first + ' sees them now.');
+    } });
+    items.push({ label: conv.depositUrl ? 'Change deposit link' : 'Add deposit link', icon: 'card-outline', onSelect: async function () {
+      var value = await window.CwrUI.prompt({
+        title: 'Deposit link',
+        message: 'Paste a payment link (for example a Stripe link). It shows as "Pay deposit" when quick actions are on. Leave empty to remove it.',
+        value: conv.depositUrl || '',
+        placeholder: 'https://buy.stripe.com/…'
+      });
+      if (value == null) return;
+      var url = String(value).trim();
+      if (url && !/^https:\/\/[^\s]+\.[^\s]+$/i.test(url)) {
+        window.CwrUI.toast('Use a full https:// link.', { tone: 'error' });
+        return;
+      }
+      dmxUpdateMeta({ depositUrl: url || null }, url ? 'Deposit link saved.' : 'Deposit link removed.');
+    } });
     items.push({ label: 'Edit tags', icon: 'pricetags-outline', onSelect: async function () {
       var value = await window.CwrUI.prompt({
         title: 'Tags',
@@ -27052,9 +27112,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var timeline = given(conv.timeline);
     if (timeline) rows.push(['Timeline', timeline]);
 
-    var action = renderAdminDmLeadActionHtml(conv);
+    // Convert to lead / Open lead live in the header's ⋯ menu. A card with nothing
+    // beyond the form name would repeat the header ("Contact form"), so skip it.
+    if (!rows.length) return '';
+    var action = '';
     var title = src === 'hire-me' ? 'Hire Me inquiry' : src === 'contact' ? 'Contact form' : '';
-    if (!title && !rows.length && !action) return '';
     var icon = src === 'hire-me' ? 'rocket-outline' : 'mail-open-outline';
     var when = conv.createdAt ? formatDMDate(conv.createdAt) : '';
     return [
@@ -27820,6 +27882,8 @@ document.addEventListener('DOMContentLoaded', function () {
     injectContactFormExistingDmLink();
     const portalHost = document.querySelector('article[data-page="messages"]');
     if (!portalHost || document.getElementById('customer-dm-portal')) return;
+    const ccShared = window.CustomerDmShared;
+    if (!ccShared || !ccShared.renderChatHeaderHtml) return;
 
     const section = document.createElement('section');
     section.className = 'contact-form dm-portal-pending';
@@ -27828,33 +27892,33 @@ document.addEventListener('DOMContentLoaded', function () {
       (!window.rtdb ? '<p class="dm-help-text dm-rtdb-unavailable" role="alert">Realtime Database is not connected. Add <code>databaseURL</code> in Firebase config, deploy <code>database.rules.json</code> (<code>firebase deploy --only database</code>), then reload.</p>' : ''),
       '<div id="dm-customer-sheet-root" class="dm-customer-sheet-root" aria-hidden="true">',
       '<div class="dm-customer-sheet-backdrop" id="dm-customer-sheet-backdrop"></div>',
-      '<div class="dm-customer-sheet" role="dialog" aria-modal="true" aria-labelledby="dm-customer-sheet-title">',
-      '<div class="dm-customer-sheet-grabber" id="dm-customer-sheet-grabber" role="separator" aria-orientation="horizontal" aria-label="Drag up or down to resize" tabindex="0"></div>',
-      '<div class="dm-customer-sheet-head">',
-      '<div class="dm-customer-sheet-head-title-row">',
-      '<h3 id="dm-customer-sheet-title" class="dm-customer-sheet-title">Your conversation</h3>',
+      // Chat-app layout shared with the client portal (customer-dm-shared.js +
+      // customer-chat.css): header, inquiry card, bubbles, quick actions, reply bar.
+      '<div class="dm-customer-sheet cc-chat" role="dialog" aria-modal="true" aria-labelledby="dm-customer-sheet-title">',
+      ccShared.renderChatHeaderHtml({ closeId: 'dm-customer-sheet-close', closeClass: 'dm-customer-sheet-close', titleId: 'dm-customer-sheet-title' }),
+      // Kept for older flows that still fill them; hidden by customer-chat.css.
       '<span id="dm-hireme-thread-badge" class="dm-hireme-thread-badge" hidden></span>',
-      '</div>',
-      '<button type="button" class="dm-customer-sheet-close" id="dm-customer-sheet-close" aria-label="Close conversation">',
-      '<ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>',
-      '</button>',
-      '</div>',
-      '<div id="dm-customer-status-badges" class="dm-customer-status-badges" role="status" aria-live="polite"></div>',
-      '<section id="dm-customer-thread" class="dm-customer-thread">',
+      '<div id="dm-customer-status-badges" class="dm-customer-status-badges" hidden></div>',
+      '<section id="dm-customer-thread" class="dm-customer-thread cc-body">',
+      '<div class="cc-scroll" id="dm-customer-scroll" data-lenis-prevent>',
       '<div id="dm-hireme-inquiry-summary" class="dm-hireme-inquiry-summary" hidden></div>',
-      '<div id="dm-customer-message-list" class="dm-message-list has-scrollbar"></div>',
-      '<form id="dm-customer-composer" class="dm-composer">',
-      '<button type="button" id="dm-customer-attachment-toggle" class="dm-customer-attachment-toggle" aria-expanded="false" aria-controls="dm-customer-attachment-wrap" aria-label="Attach link">',
-      '<ion-icon name="link-outline" aria-hidden="true"></ion-icon>',
+      '<div id="dm-customer-inquiry-card"></div>',
+      '<div id="dm-customer-message-list" class="dm-message-list"></div>',
+      '</div>',
+      '<div id="dm-customer-ended" class="cc-ended-host" hidden></div>',
+      '<div id="dm-customer-quick" class="cc-quick-row" hidden></div>',
+      '<form id="dm-customer-composer" class="dm-composer cc-composer">',
+      '<div id="dm-customer-attachment-wrap" class="cc-attach" hidden>',
+      '<input type="url" id="dm-customer-attachment-url" class="cc-attach-input" placeholder="Link to share: https://…" aria-label="Link to share (optional)">',
+      '</div>',
+      '<div class="cc-composer-row">',
+      '<button type="button" id="dm-customer-attachment-toggle" class="cc-icon-btn cc-icon-btn--soft" aria-expanded="false" aria-controls="dm-customer-attachment-wrap" aria-label="Share a link">',
+      ccShared.ccIcon('link'),
       '</button>',
-      '<div class="dm-composer-input-wrap">',
-      '<textarea id="dm-customer-message" class="form-textarea dm-composer-textarea" rows="2" spellcheck="true" placeholder="Message" aria-label="Your message" required></textarea>',
+      '<textarea id="dm-customer-message" class="cc-input" rows="1" spellcheck="true" placeholder="Message…" aria-label="Your message" required></textarea>',
+      '<button class="cc-icon-btn cc-send" type="submit" aria-label="Send message">' + ccShared.ccIcon('send') + '</button>',
       '</div>',
-      '<button class="form-btn dm-composer-send" type="submit" aria-label="Send message"><ion-icon name="send-outline" aria-hidden="true"></ion-icon></button>',
       '</form>',
-      '<div id="dm-customer-attachment-wrap" class="dm-customer-attachment-wrap" hidden>',
-      '<input type="url" id="dm-customer-attachment-url" class="form-input dm-customer-attachment-input" placeholder="https:// link (optional)" aria-label="Attachment link">',
-      '</div>',
       '</section>',
       '</div>',
       '</div>',
@@ -27927,19 +27991,79 @@ document.addEventListener('DOMContentLoaded', function () {
       list.innerHTML =
         '<p class="dm-hireme-empty-hint">Your inquiry is in — send a follow-up here anytime.</p>';
     }
+    // The whole middle scrolls (inquiry card + messages); start at the newest.
+    const scroller = document.getElementById('dm-customer-scroll');
+    if (scroller) scroller.scrollTop = scroller.scrollHeight;
+  }
+
+  /** Inquiry card + quick actions (only when CWR switched them on) from the conversation meta. */
+  function renderCustomerChatExtras(meta) {
+    const shared = window.CustomerDmShared;
+    if (!shared || !shared.renderInquiryCardHtml) return;
+    const card = document.getElementById('dm-customer-inquiry-card');
+    if (card) card.innerHTML = shared.renderInquiryCardHtml(meta);
+    const quick = document.getElementById('dm-customer-quick');
+    if (quick) {
+      const html = shared.renderQuickActionsHtml(meta);
+      quick.innerHTML = html;
+      quick.hidden = !html;
+    }
+  }
+
+  /** Back to a live thread (a new conversation started after an ended one). */
+  function resetCustomerChatEnded() {
+    const ended = document.getElementById('dm-customer-ended');
+    const sheet = document.querySelector('#dm-customer-sheet-root .cc-chat');
+    if (ended) { ended.hidden = true; ended.innerHTML = ''; }
+    if (sheet) sheet.classList.remove('is-ended');
+  }
+
+  /**
+   * CWR deleted this conversation: show "ended" with a way to start fresh, and make
+   * the browser forget it (session, contact gate, saved inquiry) so the website stops
+   * offering "Open your conversation".
+   */
+  function showCustomerConversationEnded() {
+    const shared = window.CustomerDmShared;
+    stopCustomerDmMessageSubscription();
+    if (shared && shared.clearCustomerSession) shared.clearCustomerSession();
+    try {
+      localStorage.removeItem(DM_CONTACT_GATE_KEY);
+      localStorage.removeItem(HIREME_INQUIRY_KEY);
+    } catch (e) {}
+    DM.customerSession = null;
+    const ended = document.getElementById('dm-customer-ended');
+    const sheet = document.querySelector('#dm-customer-sheet-root .cc-chat');
+    if (ended && shared && shared.renderEndedHtml) {
+      ended.innerHTML = shared.renderEndedHtml();
+      ended.hidden = false;
+    }
+    if (sheet) sheet.classList.add('is-ended');
+    if (shared && shared.renderAdminPresence) shared.renderAdminPresence(sheet, {});
+    renderCustomerChatExtras({});
+    syncContactFormExistingDmLink();
+    if (typeof window.syncContactConversationRecall === 'function') window.syncContactConversationRecall();
+    if (typeof window.syncHireMeReturnBanner === 'function') window.syncHireMeReturnBanner();
   }
 
   async function startCustomerThread(session) {
     if (!session || !session.conversationId) return;
     stopCustomerDmMessageSubscription();
     if (!window.CustomerDmShared || !window.CustomerDmShared.subscribeCustomerThread) return;
+    resetCustomerChatEnded();
     const sub = window.CustomerDmShared.subscribeCustomerThread(session, {
       onMessages: function (messages) {
         renderCustomerThread(messages);
       },
       onMeta: function (meta) {
         renderCustomerStatusBadges(meta);
-      }
+        renderCustomerChatExtras(meta);
+      },
+      onAdminPresence: function (presence) {
+        const sheet = document.querySelector('#dm-customer-sheet-root .cc-chat');
+        if (window.CustomerDmShared.renderAdminPresence) window.CustomerDmShared.renderAdminPresence(sheet, presence);
+      },
+      onEnded: showCustomerConversationEnded
     });
     DM.unsubCustomerThreadStop = sub.stop;
   }
@@ -28119,7 +28243,6 @@ document.addEventListener('DOMContentLoaded', function () {
       var title = portal.querySelector('.dm-portal-heading');
       var sheetTitle = document.getElementById('dm-customer-sheet-title');
       var sheetRoot = document.getElementById('dm-customer-sheet-root');
-      if (sheetTitle) sheetTitle.textContent = 'Your conversation';
       if (title) title.hidden = true;
       if (sheetRoot) sheetRoot.hidden = false;
       openCustomerPortalSession();
@@ -28641,21 +28764,32 @@ document.addEventListener('DOMContentLoaded', function () {
           .then(function () {
             input.value = '';
             if (attachmentInput) attachmentInput.value = '';
+            if (window.CustomerDmShared.autosizeComposer) window.CustomerDmShared.autosizeComposer(input);
           })
           .catch(function (error) {
+            if (window.CustomerDmShared.isConversationEndedError && window.CustomerDmShared.isConversationEndedError(error)) {
+              showCustomerConversationEnded();
+              return;
+            }
             window.CwrUI.toast('Failed to send: ' + error.message, { tone: 'error' });
           });
       });
 
       input.addEventListener('input', function () {
+        if (window.CustomerDmShared && window.CustomerDmShared.autosizeComposer) {
+          window.CustomerDmShared.autosizeComposer(input);
+        }
         if (!DM.customerSession || !DM.customerSession.conversationId) return;
         if (window.CustomerDmShared && window.CustomerDmShared.setCustomerTyping) {
           window.CustomerDmShared.setCustomerTyping(DM.customerSession.conversationId, true).catch(function () {});
         }
         clearTimeout(DM.typingTimer);
+        var typingConvId = DM.customerSession.conversationId;
         DM.typingTimer = setTimeout(function () {
+          // The conversation may have ended (and been forgotten) in the meantime.
+          if (!DM.customerSession || DM.customerSession.conversationId !== typingConvId) return;
           if (window.CustomerDmShared && window.CustomerDmShared.setCustomerTyping) {
-            window.CustomerDmShared.setCustomerTyping(DM.customerSession.conversationId, false).catch(function () {});
+            window.CustomerDmShared.setCustomerTyping(typingConvId, false).catch(function () {});
           }
         }, 1200);
       });
@@ -28675,6 +28809,19 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
+    const ccSheet = document.querySelector('#dm-customer-sheet-root .cc-chat');
+    if (ccSheet) {
+      // "Start a new conversation" after CWR deleted the old one: the contact form,
+      // fresh (the browser already forgot the old conversation).
+      ccSheet.addEventListener('click', function (e) {
+        if (!e.target.closest || !e.target.closest('[data-cc-start-new]')) return;
+        window.location.href = '/contact';
+      });
+      // Phones: swipe the header down to close the pop-up sheet.
+      if (window.CustomerDmShared && window.CustomerDmShared.bindSwipeToClose) {
+        window.CustomerDmShared.bindSwipeToClose(ccSheet.querySelector('[data-cc-head]'), ccSheet, closeCustomerSheetToPortal);
+      }
+    }
 
     initCustomerSheetResize();
   }
