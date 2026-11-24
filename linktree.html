@@ -330,6 +330,19 @@
     .is-grid .tag:nth-child(n+3) { display: none; }
     .is-grid .tag { font-size: 0.6rem; padding: 2px 6px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     @media (max-width: 330px) { .project-list.is-grid { grid-template-columns: 1fr; } }
+    /* Phone view: the project's phone capture as a tall screen across the card's top.
+       The video sits over the still and only shows once it plays. */
+    .is-phone .work-phone { padding: 0; }
+    .is-phone .work-phone-screen {
+      position: relative; aspect-ratio: 393 / 710; overflow: hidden; background: var(--bg-2, #111);
+    }
+    .is-phone .work-phone-screen img, .is-phone .work-phone-screen video {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block;
+    }
+    .is-phone .work-phone-screen video { opacity: 0; transition: opacity 0.3s ease; }
+    .is-phone .work-phone-screen.is-playing video { opacity: 1; }
+    .is-phone .work-phone-screen--letter { display: grid; place-items: center; color: var(--gold); font-size: 2rem; font-weight: 700; }
+    @media (prefers-reduced-motion: reduce) { .is-phone .work-phone-screen video { transition: none; } }
 
     /* ── Testimonials (filled from Firestore; section stays hidden until loaded) ── */
     .review-list { display: flex; flex-direction: column; gap: 10px; }
@@ -808,7 +821,9 @@
       choice carries over both ways). Spanish copy mirrors assets/js/i18n.js.
   -->
   <script src="/assets/js/care-pricing.js?v=pricing-20261029"></script>
-  <script src="/assets/js/linktree-work.js?v=work-cards-20261122"></script>
+  <script src="/assets/js/media-url.js?v=storage-on-20261123"></script>
+  <script src="/assets/js/portfolio-assets.js?v=phone-20261124"></script>
+  <script src="/assets/js/linktree-work.js?v=phone2-20261124"></script>
   <script>
     (function () {
       var DICT = {
@@ -1070,25 +1085,46 @@
         return n;
       }
 
-      // Full-width cover, then name + badge, the one line, and What's included chips.
+      // Phone view (the project's phone capture), then name + badge, the one line, and
+      // What's included chips. A still shows first; a phone video plays only while its card
+      // is on screen (see watchPhoneVideos). No capture → the cover, cropped into the phone.
       // Public projects open their popup on the portfolio; others their live site.
+      var mediaUrl = function (src) { return typeof window.cwrMediaUrl === 'function' ? window.cwrMediaUrl(src) : src; };
+
+      function phoneScreen(item) {
+        var screen = el('div', 'work-phone-screen');
+        var phone = item.phone;
+        var still = phone ? (phone.kind === 'video' ? phone.poster : phone.src) : item.thumb;
+        if (still) {
+          var img = el('img');
+          img.src = still; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
+          img.width = 390; img.height = 844;
+          screen.appendChild(img);
+        } else {
+          screen.classList.add('work-phone-screen--letter');
+          screen.textContent = item.title.charAt(0).toUpperCase();
+        }
+        if (!phone) screen.classList.add('is-cover');
+        if (phone && phone.kind === 'video') {
+          var v = el('video');
+          v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
+          v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('aria-hidden', 'true');
+          v.dataset.src = mediaUrl(phone.src);
+          if (still) v.poster = still;
+          screen.appendChild(v);
+        }
+        return screen;
+      }
+
       function card(item) {
-        var a = el(item.href ? 'a' : 'div', 'work-card');
+        var a = el(item.href ? 'a' : 'div', 'work-card work-card--phone');
         if (item.href) {
           a.href = item.href;
           if (item.href.indexOf('https://rubenjimenez.dev/') !== 0) { a.target = '_blank'; a.rel = 'noopener'; }
         }
-        var cover = el('div', 'work-cover');
-        if (item.thumb) {
-          var img = el('img');
-          img.src = item.thumb; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async';
-          img.width = 640; img.height = 360;
-          cover.appendChild(img);
-        } else {
-          cover.classList.add('work-cover--letter');
-          cover.textContent = item.title.charAt(0).toUpperCase();
-        }
-        a.appendChild(cover);
+        var phoneWrap = el('div', 'work-phone');
+        phoneWrap.appendChild(phoneScreen(item));
+        a.appendChild(phoneWrap);
         var body = el('div', 'work-body');
         var head = el('div', 'work-head');
         head.appendChild(el('span', 'work-name', item.title));
@@ -1108,6 +1144,33 @@
         return a;
       }
 
+      /**
+       * Play a card's phone video only while it's on screen; pause it when scrolled away.
+       * Nothing loads until then (preload none), and never with reduced motion or Data Saver.
+       */
+      function watchPhoneVideos(root) {
+        var vids = root.querySelectorAll('.work-phone-screen video[data-src]');
+        if (!vids.length || !('IntersectionObserver' in window)) return;
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var saveData = navigator.connection && navigator.connection.saveData;
+        if (reduce || saveData) return;
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            var v = en.target;
+            if (en.isIntersecting && en.intersectionRatio >= 0.6) {
+              if (!v.src) { v.src = v.dataset.src; v.load(); }
+              var p = v.play();
+              if (p && p.then) {
+                p.then(function () { v.closest('.work-phone-screen').classList.add('is-playing'); }).catch(function () {});
+              }
+            } else if (!v.paused) {
+              v.pause();
+            }
+          });
+        }, { threshold: [0, 0.6] });
+        vids.forEach(function (v) { io.observe(v); });
+      }
+
       fetch(base + '/portfolioProjects.json')
         .then(function (res) { if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
         .then(function (data) {
@@ -1116,7 +1179,8 @@
           var frag = document.createDocumentFragment();
           items.forEach(function (item) { frag.appendChild(card(item)); });
           listEl.replaceChildren(frag);
-          listEl.classList.add('is-grid');
+          listEl.classList.add('is-grid', 'is-phone');
+          watchPhoneVideos(listEl);
         })
         .catch(function (e) { console.warn('Link Tree recent work: keeping the typed cards', e); });
     })();

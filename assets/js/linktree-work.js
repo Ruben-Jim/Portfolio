@@ -62,6 +62,112 @@
     return (space > 60 ? cut.slice(0, space) : cut).replace(/[,;:\s]+$/, '') + '…';
   }
 
+  // ── Phone view ─────────────────────────────────────────────────────────
+  // Same picks as the portfolio's phone cards (script.js portfolioPhoneMedia):
+  //   1. the hero showcase capture for the project's live site (video if recorded),
+  //   2. a phone-shaped video in the project's slides, else its media folder,
+  //   3. a phone-shaped still, same order. Back-office screens never count.
+  // PHONE_SHOTS / PHONE_VIDEOS / PHONE_VERSION mirror PORTFOLIO_MOBILE_SHOTS /
+  // PORTFOLIO_MOBILE_VIDEOS / PORTFOLIO_MOBILE_SHOT_VERSION (test-linktree-work checks).
+  var PHONE_SHOTS = {
+    'procleaning.expo.app': 'procleaning',
+    'roofcleaning.expo.app': 'roofcleaning',
+    'treeservice.expo.app': 'treeservice',
+    'carpet.expo.app': 'carpet',
+    'sunergyelectricservices.expo.app': 'sunergy',
+    'pawshine.expo.app': 'pawshine',
+    'lawncare.expo.app': 'lawncare',
+    'beautysalon.expo.app': 'beautysalon',
+    'barbershoptemplate.expo.app': 'barbershop',
+    'photographer.expo.app': 'photographer',
+    'realtor.expo.app': 'realtor',
+    'ruben-jim.github.io/DEMO': 'homeverse',
+    'ruben-jim.github.io/ZoomRealty2025-main': 'zoomrealty'
+  };
+  var PHONE_VIDEOS = ['barbershop', 'beautysalon', 'carpet', 'lawncare', 'pawshine', 'photographer',
+    'procleaning', 'realtor', 'roofcleaning', 'sunergy', 'treeservice'];
+  var PHONE_VERSION = 5;
+
+  function isBackOffice(url) {
+    var base = String(String(url || '').split('?')[0].split('/').pop() || '');
+    return /(?:^|[-_])(?:admin|dashboard|crew|staff|worker|timesheet)(?:[-_.]|$)/i.test(base);
+  }
+
+  /** Site-relative /assets/... path for a record URL (absolute rubenjimenez.dev links too). */
+  function assetPath(url) {
+    var s = String(url || '').trim().split('?')[0].split('#')[0];
+    if (!s) return '';
+    var m = s.match(/^https?:\/\/(?:www\.)?rubenjimenez\.dev(\/assets\/.+)$/i);
+    if (m) s = m[1];
+    if (/^\.?\/?assets\//i.test(s)) s = '/' + s.replace(/^\.?\//, '');
+    return /^\/assets\//.test(s) ? s : '';
+  }
+
+  var phoneIndexCache = { groups: null, index: null };
+
+  function phoneIndex(groups) {
+    if (phoneIndexCache.groups === groups && phoneIndexCache.index) return phoneIndexCache.index;
+    var byPath = {};
+    var byFolder = {};
+    list(groups).forEach(function (g) {
+      if (!g || g.source !== 'images') return;
+      list(g.files).forEach(function (f) {
+        if (!f || !f.portrait || isBackOffice(f.path)) return;
+        var path = assetPath(f.path);
+        if (!path) return;
+        var folder = path.slice(0, path.lastIndexOf('/'));
+        byPath[path] = f;
+        (byFolder[folder] = byFolder[folder] || []).push(f);
+      });
+    });
+    phoneIndexCache = { groups: groups, index: { byPath: byPath, byFolder: byFolder } };
+    return phoneIndexCache.index;
+  }
+
+  function bestPhoneFile(files) {
+    var best = null;
+    var bestScore = -1;
+    files.forEach(function (f) {
+      var score = (f.kind === 'video' ? 2 : 0) + (/home/i.test(f.name || '') ? 1 : 0);
+      if (score > bestScore) { best = f; bestScore = score; }
+    });
+    return best;
+  }
+
+  /**
+   * { kind: 'video'|'image', src, poster? } or null when the project has no phone capture.
+   * Paths are site-relative; the page maps videos to Firebase Storage (media-url.js).
+   */
+  function phoneFor(p, groups) {
+    if (!p) return null;
+    if (groups === undefined && typeof window !== 'undefined') groups = window.PORTFOLIO_ASSET_GROUPS;
+    try {
+      var u = new URL(String(p.projectUrl || ''));
+      var firstSeg = u.pathname.split('/').filter(Boolean)[0];
+      var id = PHONE_SHOTS[u.hostname] || (firstSeg && PHONE_SHOTS[u.hostname + '/' + firstSeg]);
+      if (id) {
+        var v = '?v=' + PHONE_VERSION;
+        return PHONE_VIDEOS.indexOf(id) !== -1
+          ? { kind: 'video', src: '/assets/video/showcase/' + id + '-mobile.mp4' + v, poster: '/assets/video/showcase/' + id + '-mobile-poster.webp' + v }
+          : { kind: 'image', src: '/assets/images/hero/showcase/' + id + '-mobile.webp' + v };
+      }
+    } catch (e) { /* no live URL: fall through to the project's own media */ }
+    var index = phoneIndex(groups);
+    var urls = list(p.imageUrls).map(assetPath).filter(Boolean);
+    if (!urls.length && p.imageUrl) urls = [assetPath(p.imageUrl)].filter(Boolean);
+    var own = urls.map(function (x) { return index.byPath[x]; }).filter(Boolean);
+    var folder = urls.length ? index.byFolder[urls[0].slice(0, urls[0].lastIndexOf('/'))] || [] : [];
+    var isVideo = function (f) { return f.kind === 'video'; };
+    var file = own.filter(isVideo)[0] || bestPhoneFile(folder.filter(isVideo)) || own[0] || bestPhoneFile(folder);
+    if (!file) return null;
+    var path = assetPath(file.path);
+    if (file.kind === 'video') {
+      var poster = file.poster ? assetPath(file.poster) : '';
+      return { kind: 'video', src: path, poster: poster };
+    }
+    return { kind: 'image', src: path };
+  }
+
   var MAX_BLURB = 90;
   var MAX_FEATURES = 3;
   var PORTFOLIO_URL = 'https://rubenjimenez.dev/portfolio';
@@ -95,6 +201,8 @@
       // A project marked "client" never links out (same rule as the portfolio popup).
       url: p.liveKind === 'client' ? '' : cleanLink(p.projectUrl),
       thumb: thumbFor(p),
+      // Phone capture for the phone-view card; null → the cover is shown in the phone shape.
+      phone: phoneFor(p),
       badge: p.isTemplate === true ? 'template' : 'live',
       href: hrefFor(p, byId),
       blurb: cleanBlurb(p.linktreeBlurb),
@@ -162,6 +270,8 @@
         badge: p.isTemplate === true ? 'template' : 'live',
         blurb: cleanBlurb(p.linktreeBlurb),
         autoBlurb: descFor(p),
+        // No phone capture: the Link Tree tab warns so you know which to record.
+        hasPhone: !!phoneFor(p),
         parentTitle: parent ? String(parent.title || '').trim() : '',
         isPrivate: String(p.visibility || '').toLowerCase() === 'private',
         order: orderNumber(p.linktreeOrder),
@@ -258,6 +368,10 @@
     toItem: toItem,
     descFor: descFor,
     thumbFor: thumbFor,
+    phoneFor: phoneFor,
+    PHONE_SHOTS: PHONE_SHOTS,
+    PHONE_VIDEOS: PHONE_VIDEOS,
+    PHONE_VERSION: PHONE_VERSION,
     orderNumber: orderNumber,
     adminRows: adminRows,
     togglePatch: togglePatch,

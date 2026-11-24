@@ -5670,6 +5670,11 @@
     };
   }
 
+  /** Open tickets across every client (phone tab bar badge on Clients). */
+  function getOpenTicketCount() {
+    return agencyMaintenance.reduce(function (sum, m) { return sum + cpOpenTicketCounts(m).open; }, 0);
+  }
+
   function cpPortalLinkActive(hub) {
     return !!(hub.portalToken && !(hub.portalExpiresAt && hub.portalExpiresAt < Date.now()));
   }
@@ -11338,6 +11343,7 @@
     closeClientDrawer: closeCpClientDrawer,
     isClientDrawerOpen: isCpClientDrawerOpen,
     getOverviewSnapshot: getOverviewSnapshot,
+    getOpenTicketCount: getOpenTicketCount,
     refreshStudioCosts: renderStudioCostsTable,
     refreshTimeCapacity: renderTimeCapacityPanel,
     syncPlannerSelectedDay: syncPlannerSelectedDay,

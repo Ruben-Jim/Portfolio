@@ -280,6 +280,12 @@
     if (r.isPrivate) meta.push('Private');
     if (r.overCap) meta.push('Over the 6 limit, not shown');
     main.appendChild(el('span', 'admin-linktree-meta', meta.join(' · ')));
+    // Shown on the Link Tree without a phone capture: its card falls back to the cover.
+    if (shownRows && r.hasPhone === false) {
+      var warn = el('span', 'admin-linktree-warn', 'No phone capture: shows the cover instead');
+      warn.title = 'Record one with scripts/record-hero-showcase.mjs, or add a phone screenshot to the project folder.';
+      main.appendChild(warn);
+    }
     open.appendChild(main);
     open.addEventListener('click', function () { openEditor(r.id); });
     li.appendChild(open);

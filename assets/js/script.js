@@ -24348,7 +24348,27 @@ window.addEventListener('load', function() {
         : overviewEmpty('No deposit-paid leads waiting to onboard.');
     }
 
+    publishAdminBadges(inboxRows);
     bindOverviewCommandCenterClicks();
+  }
+
+  /**
+   * Counts for the phone tab bar badges (admin-mobile-nav.js): unread conversations,
+   * leads + prospects due today or overdue, open client tickets.
+   */
+  function publishAdminBadges(inboxRows) {
+    var todayKey = pipelineTodayKey();
+    var badges = {
+      messages: (inboxRows || []).length,
+      pipeline: pipelineLeads.filter(function (l) { return l.stage !== 'deposit' && l.followUpAt && l.followUpAt <= todayKey; }).length,
+      prospects: window.CWR_PROSPECTS && typeof window.CWR_PROSPECTS.dueToday === 'function' ? window.CWR_PROSPECTS.dueToday().length : 0,
+      tickets: window.AgencyTools && typeof window.AgencyTools.getOpenTicketCount === 'function' ? window.AgencyTools.getOpenTicketCount() : 0
+    };
+    var prev = window.CwrAdminBadges || {};
+    window.CwrAdminBadges = badges;
+    if (Object.keys(badges).some(function (k) { return badges[k] !== prev[k]; })) {
+      document.dispatchEvent(new CustomEvent('cwrAdminBadges', { detail: badges }));
+    }
   }
 
   window.renderAdminOverview = renderAdminOverview;

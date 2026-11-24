@@ -109,3 +109,30 @@ ok(W.toItem({ title: 'X', description: 'First one. Second.' }).desc === 'First o
 ok(cards.solo.features.join() === 'A,B,C', "first 3 What's included chips");
 ok(W.cleanBlurb('x'.repeat(200)).length === W.MAX_BLURB, 'the typed line is capped');
 ok(W.adminRows(lib).shown.find((r) => r.id === 'solo').autoBlurb === 'Long.', 'admin rows carry the automatic line as a placeholder');
+
+// ── Phone view ──
+import { readFileSync as readSrc } from 'node:fs';
+const mainSrc = readSrc(new URL('../assets/js/script.js', import.meta.url), 'utf8');
+const shotsSrc = (mainSrc.match(/var PORTFOLIO_MOBILE_SHOTS = (\{[\s\S]*?\});/) || [])[1] || '{}';
+const videosSrc = (mainSrc.match(/var PORTFOLIO_MOBILE_VIDEOS = (\[[\s\S]*?\]);/) || [])[1] || '[]';
+const versionSrc = Number((mainSrc.match(/var PORTFOLIO_MOBILE_SHOT_VERSION = (\d+)/) || [])[1]);
+const evalLit = (s) => Function('return ' + s)();
+ok(JSON.stringify(evalLit(shotsSrc)) === JSON.stringify(W.PHONE_SHOTS), 'phone captures list matches the portfolio (script.js)');
+ok(JSON.stringify(evalLit(videosSrc)) === JSON.stringify(W.PHONE_VIDEOS) && versionSrc === W.PHONE_VERSION, 'phone videos + version match the portfolio');
+
+const showVideo = W.phoneFor({ projectUrl: 'https://pawshine.expo.app/' }, []);
+ok(showVideo && showVideo.kind === 'video' && /pawshine-mobile\.mp4\?v=/.test(showVideo.src) && /poster/.test(showVideo.poster), 'live site with a recorded clip → phone video + poster');
+const showStill = W.phoneFor({ projectUrl: 'https://ruben-jim.github.io/DEMO/' }, []);
+ok(showStill && showStill.kind === 'image' && /homeverse-mobile\.webp/.test(showStill.src), 'capture without a clip → phone still');
+
+const groups = [{ source: 'images', files: [
+  { path: '/assets/images/projects/acme/admin-dashboard.webp', kind: 'image', portrait: true },
+  { path: '/assets/images/projects/acme/phone-home.webp', kind: 'image', portrait: true, name: 'phone-home.webp' },
+  { path: '/assets/images/projects/acme/desktop.webp', kind: 'image', portrait: false }
+] }];
+const folderPick = W.phoneFor({ imageUrls: ['/assets/images/projects/acme/desktop.webp'] }, groups);
+ok(folderPick && folderPick.src === '/assets/images/projects/acme/phone-home.webp', 'phone-shaped still from the project folder, admin screens skipped');
+ok(W.phoneFor({ imageUrls: ['/assets/images/projects/none/x.webp'] }, groups) === null, 'no phone capture → null (cover in the phone shape)');
+ok(W.toItem({ id: 'p', title: 'P', projectUrl: 'https://carpet.expo.app' }, {}).phone.kind === 'video', 'card items carry their phone media');
+const rowsWithPhone = W.adminRows({ a: { title: 'A', linktree: true, projectUrl: 'https://carpet.expo.app' }, b: { title: 'B', linktree: true } });
+ok(rowsWithPhone.shown.find((r) => r.id === 'a').hasPhone === true && rowsWithPhone.shown.find((r) => r.id === 'b').hasPhone === false, 'admin rows flag projects without a phone capture');
