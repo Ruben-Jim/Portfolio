@@ -34220,6 +34220,7 @@ body.amn-on.amn-fab-on #admin-panel-post-builder [data-lib="new"] { display: non
   -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
 }
 .amn-bar[hidden] { display: none; }
+.amn-bar { transition: transform 0.22s ease; }
 .amn-tab {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; padding: 4px 0;
   border: 0; background: none; color: var(--light-gray-70); font: inherit; font-size: 10.5px; font-weight: var(--fw-500);
@@ -34257,7 +34258,7 @@ body.amn-on.amn-fab-on #admin-panel-post-builder [data-lib="new"] { display: non
 }
 .amn-fab[hidden] { display: none; }
 body.amn-has-dock .amn-fab { bottom: calc(142px + env(safe-area-inset-bottom, 0px)); }
-body.amn-has-dock.amn-dock-tucked .amn-fab { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+body.amn-has-dock.amn-tabs-tucked .amn-fab { bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
 .amn-fab { transition: bottom 0.22s ease; }
 .amn-fab:focus-visible { outline: 3px solid var(--white-2); outline-offset: 3px; }
 body:not(.amn-on) .amn-fab, body:not(.amn-on) .amn-bar { display: none !important; }
@@ -34326,7 +34327,6 @@ body:not(.amn-on) .amn-fab, body:not(.amn-on) .amn-bar { display: none !importan
 }
 .amn-dock[hidden] { display: none; }
 body:not(.amn-on) .amn-dock { display: none !important; }
-body.amn-dock-tucked .amn-dock { transform: translateY(100%); opacity: 0; pointer-events: none; }
 .amn-dock-row { display: flex; }
 .amn-dock.is-scroll { overflow-x: auto; scrollbar-width: none; }
 .amn-dock.is-scroll::-webkit-scrollbar { display: none; }
@@ -34444,3 +34444,54 @@ body.amn-on .amn-ps .amn-ps-foot { flex-direction: row !important; align-items: 
 /* Blog / portfolio forms pad their own inner wrapper. */
 body.amn-on .amn-ps form.amn-ps-body { padding: 0 !important; }
 body.amn-on .amn-ps form.amn-ps-body > .amn-ps-foot { margin: 0 !important; }
+
+
+/* ── Admin phone comfort (admin-mobile-nav.js) ── */
+/* Scrolling down: the tabs slide away and the dock drops into their place. */
+.amn-dock { transition: transform 0.22s ease, opacity 0.22s ease, bottom 0.22s ease, padding 0.22s ease; }
+body.amn-on.amn-tabs-tucked .amn-bar { transform: translateY(100%); pointer-events: none; }
+body.amn-on.amn-tabs-tucked .amn-dock { bottom: 0; padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px)); }
+body.amn-on.amn-tabs-tucked:not(.amn-has-dock) .amn-fab { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+/* Typing: bars and + step aside while the keyboard is up. */
+body.amn-on.amn-typing .amn-bar, body.amn-on.amn-typing .amn-dock { transform: translateY(110%); opacity: 0; pointer-events: none; }
+body.amn-on.amn-typing .amn-fab { display: none !important; }
+/* No rubber-band bounce or browser pull-to-refresh; no horizontal drift; no double-tap zoom. */
+html.amn-root, html.amn-root body { overscroll-behavior: none; overflow-x: hidden; }
+html.amn-root body { touch-action: pan-x pan-y; }
+html.amn-sheet-lock, html.amn-sheet-lock body { overflow: hidden; }
+/* Fields at 16px so iPhone doesn't zoom in when one is tapped. */
+body.amn-on article.admin input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+body.amn-on article.admin select, body.amn-on article.admin textarea { font-size: 16px; }
+/* Sheets never scroll sideways: everything inside fits the width. */
+body.amn-on .amn-ps .amn-ps-panel, body.amn-on .amn-ps.amn-ps-panel { overflow-x: hidden !important; touch-action: pan-y; }
+body.amn-on .amn-ps .amn-ps-body { overflow-x: hidden !important; }
+body.amn-on .amn-ps .amn-ps-body * { min-width: 0; max-width: 100%; box-sizing: border-box; }
+body.amn-on .amn-ps .amn-ps-body .amn-ps-foot { max-width: none; }
+body.amn-on .amn-ps input, body.amn-on .amn-ps select, body.amn-on .amn-ps textarea { width: 100%; }
+body.amn-on .amn-ps input[type="checkbox"], body.amn-on .amn-ps input[type="radio"] { width: auto; }
+body.amn-on .amn-ps img, body.amn-on .amn-ps video, body.amn-on .amn-ps iframe { max-width: 100%; height: auto; }
+body.amn-on .amn-ps pre, body.amn-on .amn-ps code { white-space: pre-wrap; word-break: break-word; }
+body.amn-on .amn-ps .amn-ps-body { overflow-wrap: anywhere; }
+/* Header + dim for panels that had none (Prospects add). */
+body.amn-on .amn-ps .amn-ps-made { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.amn-ps-title { margin: 0; font-size: var(--fs-5, 18px); font-weight: var(--fw-600); color: var(--white-2); }
+.amn-ps-x { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: hsla(0, 0%, 100%, 0.06); color: var(--white-2); font-size: 20px; cursor: pointer; }
+.amn-ps-dim { position: fixed; inset: 0; z-index: calc(var(--z-drawer, 10000) - 1); background: hsla(0, 0%, 0%, 0.6); }
+body.amn-on #prospects-add.amn-ps .prospect-edit, body.amn-on #prospects-add.amn-ps .prospects-import-defaults { grid-template-columns: 1fr !important; }
+body:not(.amn-on) .amn-ps-dim { display: none; }
+body.amn-on #prospects-add.amn-ps { z-index: var(--z-drawer, 10000); border: 0; }
+body.amn-on #prospects-add.amn-ps .amn-ps-body { padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important; }
+/* Pull-to-refresh indicator. */
+.amn-ptr {
+  position: fixed; top: 0; left: 50%; z-index: var(--z-float, 100); translate: -50% -60px;
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
+  background: var(--eerie-black-1); border: 1px solid var(--jet); color: var(--light-gray-70); font-size: 20px;
+  box-shadow: 0 8px 20px hsla(0, 0%, 0%, 0.45); transition: translate 0.2s ease, color 0.15s;
+  pointer-events: none;
+}
+.amn-ptr.is-pulling { transition: color 0.15s; }
+.amn-ptr.is-ready, .amn-ptr.is-loading { color: var(--orange-yellow-crayola); }
+.amn-ptr.is-loading ion-icon { animation: amnSpin 0.8s linear infinite; }
+@keyframes amnSpin { to { rotate: 360deg; } }
+body:not(.amn-on) .amn-ptr { display: none; }
+@media (prefers-reduced-motion: reduce) { .amn-bar, .amn-ptr { transition: none; } .amn-ptr.is-loading ion-icon { animation: none; } }

@@ -51,7 +51,7 @@
     'studio-costs': 'wallet-outline', ops: 'book-outline'
   };
   var MIDDLE_DEFAULT = ['inbox', 'crm', 'content'];
-  var DEFAULT_SETTINGS = { dockAutoHide: false, fab: true };
+  var DEFAULT_SETTINGS = { tabsAutoHide: true, fab: true };
 
   // The section's main action. The + button clicks this; while the + is on, the
   // original button is hidden on phones (body.amn-fab-on rules in style.css).
@@ -237,11 +237,12 @@
   function applySettings() {
     var s = settings();
     document.body.classList.toggle('amn-fab-on', !!s.fab);
-    if (!s.dockAutoHide) document.body.classList.remove('amn-dock-tucked');
+    if (!s.tabsAutoHide) document.body.classList.remove('amn-tabs-tucked');
     if (state.on) renderFab();
   }
 
-  // ── Dock tucks away while scrolling down (setting), back on scroll up ──
+  // ── Scrolling down tucks the bottom tabs away and the dock drops into their
+  // place (setting, on by default); scrolling up or reaching the top brings them back ──
   function bindScrollTuck() {
     var lastY = window.scrollY;
     var ticking = false;
@@ -253,9 +254,9 @@
         var y = window.scrollY;
         var dy = y - lastY;
         lastY = y;
-        if (!state.on || !settings().dockAutoHide) return;
-        if (y < 60 || dy < -6) document.body.classList.remove('amn-dock-tucked');
-        else if (dy > 6) document.body.classList.add('amn-dock-tucked');
+        if (!state.on || !settings().tabsAutoHide) return;
+        if (y < 60 || dy < -6) document.body.classList.remove('amn-tabs-tucked');
+        else if (dy > 6) document.body.classList.add('amn-tabs-tucked');
       });
     }, { passive: true });
   }
@@ -263,7 +264,7 @@
   // ── Actions ──
   function go(tabId) {
     if (typeof window.adminActivateTab === 'function') window.adminActivateTab(tabId);
-    document.body.classList.remove('amn-dock-tucked');
+    document.body.classList.remove('amn-tabs-tucked');
     window.scrollTo({ top: 0 });
   }
 
@@ -278,7 +279,7 @@
     var target = tabs.indexOf(last[g]) >= 0 ? last[g] : tabs[0];
     // Tapping the tab you're already in jumps back to its top.
     if (groupOf(state.tab) === g) {
-      document.body.classList.remove('amn-dock-tucked');
+      document.body.classList.remove('amn-tabs-tucked');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       if (target === state.tab) return;
     }
@@ -407,8 +408,8 @@
       '<p class="amn-sheet-label">Tab order</p>' +
       '<p class="amn-sheet-hint amn-sheet-hint--tight">Overview stays first and More stays last. Top of this list = left on the bar.</p>' +
       '<ul class="amn-arrange">' + rowsHtml() + '</ul>' +
-      '<label class="amn-switch"><span><b>Hide dock while scrolling</b><small>Scroll down to tuck the section dock away, up to bring it back.</small></span>' +
-      '<input type="checkbox" data-amn-setting="dockAutoHide"' + (s.dockAutoHide ? ' checked' : '') + '></label>' +
+      '<label class="amn-switch"><span><b>Hide tabs while scrolling</b><small>Scroll down to tuck the bottom tabs away and keep only the section dock; scroll up to bring them back.</small></span>' +
+      '<input type="checkbox" data-amn-setting="tabsAutoHide"' + (s.tabsAutoHide ? ' checked' : '') + '></label>' +
       '<label class="amn-switch"><span><b>Round + button</b><small>Off brings back each section\'s own add button in the page.</small></span>' +
       '<input type="checkbox" data-amn-setting="fab"' + (s.fab ? ' checked' : '') + '></label>' +
       '<button type="button" class="btn btn-primary amn-done" data-amn-close>Done</button>',
@@ -458,11 +459,13 @@
     if (run !== state.on) {
       state.on = run;
       document.body.classList.toggle('amn-on', run);
+      document.documentElement.classList.toggle('amn-root', run);
+      setZoomLock(run);
       if (run) { build(); applySettings(); }
       if (els.bar) els.bar.hidden = !run;
       if (els.dock && !run) els.dock.hidden = true;
       if (els.fab && !run) els.fab.hidden = true;
-      if (!run) { closeSheet(); document.body.classList.remove('amn-has-dock', 'amn-dock-tucked'); }
+      if (!run) { closeSheet(); document.body.classList.remove('amn-has-dock', 'amn-tabs-tucked', 'amn-typing'); }
       state.rendered = false;
     }
     if (!run) return;
@@ -478,6 +481,7 @@
       state.rendered = true;
       render(true);
       labelTables();
+      scheduleSheets(); // a form left open in this section shows again with it
     } else {
       renderFab(); // a section's add button can appear after its data loads
     }
@@ -541,7 +545,11 @@
       body: '.admin-testimonial-detail__body', foot: '.admin-testimonial-detail__foot', close: '.admin-testimonial-detail__close',
       overlay: '.admin-testimonial-detail__backdrop' },
     { root: '#admin-email-compose-drawer', panel: '.admin-email-drawer__panel', head: '.admin-email-drawer__head',
-      body: '.admin-email-drawer__body', close: '.admin-email-drawer__close', overlay: '.admin-email-drawer__backdrop' }
+      body: '.admin-email-drawer__body', close: '.admin-email-drawer__close', overlay: '.admin-email-drawer__backdrop' },
+    // Prospects' add panel sits inline at the top of the list (easy to miss when scrolled
+    // down), so on phones it opens as a sheet with its own header and dimmed backdrop.
+    { root: '#prospects-add', self: true, body: '.prospects-add-body', title: 'Add prospects',
+      closeGlobal: '#admin-panel-prospects [data-act="toggle-add"]' }
   ];
   var openSheets = [];
 
@@ -559,7 +567,7 @@
       body: panel && fam.body ? panel.querySelector(fam.body) : null,
       foot: panel && fam.foot ? panel.querySelector(fam.foot) : null,
       overlay: overlay,
-      closeBtn: (fam.self ? root : root).querySelector(fam.close)
+      closeBtn: fam.closeGlobal ? document.querySelector(fam.closeGlobal) : root.querySelector(fam.close)
     };
   }
 
@@ -581,6 +589,25 @@
     var entry = { root: root, fam: fam, parts: p, dirty: false };
     root.classList.add('amn-ps');
     p.panel.classList.add('amn-ps-panel');
+    // Panels with no header or backdrop of their own get both.
+    if (fam.title && !p.head) {
+      var head = document.createElement('div');
+      head.className = 'amn-ps-head amn-ps-made';
+      head.innerHTML = '<h3 class="amn-ps-title">' + esc(fam.title) + '</h3>' +
+        '<button type="button" class="amn-ps-x" aria-label="Close"><ion-icon name="close" aria-hidden="true"></ion-icon></button>';
+      head.querySelector('.amn-ps-x').addEventListener('click', function () { requestSheetClose(entry); });
+      var oldGrab = p.panel.querySelector(':scope > .amn-ps-grab');
+      p.panel.insertBefore(head, oldGrab ? oldGrab.nextSibling : p.panel.firstChild);
+      p.head = head;
+    }
+    if (!p.overlay) {
+      var dim = document.createElement('div');
+      dim.className = 'amn-ps-dim';
+      dim.setAttribute('aria-hidden', 'true');
+      // Right behind the sheet, in the same stacking context, so it never covers it.
+      root.parentNode.insertBefore(dim, root);
+      entry.dim = dim;
+    }
     if (p.head) p.head.classList.add('amn-ps-head');
     if (p.body) p.body.classList.add('amn-ps-body');
     if (p.foot) p.foot.classList.add('amn-ps-foot');
@@ -604,15 +631,19 @@
     root.addEventListener('change', entry.onInput);
     bindSheetSwipe(entry);
     openSheets.push(entry);
+    document.documentElement.classList.add('amn-sheet-lock');
   }
 
   function releaseSheet(entry) {
     var root = entry.root;
     root.classList.remove('amn-ps');
+    root.querySelectorAll('.amn-ps-made').forEach(function (el) { el.remove(); });
+    if (entry.dim) entry.dim.remove();
     root.removeEventListener('input', entry.onInput);
     root.removeEventListener('change', entry.onInput);
     if (entry.parts.panel) entry.parts.panel.style.translate = '';
     openSheets = openSheets.filter(function (e) { return e !== entry; });
+    if (!openSheets.length) document.documentElement.classList.remove('amn-sheet-lock');
   }
 
   /** Close like the form's own ✕ would, asking first when something was typed. */
@@ -665,6 +696,8 @@
   // typed). Judged by position, since forms use different overlays (or none that closes).
   document.addEventListener('click', function (e) {
     if (!document.body.classList.contains('amn-on') || !openSheets.length) return;
+    // Only real taps: closing a form clicks its own (possibly hidden) close button in code.
+    if (!e.isTrusted) return;
     var entry = openSheets[openSheets.length - 1];
     var panel = entry.parts.panel;
     if (!panel || panel.contains(e.target)) return;
@@ -714,6 +747,91 @@
   // Drawers built in code (email compose) are appended straight to <body>.
   new MutationObserver(scheduleSheets).observe(document.body, { childList: true });
   document.addEventListener('DOMContentLoaded', scheduleSheets);
+
+  // ── Zoom: admin on phones behaves like an app (no pinch / double-tap zoom, no jump-in
+  // when a field is focused). Only while amn-on, so the public site keeps zoom. ──
+  var viewportMeta = document.querySelector('meta[name="viewport"]');
+  var viewportBase = viewportMeta ? viewportMeta.getAttribute('content') : '';
+  function setZoomLock(on) {
+    if (!viewportMeta) return;
+    viewportMeta.setAttribute('content', on ? viewportBase + ', maximum-scale=1, user-scalable=no' : viewportBase);
+  }
+  // iOS Safari ignores user-scalable=no; its pinch gesture events can still be cancelled.
+  ['gesturestart', 'gesturechange'].forEach(function (type) {
+    document.addEventListener(type, function (e) { if (state.on) e.preventDefault(); }, { passive: false });
+  });
+
+  // ── Typing: hide the dock, tabs and + while the keyboard is up, so the field and
+  // Save stay in view. ──
+  function isTypingField(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (el.isContentEditable) return true;
+    if (el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
+    if (el.tagName !== 'INPUT') return false;
+    return !/^(checkbox|radio|button|submit|reset|range|file|color|image|hidden)$/i.test(el.type);
+  }
+  document.addEventListener('focusin', function (e) {
+    if (state.on && isTypingField(e.target)) document.body.classList.add('amn-typing');
+  });
+  document.addEventListener('focusout', function () {
+    setTimeout(function () {
+      if (!isTypingField(document.activeElement)) document.body.classList.remove('amn-typing');
+    }, 60);
+  });
+
+  // ── Pull down to refresh: at the top of a section, pull down and let go to reload
+  // admin (it reopens on the same section). Not inside sheets, menus or the bars. ──
+  var PTR_TRIGGER = 72;
+  var ptr = { el: null, startY: 0, dy: 0, active: false };
+  function ptrEl() {
+    if (!ptr.el) {
+      ptr.el = document.createElement('div');
+      ptr.el.className = 'amn-ptr';
+      ptr.el.setAttribute('aria-hidden', 'true');
+      ptr.el.innerHTML = '<ion-icon name="refresh" aria-hidden="true"></ion-icon>';
+      document.body.appendChild(ptr.el);
+    }
+    return ptr.el;
+  }
+  document.addEventListener('touchstart', function (e) {
+    ptr.active = false;
+    if (!state.on || window.scrollY > 0 || e.touches.length !== 1) return;
+    if (openSheets.length || document.body.classList.contains('cwr-overlay-open') || document.body.classList.contains('amn-typing')) return;
+    var t = e.target;
+    if (!t.closest || !t.closest('#admin-dashboard-content') || t.closest('.amn-bar, .amn-dock, .amn-fab, [data-layer], input, textarea, select')) return;
+    // Something inside the page that scrolls on its own and isn't at its top: let it scroll.
+    for (var n = t; n && n !== document.body; n = n.parentElement) {
+      if (n.scrollTop > 0) return;
+    }
+    ptr.active = true; ptr.startY = e.touches[0].clientY; ptr.dy = 0;
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (!ptr.active) return;
+    ptr.dy = e.touches[0].clientY - ptr.startY;
+    if (ptr.dy <= 0 || window.scrollY > 0) { ptr.dy = 0; ptrEl().classList.remove('is-pulling', 'is-ready'); return; }
+    var pull = Math.min(ptr.dy * 0.5, PTR_TRIGGER + 24);
+    var el = ptrEl();
+    el.classList.add('is-pulling');
+    el.classList.toggle('is-ready', pull >= PTR_TRIGGER * 0.75);
+    el.style.translate = '-50% ' + pull + 'px';
+    el.style.rotate = (pull * 4) + 'deg';
+  }, { passive: true });
+  document.addEventListener('touchend', function () {
+    if (!ptr.active) return;
+    ptr.active = false;
+    var el = ptr.el;
+    if (!el) return;
+    var ready = el.classList.contains('is-ready');
+    el.classList.remove('is-pulling', 'is-ready');
+    if (ready) {
+      el.classList.add('is-loading');
+      el.style.translate = '-50% ' + (PTR_TRIGGER * 0.75) + 'px';
+      setTimeout(function () { window.location.reload(); }, 150);
+    } else {
+      el.style.translate = '';
+      el.style.rotate = '';
+    }
+  });
 
   window.CWR_ADMIN_MOBILE_NAV = { GROUPS: GROUPS, ADD_ACTIONS: ADD_ACTIONS, groupOf: groupOf, sync: scheduleSync, syncSheets: scheduleSheets };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
