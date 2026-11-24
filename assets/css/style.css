@@ -34204,13 +34204,14 @@ body.amn-on #admin-mobile-crm-subtab-bar-root,
 body.amn-on .admin-mobile-subtab-slot,
 body.amn-on #admin-tabs > .admin-tab-bar { display: none !important; }
 body.amn-on #admin-dashboard-content { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
-/* The round + button replaces these header buttons on phones. */
-body.amn-on #admin-add-lead-btn, body.amn-on #client-projects-add-btn, body.amn-on #tc-open-add-drawer,
-body.amn-on #business-doc-create-btn, body.amn-on #admin-add-portfolio-btn, body.amn-on #admin-add-blog-btn,
-body.amn-on #admin-review-add-btn, body.amn-on #admin-social-proof-add-btn, body.amn-on #referral-add-btn,
-body.amn-on #studio-cost-add-btn, body.amn-on #ops-doc-add-btn, body.amn-on #admin-email-compose-btn,
-body.amn-on #admin-panel-prospects [data-act="toggle-add"],
-body.amn-on #admin-panel-post-builder [data-lib="new"] { display: none !important; }
+body.amn-on.amn-has-dock #admin-dashboard-content { padding-bottom: calc(166px + env(safe-area-inset-bottom, 0px)); }
+/* While the round + button is on, it replaces these header buttons on phones. */
+body.amn-on.amn-fab-on #admin-add-lead-btn, body.amn-on.amn-fab-on #client-projects-add-btn, body.amn-on.amn-fab-on #tc-open-add-drawer,
+body.amn-on.amn-fab-on #business-doc-create-btn, body.amn-on.amn-fab-on #admin-add-portfolio-btn, body.amn-on.amn-fab-on #admin-add-blog-btn,
+body.amn-on.amn-fab-on #admin-review-add-btn, body.amn-on.amn-fab-on #admin-social-proof-add-btn, body.amn-on.amn-fab-on #referral-add-btn,
+body.amn-on.amn-fab-on #studio-cost-add-btn, body.amn-on.amn-fab-on #ops-doc-add-btn, body.amn-on.amn-fab-on #admin-email-compose-btn,
+body.amn-on.amn-fab-on #admin-panel-prospects [data-act="toggle-add"],
+body.amn-on.amn-fab-on #admin-panel-post-builder [data-lib="new"] { display: none !important; }
 
 .amn-bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: calc(var(--z-drawer, 10000) - 10);
@@ -34255,6 +34256,9 @@ body.amn-on #admin-panel-post-builder [data-lib="new"] { display: none !importan
   box-shadow: 0 10px 24px hsla(0, 0%, 0%, 0.5);
 }
 .amn-fab[hidden] { display: none; }
+body.amn-has-dock .amn-fab { bottom: calc(142px + env(safe-area-inset-bottom, 0px)); }
+body.amn-has-dock.amn-dock-tucked .amn-fab { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+.amn-fab { transition: bottom 0.22s ease; }
 .amn-fab:focus-visible { outline: 3px solid var(--white-2); outline-offset: 3px; }
 body:not(.amn-on) .amn-fab, body:not(.amn-on) .amn-bar { display: none !important; }
 
@@ -34311,3 +34315,39 @@ body:not(.amn-on) .amn-fab, body:not(.amn-on) .amn-bar { display: none !importan
   body.amn-on table.amn-card-table td:not([data-label])::before { content: none; }
   body.amn-on .referral-table-wrap { overflow: visible; border: 0; background: none; }
 }
+
+/* Section dock: icon + label buttons right above the bottom tabs (admin-mobile-nav.js). */
+.amn-dock {
+  position: fixed; left: 0; right: 0; bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  z-index: calc(var(--z-drawer, 10000) - 11);
+  padding: 4px 6px; background: hsla(240, 3%, 11%, 0.96); border-top: 1px solid hsla(0, 0%, 100%, 0.06);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+.amn-dock[hidden] { display: none; }
+body:not(.amn-on) .amn-dock { display: none !important; }
+body.amn-dock-tucked .amn-dock { transform: translateY(100%); opacity: 0; pointer-events: none; }
+.amn-dock-row { display: flex; }
+.amn-dock.is-scroll { overflow-x: auto; scrollbar-width: none; }
+.amn-dock.is-scroll::-webkit-scrollbar { display: none; }
+.amn-dock.is-scroll .amn-dock-btn { flex: 0 0 auto; min-width: 72px; }
+.amn-dock-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; padding: 4px 6px;
+  border: 0; border-radius: 12px; background: none; color: var(--light-gray-70); font: inherit; font-size: 10.5px;
+  font-weight: var(--fw-500); white-space: nowrap; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.amn-dock-btn.is-on { color: var(--orange-yellow-crayola); background: hsla(45, 100%, 72%, 0.1); }
+.amn-dock-btn:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: -2px; }
+.amn-dock-icon { position: relative; display: grid; place-items: center; height: 24px; font-size: 20px; }
+.amn-dock-icon .amn-badge { position: absolute; top: -5px; left: 60%; }
+.amn-sheet-label { margin: 14px 0 0; font-size: 12px; font-weight: var(--fw-600); color: var(--light-gray-70); letter-spacing: 0.04em; text-transform: uppercase; }
+.amn-sheet-hint--tight { margin-top: 4px; }
+.amn-switch {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 10px; padding: 12px;
+  border: 1px solid var(--jet); border-radius: 12px; cursor: pointer;
+}
+.amn-switch b { display: block; font-size: var(--fs-7); font-weight: var(--fw-600); color: var(--white-2); }
+.amn-switch small { display: block; margin-top: 2px; font-size: 12px; line-height: 1.4; color: var(--light-gray-70); }
+.amn-switch input { flex-shrink: 0; width: 22px; height: 22px; accent-color: var(--orange-yellow-crayola); }
+@media (prefers-reduced-motion: reduce) { .amn-dock, .amn-fab { transition: none; } }
+.amn-dock.is-scroll { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
