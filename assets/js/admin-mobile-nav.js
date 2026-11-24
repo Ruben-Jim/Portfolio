@@ -137,6 +137,14 @@
   function groupCount(g) {
     return GROUPS[g].tabs.reduce(function (sum, t) { return sum + sectionCount(t[0]); }, 0);
   }
+  /** Bottom tabs: Inbox shows its number; other tabs a dot (numbers are on the dock). */
+  function tabBadgeHtml(g) {
+    if (g === 'more') return '';
+    var n = groupCount(g);
+    if (!n) return '';
+    return g === 'inbox' ? badgeHtml(n) : '<span class="amn-dot" aria-label="' + n + ' need you"></span>';
+  }
+
   function badgeHtml(n) {
     return n > 0 ? '<span class="amn-badge">' + (n > 99 ? '99+' : n) + '</span>' : '';
   }
@@ -182,7 +190,7 @@
       return '<button type="button" class="amn-tab' + (on ? ' is-on' : '') + '" data-amn-group="' + g + '"' +
         (on ? ' aria-current="page"' : '') + '>' +
         '<span class="amn-tab-icon"><ion-icon name="' + (on ? def.iconOn : def.icon) + '" aria-hidden="true"></ion-icon>' +
-        (g === 'more' ? '' : badgeHtml(groupCount(g))) + '</span>' +
+        tabBadgeHtml(g) + '</span>' +
         '<span class="amn-tab-label">' + def.label + '</span></button>';
     }).join('');
   }
@@ -195,6 +203,7 @@
     document.body.classList.toggle('amn-has-dock', show);
     if (!show) { els.dock.innerHTML = ''; return; }
     els.dock.classList.toggle('is-scroll', def.tabs.length > 5);
+    els.dock.classList.toggle('is-few', def.tabs.length <= 3);
     els.dock.innerHTML = '<div class="amn-dock-row">' + def.tabs.map(function (t) {
       var on = t[0] === state.tab;
       return '<button type="button" class="amn-dock-btn' + (on ? ' is-on' : '') + '" data-amn-tab="' + t[0] + '"' +
@@ -327,10 +336,25 @@
           '<span class="amn-app-label">' + esc(t[1]) + '</span></button>';
       }).join('') +
       '</div>' +
+      '<div class="amn-links">' +
+      '<button type="button" class="amn-link" data-amn-link="site"><ion-icon name="home-outline" aria-hidden="true"></ion-icon><span>Back to site</span></button>' +
+      '<button type="button" class="amn-link amn-link--out" data-amn-link="signout"><ion-icon name="log-out-outline" aria-hidden="true"></ion-icon><span>Sign out</span></button>' +
+      '</div>' +
       '<p class="amn-sheet-hint">Tip: hold any tab in the bottom bar for tab bar settings.</p>',
       function (e) {
         var app = e.target.closest('[data-amn-tab]');
-        if (app) { closeSheet(); go(app.getAttribute('data-amn-tab')); }
+        if (app) { closeSheet(); go(app.getAttribute('data-amn-tab')); return; }
+        var link = e.target.closest('[data-amn-link]');
+        if (!link) return;
+        closeSheet();
+        if (link.getAttribute('data-amn-link') === 'site') {
+          if (typeof window.switchToPage === 'function') window.switchToPage('home');
+          else window.location.href = '/';
+          return;
+        }
+        // Same sign-out as the site menu's button (that menu is hidden on phones).
+        var out = document.getElementById('admin-logout-btn');
+        if (out) out.click();
       });
     root.querySelector('.amn-sheet-panel').setAttribute('aria-label', 'More admin sections');
     var first = root.querySelector('.amn-app');

@@ -34351,3 +34351,38 @@ body.amn-dock-tucked .amn-dock { transform: translateY(100%); opacity: 0; pointe
 .amn-switch input { flex-shrink: 0; width: 22px; height: 22px; accent-color: var(--orange-yellow-crayola); }
 @media (prefers-reduced-motion: reduce) { .amn-dock, .amn-fab { transition: none; } }
 .amn-dock.is-scroll { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+
+/* Dock polish: dock + tabs read as one panel; active section = gold + underline (no box). */
+body.amn-on.amn-has-dock .amn-dock {
+  border: 1px solid var(--jet); border-bottom: 0; border-radius: 18px 18px 0 0;
+  background: hsla(240, 3%, 9%, 0.97); padding: 6px 6px 2px;
+}
+body.amn-on.amn-has-dock .amn-bar { border-top: 1px solid hsla(0, 0%, 100%, 0.06); border-left: 1px solid var(--jet); border-right: 1px solid var(--jet); }
+body.amn-on:not(.amn-has-dock) .amn-bar { border-radius: 18px 18px 0 0; border: 1px solid var(--jet); border-bottom: 0; }
+.amn-dock-btn.is-on { background: none; }
+.amn-dock-btn { position: relative; padding-bottom: 8px; }
+.amn-dock-btn.is-on::after {
+  content: ""; position: absolute; left: 50%; bottom: 2px; width: 22px; height: 3px; border-radius: 3px;
+  transform: translateX(-50%); background: var(--orange-yellow-crayola);
+}
+.amn-dock.is-few .amn-dock-row { justify-content: center; gap: 8px; }
+.amn-dock.is-few .amn-dock-btn { flex: 0 0 auto; min-width: 92px; }
+.amn-dot {
+  position: absolute; top: 0; right: 9px; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--orange-yellow-crayola); box-shadow: 0 0 0 2px hsl(240, 3%, 9%);
+}
+
+/* More sheet quick links */
+.amn-links { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
+.amn-link {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 12px;
+  border: 1px solid var(--jet); border-radius: 12px; background: var(--eerie-black-1);
+  color: var(--light-gray); font: inherit; font-size: var(--fs-7); font-weight: var(--fw-500); cursor: pointer;
+}
+.amn-link ion-icon { font-size: 18px; color: var(--orange-yellow-crayola); }
+.amn-link--out { color: hsl(0, 75%, 72%); }
+.amn-link--out ion-icon { color: hsl(0, 75%, 68%); }
+.amn-link:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: 2px; }
+
+/* The site's ≡ menu isn't needed in admin on phones: Back to site + Sign out live in More. */
+body.amn-on article.admin[data-page="admin"] .navbar { display: none !important; }
