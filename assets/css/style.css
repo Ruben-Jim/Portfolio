@@ -34386,3 +34386,24 @@ body.amn-on:not(.amn-has-dock) .amn-bar { border-radius: 18px 18px 0 0; border: 
 
 /* The site's ≡ menu isn't needed in admin on phones: Back to site + Sign out live in More. */
 body.amn-on article.admin[data-page="admin"] .navbar { display: none !important; }
+
+/* Every dock uses the same button size: 5 fit across; Content's extra 2 scroll. */
+.amn-dock.is-scroll .amn-dock-btn { flex: 0 0 20%; min-width: 0; }
+.amn-dock.is-scroll { -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
+.amn-dock-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+
+/* + → Add sheet (admin-mobile-nav.js openAddSheet) */
+.amn-add-list { display: grid; gap: 8px; margin-top: 12px; }
+.amn-add-list .amn-sheet-label { margin: 8px 0 0; }
+.amn-add-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 12px;
+  border: 1px solid var(--jet); border-radius: 12px; background: var(--eerie-black-1);
+  color: var(--white-2); font: inherit; font-size: var(--fs-6); font-weight: var(--fw-500); text-align: left; cursor: pointer;
+}
+.amn-add-row span:nth-child(2) { flex: 1; }
+.amn-add-icon {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px;
+  background: hsla(45, 100%, 72%, 0.12); color: var(--orange-yellow-crayola); font-size: 19px;
+}
+.amn-add-go { color: var(--light-gray-70); font-size: 16px; }
+.amn-add-row:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: 2px; }

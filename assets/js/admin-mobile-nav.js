@@ -218,14 +218,25 @@
     }
   }
 
+  /** Add actions for a tab group (Overview: every group's, in bar order). */
+  function addActionsFor(g) {
+    var groups = g === 'overview' ? barOrder().filter(function (x) { return x !== 'overview'; }).concat([]) : [g];
+    if (g === 'overview' && groups.indexOf('more') < 0) groups.push('more');
+    var out = [];
+    groups.forEach(function (grp) {
+      GROUPS[grp].tabs.forEach(function (t) {
+        if (ADD_ACTIONS[t[0]]) out.push({ group: grp, tab: t[0], label: ADD_ACTIONS[t[0]].label });
+      });
+    });
+    return out;
+  }
+
   function renderFab() {
-    var action = ADD_ACTIONS[state.tab];
-    var target = action && document.querySelector(action.sel);
-    els.fab.hidden = !settings().fab || !target;
-    if (target) {
-      els.fab.setAttribute('aria-label', action.label);
-      els.fab.title = action.label;
-    }
+    var list = addActionsFor(groupOf(state.tab));
+    els.fab.hidden = !settings().fab || !list.length;
+    var label = list.length === 1 ? list[0].label : 'Add';
+    els.fab.setAttribute('aria-label', label);
+    els.fab.title = label;
   }
 
   function render(centerActive) {
@@ -292,9 +303,49 @@
   }
 
   function onFabClick() {
-    var action = ADD_ACTIONS[state.tab];
-    var target = action && document.querySelector(action.sel);
-    if (target) target.click();
+    var list = addActionsFor(groupOf(state.tab));
+    if (list.length === 1) { runAdd(list[0].tab); return; }
+    if (list.length) openAddSheet(list);
+  }
+
+  /** Open the section (if needed), then press its own add button once it exists. */
+  function runAdd(tabId) {
+    var action = ADD_ACTIONS[tabId];
+    if (!action) return;
+    if (tabId !== state.tab) go(tabId);
+    var tries = 0;
+    (function press() {
+      var target = document.querySelector(action.sel);
+      if (target) { target.click(); return; }
+      if (++tries < 12) setTimeout(press, 120);
+      else if (window.CwrUI) window.CwrUI.toast(action.label + ' is still loading. Try again in a moment.', { tone: 'info' });
+    })();
+  }
+
+  function openAddSheet(list) {
+    var g = groupOf(state.tab);
+    var grouped = g === 'overview';
+    var html = '<h3 class="amn-sheet-title" id="amn-add-title">' + (grouped ? 'Add' : 'Add to ' + GROUPS[g].label) + '</h3><div class="amn-add-list">';
+    var lastGroup = '';
+    list.forEach(function (a) {
+      if (grouped && a.group !== lastGroup) {
+        lastGroup = a.group;
+        html += '<p class="amn-sheet-label">' + GROUPS[a.group].label + '</p>';
+      }
+      html += '<button type="button" class="amn-add-row" data-amn-add="' + a.tab + '">' +
+        '<span class="amn-add-icon"><ion-icon name="' + (SECTION_ICONS[a.tab] || 'add-outline') + '" aria-hidden="true"></ion-icon></span>' +
+        '<span>' + esc(a.label) + '</span><ion-icon name="chevron-forward" class="amn-add-go" aria-hidden="true"></ion-icon></button>';
+    });
+    html += '</div>';
+    var root = openSheet('amn-add', html, function (e) {
+      var row = e.target.closest('[data-amn-add]');
+      if (!row) return;
+      closeSheet();
+      runAdd(row.getAttribute('data-amn-add'));
+    });
+    root.querySelector('.amn-sheet-panel').setAttribute('aria-labelledby', 'amn-add-title');
+    var first = root.querySelector('.amn-add-row');
+    if (first) first.focus();
   }
 
   // ── Sheets ──
