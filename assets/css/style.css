@@ -34392,18 +34392,55 @@ body.amn-on article.admin[data-page="admin"] .navbar { display: none !important;
 .amn-dock.is-scroll { -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
 .amn-dock-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
-/* + → Add sheet (admin-mobile-nav.js openAddSheet) */
-.amn-add-list { display: grid; gap: 8px; margin-top: 12px; }
-.amn-add-list .amn-sheet-label { margin: 8px 0 0; }
-.amn-add-row {
-  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 12px;
-  border: 1px solid var(--jet); border-radius: 12px; background: var(--eerie-black-1);
-  color: var(--white-2); font: inherit; font-size: var(--fs-6); font-weight: var(--fw-500); text-align: left; cursor: pointer;
+
+/* ── Admin forms as bottom sheets on phones (admin-mobile-nav.js "Forms as bottom sheets") ──
+   ~92% tall with the page peeking above; handle; fields scroll; Save / Cancel pinned. */
+@keyframes amnSheetUp { from { translate: 0 100%; } to { translate: 0 0; } }
+body.amn-on .amn-ps .amn-ps-panel,
+body.amn-on .amn-ps.amn-ps-panel {
+  position: fixed !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+  top: max(7dvh, 44px) !important; width: 100% !important; max-width: none !important;
+  height: auto !important; max-height: none !important; min-height: 0 !important; margin: 0 !important;
+  transform: none !important; opacity: 1 !important;
+  display: flex !important; flex-direction: column !important; overflow: hidden !important;
+  border: 1px solid var(--jet) !important; border-bottom: 0 !important; border-radius: 20px 20px 0 0 !important;
+  background: var(--eerie-black-2) !important; box-shadow: 0 -18px 60px hsla(0, 0%, 0%, 0.55) !important;
+  padding: 0 !important;
+  animation: amnSheetUp 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: translate 0.25s ease;
 }
-.amn-add-row span:nth-child(2) { flex: 1; }
-.amn-add-icon {
-  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px;
-  background: hsla(45, 100%, 72%, 0.12); color: var(--orange-yellow-crayola); font-size: 19px;
+body.amn-on .amn-ps .amn-ps-grab {
+  display: block; flex-shrink: 0; width: 40px; height: 5px; margin: 8px auto 0; border-radius: 999px; background: hsla(0, 0%, 100%, 0.22);
 }
-.amn-add-go { color: var(--light-gray-70); font-size: 16px; }
-.amn-add-row:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: 2px; }
+body.amn-on .amn-ps .amn-ps-head {
+  flex-shrink: 0; margin: 0 !important; padding: 10px 16px 12px !important; border-bottom: 1px solid hsla(0, 0%, 100%, 0.07);
+  touch-action: pan-x;
+}
+body.amn-on .amn-ps .amn-ps-body {
+  flex: 1 1 auto !important; min-height: 0 !important; max-height: none !important; overflow-y: auto !important;
+  overscroll-behavior: contain; padding: 14px 16px 0 !important; margin: 0 !important;
+}
+/* Some forms scroll an inner wrapper; inside the sheet the body does the scrolling. */
+body.amn-on .amn-ps .amn-ps-body .portfolio-editor-scroll { max-height: none !important; overflow: visible !important; }
+body.amn-on .amn-ps .amn-ps-foot {
+  position: sticky; bottom: 0; z-index: 3; flex-shrink: 0;
+  display: flex !important; flex-wrap: wrap; gap: 10px; margin: 0 !important;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+  background: var(--eerie-black-2); border-top: 1px solid hsla(0, 0%, 100%, 0.07);
+}
+/* Footer inside the scrolling body (lead form): bleed to the edges. */
+body.amn-on .amn-ps .amn-ps-body .amn-ps-foot { margin: 16px -16px 0 !important; }
+body.amn-on .amn-ps .amn-ps-foot .btn { flex: 1 1 0; min-width: 0; min-height: 46px; justify-content: center; }
+body.amn-on .amn-ps .amn-ps-foot .btn-primary { flex-grow: 1.4; }
+/* One column of fields on phones. */
+body.amn-on .amn-ps .form-row { display: flex !important; flex-direction: column !important; gap: 0 !important; }
+body.amn-on .amn-ps .form-group-half { width: 100% !important; max-width: none !important; flex: 1 1 auto !important; }
+body.amn-on .amn-ps input, body.amn-on .amn-ps select, body.amn-on .amn-ps textarea { font-size: 16px; }
+@media (prefers-reduced-motion: reduce) { body.amn-on .amn-ps .amn-ps-panel, body.amn-on .amn-ps.amn-ps-panel { animation: none; transition: none; } }
+/* Forms that drew their own handle: keep only the sheet's. */
+body.amn-on .amn-ps .amn-ps-panel::before, body.amn-on .amn-ps.amn-ps-panel::before,
+body.amn-on .amn-ps .amn-ps-head::before { display: none !important; content: none !important; }
+body.amn-on .amn-ps .amn-ps-foot { flex-direction: row !important; align-items: stretch !important; }
+/* Blog / portfolio forms pad their own inner wrapper. */
+body.amn-on .amn-ps form.amn-ps-body { padding: 0 !important; }
+body.amn-on .amn-ps form.amn-ps-body > .amn-ps-foot { margin: 0 !important; }

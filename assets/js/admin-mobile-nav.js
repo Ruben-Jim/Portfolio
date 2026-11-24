@@ -6,7 +6,7 @@
  *   tabs) switches between the group's sections; a tab reopens the section last used.
  * - More opens a grid sheet (Pricing, Referrals, Documents, Studio Costs, Ops).
  * - Badges: totals on tabs, split per dock button (Overview's counts, 'cwrAdminBadges').
- * - Optional round + button above the dock runs the section's main "add" button.
+ * - Optional round + button above the dock runs the selected section's own add action.
  * - Wide admin tables become cards (cells get data-label from their column header).
  * - Long-press a tab → Tab bar settings: order of Inbox / CRM / Content, hide the dock
  *   while scrolling, + button on/off (off = each section's own button comes back).
@@ -218,25 +218,13 @@
     }
   }
 
-  /** Add actions for a tab group (Overview: every group's, in bar order). */
-  function addActionsFor(g) {
-    var groups = g === 'overview' ? barOrder().filter(function (x) { return x !== 'overview'; }).concat([]) : [g];
-    if (g === 'overview' && groups.indexOf('more') < 0) groups.push('more');
-    var out = [];
-    groups.forEach(function (grp) {
-      GROUPS[grp].tabs.forEach(function (t) {
-        if (ADD_ACTIONS[t[0]]) out.push({ group: grp, tab: t[0], label: ADD_ACTIONS[t[0]].label });
-      });
-    });
-    return out;
-  }
-
   function renderFab() {
-    var list = addActionsFor(groupOf(state.tab));
-    els.fab.hidden = !settings().fab || !list.length;
-    var label = list.length === 1 ? list[0].label : 'Add';
-    els.fab.setAttribute('aria-label', label);
-    els.fab.title = label;
+    var action = ADD_ACTIONS[state.tab];
+    els.fab.hidden = !settings().fab || !action;
+    if (action) {
+      els.fab.setAttribute('aria-label', action.label);
+      els.fab.title = action.label;
+    }
   }
 
   function render(centerActive) {
@@ -302,10 +290,9 @@
     if (btn) go(btn.getAttribute('data-amn-tab'));
   }
 
+  /** The + is the selected dock section's own add action. */
   function onFabClick() {
-    var list = addActionsFor(groupOf(state.tab));
-    if (list.length === 1) { runAdd(list[0].tab); return; }
-    if (list.length) openAddSheet(list);
+    runAdd(state.tab);
   }
 
   /** Open the section (if needed), then press its own add button once it exists. */
@@ -320,32 +307,6 @@
       if (++tries < 12) setTimeout(press, 120);
       else if (window.CwrUI) window.CwrUI.toast(action.label + ' is still loading. Try again in a moment.', { tone: 'info' });
     })();
-  }
-
-  function openAddSheet(list) {
-    var g = groupOf(state.tab);
-    var grouped = g === 'overview';
-    var html = '<h3 class="amn-sheet-title" id="amn-add-title">' + (grouped ? 'Add' : 'Add to ' + GROUPS[g].label) + '</h3><div class="amn-add-list">';
-    var lastGroup = '';
-    list.forEach(function (a) {
-      if (grouped && a.group !== lastGroup) {
-        lastGroup = a.group;
-        html += '<p class="amn-sheet-label">' + GROUPS[a.group].label + '</p>';
-      }
-      html += '<button type="button" class="amn-add-row" data-amn-add="' + a.tab + '">' +
-        '<span class="amn-add-icon"><ion-icon name="' + (SECTION_ICONS[a.tab] || 'add-outline') + '" aria-hidden="true"></ion-icon></span>' +
-        '<span>' + esc(a.label) + '</span><ion-icon name="chevron-forward" class="amn-add-go" aria-hidden="true"></ion-icon></button>';
-    });
-    html += '</div>';
-    var root = openSheet('amn-add', html, function (e) {
-      var row = e.target.closest('[data-amn-add]');
-      if (!row) return;
-      closeSheet();
-      runAdd(row.getAttribute('data-amn-add'));
-    });
-    root.querySelector('.amn-sheet-panel').setAttribute('aria-labelledby', 'amn-add-title');
-    var first = root.querySelector('.amn-add-row');
-    if (first) first.focus();
   }
 
   // ── Sheets ──
@@ -556,7 +517,205 @@
     sync();
   }
 
-  window.CWR_ADMIN_MOBILE_NAV = { GROUPS: GROUPS, ADD_ACTIONS: ADD_ACTIONS, groupOf: groupOf, sync: scheduleSync };
+  // ── Forms as bottom sheets (phones) ─────────────────────────────────────
+  // Admin add/edit forms come in a few families, each with the same parts under
+  // different class names. When one opens on a phone, its parts get shared classes
+  // (amn-ps-*) so one set of styles makes them all bottom sheets: ~92% tall with the
+  // page peeking above, grab handle, fields scroll, Save / Cancel pinned at the bottom.
+  // Swipe down or tap outside closes; with something typed it asks first.
+  var SHEET_FAMILIES = [
+    { root: '.agency-modal', panel: '.agency-modal-content', head: '.agency-modal-header', body: '.agency-modal-body',
+      foot: '.agency-modal-footer', close: '.agency-modal-close', overlay: '.agency-modal-overlay', cancel: true },
+    { root: '.add-blog-modal', panel: '.add-blog-content', head: '.add-blog-header', body: 'form, .add-blog-body',
+      foot: '.portfolio-editor-footer, .form-actions', close: '.add-blog-close-btn', overlay: '.add-blog-overlay', cancel: true },
+    { root: '.business-doc-modal', panel: '.business-doc-modal-content', head: '.business-doc-modal-header', body: '.business-doc-modal-body',
+      foot: '.business-doc-modal-footer, .form-actions', close: '.business-doc-modal-close', overlay: '.business-doc-modal-overlay', cancel: true },
+    { root: '#admin-review-modal, #admin-testimonial-request-modal', panel: '.admin-email-reply-confirm-dialog', head: '.admin-email-reply-confirm-title',
+      foot: '.admin-email-reply-confirm-actions', close: '[data-review-close], .admin-email-reply-confirm-actions .btn-secondary',
+      overlay: '.admin-email-reply-confirm-backdrop' },
+    { root: '#tc-add-drawer', self: true, head: '.tc-add-drawer-header', body: '.tc-add-drawer-body', foot: '.tc-add-drawer-footer',
+      close: '#tc-add-drawer-close', overlayId: 'tc-add-drawer-overlay' },
+    { root: '#lead-detail-drawer', self: true, head: '.lead-drawer-header', body: '.lead-drawer-body', foot: '.lead-drawer-footer',
+      close: '#lead-drawer-close', overlayId: 'lead-drawer-overlay' },
+    { root: '#admin-testimonial-detail', panel: '.admin-testimonial-detail__panel', head: '.admin-testimonial-detail__head',
+      body: '.admin-testimonial-detail__body', foot: '.admin-testimonial-detail__foot', close: '.admin-testimonial-detail__close',
+      overlay: '.admin-testimonial-detail__backdrop' },
+    { root: '#admin-email-compose-drawer', panel: '.admin-email-drawer__panel', head: '.admin-email-drawer__head',
+      body: '.admin-email-drawer__body', close: '.admin-email-drawer__close', overlay: '.admin-email-drawer__backdrop' }
+  ];
+  var openSheets = [];
+
+  function familyFor(el) {
+    for (var i = 0; i < SHEET_FAMILIES.length; i++) if (el.matches(SHEET_FAMILIES[i].root)) return SHEET_FAMILIES[i];
+    return null;
+  }
+
+  function sheetParts(root, fam) {
+    var panel = fam.self ? root : root.querySelector(fam.panel);
+    var overlay = fam.overlayId ? document.getElementById(fam.overlayId) : root.querySelector(fam.overlay);
+    return {
+      panel: panel,
+      head: panel && fam.head ? panel.querySelector(fam.head) : null,
+      body: panel && fam.body ? panel.querySelector(fam.body) : null,
+      foot: panel && fam.foot ? panel.querySelector(fam.foot) : null,
+      overlay: overlay,
+      closeBtn: (fam.self ? root : root).querySelector(fam.close)
+    };
+  }
+
+  // Visible on screen, whatever the form uses to open (class, style, hidden). Some keep
+  // aria-hidden="true" while open, so it isn't trusted.
+  function isShown(root, panel) {
+    if (!panel || root.hidden) return false;
+    var cs = getComputedStyle(root);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') return false;
+    var pcs = getComputedStyle(panel);
+    if (pcs.display === 'none' || pcs.visibility === 'hidden') return false;
+    var r = panel.getBoundingClientRect();
+    return r.height > 0 && r.width > 0;
+  }
+
+  function enhanceSheet(root, fam) {
+    var p = sheetParts(root, fam);
+    if (!p.panel) return;
+    var entry = { root: root, fam: fam, parts: p, dirty: false };
+    root.classList.add('amn-ps');
+    p.panel.classList.add('amn-ps-panel');
+    if (p.head) p.head.classList.add('amn-ps-head');
+    if (p.body) p.body.classList.add('amn-ps-body');
+    if (p.foot) p.foot.classList.add('amn-ps-foot');
+    if (!p.panel.querySelector(':scope > .amn-ps-grab')) {
+      var grab = document.createElement('span');
+      grab.className = 'amn-ps-grab';
+      grab.setAttribute('aria-hidden', 'true');
+      p.panel.insertBefore(grab, p.panel.firstChild);
+    }
+    // Save / Cancel: add a Cancel when the footer only has Save.
+    if (fam.cancel && p.foot && !p.foot.querySelector('.btn-secondary, .amn-ps-cancel') && p.closeBtn) {
+      var cancel = document.createElement('button');
+      cancel.type = 'button';
+      cancel.className = 'btn btn-secondary amn-ps-cancel';
+      cancel.textContent = 'Cancel';
+      cancel.addEventListener('click', function () { p.closeBtn.click(); });
+      p.foot.insertBefore(cancel, p.foot.firstChild);
+    }
+    entry.onInput = function () { entry.dirty = true; };
+    root.addEventListener('input', entry.onInput);
+    root.addEventListener('change', entry.onInput);
+    bindSheetSwipe(entry);
+    openSheets.push(entry);
+  }
+
+  function releaseSheet(entry) {
+    var root = entry.root;
+    root.classList.remove('amn-ps');
+    root.removeEventListener('input', entry.onInput);
+    root.removeEventListener('change', entry.onInput);
+    if (entry.parts.panel) entry.parts.panel.style.translate = '';
+    openSheets = openSheets.filter(function (e) { return e !== entry; });
+  }
+
+  /** Close like the form's own ✕ would, asking first when something was typed. */
+  async function requestSheetClose(entry) {
+    if (entry.dirty && window.CwrUI) {
+      var ok = await window.CwrUI.confirm({
+        title: 'Discard changes?',
+        message: 'What you typed in this form will be lost.',
+        confirmLabel: 'Discard',
+        cancelLabel: 'Keep editing',
+        tone: 'danger'
+      });
+      if (!ok) return;
+    }
+    entry.dirty = false;
+    if (entry.parts.closeBtn) entry.parts.closeBtn.click();
+    else if (entry.parts.overlay) entry.parts.overlay.click();
+  }
+
+  function bindSheetSwipe(entry) {
+    var panel = entry.parts.panel;
+    if (!panel || panel.dataset.amnSwipe) return;
+    panel.dataset.amnSwipe = '1';
+    var startY = 0, dy = 0, dragging = false;
+    panel.addEventListener('touchstart', function (e) {
+      var cur = openSheets.filter(function (x) { return x.parts.panel === panel; })[0];
+      if (!cur || !document.body.classList.contains('amn-on')) return;
+      var t = e.target;
+      // Drag from the handle or header only, never from fields or buttons.
+      if (!t.closest('.amn-ps-grab, .amn-ps-head') || t.closest('button, a, input, select, textarea')) return;
+      dragging = true; startY = e.touches[0].clientY; dy = 0;
+      panel.style.transition = 'none';
+    }, { passive: true });
+    panel.addEventListener('touchmove', function (e) {
+      if (!dragging) return;
+      dy = Math.max(0, e.touches[0].clientY - startY);
+      panel.style.translate = '0 ' + dy + 'px';
+    }, { passive: true });
+    panel.addEventListener('touchend', function () {
+      if (!dragging) return;
+      dragging = false;
+      panel.style.transition = '';
+      panel.style.translate = '';
+      var cur = openSheets.filter(function (x) { return x.parts.panel === panel; })[0];
+      if (dy > 110 && cur) requestSheetClose(cur);
+    });
+  }
+
+  // Tapping the dimmed page above the sheet closes it (asking first when something was
+  // typed). Judged by position, since forms use different overlays (or none that closes).
+  document.addEventListener('click', function (e) {
+    if (!document.body.classList.contains('amn-on') || !openSheets.length) return;
+    var entry = openSheets[openSheets.length - 1];
+    var panel = entry.parts.panel;
+    if (!panel || panel.contains(e.target)) return;
+    // Confirm dialogs, toasts and menus opened on top of the sheet are not "outside".
+    if (e.target.closest && e.target.closest('[data-layer="confirm"], [data-layer="modal-raised"], .cwr-toast, .amn-sheet')) return;
+    var top = panel.getBoundingClientRect().top;
+    if (e.clientY >= top) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    requestSheetClose(entry);
+  }, true);
+
+  function syncSheets() {
+    var phone = document.body.classList.contains('amn-on');
+    SHEET_FAMILIES.forEach(function (fam) {
+      document.querySelectorAll(fam.root).forEach(function (root) {
+        var entry = openSheets.filter(function (x) { return x.root === root; })[0];
+        var panel = fam.self ? root : root.querySelector(fam.panel);
+        var shown = phone && isShown(root, panel);
+        if (shown && !entry) enhanceSheet(root, fam);
+        else if (!shown && entry) releaseSheet(entry);
+      });
+    });
+  }
+
+  var sheetScheduled = false;
+  var sheetLateTimer = null;
+  function scheduleSheets() {
+    // Forms that fade in are still transparent on the next frame: check again after.
+    clearTimeout(sheetLateTimer);
+    sheetLateTimer = setTimeout(syncSheets, 420);
+    if (sheetScheduled) return;
+    sheetScheduled = true;
+    requestAnimationFrame(function () { sheetScheduled = false; syncSheets(); });
+  }
+
+  // Forms open by changing class / style / hidden / aria-hidden on their root (or panel).
+  new MutationObserver(function (records) {
+    for (var i = 0; i < records.length; i++) {
+      var t = records[i].target;
+      if (t === document.body || (t.nodeType === 1 && (familyFor(t) || (t.parentElement && familyFor(t.parentElement))))) {
+        scheduleSheets();
+        return;
+      }
+    }
+  }).observe(document.body, { attributes: true, attributeFilter: ['class', 'style', 'hidden', 'aria-hidden'], subtree: true });
+  // Drawers built in code (email compose) are appended straight to <body>.
+  new MutationObserver(scheduleSheets).observe(document.body, { childList: true });
+  document.addEventListener('DOMContentLoaded', scheduleSheets);
+
+  window.CWR_ADMIN_MOBILE_NAV = { GROUPS: GROUPS, ADD_ACTIONS: ADD_ACTIONS, groupOf: groupOf, sync: scheduleSync, syncSheets: scheduleSheets };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
