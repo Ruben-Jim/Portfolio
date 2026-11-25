@@ -1238,3 +1238,77 @@ exports.inquiryToLead = onRequest(PUBLIC_JSON, jsonEndpoint(async (body, req) =>
   }
   return convertConversationToLead(admin.database(), body.conversationId, Date.now());
 }));
+
+/* ---------------------------------------------------------------------------
+   Template kit store (functions/kit-store.js): custom checkout on /kits/<kit>,
+   Stripe as the processor, automatic GitHub invite after payment.
+   Secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, GITHUB_KIT_TOKEN.
+   --------------------------------------------------------------------------- */
+const Stripe = require("stripe");
+const kitStore = require("./kit-store");
+const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
+const stripeWebhookSecret = defineSecret("STRIPE_WEBHOOK_SECRET");
+const githubKitToken = defineSecret("GITHUB_KIT_TOKEN");
+
+exports.createKitCheckout = onRequest(
+  Object.assign({}, PUBLIC_JSON, { secrets: [stripeSecretKey, githubKitToken] }),
+  jsonEndpoint((body) => kitStore.createCheckout({
+    stripe: new Stripe(stripeSecretKey.value()),
+    fetch,
+    githubToken: githubKitToken.value(),
+  }, body))
+);
+
+exports.stripeKitWebhook = onRequest(
+  {
+    region: "us-central1",
+    invoker: "public",
+    secrets: [stripeSecretKey, stripeWebhookSecret, githubKitToken, resendApiKey],
+    memory: "256MiB",
+    timeoutSeconds: 60,
+  },
+  async (req, res) => {
+    if (req.method !== "POST") { res.status(405).send("Method not allowed"); return; }
+    const stripe = new Stripe(stripeSecretKey.value());
+    let event;
+    try {
+      event = stripe.webhooks.constructEvent(req.rawBody, req.get("stripe-signature"), stripeWebhookSecret.value());
+    } catch (err) {
+      console.warn("stripe webhook signature rejected", err && err.message);
+      res.status(400).send("Bad signature");
+      return;
+    }
+    try {
+      const resend = new Resend(resendApiKey.value());
+      const from = resolveResendFrom(resendFrom.value());
+      const status = await kitStore.handleStripeEvent({
+        db: admin.database(),
+        fetch,
+        githubToken: githubKitToken.value(),
+        now: Date.now(),
+        sendEmail: async (m) => {
+          const { error } = await resend.emails.send({ from, to: m.to, subject: m.subject, html: m.html, text: m.text, replyTo: RESEND_REPLY_TO });
+          if (error) throw new Error(error.message || "resend error");
+        },
+        notify: async (order) => {
+          await pushToAdmin(kitStore.saleNotice(order));
+          const to = notifyToEmail.value().trim();
+          if (to) {
+            await resend.emails.send({
+              from,
+              to,
+              subject: (order.invited ? "Kit sold: " : "Kit sold, INVITE FAILED: ") + order.kitName + " · @" + order.github,
+              text: "Order " + order.id + "\nBuyer: " + order.email + "\nGitHub: @" + order.github + "\nRepo: " + order.repo +
+                (order.invited ? "\nInvite sent." : "\nAdd them by hand: https://github.com/" + order.repo + "/settings/access"),
+            });
+          }
+        },
+      }, event);
+      console.log("stripe kit webhook", event.type, event.id, status);
+      res.status(200).json({ received: true });
+    } catch (err) {
+      console.error("stripe kit webhook failed", event.type, event.id, err);
+      res.status(500).send("Webhook handler failed");
+    }
+  }
+);

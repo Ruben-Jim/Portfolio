@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Courses Kit Pro — Expo course &amp; coaching platform template | CodeWithRuben</title>
+  <meta name="description" content="A complete course and membership platform UI for iOS, Android and web from one Expo codebase: editorial site, lesson player, members area and owner dashboard. Frontend only, TypeScript, NativeWind." />
+  <link rel="canonical" href="https://rubenjimenez.dev/kits/courses" />
+  <meta property="og:type" content="product" />
+  <meta property="og:url" content="https://rubenjimenez.dev/kits/courses" />
+  <meta property="og:site_name" content="CodeWithRuben" />
+  <meta property="og:title" content="Courses Kit Pro — Expo course platform template" />
+  <meta property="og:description" content="23 screens: editorial site, lesson player, members area and owner dashboard. iOS, Android and web from one codebase." />
+  <meta property="og:image" content="https://rubenjimenez.dev/assets/images/kits/courses/home.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07090e;
+      --panel: #0e1118;
+      --line: rgba(255, 255, 255, 0.09);
+      --text: #f4f7fb;
+      --muted: #9aa3b2;
+      --gold: hsl(45, 54%, 58%);
+      --gold-soft: hsla(45, 54%, 58%, 0.12);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Poppins, system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+    a { color: inherit; }
+    img { max-width: 100%; height: auto; display: block; }
+    .wrap { width: 100%; max-width: 1160px; margin: 0 auto; padding: 0 20px; }
+
+    /* Nav */
+    .nav { position: sticky; top: 0; z-index: 10; background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+    .nav .wrap { display: flex; align-items: center; justify-content: space-between; min-height: 64px; gap: 16px; }
+    .brand { font-weight: 700; text-decoration: none; letter-spacing: -0.01em; }
+    .brand span { color: var(--gold); }
+    .nav-links { display: flex; gap: 22px; align-items: center; font-size: 14px; }
+    .nav-links a { text-decoration: none; color: var(--muted); }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a.btn-gold, .nav-links a.btn-gold:hover { color: #12100a; }
+    @media (max-width: 720px) { .nav-links .hide-sm { display: none; } }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 999px; font: 600 15px Poppins, sans-serif; text-decoration: none; cursor: pointer; border: 1px solid transparent; transition: transform .15s ease, background .15s ease; }
+    .btn:active { transform: scale(0.98); }
+    .btn-gold { background: var(--gold); color: #12100a; }
+    .btn-gold:hover { background: hsl(45, 60%, 64%); }
+    .btn-ghost { border-color: var(--line); color: var(--text); background: rgba(255,255,255,0.03); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.07); }
+    .btn-sm { min-height: 40px; padding: 0 16px; font-size: 14px; }
+
+    /* Hero */
+    .hero { padding-top: 72px; padding-bottom: 40px; text-align: center; }
+    .eyebrow { display: inline-flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); background: var(--gold-soft); border: 1px solid hsla(45,54%,58%,.25); padding: 6px 14px; border-radius: 999px; }
+    h1 { font-size: clamp(36px, 6vw, 64px); line-height: 1.05; letter-spacing: -0.03em; margin: 22px auto 18px; max-width: 900px; font-weight: 800; }
+    h1 em { font-style: normal; color: var(--gold); }
+    .lead { color: var(--muted); font-size: clamp(16px, 2vw, 19px); max-width: 680px; margin: 0 auto; }
+    .price-row { display: flex; align-items: baseline; justify-content: center; gap: 12px; margin: 28px 0 6px; }
+    .price { font-size: 44px; font-weight: 800; letter-spacing: -0.02em; }
+    .price-old { color: var(--muted); text-decoration: line-through; font-size: 20px; }
+    .price-note { color: var(--gold); font-size: 13px; font-weight: 600; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 22px; }
+    .fine { color: var(--muted); font-size: 13px; margin-top: 14px; }
+    .fine a { color: var(--gold); }
+
+    /* Showcase */
+    .showcase { position: relative; margin: 48px auto 0; max-width: 1060px; }
+    .browser { border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); background: var(--panel); box-shadow: 0 40px 120px rgba(0,0,0,.55); }
+    .browser-bar { height: 34px; display: flex; align-items: center; gap: 6px; padding: 0 14px; border-bottom: 1px solid var(--line); }
+    .browser-bar i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.14); display: block; }
+    .phone { position: absolute; right: -18px; bottom: -40px; width: 22%; min-width: 150px; border-radius: 28px; overflow: hidden; border: 6px solid #1a1d26; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+    @media (max-width: 720px) { .phone { right: 6px; bottom: -28px; width: 34%; border-width: 4px; border-radius: 20px; } }
+
+    /* Sections */
+    section { padding: 88px 0 0; }
+    .section-head { max-width: 720px; margin-bottom: 36px; }
+    h2 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; letter-spacing: -0.02em; margin: 12px 0 12px; font-weight: 700; }
+    .section-head p { color: var(--muted); margin: 0; }
+    .label { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    @media (max-width: 900px) { .grid3 { grid-template-columns: 1fr; } }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+    .card img { border-bottom: 1px solid var(--line); aspect-ratio: 16 / 10; object-fit: cover; object-position: top; width: 100%; }
+    .card-body { padding: 20px 22px 24px; }
+    .card h3 { margin: 0 0 10px; font-size: 19px; }
+    .card ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14.5px; }
+    .card li { margin: 4px 0; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip { border: 1px solid var(--line); background: rgba(255,255,255,.03); border-radius: 999px; padding: 8px 14px; font-size: 14px; }
+    .chip b { color: var(--gold); font-weight: 600; }
+
+    /* Compare */
+    .compare { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; font-size: 15px; }
+    .compare th, .compare td { padding: 14px 18px; border-bottom: 1px solid var(--line); text-align: left; }
+    .compare th:not(:first-child), .compare td:not(:first-child) { text-align: center; width: 120px; }
+    .compare thead th { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+    .compare thead th.pro { color: var(--gold); }
+    .compare tr:last-child td { border-bottom: 0; }
+    .yes { color: var(--gold); font-weight: 700; }
+    .no { color: rgba(255,255,255,.2); }
+    .compare-cta td { padding: 18px; }
+
+    /* Steps */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; counter-reset: s; }
+    @media (max-width: 900px) { .steps { grid-template-columns: 1fr; } }
+    .step { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+    .step::before { counter-increment: s; content: counter(s, decimal-leading-zero); display: block; color: var(--gold); font-weight: 800; font-size: 26px; margin-bottom: 8px; }
+    .step h3 { margin: 0 0 6px; font-size: 17px; }
+    .step p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+
+    /* Checkout */
+    .checkout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px; background: var(--panel); border: 1px solid hsla(45,54%,58%,.25); border-radius: 24px; padding: 28px; }
+    @media (max-width: 900px) { .checkout { grid-template-columns: 1fr; padding: 20px; } }
+    .summary h3 { margin: 0 0 6px; font-size: 22px; }
+    .summary .total { display: flex; justify-content: space-between; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 14px; font-weight: 700; font-size: 18px; }
+    .summary ul { color: var(--muted); font-size: 14.5px; padding-left: 18px; margin: 12px 0 0; }
+    .field { display: grid; gap: 6px; margin-bottom: 14px; }
+    .field label { font-size: 14px; font-weight: 600; }
+    .field small { color: var(--muted); font-size: 12.5px; }
+    .field input { font: 500 16px Poppins, sans-serif; color: var(--text); background: #0b0d13; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 12px 14px; min-height: 48px; }
+    .field input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px hsla(45,54%,58%,.18); }
+    #payment-element { margin: 4px 0 18px; min-height: 120px; }
+    .pay-btn { width: 100%; }
+    .pay-btn[disabled] { opacity: .6; cursor: progress; }
+    .form-error { color: #ff8a80; font-size: 14px; min-height: 20px; margin: 10px 0 0; }
+    .secure { color: var(--muted); font-size: 12.5px; text-align: center; margin: 12px 0 0; }
+    .test-banner { background: #3a2f0b; color: #ffdb6e; border-radius: 10px; padding: 8px 12px; font-size: 13px; margin-bottom: 14px; }
+    .checkout-closed { color: var(--muted); }
+
+    /* FAQ */
+    .faq details { border-bottom: 1px solid var(--line); padding: 18px 0; }
+    .faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; color: var(--gold); font-size: 22px; line-height: 1; }
+    .faq details[open] summary::after { content: "–"; }
+    .faq p { color: var(--muted); margin: 10px 0 0; max-width: 760px; }
+
+    /* Final CTA */
+    .final { margin: 96px 0 0; padding: 56px 28px; text-align: center; border-radius: 28px; background: linear-gradient(180deg, var(--gold-soft), rgba(255,255,255,.02)); border: 1px solid hsla(45,54%,58%,.25); }
+    .final h2 { margin-top: 0; }
+    .final p { color: var(--muted); max-width: 560px; margin: 0 auto; }
+    footer { padding: 56px 0 40px; color: var(--muted); font-size: 14px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 16px 28px; justify-content: space-between; align-items: center; border-top: 1px solid var(--line); padding-top: 24px; }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+    footer nav { display: flex; flex-wrap: wrap; gap: 18px; }
+
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn { transition: none; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/">CodeWith<span>Ruben</span></a>
+      <nav class="nav-links" aria-label="Page">
+        <a class="hide-sm" href="#inside">What's inside</a>
+        <a class="hide-sm" href="#compare">Lite vs Pro</a>
+        <a class="hide-sm" href="#faq">FAQ</a>
+        <a class="btn btn-gold btn-sm" href="#checkout" data-buy>Buy now</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero wrap" id="buy">
+      <span class="eyebrow">Expo template · iOS · Android · Web</span>
+      <h1>Launch a course platform <em>without starting from zero.</em></h1>
+      <p class="lead">Courses Kit Pro is the complete frontend for a course or coaching business: an editorial website, lesson player, members area and owner dashboard, all from one Expo codebase.</p>
+
+      <div class="price-row">
+        <span class="price" data-price></span>
+        <span class="price-old" data-price-old></span>
+      </div>
+      <div class="price-note" data-price-note></div>
+
+      <div class="cta-row">
+        <a class="btn btn-gold" href="#checkout" data-buy>Buy Courses Kit Pro</a>
+        <a class="btn btn-ghost" href="https://courses.expo.app" target="_blank" rel="noopener">View live demo ↗</a>
+      </div>
+      <p class="fine">One-time payment · Source code delivered on GitHub · Free updates · <a href="#lite">Try the free Lite version</a></p>
+
+      <div class="showcase">
+        <div class="browser">
+          <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i></div>
+          <img src="/assets/images/kits/courses/home.webp" width="1200" height="750" alt="Courses Kit home page: full-width cooking video hero with the headline 'Learn to cook real food at home, at your own pace'" />
+        </div>
+        <img class="phone" src="/assets/images/kits/courses/phone-home.webp" width="390" height="844" alt="The same home page on a phone" loading="lazy" />
+      </div>
+    </div>
+
+    <section id="inside">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">What's inside</span>
+          <h2>23 screens, three experiences.</h2>
+          <p>Everything a course business needs on the front end, designed to look editorial and modern, not like another generic dashboard.</p>
+        </div>
+        <div class="grid3">
+          <article class="card">
+            <img src="/assets/images/kits/courses/course.webp" width="1200" height="750" alt="Course page with a large title, summary and video" loading="lazy" />
+            <div class="card-body">
+              <h3>Public website</h3>
+              <ul>
+                <li>Video hero home page, manifesto, testimonials, FAQ</li>
+                <li>Course catalog and curriculum pages</li>
+                <li>Free sample lesson and paywall sheet</li>
+                <li>Membership plans, join flow and waitlist</li>
+                <li>Link-in-bio page for Instagram and TikTok</li>
+              </ul>
+            </div>
+          </article>
+          <article class="card">
+            <img src="/assets/images/kits/courses/members.webp" width="1200" height="750" alt="Members dashboard showing this week's lesson, progress and the next live session" loading="lazy" />
+            <div class="card-body">
+              <h3>Members area</h3>
+              <ul>
+                <li>Weekly dashboard with progress</li>
+                <li>Lesson player with downloads and checkmarks</li>
+                <li>Weekly drip: lessons unlock over time</li>
+                <li>Live Q&amp;A schedule (Zoom or Meet links)</li>
+                <li>Account and billing screen</li>
+              </ul>
+            </div>
+          </article>
+          <article class="card">
+            <img src="/assets/images/kits/courses/admin.webp" width="1200" height="750" alt="Owner dashboard listing lessons with week, course and published status" loading="lazy" />
+            <div class="card-body">
+              <h3>Owner dashboard</h3>
+              <ul>
+                <li>Overview with members, waitlist and next session</li>
+                <li>Lesson editor with upload progress UI</li>
+                <li>Members list and live session editor</li>
+                <li>Waitlist inbox</li>
+                <li>Owner push alerts (native)</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">Built with</span>
+          <h2>A modern stack you'll actually enjoy editing.</h2>
+          <p>Every backend call lives in one folder, <code>src/services/</code>, with sample data behind it. Swap in Firebase, Supabase or your own API without touching a single screen.</p>
+        </div>
+        <div class="chips">
+          <span class="chip"><b>Expo</b> + Expo Router</span>
+          <span class="chip"><b>TypeScript</b></span>
+          <span class="chip"><b>NativeWind</b> (Tailwind)</span>
+          <span class="chip"><b>Zustand</b></span>
+          <span class="chip">English + Spanish built in</span>
+          <span class="chip">4 niche presets: cooking, fitness, tutoring, music</span>
+          <span class="chip">Feature tiers in one file</span>
+          <span class="chip">Static web export + SEO</span>
+          <span class="chip">Phone, tablet and desktop layouts</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="compare">
+      <div class="wrap">
+        <div class="section-head" id="lite">
+          <span class="label">Lite vs Pro</span>
+          <h2>Start free. Upgrade when you need the platform.</h2>
+          <p>Courses Kit Lite is free and open source on GitHub. Pro adds everything behind the paywall.</p>
+        </div>
+        <table class="compare">
+          <thead>
+            <tr><th scope="col">Feature</th><th scope="col">Lite</th><th scope="col" class="pro">Pro</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Editorial home page with video hero</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>Course catalog and course pages</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>English / Spanish toggle</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>Waitlist form</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>Membership plans and join flow</td><td class="no">—</td><td class="yes">✓</td></tr>
+            <tr><td>Free sample lesson and paywall</td><td class="no">—</td><td class="yes">✓</td></tr>
+            <tr><td>Members area: lessons, player, downloads, progress, live Q&amp;A</td><td class="no">—</td><td class="yes">✓</td></tr>
+            <tr><td>Owner dashboard: lessons, members, sessions, waitlist</td><td class="no">—</td><td class="yes">✓</td></tr>
+            <tr><td>Niche presets and feature tiers</td><td class="no">—</td><td class="yes">✓</td></tr>
+            <tr><td>License</td><td>MIT</td><td>1 product</td></tr>
+            <tr class="compare-cta">
+              <td></td>
+              <td><a class="btn btn-ghost btn-sm" href="https://github.com/Ruben-Jim/courses-kit-lite" target="_blank" rel="noopener">Get Lite</a></td>
+              <td><a class="btn btn-gold btn-sm" href="#checkout" data-buy>Get Pro</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">How it works</span>
+          <h2>From checkout to running locally in minutes.</h2>
+        </div>
+        <div class="steps">
+          <div class="step"><h3>Buy securely</h3><p>Pay right here with card, Apple Pay or Google Pay. Enter your GitHub username at checkout.</p></div>
+          <div class="step"><h3>Get repo access</h3><p>You're invited to the private Courses Kit Pro repository automatically, with future updates included.</p></div>
+          <div class="step"><h3>Run it</h3><p><code>npm install</code> then <code>npx expo start</code>. Rebrand everything from one config file.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="checkout">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="label">Checkout</span>
+          <h2>Get Courses Kit Pro</h2>
+        </div>
+        <div class="checkout">
+          <div class="summary">
+            <h3>Courses Kit Pro</h3>
+            <div class="label" data-price-note></div>
+            <ul>
+              <li>Full source code, all 23 screens</li>
+              <li>Private GitHub repo with future updates</li>
+              <li>License for one end product</li>
+            </ul>
+            <div class="total"><span>Total</span><span data-price-total></span></div>
+          </div>
+          <form id="kit-form" novalidate>
+            <div class="test-banner" data-test-banner hidden>Test mode: use card 4242 4242 4242 4242, any future date, any CVC.</div>
+            <div class="field">
+              <label for="kit-email">Email</label>
+              <input id="kit-email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com" />
+              <small>Your receipt and access link go here.</small>
+            </div>
+            <div class="field">
+              <label for="kit-github">GitHub username</label>
+              <input id="kit-github" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="your-github-username" />
+              <small>We'll invite this account to the private repository right after payment.</small>
+            </div>
+            <div id="payment-element"></div>
+            <button class="btn btn-gold pay-btn" type="submit" data-pay>Pay</button>
+            <p class="form-error" role="alert" data-error></p>
+            <p class="secure">🔒 Payments are processed securely by Stripe. Your card details never touch our servers.</p>
+          </form>
+          <p class="checkout-closed" data-closed hidden>Checkout opens soon. <a href="/contact?topic=courses-kit" style="color:var(--gold)">Message me</a> to get it now.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="wrap faq">
+        <div class="section-head">
+          <span class="label">FAQ</span>
+          <h2>Questions</h2>
+        </div>
+        <details>
+          <summary>Does it include a backend?</summary>
+          <p>No. Courses Kit Pro is frontend only and runs on sample data, so you can choose your own backend. All data calls live in <code>src/services/</code> with notes on what to connect: auth, courses, progress, payments, video storage and push notifications.</p>
+        </details>
+        <details>
+          <summary>Does it work on iPhone, Android and the web?</summary>
+          <p>Yes. It's one Expo codebase that runs as a website and as native iOS and Android apps, with layouts for phones, tablets and desktops.</p>
+        </details>
+        <details>
+          <summary>Can I use it for a client project?</summary>
+          <p>Yes. One purchase covers one end product: one website and its companion apps, for yourself or one client. Buy another license for each additional product.</p>
+        </details>
+        <details>
+          <summary>What do I need to know to use it?</summary>
+          <p>Basic React Native or React experience. If you can run <code>npx expo start</code> and edit a TypeScript file, you can rebrand it.</p>
+        </details>
+        <details>
+          <summary>Can you set it up for me?</summary>
+          <p>Yes. CodeWithRuben can connect the backend, payments and video hosting and release your apps to the stores. <a href="/contact">Get in touch</a>.</p>
+        </details>
+        <details>
+          <summary>Refunds?</summary>
+          <p>Please try the <a href="https://courses.expo.app" target="_blank" rel="noopener">live demo</a> and the free Lite version before buying. See the <a href="/refund">refund policy</a>.</p>
+        </details>
+      </div>
+    </section>
+
+    <div class="wrap">
+      <div class="final">
+        <h2>Ship your course platform this week.</h2>
+        <p>Skip months of UI work. Start from a design that already looks finished.</p>
+        <div class="cta-row">
+          <a class="btn btn-gold" href="#checkout" data-buy>Buy Courses Kit Pro</a>
+          <a class="btn btn-ghost" href="https://buymeacoffee.com/codewithruben" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© <span data-year></span> CodeWithRuben · Fresno, CA</span>
+      <nav aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/contact">Contact</a>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/refund">Refunds</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    /*
+     * Courses Kit sales settings. Edit these, nothing else.
+     *   stripePublishableKey: pk_test_… while testing, pk_live_… for launch. Publishable keys are
+     *                         meant to be public. NEVER put the secret key (sk_…) here.
+     *                         Empty = checkout shows "opens soon".
+     *   price: must match the amount in functions/kit-store.js (that one is what's charged).
+     */
+    var KIT = {
+      id: 'courses',
+      stripePublishableKey: '',
+      price: 39,
+      regularPrice: 49,
+      priceNote: 'Launch price',
+      functionsBase: 'https://us-central1-portfolio-2578e.cloudfunctions.net'
+    };
+
+    (function () {
+      var onSale = KIT.regularPrice && KIT.regularPrice > KIT.price;
+      var $ = function (s) { return document.querySelector(s); };
+      $('[data-price]').textContent = '$' + KIT.price;
+      $('[data-price-old]').textContent = onSale ? '$' + KIT.regularPrice : '';
+      document.querySelectorAll('[data-price-note]').forEach(function (el) { el.textContent = onSale ? KIT.priceNote : ''; });
+      $('[data-price-total]').textContent = '$' + KIT.price + ' USD';
+      $('[data-pay]').textContent = 'Pay $' + KIT.price;
+      $('[data-year]').textContent = new Date().getFullYear();
+
+      var form = $('#kit-form');
+      if (!KIT.stripePublishableKey || typeof Stripe === 'undefined') {
+        form.hidden = true;
+        $('[data-closed]').hidden = false;
+        return;
+      }
+      if (KIT.stripePublishableKey.indexOf('pk_test_') === 0) $('[data-test-banner]').hidden = false;
+
+      var stripe = Stripe(KIT.stripePublishableKey);
+      var elements = stripe.elements({
+        mode: 'payment',
+        amount: KIT.price * 100,
+        currency: 'usd',
+        fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap' }],
+        appearance: {
+          theme: 'night',
+          variables: {
+            colorPrimary: '#cfae55',
+            colorBackground: '#0b0d13',
+            colorText: '#f4f7fb',
+            fontFamily: 'Poppins, system-ui, sans-serif',
+            borderRadius: '12px'
+          }
+        }
+      });
+      elements.create('payment', { layout: 'tabs' }).mount('#payment-element');
+
+      var btn = $('[data-pay]');
+      var errEl = $('[data-error]');
+      var GH = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/;
+      function fail(msg) { errEl.textContent = msg; btn.disabled = false; btn.textContent = 'Pay $' + KIT.price; }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        errEl.textContent = '';
+        var email = $('#kit-email').value.trim();
+        var github = $('#kit-github').value.trim().replace(/^@/, '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('Enter a valid email address.');
+        if (!GH.test(github)) return fail('Enter a valid GitHub username.');
+        btn.disabled = true;
+        btn.textContent = 'Processing…';
+
+        var submitted = await elements.submit();
+        if (submitted.error) return fail(submitted.error.message);
+
+        var data;
+        try {
+          var res = await fetch(KIT.functionsBase + '/createKitCheckout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kit: KIT.id, email: email, github: github })
+          });
+          data = await res.json();
+        } catch (err) {
+          return fail('Network problem. Check your connection and try again.');
+        }
+        if (!data || !data.ok) return fail((data && data.error) || 'Something went wrong. Try again.');
+
+        var result = await stripe.confirmPayment({
+          elements: elements,
+          clientSecret: data.clientSecret,
+          confirmParams: {
+            return_url: location.origin + '/kits/thanks?kit=' + encodeURIComponent(KIT.id),
+            receipt_email: email
+          }
+        });
+        // Only reached when the payment fails right away (otherwise Stripe redirects to return_url).
+        if (result.error) fail(result.error.message);
+      });
+    })();
+  </script>
+</body>
+</html>

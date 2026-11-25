@@ -3221,10 +3221,6 @@
     var bits = [];
     if (expired) bits.push('The week reset ' + fmt(reset, { weekday: 'short', month: 'short', day: 'numeric' }) + '; run the command again for a fresh number');
     else if (reset) bits.push('Resets ' + fmt(reset, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }));
-    var five = limits.fiveHour;
-    if (!expired && five && isFinite(Number(five.usedPct)) && (!five.resetsAt || five.resetsAt > Date.now())) {
-      bits.push('5-hour window ' + Math.max(0, Math.round(100 - Number(five.usedPct))) + '% left');
-    }
     if (limits.savedAt) bits.push('as of ' + fmt(limits.savedAt, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }));
     var meta = document.getElementById('claude-usage-plan-meta');
     if (meta) meta.textContent = bits.join(' · ');

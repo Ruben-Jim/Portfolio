@@ -27,6 +27,7 @@ const PUBLIC = [
   'get.html',
   'linktree.html',
   'link-in-bio.html',
+  'kits',                // template kit sales pages (kits/courses.html)
   'testimonial.html',
   'admin.webmanifest',   // home-screen admin app (added on /admin only)
   'admin-sw.js',         // admin push notifications; must sit at the root

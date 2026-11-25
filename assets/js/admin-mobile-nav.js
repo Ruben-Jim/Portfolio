@@ -154,6 +154,13 @@
     if (state.built) return;
     state.built = true;
 
+    // Phone top bar: solid black behind the clock and battery with a thin gold line, so
+    // content scrolling up disappears cleanly instead of blurring under the clock.
+    els.top = document.createElement('div');
+    els.top.className = 'amn-topbar';
+    els.top.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(els.top);
+
     els.dock = document.createElement('nav');
     els.dock.className = 'amn-dock';
     els.dock.id = 'amn-dock';

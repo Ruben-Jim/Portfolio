@@ -34495,3 +34495,12 @@ body.amn-on #prospects-add.amn-ps .amn-ps-body { padding-bottom: calc(20px + env
 @keyframes amnSpin { to { rotate: 360deg; } }
 body:not(.amn-on) .amn-ptr { display: none; }
 @media (prefers-reduced-motion: reduce) { .amn-bar, .amn-ptr { transition: none; } .amn-ptr.is-loading ion-icon { animation: none; } }
+
+/* Phone top bar (admin-mobile-nav.js): solid black behind the status bar + gold hairline.
+   Height = the status bar's safe area (0 in Safari, where only the line shows). */
+.amn-topbar {
+  position: fixed; inset: 0 0 auto; z-index: calc(var(--z-drawer, 10000) - 12);
+  height: env(safe-area-inset-top, 0px); background: #050505;
+  border-bottom: 1px solid hsla(45, 100%, 72%, 0.45); pointer-events: none;
+}
+body:not(.amn-on) .amn-topbar { display: none; }
