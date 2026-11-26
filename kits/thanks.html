@@ -21,6 +21,10 @@
     .btn-gold { background: var(--gold); color: #12100a; }
     .btn-ghost { border: 1px solid var(--line); color: var(--text); margin-left: 8px; }
   </style>
+  <!-- Test mode: admin only (kits-gate.js). These three load first so the page hides before it paints. -->
+  <script src="/assets/js/config.js?v=reviews-tab-20261020"></script>
+  <script src="/assets/js/kits-catalog.js?v=gate1-20261125"></script>
+  <script src="/assets/js/kits-gate.js?v=gate1-20261125"></script>
 </head>
 <body>
   <main class="card" aria-live="polite">
@@ -32,13 +36,12 @@
 
   <script src="https://js.stripe.com/v3/"></script>
   <script>
-    /* Same publishable key as kits/courses.html (pk_test_… / pk_live_…). */
-    var STRIPE_PUBLISHABLE_KEY = '';
-    var KIT_PAGES = { courses: { name: 'Courses Kit Pro', page: '/kits/courses' } };
+    // Kit names, pages and the publishable key come from assets/js/kits-catalog.js.
+    var STRIPE_PUBLISHABLE_KEY = window.CWR_KITS.stripePublishableKey;
 
     (function () {
       var q = new URLSearchParams(location.search);
-      var kit = KIT_PAGES[q.get('kit')] || KIT_PAGES.courses;
+      var kit = window.CWR_KITS.get(q.get('kit')) || { name: 'your kit', page: '/' };
       var $ = function (s) { return document.querySelector(s); };
       function show(icon, title, body, actionsHtml) {
         $('[data-icon]').textContent = icon;
@@ -47,7 +50,7 @@
         $('[data-actions]').innerHTML = actionsHtml || '';
       }
       var home = '<a class="btn btn-ghost" href="/">Home</a>';
-      var retry = '<a class="btn btn-gold" href="' + kit.page + '#checkout">Try again</a>';
+      var retry = '<a class="btn btn-gold" href="/kits/checkout?kit=' + encodeURIComponent(q.get('kit') || '') + '">Try again</a>';
 
       var secret = q.get('payment_intent_client_secret');
       if (!secret || !STRIPE_PUBLISHABLE_KEY || typeof Stripe === 'undefined') {

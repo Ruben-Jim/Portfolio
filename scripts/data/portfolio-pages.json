@@ -1,0 +1,174 @@
+{
+  "note": "Written by npm run sync-projects. Do not edit.",
+  "pages": [
+    {
+      "slug": "courses-platform",
+      "id": "-P6TkBLgIJikFHjmO1u5",
+      "title": "Courses Platform",
+      "description": "Your own online school: sell memberships, post weekly video lessons and run live Q&A from one website and app.\n\n· For teachers, coaches and instructors who teach a following on Instagram or TikTok\n· Visitors browse courses, watch a free sample class, pick a plan and pay online\n· Members sign in to this week's lessons, videos, downloadable lists and plans, and live class links\n· Progress follows members from website to iPhone to Android\n· Full English and Spanish, with a switch at the top\n· Joining works inside Instagram's and TikTok's browsers, with no account needed first\n· Smaller packages show a waitlist form instead of checkout",
+      "outcome": "· Live demo: Cocina Viva, a made-up bilingual cooking school\n· Every feature works in the demo, with sample content and \"Try as a member / Try as the owner\" logins\n· Payments, video storage and emails get connected for each client\n· Can be reworded for fitness, tutoring or music with one switch\n· Coming soon: live chat on the site",
+      "bestFor": [
+        "Cooking classes and chefs",
+        "Nutrition and meal-prep coaches",
+        "Fitness coaches and personal trainers",
+        "Tutors and test prep",
+        "Music teachers",
+        "Life and business coaches",
+        "Online course creators",
+        "Creators with an Instagram or TikTok following"
+      ],
+      "image": "/assets/images/projects/cocinaviva/cocinaviva-demo-poster.webp",
+      "imageAlt": ""
+    },
+    {
+      "slug": "photographer-platform",
+      "id": "-P3FLs76y9C9XSg8Q8uy",
+      "title": "Photographer Platform",
+      "description": "Bilingual site for photography studios — clients browse the gallery, compare packages, and book a session with a deposit.\n\n· Owner side: client list, job pipeline (inquiry → delivered), invoices, and messages\n· Gallery by session type: weddings, quinceañeras, portraits, events, real estate, commercial\n· Packages and pricing with the retainer that holds each date\n· Step-by-step booking that takes a deposit\n· Client portal: session status (booked → shoot → editing → delivered), balance due, and contract\n· English and Spanish pages at their own URLs, so both rank in search\n· Web, iOS, and Android from one codebase",
+      "outcome": "· Ready: gallery, packages, deposit booking, and client portal\n· Card deposits (Stripe) wired per client",
+      "bestFor": [
+        "Wedding and quinceañera photographers",
+        "Portrait and event studios",
+        "Bilingual English/Spanish markets",
+        "Photographers who want booked sessions with a deposit, not DMs"
+      ],
+      "image": "/assets/images/projects/photographer-template/photographer-demo-poster.webp",
+      "imageAlt": "Photographer Booking Platform demo"
+    },
+    {
+      "slug": "trade-services-platform",
+      "id": "-OrulKwzlqcone7R3Srz",
+      "title": "Trade Services Platform",
+      "description": "White-label website and back office for trade businesses (cleaning, roofing, pressure wash, etc.)—customers book online; the team runs jobs in one place.\n\n· Customers: services, quotes, booking, online pay, messaging, order lookup by email\n· Owners: one dashboard for leads, schedule, jobs, billing, customer history\n· Crew: today’s jobs and status updates without full admin access\n· Recurring visits, payment links, gallery + reviews, post-job photo/review page",
+      "outcome": "· Production-ready trade-services platform (forked from a live field-service build)\n· Quote → schedule → get paid without spreadsheets and text threads\n· Web for customers and office; optional mobile for crews",
+      "bestFor": [
+        "Any crew-dispatched service business",
+        "Schedule jobs and assign crews",
+        "Send custom estimates and invoices",
+        "Edit pricing and services yourself",
+        "Track every service per customer",
+        "Tap to pay on site — no card reader",
+        "Start here, then add what your business needs"
+      ],
+      "image": "/assets/images/projects/roofcleaning/roofcleaning-demo-poster.webp",
+      "imageAlt": "Trade Services Platform — roof cleaning demo"
+    },
+    {
+      "slug": "realtor-and-insurance-platform",
+      "id": "-OtGqcjOtfQRLNwtneZG",
+      "title": "Realtor & Insurance Platform",
+      "description": "· Dual-licensed agents: homes + life/burial insurance\n· Prospects submit quotes online with qualifying answers\n· Clients log in for policies, deals, docs, and messages\n· English & Spanish across site and portal\n· One brand: public site, client app, owner dashboard",
+      "outcome": "· Ready: leads, portal, renewals alerts, bilingual emails",
+      "bestFor": [
+        "Real estate agents",
+        "Life & burial insurance brokers",
+        "Dual-licensed agents",
+        "Bilingual English/Spanish markets",
+        "Local agents who want a real portal, not link-in-bio"
+      ],
+      "image": "/assets/images/projects/realtor-template/video-home-poster.webp",
+      "imageAlt": ""
+    },
+    {
+      "slug": "restaurant-ordering-platform",
+      "id": "-P3FLs7535FfbzpmUv4z",
+      "title": "Restaurant Ordering Platform",
+      "description": "Branded ordering site for restaurants, cafés, and food trucks — customers browse the menu, order for pickup, and track it live; the kitchen runs every order from one board.\n\n· Menu with categories, photos, add-ons, sold-out items, and search\n· Cart with tip selector and desktop split checkout\n· Live order tracking: received → preparing → ready → completed\n· About, hours with an open/closed banner, and find-my-order pages\n· Event and announcement banners you change yourself\n· Light and dark theme on desktop, tablet, and phone",
+      "outcome": "· Ready: menu, pickup ordering, live tracking, and kitchen board on one live database\n· Card payments (Stripe) wired per client",
+      "bestFor": [
+        "Any business selling from a daily menu",
+        "Take orders without third-party fees",
+        "Live order tracking for customers",
+        "Tap to pay for counter and curbside",
+        "Start here, then add what your business needs"
+      ],
+      "image": "/assets/images/projects/restaurant-template/restaurant-demo-poster.webp",
+      "imageAlt": "Restaurant Ordering Platform demo"
+    },
+    {
+      "slug": "lawnscaper-platform",
+      "id": "-OstNVjgmqTjcSto5TSH",
+      "title": "Lawnscaper Platform",
+      "description": "A production-ready lawn care platform for Lawn Care web app: customers request quotes, book recurring service, and manage subscriptions from a mobile-first web app. The owner dashboard is the operations hub for reviewing quotes, scheduling crews, seasonal add-ons, and subscription billing. Built to reduce back-and-forth over text messages and keep routes organized week to week.",
+      "outcome": "Delivered a live-ready foundation with customer booking, quote intake, and an admin operations hub the owner can run day to day without switching tools.",
+      "bestFor": [
+        "Any route-based recurring service",
+        "Book recurring routes, not one-offs",
+        "Price seasonal add-ons up front",
+        "Send custom estimates and invoices",
+        "Tap to pay on site — no card reader",
+        "Start here, then add what your business needs"
+      ],
+      "image": "/assets/images/projects/lawncare/lawncare-demo-poster.webp",
+      "imageAlt": "Lawn Care customer app and admin dashboard screenshots"
+    },
+    {
+      "slug": "chair-and-studio-platform",
+      "id": "-OrulKx-hoZB8BZ1x3dC",
+      "title": "Chair & Studio Platform",
+      "description": "Booking and back office for salons and studios.\n· Clients pick a service, a stylist, and an open time\n· Deposits hold each appointment (Growth package)\n· Clients message the salon from the app\n· Owner dashboard: appointments, availability, services, client list\n· Each stylist sees their own day",
+      "outcome": "",
+      "bestFor": [
+        "Any appointment-based business",
+        "Online booking and availability control",
+        "Automated confirmations and reminders",
+        "Reminders that cut no-shows",
+        "Tap to pay at checkout",
+        "Start here, then add what your business needs"
+      ],
+      "image": "/assets/images/projects/rosasalon/rosasalon-1.webp",
+      "imageAlt": "Rosa's Beauty Salon"
+    },
+    {
+      "slug": "homeverse",
+      "id": "-OrulKx-hoZB8BZ1x3dF",
+      "title": "Homeverse",
+      "description": "An elegant real estate website featuring property showcases, virtual tours, and seamless user experience.",
+      "outcome": "",
+      "bestFor": [
+        "Any business selling by listing",
+        "Showcase with virtual tours",
+        "Presentation-grade detail pages",
+        "Capture leads from every listing",
+        "Start here, then add what your business needs"
+      ],
+      "image": "/assets/images/projects/homeverse/homeverse-1.webp",
+      "imageAlt": "Homeverse"
+    },
+    {
+      "slug": "zoom-realty",
+      "id": "-OrulKx-hoZB8BZ1x3dD",
+      "title": "Zoom Realty",
+      "description": "A modern real estate website with property listings, search functionality, and agent profiles. Responsive design optimized for all devices.",
+      "outcome": "",
+      "bestFor": [
+        "Any business selling by listing",
+        "Listings with fast filtering and search",
+        "Profiles that build trust",
+        "Capture leads from every listing",
+        "Start here, then add what your business needs"
+      ],
+      "image": "/assets/images/projects/zoomrealty/zoomrealty-1.webp",
+      "imageAlt": "Zoom Realty"
+    },
+    {
+      "slug": "aimnshootrecords",
+      "id": "-OrulKx-hoZB8BZ1x3d7",
+      "title": "Aimnshootrecords",
+      "description": "An Expo + Firebase e-commerce app for Grippy Socks with a soccer-themed storefront, single-page shop + cart flow, and admin order management at /admin. MVP checkout is Cash on Delivery, with Stripe card payments prepared for later activation.",
+      "outcome": "Live production demo with real-time order handling (Realtime Database), Firestore product support, and a scalable checkout foundation ready for Stripe enablement.",
+      "bestFor": [
+        "Any creator turning an audience into a brand",
+        "Sell drops straight to your followers",
+        "No marketplace cut, no storefront fee",
+        "Built for team, club, and athlete merch",
+        "Limited runs and restocks you control",
+        "Orders, stock, and fulfillment in one place",
+        "Cash on delivery, tap to pay-ready",
+        "Start here, then add what your business needs"
+      ],
+      "image": "/assets/images/projects/grippysocks/grippysocks-1.webp",
+      "imageAlt": "Grippy Socks App"
+    }
+  ]
+}

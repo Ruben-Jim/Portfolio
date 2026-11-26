@@ -2,6 +2,22 @@
   "cleanUrls": false,
   "rewrites": [
     {
+      "source": "/kits",
+      "destination": "/kits/index.html"
+    },
+    {
+      "source": "/kits/thanks",
+      "destination": "/kits/thanks.html"
+    },
+    {
+      "source": "/kits/checkout",
+      "destination": "/kits/checkout.html"
+    },
+    {
+      "source": "/kits/courses",
+      "destination": "/kits/courses.html"
+    },
+    {
       "source": "/portal/**",
       "destination": "/portal.html"
     },

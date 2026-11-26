@@ -19,6 +19,7 @@
  * 7. Guide PDFs: every client guide in assets/docs/projects/ has a PDF built
  *    from its current text and screenshots (scripts/build-guide-pdfs.mjs).
  */
+import { projectPageFiles } from './lib/project-pages.mjs';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -68,6 +69,19 @@ for (const shell of shells) {
   if (!html.includes('data-marquee-ready="1"')) fail(`shell missing pre-rendered marquee: ${shell}`);
 }
 if (shells.length < 19) fail(`expected 19 route shells, found ${shells.length}`);
+
+// Project pages (portfolio/<slug>/): same cache-busters as the shell. Rebuilt by `npm run sync`.
+const projectPages = projectPageFiles(ROOT);
+for (const page of projectPages) {
+  const have = versions(readFileSync(join(ROOT, page), 'utf8'));
+  const missing = [...want].filter((v) => !have.has(v));
+  if (missing.length) fail(`project page out of sync: ${page} (missing ${missing.slice(0, 3).join(', ')}) — run npm run sync`);
+}
+// Admin edits not yet in the page files: a warning only (visitors see live data; Google lags).
+{
+  const r = spawnSync(process.execPath, [join(ROOT, 'scripts/sync-projects.mjs'), '--check'], { cwd: ROOT, encoding: 'utf8' });
+  if (r.status === 2) console.warn((r.stdout || '').trim().replace(/^/gm, '! preflight: '));
+}
 
 // 3. Tests -----------------------------------------------------------------
 for (const name of readdirSync(join(ROOT, 'scripts')).filter((n) => /^test-.*\.mjs$/.test(n))) {
@@ -126,4 +140,4 @@ if (failures.length) {
   console.error('\nPush blocked. Fix the above, or push with --no-verify if you must.\n');
   process.exit(1);
 }
-console.log(`✓ preflight: JS syntax, ${shells.length} shells in sync, tests, no secrets, no browser popups, ${pricesNote}, guide PDFs current`);
+console.log(`✓ preflight: JS syntax, ${shells.length} shells + ${projectPages.length} project pages in sync, tests, no secrets, no browser popups, ${pricesNote}, guide PDFs current`);

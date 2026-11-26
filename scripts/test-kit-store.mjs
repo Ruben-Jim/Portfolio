@@ -35,11 +35,13 @@ function fakeDb() {
       return {
         async transaction(fn) {
           const next = fn(data[path] || null);
-          if (next === undefined) return { committed: false };
+          const snapshot = { val: () => (data[path] === undefined ? null : data[path]) };
+          if (next === undefined) return { committed: false, snapshot };
           data[path] = next;
-          return { committed: true };
+          return { committed: true, snapshot };
         },
         async update(patch) { data[path] = Object.assign({}, data[path], patch); },
+        async once() { return { val: () => (data[path] === undefined ? null : data[path]) }; },
       };
     },
   };
@@ -113,6 +115,37 @@ ok((await K.handleStripeEvent(deps4, event({ id: 'pi_5' }))).startsWith('invite_
 
 const html = K.buyerEmail({ id: 'pi_x', kitName: 'Courses Kit Pro', repo: 'a/b', github: '<script>', email: 'x@y.z', amount: 3900, invited: true }).html;
 ok(!html.includes('<script>') && html.includes('$39'), 'buyer email escapes input and shows the price');
+
+// --- rate limit -------------------------------------------------------------
+const dbR = fakeDb();
+const created5 = [];
+const stripe5 = { paymentIntents: { create: async (p) => { created5.push(p); return { client_secret: 's' }; } } };
+const fetch5 = fakeFetch({ 'GET /users/octocat': { status: 200, json: { login: 'octocat' } } }, []);
+const depsR = (now, ip) => ({ stripe: stripe5, fetch: fetch5, githubToken: 't', db: dbR, ip, now });
+for (let i = 0; i < 5; i++) await K.createCheckout(depsR(1000 + i, '1.2.3.4'), { kit: 'courses', email: 'r@b.co', github: 'octocat' });
+ok(created5.length === 5, '5 checkouts in 10 minutes are allowed');
+await rejects(K.createCheckout(depsR(2000, '1.2.3.4'), { kit: 'courses', email: 'r@b.co', github: 'octocat' }), 429, '6th checkout from the same visitor is blocked');
+ok(created5.length === 5, 'a blocked checkout never reaches Stripe');
+await K.createCheckout(depsR(1000 + 10 * 60 * 1000, '1.2.3.4'), { kit: 'courses', email: 'r@b.co', github: 'octocat' });
+ok(created5.length === 6, 'the visitor can try again after 10 minutes');
+ok(!Object.keys(dbR.data).some((k) => k.includes('1.2.3.4') || k.includes('r@b.co')), 'IP and email are stored hashed');
+for (let i = 0; i < 4; i++) await K.createCheckout(depsR(5000 + i, '9.9.9.' + i), { kit: 'courses', email: 'r@b.co', github: 'octocat' });
+await rejects(K.createCheckout(depsR(6000, '8.8.8.8'), { kit: 'courses', email: 'r@b.co', github: 'octocat' }), 429, '11th checkout for one email in a day is blocked');
+
+// --- retryInvite --------------------------------------------------------------
+const dbX = fakeDb();
+dbX.data['kitOrders/pi_retry1'] = { kit: 'courses', github: 'Octocat', email: 'buyer@example.com', amount: 3900, status: 'invite_failed' };
+const emailsX = [];
+const callsX = [];
+const depsX = { db: dbX, githubToken: 't', now: 9, sendEmail: async (m) => emailsX.push(m),
+  fetch: fakeFetch({ 'PUT /repos/Ruben-Jim/courses-kit-pro/collaborators/Octocat': { status: 201, json: {} } }, callsX) };
+const rx = await K.retryInvite(depsX, 'pi_retry1');
+ok(rx.status === 'invited' && dbX.data['kitOrders/pi_retry1'].status === 'invited', 'retry turns a failed invite into invited');
+ok(emailsX.length === 1 && emailsX[0].html.includes('/invitations'), 'retry emails the buyer the invite link');
+await K.retryInvite(depsX, 'pi_retry1');
+ok(callsX.length === 1 && emailsX.length === 1, 'retrying an invited order does nothing');
+await rejects(K.retryInvite(depsX, 'pi_missing1'), 404, 'retry on a missing order');
+await rejects(K.retryInvite(depsX, '../evil'), 400, 'retry rejects a bad order id');
 
 if (failures) { console.log(`\n✗ ${failures} kit store check(s) failed`); process.exit(1); }
 console.log('\n✓ kit store');

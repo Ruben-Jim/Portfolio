@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkout | CodeWithRuben</title>
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07090e; --panel: #0e1118; --line: rgba(255,255,255,.09); --text: #f4f7fb; --muted: #9aa3b2;
+      --gold: hsl(45, 54%, 58%); --gold-soft: hsla(45, 54%, 58%, .12);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Poppins, system-ui, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6;
+      background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px); background-size: 22px 22px; }
+    a { color: inherit; }
+    img { max-width: 100%; height: auto; display: block; }
+    .nav { border-bottom: 1px solid var(--line); }
+    .wrap { width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+    .nav .wrap { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { font-weight: 700; text-decoration: none; }
+    .brand span { color: var(--gold); }
+    .back { color: var(--muted); text-decoration: none; font-size: 14px; }
+    .back:hover { color: var(--text); }
+    main { padding: 48px 0 72px; }
+    h1 { font-size: clamp(28px, 4vw, 38px); letter-spacing: -0.02em; margin: 0 0 24px; }
+    .checkout { display: grid; grid-template-columns: 1fr 1.15fr; gap: 28px; background: var(--panel); border: 1px solid hsla(45,54%,58%,.25); border-radius: 24px; padding: 28px; }
+    @media (max-width: 860px) { .checkout { grid-template-columns: 1fr; padding: 20px; } }
+    .summary img { border-radius: 14px; border: 1px solid var(--line); margin-bottom: 18px; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; width: 100%; }
+    .summary h2 { margin: 0; font-size: 22px; }
+    .tagline { color: var(--muted); margin: 4px 0 0; font-size: 14.5px; }
+    .note { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); margin-top: 10px; }
+    .summary ul { color: var(--muted); font-size: 14.5px; padding-left: 18px; margin: 14px 0 0; }
+    .total { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 14px; font-weight: 700; font-size: 18px; }
+    .total s { color: var(--muted); font-weight: 500; font-size: 14px; margin-right: 8px; }
+    .field { display: grid; gap: 6px; margin-bottom: 14px; }
+    .field label { font-size: 14px; font-weight: 600; }
+    .field small { color: var(--muted); font-size: 12.5px; }
+    .field input { font: 500 16px Poppins, sans-serif; color: var(--text); background: #0b0d13; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 12px 14px; min-height: 48px; }
+    .field input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px hsla(45,54%,58%,.18); }
+    #payment-element { margin: 4px 0 18px; min-height: 120px; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 22px; border-radius: 999px; font: 600 16px Poppins, sans-serif; border: 0; cursor: pointer; text-decoration: none; }
+    .btn-gold { background: var(--gold); color: #12100a; width: 100%; }
+    .btn-gold:hover { background: hsl(45, 60%, 64%); }
+    .btn[disabled] { opacity: .6; cursor: progress; }
+    .form-error { color: #ff8a80; font-size: 14px; min-height: 20px; margin: 10px 0 0; }
+    .secure { color: var(--muted); font-size: 12.5px; text-align: center; margin: 12px 0 0; }
+    .test-banner { background: #3a2f0b; color: #ffdb6e; border-radius: 10px; padding: 8px 12px; font-size: 13px; margin-bottom: 14px; }
+    .closed { color: var(--muted); }
+    .closed a { color: var(--gold); }
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+  </style>
+  <!-- Test mode: admin only (kits-gate.js). These three load first so the page hides before it paints. -->
+  <script src="/assets/js/config.js?v=reviews-tab-20261020"></script>
+  <script src="/assets/js/kits-catalog.js?v=gate1-20261125"></script>
+  <script src="/assets/js/kits-gate.js?v=gate1-20261125"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/">CodeWith<span>Ruben</span></a>
+      <a class="back" href="/" data-back>← Back</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>Checkout</h1>
+
+    <div class="checkout" data-checkout hidden>
+      <div class="summary">
+        <img data-kit-image alt="" width="1200" height="750" />
+        <h2 data-kit-name></h2>
+        <p class="tagline" data-kit-tagline></p>
+        <div class="note" data-kit-note></div>
+        <ul data-kit-includes></ul>
+        <div class="total"><span>Total</span><span><s data-kit-old></s><span data-kit-total></span></span></div>
+      </div>
+
+      <div>
+        <form id="kit-form" novalidate hidden>
+          <div class="test-banner" data-test-banner hidden>Test mode: use card 4242 4242 4242 4242, any future date, any CVC.</div>
+          <div class="field">
+            <label for="kit-email">Email</label>
+            <input id="kit-email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com" />
+            <small>Your receipt and access link go here.</small>
+          </div>
+          <div class="field">
+            <label for="kit-github">GitHub username</label>
+            <input id="kit-github" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="your-github-username" />
+            <small>We'll invite this account to the private repository right after payment.</small>
+          </div>
+          <div id="payment-element"></div>
+          <button class="btn btn-gold" type="submit" data-pay>Pay</button>
+          <p class="form-error" role="alert" data-error></p>
+          <p class="secure">🔒 Payments are processed securely by Stripe. Your card details never touch our servers.</p>
+        </form>
+        <p class="closed" data-closed hidden>Checkout opens soon. <a href="/contact">Message me</a> to get it now.</p>
+      </div>
+    </div>
+
+    <p class="closed" data-unknown hidden>We couldn't find that kit. <a href="/">Go home</a> or <a href="/contact">message me</a>.</p>
+  </main>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    (function () {
+      var $ = function (s) { return document.querySelector(s); };
+      var C = window.CWR_KITS;
+      var kitId = new URLSearchParams(location.search).get('kit') || '';
+      var kit = C && C.get(kitId);
+      if (!kit) { $('[data-unknown]').hidden = false; return; }
+
+      // Summary
+      document.title = 'Checkout · ' + kit.name + ' | CodeWithRuben';
+      $('[data-back]').setAttribute('href', kit.page);
+      $('[data-back]').textContent = '← Back to ' + kit.name;
+      var img = $('[data-kit-image]');
+      if (kit.image) { img.src = kit.image; img.alt = kit.name; } else { img.remove(); }
+      $('[data-kit-name]').textContent = kit.name;
+      $('[data-kit-tagline]').textContent = kit.tagline || '';
+      var onSale = kit.regularPrice && kit.regularPrice > kit.price;
+      $('[data-kit-note]').textContent = onSale ? kit.priceNote : '';
+      $('[data-kit-old]').textContent = onSale ? '$' + kit.regularPrice : '';
+      $('[data-kit-total]').textContent = '$' + kit.price + ' USD';
+      var ul = $('[data-kit-includes]');
+      (kit.includes || []).forEach(function (t) { var li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+      $('[data-checkout]').hidden = false;
+
+      // Payment form
+      if (!C.stripePublishableKey || typeof Stripe === 'undefined') { $('[data-closed]').hidden = false; return; }
+      var form = $('#kit-form');
+      form.hidden = false;
+      if (C.stripePublishableKey.indexOf('pk_test_') === 0) $('[data-test-banner]').hidden = false;
+
+      var btn = $('[data-pay]');
+      var errEl = $('[data-error]');
+      var payLabel = 'Pay $' + kit.price;
+      btn.textContent = payLabel;
+
+      var stripe = Stripe(C.stripePublishableKey);
+      var elements = stripe.elements({
+        mode: 'payment',
+        amount: kit.price * 100,
+        currency: 'usd',
+        fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap' }],
+        appearance: {
+          theme: 'night',
+          variables: { colorPrimary: '#cfae55', colorBackground: '#0b0d13', colorText: '#f4f7fb', fontFamily: 'Poppins, system-ui, sans-serif', borderRadius: '12px' }
+        }
+      });
+      elements.create('payment', { layout: 'tabs' }).mount('#payment-element');
+
+      var GH = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/;
+      function fail(msg) { errEl.textContent = msg; btn.disabled = false; btn.textContent = payLabel; }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        errEl.textContent = '';
+        var email = $('#kit-email').value.trim();
+        var github = $('#kit-github').value.trim().replace(/^@/, '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('Enter a valid email address.');
+        if (!GH.test(github)) return fail('Enter a valid GitHub username.');
+        btn.disabled = true;
+        btn.textContent = 'Processing…';
+
+        var submitted = await elements.submit();
+        if (submitted.error) return fail(submitted.error.message);
+
+        var data;
+        try {
+          var res = await fetch(C.functionsBase + '/createKitCheckout', {
+            method: 'POST',
+            headers: Object.assign({ 'Content-Type': 'application/json' },
+              // Test mode: the server only takes the signed-in admin (kits-gate.js).
+              window.CWR_KITS_ADMIN_TOKEN ? { Authorization: 'Bearer ' + (await window.CWR_KITS_ADMIN_TOKEN()) } : {}),
+            body: JSON.stringify({ kit: kitId, email: email, github: github })
+          });
+          data = await res.json();
+        } catch (err) {
+          return fail('Network problem. Check your connection and try again.');
+        }
+        if (!data || !data.ok) return fail((data && data.error) || 'Something went wrong. Try again.');
+
+        var result = await stripe.confirmPayment({
+          elements: elements,
+          clientSecret: data.clientSecret,
+          confirmParams: {
+            return_url: location.origin + '/kits/thanks?kit=' + encodeURIComponent(kitId),
+            receipt_email: email
+          }
+        });
+        // Only reached when the payment fails right away (otherwise Stripe redirects to return_url).
+        if (result.error) fail(result.error.message);
+      });
+    })();
+  </script>
+</body>
+</html>

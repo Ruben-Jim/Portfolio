@@ -1093,7 +1093,71 @@
     return out;
   }
 
+  // ── Project pages: /portfolio/<slug> ──────────────────────────────────────
+  // One list, shared by the site (script.js) and the page builder
+  // (scripts/sync-projects.mjs), so both always agree on every URL.
+
+  /** "Rizo’s Pizzería Ajijic" → "rizos-pizzeria-ajijic". */
+  function projectSlug(title) {
+    var s = String(title || '').toLowerCase();
+    if (s.normalize) s = s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+    s = s.replace(/['’‘`]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    if (s.length > 60) s = s.slice(0, 60).replace(/-[^-]*$/, '') || s.slice(0, 60);
+    return s || 'project';
+  }
+
+  function orderNum(p) {
+    var n = p && p.order != null && p.order !== '' ? Number(String(p.order).trim()) : 0;
+    return isFinite(n) ? n : 0;
+  }
+
+  /**
+   * The projects that get their own page, in grid order, each with a unique slug:
+   * public, and not a build shown inside its starter template's card (those open
+   * on their platform's page). `all` = every project record, private ones too.
+   * Returns [{ id, slug, record }].
+   */
+  function projectPages(all) {
+    var list = Array.isArray(all) ? all.filter(Boolean) : [];
+    var byId = {};
+    list.forEach(function (p) { if (p.id != null) byId[String(p.id)] = p; });
+    var pages = list.filter(function (p) {
+      if (String(p.visibility || 'public').toLowerCase() === 'private') return false;
+      var platform = p.builtFromTemplateId ? byId[String(p.builtFromTemplateId)] : null;
+      return !(platform && platform.isTemplate === true);
+    });
+    pages.sort(function (a, b) {
+      var d = orderNum(a) - orderNum(b);
+      return d || String(a.id || '').localeCompare(String(b.id || ''));
+    });
+    var used = {};
+    return pages.map(function (p) {
+      var base = projectSlug(p.slug || p.title);
+      var slug = base;
+      for (var n = 2; used[slug]; n++) slug = base + '-' + n;
+      used[slug] = true;
+      return { id: String(p.id), slug: slug, record: p };
+    });
+  }
+
+  /** The page a project opens on: its own, or its platform's for a build inside a template card. */
+  function projectPageFor(all, id) {
+    var pages = projectPages(all);
+    var key = String(id || '');
+    var hit = pages.filter(function (x) { return x.id === key; })[0];
+    if (hit) return { page: hit, buildId: '' };
+    var rec = (all || []).filter(function (p) { return p && String(p.id) === key; })[0];
+    if (rec && rec.builtFromTemplateId) {
+      var plat = pages.filter(function (x) { return x.id === String(rec.builtFromTemplateId); })[0];
+      if (plat) return { page: plat, buildId: key };
+    }
+    return null;
+  }
+
   global.PortfolioDetailShared = {
+    projectSlug: projectSlug,
+    projectPages: projectPages,
+    projectPageFor: projectPageFor,
     textBlocks: textBlocks,
     normalizePortfolioDetailRecord: normalizePortfolioDetailRecord,
     parseDetailSections: parseDetailSections,

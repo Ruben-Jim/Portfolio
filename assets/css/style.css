@@ -34504,3 +34504,392 @@ body:not(.amn-on) .amn-ptr { display: none; }
   border-bottom: 1px solid hsla(45, 100%, 72%, 0.45); pointer-events: none;
 }
 body:not(.amn-on) .amn-topbar { display: none; }
+
+/* Kit sales in Studio Costs (agency-tools.js renderKitSales). */
+.kit-sales { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--jet); display: grid; gap: 12px; }
+.kit-sales .studio-costs-summary { margin: 0; }
+.kit-sales #kit-sales-net.is-negative { color: hsl(4, 80%, 70%); }
+.kit-sales-empty { margin: 0; color: var(--light-gray-70); font-size: var(--fs-7); }
+.kit-sales-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.kit-sale {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px;
+  padding: 12px 14px; border: 1px solid var(--jet); border-radius: 14px; background: var(--eerie-black-1);
+}
+.kit-sale-main { display: grid; gap: 2px; min-width: 0; flex: 1 1 220px; }
+.kit-sale-name { font-weight: var(--fw-600); color: var(--white-2); }
+.kit-sale-who { font-size: var(--fs-8); color: var(--light-gray); overflow-wrap: anywhere; }
+.kit-sale-who a { color: var(--orange-yellow-crayola); }
+.kit-sale-when { font-size: 12px; color: var(--light-gray-70); }
+.kit-sale-side { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.kit-sale-amount { font-weight: var(--fw-600); color: var(--white-2); font-variant-numeric: tabular-nums; }
+.kit-sale-chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: var(--fw-600); border: 1px solid transparent; }
+.kit-sale-chip--ok { color: hsl(145, 55%, 62%); background: hsla(145, 55%, 50%, 0.12); }
+.kit-sale-chip--bad { color: hsl(4, 80%, 72%); background: hsla(4, 80%, 60%, 0.14); }
+.kit-sale-chip--wait { color: var(--orange-yellow-crayola); background: hsla(45, 100%, 72%, 0.12); }
+.kit-sale-chip--test { color: var(--light-gray-70); border-color: var(--jet); font-weight: var(--fw-500); }
+
+/* ── Project page (/portfolio/<slug>/): the popup's contents shown as a page inside the
+   Portfolio section (script.js openPortfolioProjectPage). Case-study layout: title, buttons,
+   big slideshow, then the details (two columns on wide screens), then previous / next. ── */
+article.portfolio.is-project-page > header,
+article.portfolio.is-project-page > .projects { display: none !important; }
+.project-page { display: grid; gap: 22px; }
+.project-page[hidden] { display: none !important; }
+.project-page-back {
+  display: inline-flex; align-items: center; gap: 6px; justify-self: start; min-height: 40px;
+  color: var(--light-gray-70); font-size: var(--fs-7); text-decoration: none;
+}
+.project-page-back:hover, .project-page-back:focus-visible { color: var(--orange-yellow-crayola); }
+.project-page-head { display: grid; gap: 4px; }
+.project-page-eyebrow { font-size: 12px; font-weight: var(--fw-600); letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange-yellow-crayola); }
+.project-page-title { margin: 0; text-wrap: balance; }
+
+#portfolio-project-page .project-detail-content.is-page {
+  position: static !important; z-index: auto; width: auto !important; max-width: none !important;
+  height: auto !important; max-height: none !important; min-height: 0 !important;
+  display: flex !important; flex-direction: column; gap: 22px;
+  background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  overflow: visible !important; animation: none !important; transform: none !important; transition: none !important;
+}
+#portfolio-project-page .is-page .project-detail-sheet-grab,
+#portfolio-project-page .is-page .project-detail-close,
+#portfolio-project-page .is-page .project-detail-meta .project-detail-title { display: none !important; }
+#portfolio-project-page .is-page .project-detail-meta:not(:has(.project-detail-client-chip:not([hidden]))) { display: none; }
+/* Buttons first, under the title. */
+#portfolio-project-page .is-page .project-detail-actions {
+  order: -1; position: static !important; display: flex !important; flex-wrap: wrap; gap: 12px;
+  padding: 0 !important; margin: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important;
+}
+#portfolio-project-page .is-page .project-detail-actions .project-detail-btn { flex: 0 1 auto; min-width: 180px; }
+#portfolio-project-page .is-page .project-detail-pane {
+  display: grid !important; gap: 24px; overflow: visible !important; height: auto !important; max-height: none !important; padding: 0 !important;
+}
+/* Big slideshow. */
+#portfolio-project-page .is-page .project-detail-showcase {
+  display: flex !important; flex-direction: column; gap: 12px; padding: 0 !important; align-items: stretch !important;
+}
+#portfolio-project-page .is-page .project-detail-media {
+  height: auto !important; padding: clamp(12px, 3vw, 28px) !important; border: 1px solid var(--jet) !important; border-radius: 18px;
+}
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel { height: auto !important; max-height: none !important; }
+#portfolio-project-page .is-page .project-detail-media img,
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide img,
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide video { max-height: min(72vh, 640px); }
+#portfolio-project-page .is-page .project-detail-variant-tabs { position: static !important; }
+/* Details. */
+#portfolio-project-page .is-page .project-detail-scroll {
+  overflow: visible !important; height: auto !important; max-height: none !important; padding: 0 !important;
+  display: grid; gap: 26px;
+}
+@media (min-width: 1024px) {
+  #portfolio-project-page .is-page .project-detail-scroll { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 36px; align-items: start; }
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-meta,
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-builds-line,
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-variant-blurb,
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-included-section,
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-canvas-doc,
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-built-with,
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-extra-sections { grid-column: 1 / -1; }
+}
+#portfolio-project-page .is-page .project-detail-section { margin: 0 !important; }
+@media (max-width: 580px) {
+  #portfolio-project-page .is-page .project-detail-actions .project-detail-btn { flex: 1 1 0; min-width: 0; }
+}
+/* Previous / next. */
+.project-page-nav { display: flex; justify-content: space-between; gap: 16px; padding-top: 20px; border-top: 1px solid var(--jet); }
+.project-page-nav[hidden] { display: none !important; }
+.project-page-nav-link { display: grid; gap: 2px; min-width: 0; color: var(--white-2); text-decoration: none; }
+.project-page-nav-link--next { text-align: right; margin-left: auto; }
+.project-page-nav-link small { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--light-gray-70); }
+.project-page-nav-link b { font-size: var(--fs-5); font-weight: var(--fw-600); overflow-wrap: anywhere; }
+.project-page-nav-link:hover b, .project-page-nav-link:focus-visible b { color: var(--orange-yellow-crayola); }
+/* Pre-built text (page files, before the live data renders). */
+.project-page-prerender { display: grid; gap: 18px; color: var(--light-gray); }
+.project-page-prerender img { width: 100%; height: auto; border-radius: 18px; border: 1px solid var(--jet); }
+.project-page-prerender h3 { margin: 0 0 6px; font-size: var(--fs-6); color: var(--white-2); }
+.project-page-prerender ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+/* The popup's desktop grid places the slideshow and details in columns: stack them on the page. */
+#portfolio-project-page .is-page .project-detail-pane > .project-detail-showcase,
+#portfolio-project-page .is-page .project-detail-pane > .project-detail-scroll,
+#portfolio-project-page .is-page .project-detail-actions { grid-column: auto !important; grid-row: auto !important; }
+#portfolio-project-page .is-page .project-detail-pane { grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: none !important; }
+/* Wider screens: the popup sized the slideshow from its fixed height; on the page it gets its own. */
+@media (min-width: 901px) {
+  #portfolio-project-page .is-page .project-detail-media .portfolio-carousel {
+    height: clamp(340px, 42vw, 600px) !important; min-height: 0 !important;
+  }
+  #portfolio-project-page .is-page .project-detail-media .portfolio-carousel-track { height: 100%; }
+  #portfolio-project-page .is-page .project-detail-media img,
+  #portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide img,
+  #portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide video { max-height: 100%; }
+}
+
+/* Admin on phones: no outer card. The admin article fills the screen edge to edge
+   (its grey becomes the page), content keeps a 16px gutter. Desktop/tablet unchanged. */
+html.amn-root, body.amn-on { background: var(--eerie-black-2); }
+body.amn-on main:has(article.admin.active), body.amn-on .main-content:has(> article.admin.active) { margin: 0 !important; padding: 0 !important; max-width: none !important; }
+body.amn-on article.admin.active {
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  background: var(--eerie-black-2) !important; margin: 0 !important; min-height: 100dvh;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)) !important;
+}
+
+/* ── Project page, kit style (like /kits/courses) ─────────────────────────────── */
+.project-page-lede { margin: 6px 0 0; max-width: 62ch; color: var(--light-gray); font-size: clamp(15px, 1.6vw, 17px); line-height: 1.6; }
+.project-page-lede[hidden] { display: none; }
+.project-page-label { display: block; font-size: 12px; font-weight: var(--fw-600); letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange-yellow-crayola); }
+.project-page-section-title { margin: 4px 0 14px; color: var(--white-2); }
+
+/* Devices: the slideshow in a browser frame, the phone clip on its bottom-right corner. */
+#portfolio-project-page .is-page .project-detail-media {
+  position: relative; overflow: visible !important; padding: 34px 0 0 !important; margin-bottom: 34px;
+  background: hsl(225, 18%, 7%) !important; border: 1px solid hsla(0, 0%, 100%, 0.1) !important; border-radius: 16px !important;
+  box-shadow: 0 30px 80px hsla(0, 0%, 0%, 0.5);
+}
+#portfolio-project-page .is-page .project-detail-media::before {
+  content: ""; position: absolute; top: 12px; left: 14px; width: 9px; height: 9px; border-radius: 50%;
+  background: hsla(0, 0%, 100%, 0.22); box-shadow: 15px 0 0 hsla(0, 0%, 100%, 0.22), 30px 0 0 hsla(0, 0%, 100%, 0.22);
+}
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel { border-radius: 0 0 15px 15px; overflow: hidden; }
+#portfolio-project-page .is-page .project-detail-media img,
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide img,
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide video {
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important;
+}
+.project-page-phone { display: none; }
+#portfolio-project-page .is-page .project-page-phone {
+  display: block; position: absolute; z-index: 3; right: clamp(-14px, -1.5vw, -6px); bottom: -34px;
+  width: clamp(96px, 21%, 210px); aspect-ratio: 9 / 19.5; overflow: hidden;
+  border: 6px solid hsl(225, 10%, 13%); border-radius: clamp(20px, 3vw, 32px); background: #000;
+  box-shadow: 0 24px 60px hsla(0, 0%, 0%, 0.6), 0 0 0 1px hsla(0, 0%, 100%, 0.08);
+}
+#portfolio-project-page .is-page .project-page-phone[hidden] { display: none; }
+#portfolio-project-page .is-page .project-page-phone video,
+#portfolio-project-page .is-page .project-page-phone img {
+  display: block; width: 100% !important; height: 100% !important; max-height: none !important; object-fit: cover; object-position: top;
+}
+/* Arrows stay clear of the phone. */
+#portfolio-project-page .is-page .portfolio-carousel-next { right: calc(clamp(96px, 21%, 210px) + 4px); }
+
+/* Sections as kit-style cards: screens full width, then Included | Best for, then the rest. */
+#portfolio-project-page .is-page .project-detail-scroll > * { order: 7; }
+#portfolio-project-page .is-page .project-detail-scroll > .project-page-inside { order: 0; }
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-meta,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-builds-line,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-variant-blurb { order: 1; }
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-included-section { order: 2; }
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-bestfor-section { order: 3; }
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-about-section { order: 4; }
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-outcome-section { order: 5; }
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-admin-section { order: 6; }
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-included-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-bestfor-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-about-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-outcome-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-admin-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-canvas-doc,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-built-with,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-extra-sections {
+  padding: 22px !important; border: 1px solid var(--jet); border-radius: 18px;
+  background: linear-gradient(150deg, hsl(240, 2%, 16%) 0%, hsl(240, 2%, 13%) 100%);
+}
+@media (min-width: 1024px) {
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-included-section { grid-column: auto; }
+  #portfolio-project-page .is-page .project-detail-scroll > .project-page-inside,
+  #portfolio-project-page .is-page .project-detail-scroll > .project-detail-admin-section { grid-column: 1 / -1; }
+}
+
+/* What's inside: the screens. */
+.project-page-inside[hidden] { display: none !important; }
+.project-page-screens { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); }
+.project-page-screen {
+  display: grid; gap: 8px; width: 100%; padding: 0; border: 0; background: none; color: var(--light-gray); font: inherit;
+  font-size: var(--fs-8); text-align: left; cursor: zoom-in;
+}
+.project-page-screen img {
+  width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border-radius: 12px;
+  border: 1px solid var(--jet); background: hsl(225, 18%, 7%); transition: border-color 0.15s, transform 0.15s;
+}
+.project-page-screen:hover img, .project-page-screen:focus-visible img { border-color: hsla(45, 100%, 72%, 0.5); transform: translateY(-2px); }
+.project-page-screen:focus-visible { outline: none; }
+@media (prefers-reduced-motion: reduce) { .project-page-screen img { transition: none; } }
+
+/* Big view of one screen. */
+.project-page-viewer { position: fixed; inset: 0; display: grid; place-items: center; padding: 56px 16px 24px; background: hsla(0, 0%, 0%, 0.86); cursor: zoom-out; }
+.project-page-viewer figure { margin: 0; display: grid; gap: 10px; justify-items: center; }
+.project-page-viewer img { max-width: min(1200px, 92vw); max-height: 82vh; border-radius: 12px; cursor: default; }
+.project-page-viewer figcaption { color: var(--light-gray); font-size: var(--fs-7); }
+.project-page-viewer-close {
+  position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: 12px; width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; border: 1px solid hsla(45, 100%, 72%, 0.3); background: hsla(240, 1%, 18%, 0.95);
+  color: var(--orange-yellow-crayola); font-size: 22px; cursor: pointer;
+}
+
+/* Closing call to action. */
+.project-page-cta {
+  display: grid; gap: 10px; justify-items: center; text-align: center; padding: clamp(24px, 4vw, 40px) clamp(16px, 4vw, 40px);
+  border: 1px solid hsla(45, 100%, 72%, 0.25); border-radius: 22px;
+  background: radial-gradient(circle at 50% 0%, hsla(45, 100%, 72%, 0.1), transparent 60%), hsl(240, 2%, 13%);
+}
+#portfolio-project-page:not(:has(.is-page)) .project-page-cta { display: none; }
+.project-page-cta-title { margin: 0; color: var(--white-2); text-wrap: balance; }
+.project-page-cta-text { margin: 0; max-width: 52ch; color: var(--light-gray); }
+.project-page-cta-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 6px; }
+.project-page-cta-actions .project-detail-btn { min-width: 190px; }
+.project-page-cta-actions [hidden] { display: none !important; }
+@media (max-width: 580px) {
+  .project-page-cta-actions { width: 100%; }
+  .project-page-cta-actions .project-detail-btn { flex: 1 1 100%; }
+}
+.project-page-screens > li, .project-page-screen { min-width: 0; }
+.project-page-screen img { display: block; max-width: 100% !important; height: auto !important; max-height: none !important; }
+.project-page-cta-title { text-transform: none !important; }
+.project-page-cta-actions .project-detail-btn { width: auto !important; flex: 0 1 auto; }
+@media (max-width: 580px) { .project-page-cta-actions .project-detail-btn { width: 100% !important; flex: 1 1 100%; } }
+
+/* ── Project page hero = the kit's: one shot filling a browser frame, no slideshow controls.
+   Every screen is in "What's inside" (tap → big view with previous / next). ── */
+#portfolio-project-page .is-page .project-detail-showcase {
+  padding: 0 !important; background: none !important; border: 0 !important; gap: 18px !important;
+}
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel {
+  height: auto !important; aspect-ratio: 16 / 10; min-height: 0 !important; display: block !important;
+}
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel-track {
+  position: absolute; inset: 0; height: auto !important; aspect-ratio: auto !important;
+}
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide { inset: 0 !important; bottom: 0 !important; }
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide img,
+#portfolio-project-page .is-page .project-detail-media .portfolio-carousel-slide video {
+  width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important;
+  margin: 0 !important; object-fit: cover !important; object-position: top center !important;
+}
+#portfolio-project-page .is-page .portfolio-carousel-btn,
+#portfolio-project-page .is-page .portfolio-carousel-dots { display: none !important; }
+/* The phone frame takes the clip's own shape (set from the video in script.js). */
+#portfolio-project-page .is-page .project-page-phone { aspect-ratio: var(--phone-ratio, 9 / 19.5); bottom: -40px; }
+#portfolio-project-page .is-page .project-detail-media { margin-bottom: 40px; }
+/* Big view: previous / next through the screens. */
+.project-page-viewer-nav {
+  position: absolute; top: 50%; translate: 0 -50%; width: 48px; height: 48px; border-radius: 50%;
+  display: grid; place-items: center; border: 1px solid hsla(45, 100%, 72%, 0.3); background: hsla(240, 1%, 18%, 0.95);
+  color: var(--orange-yellow-crayola); font-size: 22px; cursor: pointer;
+}
+.project-page-viewer-nav--prev { left: max(10px, env(safe-area-inset-left, 0px)); }
+.project-page-viewer-nav--next { right: max(10px, env(safe-area-inset-right, 0px)); }
+.project-page-viewer-nav[hidden] { display: none; }
+.project-page-viewer video { max-width: min(1200px, 92vw); max-height: 82vh; border-radius: 12px; }
+@media (max-width: 580px) { .project-page-screens { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; } }
+
+/* What's inside: Desktop row (wide tiles), then On phones row (tall tiles). */
+.project-page-screens-group { display: grid; gap: 10px; }
+.project-page-screens-group + .project-page-screens-group { margin-top: 22px; }
+.project-page-screens-group[hidden] { display: none !important; }
+.project-page-screens-label { display: none; margin: 0; font-size: var(--fs-7); font-weight: var(--fw-600); color: var(--white-2); }
+.project-page-inside.has-both .project-page-screens-label { display: block; }
+.project-page-screens--phone { grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr)); }
+.project-page-screens--phone .project-page-screen img { aspect-ratio: 9 / 19.5; border-radius: 18px; }
+@media (max-width: 580px) { .project-page-screens--phone { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* Sections without cards: gold label, open content, a thin divider above each row. */
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-included-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-bestfor-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-about-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-outcome-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-admin-section,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-canvas-doc,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-built-with,
+#portfolio-project-page .is-page .project-detail-scroll > .project-detail-extra-sections {
+  padding: 22px 0 0 !important; border: 0 !important; border-top: 1px solid var(--jet) !important;
+  border-radius: 0 !important; background: none !important;
+}
+#portfolio-project-page .is-page .project-detail-section-title {
+  display: block; margin: 0 0 12px !important; font-size: 12px !important; font-weight: var(--fw-600) !important;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--orange-yellow-crayola) !important;
+}
+#portfolio-project-page .is-page .project-detail-section-title::after,
+#portfolio-project-page .is-page .project-detail-section-title::before { display: none !important; }
+#portfolio-project-page .is-page .project-detail-scroll { row-gap: 30px; }
+/* A full-page phone screenshot: phone-shaped frame, the page scrolls slowly inside it. */
+#portfolio-project-page .is-page .project-page-phone.is-long-shot img {
+  height: auto !important; object-fit: initial; animation: projectShotScroll var(--shot-time, 24s) ease-in-out 1.5s infinite alternate;
+  animation-play-state: paused;
+}
+#portfolio-project-page .is-page .project-page-phone.is-long-shot.is-moving img { animation-play-state: running; }
+@keyframes projectShotScroll { 0%, 8% { translate: 0 0; } 92%, 100% { translate: 0 calc(-1 * var(--shot-travel, 0%)); } }
+@media (prefers-reduced-motion: reduce) { #portfolio-project-page .is-page .project-page-phone.is-long-shot img { animation: none; } }
+
+/* ── Home hero: browser frame + phone, like the project pages and /kits/courses ──
+   (.cwr-landing-visual.has-frames). The frames show at every width (beside the copy on
+   desktop, under it on phones) in front of the dimmed tile wall. A caption links to the project. */
+.cwr-landing-visual.has-frames {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 46px; overflow: visible;
+}
+.cwr-landing-visual.has-frames .cwr-hero-devices {
+  display: block; position: relative; inset: auto; top: auto; right: auto; transform: none; aspect-ratio: auto;
+  width: min(600px, 100%); padding-right: clamp(10px, 3%, 24px); box-sizing: border-box; pointer-events: none;
+}
+.cwr-hero-browser {
+  position: relative; padding-top: 30px; border: 1px solid hsla(0, 0%, 100%, 0.12); border-radius: 14px;
+  background: hsl(225, 18%, 7%); box-shadow: 0 30px 80px hsla(0, 0%, 0%, 0.55);
+}
+.cwr-hero-browser-bar {
+  position: absolute; top: 11px; left: 13px; width: 8px; height: 8px; border-radius: 50%;
+  background: hsla(0, 0%, 100%, 0.22); box-shadow: 13px 0 0 hsla(0, 0%, 100%, 0.22), 26px 0 0 hsla(0, 0%, 100%, 0.22);
+}
+.cwr-landing-visual.has-frames .cwr-hero-shot { position: relative; overflow: hidden; }
+.cwr-hero-browser .cwr-hero-shot { aspect-ratio: 16 / 10; border-radius: 0 0 13px 13px; background: #111; }
+.cwr-hero-phone {
+  position: absolute; z-index: 2; right: 0; bottom: -34px; width: 25%;
+  border: 5px solid hsl(225, 10%, 13%); border-radius: 26px; overflow: hidden; background: #000;
+  box-shadow: 0 24px 60px hsla(0, 0%, 0%, 0.6), 0 0 0 1px hsla(0, 0%, 100%, 0.08);
+}
+.cwr-hero-phone .cwr-hero-shot { aspect-ratio: 393 / 710; }
+.cwr-landing-visual.has-frames .cwr-hero-shot-img {
+  position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: top center;
+  opacity: 0;
+}
+.cwr-landing-visual.has-frames .cwr-hero-shot-img.is-current { opacity: 1; }
+.cwr-hero-caption {
+  position: relative; z-index: 3; display: inline-flex; align-items: baseline; flex-wrap: wrap; justify-content: center; gap: 4px 10px;
+  color: var(--light-gray); font-size: var(--fs-7); text-decoration: none; text-align: center; pointer-events: auto;
+}
+.cwr-hero-caption-name { color: var(--white-2); font-weight: var(--fw-600); }
+.cwr-hero-caption-cta { color: var(--orange-yellow-crayola); font-weight: var(--fw-600); white-space: nowrap; }
+.cwr-hero-caption:hover .cwr-hero-caption-cta, .cwr-hero-caption:focus-visible .cwr-hero-caption-cta { text-decoration: underline; text-underline-offset: 3px; }
+.cwr-hero-caption:focus-visible { outline: 2px solid var(--orange-yellow-crayola); outline-offset: 4px; border-radius: 6px; }
+
+/* Phones and small tablets: the frames sit under the copy, not behind it. */
+@media (max-width: 959px) {
+  .cwr-landing-visual.has-frames {
+    position: relative; inset: auto; order: 2; z-index: 1; width: 100%; height: auto; min-height: 0; max-height: none;
+    margin: 36px 0 0; pointer-events: auto; gap: 44px;
+  }
+  .cwr-landing-visual.has-frames .cwr-hero-devices { width: min(560px, 100%); }
+  .cwr-hero-phone { width: 27%; border-width: 4px; border-radius: 20px; bottom: -30px; }
+  .cwr-landing-hero-grid:has(.cwr-landing-visual.has-frames) { justify-content: flex-start; padding-top: calc(var(--cwr-landing-nav-offset, 68px) + 12px) !important; overflow: visible; }
+}
+@media (min-width: 960px) {
+  .cwr-landing-visual.has-frames .cwr-hero-devices { width: min(580px, calc(100% - clamp(24px, 4vw, 56px))); margin-right: clamp(24px, 4vw, 56px); }
+}
+.cwr-hero-caption-cta { display: inline-block; }
+.cwr-hero-caption-cta > span { display: inline !important; }
+
+/* The tile wall stays as the hero's background, dimmed behind the frames. */
+.cwr-landing-visual.has-frames .cwr-hero-devices,
+.cwr-landing-visual.has-frames .cwr-hero-caption { z-index: 2; }
+@media (min-width: 960px) {
+  .cwr-landing-visual.has-frames .cwr-landing-visual-stage {
+    position: absolute; z-index: 0; top: 4%; right: 0; margin: 0;
+    width: min(720px, 112%); height: 92%; opacity: 0.3; filter: blur(1.5px) saturate(0.8);
+  }
+}
+@media (max-width: 959px) {
+  /* The wall fills the whole hero (behind the copy and the frames), as before. */
+  .cwr-landing-visual.has-frames { position: static; }
+  .cwr-landing-visual.has-frames .cwr-hero-devices { position: relative; }
+  .cwr-landing-hero-grid:has(.cwr-landing-visual.has-frames) { overflow: hidden; padding-bottom: 56px; }
+  .cwr-landing-visual.has-frames .cwr-landing-visual-stage { z-index: 0; opacity: 0.55; }
+  .cwr-landing-visual.has-frames .cwr-landing-visual-fade { z-index: 1; }
+  .cwr-landing-hero-grid:has(.cwr-landing-visual.has-frames) .cwr-landing-copy { position: relative; z-index: 2; }
+}

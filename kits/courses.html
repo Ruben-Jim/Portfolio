@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <!-- noindex until launch (docs/KIT_STORE.md → Going live) -->
+  <meta name="robots" content="noindex" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Courses Kit Pro — Expo course &amp; coaching platform template | CodeWithRuben</title>
   <meta name="description" content="A complete course and membership platform UI for iOS, Android and web from one Expo codebase: editorial site, lesson player, members area and owner dashboard. Frontend only, TypeScript, NativeWind." />
@@ -61,6 +63,8 @@
     .btn-ghost { border-color: var(--line); color: var(--text); background: rgba(255,255,255,0.03); }
     .btn-ghost:hover { background: rgba(255,255,255,0.07); }
     .btn-sm { min-height: 40px; padding: 0 16px; font-size: 14px; }
+    .btn.is-soon { opacity: 0.55; cursor: default; }
+    [hidden] { display: none !important; }
 
     /* Hero */
     .hero { padding-top: 72px; padding-bottom: 40px; text-align: center; }
@@ -124,25 +128,6 @@
     .step p { margin: 0; color: var(--muted); font-size: 14.5px; }
 
 
-    /* Checkout */
-    .checkout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px; background: var(--panel); border: 1px solid hsla(45,54%,58%,.25); border-radius: 24px; padding: 28px; }
-    @media (max-width: 900px) { .checkout { grid-template-columns: 1fr; padding: 20px; } }
-    .summary h3 { margin: 0 0 6px; font-size: 22px; }
-    .summary .total { display: flex; justify-content: space-between; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 14px; font-weight: 700; font-size: 18px; }
-    .summary ul { color: var(--muted); font-size: 14.5px; padding-left: 18px; margin: 12px 0 0; }
-    .field { display: grid; gap: 6px; margin-bottom: 14px; }
-    .field label { font-size: 14px; font-weight: 600; }
-    .field small { color: var(--muted); font-size: 12.5px; }
-    .field input { font: 500 16px Poppins, sans-serif; color: var(--text); background: #0b0d13; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 12px 14px; min-height: 48px; }
-    .field input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px hsla(45,54%,58%,.18); }
-    #payment-element { margin: 4px 0 18px; min-height: 120px; }
-    .pay-btn { width: 100%; }
-    .pay-btn[disabled] { opacity: .6; cursor: progress; }
-    .form-error { color: #ff8a80; font-size: 14px; min-height: 20px; margin: 10px 0 0; }
-    .secure { color: var(--muted); font-size: 12.5px; text-align: center; margin: 12px 0 0; }
-    .test-banner { background: #3a2f0b; color: #ffdb6e; border-radius: 10px; padding: 8px 12px; font-size: 13px; margin-bottom: 14px; }
-    .checkout-closed { color: var(--muted); }
-
     /* FAQ */
     .faq details { border-bottom: 1px solid var(--line); padding: 18px 0; }
     .faq summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
@@ -164,6 +149,10 @@
     :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .btn { transition: none; } }
   </style>
+  <!-- Test mode: admin only (kits-gate.js). These three load first so the page hides before it paints. -->
+  <script src="/assets/js/config.js?v=reviews-tab-20261020"></script>
+  <script src="/assets/js/kits-catalog.js?v=gate1-20261125"></script>
+  <script src="/assets/js/kits-gate.js?v=gate1-20261125"></script>
 </head>
 <body>
   <header class="nav">
@@ -173,7 +162,7 @@
         <a class="hide-sm" href="#inside">What's inside</a>
         <a class="hide-sm" href="#compare">Lite vs Pro</a>
         <a class="hide-sm" href="#faq">FAQ</a>
-        <a class="btn btn-gold btn-sm" href="#checkout" data-buy>Buy now</a>
+        <a class="btn btn-gold btn-sm" href="/kits/checkout?kit=courses" data-kit-buy>Buy now</a>
       </nav>
     </div>
   </header>
@@ -185,16 +174,16 @@
       <p class="lead">Courses Kit Pro is the complete frontend for a course or coaching business: an editorial website, lesson player, members area and owner dashboard, all from one Expo codebase.</p>
 
       <div class="price-row">
-        <span class="price" data-price></span>
-        <span class="price-old" data-price-old></span>
+        <span class="price" data-kit-price></span>
+        <span class="price-old" data-kit-price-old></span>
       </div>
-      <div class="price-note" data-price-note></div>
+      <div class="price-note" data-kit-price-note></div>
 
       <div class="cta-row">
-        <a class="btn btn-gold" href="#checkout" data-buy>Buy Courses Kit Pro</a>
+        <a class="btn btn-gold" href="/kits/checkout?kit=courses" data-kit-buy>Buy Courses Kit Pro</a>
         <a class="btn btn-ghost" href="https://courses.expo.app" target="_blank" rel="noopener">View live demo ↗</a>
       </div>
-      <p class="fine">One-time payment · Source code delivered on GitHub · Free updates · <a href="#lite">Try the free Lite version</a></p>
+      <p class="fine">One-time payment · Source code delivered on GitHub · Free updates<span data-kit-lite-hint> · <a href="#lite">Try the free Lite version</a></span></p>
 
       <div class="showcase">
         <div class="browser">
@@ -301,8 +290,8 @@
             <tr><td>License</td><td>MIT</td><td>1 product</td></tr>
             <tr class="compare-cta">
               <td></td>
-              <td><a class="btn btn-ghost btn-sm" href="https://github.com/Ruben-Jim/courses-kit-lite" target="_blank" rel="noopener">Get Lite</a></td>
-              <td><a class="btn btn-gold btn-sm" href="#checkout" data-buy>Get Pro</a></td>
+              <td><a class="btn btn-ghost btn-sm" href="https://github.com/Ruben-Jim/courses-kit-lite" target="_blank" rel="noopener" data-kit-lite>Get Lite</a></td>
+              <td><a class="btn btn-gold btn-sm" href="/kits/checkout?kit=courses" data-kit-buy>Get Pro</a></td>
             </tr>
           </tbody>
         </table>
@@ -316,48 +305,9 @@
           <h2>From checkout to running locally in minutes.</h2>
         </div>
         <div class="steps">
-          <div class="step"><h3>Buy securely</h3><p>Pay right here with card, Apple Pay or Google Pay. Enter your GitHub username at checkout.</p></div>
+          <div class="step"><h3>Buy securely</h3><p>Pay on our secure checkout with card, Apple Pay or Google Pay, and enter your GitHub username.</p></div>
           <div class="step"><h3>Get repo access</h3><p>You're invited to the private Courses Kit Pro repository automatically, with future updates included.</p></div>
           <div class="step"><h3>Run it</h3><p><code>npm install</code> then <code>npx expo start</code>. Rebrand everything from one config file.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <section id="checkout">
-      <div class="wrap">
-        <div class="section-head">
-          <span class="label">Checkout</span>
-          <h2>Get Courses Kit Pro</h2>
-        </div>
-        <div class="checkout">
-          <div class="summary">
-            <h3>Courses Kit Pro</h3>
-            <div class="label" data-price-note></div>
-            <ul>
-              <li>Full source code, all 23 screens</li>
-              <li>Private GitHub repo with future updates</li>
-              <li>License for one end product</li>
-            </ul>
-            <div class="total"><span>Total</span><span data-price-total></span></div>
-          </div>
-          <form id="kit-form" novalidate>
-            <div class="test-banner" data-test-banner hidden>Test mode: use card 4242 4242 4242 4242, any future date, any CVC.</div>
-            <div class="field">
-              <label for="kit-email">Email</label>
-              <input id="kit-email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com" />
-              <small>Your receipt and access link go here.</small>
-            </div>
-            <div class="field">
-              <label for="kit-github">GitHub username</label>
-              <input id="kit-github" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="your-github-username" />
-              <small>We'll invite this account to the private repository right after payment.</small>
-            </div>
-            <div id="payment-element"></div>
-            <button class="btn btn-gold pay-btn" type="submit" data-pay>Pay</button>
-            <p class="form-error" role="alert" data-error></p>
-            <p class="secure">🔒 Payments are processed securely by Stripe. Your card details never touch our servers.</p>
-          </form>
-          <p class="checkout-closed" data-closed hidden>Checkout opens soon. <a href="/contact?topic=courses-kit" style="color:var(--gold)">Message me</a> to get it now.</p>
         </div>
       </div>
     </section>
@@ -400,8 +350,8 @@
         <h2>Ship your course platform this week.</h2>
         <p>Skip months of UI work. Start from a design that already looks finished.</p>
         <div class="cta-row">
-          <a class="btn btn-gold" href="#checkout" data-buy>Buy Courses Kit Pro</a>
-          <a class="btn btn-ghost" href="https://buymeacoffee.com/codewithruben" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+          <a class="btn btn-gold" href="/kits/checkout?kit=courses" data-kit-buy>Buy Courses Kit Pro</a>
+          <a class="btn btn-ghost" href="https://buymeacoffee.com/codewithruben" target="_blank" rel="noopener" data-coffee hidden>☕ Buy me a coffee</a>
         </div>
       </div>
     </div>
@@ -420,104 +370,10 @@
     </div>
   </footer>
 
-  <script src="https://js.stripe.com/v3/"></script>
   <script>
-    /*
-     * Courses Kit sales settings. Edit these, nothing else.
-     *   stripePublishableKey: pk_test_… while testing, pk_live_… for launch. Publishable keys are
-     *                         meant to be public. NEVER put the secret key (sk_…) here.
-     *                         Empty = checkout shows "opens soon".
-     *   price: must match the amount in functions/kit-store.js (that one is what's charged).
-     */
-    var KIT = {
-      id: 'courses',
-      stripePublishableKey: '',
-      price: 39,
-      regularPrice: 49,
-      priceNote: 'Launch price',
-      functionsBase: 'https://us-central1-portfolio-2578e.cloudfunctions.net'
-    };
-
-    (function () {
-      var onSale = KIT.regularPrice && KIT.regularPrice > KIT.price;
-      var $ = function (s) { return document.querySelector(s); };
-      $('[data-price]').textContent = '$' + KIT.price;
-      $('[data-price-old]').textContent = onSale ? '$' + KIT.regularPrice : '';
-      document.querySelectorAll('[data-price-note]').forEach(function (el) { el.textContent = onSale ? KIT.priceNote : ''; });
-      $('[data-price-total]').textContent = '$' + KIT.price + ' USD';
-      $('[data-pay]').textContent = 'Pay $' + KIT.price;
-      $('[data-year]').textContent = new Date().getFullYear();
-
-      var form = $('#kit-form');
-      if (!KIT.stripePublishableKey || typeof Stripe === 'undefined') {
-        form.hidden = true;
-        $('[data-closed]').hidden = false;
-        return;
-      }
-      if (KIT.stripePublishableKey.indexOf('pk_test_') === 0) $('[data-test-banner]').hidden = false;
-
-      var stripe = Stripe(KIT.stripePublishableKey);
-      var elements = stripe.elements({
-        mode: 'payment',
-        amount: KIT.price * 100,
-        currency: 'usd',
-        fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap' }],
-        appearance: {
-          theme: 'night',
-          variables: {
-            colorPrimary: '#cfae55',
-            colorBackground: '#0b0d13',
-            colorText: '#f4f7fb',
-            fontFamily: 'Poppins, system-ui, sans-serif',
-            borderRadius: '12px'
-          }
-        }
-      });
-      elements.create('payment', { layout: 'tabs' }).mount('#payment-element');
-
-      var btn = $('[data-pay]');
-      var errEl = $('[data-error]');
-      var GH = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/;
-      function fail(msg) { errEl.textContent = msg; btn.disabled = false; btn.textContent = 'Pay $' + KIT.price; }
-
-      form.addEventListener('submit', async function (e) {
-        e.preventDefault();
-        errEl.textContent = '';
-        var email = $('#kit-email').value.trim();
-        var github = $('#kit-github').value.trim().replace(/^@/, '');
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return fail('Enter a valid email address.');
-        if (!GH.test(github)) return fail('Enter a valid GitHub username.');
-        btn.disabled = true;
-        btn.textContent = 'Processing…';
-
-        var submitted = await elements.submit();
-        if (submitted.error) return fail(submitted.error.message);
-
-        var data;
-        try {
-          var res = await fetch(KIT.functionsBase + '/createKitCheckout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kit: KIT.id, email: email, github: github })
-          });
-          data = await res.json();
-        } catch (err) {
-          return fail('Network problem. Check your connection and try again.');
-        }
-        if (!data || !data.ok) return fail((data && data.error) || 'Something went wrong. Try again.');
-
-        var result = await stripe.confirmPayment({
-          elements: elements,
-          clientSecret: data.clientSecret,
-          confirmParams: {
-            return_url: location.origin + '/kits/thanks?kit=' + encodeURIComponent(KIT.id),
-            receipt_email: email
-          }
-        });
-        // Only reached when the payment fails right away (otherwise Stripe redirects to return_url).
-        if (result.error) fail(result.error.message);
-      });
-    })();
+    // Prices and Buy links come from assets/js/kits-catalog.js (shared by every kit page and the checkout).
+    window.CWR_KITS.fillPrices('courses');
+    document.querySelector('[data-year]').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>

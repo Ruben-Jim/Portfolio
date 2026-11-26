@@ -206,8 +206,21 @@
     return out;
   }
 
+  /** /portfolio/<slug>/: a project page. Its tags are stamped into the page file
+   *  (scripts/sync-projects.mjs) and kept current by script.js, so leave them alone. */
+  function onProjectPage() {
+    try {
+      // Once the page exists, whether a project is showing; before that (this file runs in
+      // <head>), the address.
+      var el = document.getElementById && document.getElementById('portfolio-project-page');
+      if (el) return !el.hidden;
+      return /^\/portfolio\/[a-z0-9-]{1,80}\/?$/.test(window.location.pathname);
+    } catch (e) { return false; }
+  }
+
   function apply(pageName) {
     if (!document.head) return resolve(pageName);
+    if (onProjectPage()) return resolve(pageName);
     var seo = withPrices(resolve(pageName));
     if (/\{pkg_[a-z_]+\}/.test(seo.title + seo.description)) return seo;
     var url = ORIGIN + seo.path;

@@ -263,5 +263,19 @@ for (const route of ROUTES) {
   report(`${route}/index.html  →  ${entry.title}`, misses);
 }
 
+// Project pages (/portfolio/<slug>/) follow the Portfolio shell, from the last
+// `npm run sync-projects` snapshot (no network here).
+{
+  const { readSnapshot, writeProjectPages } = await import('./lib/project-pages.mjs');
+  const snap = readSnapshot();
+  if (!snap || !Array.isArray(snap.pages) || !snap.pages.length) {
+    console.log('  · project pages: no snapshot yet (run npm run sync-projects)');
+  } else {
+    const r = writeProjectPages(snap.pages, OUT);
+    if (r.failed.length) { failed = true; console.error(`  ✗ project pages — could not stamp: ${r.failed.join('; ')}`); }
+    else console.log(`  ✓ portfolio/<project>/index.html  →  ${r.written.length} project pages${r.removed.length ? `, removed ${r.removed.join(', ')}` : ''}`);
+  }
+}
+
 console.log(`\n${failed ? 'Synced WITH WARNINGS — see ✗ above.' : 'All shells synced and stamped.'}`);
 process.exit(failed ? 1 : 0);

@@ -1252,11 +1252,41 @@ const githubKitToken = defineSecret("GITHUB_KIT_TOKEN");
 
 exports.createKitCheckout = onRequest(
   Object.assign({}, PUBLIC_JSON, { secrets: [stripeSecretKey, githubKitToken] }),
-  jsonEndpoint((body) => kitStore.createCheckout({
+  jsonEndpoint(async (body, req) => {
+    // Test mode (sk_test_ key): only the signed-in admin can start a checkout. With the live
+    // key the store is open to everyone (kits-gate.js hides the pages on the same rule).
+    if (stripeSecretKey.value().startsWith("sk_test_") && !(await verifyAdminBearer(req))) {
+      throw kitStore.httpError(403, "The store isn't open yet.");
+    }
+    return kitStore.createCheckout({
     stripe: new Stripe(stripeSecretKey.value()),
     fetch,
     githubToken: githubKitToken.value(),
-  }, body))
+    db: admin.database(),
+    ip: clientIp(req),
+    now: Date.now(),
+  }, body);
+  })
+);
+
+// Admin → Studio Costs → Kit sales: re-send a failed GitHub invite.
+exports.retryKitInvite = onRequest(
+  Object.assign({}, PUBLIC_JSON, { secrets: [githubKitToken, resendApiKey] }),
+  jsonEndpoint(async (body, req) => {
+    if (!(await verifyAdminBearer(req))) throw kitStore.httpError(401, "Admin sign-in required.");
+    const resend = new Resend(resendApiKey.value());
+    const from = resolveResendFrom(resendFrom.value());
+    return kitStore.retryInvite({
+      db: admin.database(),
+      fetch,
+      githubToken: githubKitToken.value(),
+      now: Date.now(),
+      sendEmail: async (m) => {
+        const { error } = await resend.emails.send({ from, to: m.to, subject: m.subject, html: m.html, text: m.text, replyTo: RESEND_REPLY_TO });
+        if (error) throw new Error(error.message || "resend error");
+      },
+    }, body.orderId);
+  })
 );
 
 exports.stripeKitWebhook = onRequest(

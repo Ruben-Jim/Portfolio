@@ -1,7 +1,7 @@
 {
   "name": "portfolio",
   "private": true,
-  "description": "rubenjimenez.dev \u2014 static site hosted on EAS Hosting (see scripts/build-site.mjs)",
+  "description": "rubenjimenez.dev — static site hosted on EAS Hosting (see scripts/build-site.mjs)",
   "scripts": {
     "build": "node scripts/build-site.mjs",
     "preflight": "node scripts/preflight.mjs",
@@ -9,6 +9,8 @@
     "deploy:prod": "node scripts/build-site.mjs && EXPO_NO_DOTENV=1 npx eas-cli@latest deploy --export-dir _site --prod",
     "claude-usage": "node scripts/claude-usage.mjs",
     "claude-usage:all": "node scripts/claude-usage.mjs --all",
-    "upload-media": "node scripts/upload-media.mjs"
+    "upload-media": "node scripts/upload-media.mjs",
+    "sync": "node scripts/sync-spa-shells.mjs",
+    "sync-projects": "node scripts/sync-projects.mjs"
   }
 }

@@ -7838,6 +7838,10 @@ function portfolioApplyVariantTab(wrap, idx) {
   );
   var view = wrap._packageView;
   portfolioApplyPackageView(view && String(target.id) === view.recordId ? view : null);
+  // Project page: the phone frame and the screens grid follow the tab (after the slideshow swaps).
+  if (typeof window.__projectPageOnTab === 'function') {
+    setTimeout(function () { window.__projectPageOnTab(target); }, 0);
+  }
 }
 
 function renderPortfolioVariantTabs(record, platformLiveUrl) {
@@ -8540,8 +8544,8 @@ function initPortfolioProjectModal() {
 
       if (!modal || !projectCard) return;
       event.preventDefault();
-      fillProjectModal(projectCard, link);
-      openProjectModal();
+      // The real card (not a rebuilt one): its rotating cover picks the build tab to open on.
+      openPortfolioProjectPageFromCard(projectCard, link);
     });
   }
 
@@ -8613,8 +8617,524 @@ function initPortfolioProjectModal() {
     });
   }
 
+  // ── Full project page (/portfolio/<slug>/) ──────────────────────────────────
+  // The popup's contents (.project-detail-content) move into the Portfolio section and
+  // are styled as a page (.is-page), so every popup feature (build tabs, package view,
+  // documents, sections) works on the page with no second renderer.
+  const pageRoot = document.getElementById('portfolio-project-page');
+  const pageBody = pageRoot ? pageRoot.querySelector('[data-project-page-body]') : null;
+  const portfolioArticle = document.querySelector('article[data-page="portfolio"]');
+  const detailContent = modal ? modal.querySelector('.project-detail-content') : null;
+
+  function projectPagesNow() {
+    var PDS = window.PortfolioDetailShared;
+    var all = window.portfolioProjectsAll || window.portfolioProjects || [];
+    return PDS && PDS.projectPages ? { PDS: PDS, all: all, pages: PDS.projectPages(all) } : null;
+  }
+
+  /** Projects are final: loaded from the database, or the load failed (built-in list). */
+  function portfolioProjectsSettled() {
+    return !portfolioProjectsLoading && (portfolioProjectsRtdb.length > 0 || portfolioProjectsLoadFailed);
+  }
+
+  function enterProjectPageMode() {
+    if (!pageRoot || !pageBody || !detailContent) return false;
+    if (detailContent.parentNode !== pageBody) pageBody.appendChild(detailContent);
+    detailContent.classList.add('is-page');
+    detailContent.removeAttribute('role');
+    detailContent.removeAttribute('aria-modal');
+    if (modal) {
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+    }
+    document.body.classList.remove('project-modal-open');
+    pageRoot.hidden = false;
+    // The page file's pre-built text (for Google) gives way to the live page.
+    pageRoot.removeAttribute('data-prerendered');
+    pageRoot.querySelectorAll('.project-page-prerender').forEach(function (el) { el.remove(); });
+    if (portfolioArticle) portfolioArticle.classList.add('is-project-page');
+    return true;
+  }
+
+  function setProjectPageHead(entry, all) {
+    var rec = entry.record;
+    var titleEl = pageRoot.querySelector('[data-project-page-title]');
+    if (titleEl) titleEl.textContent = rec.title || 'Project';
+    var eyebrow = pageRoot.querySelector('[data-project-page-eyebrow]');
+    if (eyebrow) {
+      var niches = typeof portfolioCuratedNichesForProject === 'function' ? portfolioCuratedNichesForProject(rec) : [];
+      var niche = PORTFOLIO_CURATED_NICHES.find(function (n) { return niches.indexOf(n.id) !== -1 && !PORTFOLIO_NICHE_FILTER_ALIASES[n.id]; });
+      eyebrow.textContent = niche ? niche.label : '';
+      eyebrow.hidden = !niche;
+    }
+    // Previous / next in grid order.
+    var pages = window.PortfolioDetailShared.projectPages(all);
+    var at = pages.findIndex(function (x) { return x.slug === entry.slug; });
+    var nav = pageRoot.querySelector('[data-project-page-nav]');
+    if (nav) {
+      var prev = at > 0 ? pages[at - 1] : null;
+      var next = at >= 0 && at < pages.length - 1 ? pages[at + 1] : null;
+      var link = function (x, dir) {
+        if (!x) return '<span></span>';
+        return '<a class="project-page-nav-link project-page-nav-link--' + dir + '" href="/portfolio/' + x.slug + '/" data-project-page-slug="' + x.slug + '">' +
+          '<small>' + (dir === 'prev' ? 'Previous' : 'Next project') + '</small>' +
+          '<b>' + (dir === 'prev' ? '← ' : '') + portfolioEscapeHtml(x.record.title || 'Project') + (dir === 'next' ? ' →' : '') + '</b></a>';
+      };
+      nav.innerHTML = link(prev, 'prev') + link(next, 'next');
+      nav.hidden = !prev && !next;
+    }
+  }
+
+  // ── Kit-style page parts (like /kits/courses): short line under the title, a phone
+  // frame on the slideshow's corner, a "What's inside" screens grid, the closing panel.
+  var pagePhoneObserver = null;
+
+  /** "roofcleaning-home-services.webp" in folder "roofcleaning" → "Home services". */
+  function screenCaption(url) {
+    var path = String(url || '').split('?')[0];
+    try { path = decodeURIComponent(path); } catch (e) {} // Storage URLs encode the slashes
+    var file = path.slice(path.lastIndexOf('/') + 1).replace(/\.[a-z0-9]+$/i, '');
+    var folder = path.slice(0, path.lastIndexOf('/'));
+    folder = folder.slice(folder.lastIndexOf('/') + 1);
+    if (folder && file.toLowerCase().indexOf(folder.toLowerCase() + '-') === 0) file = file.slice(folder.length + 1);
+    else if (folder && file.toLowerCase().indexOf(folder.toLowerCase()) === 0) file = file.slice(folder.length); // "homeverse2"
+    file = file.replace(/[-_]+/g, ' ').replace(/\b(demo|desktop|screenshot|shot|web|phone|mobile)\b/gi, '').replace(/\s+/g, ' ').trim();
+    if (!file || file.toLowerCase() === folder.toLowerCase()) return 'Home';
+    if (/^\d+$/.test(file)) return 'Screen ' + file;
+    return file.charAt(0).toUpperCase() + file.slice(1);
+  }
+
+  function renderPagePhone(record) {
+    var media = pageRoot.querySelector('.is-page .project-detail-media');
+    if (!media) return;
+    var holder = media.querySelector('.project-page-phone');
+    if (!holder) {
+      holder = document.createElement('div');
+      holder.className = 'project-page-phone';
+      media.appendChild(holder);
+    }
+    var m = typeof portfolioPhoneMedia === 'function' ? portfolioPhoneMedia(record) : null;
+    holder.hidden = !m;
+    if (!m) { holder.innerHTML = ''; return; }
+    var alt = (record.title || 'Project') + ' on a phone';
+    holder.innerHTML = (m.kind === 'video'
+      ? '<video src="' + portfolioEscapeHtml(m.src) + '"' + (m.poster ? ' poster="' + portfolioEscapeHtml(m.poster) + '"' : '') +
+        ' muted loop playsinline disablepictureinpicture preload="metadata" aria-label="' + portfolioEscapeHtml(alt) + '"></video>'
+      : '<img src="' + portfolioEscapeHtml(m.src) + '" alt="' + portfolioEscapeHtml(alt) + '" decoding="async">');
+    // The clip plays only while the phone is on screen (and never with reduced motion).
+    var video = holder.querySelector('video');
+    var still = holder.querySelector('img');
+    // The frame takes the clip's own shape, so nothing is cropped off its sides. A full-page
+    // phone screenshot (much taller than a phone) keeps a phone-shaped frame instead and
+    // scrolls slowly inside it, top to bottom and back.
+    var TALLEST = 19.5 / 9;
+    var fitFrame = function (w, h) {
+      if (!(w > 0 && h > 0)) return;
+      var longShot = still && h / w > TALLEST * 1.15;
+      holder.classList.toggle('is-long-shot', !!longShot);
+      holder.style.setProperty('--phone-ratio', longShot ? '9 / 19.5' : w + ' / ' + h);
+      if (longShot) {
+        // How far the image travels, as a share of its own height (same at every screen size):
+        // everything below the first phone-screen's worth. Longer pages scroll for longer.
+        var shown = TALLEST / (h / w);
+        holder.style.setProperty('--shot-travel', ((1 - shown) * 100).toFixed(2) + '%');
+        holder.style.setProperty('--shot-time', Math.min(40, Math.max(12, Math.round((h / w) * 3))) + 's');
+      }
+    };
+    holder.style.removeProperty('--phone-ratio');
+    holder.classList.remove('is-long-shot', 'is-moving');
+    if (video) video.addEventListener('loadedmetadata', function () { fitFrame(video.videoWidth, video.videoHeight); }, { once: true });
+    if (still) {
+      if (still.complete) fitFrame(still.naturalWidth, still.naturalHeight);
+      else still.addEventListener('load', function () { fitFrame(still.naturalWidth, still.naturalHeight); }, { once: true });
+    }
+    if (pagePhoneObserver) pagePhoneObserver.disconnect();
+    if (!('IntersectionObserver' in window)) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Moves only while on screen: the clip plays, a long screenshot scrolls.
+    pagePhoneObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        holder.classList.toggle('is-moving', en.isIntersecting);
+        if (!video) return;
+        if (en.isIntersecting) { var p = video.play(); if (p && p.catch) p.catch(function () {}); }
+        else video.pause();
+      });
+    }, { threshold: 0.4 });
+    pagePhoneObserver.observe(holder);
+  }
+
+  /** "/assets/images/x/y.webp?v=2" → "/assets/images/x/y.webp" (manifest key). */
+  function screenKey(url) {
+    var u = String(url || '').split('?')[0];
+    try { u = decodeURIComponent(u); } catch (e) {}
+    var m = u.match(/assets\/images\/[^?#]+/);
+    return m ? '/' + m[0] : u;
+  }
+
+  /**
+   * What's inside: every screenshot except the hero shot (the first slide) and videos.
+   * Wide shots go in "Desktop", tall ones in "On phones" (from the media manifest, or the
+   * image's own size once it loads), plus the project folder's other phone stills.
+   */
+  function renderPageScreens(record) {
+    var scroll = pageRoot.querySelector('.is-page .project-detail-scroll');
+    if (!scroll) return;
+    var section = scroll.querySelector('.project-page-inside');
+    if (!section) {
+      section = document.createElement('section');
+      section.className = 'project-detail-section project-page-inside';
+      section.innerHTML = '<span class="project-page-label">What\'s inside</span>' +
+        '<h3 class="h3 project-page-section-title">The screens</h3>' +
+        '<div class="project-page-screens-group" data-screens="desktop"><h4 class="project-page-screens-label">Desktop</h4><ul class="project-page-screens"></ul></div>' +
+        '<div class="project-page-screens-group" data-screens="phone"><h4 class="project-page-screens-label">On phones</h4><ul class="project-page-screens project-page-screens--phone"></ul></div>';
+      scroll.insertBefore(section, scroll.firstChild);
+    }
+    var phoneIndex = typeof portfolioPhoneFiles === 'function' ? portfolioPhoneFiles() : { byPath: {}, byFolder: {} };
+    var shots = [];
+    var seen = {};
+    document.querySelectorAll('#project-detail-carousel-track .portfolio-carousel-slide').forEach(function (slide, i) {
+      var img = slide.querySelector('img');
+      if (i === 0 || !img) return; // the hero shot, and videos
+      var raw = img.getAttribute('src') || '';
+      var key = screenKey(raw);
+      if (seen[key]) return;
+      seen[key] = true;
+      var f = phoneIndex.byPath[key];
+      shots.push({ src: img.currentSrc || raw, caption: screenCaption(raw), phone: !!(f && f.portrait) });
+    });
+    // The folder's other phone stills (back-office screens are already left out of the index).
+    var first = record && typeof portfolioImageUrlsFromRecord === 'function' ? portfolioImageUrlsFromRecord(record)[0] : '';
+    var folder = first ? screenKey(first).slice(0, screenKey(first).lastIndexOf('/')) : '';
+    (phoneIndex.byFolder[folder] || []).forEach(function (f) {
+      var key = screenKey(f.path);
+      if (f.kind === 'video' || seen[key]) return;
+      seen[key] = true;
+      shots.push({ src: portfolioDisplayImageSrc(f.path), caption: screenCaption(f.path), phone: true });
+    });
+    // Desktop first, then phones: the big view pages through them in that order.
+    shots = shots.filter(function (s) { return !s.phone; }).concat(shots.filter(function (s) { return s.phone; }));
+    pageShots = shots;
+    var tile = function (s, n) {
+      return '<li><button type="button" class="project-page-screen" data-project-page-screen="' + n + '">' +
+        '<img src="' + portfolioEscapeHtml(s.src) + '" alt="" loading="lazy" decoding="async">' +
+        '<span>' + portfolioEscapeHtml(s.caption) + '</span></button></li>';
+    };
+    var desk = section.querySelector('[data-screens="desktop"]');
+    var phone = section.querySelector('[data-screens="phone"]');
+    desk.querySelector('ul').innerHTML = shots.map(function (s, n) { return s.phone ? '' : tile(s, n); }).join('');
+    phone.querySelector('ul').innerHTML = shots.map(function (s, n) { return s.phone ? tile(s, n) : ''; }).join('');
+    var sync = function () {
+      var d = desk.querySelectorAll('li').length;
+      var p = phone.querySelectorAll('li').length;
+      desk.hidden = !d;
+      phone.hidden = !p;
+      // A heading per row only when both rows show.
+      section.classList.toggle('has-both', !!(d && p));
+      section.hidden = !d && !p;
+    };
+    sync();
+    // Not in the manifest: a tall image that turns out to be a phone shot moves to the phone row.
+    desk.querySelectorAll('img').forEach(function (img) {
+      var check = function () {
+        if (img.naturalHeight > img.naturalWidth * 1.3) {
+          var li = img.closest('li');
+          var n = Number(li.querySelector('[data-project-page-screen]').getAttribute('data-project-page-screen'));
+          if (pageShots[n]) pageShots[n].phone = true;
+          phone.querySelector('ul').appendChild(li);
+          sync();
+        }
+      };
+      if (img.complete && img.naturalWidth) check(); else img.addEventListener('load', check, { once: true });
+    });
+  }
+
+  function renderProjectPageExtras(record) {
+    if (!pageRoot || !record) return;
+    // Short line under the title: the description's first paragraph.
+    var lede = pageRoot.querySelector('[data-project-page-lede]');
+    if (lede) {
+      var blocks = window.PortfolioDetailShared.textBlocks(record.description || '');
+      var first = blocks.filter(function (b) { return b.type === 'p'; })[0];
+      lede.textContent = first ? first.text : '';
+      lede.hidden = !first;
+    }
+    renderPagePhone(record);
+    renderPageScreens(record);
+    var live = document.getElementById('project-detail-live-footer');
+    var ctaLive = pageRoot.querySelector('[data-project-page-live]');
+    if (ctaLive) {
+      var href = live && !live.hidden ? live.getAttribute('href') : '';
+      ctaLive.hidden = !href || href === '#';
+      if (href) ctaLive.setAttribute('href', href);
+    }
+  }
+
+  window.__projectPageOnTab = function (record) {
+    if (!pageRoot || pageRoot.hidden || !record) return;
+    renderPagePhone(record);
+    renderPageScreens(record);
+    var live = document.getElementById('project-detail-live-footer');
+    var ctaLive = pageRoot.querySelector('[data-project-page-live]');
+    if (ctaLive && live) {
+      var href = !live.hidden ? live.getAttribute('href') : '';
+      ctaLive.hidden = !href || href === '#';
+      if (href) ctaLive.setAttribute('href', href);
+    }
+  };
+
+  var pageShots = [];
+
+  /**
+   * Tap a screen: see it large, page through the rest with ‹ › (or the arrow keys).
+   * The walkthrough plays as a video. Escape, the ✕ or a tap outside closes.
+   */
+  function openScreenViewer(index) {
+    if (!pageShots.length) return;
+    var at = Math.max(0, Math.min(pageShots.length - 1, index));
+    var box = document.createElement('div');
+    box.className = 'project-page-viewer';
+    box.setAttribute('data-layer', 'modal');
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+    box.innerHTML = '<button type="button" class="project-page-viewer-close" aria-label="Close"><ion-icon name="close-outline" aria-hidden="true"></ion-icon></button>' +
+      '<button type="button" class="project-page-viewer-nav project-page-viewer-nav--prev" aria-label="Previous screen"><ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon></button>' +
+      '<figure></figure>' +
+      '<button type="button" class="project-page-viewer-nav project-page-viewer-nav--next" aria-label="Next screen"><ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon></button>';
+    var fig = box.querySelector('figure');
+    var prevBtn = box.querySelector('.project-page-viewer-nav--prev');
+    var nextBtn = box.querySelector('.project-page-viewer-nav--next');
+    var show = function (n) {
+      at = n;
+      var s = pageShots[at];
+      var label = s.caption + ' (' + (at + 1) + ' of ' + pageShots.length + ')';
+      fig.innerHTML = (s.video && s.videoSrc
+        ? '<video src="' + portfolioEscapeHtml(s.videoSrc) + '" poster="' + portfolioEscapeHtml(s.src) + '" controls autoplay muted loop playsinline></video>'
+        : '<img src="' + portfolioEscapeHtml(s.src) + '" alt="' + portfolioEscapeHtml(s.caption) + '">') +
+        '<figcaption>' + portfolioEscapeHtml(label) + '</figcaption>';
+      box.setAttribute('aria-label', label);
+      prevBtn.hidden = at === 0;
+      nextBtn.hidden = at === pageShots.length - 1;
+    };
+    var close = function () { box.remove(); document.removeEventListener('keydown', onKey); };
+    var onKey = function (e) {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft' && at > 0) show(at - 1);
+      else if (e.key === 'ArrowRight' && at < pageShots.length - 1) show(at + 1);
+    };
+    box.addEventListener('click', function (e) {
+      if (e.target.closest('.project-page-viewer-nav--prev')) { show(at - 1); return; }
+      if (e.target.closest('.project-page-viewer-nav--next')) { show(at + 1); return; }
+      if (!e.target.closest('img, video')) close();
+    });
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(box);
+    show(at);
+    box.querySelector('.project-page-viewer-close').focus();
+  }
+
+  function setProjectPageMeta(rec, slug) {
+    var title = (rec.title || 'Project') + ' | CodeWithRuben';
+    document.title = title;
+    var desc = String(rec.description || '').replace(/[·•]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (desc.length > 160) desc = desc.slice(0, 157).replace(/\s+\S*$/, '') + '…';
+    var setMeta = function (sel, val) { var m = document.querySelector(sel); if (m && val) m.setAttribute('content', val); };
+    setMeta('meta[name="description"]', desc);
+    setMeta('meta[property="og:title"]', title);
+    setMeta('meta[property="og:description"]', desc);
+    setMeta('meta[property="og:url"]', 'https://rubenjimenez.dev/portfolio/' + slug + '/');
+    setMeta('meta[name="robots"]', 'index, follow');
+    var cover = String(rec.coverImageUrl || rec.imageUrl || '');
+    if (/^\/assets\/.+\.(png|jpe?g|webp)$/i.test(cover)) setMeta('meta[property="og:image"]', 'https://rubenjimenez.dev' + cover);
+    var canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical) canonical.setAttribute('href', 'https://rubenjimenez.dev/portfolio/' + slug + '/');
+  }
+
+  /**
+   * Open a project as its page. opts: { packageId, startBuild, card, link, noHistory, replace }.
+   * Returns false when it has no page (private, unknown): the caller decides what else to do.
+   */
+  function openPortfolioProjectPage(record, opts) {
+    opts = opts || {};
+    var ctx = projectPagesNow();
+    if (!record || !ctx || !pageRoot) return false;
+    var hit = ctx.PDS.projectPageFor(ctx.all, record.id);
+    if (!hit) return false;
+    var entry = hit.page;
+
+    // Leave the grid: remember where it was scrolled.
+    if (!portfolioPageSlug && portfolioArticle && portfolioArticle.classList.contains('active')) {
+      portfolioGridScrollY = window.scrollY || 0;
+    }
+    if (typeof switchToPage === 'function' && !(portfolioArticle && portfolioArticle.classList.contains('active'))) {
+      portfolioProjectPageOpening = true;
+      try { switchToPage('portfolio', true); } finally { portfolioProjectPageOpening = false; }
+    }
+    if (!enterProjectPageMode()) return false;
+
+    if (opts.card && opts.link) {
+      fillProjectModal(opts.card, opts.link);
+    } else {
+      var fake = buildProjectCardFor(entry.record, {
+        packageId: opts.packageId || '',
+        packageRecord: opts.packageId ? String(record.id) : '',
+        startBuild: opts.startBuild || hit.buildId || ''
+      });
+      fillProjectModal(fake.card, fake.link);
+    }
+    setProjectPageHead(entry, ctx.all);
+    // After the tab fill (which may already have run the hook for a start build).
+    var tabsWrap = document.getElementById('project-detail-variant-tabs');
+    var activeTab = tabsWrap && !tabsWrap.hidden ? tabsWrap.querySelector('.is-active[data-variant-index]') : null;
+    var tabRecord = activeTab && tabsWrap._variantRecords ? tabsWrap._variantRecords[Number(activeTab.getAttribute('data-variant-index'))] : null;
+    renderProjectPageExtras(tabRecord || entry.record);
+
+    var wasSlug = portfolioPageSlug;
+    portfolioPageSlug = entry.slug;
+    portfolioPendingSlug = '';
+    if (!opts.noHistory) {
+      var url = '/portfolio/' + entry.slug + '/';
+      var state = { page: 'portfolio', query: null, project: entry.slug };
+      if (opts.replace || wasSlug === entry.slug) window.history.replaceState(state, '', url);
+      else {
+        window.history.pushState(state, '', url);
+        if (typeof window.gtag === 'function') window.gtag('event', 'page_view', { page_path: url, page_title: entry.record.title });
+      }
+    }
+    setProjectPageMeta(entry.record, entry.slug);
+    try { localStorage.setItem('activePage', 'portfolio'); } catch (e) {}
+    window.scrollTo(0, 0);
+    if (detailPane) detailPane.scrollTop = 0;
+    return true;
+  }
+
+  function openPortfolioProjectPageFromCard(card, link) {
+    var row = card.closest('.project-item');
+    var pid = row ? row.getAttribute('data-portfolio-id') : '';
+    var rec = pid && (window.portfolioProjectsAll || window.portfolioProjects || []).find(function (x) { return x && String(x.id) === pid; });
+    if (rec && openPortfolioProjectPage(rec, { card: card, link: link })) return;
+    // No page for it (shouldn't happen for grid cards): the popup as before.
+    fillProjectModal(card, link);
+    openProjectModal();
+  }
+
+  window.openPortfolioProjectPageBySlug = function (slug, opts) {
+    var ctx = projectPagesNow();
+    if (!ctx) return false;
+    var entry = ctx.pages.find(function (x) { return x.slug === slug; });
+    if (!entry) return false;
+    return openPortfolioProjectPage(entry.record, opts);
+  };
+
+  /** Back to the grid (nav, back link, another page). Safe to call when no page is open. */
+  window.closePortfolioProjectPage = function () {
+    if (!portfolioRestoring) portfolioPendingSlug = '';
+    if (!pageRoot || pageRoot.hidden) return;
+    if (pagePhoneObserver) pagePhoneObserver.disconnect();
+    pageRoot.querySelectorAll('.project-page-phone video').forEach(function (v) { try { v.pause(); } catch (e) {} });
+    if (detailContent && modal && detailContent.parentNode !== modal) {
+      detailContent.classList.remove('is-page');
+      detailContent.setAttribute('role', 'dialog');
+      detailContent.setAttribute('aria-modal', 'true');
+      modal.appendChild(detailContent);
+    }
+    pageRoot.hidden = true;
+    if (portfolioArticle) portfolioArticle.classList.remove('is-project-page');
+    var hadPage = !!portfolioPageSlug;
+    portfolioPageSlug = '';
+    if (hadPage) {
+      var y = portfolioGridScrollY;
+      requestAnimationFrame(function () { window.scrollTo(0, y); });
+    }
+  };
+
+  if (pageRoot && !pageRoot.dataset.bound) {
+    pageRoot.dataset.bound = '1';
+    pageRoot.addEventListener('click', function (e) {
+      var back = e.target.closest('[data-project-page-back]');
+      if (back) {
+        e.preventDefault();
+        window.closePortfolioProjectPage();
+        updateUrlForPage('portfolio', false);
+        if (window.CWR_SEO && typeof window.CWR_SEO.apply === 'function') {
+          try { window.CWR_SEO.apply('portfolio'); } catch (err) {}
+        }
+        return;
+      }
+      var screen = e.target.closest('[data-project-page-screen]');
+      if (screen) {
+        openScreenViewer(Number(screen.getAttribute('data-project-page-screen')) || 0);
+        return;
+      }
+      var hire = e.target.closest('[data-project-page-hire]');
+      if (hire) {
+        e.preventDefault();
+        if (typeof switchToPage === 'function') {
+          switchToPage('hire-me');
+          updateUrlForPage('hire-me', false);
+        }
+        return;
+      }
+      var other = e.target.closest('[data-project-page-slug]');
+      if (other) {
+        e.preventDefault();
+        window.openPortfolioProjectPageBySlug(other.getAttribute('data-project-page-slug'));
+      }
+    });
+  }
+
+  // A /portfolio/<slug>/ URL: open it once the projects are in. An unknown slug (renamed
+  // or removed project) falls back to the grid; a failed load keeps the pre-built page.
+  if (!window.__portfolioPageRouteBound) {
+    window.__portfolioPageRouteBound = true;
+    var openPendingPage = function () {
+      var slug = portfolioPendingSlug;
+      if (!slug) return;
+      if (window.openPortfolioProjectPageBySlug(slug, { replace: true })) return;
+      if (!portfolioProjectsSettled() || portfolioProjectsLoadFailed) return;
+      portfolioPendingSlug = '';
+      window.closePortfolioProjectPage();
+      if (portfolioArticle && portfolioArticle.classList.contains('active')) updateUrlForPage('portfolio', true);
+    };
+    document.addEventListener('portfolioProjectsLoaded', openPendingPage);
+    openPendingPage();
+  }
+
+  /** A stand-in card for a record, so fillProjectModal can read it like a grid card. */
+  function buildProjectCardFor(record, o) {
+    var wrap = document.createElement('div');
+    wrap.className = 'project-item';
+    if (record.id) wrap.setAttribute('data-portfolio-id', record.id);
+    if (o.startBuild) wrap.dataset.startBuild = o.startBuild;
+    if (o.packageRecord) {
+      wrap.dataset.package = o.packageId;
+      wrap.dataset.packageRecord = o.packageRecord;
+    }
+    wrap.innerHTML =
+      '<article class="project-card"><a class="project-link" href="#"><figure class="project-img"><img alt=""></figure>' +
+      '<h3 class="project-title"></h3><p class="project-description"></p></a></article>';
+    wrap.querySelector('.project-title').textContent = record.title || 'Project';
+    var img = wrap.querySelector('img');
+    var urls = typeof portfolioImageUrlsFromRecord === 'function' ? portfolioImageUrlsFromRecord(record) : [];
+    if (urls[0]) img.setAttribute('src', urls[0]);
+    if (record.imageAlt) img.setAttribute('alt', record.imageAlt);
+    var link = wrap.querySelector('.project-link');
+    link.setAttribute('href', portfolioPublicLiveUrl(record));
+    return { card: wrap.querySelector('.project-card'), link: link };
+  }
+
+  /**
+   * Every "open this project" (proof slides, pricing examples, Link Tree deep links)
+   * opens the full page. A project without a page (private) still gets the popup.
+   */
   window.openPortfolioProjectDetail = function (record, opts) {
+    if (!record) return;
+    if (openPortfolioProjectPage(record, { packageId: (opts && opts.packageId) || '', replace: !!(opts && opts.replace) })) return;
+    window.openPortfolioProjectPopup(record, opts);
+  };
+
+  window.openPortfolioProjectPopup = function (record, opts) {
     if (!record || !modal) return;
+    window.closePortfolioProjectPage(); // the popup needs its contents back
     var packageId = (opts && opts.packageId) || '';
     var packageRecord = packageId && record.id ? String(record.id) : '';
     // A build lives inside its platform's card: open that popup on the build's tab.
@@ -8661,12 +9181,34 @@ function initPortfolioProjectModal() {
       var rec = all.find(function (x) { return x && String(x.id) === PORTFOLIO_DEEP_LINK_ID; });
       if (!rec) return;
       deepDone = true;
-      window.openPortfolioProjectDetail(rec);
+      // Old ?project=<id> links (Link Tree) land on the project page; the URL becomes its own.
+      window.openPortfolioProjectDetail(rec, { replace: true });
     };
     document.addEventListener('portfolioProjectsLoaded', openDeepLink);
     openDeepLink();
   }
 }
+
+// ── Project pages: /portfolio/<slug>/ ────────────────────────────────────────
+// A project opens as a full page inside the Portfolio section. Slugs come from
+// PortfolioDetailShared.projectPages (same list the page builder, scripts/sync-projects.mjs,
+// uses). The pre-built page files carry the text for Google; this code renders the live data.
+
+/** "/portfolio/trade-services-platform/" → "trade-services-platform" (else ''). */
+function portfolioSlugFromPath(pathname) {
+  var m = /^\/portfolio\/([a-z0-9-]{1,80})\/?$/.exec(pathname != null ? pathname : window.location.pathname);
+  return m ? m[1] : '';
+}
+/** The project page showing now ('' = the grid). */
+var portfolioPageSlug = '';
+/** Slug from the first URL, waiting for the projects to load. */
+var portfolioPendingSlug = portfolioSlugFromPath();
+/** True while openPortfolioProjectPage switches to the Portfolio section (so it isn't closed again). */
+var portfolioProjectPageOpening = false;
+/** Grid scroll position, restored when you come back from a project page. */
+var portfolioGridScrollY = 0;
+/** True during restoreActivePage's first navigation (the pending slug must survive it). */
+var portfolioRestoring = false;
 
 /** ?project=<id> from the first URL, read before the router rewrites it (see openPortfolioProjectDetail). */
 var PORTFOLIO_DEEP_LINK_ID = (function () {
@@ -9187,6 +9729,7 @@ function getPageFromPath() {
   if (path === 'home') return 'home';
   if (path === 'service-pricing') return 'services-pricing';
   if (VALID_PAGES.indexOf(path) !== -1) return path;
+  if (/^portfolio\/[a-z0-9-]{1,80}$/.test(path)) return 'portfolio'; // a project page
   return null;
 }
 
@@ -9213,6 +9756,8 @@ function updateUrlForPage(pageName, replace, queryParams) {
   }
   if (pageName === 'messages') pageName = 'contact'; // retired page (see switchToPage)
   var url = pageName === 'home' ? '/' : '/' + pageName;
+  var projectSlug = pageName === 'portfolio' ? (portfolioPageSlug || portfolioPendingSlug) : '';
+  if (projectSlug) url = '/portfolio/' + projectSlug + '/';
   if (queryParams && typeof queryParams === 'object') {
     var params = new URLSearchParams();
     Object.keys(queryParams).forEach(function (key) {
@@ -9225,9 +9770,9 @@ function updateUrlForPage(pageName, replace, queryParams) {
     if (qs) url += '?' + qs;
   }
   if (replace) {
-    window.history.replaceState({ page: pageName, query: queryParams || null }, '', url);
+    window.history.replaceState({ page: pageName, query: queryParams || null, project: projectSlug || null }, '', url);
   } else {
-    window.history.pushState({ page: pageName, query: queryParams || null }, '', url);
+    window.history.pushState({ page: pageName, query: queryParams || null, project: projectSlug || null }, '', url);
     // SPA navigations: send page_view so GA4/Ads see route changes (initial load already counted by gtag config)
     if (typeof window.gtag === 'function') {
       window.gtag('event', 'page_view', {
@@ -10133,6 +10678,11 @@ function switchToPage(pageName, skipSave, pageOptions) {
     skipSave = false;
   }
   pageOptions = pageOptions || {};
+  // Any navigation other than opening a project closes the project page (Portfolio
+  // from the nav shows the grid again).
+  if (!portfolioProjectPageOpening && typeof window.closePortfolioProjectPage === 'function') {
+    window.closePortfolioProjectPage();
+  }
   // The Messages page is retired: the chat lives in the pop-up now. /messages (typed,
   // old links, a restored last page) goes to Contact and opens the pop-up when this
   // browser has a conversation. The hidden messages article stays only as the
@@ -10426,6 +10976,8 @@ function restoreActivePage() {
   if (targetPage === 'hire-me') {
     restoreOptions.keepPackage = true;
   }
+  // A /portfolio/<slug>/ URL keeps its slug while the projects load (see portfolioPendingSlug).
+  portfolioRestoring = true;
   switchToPage(targetPage, true, restoreOptions);
   if (targetPage === 'hire-me') {
     var restorePkg = getHireMePackageFromSearch();
@@ -10435,6 +10987,8 @@ function restoreActivePage() {
   } else {
     updateUrlForPage(targetPage, true);
   }
+  portfolioRestoring = false;
+  if (targetPage !== 'portfolio') portfolioPendingSlug = '';
 
   restoreNavigationTimer = setTimeout(function () {
     if (sessionId !== restoreNavigationSessionId) return;
@@ -10449,6 +11003,12 @@ function restoreActivePage() {
 window.addEventListener('popstate', function(e) {
   invalidateRestoreNavigationTimers();
   var page = (e.state && e.state.page) ? e.state.page : getPageFromPath();
+  // Back/forward onto a project page: show that project (no new history entry).
+  var popSlug = page === 'portfolio' ? portfolioSlugFromPath() : '';
+  if (popSlug && typeof window.openPortfolioProjectPageBySlug === 'function') {
+    if (window.openPortfolioProjectPageBySlug(popSlug, { noHistory: true })) return;
+    portfolioPendingSlug = popSlug; // projects still loading: opens when they arrive
+  }
   if (page) {
     var popOptions = {};
     if (page === 'hire-me') {

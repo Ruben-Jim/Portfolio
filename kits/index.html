@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <!-- noindex until launch (docs/KIT_STORE.md → Going live) -->
+  <meta name="robots" content="noindex" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Template Kits | CodeWithRuben</title>
+  <meta name="description" content="Expo app templates for iOS, Android and web: finished, rebrandable frontends from CodeWithRuben. One-time payment, source code on GitHub." />
+  <link rel="canonical" href="https://rubenjimenez.dev/kits/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://rubenjimenez.dev/kits/" />
+  <meta property="og:site_name" content="CodeWithRuben" />
+  <meta property="og:title" content="Template Kits by CodeWithRuben" />
+  <meta property="og:description" content="Finished Expo app templates for iOS, Android and web. One-time payment, source code on GitHub." />
+  <meta property="og:image" content="https://rubenjimenez.dev/assets/images/kits/courses/home.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#07090e" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #07090e; --panel: #0e1118; --line: rgba(255,255,255,.09); --text: #f4f7fb; --muted: #9aa3b2;
+      --gold: hsl(45, 54%, 58%); --gold-soft: hsla(45, 54%, 58%, .12);
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; font-family: Poppins, system-ui, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6;
+      background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px); background-size: 22px 22px; }
+    a { color: inherit; }
+    img { max-width: 100%; height: auto; display: block; }
+    .wrap { width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+    .nav { border-bottom: 1px solid var(--line); }
+    .nav .wrap { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .brand { font-weight: 700; text-decoration: none; }
+    .brand span { color: var(--gold); }
+    .nav a.back { color: var(--muted); text-decoration: none; font-size: 14px; }
+    .nav a.back:hover { color: var(--text); }
+    main { padding: 56px 0 80px; }
+    .label { font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+    h1 { font-size: clamp(30px, 5vw, 46px); letter-spacing: -0.02em; line-height: 1.15; margin: 8px 0 12px; text-wrap: balance; }
+    .lede { color: var(--muted); max-width: 60ch; margin: 0 0 36px; }
+    .kits { display: grid; gap: 22px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); padding: 0; margin: 0; list-style: none; }
+    .kit { display: flex; flex-direction: column; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; }
+    .kit:hover { border-color: hsla(45,54%,58%,.35); }
+    .kit img { aspect-ratio: 16 / 10; object-fit: cover; object-position: top; width: 100%; border-bottom: 1px solid var(--line); }
+    .kit-body { display: grid; gap: 8px; padding: 20px; flex: 1; align-content: start; }
+    .kit h2 { margin: 0; font-size: 21px; }
+    .kit h2 a { text-decoration: none; }
+    .kit h2 a::after { content: ""; position: absolute; inset: 0; }
+    .kit { position: relative; }
+    .kit p { margin: 0; color: var(--muted); font-size: 14.5px; }
+    .price { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; font-weight: 700; font-size: 20px; }
+    .price s { color: var(--muted); font-weight: 500; font-size: 14px; }
+    .price small { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+    .more { color: var(--muted); font-size: 14px; margin-top: 36px; }
+    .more a { color: var(--gold); }
+    footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px; }
+    footer .wrap { min-height: 72px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+    footer nav { display: flex; gap: 16px; flex-wrap: wrap; }
+    footer a { text-decoration: none; }
+    footer a:hover { color: var(--text); }
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+  </style>
+  <!-- Test mode: admin only (kits-gate.js). These three load first so the page hides before it paints. -->
+  <script src="/assets/js/config.js?v=reviews-tab-20261020"></script>
+  <script src="/assets/js/kits-catalog.js?v=gate1-20261125"></script>
+  <script src="/assets/js/kits-gate.js?v=gate1-20261125"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/">CodeWith<span>Ruben</span></a>
+      <a class="back" href="/">← Home</a>
+    </div>
+  </header>
+  <main class="wrap">
+    <span class="label">Template kits</span>
+    <h1>Finished app frontends you can make your own.</h1>
+    <p class="lede">Each kit is a real Expo app for iOS, Android and web, built to the same standard as CodeWithRuben client work. Pay once, get the source on GitHub, rebrand it and ship.</p>
+    <ul class="kits" data-kits></ul>
+    <p class="more">More kits are on the way. Need one built for your business instead? <a href="/contact">Get in touch</a>.</p>
+  </main>
+  <footer>
+    <div class="wrap">
+      <span>© <span data-year></span> CodeWithRuben · Fresno, CA</span>
+      <nav aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/contact">Contact</a>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/refund">Refunds</a>
+      </nav>
+    </div>
+  </footer>
+  <script>
+    // Every kit in assets/js/kits-catalog.js gets a card; nothing here needs editing for a new kit.
+    (function () {
+      var C = window.CWR_KITS;
+      var list = document.querySelector('[data-kits]');
+      Object.keys(C.kits).forEach(function (id) {
+        var k = C.kits[id];
+        var onSale = k.regularPrice && k.regularPrice > k.price;
+        var li = document.createElement('li');
+        li.className = 'kit';
+        if (k.image) {
+          var img = document.createElement('img');
+          img.src = k.image; img.alt = ''; img.width = 1200; img.height = 750; img.loading = 'lazy';
+          li.appendChild(img);
+        }
+        var body = document.createElement('div');
+        body.className = 'kit-body';
+        var h2 = document.createElement('h2');
+        var a = document.createElement('a');
+        a.href = k.page; a.textContent = k.name;
+        h2.appendChild(a);
+        var p = document.createElement('p');
+        p.textContent = k.tagline || '';
+        var price = document.createElement('div');
+        price.className = 'price';
+        price.innerHTML = '<span></span>' + (onSale ? '<s></s><small></small>' : '');
+        price.children[0].textContent = '$' + k.price;
+        if (onSale) { price.children[1].textContent = '$' + k.regularPrice; price.children[2].textContent = k.priceNote || ''; }
+        body.appendChild(h2); body.appendChild(p); body.appendChild(price);
+        li.appendChild(body);
+        list.appendChild(li);
+      });
+      document.querySelector('[data-year]').textContent = new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>

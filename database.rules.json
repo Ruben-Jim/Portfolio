@@ -1,5 +1,10 @@
 {
   "rules": {
+    "kitOrders": {
+      ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",
+      ".write": false,
+      ".indexOn": ["createdAt"]
+    },
     "dm": {
       "meta": {
         ".read": "auth != null && (auth.token.admin === true || (auth.token.email == 'ruben.jim.co@gmail.com' && auth.token.email_verified === true))",

@@ -12,6 +12,7 @@
     referrals: 'agencyReferrals',
     studioCosts: 'agencyStudioCosts',
     studioDocs: 'agencyStudioDocs',
+    kitOrders: 'kitOrders',
     clientPortals: 'agencyClientPortals',
     firebaseHealth: 'agencyFirebaseHealth',
     timeEntries: 'agencyTimeEntries',
@@ -74,6 +75,8 @@
   var agencyTimeEntries = [];
   var agencyReferrals = [];
   var agencyStudioCosts = [];
+  var kitOrders = null; // null until the first snapshot
+  var kitOrdersError = false; // the database refused the read (rules not deployed yet)
   var agencyStudioDocs = [];
   var studioCostsSeedAttempted = false;
   var agencyUnsubs = [];
@@ -468,6 +471,18 @@
       })
     );
 
+    // Kit sales (Studio Costs). Admin-read only; written by the stripeKitWebhook function.
+    agencyUnsubs.push(
+      window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.kitOrders), function (snap) {
+        kitOrdersError = false;
+        applyKitOrdersFromVal(snap.val());
+      }, function (err) {
+        console.warn('Kit orders:', err && err.message);
+        kitOrdersError = true;
+        applyKitOrdersFromVal(null);
+      })
+    );
+
     agencyUnsubs.push(
       window.rtdbOnValue(window.rtdbRef(window.rtdb, PATHS.studioDocs), function (snap) {
         agencyLoaded.studioDocs = true;
@@ -498,6 +513,7 @@
     agencyTimeEntries = [];
     agencyReferrals = [];
     agencyStudioCosts = [];
+    kitOrders = null;
     agencyStudioDocs = [];
     closeOpsDocSheet();
     resetAgencyLoaded();
@@ -2769,9 +2785,136 @@
     if (kpiEl) kpiEl.textContent = pending ? '—' : formatStudioCostMoney(summary.monthly);
   }
 
+  // ── Kit sales (Studio Costs) ── docs/KIT_STORE.md
+  // Money in next to the costs. Test-mode orders are listed with a "Test" chip but
+  // never counted; only orders Stripe marked live add to the totals.
+  var KIT_NAMES = { courses: 'Courses Kit Pro' };
+  var KIT_STATUS = {
+    invited: { label: 'Invited', tone: 'ok' },
+    invite_failed: { label: 'Invite failed', tone: 'bad' },
+    paid: { label: 'Paid, inviting…', tone: 'wait' }
+  };
+
+  function applyKitOrdersFromVal(val) {
+    kitOrders = [];
+    if (val && typeof val === 'object') {
+      Object.keys(val).forEach(function (id) {
+        var o = val[id] || {};
+        kitOrders.push({
+          id: id,
+          kit: String(o.kit || ''),
+          github: String(o.github || ''),
+          email: String(o.email || ''),
+          amount: Number(o.amount) || 0,
+          status: String(o.status || 'paid'),
+          live: o.livemode === true,
+          createdAt: Number(o.createdAt) || 0
+        });
+      });
+    }
+    kitOrders.sort(function (a, b) { return b.createdAt - a.createdAt; });
+    renderKitSales();
+  }
+
+  function renderKitSales() {
+    var list = document.getElementById('kit-sales-list');
+    if (!list) return;
+    var monthEl = document.getElementById('kit-sales-month');
+    var netEl = document.getElementById('kit-sales-net');
+    var totalEl = document.getElementById('kit-sales-total');
+    var empty = document.getElementById('kit-sales-empty');
+    if (kitOrders === null) {
+      [monthEl, netEl, totalEl].forEach(function (el) { if (el) el.textContent = '—'; });
+      return;
+    }
+    var now = new Date();
+    var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    var month = 0;
+    var total = 0;
+    kitOrders.forEach(function (o) {
+      if (!o.live) return;
+      total += o.amount;
+      if (o.createdAt >= monthStart) month += o.amount;
+    });
+    var costs = agencyLoaded.studioCosts ? getStudioCostsSummary().monthly : null;
+    if (monthEl) monthEl.textContent = formatStudioCostMoney(month / 100);
+    if (totalEl) totalEl.textContent = formatStudioCostMoney(total / 100);
+    if (netEl) {
+      if (costs == null) netEl.textContent = '—';
+      else {
+        var net = month / 100 - costs;
+        netEl.textContent = (net < 0 ? '−' : '') + formatStudioCostMoney(Math.abs(net));
+        netEl.classList.toggle('is-negative', net < 0);
+      }
+    }
+    if (empty) {
+      empty.hidden = kitOrders.length > 0 && !kitOrdersError;
+      empty.textContent = kitOrdersError
+        ? "Can't read kit orders yet: the database rules for kitOrders still need to be deployed."
+        : 'No kit sales yet.';
+    }
+    if (kitOrdersError) {
+      [monthEl, netEl, totalEl].forEach(function (el) { if (el) el.textContent = '—'; });
+      list.innerHTML = '';
+      return;
+    }
+    list.innerHTML = kitOrders.slice(0, 25).map(function (o) {
+      var st = KIT_STATUS[o.status] || { label: o.status, tone: 'wait' };
+      var when = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      return '<li class="kit-sale" data-kit-order="' + esc(o.id) + '">' +
+        '<div class="kit-sale-main">' +
+          '<span class="kit-sale-name">' + esc(KIT_NAMES[o.kit] || o.kit) + (o.live ? '' : ' <span class="kit-sale-chip kit-sale-chip--test">Test</span>') + '</span>' +
+          '<span class="kit-sale-who">' +
+            (o.github ? '<a href="https://github.com/' + encodeURIComponent(o.github) + '" target="_blank" rel="noopener">@' + esc(o.github) + '</a>' : '') +
+          '</span>' +
+          (o.email ? '<span class="kit-sale-who">' + esc(o.email) + '</span>' : '') +
+          '<span class="kit-sale-when">' + esc(when) + '</span>' +
+        '</div>' +
+        '<div class="kit-sale-side">' +
+          '<span class="kit-sale-amount">' + formatStudioCostMoney(o.amount / 100) + '</span>' +
+          '<span class="kit-sale-chip kit-sale-chip--' + st.tone + '">' + esc(st.label) + '</span>' +
+          (o.status === 'invite_failed'
+            ? '<button type="button" class="btn btn-secondary btn-sm" data-kit-retry="' + esc(o.id) + '">Retry invite</button>'
+            : '') +
+        '</div></li>';
+    }).join('');
+  }
+
+  async function retryKitInvite(btn) {
+    var id = btn.getAttribute('data-kit-retry');
+    btn.disabled = true;
+    btn.textContent = 'Retrying…';
+    try {
+      var token = await window.getAdminIdToken();
+      var base = String(window.CWR_FUNCTIONS_BASE || '').replace(/\/$/, '');
+      var res = await fetch(base + '/retryKitInvite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ orderId: id })
+      });
+      var out = await res.json().catch(function () { return {}; });
+      if (!res.ok || !out.ok) throw new Error(out.error || 'Could not retry the invite.');
+      if (out.status === 'invited') {
+        window.CwrUI.toast('Invite sent. The buyer got an email with the link.', { tone: 'success' });
+      } else {
+        throw new Error('GitHub still refused the invite (' + out.inviteStatus + '). Check the token and the username.');
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Retry invite';
+      window.CwrUI.toast((err && err.message) || 'Could not retry the invite.', { tone: 'error' });
+    }
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('[data-kit-retry]');
+    if (btn && !btn.disabled) retryKitInvite(btn);
+  });
+
   function renderStudioCostsTable() {
     var tbody = document.getElementById('studio-costs-tbody');
     renderStudioCostsSummary();
+    renderKitSales(); // "After costs" uses the monthly cost total
     if (!tbody) return;
     if (!agencyLoaded.studioCosts) {
       tbody.innerHTML = skeletonRowsHtml(5, 3);
