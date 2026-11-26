@@ -34893,3 +34893,22 @@ body.amn-on article.admin.active {
   .cwr-landing-visual.has-frames .cwr-landing-visual-fade { z-index: 1; }
   .cwr-landing-hero-grid:has(.cwr-landing-visual.has-frames) .cwr-landing-copy { position: relative; z-index: 2; }
 }
+
+/* Hero frames sizing (11/25): on desktop the frames fill the right side (up to 820px), sit
+   near the copy, and are capped by the screen height so they stay above the fold.
+   Phones get more space between the menu and the copy. */
+@media (min-width: 960px) {
+  .cwr-landing-visual.has-frames {
+    --hero-dev-w: min(820px, calc(100% - clamp(16px, 2vw, 72px) - clamp(12px, 1.5vw, 40px)), calc((100vh - 230px) * 1.45));
+    align-items: flex-start;
+  }
+  .cwr-landing-visual.has-frames .cwr-hero-devices {
+    width: var(--hero-dev-w); margin-left: clamp(16px, 2vw, 72px); margin-right: 0;
+  }
+  .cwr-landing-visual.has-frames .cwr-hero-caption {
+    width: var(--hero-dev-w); margin-left: clamp(16px, 2vw, 72px); box-sizing: border-box; padding-right: clamp(10px, 3%, 24px);
+  }
+}
+@media (max-width: 959px) {
+  .cwr-landing-hero-grid:has(.cwr-landing-visual.has-frames) { padding-top: calc(var(--cwr-landing-nav-offset, 68px) + 44px) !important; }
+}
