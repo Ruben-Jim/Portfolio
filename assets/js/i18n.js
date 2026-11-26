@@ -266,11 +266,11 @@
       'hire.package_hint_link':   'See package details',
 
       /* ── Onboarding banners ─────────────────────────────── */
-      'cookie.title':   'We use analytics cookies',
-      'cookie.desc':    'Google Analytics helps us understand how visitors use this site. No personal data is sold or shared with advertisers.',
-      'cookie.decline': 'Decline',
+      'cookie.title':   'Cookies & analytics',
+      'cookie.desc':    'With your OK, we use Google Analytics cookies to see which pages are visited and which buttons are used, so we can improve the site. No ads, and your data is never sold. If you reject, analytics stays off.',
+      'cookie.decline': 'Reject',
       'cookie.accept':  'Accept',
-      'cookie.learn':   'Learn more',
+      'cookie.learn':   'Cookie policy \u00b7 change your choice anytime',
 
       /* ── Contact ────────────────────────────────────────── */
       'contact.title':          'Contact',
@@ -548,11 +548,11 @@
       'hire.package_hint_link':   'Ver detalles de paquetes',
 
       /* ── Onboarding banners ─────────────────────────────── */
-      'cookie.title':   'Usamos cookies de an\u00e1lisis',
-      'cookie.desc':    'Google Analytics nos ayuda a entender c\u00f3mo los visitantes usan este sitio. No se venden ni comparten datos personales con anunciantes.',
+      'cookie.title':   'Cookies y anal\u00edtica',
+      'cookie.desc':    'Con tu permiso, usamos cookies de Google Analytics para ver qu\u00e9 p\u00e1ginas se visitan y qu\u00e9 botones se usan, y as\u00ed mejorar el sitio. Sin anuncios y nunca vendemos tus datos. Si rechazas, la anal\u00edtica queda apagada.',
       'cookie.decline': 'Rechazar',
       'cookie.accept':  'Aceptar',
-      'cookie.learn':   'M\u00e1s informaci\u00f3n',
+      'cookie.learn':   'Pol\u00edtica de cookies \u00b7 cambia tu elecci\u00f3n cuando quieras',
 
       /* ── Contact ────────────────────────────────────────── */
       'contact.title':          'Contacto',

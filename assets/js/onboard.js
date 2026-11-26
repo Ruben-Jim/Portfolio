@@ -10,6 +10,8 @@
  * Keys used in localStorage:
  *   cwr-lang              → 'en' | 'es'   (shared with i18n.js)
  *   cwr-cookies-choice    → 'accepted' | 'declined'
+ *
+ * window.cwrOpenCookieSettings() reopens the consent banner (Cookie policy page).
  */
 
 (function () {
@@ -88,12 +90,46 @@
 
   /* ── Step 2: Cookie choice ───────────────────────────────────── */
 
+  /** Turn GA off for this page and remove its first-party cookies (_ga, _ga_*). */
+  function revokeGoogleAnalytics() {
+    var id = window.CWR_GA_ID;
+    if (id) window['ga-disable-' + id] = true;
+    if (typeof window.gtag === 'function') {
+      window.gtag('consent', 'update', { analytics_storage: 'denied' });
+    }
+    var host = location.hostname;
+    var domains = ['', host, '.' + host, '.' + host.split('.').slice(-2).join('.')];
+    document.cookie.split(';').forEach(function (c) {
+      var name = c.split('=')[0].trim();
+      if (name !== '_ga' && name.indexOf('_ga_') !== 0) return;
+      domains.forEach(function (d) {
+        document.cookie = name + '=; Max-Age=0; path=/' + (d ? '; domain=' + d : '');
+      });
+    });
+  }
+
   window.cwrOnboardCookieChoice = function (accepted) {
+    var before = localStorage.getItem(COOKIE_KEY);
     localStorage.setItem(COOKIE_KEY, accepted ? 'accepted' : 'declined');
     hideBanner('cwr-cookie-banner');
     if (accepted) {
+      if (window.CWR_GA_ID) window['ga-disable-' + window.CWR_GA_ID] = false;
       loadGoogleAnalytics();
+    } else if (before === 'accepted') {
+      revokeGoogleAnalytics();
     }
+  };
+
+  /** Reopen the consent banner (Cookie policy → "Change cookie choice"). */
+  window.cwrOpenCookieSettings = function () {
+    var el = document.getElementById('cwr-cookie-banner');
+    if (!el) return;
+    if (typeof window.applyTranslations === 'function') {
+      window.applyTranslations(localStorage.getItem(LANG_KEY) || 'en');
+    }
+    showBanner('cwr-cookie-banner');
+    var btn = el.querySelector('.cwr-onboard-btn--accept');
+    if (btn) setTimeout(function () { btn.focus({ preventScroll: true }); }, 400);
   };
 
   /* ── Init on DOM ready ───────────────────────────────────────── */

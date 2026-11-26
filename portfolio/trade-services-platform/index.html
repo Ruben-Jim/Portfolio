@@ -111,7 +111,7 @@
     - custom css link
   -->
   <link rel="preload" as="image" href="/assets/images/hero/brand-r.webp" type="image/webp">
-  <link rel="stylesheet" href="/assets/css/style.css?v=hero5-20261125">
+  <link rel="stylesheet" href="/assets/css/style.css?v=consent2-20261125">
   <link rel="stylesheet" href="/assets/css/customer-chat.css?v=cc-20261123">
   <link rel="stylesheet" href="/assets/css/portfolio-markdown.css?v=guide-lang-20261109">
   <style id="admin-auth-critical">
@@ -6904,7 +6904,7 @@
         </nav>
         <header>
           <h2 class="h2 article-title">Cookie &amp; Analytics Notice</h2>
-          <p class="legal-updated">Last updated: September 16, 2026</p>
+          <p class="legal-updated">Last updated: November 25, 2026</p>
         </header>
         <section class="legal-prose">
           <p>This notice explains cookies and similar storage used on <strong>rubenjimenez.dev</strong>.</p>
@@ -6917,12 +6917,20 @@
           </ul>
           <p>These are not used to sell ads. Clearing site data for this domain resets them.</p>
           <h3>Analytics cookies (optional)</h3>
-          <p>If you tap <strong>Accept</strong> on the consent banner, we load <strong>Google Analytics 4</strong> (measurement ID <code>G-ZHKR19JXE1</code>) to see aggregate page views and referrals. If you tap <strong>Decline</strong>, we do not load that analytics script for your stored choice.</p>
+          <p>Analytics is off until you choose. If you tap <strong>Accept</strong> on the consent banner, we load <strong>Google Analytics 4</strong> (measurement ID <code>G-ZHKR19JXE1</code>). It sets first-party cookies (<code>_ga</code> and <code>_ga_*</code>, kept up to 2 years) and tells us, in aggregate:</p>
+          <ul>
+            <li>which pages and portfolio projects are viewed, and where visitors came from (search, social, a link);</li>
+            <li>which main buttons are used, such as <strong>Start a project</strong>, a package or a service inquiry;</li>
+            <li>general device, browser and approximate location (city or region) as reported by Google.</li>
+          </ul>
+          <p>We don’t use it for ads or remarketing, we don’t send it your name, email or messages, and we don’t sell the data. If you tap <strong>Reject</strong>, the Google Analytics script is never loaded.</p>
           <h3>Third-party embeds</h3>
           <p>Pages such as Contact may embed Google Maps, which can set cookies controlled by Google. See Google’s documentation for details.</p>
           <h3>How to change your mind</h3>
+          <p><button type="button" class="btn cwr-cookie-reopen" onclick="if(typeof cwrOpenCookieSettings==='function'){cwrOpenCookieSettings();}">Change cookie choice</button></p>
           <ul>
-            <li>Clear site data / cookies for rubenjimenez.dev in your browser, then reload — the consent banner can appear again.</li>
+            <li>Tap <strong>Change cookie choice</strong> above to bring the banner back. Rejecting after you accepted turns analytics off and removes its cookies.</li>
+            <li>Or clear site data for rubenjimenez.dev in your browser, then reload.</li>
             <li>Or email <a href="mailto:Ruben.Jim.co@gmail.com">Ruben.Jim.co@gmail.com</a> and we can point you to the simplest reset steps.</li>
           </ul>
           <h3>More detail</h3>
@@ -9117,7 +9125,7 @@
   <script src="/assets/js/media-url.js?v=storage-on-20261123"></script>
   <script src="/assets/js/portfolio-detail-shared.js?v=pages1-20261125"></script>
   <script src="/assets/js/email-templates-client.js?v=inquiry-lead-20261013"></script>
-  <script src="/assets/js/i18n.js?v=appcheck-20261122"></script>
+  <script src="/assets/js/i18n.js?v=consent2-20261125"></script>
   <!--
     - Admin-only scripts: loaded on /admin or after admin sign-in, never for
       public visitors (they were ~220 KB gz of the homepage). Order matches the
@@ -9204,22 +9212,21 @@
   </div>
 
   <!-- Step 2: Cookie consent (shown after language is picked, when no cookie choice is saved) -->
-  <div class="cwr-onboard-banner" id="cwr-cookie-banner" aria-live="polite" aria-label="Cookie consent" hidden>
+  <div class="cwr-onboard-banner cwr-cookie-consent" id="cwr-cookie-banner" role="region" aria-labelledby="cwr-cookie-title" aria-describedby="cwr-cookie-desc" hidden>
     <div class="cwr-onboard-inner">
-      <div class="cwr-onboard-icon">&#127850;</div>
       <div class="cwr-onboard-body">
-        <p class="cwr-onboard-heading" data-i18n="cookie.title">We use analytics cookies</p>
-        <p class="cwr-onboard-desc" data-i18n="cookie.desc">Google Analytics helps us understand how visitors use this site. No personal data is sold or shared with advertisers.</p>
-        <p class="cwr-onboard-learn"><a href="/cookies/" data-cookie-learn-more onclick="if(typeof switchToPage==='function'){switchToPage('cookies');}return false;" data-i18n="cookie.learn">Learn more</a></p>
+        <p class="cwr-onboard-heading" id="cwr-cookie-title" data-i18n="cookie.title">Cookies &amp; analytics</p>
+        <p class="cwr-onboard-desc" id="cwr-cookie-desc" data-i18n="cookie.desc">With your OK, we use Google Analytics cookies to see which pages are visited and which buttons are used, so we can improve the site. No ads, and your data is never sold. If you reject, analytics stays off.</p>
+        <p class="cwr-onboard-learn"><a href="/cookies/" data-cookie-learn-more onclick="if(typeof switchToPage==='function'){switchToPage('cookies');}return false;" data-i18n="cookie.learn">Cookie policy · change your choice anytime</a></p>
       </div>
       <div class="cwr-onboard-actions">
-        <button type="button" class="cwr-onboard-btn cwr-onboard-btn--decline" onclick="cwrOnboardCookieChoice(false)" data-i18n="cookie.decline">Decline</button>
+        <button type="button" class="cwr-onboard-btn cwr-onboard-btn--decline" onclick="cwrOnboardCookieChoice(false)" data-i18n="cookie.decline">Reject</button>
         <button type="button" class="cwr-onboard-btn cwr-onboard-btn--accept" onclick="cwrOnboardCookieChoice(true)" data-i18n="cookie.accept">Accept</button>
       </div>
     </div>
   </div>
 
-  <script src="/assets/js/onboard.js?v=1"></script>
+  <script src="/assets/js/onboard.js?v=consent2-20261125"></script>
 </body>
 
 </html>
