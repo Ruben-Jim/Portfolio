@@ -59,11 +59,21 @@ visitor that resets itself, server-only (no rule), $0. Blocked calls never reach
 
 ## Lite repo and Buy Me a Coffee links
 
-Both are switched off from the catalog until they exist (Nov 25: both returned 404):
-- `kits.<id>.liteUrl` empty → "Get Lite" shows "Lite: coming soon" and the "Try the free Lite version" hint hides.
+Courses Lite is public (`liteUrl` set Nov 25). The coffee page isn't up yet.
+- `kits.<id>.liteUrl` empty → "Get Lite" shows "Lite: coming soon", the Lite hint hides, and /kits shows only "See Pro".
 - `coffeeUrl` empty → the coffee button stays hidden.
 
-Fill in the URL in `assets/js/kits-catalog.js` once the repo is public / the page is up.
+## How visitors reach the store (Lite first)
+
+The flow is aimed at developers and leads with the free Lite version:
+- **Top menu** ("Kits", after Pricing, in every page's menu) and **footer** ("Template kits") → `/kits/`.
+- **Matching project page:** a kit's `project` (a portfolio slug, e.g. `courses-platform`) puts "Developer? Get this design as a template kit" in that project page's call-to-action box, linking to the kit page.
+- **/kits/** cards: "Try Lite free" (GitHub) first, then "See Pro".
+- **Kit page** hero: "Try Lite free on GitHub" first, then "Get Pro · $price". The closing section leads with Pro and offers Lite second.
+
+Every entry point on the main site carries `data-kits-entry` and stays hidden until the store is open
+(`CWR_KITS.isOpen()`), except for the signed-in admin (`window.syncKitsEntryPoints` in script.js; CSS rule
+`html:not(.kits-entry-on) [data-kits-entry]`). The main site loads `kits-catalog.js` for this.
 
 ## Admin only while in test mode
 
@@ -107,7 +117,8 @@ Do these in order; test mode keeps working until step 4.
 
 ## Adding a kit
 
-1. Add `<id>` to `kits` in `assets/js/kits-catalog.js`.
+1. Add `<id>` to `kits` in `assets/js/kits-catalog.js`, with `liteUrl` and, if a portfolio project shows the
+   same design, its slug in `project`.
 2. Add `<id>` to `KITS` in `functions/kit-store.js` (amount in cents + private repo), add the repo to the
    GitHub fine-grained token's repository list, deploy the two functions.
 3. Copy `kits/courses.html` → `kits/<id>.html`, change copy/screenshots, call `fillPrices('<id>')`.

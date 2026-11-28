@@ -26,8 +26,11 @@
         regularPrice: 49,
         priceNote: 'Launch price',
         page: '/kits/courses',
-        /* Public Lite repo. Empty = "Lite: coming soon" (set it once the repo is public). */
-        liteUrl: '',
+        /* Public Lite repo. Empty = "Lite: coming soon". */
+        liteUrl: 'https://github.com/Ruben-Jim/courses-kit-lite',
+        /* Portfolio project page (/portfolio/<slug>/) that shows this kit's design: it gets a
+           "Get this as a template kit" link. Empty = no link. */
+        project: 'courses-platform',
         image: '/assets/images/kits/courses/home.webp',
         includes: [
           'Full source code, all 23 screens',
@@ -42,6 +45,15 @@
      * the signed-in admin (assets/js/kits-gate.js) and createKitCheckout takes admin calls only.
      */
     isOpen: function () { return /^pk_live_/.test(this.stripePublishableKey || ''); },
+
+    /** The kit id whose `project` is this portfolio slug, or null. */
+    forProject: function (slug) {
+      if (!slug) return null;
+      for (var id in this.kits) {
+        if (Object.prototype.hasOwnProperty.call(this.kits, id) && this.kits[id].project === slug) return id;
+      }
+      return null;
+    },
 
     /** The kit for an id, or null. */
     get: function (id) {

@@ -1,0 +1,2 @@
+[   38661ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://firebasestorage.googleapis.com/v0/b/portfolio-2578e.firebasestorage.app/o/media%2Fvideo%2Fshowcase%2Frealtor-desktop.mp4?alt=media&v=5:1
+[   38661ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_CLOSED @ https://firebasestorage.googleapis.com/v0/b/portfolio-2578e.firebasestorage.app/o/media%2Fvideo%2Fshowcase%2Frealtor-mobile.mp4?alt=media&v=5:1

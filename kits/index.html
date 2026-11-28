@@ -54,6 +54,13 @@
     .price { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; font-weight: 700; font-size: 20px; }
     .price s { color: var(--muted); font-weight: 500; font-size: 14px; }
     .price small { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); }
+    .kit-actions { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .kbtn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: 999px;
+      border: 1px solid transparent; font-weight: 600; font-size: 14.5px; text-decoration: none; }
+    .kbtn-gold { background: var(--gold); color: #12100a; }
+    .kbtn-gold:hover { background: hsl(45, 60%, 64%); }
+    .kbtn-ghost { border-color: var(--line); background: rgba(255,255,255,.03); }
+    .kbtn-ghost:hover { background: rgba(255,255,255,.07); }
     .more { color: var(--muted); font-size: 14px; margin-top: 36px; }
     .more a { color: var(--gold); }
     footer { border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px; }
@@ -65,7 +72,7 @@
   </style>
   <!-- Test mode: admin only (kits-gate.js). These three load first so the page hides before it paints. -->
   <script src="/assets/js/config.js?v=reviews-tab-20261020"></script>
-  <script src="/assets/js/kits-catalog.js?v=gate1-20261125"></script>
+  <script src="/assets/js/kits-catalog.js?v=gate2-20261125"></script>
   <script src="/assets/js/kits-gate.js?v=gate1-20261125"></script>
 </head>
 <body>
@@ -80,7 +87,7 @@
     <h1>Finished app frontends you can make your own.</h1>
     <p class="lede">Each kit is a real Expo app for iOS, Android and web, built to the same standard as CodeWithRuben client work. Pay once, get the source on GitHub, rebrand it and ship.</p>
     <ul class="kits" data-kits></ul>
-    <p class="more">More kits are on the way. Need one built for your business instead? <a href="/contact">Get in touch</a>.</p>
+    <p class="more">Every kit has a free Lite version on GitHub, so you can check the code before you buy. More kits are on the way. Need one built for your business instead? <a href="/contact">Get in touch</a>.</p>
   </main>
   <footer>
     <div class="wrap">
@@ -123,6 +130,22 @@
         price.children[0].textContent = '$' + k.price;
         if (onSale) { price.children[1].textContent = '$' + k.regularPrice; price.children[2].textContent = k.priceNote || ''; }
         body.appendChild(h2); body.appendChild(p); body.appendChild(price);
+        // Lite first: try the free version, then upgrade to Pro.
+        var actions = document.createElement('div');
+        actions.className = 'kit-actions';
+        if (k.liteUrl) {
+          var lite = document.createElement('a');
+          lite.className = 'kbtn kbtn-gold';
+          lite.href = k.liteUrl; lite.target = '_blank'; lite.rel = 'noopener';
+          lite.textContent = 'Try Lite free';
+          actions.appendChild(lite);
+        }
+        var pro = document.createElement('a');
+        pro.className = 'kbtn ' + (k.liteUrl ? 'kbtn-ghost' : 'kbtn-gold');
+        pro.href = k.page;
+        pro.textContent = 'See Pro';
+        actions.appendChild(pro);
+        body.appendChild(actions);
         li.appendChild(body);
         list.appendChild(li);
       });

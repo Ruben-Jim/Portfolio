@@ -34974,3 +34974,15 @@ body.amn-on article.admin.active {
 @media (max-width: 959px) {
   .cwr-landing-hero-grid:has(.cwr-landing-visual.has-frames) { padding-top: calc(var(--cwr-landing-nav-offset, 68px) + 44px) !important; }
 }
+
+/* Kit store entry points (menu, footer, project pages): hidden until the store is open
+   (live key) or the admin is signed in. window.syncKitsEntryPoints sets the class. */
+html:not(.kits-entry-on) [data-kits-entry] { display: none !important; }
+.project-page-kit {
+  display: block; max-width: 46ch; margin: 18px auto 0; padding-top: 16px; text-align: center; line-height: 1.6;
+  border-top: 1px solid hsla(0, 0%, 100%, 0.08); color: var(--light-gray-70, hsla(0, 0%, 84%, 0.7)); font-size: var(--fs-7);
+}
+.project-page-kit ion-icon { display: inline-block; vertical-align: -3px; margin-right: 6px; color: var(--orange-yellow-crayola); font-size: 17px; }
+.project-page-kit > span, .project-page-kit a { display: inline !important; }
+.project-page-kit a { color: var(--orange-yellow-crayola); font-weight: var(--fw-500); text-underline-offset: 3px; }
+.project-page-kit[hidden] { display: none; }

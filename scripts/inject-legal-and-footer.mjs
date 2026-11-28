@@ -272,6 +272,8 @@ const footerBlock = `${FOOTER_START}
             <a href="/cookies/" onclick="if(typeof switchToPage==='function'){switchToPage('cookies');}return false;">Cookies</a>
             <span class="site-footer-sep" aria-hidden="true">·</span>
             <a href="/contact/" onclick="if(typeof switchToPage==='function'){switchToPage('contact');}return false;">Contact</a>
+            <span class="site-footer-sep" aria-hidden="true" data-kits-entry>·</span>
+            <a href="/kits/" data-kits-entry>Template kits</a>
           </nav>
           <nav class="site-footer-nav site-footer-nav--secondary" aria-label="More policies">
             <a href="/refund/" onclick="if(typeof switchToPage==='function'){switchToPage('refund');}return false;">Refunds</a>

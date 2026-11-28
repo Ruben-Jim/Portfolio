@@ -385,6 +385,18 @@ function isAdmin() {
   return !!(currentUser && currentUser.role === 'admin');
 }
 
+/**
+ * Ways into the kit store ([data-kits-entry]: menu, footer, project pages) show only when the
+ * store is open (live Stripe key, CWR_KITS.isOpen()) or to the signed-in admin while in test mode.
+ * CSS hides them until html has .kits-entry-on.
+ */
+window.syncKitsEntryPoints = function () {
+  var kits = window.CWR_KITS;
+  var on = !!(kits && (kits.isOpen() || isAdmin()));
+  document.documentElement.classList.toggle('kits-entry-on', on);
+};
+window.syncKitsEntryPoints();
+
 /** Used by agency-tools.js to gate RTDB listeners for Project Hub, maintenance, etc. */
 window.isAdminSession = function () {
   return isAdmin();
@@ -8869,6 +8881,21 @@ function initPortfolioProjectModal() {
     }
   }
 
+  /** "Get this design as a template kit" when a kit in the catalog names this project. */
+  function renderPageKitLink() {
+    var box = pageRoot.querySelector('[data-project-page-kit]');
+    if (!box) return;
+    var kits = window.CWR_KITS;
+    var id = kits && typeof kits.forProject === 'function' ? kits.forProject(portfolioPageSlug) : null;
+    var kit = id ? kits.get(id) : null;
+    box.hidden = !kit;
+    if (kit) {
+      box.setAttribute('data-kits-entry', '');
+      var a = box.querySelector('[data-project-page-kit-link]');
+      if (a) a.setAttribute('href', kit.page);
+    }
+  }
+
   window.__projectPageOnTab = function (record) {
     if (!pageRoot || pageRoot.hidden || !record) return;
     renderPagePhone(record);
@@ -8990,6 +9017,7 @@ function initPortfolioProjectModal() {
 
     var wasSlug = portfolioPageSlug;
     portfolioPageSlug = entry.slug;
+    renderPageKitLink();
     portfolioPendingSlug = '';
     if (!opts.noHistory) {
       var url = '/portfolio/' + entry.slug + '/';
@@ -12202,6 +12230,7 @@ window.addEventListener('load', function() {
 
   function syncAdminNavVisibility() {
     var isSignedInAdmin = isAdmin();
+    if (typeof window.syncKitsEntryPoints === 'function') window.syncKitsEntryPoints();
 
     document.querySelectorAll('[data-nav-link]').forEach(function (link) {
       if ((link.dataset.pageName || (link.textContent || '').trim()) !== 'admin' && (link.textContent || '').trim() !== 'Admin') return;
